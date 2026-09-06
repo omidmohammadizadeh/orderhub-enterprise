@@ -1457,7 +1457,22 @@ export class VoiceAiService {
 
   // ── System prompt ───────────────────────────────────────────────────────
 
-  private systemPrompt(ctx: VoiceContext, state?: VoiceState): string {
+  private systemPrompt(
+    ctx: VoiceContext,
+    state?: VoiceState,
+    opts: { menu?: "full" | "brief" } = {},
+  ): string {
+    // The speech-to-speech API caps instructions at 16,384 tokens. This shop's
+    // menu alone is 69,319 — 150 items with every option spelled out — so the
+    // session was rejected outright on every single call since the engine was
+    // built, and the caller sat through five seconds of silence before being
+    // handed to the chained engine. It was never a connection problem.
+    //
+    // The model does not need the menu inlined. find_item and add_item match
+    // the caller's own words against the whole thing server-side and hand back
+    // exactly one dish — which is both smaller and more accurate than asking a
+    // model to pick an id out of a wall of text.
+    if (opts.menu === "brief") return this.briefPrompt(ctx, state);
     const menu = ctx.items
       .map((it) => {
         const mods = it.modifierGroups
@@ -2536,8 +2551,54 @@ ${menu || "(no items available — apologise and transfer)"}`;
   // every guard they contain applies to it exactly as written.
 
   /** The system prompt, plus what a voice-only model needs told differently. */
+  /**
+   * The same instructions, without the menu in them.
+   *
+   * Every item, size and option of a 150-item menu is four times what the
+   * realtime API will accept in one instruction block. The tools already do
+   * the looking up, so the model is told what the shop sells in categories and
+   * pointed at find_item for anything specific.
+   */
+  private briefPrompt(ctx: VoiceContext, state?: VoiceState): string {
+    const categories = [...new Set(ctx.items.map((i: any) => i.categoryName).filter(Boolean))];
+    // Everything except the menu, which is the last block of the prompt.
+    // Keeping ONE source for the rules matters more than the line of stitching
+    // it costs: a second copy of them would drift within a week.
+    const full = this.systemPrompt(ctx, state, { menu: "full" });
+    const withoutMenu = full.split("\nMENU\n")[0] ?? full;
+    return `${withoutMenu}
+
+THE MENU IS NOT IN FRONT OF YOU
+- ${ctx.items.length} items across: ${categories.join(", ") || "one list"}.
+- You cannot see the dishes or the prices. Do NOT invent, guess or describe
+  one, and never say a price you have not been given.
+- To find anything, call find_item with the caller's OWN words — it searches
+  the whole menu and tells you exactly what matched, what it costs, and what
+  still has to be chosen about it. add_item does the same and adds it.
+- Asked what the shop does, name the categories above and offer to look
+  something up. Asked for something specific, look it up.`;
+  }
+
+  /**
+   * Instructions the realtime API will actually accept.
+   *
+   * Capped, and loudly, because the failure mode is invisible from the
+   * caller's end: the session is refused, nothing is spoken, and they sit in
+   * silence until the call is handed to the other engine. A shop with a bigger
+   * menu than the one that caught this must not rediscover it on a Friday
+   * night. Roughly four characters to a token, against a 16,384 limit.
+   */
+  private cappedForRealtime(text: string): string {
+    const limit = 14_000 * 4;
+    if (text.length <= limit) return text;
+    this.logger.error(
+      `realtime instructions too long (${text.length} chars) — trimming. Something has been added to the prompt that does not belong in it.`,
+    );
+    return `${text.slice(0, limit)}\n\n[instructions truncated]`;
+  }
+
   promptForRealtime(ctx: VoiceContext, state: VoiceState): string {
-    return `${this.systemPrompt(ctx, state)}
+    return this.cappedForRealtime(`${this.systemPrompt(ctx, state, { menu: "brief" })}
 
 YOU ARE SPEAKING, NOT WRITING
 - Everything you produce is heard aloud. Never say a bullet, a heading, an
@@ -2560,7 +2621,7 @@ NO MEANS NO
   what you already had; it is the caller correcting you, and proceeding anyway
   sends a driver to the wrong house.
 - If you did not catch whether it was a yes or a no, ask again. Guessing yes
-  is the one guess you can never make.`;
+  is the one guess you can never make.`);
   }
 
   /** Our tools, in the shape the realtime API wants them. */

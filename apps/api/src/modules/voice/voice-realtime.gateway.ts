@@ -384,6 +384,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       greet();
     };
     (brain as any).__retryFormat = retryWithNextFormat;
+    (brain as any).__configured = () => configured;
 
     // Never leave a caller on a line that cannot speak. If the session is not
     // accepted within a few seconds — a rejected format we ran out of guesses
@@ -870,6 +871,25 @@ export class VoiceRealtimeGateway implements OnModuleInit {
           return;
         }
         this.logger.error(`realtime model error on ${ccid.slice(-8)}: ${text.slice(0, 400)}`);
+
+        // A session we asked for and were refused is not going to be accepted
+        // by waiting. Until the readiness timer was the only thing watching
+        // this, a caller sat in silence for five more seconds after OpenAI had
+        // already said no — on a call where the greeting had not been spoken
+        // yet, so all they heard was a shop that did not answer its phone.
+        if (!(brain as any).__configured?.() && /session\./.test(String(err?.param ?? ""))) {
+          this.logger.error(
+            `realtime ${ccid.slice(-8)} session refused — handing to the standard engine now`,
+          );
+          clearTimeout((brain as any).__readyBy);
+          this.calls.delete(ccid);
+          try {
+            brain.close();
+          } catch {
+            /* already gone */
+          }
+          void this.fallbackToRelay(ccid, { alreadySpoke: false });
+        }
         return;
       }
 

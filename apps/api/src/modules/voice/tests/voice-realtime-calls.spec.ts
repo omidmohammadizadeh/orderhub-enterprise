@@ -440,3 +440,50 @@ describe("what a caller hears when the call changes engine", () => {
     expect(line).toMatch(/\d+ events in \/ \d+ out/);
   });
 });
+
+describe("a session OpenAI refuses outright", () => {
+  it("hands over at once instead of waiting out the clock", async () => {
+    // The real one, from 6 September:
+    //   "Instructions cannot be longer than 16384 tokens, you have provided
+    //    69319 tokens." — the whole menu was in the prompt.
+    // A refusal is not going to become an acceptance by waiting, and until
+    // this the readiness timer was the only thing watching: five more seconds
+    // of silence on a call where the greeting had not been spoken yet.
+    const sim = new VoiceRealtimeSim({ readyMs: 10_000 });
+    const moved = jest.spyOn(sim.gateway.telnyx, "startConversationRelay");
+    await sim.gateway.attach(sim.caller, "cc-refused");
+    sim.brain.emit("open");
+    await new Promise((r) => setTimeout(r, 5));
+
+    sim.brain.deliver({ type: "session.created" });
+    sim.brain.deliver({
+      type: "error",
+      error: {
+        type: "invalid_request_error",
+        code: "invalid_value",
+        message: "Instructions cannot be longer than 16384 tokens, you have provided 69319 tokens.",
+        param: "session.instructions",
+      },
+    });
+    await new Promise((r) => setTimeout(r, 20));
+
+    expect(moved).toHaveBeenCalled();
+    expect(sim.log.join(" ")).toMatch(/session refused — handing to the standard engine now/);
+  });
+
+  it("does not hand over for an error once the call is running", async () => {
+    // Mid-call errors are recoverable and are handled elsewhere. Throwing the
+    // caller onto another engine for one would lose the order they are in the
+    // middle of placing.
+    const sim = new VoiceRealtimeSim();
+    await sim.answer("cc-live");
+    const moved = jest.spyOn(sim.gateway.telnyx, "startConversationRelay");
+
+    sim.brain.deliver({
+      type: "error",
+      error: { type: "invalid_request_error", param: "session.instructions" },
+    });
+    await new Promise((r) => setTimeout(r, 20));
+    expect(moved).not.toHaveBeenCalled();
+  });
+});

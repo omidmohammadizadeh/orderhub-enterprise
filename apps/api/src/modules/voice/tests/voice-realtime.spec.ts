@@ -79,9 +79,28 @@ describe("the tools the speech-to-speech engine gets", () => {
 describe("what the speech-to-speech engine is told", () => {
   const prompt = () => svc().promptForRealtime(ctx(), state());
 
-  it("carries the whole ordinary prompt", () => {
-    // Everything the chained engine is told about this shop, it is told too.
-    expect(prompt()).toContain(svc().systemPrompt(ctx(), state()));
+  it("carries every rule the chained engine is given", () => {
+    // Everything about how to run a call, from ONE source — a second copy of
+    // these rules would drift within a week.
+    const full = svc().systemPrompt(ctx(), state());
+    expect(prompt()).toContain(full.split("\nMENU\n")[0]);
+  });
+
+  it("does NOT carry the menu, which is what stopped it ever starting", () => {
+    // "Instructions cannot be longer than 16384 tokens, you have provided
+    // 69319 tokens." One shop's menu is four times what the API accepts, so
+    // the session was refused on every call since this engine was written and
+    // the caller heard silence until it gave up. The tools do the looking up.
+    const p = prompt();
+    expect(p).toMatch(/THE MENU IS NOT IN FRONT OF YOU/);
+    expect(p).toMatch(/call find_item with the caller's OWN words/);
+    // The menu block itself is gone. ("Margherita" still appears — as an
+    // example of how to SAY a name with a size in it, which is a rule, not a
+    // dish.)
+    expect(p).not.toMatch(/\nMENU\n/);
+    expect(p).not.toContain("[gb]");
+    // Comfortably inside the limit, at roughly four characters to a token.
+    expect(p.length).toBeLessThan(14_000 * 4);
   });
 
   it("is told it is speaking, not writing", () => {
