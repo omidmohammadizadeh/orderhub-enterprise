@@ -10,6 +10,7 @@ import {
   type VoiceState,
   type VoiceTurn,
 } from "./voice-ai.service";
+import { keytermsFromMenu } from "./voice-keyterms";
 import {
   boardReference,
   digitChoice,
@@ -284,7 +285,58 @@ export class VoiceService {
       where: { id: row.locationId },
       select: { settings: true },
     });
-    return (loc?.settings as any)?.voiceEngine === "REALTIME" ? "REALTIME" : "RELAY";
+    const chosen = (loc?.settings as any)?.voiceEngine;
+    if (chosen === "REALTIME" || chosen === "RELAY") return chosen;
+
+    // Unset means speech-to-speech, where it is configured.
+    //
+    // The chained engine turns the caller into text before anything can think
+    // about it, and that text is where the orders were being lost — "twelve
+    // inch pepperoni, chips and garlic" arrived as "twelve inch pepperoni",
+    // with the rest of the sentence simply gone. Nothing downstream recovers
+    // words that were never written down, and no amount of menu matching
+    // helps: the matcher was never given them.
+    //
+    // Speech-to-speech has no transcript to lose them from. It costs more per
+    // minute and it has dropped its connection twice, which is why it is not
+    // trusted blindly — an unusable one falls straight through to the chained
+    // engine below, a dead socket mid-call hands the caller over, and both
+    // engines run the same tools, so neither can place an order that has not
+    // been read back.
+    return "REALTIME";
+  }
+
+  /** Did this shop pick an engine, or are they on whatever the default is? */
+  async engineWasChosen(callControlId: string): Promise<boolean> {
+    const row = await this.db().voiceCall.findFirst({
+      where: { providerCallId: callControlId },
+      orderBy: { createdAt: "desc" },
+      select: { locationId: true },
+    });
+    if (!row?.locationId) return false;
+    const loc = await this.db().location.findUnique({
+      where: { id: row.locationId },
+      select: { settings: true },
+    });
+    const chosen = (loc?.settings as any)?.voiceEngine;
+    return chosen === "REALTIME" || chosen === "RELAY";
+  }
+
+  /**
+   * The words this shop's menu is made of, for the transcriber to listen for.
+   *
+   * Empty on any failure. A relay that starts without keyterms is a slightly
+   * worse call; one that does not start at all is no call.
+   */
+  async keytermsFor(callControlId: string): Promise<string[]> {
+    try {
+      const loaded = await this.loadByControlId(callControlId);
+      if (!loaded) return [];
+      return keytermsFromMenu(loaded.ctx.items ?? []);
+    } catch (e: any) {
+      this.logger.warn(`keyterms could not be built: ${e?.message ?? e}`);
+      return [];
+    }
   }
 
   /**

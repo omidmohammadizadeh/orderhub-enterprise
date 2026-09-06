@@ -273,7 +273,7 @@ export class TelnyxCallControlService {
 
   async startConversationRelay(
     callControlId: string,
-    args: { url: string; greeting: string },
+    args: { url: string; greeting: string; keyterms?: string[] },
   ): Promise<boolean> {
     const base = {
       url: args.url,
@@ -320,10 +320,20 @@ export class TelnyxCallControlService {
     //
     // The top-level `language` is the voice we speak IN. This is the one that
     // says what to listen FOR, and they are different fields.
-    const engineConfig = {
+    const engineConfig: Record<string, unknown> = {
       transcription_model: this.relayModel,
       transcription_language: this.transcriptionLanguage,
     };
+
+    // And tell it what this shop sells.
+    //
+    // nova-3 takes keyterms and weights them while decoding. The words it gets
+    // wrong are not random — they are the ones its training data has barely
+    // seen, which on a takeaway line is most of the menu: "gyros" came back as
+    // "heroes", "souvlaki" as "civlaki", "kofte" as "coffee". Claude never saw
+    // the real word, and no matcher recovers a sound nobody wrote down.
+    const keyterms = (args.keyterms ?? []).filter(Boolean).slice(0, 100);
+    if (keyterms.length) engineConfig.keyterm = keyterms;
 
     // Tried first, then without. An unknown model must not stop a relay
     // starting, because a call on a worse transcriber still beats no call.
@@ -333,7 +343,33 @@ export class TelnyxCallControlService {
         transcription_engine_config: engineConfig,
       })
     ) {
+      if (keyterms.length) {
+        this.logger.log(
+          `Conversation Relay listening for ${keyterms.length} menu terms: ${keyterms
+            .slice(0, 12)
+            .join(", ")}${keyterms.length > 12 ? ", …" : ""}`,
+        );
+      }
       return true;
+    }
+
+    // Keyterms go first when something is refused. They are the newest thing
+    // here and the most likely to be spelled differently on this account, and
+    // they are the least of what this config is for — the model and the
+    // language have both already cost a live call to get right.
+    if (keyterms.length) {
+      const { keyterm: _dropped, ...withoutKeyterms } = engineConfig;
+      this.logger.warn(
+        `Conversation Relay rejected keyterms — retrying without them. Check whether this account's transcription engine takes "keyterm".`,
+      );
+      if (
+        await this.command(callControlId, "conversation_relay_start", {
+          ...base,
+          transcription_engine_config: withoutKeyterms,
+        })
+      ) {
+        return true;
+      }
     }
     this.logger.warn(
       `Conversation Relay rejected ${JSON.stringify(engineConfig)} — retrying with the model alone.`,

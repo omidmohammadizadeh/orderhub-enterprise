@@ -194,3 +194,68 @@ describe("startConversationRelay", () => {
     expect(s.command.mock.calls[0][2].transcription_engine).toBe("deepgram");
   });
 });
+
+describe("telling the transcriber what the shop sells", () => {
+  // The words nova-3 gets wrong are not random: they are the ones its training
+  // data has barely seen, which on a takeaway line is most of the menu.
+  // "gyros" came back as "heroes", "souvlaki" as "civlaki", "kofte" as
+  // "coffee". Claude never saw the real word.
+
+  it("sends the menu terms alongside the model and language", async () => {
+    const s = svc();
+    s.relayEngine = undefined;
+    await s.startConversationRelay("cc1", {
+      url: "wss://x",
+      greeting: "Hi",
+      keyterms: ["gyros", "souvlaki", "halloumi"],
+    });
+
+    expect(s.command.mock.calls[0][2].transcription_engine_config).toEqual({
+      transcription_model: expect.any(String),
+      transcription_language: "en",
+      keyterm: ["gyros", "souvlaki", "halloumi"],
+    });
+  });
+
+  it("never asks for more terms than the engine takes", async () => {
+    const s = svc();
+    s.relayEngine = undefined;
+    await s.startConversationRelay("cc1", {
+      url: "wss://x",
+      greeting: "Hi",
+      keyterms: Array.from({ length: 250 }, (_, i) => `term${i}`),
+    });
+    expect(s.command.mock.calls[0][2].transcription_engine_config.keyterm).toHaveLength(100);
+  });
+
+  it("drops the keyterms first when something is refused", async () => {
+    // They are the newest thing in this config and the most likely to be
+    // spelled differently on a given account. The model and the language have
+    // each already cost a live call to get right, so they are given up later.
+    const s = svc();
+    s.relayEngine = undefined;
+    s.command = jest.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+
+    expect(
+      await s.startConversationRelay("cc1", {
+        url: "wss://x",
+        greeting: "Hi",
+        keyterms: ["gyros"],
+      }),
+    ).toBe(true);
+
+    const second = s.command.mock.calls[1][2].transcription_engine_config;
+    expect(second.keyterm).toBeUndefined();
+    expect(second.transcription_model).toEqual(expect.any(String));
+    expect(second.transcription_language).toBe("en");
+  });
+
+  it("sends no keyterm field at all when there are none", async () => {
+    const s = svc();
+    s.relayEngine = undefined;
+    await s.startConversationRelay("cc1", { url: "wss://x", greeting: "Hi", keyterms: [] });
+    expect(
+      "keyterm" in s.command.mock.calls[0][2].transcription_engine_config,
+    ).toBe(false);
+  });
+});

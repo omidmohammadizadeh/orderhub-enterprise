@@ -363,3 +363,18 @@ it("does not let line noise talk over the greeting", async () => {
   expect(vad.prefix_padding_ms).toBeGreaterThanOrEqual(300);
   expect(vad.silence_duration_ms).toBeGreaterThanOrEqual(600);
 });
+
+it("hands over even when the menu cannot be read", () => {
+  // The handover runs when the caller is ALREADY in silence. Anything it
+  // depends on is another way for that silence to become permanent — so the
+  // menu terms the new transcriber would like are strictly optional.
+  const sim = new VoiceRealtimeSim();
+  return sim.answer().then(async () => {
+    const moved = jest.spyOn(sim.gateway.telnyx, "startConversationRelay");
+    sim.gateway.voice.keytermsFor = () => Promise.reject(new Error("database gone"));
+
+    sim.brain.close();
+    await new Promise((r) => setTimeout(r, 5));
+    expect(moved).toHaveBeenCalled();
+  });
+});

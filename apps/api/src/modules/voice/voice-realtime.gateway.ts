@@ -180,6 +180,10 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       const url = this.relayUrlFor(ccid);
       if (url && (await this.telnyx.startConversationRelay(ccid, {
         url,
+        // Never a reason to fail: this runs when the caller is already in
+        // silence, and a handover that dies looking up a menu is worse than a
+        // handover onto a transcriber that has not been told the menu.
+        keyterms: await this.keytermsQuietly(ccid),
         // The caller has already answered questions that this engine never
         // recorded — no tool ran, so nothing was written down. Pretending to
         // carry on would mean acting on an order we do not have. Admitting the
@@ -193,6 +197,15 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       this.logger.error(`call ${ccid.slice(-8)} could not be moved to the standard engine`);
     } catch (e: any) {
       this.logger.error(`fallback to the standard engine failed: ${e?.message ?? e}`);
+    }
+  }
+
+  /** The shop's menu terms, or nothing at all. Never throws. */
+  private async keytermsQuietly(ccid: string): Promise<string[]> {
+    try {
+      return (await this.voice.keytermsFor?.(ccid)) ?? [];
+    } catch {
+      return [];
     }
   }
 
