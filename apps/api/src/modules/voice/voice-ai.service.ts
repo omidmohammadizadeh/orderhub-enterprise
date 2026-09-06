@@ -51,6 +51,7 @@ import {
   splitSize,
   splitQuantity,
   matchOption,
+  matchWithQuantity,
 } from "./voice-menu-match";
 import { isCurrentlyOpen } from "../../common/opening-hours.util";
 import {
@@ -1979,8 +1980,12 @@ ${menu || "(no items available — apologise and transfer)"}`;
     const leftovers: string[] = [];
 
     for (const phrase of merged) {
-      const { quantity, rest } = splitQuantity(phrase);
-      const matches = matchItemGroups(rest || phrase, ctx.items, { limit: 3, floor: 0.3 });
+      // Which reading of a leading number the menu actually supports — four of
+      // something, or the dish called "Four Meat".
+      const { quantity, matches } = matchWithQuantity(phrase, ctx.items, {
+        limit: 3,
+        floor: 0.3,
+      });
       if (!isConfidentGroup(matches)) {
         // The one log line that makes a weak match diagnosable. Without it,
         // "it doesn't understand food" is a report nobody can act on: this

@@ -274,13 +274,26 @@ export function splitQuantity(said: string): { quantity: number; rest: string } 
   const first = tokens[0];
   if (!first) return { quantity: 1, rest: "" };
 
-  if (/^\d+$/.test(first)) {
+  // "12 inch pepperoni" is one pizza, not twelve.
+  //
+  // A leading number is nearly always how many they want — except when the
+  // next word is a unit, at which point it is the size of the thing. Read as a
+  // quantity it put TWELVE pepperoni pizzas in a cart, £93.60 of them, off a
+  // caller asking for one.
+  const unitNext =
+    /^(inch(es)?|in|cm|mm|ml|cl|l|ltr|litre|g|kg|oz|pt)$/i.test(tokens[1] ?? "") ||
+    // The quote in `12"` does not survive being reduced to letters and
+    // digits, so the raw string is where it has to be seen.
+    /^\s*\d+\s*(?:"|''|”|″)/.test(String(said ?? ""));
+
+  if (/^\d+$/.test(first) && !unitNext) {
     const n = Number(first);
     if (n >= 1 && n <= 50) return { quantity: n, rest: tokens.slice(1).join(" ") };
   }
 
   const fold = soundFold(first);
   for (const [word, n] of Object.entries(QUANTITY_WORDS)) {
+    if (unitNext) break;
     if (first === word || soundFold(word) === fold) {
       // "a" and "an" are articles as often as they are quantities, so they
       // only count when something follows them.
@@ -386,11 +399,37 @@ export function groupBySize<T extends { name: string }>(items: T[]): Array<ItemG
   return [...groups.values()];
 }
 
+/**
+ * How many of the caller's IDENTIFYING words this dish accounts for.
+ *
+ * Identifying means: not noise, and not the category. "Pizza" tells you
+ * nothing about which pizza — it is the word for the whole shelf — and a match
+ * carried entirely by it is not an answer to anything. That is the whole fault
+ * this exists for: the phonetic fold makes "pizza" and "PAZZA" the same word,
+ * so on a menu with a pizza called Pazza, every caller who said "pizza" scored
+ * it 1.00 and tied with the dish they had actually named.
+ */
+function specificHits(said: string, name: string, category?: string): number {
+  const catWords = new Set(
+    plain(category ?? "")
+      .split(" ")
+      .filter(Boolean)
+      .map(singular),
+  );
+  const words = plain(said)
+    .split(" ")
+    .filter((t) => t && !NOISE.has(t) && !catWords.has(singular(t)));
+  return words.filter((t) => scoreItem(t, name) > 0).length;
+}
+
 export interface GroupMatch<T> {
   group: ItemGroup<T>;
   score: number;
   /** They said the dish's name, and nothing else. */
   exact?: boolean;
+  /** How many of the caller's identifying words — not noise, not the
+   *  category — this dish accounts for. Breaks a tie on score. */
+  specific?: number;
 }
 
 /**
@@ -426,10 +465,19 @@ export function matchItemGroups<T extends { name: string; categoryName?: string 
       // Said the name, and nothing else. That is not a score to be compared
       // with other scores — it is an answer, and it must not be able to tie.
       const exact = plain(query) === plain(base);
-      return { group, score, exact };
+      // Which of the caller's words actually point at THIS dish, as opposed to
+      // the shelf it sits on. Level scores are broken with this, so that
+      // "a pepperoni pizza" is a pepperoni rather than a question.
+      const specific = specificHits(query, base, group.variants[0]?.categoryName);
+      return { group, score, exact, specific };
     })
     .filter((m) => m.score >= floor)
-    .sort((a, b) => (a.exact === b.exact ? b.score - a.score : a.exact ? -1 : 1))
+    .sort(
+      (a, b) =>
+        (a.exact === b.exact ? 0 : a.exact ? -1 : 1) ||
+        b.score - a.score ||
+        b.specific - a.specific,
+    )
     .slice(0, opts.limit ?? 5);
 }
 
@@ -446,7 +494,12 @@ export function isConfidentGroup<T>(matches: Array<GroupMatch<T>>): boolean {
   // was 0.17 and the bar was 0.20. A menu with a "Monster" and a "Furry"
   // version of everything makes that gap permanent.
   if (best.score >= 1 && (!second || second.score < best.score)) return true;
-  return !second || best.score - second.score >= 0.2;
+  if (!second || best.score - second.score >= 0.2) return true;
+  // Level on score, but one of them is picked out by the words the caller
+  // used and the other is only there because they said the category out loud.
+  // That is not a question worth asking, and asking it is exactly what "it
+  // doesn't understand" sounds like from the other end of a phone.
+  return (best.specific ?? 0) > (second.specific ?? 0);
 }
 
 /**
@@ -566,4 +619,42 @@ export function matchOption<T extends { name: string }>(
     return null;
   }
   return { item: best.item, score: best.score };
+}
+
+/**
+ * What they asked for, and how many, deciding which of those the leading
+ * number was.
+ *
+ * "Four Meat" is a pizza. Reading its first word as a quantity left "meat",
+ * which fits Small Meat, Meatballs and Meaty equally, and put FOUR of whichever
+ * won the coin toss into the cart. "Two cokes" is the same shape of phrase and
+ * genuinely means two — the difference is not in the grammar, it is in whether
+ * the menu has something by that name.
+ *
+ * So both readings are tried against the actual menu and the better one wins,
+ * with the quantity reading keeping ties: "two cokes" is far more often two
+ * cokes than a dish called Two Cokes.
+ */
+export function matchWithQuantity<T extends { name: string; categoryName?: string }>(
+  phrase: string,
+  items: T[],
+  opts: { limit?: number; floor?: number } = {},
+): { quantity: number; matches: Array<GroupMatch<T>> } {
+  const { quantity, rest } = splitQuantity(phrase);
+  const asSaid = matchItemGroups(phrase, items, opts);
+  if (quantity === 1 || !rest) return { quantity: 1, matches: asSaid };
+
+  const stripped = matchItemGroups(rest, items, opts);
+  const whole = asSaid[0];
+  const part = stripped[0];
+  const wholeWins =
+    isConfidentGroup(asSaid) &&
+    (!isConfidentGroup(stripped) ||
+      (whole?.score ?? 0) > (part?.score ?? 0) ||
+      ((whole?.score ?? 0) === (part?.score ?? 0) &&
+        (whole?.specific ?? 0) > (part?.specific ?? 0)));
+
+  return wholeWins
+    ? { quantity: 1, matches: asSaid }
+    : { quantity, matches: stripped };
 }
