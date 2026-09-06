@@ -534,6 +534,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
           return;
         }
         handled.add(callId);
+        this.logger.log(`realtime ${ccid.slice(-8)} calling ${name}`);
         let args: any = {};
         try {
           args = JSON.parse(event.arguments ?? item.arguments ?? "{}");

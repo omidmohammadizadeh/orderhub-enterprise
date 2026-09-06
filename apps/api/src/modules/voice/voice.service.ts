@@ -60,6 +60,10 @@ const STATUS_FIELDS = {
 @Injectable()
 export class VoiceService {
   private readonly logger = new Logger(VoiceService.name);
+  /** callId → the shop's menu context, resolved once for the whole call.
+   *  Lazily created: the tests build this service with Object.create, which
+   *  runs no field initialisers. */
+  private ctxCache?: Map<string, { ctx: any; at: number }>;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -322,7 +326,11 @@ export class VoiceService {
     if (!loaded) return { result: "This call has ended." };
     const { call, ctx, state } = loaded;
 
+    // Timed at both ends. A tool that hangs used to look exactly like a model
+    // that never called one — there was no line until it returned.
+    const startedAt = Date.now();
     const out = await this.ai.runToolForRealtime(name, input, ctx, state, call.fromNumber);
+    this.logger.log(`realtime tool ${name} took ${Date.now() - startedAt}ms`);
     await this.db().voiceCall.update({
       where: { id: call.id },
       data: {
@@ -1033,9 +1041,40 @@ export class VoiceService {
     // written inside the turn itself and is what actually stops a second
     // hand-over going out for the same caller.
     if (state.stage === "DONE") return null;
-    const ctx = await this.contexts.resolve(call.toNumber ?? "");
+    const ctx = await this.contextFor(callId, call.toNumber ?? "");
     if (!ctx) return null;
     return { call, ctx, state };
+  }
+
+  /**
+   * The shop's menu, resolved once per call rather than once per turn.
+   *
+   * resolve() reads the whole live menu — every category, item, size and
+   * modifier group, plus brands and delivery zones. On the chained engine that
+   * happens once a turn and is hidden behind the model's own thinking time. On
+   * the speech-to-speech engine it happens before EVERY TOOL CALL, so asking
+   * "what's the delivery address?" cost a full menu read and then a geocoder
+   * lookup before the caller heard anything back. That is the "takes ages".
+   *
+   * Per CALL, not per number: a menu that changes mid-order should not change
+   * what the caller is being read back, and a new call always starts fresh.
+   */
+  private async contextFor(callId: string, dialled: string): Promise<any> {
+    const cache = (this.ctxCache ??= new Map());
+    const hit = cache.get(callId);
+    if (hit) return hit.ctx;
+
+    const ctx = await this.contexts.resolve(dialled);
+    if (!ctx) return null;
+
+    // Evict anything from a call that can no longer be in progress. Cheap, and
+    // it means this never needs a hangup hook to stay small.
+    const cutoff = Date.now() - 30 * 60 * 1000;
+    for (const [key, value] of cache) {
+      if (value.at < cutoff) cache.delete(key);
+    }
+    cache.set(callId, { ctx, at: Date.now() });
+    return ctx;
   }
 
   private async save(callId: string, state: VoiceState): Promise<void> {

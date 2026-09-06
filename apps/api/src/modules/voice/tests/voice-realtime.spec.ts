@@ -349,3 +349,52 @@ describe("asking for a reply while one is still being spoken", () => {
     expect(said.join(" ")).toContain('said "Is that right?"');
   });
 });
+
+describe("the menu is read once a call, not once a tool", () => {
+  // From a live call: "what's the delivery address?" came back in 440ms, then
+  // the address itself produced nothing for as long as the caller waited.
+  // Every tool call re-resolved the WHOLE menu — categories, items, sizes,
+  // modifier groups, brands, zones — before the tool even started, and then
+  // the geocoder ran. On the chained engine that read hides behind the model's
+  // own thinking time; here it is dead air.
+  const { VoiceService } = require("../voice.service");
+
+  const svc = (resolve: jest.Mock) => {
+    const s: any = Object.create(VoiceService.prototype);
+    s.logger = { log() {}, warn() {}, error() {} };
+    s.contexts = { resolve };
+    return s;
+  };
+
+  it("resolves the menu once for a whole call", async () => {
+    const resolve = jest.fn(async () => ({ items: [] }));
+    const s = svc(resolve);
+
+    await s.contextFor("call-1", "+441912345678");
+    await s.contextFor("call-1", "+441912345678");
+    await s.contextFor("call-1", "+441912345678");
+
+    expect(resolve).toHaveBeenCalledTimes(1);
+  });
+
+  it("starts fresh for the next caller", async () => {
+    // A menu edited between calls must be picked up; one edited mid-order
+    // must not change what is being read back.
+    const resolve = jest.fn(async () => ({ items: [] }));
+    const s = svc(resolve);
+
+    await s.contextFor("call-1", "+441912345678");
+    await s.contextFor("call-2", "+441912345678");
+
+    expect(resolve).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not cache a shop it could not resolve", async () => {
+    const resolve = jest.fn(async () => null);
+    const s = svc(resolve);
+
+    expect(await s.contextFor("call-1", "+441912345678")).toBeNull();
+    await s.contextFor("call-1", "+441912345678");
+    expect(resolve).toHaveBeenCalledTimes(2);
+  });
+});
