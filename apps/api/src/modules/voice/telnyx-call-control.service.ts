@@ -32,8 +32,9 @@ export class TelnyxCallControlService {
   /** The transcription model the relay should use. The default is not good
    *  enough for a phone line, and we had never asked for anything else. */
   private readonly relayModel: string;
+  private readonly keytermsEnabled: boolean;
   /** What to listen FOR, as opposed to the voice we speak in. */
-  private readonly transcriptionLanguage: string;
+  private readonly relayLanguage: string;
 
   constructor(private readonly config: ConfigService) {
     this.apiKey = this.config.get<string>("TELNYX_API_KEY") || undefined;
@@ -65,10 +66,20 @@ export class TelnyxCallControlService {
     // Deliberately has no default. See startConversationRelay.
     this.relayEngine =
       this.config.get<string>("VOICE_RELAY_TRANSCRIPTION_ENGINE") || undefined;
-    this.transcriptionLanguage =
-      this.config.get<string>("VOICE_RELAY_TRANSCRIPTION_LANGUAGE") || "en";
+    // Kept only so an operator who set the old variable is not silently
+    // ignored: it now feeds the field that actually exists.
+    this.relayLanguage =
+      this.config.get<string>("VOICE_RELAY_LANGUAGE") ||
+      this.config.get<string>("VOICE_RELAY_TRANSCRIPTION_LANGUAGE") ||
+      this.language ||
+      "en-GB";
     this.relayModel =
       this.config.get<string>("VOICE_RELAY_TRANSCRIPTION_MODEL") || "deepgram/nova-3";
+    // Off by default. See startConversationRelay for the call that turned it
+    // off — a pizzeria's own menu words appear to have talked the transcriber
+    // into Italian.
+    this.keytermsEnabled =
+      String(this.config.get<string>("VOICE_RELAY_KEYTERMS") ?? "").toLowerCase() === "true";
   }
 
   configured(): boolean {
@@ -153,7 +164,11 @@ export class TelnyxCallControlService {
     return this.command(callControlId, "speak", {
       payload: text,
       voice: this.voice,
-      language: this.language,
+      // Both the voice's language and the transcriber's. Their example uses
+      // "en-US"; ours is British because the shops are, and the voice is named
+      // explicitly above so the accent comes from that either way. If a
+      // transcriber ever refuses en-GB, this is the one knob to turn.
+      language: this.relayLanguage,
     });
   }
 
@@ -279,7 +294,11 @@ export class TelnyxCallControlService {
       url: args.url,
       greeting: args.greeting,
       voice: this.voice,
-      language: this.language,
+      // Both the voice's language and the transcriber's. Their example uses
+      // "en-US"; ours is British because the shops are, and the voice is named
+      // explicitly above so the accent comes from that either way. If a
+      // transcriber ever refuses en-GB, this is the one knob to turn.
+      language: this.relayLanguage,
       dtmf_detection: true,
       interruptible: true,
       // Let the caller talk over the menu. A regular who knows what they want
@@ -295,10 +314,17 @@ export class TelnyxCallControlService {
       // arrived. Silence, from their side of it.
       //
       // This is the THIRD time a value valid for one Telnyx command has been
-      // sent to another that names the same thing differently. So the default
-      // is now to send nothing and let Telnyx pick, and an override has to be
-      // set deliberately, by someone who has checked.
-      ...(this.relayEngine ? { transcription_engine: this.relayEngine } : {}),
+      // sent to another that names the same thing differently. So the value is
+      // now the one their own Conversation Relay example uses — "Deepgram",
+      // spelled that way — rather than a guess or nothing at all.
+      //
+      // Sending nothing was not neutral. Their example sends the engine and
+      // the model together, and we were sending a deepgram/nova-3 model with
+      // no engine named: whatever Telnyx picked in that case, it was free to
+      // detect the language per utterance, and on 6 September a caller saying
+      // "12 inch pepperoni" to a pizzeria came back as "Tu hai vinto i
+      // peperoni?" — Italian, in a Gateshead accent, twice in one call.
+      transcription_engine: this.relayEngine ?? "Deepgram",
     };
 
     // Ask for a named transcription model rather than taking the default.
@@ -309,30 +335,44 @@ export class TelnyxCallControlService {
     // whatever Telnyx picks, and we have never actually asked for a good one —
     // nova-3 is their current best for telephone audio.
     //
-    // And PIN THE LANGUAGE while we are at it.
+    // The language is pinned by the TOP-LEVEL `language` field in `base`, and
+    // only by that.
     //
-    // nova-3 can detect language per utterance, and left to itself on 8kHz
-    // phone audio it does. A real call came back "ग्वालिक नहीं हूं." and then
-    // "Goli que meio." from a caller ordering in English in Gateshead — Hindi
-    // and something Portuguese-shaped, from a man asking for chips. Nothing
-    // downstream can recover from that, and the model was being handed it as
-    // though it were what the caller said.
-    //
-    // The top-level `language` is the voice we speak IN. This is the one that
-    // says what to listen FOR, and they are different fields.
+    // `transcription_language` was invented here. It is not a field
+    // Conversation Relay has — their config takes `transcription_model`, and
+    // the language for the whole relay is the top-level one — so every call
+    // this line has ever taken has been sending a key that was silently
+    // dropped, while a comment in this file explained confidently why it was
+    // the important one. The transcriber has been detecting the language per
+    // utterance the entire time, which is how English became Hindi in August
+    // and Italian in September.
     const engineConfig: Record<string, unknown> = {
       transcription_model: this.relayModel,
-      transcription_language: this.transcriptionLanguage,
     };
 
-    // And tell it what this shop sells.
+    // Menu keyterms: OFF unless deliberately switched on.
     //
-    // nova-3 takes keyterms and weights them while decoding. The words it gets
-    // wrong are not random — they are the ones its training data has barely
-    // seen, which on a takeaway line is most of the menu: "gyros" came back as
-    // "heroes", "souvlaki" as "civlaki", "kofte" as "coffee". Claude never saw
-    // the real word, and no matcher recovers a sound nobody wrote down.
-    const keyterms = (args.keyterms ?? []).filter(Boolean).slice(0, 100);
+    // The idea is sound — nova-3 weights keyterms while decoding, and the
+    // words it gets wrong are exactly the ones a takeaway menu is made of.
+    // What happened in practice, within an hour of turning it on, is that a
+    // caller saying "12 inch pepperoni" to a pizzeria came back as
+    //
+    //     "Tu hai vinto i peperoni?"
+    //     "Yep. C'è per unifizza."
+    //
+    // Italian. The same phrase transcribed as English an hour earlier. This
+    // menu's hundred commonest words are capricciosa, milanese, sorrento,
+    // bolognese, diavola, calzone, quindici, pescatore — and handing that list
+    // to a multilingual model as the things to listen for appears to be a
+    // vote for which language it is hearing, whatever transcription_language
+    // says.
+    //
+    // I cannot prove that from one call. But a transcriber that answers in
+    // Italian is worse than one that mishears "souvlaki", the correlation is
+    // exact, and the shop is live. It stays here, behind a switch, for
+    // whoever wants to test it against a menu that is not half Italian.
+    const keyterms =
+      this.keytermsEnabled === true ? (args.keyterms ?? []).filter(Boolean).slice(0, 100) : [];
     if (keyterms.length) engineConfig.keyterm = keyterms;
 
     // Tried first, then without. An unknown model must not stop a relay

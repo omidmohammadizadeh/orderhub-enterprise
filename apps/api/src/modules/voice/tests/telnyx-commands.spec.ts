@@ -17,7 +17,8 @@ const svc = (env: Record<string, string> = {}) => {
   s.sttModel = env.TELNYX_TRANSCRIPTION_MODEL ?? "openai/whisper-large-v3-turbo";
   s.ended = new Set();
   s.relayModel = env.VOICE_RELAY_TRANSCRIPTION_MODEL ?? "deepgram/nova-3";
-  s.transcriptionLanguage = env.VOICE_RELAY_TRANSCRIPTION_LANGUAGE ?? "en";
+  s.relayLanguage = env.VOICE_RELAY_LANGUAGE ?? s.language ?? "en-GB";
+  s.keytermsEnabled = env.VOICE_RELAY_KEYTERMS === "true";
   s.command = jest.fn().mockResolvedValue(true);
   return s;
 };
@@ -124,19 +125,24 @@ describe("startConversationRelay", () => {
     );
   });
 
-  it("pins the language to listen FOR, not just the voice to speak in", async () => {
-    // A caller ordering in English in Gateshead was transcribed as
-    // "ग्वालिक नहीं हूं." and then "Goli que meio." — nova-3 detecting a
-    // language per utterance and getting it wrong on 8kHz phone audio. The
-    // top-level `language` is the TTS voice; this is a different field.
+  it("pins the language with the field Conversation Relay actually has", async () => {
+    // `transcription_language` was invented here, and this test used to lock
+    // it in. Conversation Relay has no such field — the language for the whole
+    // relay is the top-level one — so every call ever taken on this line sent
+    // a key that was silently dropped, while the transcriber detected the
+    // language per utterance. That is how a caller ordering in English in
+    // Gateshead was transcribed as "ग्वालिक नहीं हूं." in August and "Tu hai
+    // vinto i peperoni?" in September.
     const s = svc();
-    s.relayEngine = undefined;
     s.command = jest.fn().mockResolvedValue(true);
     await s.startConversationRelay("cc1", { url: "wss://x", greeting: "Hi" });
-    expect(s.command.mock.calls[0][2].transcription_engine_config).toEqual({
+
+    const body = s.command.mock.calls[0][2];
+    expect(body.language).toBe("en-GB");
+    expect(body.transcription_engine_config).toEqual({
       transcription_model: expect.any(String),
-      transcription_language: "en",
     });
+    expect(body.transcription_engine_config.transcription_language).toBeUndefined();
   });
 
   it("drops the language before it drops the model, and the model before the call", async () => {
@@ -159,18 +165,19 @@ describe("startConversationRelay", () => {
     expect(s.logger.error).toHaveBeenCalled();
   });
 
-  it("does NOT send transcription_start's engine alias", async () => {
-    // "B" is the legacy alias for transcription_start. Conversation Relay
-    // names its engines deepgram / google / telnyx, so "B" means nothing —
-    // and sending it started a relay that spoke perfectly and never
-    // transcribed a word. The caller pressed 1, heard the next question,
-    // answered it, and no prompt frame ever arrived.
+  it("names the engine the way Conversation Relay names it", async () => {
+    // "B" is transcription_start's alias and means nothing here — sending it
+    // started a relay that spoke perfectly and never transcribed a word.
+    // Sending NOTHING was not the fix it looked like either: their own example
+    // passes the engine and the model together, and a deepgram model with no
+    // engine named left something else free to pick the language per
+    // utterance.
     const s = svc({ TELNYX_TRANSCRIPTION_ENGINE: "B" });
     s.relayEngine = undefined;
     await s.startConversationRelay("cc1", { url: "wss://x", greeting: "Hello" });
 
     const body = s.command.mock.calls[0][2];
-    expect(body.transcription_engine).toBeUndefined();
+    expect(body.transcription_engine).toBe("Deepgram");
     expect(body.url).toBe("wss://x");
     expect(body.greeting).toBe("Hello");
   });
@@ -201,25 +208,28 @@ describe("telling the transcriber what the shop sells", () => {
   // "gyros" came back as "heroes", "souvlaki" as "civlaki", "kofte" as
   // "coffee". Claude never saw the real word.
 
-  it("sends the menu terms alongside the model and language", async () => {
+  it("sends no keyterms unless somebody has deliberately switched them on", async () => {
+    // The idea is sound and the evidence against it is one call, but it is a
+    // bad call: within an hour of turning keyterms on, a caller saying "12
+    // inch pepperoni" to a pizzeria was transcribed "Tu hai vinto i
+    // peperoni?". This menu's hundred commonest words are capricciosa,
+    // milanese, sorrento, bolognese, diavola, calzone — handing that list to a
+    // multilingual model as the things to listen for is a vote for which
+    // language it is hearing. Off until it can be tested somewhere that is not
+    // a live shop.
     const s = svc();
-    s.relayEngine = undefined;
+    s.keytermsEnabled = false;
     await s.startConversationRelay("cc1", {
       url: "wss://x",
       greeting: "Hi",
-      keyterms: ["gyros", "souvlaki", "halloumi"],
+      keyterms: ["gyros", "souvlaki"],
     });
-
-    expect(s.command.mock.calls[0][2].transcription_engine_config).toEqual({
-      transcription_model: expect.any(String),
-      transcription_language: "en",
-      keyterm: ["gyros", "souvlaki", "halloumi"],
-    });
+    expect("keyterm" in s.command.mock.calls[0][2].transcription_engine_config).toBe(false);
   });
 
-  it("never asks for more terms than the engine takes", async () => {
+  it("sends them, capped, for whoever switches them on", async () => {
     const s = svc();
-    s.relayEngine = undefined;
+    s.keytermsEnabled = true;
     await s.startConversationRelay("cc1", {
       url: "wss://x",
       greeting: "Hi",
@@ -229,11 +239,8 @@ describe("telling the transcriber what the shop sells", () => {
   });
 
   it("drops the keyterms first when something is refused", async () => {
-    // They are the newest thing in this config and the most likely to be
-    // spelled differently on a given account. The model and the language have
-    // each already cost a live call to get right, so they are given up later.
     const s = svc();
-    s.relayEngine = undefined;
+    s.keytermsEnabled = true;
     s.command = jest.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true);
 
     expect(
@@ -247,15 +254,5 @@ describe("telling the transcriber what the shop sells", () => {
     const second = s.command.mock.calls[1][2].transcription_engine_config;
     expect(second.keyterm).toBeUndefined();
     expect(second.transcription_model).toEqual(expect.any(String));
-    expect(second.transcription_language).toBe("en");
-  });
-
-  it("sends no keyterm field at all when there are none", async () => {
-    const s = svc();
-    s.relayEngine = undefined;
-    await s.startConversationRelay("cc1", { url: "wss://x", greeting: "Hi", keyterms: [] });
-    expect(
-      "keyterm" in s.command.mock.calls[0][2].transcription_engine_config,
-    ).toBe(false);
   });
 });
