@@ -51,6 +51,7 @@ export interface RealtimeSimOptions {
   /** How long a caller may wait before the line does something about it. */
   quietMs?: number;
   pingMs?: number;
+  readyMs?: number;
 }
 
 export class VoiceRealtimeSim {
@@ -79,6 +80,7 @@ export class VoiceRealtimeSim {
       VOICE_RELAY_SECRET: "shh",
       ...(opts.quietMs ? { VOICE_REALTIME_QUIET_MS: String(opts.quietMs) } : {}),
       ...(opts.pingMs ? { VOICE_REALTIME_PING_MS: String(opts.pingMs) } : {}),
+      ...(opts.readyMs ? { VOICE_REALTIME_READY_MS: String(opts.readyMs) } : {}),
     };
     g.config = { get: (k: string) => env[k] };
     g.connectToModel = () => this.brain;

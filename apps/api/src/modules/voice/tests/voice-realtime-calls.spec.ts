@@ -378,3 +378,65 @@ it("hands over even when the menu cannot be read", () => {
     expect(moved).toHaveBeenCalled();
   });
 });
+
+describe("what a caller hears when the call changes engine", () => {
+  // Reported from a live call: "it is not saying the shop name and it says
+  // sorry ... it looks like it switched to the other mode automatically". All
+  // three observations were correct, and the apology was the bug.
+
+  it("greets a caller who has not heard anything yet", async () => {
+    // The session never became ready, so this caller has heard NOTHING. They
+    // are being greeted a second late, not apologised to — and they still need
+    // the shop's name and the menu, which the apology skipped entirely.
+    const sim = new VoiceRealtimeSim({
+      greeting: "Hello and welcome to Pizza Uno. To place an order, press 1.",
+    });
+    const started = jest.spyOn(sim.gateway.telnyx, "startConversationRelay");
+    await sim.gateway.attach(sim.caller, "cc-late");
+    // ...and the model never says a word.
+    await new Promise((r) => setTimeout(r, 60));
+    await sim.gateway.fallbackToRelay("cc-late", { alreadySpoke: false });
+
+    const greeting = started.mock.calls.at(-1)![1].greeting;
+    expect(greeting).toContain("Pizza Uno");
+    expect(greeting).toContain("press 1");
+    expect(greeting).not.toMatch(/sorry/i);
+  });
+
+  it("admits the restart to a caller who was mid-conversation", async () => {
+    // This one HAS been talking to something that has now gone, and answered
+    // questions that were never written down. Pretending to carry on would
+    // mean acting on an order we do not have.
+    const sim = new VoiceRealtimeSim();
+    const started = jest.spyOn(sim.gateway.telnyx, "startConversationRelay");
+    await sim.answer("cc-mid");
+    await sim.gateway.fallbackToRelay("cc-mid", { alreadySpoke: true });
+
+    const greeting = started.mock.calls.at(-1)![1].greeting;
+    expect(greeting).toMatch(/Sorry about that/);
+    expect(greeting).toMatch(/collection or delivery/);
+  });
+
+  it("still greets when the shop's own greeting cannot be read", async () => {
+    const sim = new VoiceRealtimeSim();
+    const started = jest.spyOn(sim.gateway.telnyx, "startConversationRelay");
+    sim.gateway.voice.realtimeSession = () => Promise.reject(new Error("no database"));
+    await sim.gateway.fallbackToRelay("cc-x", { alreadySpoke: false });
+
+    expect(started.mock.calls.at(-1)![1].greeting).toBeTruthy();
+  });
+
+  it("says what the model socket did before it gave up", async () => {
+    // A socket that never opened, one that opened and heard nothing back, and
+    // a session refused in a way we missed all look identical in a log that
+    // only says the call was handed over.
+    const sim = new VoiceRealtimeSim({ readyMs: 40 });
+    await sim.gateway.attach(sim.caller, "cc-quiet");
+    sim.brain.emit("open");
+    await new Promise((r) => setTimeout(r, 90));
+
+    const line = sim.log.find((l) => l.includes("never became ready"))!;
+    expect(line).toMatch(/socket \d/);
+    expect(line).toMatch(/\d+ events in \/ \d+ out/);
+  });
+});

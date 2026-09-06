@@ -174,7 +174,10 @@ export class VoiceRealtimeGateway implements OnModuleInit {
    * caller is mid-call and hearing nothing, so this is not the moment to be
    * proud about which engine was selected.
    */
-  private async fallbackToRelay(ccid: string): Promise<void> {
+  private async fallbackToRelay(
+    ccid: string,
+    opts: { alreadySpoke?: boolean } = {},
+  ): Promise<void> {
     try {
       await this.telnyx.stopMediaStream(ccid);
       const url = this.relayUrlFor(ccid);
@@ -184,12 +187,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // silence, and a handover that dies looking up a menu is worse than a
         // handover onto a transcriber that has not been told the menu.
         keyterms: await this.keytermsQuietly(ccid),
-        // The caller has already answered questions that this engine never
-        // recorded — no tool ran, so nothing was written down. Pretending to
-        // carry on would mean acting on an order we do not have. Admitting the
-        // restart is worse to hear and better than a wrong order.
-        greeting:
-          "Sorry about that, I lost you for a moment — let's take it from the top. Is this collection or delivery?",
+        greeting: await this.handoverGreeting(ccid, opts.alreadySpoke === true),
       }))) {
         this.logger.log(`call ${ccid.slice(-8)} moved to the standard engine`);
         return;
@@ -198,6 +196,33 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     } catch (e: any) {
       this.logger.error(`fallback to the standard engine failed: ${e?.message ?? e}`);
     }
+  }
+
+  /**
+   * What the caller hears when the call moves to the other engine.
+   *
+   * Two completely different moments wear the same name. Mid-call, the caller
+   * has been talking to something that has now gone, and the honest thing is
+   * to admit the restart — they answered questions that were never written
+   * down, and pretending otherwise means acting on an order we do not have.
+   *
+   * But when the session never became ready, THE CALLER HAS HEARD NOTHING AT
+   * ALL. Apologising for a fault they did not experience, skipping the shop's
+   * name and going straight to "is that collection or delivery?" is how a shop
+   * answers its own phone sounding broken — reported, correctly, as "it is not
+   * saying the shop name and it says sorry". They are simply being greeted,
+   * a second later than they should have been, so greet them.
+   */
+  private async handoverGreeting(ccid: string, alreadySpoke: boolean): Promise<string> {
+    if (!alreadySpoke) {
+      try {
+        const session = await this.voice.realtimeSession(ccid);
+        if (session?.greeting) return session.greeting;
+      } catch {
+        /* fall through to the apology, which is still better than silence */
+      }
+    }
+    return "Sorry about that, I lost you for a moment — let's take it from the top. Is this collection or delivery?";
   }
 
   /** The shop's menu terms, or nothing at all. Never throws. */
@@ -366,8 +391,16 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     // give the call back to the engine that works.
     const readyBy = setTimeout(() => {
       if (configured) return;
+      const stats = this.statsOf(brain);
+      // Which of the three this was cannot be guessed at afterwards: a socket
+      // that never opened, one that opened and heard nothing back, or a
+      // session that was refused in a way we failed to notice. They need
+      // different fixes and they look identical in a log that only says the
+      // call was handed over.
       this.logger.error(
-        `realtime session never became ready on ${ccid.slice(-8)} — handing the call to the standard engine`,
+        `realtime session never became ready on ${ccid.slice(-8)} — handing the call to the standard engine ` +
+          `(socket ${brain.readyState}, ${stats.fromModel} events in / ${stats.toModel} out, ` +
+          `last "${stats.lastType}")`,
       );
       try {
         brain.close();
@@ -380,7 +413,9 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       } catch {
         /* already gone */
       }
-      void this.fallbackToRelay(ccid);
+      // Nothing has been said to this caller yet, so they get greeted rather
+      // than apologised to.
+      void this.fallbackToRelay(ccid, { alreadySpoke: false });
     }, Number(this.config.get<string>("VOICE_REALTIME_READY_MS")) || 5000);
     (readyBy as any).unref?.();
     (brain as any).__readyBy = readyBy;
@@ -416,7 +451,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         } catch {
           /* already gone */
         }
-        void this.fallbackToRelay(ccid);
+        void this.fallbackToRelay(ccid, { alreadySpoke: true });
         return;
       }
       stats.pingAt = Date.now();
@@ -452,7 +487,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       } catch {
         /* already gone */
       }
-      void this.fallbackToRelay(ccid);
+      void this.fallbackToRelay(ccid, { alreadySpoke: true });
     });
 
     caller.on("message", (raw) => {
@@ -656,7 +691,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         `realtime ${ccid.slice(-8)} silent twice over — handing to the standard engine`,
       );
       this.calls.delete(ccid);
-      void this.fallbackToRelay(ccid);
+      void this.fallbackToRelay(ccid, { alreadySpoke: true });
     }, quiet);
   }
 
@@ -695,6 +730,11 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       // μ-law phone line, which is silence with extra steps. Only
       // session.updated means our settings were accepted.
       case "session.created":
+        // Logged, because its absence is the whole diagnosis when a session
+        // never becomes ready: this arriving means OpenAI accepted the socket
+        // and is answering, and the fault is in what we asked for. Nothing
+        // arriving means the fault is further out than us.
+        this.logger.log(`realtime ${ccid.slice(-8)} session.created — waiting for our settings`);
         return;
 
       // A yes/no flag was wrong here: two responses can be in flight at once,
