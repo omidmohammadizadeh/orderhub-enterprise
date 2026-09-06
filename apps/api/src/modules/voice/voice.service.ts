@@ -1053,24 +1053,39 @@ export class VoiceService {
 
     const reference = boardReference(order);
     const via = marketplaceName(order.orderSource);
-    // ONLINE and DIRECT are the shop's own storefront, but they are still a
-    // channel with its own basket and its own refund path — the caller placed
-    // it themselves, so a person should handle the change.
-    const ownPhoneOrder = order.orderSource === "POS" || order.orderSource === "VOICE";
-    if (!ownPhoneOrder) {
-      const where = via ?? "online ordering";
-      return this.handOver(call, ctx, state, this.ai.amendElsewhere(where));
+
+    // Only the shop's OWN orders can be changed from here.
+    //
+    // POS is the till, and VOICE is this line — a caller ringing back to add
+    // chips to the order they placed by phone two minutes ago placed it with
+    // us, and telling them to go and change it on Just Eat would be nonsense.
+    // Everything else belongs to somebody else's basket: the marketplaces own
+    // the payment and the refund, and the shop's own website has its own.
+    const ownOrder = order.orderSource === "POS" || order.orderSource === "VOICE";
+    if (!ownOrder) {
+      // Not a transfer. The shop cannot change an Uber Eats order either, so
+      // putting the caller through only delays them being told the same thing
+      // by a person. Name the platform and let them go and do it.
+      const where = via ?? "our website";
+      const say = this.ai.amendElsewhere(where);
+      state.turns.push({ role: "assistant", text: say });
+      state.stage = "ORDER";
+      await this.save(call.id, state);
+      return { say };
     }
 
-    // Past Ready the kitchen has it, and editOrder refuses anyway — better to
-    // say so now than to take the addition and fail at the end.
+    // Past PREPARING the kitchen has finished with it and editOrder refuses
+    // anyway — better to say so now, in terms that are true of this order,
+    // than to take the addition and fail at the end of the call.
     if (!["PENDING", "ACCEPTED", "PREPARING"].includes(order.status)) {
-      return this.handOver(
-        call,
-        ctx,
-        state,
-        `Order ${spokenReference(reference)} has already been made up, so I can't add to it from here. Let me put you through to the shop.`,
-      );
+      const say = `${this.ai.amendTooLate(order.status, order.fulfillmentType === "DELIVERY")} Would you like me to put you through to the shop?`;
+      state.turns.push({ role: "assistant", text: say });
+      // Not handed over unasked: they may simply want to place another order,
+      // and deciding for them is how a call ends in a queue they did not
+      // choose to join.
+      state.stage = "ORDER";
+      await this.save(call.id, state);
+      return { say };
     }
 
     this.ai.loadOrderForAmend(state, {

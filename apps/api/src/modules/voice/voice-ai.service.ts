@@ -406,8 +406,51 @@ export class VoiceAiService {
 
   /** What the caller hears when the order they want to change is not ours to
    *  change — the platform owns it, and so does the correction. */
+  /**
+   * Somebody wants to change an order that was not placed with the shop.
+   *
+   * Sending them to the shop is the wrong answer, and it was the old one. The
+   * shop cannot change an Uber Eats basket either — Uber Eats owns the order,
+   * the payment and the refund, and a member of staff would just tell them the
+   * same thing a minute later, after a transfer. The caller needs the app they
+   * ordered on, and they need to be told so plainly.
+   */
   amendElsewhere(via: string): string {
-    return `That order came through ${via}, so I can't change it from here. Let me put you through to the shop.`;
+    return `That order was placed through ${via}, so it has to be changed there — the shop can't do it from this end. Have a look in the ${via} app or on their website, under your order.`;
+  }
+
+  /**
+   * Somebody wants to change an order the kitchen has already finished.
+   *
+   * Said in whatever terms are actually true of it: telling a caller their
+   * order "is ready" when it left with a driver ten minutes ago is a small lie
+   * that produces a complaint, and telling them it is ready when it has
+   * already been eaten is worse.
+   */
+  amendTooLate(status: string, delivery: boolean): string {
+    switch (status) {
+      case "READY":
+        return delivery
+          ? "Sorry, that one's already made up and waiting for a driver, so I can't add to it."
+          : "Sorry, that one's already made up and waiting for you, so I can't add to it.";
+      case "OUT_FOR_DELIVERY":
+      case "DISPATCHED":
+      case "RIDER_ARRIVED":
+      case "ASSIGNED_DRIVER":
+      case "ACCEPTED_BY_DRIVER":
+      case "PENDING_DISPATCH":
+        return "Sorry, that one's already on its way to you, so I can't add to it.";
+      case "COMPLETED":
+        return delivery
+          ? "That one's already been delivered, so I can't add to it."
+          : "That one's already been collected, so I can't add to it.";
+      case "CANCELLED":
+      case "REJECTED":
+      case "FAILED":
+        return "That order has been cancelled, so there's nothing to add to.";
+      default:
+        return "Sorry, that one's gone too far through the kitchen for me to add to it.";
+    }
   }
 
   /** What the caller hears the moment they choose to order. Fixed, because

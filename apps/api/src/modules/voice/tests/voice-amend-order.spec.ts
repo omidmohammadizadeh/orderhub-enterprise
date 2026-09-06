@@ -93,36 +93,91 @@ describe("finding the order to change", () => {
   });
 });
 
-describe("orders this line must not change", () => {
-  it("refuses a marketplace order and says whose it is", async () => {
-    // Uber Eats owns the basket, the payment and the refund. Editing our copy
-    // would put a ticket in the kitchen that Uber Eats has never heard of.
+describe("an order placed somewhere else", () => {
+  // The shop cannot change an Uber Eats basket either. Transferring the caller
+  // only delays them being told the same thing by a person, after a wait.
+
+  it("sends them to the platform they ordered on, by name", async () => {
     const s = svc({ orderSource: "UBER_EATS" });
-    await s.ask("4012");
-    expect(s.handovers[0]).toMatch(/Uber Eats/);
-  });
-
-  it("refuses one placed on the shop's own website", async () => {
-    // The caller placed it themselves through a basket with its own refund
-    // path. A person should handle that change.
-    const s = svc({ orderSource: "ONLINE" });
-    await s.ask("4012");
-    expect(s.handovers).toHaveLength(1);
-  });
-
-  it("refuses one the kitchen has already finished", async () => {
-    // Saying yes and failing at the end is worse than saying no now: the
-    // caller has spent the call believing their change landed.
-    const s = svc({ status: "READY" });
-    await s.ask("4012");
-    expect(s.handovers[0]).toMatch(/already been made up/);
+    const turn = await s.ask("4012");
+    expect(turn.say).toBe(
+      "That order was placed through Uber Eats, so it has to be changed there — the shop can't do it from this end. Have a look in the Uber Eats app or on their website, under your order.",
+    );
+    expect(s.handovers).toHaveLength(0);
     expect(s.state.amendOrderId).toBeUndefined();
   });
 
-  it("refuses one that is out with a driver", async () => {
-    const s = svc({ status: "OUT_FOR_DELIVERY" });
+  it("names Just Eat for a Just Eat order", async () => {
+    expect((await svc({ orderSource: "JUST_EAT" }).ask("4012")).say).toMatch(
+      /placed through Just Eat.*Just Eat app/s,
+    );
+  });
+
+  it("names Deliveroo for a Deliveroo order", async () => {
+    expect((await svc({ orderSource: "DELIVEROO" }).ask("4012")).say).toMatch(/Deliveroo/);
+  });
+
+  it("says our website for one placed on the shop's own site", async () => {
+    // It has its own basket and its own refund path, and it is not a
+    // marketplace, so it cannot be named as one.
+    const turn = await svc({ orderSource: "ONLINE" }).ask("4012");
+    expect(turn.say).toMatch(/placed through our website/);
+    expect(turn.say).not.toMatch(/Uber Eats|Just Eat/);
+  });
+
+  it("still changes an order this line took itself", async () => {
+    // They placed it with us, by phone, two minutes ago. Telling them to go
+    // and change it on Just Eat would be nonsense.
+    const s = svc({ orderSource: "VOICE" });
     await s.ask("4012");
-    expect(s.handovers[0]).toMatch(/already been made up/);
+    expect(s.state.amendOrderId).toBe("cmtqamend0001");
+  });
+});
+
+describe("an order the kitchen has already finished", () => {
+  // Said in terms that are true of THIS order. Telling a caller their food "is
+  // ready" when it left with a driver ten minutes ago is a small lie that
+  // produces a complaint, and saying it about one already eaten is worse.
+
+  it("says it is ready and waiting, when that is what it is", async () => {
+    const s = svc({ status: "READY" });
+    const turn = await s.ask("4012");
+    expect(turn.say).toMatch(/already made up and waiting for a driver/);
+    expect(s.state.amendOrderId).toBeUndefined();
+  });
+
+  it("says a collection order is waiting for them, not for a driver", async () => {
+    const turn = await svc({ status: "READY", fulfillmentType: "PICKUP" }).ask("4012");
+    expect(turn.say).toMatch(/waiting for you/);
+  });
+
+  it("says it is on its way when it is with a driver", async () => {
+    const turn = await svc({ status: "OUT_FOR_DELIVERY" }).ask("4012");
+    expect(turn.say).toMatch(/already on its way to you/);
+    expect(turn.say).not.toMatch(/waiting/);
+  });
+
+  it("says it has been delivered when it has", async () => {
+    expect((await svc({ status: "COMPLETED" }).ask("4012")).say).toMatch(
+      /already been delivered/,
+    );
+    expect((await svc({ status: "COMPLETED", fulfillmentType: "PICKUP" }).ask("4012")).say).toMatch(
+      /already been collected/,
+    );
+  });
+
+  it("says there is nothing to add to when it was cancelled", async () => {
+    expect((await svc({ status: "CANCELLED" }).ask("4012")).say).toMatch(/been cancelled/);
+  });
+
+  it("offers a person rather than deciding for them", async () => {
+    // They may simply want to place another order. Handing them to a queue
+    // they did not choose to join is not help.
+    const s = svc({ status: "READY" });
+    const turn = await s.ask("4012");
+    expect(turn.say).toMatch(/Would you like me to put you through to the shop\?$/);
+    expect(turn.transferTo).toBeUndefined();
+    expect(s.state.stage).toBe("ORDER");
   });
 
   it("allows the stages where the kitchen can still take a change", async () => {
