@@ -54,6 +54,8 @@ import {
   matchWithQuantity,
   segmentItems,
   explains,
+  mustChoose,
+  needed,
 } from "./voice-menu-match";
 import { isCurrentlyOpen } from "../../common/opening-hours.util";
 import {
@@ -1463,8 +1465,11 @@ export class VoiceAiService {
             const opts = g.options
               .map((o) => `${o.name}${o.price ? ` +${money(o.price, ctx.currency)}` : ""} [${o.id}]`)
               .join(", ");
-            const rule = g.required
-              ? `REQUIRED pick ${g.min}${g.max ? `-${g.max}` : "+"}`
+            // The model is told the same thing the code enforces. A menu that
+            // says isRequired=false and minSelections=1 means "pick one", and
+            // describing that as optional invited the model to skip it.
+            const rule = mustChoose(g)
+              ? `REQUIRED pick ${needed(g)}${g.max ? `-${g.max}` : "+"}`
               : `optional`;
             return `    - ${g.name} (${rule}): ${opts}`;
           })
@@ -2190,7 +2195,7 @@ ${menu || "(no items available — apologise and transfer)"}`;
     // Add everything that needs no decision made about it, and hold back at
     // most ONE dish that does — a turn asks one question.
     const needsChoice = resolved.filter((r) =>
-      r.item.modifierGroups?.some((g: any) => g.required),
+      r.item.modifierGroups?.some((g: any) => mustChoose(g)),
     );
     if (needsChoice.length > 1) return null;
     const straight = resolved.filter((r) => !needsChoice.includes(r));
@@ -2284,7 +2289,7 @@ ${menu || "(no items available — apologise and transfer)"}`;
   private absorbOptions(item: any, state: VoiceState, phrase: string): void {
     if (!state.pendingItem) return;
     for (const group of item.modifierGroups ?? []) {
-      if (!group.required) continue;
+      if (!mustChoose(group)) continue;
       if (group.options.some((o: any) => state.pendingItem!.chosen.includes(o.id))) continue;
       const matches = matchMenuItems<any>(phrase, group.options, { limit: 2, floor: 0.75 });
       if (isConfident(matches)) state.pendingItem.chosen.push(matches[0]!.item.id);
@@ -2313,9 +2318,9 @@ ${menu || "(no items available — apologise and transfer)"}`;
     if (!pending || !item) return null;
 
     for (const group of item.modifierGroups ?? []) {
-      if (!group.required) continue;
+      if (!mustChoose(group)) continue;
       const picked = group.options.filter((o: any) => pending.chosen.includes(o.id));
-      if (picked.length >= Math.max(1, group.min)) continue;
+      if (picked.length >= needed(group)) continue;
 
       // Five is the ceiling. A caller holding a phone cannot keep nine numbered
       // options in their head, and by the sixth they have forgotten the first —
@@ -2416,9 +2421,9 @@ ${menu || "(no items available — apologise and transfer)"}`;
     if (!item) return null;
 
     for (const group of item.modifierGroups ?? []) {
-      if (!group.required) continue;
+      if (!mustChoose(group)) continue;
       const picked = group.options.filter((o: any) => pending.chosen.includes(o.id));
-      if (picked.length >= Math.max(1, group.min)) continue;
+      if (picked.length >= needed(group)) continue;
 
       // A closed list of three, not a menu of two hundred: "gyros" answers
       // "which wrap?" and must not be sent to a model to think about.
@@ -2673,9 +2678,9 @@ NO MEANS NO
     // the model's version the keypad did nothing, because nothing had recorded
     // what 1 and 2 meant.
     const needsChoice = (item.modifierGroups ?? []).some((g: any) => {
-      if (!g.required) return false;
+      if (!mustChoose(g)) return false;
       const picked = g.options.filter((o: any) => chosenIds.includes(o.id));
-      return picked.length < Math.max(1, g.min);
+      return picked.length < needed(g);
     });
     if (needsChoice) {
       state.pendingItem = {
@@ -2698,7 +2703,7 @@ NO MEANS NO
       // dish whose required choices are unanswered puts the wrong food in the
       // kitchen, so refuse the way this always has rather than guessing.
       state.pendingItem = undefined;
-      const missing = (item.modifierGroups ?? []).find((g: any) => g.required);
+      const missing = (item.modifierGroups ?? []).find((g: any) => mustChoose(g));
       return {
         result: `Before adding this you must ask which ${missing?.name ?? "option"} they want. Options: ${(
           missing?.options ?? []

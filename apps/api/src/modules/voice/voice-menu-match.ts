@@ -739,3 +739,26 @@ export function segmentItems<T extends { name: string; categoryName?: string }>(
   }
   return { found, leftovers };
 }
+
+/**
+ * Does this group have to be answered before the dish can be made?
+ *
+ * `isRequired` is not the only way a menu says so, and on real data it is not
+ * even the usual way. A HubRise-imported menu had "select your pizza crust"
+ * and "CHIPS OR SALAD" with isRequired FALSE and minSelections ONE — which
+ * means exactly the same thing: pick one. The till reads the minimum and asks;
+ * this line read the flag and never asked at all, so every pizza went to the
+ * kitchen with no crust on the ticket while the operator watched POS ask for
+ * it correctly.
+ *
+ * Two spellings of the same fact, and the caller only cares that they are
+ * asked.
+ */
+export function mustChoose(group: { required?: boolean; min?: number | null }): boolean {
+  return group?.required === true || Number(group?.min ?? 0) >= 1;
+}
+
+/** How many choices this group needs before it is satisfied. */
+export function needed(group: { required?: boolean; min?: number | null }): number {
+  return Math.max(1, Number(group?.min ?? 0) || 0);
+}

@@ -395,3 +395,121 @@ it("does not mistake the commonest note there is for a refusal", () => {
 
   expect(o.st.cart.items[0].notes).toBe("no onions");
 });
+
+describe("how a menu says a choice is compulsory", () => {
+  const { mustChoose, needed } = require("../voice-menu-match");
+
+  it("believes minSelections, not just the flag", () => {
+    // From the live menu, and the reason a pizzeria's crust was never asked
+    // about: the till reads the minimum and asks, this line read the flag and
+    // said nothing, so every pizza reached the kitchen with no crust on it
+    // while the operator watched POS get it right.
+    expect(mustChoose({ required: false, min: 1 })).toBe(true); // select your pizza crust
+    expect(mustChoose({ required: false, min: 2 })).toBe(true); // SELECT YOUR SAUCES
+    expect(mustChoose({ required: true, min: 0 })).toBe(true);
+    expect(mustChoose({ required: false, min: 0 })).toBe(false); // select your extra toppings
+    expect(mustChoose({})).toBe(false);
+  });
+
+  it("asks for as many as the menu says", () => {
+    expect(needed({ min: 2 })).toBe(2);
+    expect(needed({ required: true, min: 0 })).toBe(1);
+    expect(needed({ required: true })).toBe(1);
+  });
+
+  it("walks a caller through a group the menu only marks with a minimum", () => {
+    const s = svc();
+    const c = ctx();
+    const pizza = {
+      id: "pep",
+      name: "PEPPERONI",
+      price: 7.8,
+      modifierGroups: [
+        {
+          id: "crust",
+          name: "select your pizza crust",
+          // Exactly as it comes out of the real menu.
+          required: false,
+          min: 1,
+          options: [
+            { id: "c1", name: "Classic", price: 0 },
+            { id: "c2", name: "Thin", price: 0 },
+            { id: "c3", name: "Stuffed", price: 1.5 },
+          ],
+        },
+      ],
+    };
+    c.itemIndex.set("pep", pizza);
+    c.items.push(pizza);
+
+    const st: any = { cart: { items: [] }, turns: [] };
+    st.pendingItem = { itemId: "pep", quantity: 1, chosen: [] };
+    const ask = s.askNextOption(c, st);
+
+    expect(ask.say).toContain(
+      "For your select your pizza crust, press 1 for Classic, 2 for Thin, 3 for Stuffed.",
+    );
+    expect(st.choices).toEqual(["c1", "c2", "c3"]);
+  });
+
+  it("keeps asking until a two-choice group has two", () => {
+    const s = svc();
+    const c = ctx();
+    const dish = {
+      id: "mix",
+      name: "MIXED GRILL",
+      price: 15,
+      modifierGroups: [
+        {
+          id: "sauces",
+          name: "SELECT YOUR SAUCES",
+          required: false,
+          min: 2,
+          options: [
+            { id: "s1", name: "Garlic", price: 0 },
+            { id: "s2", name: "Chilli", price: 0 },
+            { id: "s3", name: "BBQ", price: 0 },
+          ],
+        },
+      ],
+    };
+    c.itemIndex.set("mix", dish);
+    c.items.push(dish);
+
+    const st: any = { cart: { items: [] }, turns: [] };
+    st.pendingItem = { itemId: "mix", quantity: 1, chosen: [] };
+    // Said in lower case, because a menu shouting at a caller reads as a
+    // machine: "For your select your sauces, press 1 for Garlic…"
+    expect(s.askNextOption(c, st).say).toContain("select your sauces");
+    // One picked is not enough.
+    st.pendingItem.chosen = ["s1"];
+    expect(s.askNextOption(c, st)).not.toBeNull();
+    st.pendingItem.chosen = ["s1", "s2"];
+    expect(s.askNextOption(c, st)).toBeNull();
+  });
+
+  it("leaves a genuinely optional group alone", () => {
+    // "select your extra toppings", min 0. Nobody should be interrogated about
+    // extras before their food can be made.
+    const s = svc();
+    const c = ctx();
+    const dish = {
+      id: "plain",
+      name: "PLAIN PIZZA",
+      price: 7,
+      modifierGroups: [
+        {
+          id: "extras",
+          name: "select your extra toppings",
+          required: false,
+          min: 0,
+          options: [{ id: "e1", name: "Extra Cheese", price: 1 }],
+        },
+      ],
+    };
+    c.itemIndex.set("plain", dish);
+    const st: any = { cart: { items: [] }, turns: [] };
+    st.pendingItem = { itemId: "plain", quantity: 1, chosen: [] };
+    expect(s.askNextOption(c, st)).toBeNull();
+  });
+});
