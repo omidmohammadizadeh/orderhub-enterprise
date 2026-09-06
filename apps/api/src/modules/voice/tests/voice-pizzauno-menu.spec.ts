@@ -115,3 +115,93 @@ describe("the whole menu, as published", () => {
     }
   });
 });
+
+describe("several dishes said in one breath", () => {
+  // Verbatim from a live call, after the language fix let the whole sentence
+  // through for the first time:
+  //
+  //   heard "twelve inch pepperoni chips and garlic sauce"
+  //   no confident match for "twelve inch pepperoni chips"
+  //          — PEPPERONI:1.00, CHIPS:1.00, FRIES:1.00
+  //   quick-added → 1 new: 1× Garlic sauce
+  //
+  // Three things asked for, one garlic sauce delivered. Splitting on "and"
+  // found two phrases and scored the first as if it were the name of one dish.
+  // People do not say "and" between every item; they pause, and a pause does
+  // not survive transcription.
+  const { segmentItems, explains, matchItemGroups, isConfidentGroup } = require("../voice-menu-match");
+
+  const MENU = [
+    { id: "pep", name: "PEPPERONI", categoryName: "🍕PIZZA 🍕 " },
+    { id: "kebp", name: "KEBAB PIZZA", categoryName: "🍕PIZZA 🍕 " },
+    { id: "chp", name: "CHIPS", categoryName: "🍟 SUNDRIES 🍟" },
+    { id: "fri", name: "FRIES", categoryName: "🍟 SUNDRIES 🍟" },
+    { id: "chz", name: "CHEESY CHIPS", categoryName: "🍟 SUNDRIES 🍟" },
+    { id: "gs", name: "Garlic sauce", categoryName: "🍟 SUNDRIES 🍟" },
+    { id: "gb", name: "GARLIC BREAD", categoryName: "GARLIC BREADS" },
+    { id: "kiev", name: "CHICKEN KIEV", categoryName: "🍕PIZZA 🍕 " },
+    { id: "cok", name: "CAN COKE", categoryName: "DRINKS 🥤" },
+  ];
+  const read = (said: string) =>
+    segmentItems(said, MENU, { limit: 3, floor: 0.3 }).found.map(
+      (f: any) => `${f.quantity}× ${f.match.group.base}`,
+    );
+
+  it("reads the call that was losing two items out of three", () => {
+    expect(read("twelve inch pepperoni chips and garlic sauce")).toEqual([
+      "1× PEPPERONI",
+      "1× CHIPS",
+      "1× Garlic sauce",
+    ]);
+  });
+
+  it("reads a run of dishes with nothing between them", () => {
+    expect(read("pepperoni chips garlic bread")).toEqual([
+      "1× PEPPERONI",
+      "1× CHIPS",
+      "1× GARLIC BREAD",
+    ]);
+    expect(read("chicken kiev garlic bread two cokes")).toEqual([
+      "1× CHICKEN KIEV",
+      "1× GARLIC BREAD",
+      "2× CAN COKE",
+    ]);
+  });
+
+  it("does not let one dish swallow the words of another", () => {
+    // "Kebab pizza cheesy chips" fits Cheesy Chips perfectly — scoring
+    // deliberately ignores words a dish does not have — and a whole pizza went
+    // in the bin unremarked. A match has to account for what it is taking.
+    expect(read("kebab pizza cheesy chips")).toEqual(["1× KEBAB PIZZA", "1× CHEESY CHIPS"]);
+    expect(explains("kebab pizza cheesy chips", { base: "CHEESY CHIPS", variants: [MENU[4]] })).toBe(
+      false,
+    );
+    expect(explains("cheesy chips", { base: "CHEESY CHIPS", variants: [MENU[4]] })).toBe(true);
+  });
+
+  it("lets a size through, because a size belongs to no dish here", () => {
+    // This menu has no sizes at all. "Twelve inch" must not stop Pepperoni
+    // accounting for "twelve inch pepperoni".
+    expect(read("twelve inch pepperoni")).toEqual(["1× PEPPERONI"]);
+  });
+
+  it("tells CHIPS from FRIES when the caller says one of them", () => {
+    // The synonym table treats them as the same word, so both score 1.00 and
+    // tie. Saying the name IS the answer — and filler in front of it does not
+    // stop it being the name.
+    const pick = (said: string) => {
+      const m = matchItemGroups(said, MENU, { limit: 3, floor: 0.3 });
+      return isConfidentGroup(m) ? m[0].group.base : null;
+    };
+    expect(pick("chips")).toBe("CHIPS");
+    expect(pick("a chips")).toBe("CHIPS");
+    expect(pick("the chips please")).toBe("CHIPS");
+    expect(pick("fries")).toBe("FRIES");
+  });
+
+  it("still leaves a genuine ambiguity alone", () => {
+    // Nothing here is "hot dog", and guessing would put the wrong food in a
+    // kitchen. An empty read is the honest one.
+    expect(read("hot dog")).toEqual([]);
+  });
+});

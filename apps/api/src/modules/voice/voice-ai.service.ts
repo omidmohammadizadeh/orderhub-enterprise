@@ -52,6 +52,8 @@ import {
   splitQuantity,
   matchOption,
   matchWithQuantity,
+  segmentItems,
+  explains,
 } from "./voice-menu-match";
 import { isCurrentlyOpen } from "../../common/opening-hours.util";
 import {
@@ -2029,6 +2031,44 @@ ${menu || "(no items available — apologise and transfer)"}`;
         limit: 3,
         floor: 0.3,
       });
+
+      // One phrase, several dishes. People do not say "and" between every
+      // item — they pause, and the pause does not survive transcription. Read
+      // "twelve inch pepperoni chips" as two things rather than scoring it as
+      // the name of one and throwing all of it away.
+      //
+      // A confident match is not enough to skip this. Scoring ignores words
+      // the dish does not have, so "kebab pizza cheesy chips" is a confident
+      // Cheesy Chips — and a whole pizza goes in the bin unremarked. If the
+      // winner cannot account for the words, the phrase is more than one dish.
+      const wholeFits =
+        isConfidentGroup(matches) && explains(phrase, matches[0]!.group);
+      if (!wholeFits) {
+        const { found, leftovers: unread } = segmentItems(phrase, ctx.items, {
+          limit: 3,
+          floor: 0.3,
+        });
+        if (found.length > 1) {
+          for (const hit of found) {
+            const group = hit.match.group;
+            const item =
+              group.variants.length === 1
+                ? group.variants[0]!
+                : pickVariant(hit.phrase, group.variants);
+            if (item) {
+              resolved.push({ item, quantity: hit.quantity, phrase: hit.phrase });
+            } else if (!sizeOpen) {
+              sizeOpen = { group, quantity: hit.quantity };
+            }
+          }
+          // Only the words that belonged to nothing are asked about.
+          if (unread.join(" ").trim().split(/\s+/).filter(Boolean).length > 1) {
+            leftovers.push(unread.join(" "));
+          }
+          continue;
+        }
+      }
+
       if (!isConfidentGroup(matches)) {
         // The one log line that makes a weak match diagnosable. Without it,
         // "it doesn't understand food" is a report nobody can act on: this

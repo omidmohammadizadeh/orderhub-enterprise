@@ -316,6 +316,15 @@ export class VoiceRelayGateway implements OnModuleInit {
     turn: { say: string; endCall?: boolean; transferTo?: string; streamed?: boolean },
   ): Promise<void> {
     if (ws.readyState === ws.OPEN) {
+      // What the line SAID, next to what it heard.
+      //
+      // Only half the conversation has ever been in the log. "It said c h i p s
+      // instead of chips" is a report about the half that was missing, and
+      // there was no way to tell whether the words were wrong, the speech
+      // engine spelled them out, or the caller heard something else entirely.
+      if (turn.say) {
+        this.logger.log(`relay ${ccid.slice(-8)} said "${turn.say.slice(0, 200)}"`);
+      }
       // A turn answered off the model path (a menu choice, a yes to a
       // read-back) was never streamed, so it is sent whole. One that WAS
       // streamed only needs the closing marker.

@@ -464,7 +464,14 @@ export function matchItemGroups<T extends { name: string; categoryName?: string 
       );
       // Said the name, and nothing else. That is not a score to be compared
       // with other scores — it is an answer, and it must not be able to tie.
-      const exact = plain(query) === plain(base);
+      //
+      // Filler does not count as "something else". "A chips" is as exact as
+      // "chips", and on a menu selling both CHIPS and FRIES — which the
+      // synonym table treats as the same word — the difference between them
+      // was the difference between an order and a question.
+      const bare = (t: string) =>
+        plain(t).split(" ").filter((w) => w && !NOISE.has(w)).join(" ");
+      const exact = bare(query) === bare(base);
       // Which of the caller's words actually point at THIS dish, as opposed to
       // the shelf it sits on. Level scores are broken with this, so that
       // "a pepperoni pizza" is a pepperoni rather than a question.
@@ -657,4 +664,78 @@ export function matchWithQuantity<T extends { name: string; categoryName?: strin
   return wholeWins
     ? { quantity: 1, matches: asSaid }
     : { quantity, matches: stripped };
+}
+
+/**
+ * Several dishes said in one breath, with nothing between them.
+ *
+ * "Twelve inch pepperoni chips and garlic sauce" is three things. Splitting on
+ * "and" finds two of them, and the first — "twelve inch pepperoni chips" —
+ * is then scored as if it were the name of one dish. It fits Pepperoni,
+ * Chips and Fries equally badly, so all of it was thrown away and the caller
+ * got a garlic sauce.
+ *
+ * People do not say "and" between every item. They pause, and a pause does not
+ * survive transcription. So when a phrase cannot be one dish, it is read the
+ * way a person reads it: take the longest run of words from the front that IS
+ * a dish, then start again from where that ended.
+ *
+ * Longest-first matters. "Twelve inch pepperoni" has to win over "twelve",
+ * or the size becomes a quantity and the pizza becomes something else.
+ */
+/** Does this dish account for every word of the phrase that carries meaning? */
+export function explains<T extends { name: string; categoryName?: string }>(
+  phrase: string,
+  group: ItemGroup<T>,
+): boolean {
+  const name = `${group.base} ${group.variants[0]?.categoryName ?? ""}`;
+  // Sizes and quantities are not the dish's job to account for: "twelve inch
+  // pepperoni" is a Pepperoni, and the twelve inches belong to nobody on a
+  // menu that does not sell sizes.
+  const rest = stripSizeWords(splitQuantity(phrase).rest || phrase);
+  return rest
+    .split(" ")
+    .filter((t) => t && !NOISE.has(t))
+    .every((t) => scoreItem(t, name) > 0);
+}
+
+export function segmentItems<T extends { name: string; categoryName?: string }>(
+  said: string,
+  items: T[],
+  opts: { limit?: number; floor?: number; maxWords?: number } = {},
+): { found: Array<{ quantity: number; match: GroupMatch<T>; phrase: string }>; leftovers: string[] } {
+  const tokens = plain(said).split(" ").filter(Boolean);
+  const maxWords = opts.maxWords ?? 6;
+  const found: Array<{ quantity: number; match: GroupMatch<T>; phrase: string }> = [];
+  const leftovers: string[] = [];
+
+  let i = 0;
+  while (i < tokens.length) {
+    let taken = 0;
+    for (let len = Math.min(maxWords, tokens.length - i); len >= 1; len--) {
+      const phrase = tokens.slice(i, i + len).join(" ");
+      const { quantity, matches } = matchWithQuantity(phrase, items, opts);
+      if (!isConfidentGroup(matches)) continue;
+      // The dish has to EXPLAIN the words it is taking.
+      //
+      // Scoring deliberately ignores words the caller said that the dish does
+      // not have — "can I get a large pepperoni pizza please" should not be
+      // marked down for the please. That is right when the phrase is one dish
+      // and disastrous when it might be three: "kebab pizza cheesy chips"
+      // fits Cheesy Chips perfectly, ignores "kebab pizza", and swallows a
+      // whole pizza on its way past. So a window is only taken if what is left
+      // over is noise or a size.
+      if (!explains(phrase, matches[0]!.group)) continue;
+      found.push({ quantity, match: matches[0]!, phrase });
+      taken = len;
+      break;
+    }
+    if (taken) {
+      i += taken;
+      continue;
+    }
+    leftovers.push(tokens[i]!);
+    i += 1;
+  }
+  return { found, leftovers };
 }
