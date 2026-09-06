@@ -714,9 +714,41 @@ export class PrintRoutingService {
     // Drop trailing " - Note: ..." (case-sensitive, mirrors buildCartItemName).
     const noteIdx = s.indexOf(" - Note: ");
     if (noteIdx >= 0) s = s.slice(0, noteIdx);
-    // Drop the last "(...)" group which holds the modifier list.
-    s = s.replace(/\s*\([^()]*\)\s*$/, "");
+    // Drop the last "(...)" group which holds the modifier list — the
+    // modifiers are printed on their own lines underneath, so leaving them in
+    // the name prints everything twice.
+    //
+    // UNLESS it is the size. Our own names put the size in front ("10 inch
+    // Margherita (Classic Crust, Extra Cheese)"), so this was safe until
+    // marketplace orders arrived through HubRise, which write it the other way
+    // round: 'Best Kebab Calzone (12")'. That went in the bin, and a kitchen
+    // reading "Best Kebab Calzone" off the ticket has no idea which of the
+    // three sizes to make — while the order card on screen showed it plainly.
+    const trailing = s.match(/\s*\(([^()]*)\)\s*$/);
+    if (trailing && !this.looksLikeSize(trailing[1] ?? "")) {
+      s = s.slice(0, trailing.index);
+    }
     return s.trim();
+  }
+
+  /**
+   * Is this bracketed text a size rather than a list of modifiers?
+   *
+   * A comma means a list, whatever it contains. Otherwise a size is either a
+   * measurement — 12", 10 inch, 500ml — or one of the words a menu uses for
+   * one. Anything else is treated as modifiers and dropped, which is the safe
+   * way round: a modifier left in the name is printed twice, while a size
+   * removed from it cannot be recovered by anybody reading the ticket.
+   */
+  private looksLikeSize(inner: string): boolean {
+    const t = inner.trim();
+    if (!t || t.includes(",")) return false;
+    if (/^\d+(\.\d+)?\s*("|''|in\b|inch(es)?|cm|mm|ml|cl|l\b|ltr|litre|g\b|kg|oz|pt\b|pc|pcs|piece(s)?)/i.test(t)) {
+      return true;
+    }
+    return /^(x?x?-?\s?(small|large)|small|medium|med|large|regular|reg|standard|mini|maxi|jumbo|king|kids?|junior|family|sharing|single|double|triple|half|whole|full|solo|duo)$/i.test(
+      t,
+    );
   }
 
   // Joins the order's address columns into one printable string. Uses
