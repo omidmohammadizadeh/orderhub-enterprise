@@ -46,7 +46,7 @@ class FakeSocket extends EventEmitter {
 
 export interface RealtimeSimOptions {
   /** What the shop's tools should return, by tool name. */
-  tools?: Record<string, { result: string; turn?: Record<string, unknown> }>;
+  tools?: Record<string, { result: string; turn?: Record<string, unknown>; sayNow?: string }>;
   greeting?: string;
   /** How long a caller may wait before the line does something about it. */
   quietMs?: number;

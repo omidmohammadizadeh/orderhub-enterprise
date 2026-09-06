@@ -487,3 +487,67 @@ describe("a session OpenAI refuses outright", () => {
     expect(moved).not.toHaveBeenCalled();
   });
 });
+
+describe("words the model is not allowed to rephrase", () => {
+  // The read-back is the promise this whole line rests on: what is said aloud
+  // has to BE the basket, priced from the basket. On 6 September the model
+  // read back a pepperoni pizza it had never added, the caller said yes, and
+  // chips and a garlic sauce reached the kitchen. The chained engine has
+  // always spoken these verbatim; this one was dropping the script.
+
+  it("insists on the exact words when a tool provides them", async () => {
+    const sim = new VoiceRealtimeSim({
+      tools: {
+        read_back_order: {
+          result: "Read it back.",
+          sayNow: "So that's 1 PEPPERONI and 1 CHIPS, for collection. That comes to £10.70. Is that all correct?",
+        } as any,
+      },
+    });
+    await sim.answer();
+    sim.brain.sent.length = 0;
+    await sim.callTool("read_back_order");
+
+    const ask = sim.toModel.find((m) => m.type === "response.create");
+    expect(ask.response.instructions).toContain("word for word");
+    expect(ask.response.instructions).toContain("£10.70");
+    expect(ask.response.instructions).toContain("1 PEPPERONI and 1 CHIPS");
+  });
+
+  it("still insists when the words had to wait for a reply to finish", async () => {
+    const sim = new VoiceRealtimeSim({
+      tools: { place_order: { result: "Placed.", sayNow: "That's all booked in, order number 4, 0, 1, 2." } as any },
+    });
+    await sim.answer();
+    sim.brain.sent.length = 0;
+
+    // The tool is announced while a reply is still being spoken.
+    sim.brain.deliver({ type: "response.created", response: { id: "r1" } });
+    sim.brain.deliver({
+      type: "response.function_call_arguments.done",
+      name: "place_order",
+      call_id: "p1",
+      arguments: "{}",
+    });
+    await new Promise((r) => setTimeout(r, 10));
+    expect(sim.toModel.some((m) => m.type === "response.create")).toBe(false);
+
+    sim.brain.deliver({ type: "response.done", response: { id: "r1" } });
+    await new Promise((r) => setTimeout(r, 10));
+
+    const ask = sim.toModel.find((m) => m.type === "response.create");
+    expect(ask.response.instructions).toContain("order number 4, 0, 1, 2");
+  });
+
+  it("leaves ordinary answers to the model", async () => {
+    // Only facts about the basket are scripted. Everything else is a
+    // conversation, and scripting it would make the line wooden.
+    const sim = new VoiceRealtimeSim({ tools: { find_item: { result: "That's a Pepperoni." } } });
+    await sim.answer();
+    sim.brain.sent.length = 0;
+    await sim.callTool("find_item", { said: "pepperoni" });
+
+    const ask = sim.toModel.find((m) => m.type === "response.create");
+    expect(ask.response).toBeUndefined();
+  });
+});

@@ -268,14 +268,6 @@ function GeneralTab({
   const [voiceBrandId, setVoiceBrandId] = useState<string>(
     (location as any)?.settings?.voiceBrandId ?? "",
   );
-  // Empty means "whatever we currently recommend", which is speech-to-speech
-  // where it is configured. A shop that picked one keeps it.
-  const [voiceEngine, setVoiceEngine] = useState<string>(
-    (location as any)?.settings?.voiceEngine === "REALTIME" ||
-      (location as any)?.settings?.voiceEngine === "RELAY"
-      ? (location as any).settings.voiceEngine
-      : "",
-  );
 
   // Kiosk payment options. Default ON: every kiosk before this setting
   // existed took both, and a silent default of false would have switched
@@ -416,7 +408,6 @@ function GeneralTab({
           voiceTestMode: voiceTestMode === true,
           voiceSmsReceipt: voiceSmsReceipt === true,
           voiceBrandId: voiceBrandId || null,
-          voiceEngine: voiceEngine === "REALTIME" || voiceEngine === "RELAY" ? voiceEngine : null,
           kiosk: {
             acceptCash: kioskAcceptCash,
             acceptCard: kioskAcceptCard,
@@ -1059,30 +1050,6 @@ function GeneralTab({
           Prices, choices and 86&rsquo;d items always come from the{" "}
           <strong>POS menu</strong>, so the phone offers exactly what the till
           does. Nothing to publish separately.
-        </p>
-        <Field label="Voice engine">
-          <select
-            value={voiceEngine}
-            onChange={(e) => setVoiceEngine(e.target.value)}
-            className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
-          >
-            <option value="">Recommended — standard</option>
-            <option value="RELAY">Standard — transcribe, then think</option>
-            <option value="REALTIME">Speech to speech — experimental</option>
-          </select>
-        </Field>
-        <p className="text-[11px] text-zinc-400">
-          <strong>Speech to speech</strong> sends the caller&rsquo;s audio
-          straight to the model, so nothing is lost turning it into text first.{" "}
-          <strong>Standard</strong> transcribes first, which is cheaper and
-          leaves more to inspect afterwards, but a word the transcriber drops is
-          gone before anything can think about it. Both take orders through the
-          same checks, so an order still has to be read back before it is
-          placed, and a call that cannot start on speech to speech &mdash; or
-          loses its connection midway &mdash; carries on with Standard.
-          Speech to speech is still <strong>experimental</strong>: it has not
-          yet completed a call end to end, and each failed attempt costs the
-          caller a few seconds of silence before the call carries on here.
         </p>
         <label className="flex cursor-pointer items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-2.5">
           <input

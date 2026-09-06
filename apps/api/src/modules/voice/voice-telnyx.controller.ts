@@ -244,19 +244,14 @@ export class VoiceTelnyxController {
         this.logger.log(`call ${ccid.slice(-8)} answering on the speech-to-speech engine`);
         return;
       }
-      // Not an error when nobody asked for it: a shop that has never touched
-      // the setting and has no OpenAI key configured is not misconfigured, it
-      // is simply on the older engine. A shop that DID ask is a different
-      // matter, and should be shouted about.
-      const asked = await this.voice.engineWasChosen(ccid);
-      const why = available.why ?? "streaming_start refused";
-      if (asked) {
-        this.logger.error(
-          `Speech-to-speech selected for this shop but not usable (${why}) — falling back to the chained engine`,
-        );
-      } else {
-        this.logger.log(`Speech-to-speech unavailable (${why}) — answering on the chained engine`);
-      }
+      // Loud, because this is now the only engine anybody chose: a shop
+      // answering on the fallback is a shop whose calls are worse than they
+      // should be, and nobody would otherwise find out.
+      this.logger.error(
+        `Speech-to-speech could not start (${
+          available.why ?? "streaming_start refused"
+        }) — this call is on the fallback engine`,
+      );
     }
 
     const relayUrl = this.relay.relayUrl(ccid);

@@ -3035,7 +3035,7 @@ NO MEANS NO
     ctx: VoiceContext,
     state: VoiceState,
     callerNumber?: string | null,
-  ): Promise<{ result: string; turn?: Partial<VoiceTurn> }> {
+  ): Promise<{ result: string; turn?: Partial<VoiceTurn>; sayNow?: string }> {
     if (state.orderId) {
       return { result: `Already placed — order is in. Do not place it again.` };
     }
@@ -3157,16 +3157,21 @@ NO MEANS NO
       }
 
       const mins = isDelivery ? ctx.deliveryPrepMinutes : ctx.collectionPrepMinutes;
+      // The number is spelled out digit by digit because the caller may well
+      // ring back and quote it, and "four thousand and twelve" is not
+      // something they can match against a text message.
+      const digits = spokenDigits(order.orderNumber ?? "");
+      const total = money(round2(subtotal + deliveryFee), ctx.currency);
       return {
-        // The number is spelled out digit by digit because the caller may well
-        // ring back and quote it, and "four thousand and twelve" is not
-        // something they can match to a text message.
-        result: `Order placed. Read the order number back to them as separate digits: ${spokenDigits(
-          order.orderNumber ?? "",
-        )}. Total ${money(
-          round2(subtotal + deliveryFee),
-          ctx.currency,
-        )}. Tell them roughly ${mins} minutes.${extra}`,
+        // Said verbatim. An order that has just been placed is the one moment
+        // in the call where a caller must hear something — on a live call the
+        // model took the payment, placed the order and then said nothing at
+        // all, and the line sat silent until it was handed to the other
+        // engine. The number, the total and the wait are facts, not a prompt.
+        sayNow: `That's all booked in${
+          digits ? `, order number ${digits}` : ""
+        }. That's ${total}, and it'll be about ${mins} minutes. Thanks for calling, goodbye.`,
+        result: `Order placed. Order number ${digits}, total ${total}, about ${mins} minutes.${extra}`,
         turn: { orderId: order.id, outcome: "ORDER" },
       };
     } catch (e: any) {

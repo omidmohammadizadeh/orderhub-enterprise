@@ -278,53 +278,23 @@ export class VoiceService {
    * context: this runs before the greeting, and the caller is listening to
    * silence while it does.
    */
-  async engineFor(callControlId: string): Promise<"RELAY" | "REALTIME"> {
-    const row = await this.db().voiceCall.findFirst({
-      where: { providerCallId: callControlId },
-      orderBy: { createdAt: "desc" },
-      select: { locationId: true },
-    });
-    if (!row?.locationId) return "RELAY";
-    const loc = await this.db().location.findUnique({
-      where: { id: row.locationId },
-      select: { settings: true },
-    });
-    const chosen = (loc?.settings as any)?.voiceEngine;
-    if (chosen === "REALTIME" || chosen === "RELAY") return chosen;
-
-    // Unset means the chained engine, and this was the wrong way round for a
-    // few hours today.
+  async engineFor(_callControlId: string): Promise<"RELAY" | "REALTIME"> {
+    // One engine. There is no setting any more.
     //
-    // Speech-to-speech is the better answer to the fault that prompted it —
-    // "twelve inch pepperoni, chips and garlic" reaching us as "twelve inch
-    // pepperoni", with no transcript for the rest to fall out of. But it has
-    // not yet completed a single call: the socket has died mid-conversation
-    // and the session has failed to become ready, and each attempt costs the
-    // caller five seconds of silence before the call is handed back here.
+    // The two were built to be compared and they have been: speech-to-speech
+    // understands a caller on a bad line in a way the chained pipeline never
+    // managed, and a shop should not be able to end up on the worse one by
+    // accident, or by a dropdown somebody set weeks ago and forgot.
     //
-    // A default is the thing that works. Making it the default before it had
-    // worked once charged that silence to every shop that had never heard of
-    // the setting, to buy an improvement none of them had asked for. It stays
-    // one keystroke away for anyone comparing them, and it goes back to being
-    // the default the first time it takes an order end to end.
-    return "RELAY";
+    // The chained engine is still HERE, and still runs, as the thing that
+    // catches a call when this one cannot start or dies mid-sentence. That is
+    // not a choice anybody makes; it is the floor. Tonight it is the reason an
+    // order reached the kitchen at all after the model went quiet.
+    return "REALTIME";
   }
 
-  /** Did this shop pick an engine, or are they on whatever the default is? */
-  async engineWasChosen(callControlId: string): Promise<boolean> {
-    const row = await this.db().voiceCall.findFirst({
-      where: { providerCallId: callControlId },
-      orderBy: { createdAt: "desc" },
-      select: { locationId: true },
-    });
-    if (!row?.locationId) return false;
-    const loc = await this.db().location.findUnique({
-      where: { id: row.locationId },
-      select: { settings: true },
-    });
-    const chosen = (loc?.settings as any)?.voiceEngine;
-    return chosen === "REALTIME" || chosen === "RELAY";
-  }
+
+
 
   /**
    * The words this shop's menu is made of, for the transcriber to listen for.
@@ -389,7 +359,7 @@ export class VoiceService {
     callControlId: string,
     name: string,
     input: any,
-  ): Promise<{ result: string; turn?: Partial<VoiceTurn> }> {
+  ): Promise<{ result: string; turn?: Partial<VoiceTurn>; sayNow?: string }> {
     const loaded = await this.loadByControlId(callControlId);
     if (!loaded) return { result: "This call has ended." };
     const { call, ctx, state } = loaded;

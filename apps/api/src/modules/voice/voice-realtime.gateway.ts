@@ -629,7 +629,30 @@ export class VoiceRealtimeGateway implements OnModuleInit {
   private flushPending(brain: WebSocket): void {
     if (!(brain as any).__responsePending) return;
     (brain as any).__responsePending = false;
-    this.send(brain, { type: "response.create" });
+    const script = (brain as any).__pendingScript;
+    (brain as any).__pendingScript = undefined;
+    this.speakExactly(brain, script);
+  }
+
+  /**
+   * Ask for the next reply — and when there are words that must not be
+   * paraphrased, insist on them.
+   *
+   * The same mechanism the greeting uses. A read-back or an order confirmation
+   * is a statement of fact about the basket and the price, and a model
+   * retelling it in its own words is a model that can get it wrong in the one
+   * place nobody can afford it.
+   */
+  private speakExactly(brain: WebSocket, script?: string): void {
+    this.send(
+      brain,
+      script
+        ? {
+            type: "response.create",
+            response: { instructions: `Say this to the caller, word for word, and nothing else: "${script}"` },
+          }
+        : { type: "response.create" },
+    );
   }
 
   /** The model produced audio, so the line is alive. */
@@ -827,14 +850,21 @@ export class VoiceRealtimeGateway implements OnModuleInit {
             },
           }),
         );
-        // A tool call is announced WHILE the response containing it is still
-        // running. Asking for a new response then is asking for two at once,
-        // and the second is refused — which is a line that stops talking in
-        // the middle of taking an address. Wait for the current one to finish.
+        // Some answers are not the model's to phrase.
+        //
+        // The read-back is the promise this whole line rests on: what is said
+        // aloud has to BE the basket, priced from the basket. Handing the
+        // model the script and hoping is not that — on a live call it read
+        // back a pepperoni pizza it had never added, the caller said yes, and
+        // the order that reached the kitchen was chips and a garlic sauce. The
+        // chained engine has always spoken these verbatim; this one was
+        // dropping the script on the floor.
+        const script = (out as any)?.sayNow;
         if (this.responsesOf(brain).size > 0) {
           (brain as any).__responsePending = true;
+          if (script) (brain as any).__pendingScript = script;
         } else {
-          this.send(brain, { type: "response.create" });
+          this.speakExactly(brain, script);
         }
         // A tool answer that produces no speech is the same silence by another
         // route, so the clock runs on this too.
