@@ -463,6 +463,8 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         /* the close handler will deal with it */
       }
     }, Number(this.config?.get<string>("VOICE_REALTIME_PING_MS") ?? 5000) || 5000);
+    // Nothing about a heartbeat should keep a process alive on its own.
+    (beat as any).unref?.();
     brain.on("pong", () => {
       this.statsOf(brain).pongAt = Date.now();
     });
@@ -698,7 +700,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
    * So: ask once, and if that also produces nothing, give the call to the
    * engine that has been answering this phone for months.
    */
-  private watchForSilence(brain: WebSocket, ccid: string): void {
+  private watchForSilence(brain: WebSocket, ccid: string, mode: "reply" | "idle" = "reply"): void {
     // Optional chaining because this runs on the tool path: a throw here
     // would skip the reply, which is the very silence it exists to prevent.
     // Three seconds.
@@ -709,10 +711,13 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     // recovery is a sentence the caller can answer, so it can afford to be
     // early. Two rounds is six seconds before the call moves engine, which is
     // about as long as anyone will hold.
-    const quiet = Number(this.config?.get<string>("VOICE_REALTIME_QUIET_MS") ?? 3000) || 3000;
+    const quiet =
+      mode === "idle"
+        ? Number(this.config?.get<string>("VOICE_REALTIME_IDLE_MS") ?? 10_000) || 10_000
+        : Number(this.config?.get<string>("VOICE_REALTIME_QUIET_MS") ?? 3000) || 3000;
     const timer = (brain as any).__quiet;
     if (timer) clearTimeout(timer);
-    (brain as any).__quiet = setTimeout(() => {
+    const timer2 = setTimeout(() => {
       (brain as any).__quiet = undefined;
       if (brain.readyState !== WebSocket.OPEN) return;
       const stats = this.statsOf(brain);
@@ -745,9 +750,11 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // indistinguishable from being hung up on.
         this.speakExactly(
           brain,
-          "Sorry, I lost you there for a second. Where would you like to start — shall I take the order from the top?",
+          mode === "idle"
+            ? "Sorry, are you still there?"
+            : "Sorry, I lost you there for a second. Where would you like to start — shall I take the order from the top?",
         );
-        this.watchForSilence(brain, ccid);
+        this.watchForSilence(brain, ccid, mode);
         return;
       }
       this.logger.error(`realtime ${ccid.slice(-8)} still nothing (${picture})`);
@@ -757,6 +764,9 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       this.calls.delete(ccid);
       void this.fallbackToRelay(ccid, { alreadySpoke: true });
     }, quiet);
+    // A watchdog is not a reason for a process to stay alive.
+    (timer2 as any).unref?.();
+    (brain as any).__quiet = timer2;
   }
 
   private async onModelEvent(
@@ -811,6 +821,14 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         return;
 
       case "response.done": {
+        // The line has stopped talking. Whatever happens next — the caller
+        // answering, a tool, nothing at all — somebody is now waiting, and
+        // until this the watchdog was armed ONLY by a transcript arriving or a
+        // tool running. On 6 September neither happened: the line asked
+        // "would you like the same as last time?", the caller said no, and
+        // there is not one line in the log after that. Nothing was watching,
+        // so nothing recovered, and the call died in silence.
+        this.watchForSilence(brain, ccid, "idle");
         const running = this.responsesOf(brain);
         const id = String(event.response?.id ?? "");
         if (id && running.has(id)) running.delete(id);
@@ -836,6 +854,14 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       // The caller's own words, logged in the same shape the chained engine
       // logs them. Without this the two engines cannot be compared, and a bad
       // call on this one could not be diagnosed at all.
+      // VAD says they have stopped talking. From here the line OWES them a
+      // reply, and it is on the short clock — earlier and more reliable than
+      // waiting for a transcript, which on the call above never came.
+      case "input_audio_buffer.speech_stopped":
+      case "input_audio_buffer.committed":
+        this.watchForSilence(brain, ccid, "reply");
+        return;
+
       case "conversation.item.input_audio_transcription.completed":
         this.logger.log(
           `realtime ${ccid.slice(-8)} heard ${JSON.stringify(String(event.transcript ?? "").trim())}`,

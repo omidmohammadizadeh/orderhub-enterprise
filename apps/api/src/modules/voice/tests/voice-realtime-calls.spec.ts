@@ -631,3 +631,56 @@ describe("pressing a key stops the line talking", () => {
     expect(sim.toModel.map((m) => m.type)).not.toContain("response.cancel");
   });
 });
+
+describe("silence with nothing to trigger a recovery", () => {
+  // The real one, 6 September 22:22. The line asked "would you like the same
+  // as last time — chips and garlic sauce, delivered to 11 Follingsby Drive?",
+  // the caller said no, and the log records NOTHING after that. No transcript,
+  // no reply, no watchdog: it was armed only by a transcription arriving or a
+  // tool running, and neither happened. The line sat silent until the caller
+  // gave up.
+  //
+  // A caller is owed words whenever the line has stopped talking, whatever did
+  // or did not happen next.
+
+  it("checks in when the caller has gone quiet after a question", async () => {
+    const sim = new VoiceRealtimeSim({ idleMs: 60 });
+    await sim.answer();
+    sim.brain.sent.length = 0;
+
+    // The line asks its question and finishes speaking. Then nothing at all —
+    // no transcript, no speech events, no tool.
+    await sim.speak("Would you like the same as last time — chips and garlic sauce?");
+    await new Promise((r) => setTimeout(r, 140));
+
+    const ask = sim.toModel.find((m) => m.type === "response.create");
+    expect(ask).toBeTruthy();
+    expect(ask.response.instructions).toMatch(/still there/i);
+  });
+
+  it("answers quickly once it knows the caller has finished speaking", async () => {
+    // VAD says they stopped talking. From here the line OWES them a reply, and
+    // three seconds is the whole budget — this is not the idle case.
+    const sim = new VoiceRealtimeSim({ quietMs: 40, idleMs: 10_000 });
+    await sim.answer();
+    sim.brain.sent.length = 0;
+
+    sim.brain.deliver({ type: "input_audio_buffer.speech_stopped" });
+    sim.brain.deliver({ type: "input_audio_buffer.committed" });
+    await new Promise((r) => setTimeout(r, 100));
+
+    const ask = sim.toModel.find((m) => m.type === "response.create");
+    expect(ask.response.instructions).toMatch(/Sorry, I lost you there/);
+  });
+
+  it("does not interrupt a caller who is still thinking", async () => {
+    // Somebody deciding between two pizzas is not silence to be filled.
+    const sim = new VoiceRealtimeSim({ idleMs: 10_000 });
+    await sim.answer();
+    sim.brain.sent.length = 0;
+    await sim.speak("Which pizza would you like?");
+    await new Promise((r) => setTimeout(r, 100));
+
+    expect(sim.toModel.some((m) => m.type === "response.create")).toBe(false);
+  });
+});

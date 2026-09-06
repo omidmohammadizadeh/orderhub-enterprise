@@ -52,6 +52,7 @@ export interface RealtimeSimOptions {
   quietMs?: number;
   pingMs?: number;
   readyMs?: number;
+  idleMs?: number;
 }
 
 export class VoiceRealtimeSim {
@@ -81,6 +82,7 @@ export class VoiceRealtimeSim {
       ...(opts.quietMs ? { VOICE_REALTIME_QUIET_MS: String(opts.quietMs) } : {}),
       ...(opts.pingMs ? { VOICE_REALTIME_PING_MS: String(opts.pingMs) } : {}),
       ...(opts.readyMs ? { VOICE_REALTIME_READY_MS: String(opts.readyMs) } : {}),
+      ...(opts.idleMs ? { VOICE_REALTIME_IDLE_MS: String(opts.idleMs) } : {}),
     };
     g.config = { get: (k: string) => env[k] };
     g.connectToModel = () => this.brain;
