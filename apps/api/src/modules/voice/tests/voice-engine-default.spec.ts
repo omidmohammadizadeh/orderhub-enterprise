@@ -19,14 +19,16 @@ const svc = (settings: any) => {
 };
 
 describe("the engine a call is answered on", () => {
-  it("is speech-to-speech when the shop has never chosen", async () => {
-    expect(await svc({}).engineFor("cc1")).toBe("REALTIME");
-    expect(await svc({ voiceAiEnabled: true }).engineFor("cc1")).toBe("REALTIME");
+  it("is the engine that works when the shop has never chosen", async () => {
+    // Speech-to-speech was the default for a few hours and should not have
+    // been: it has not yet completed a call, and every attempt costs the
+    // caller five seconds of silence before it hands back. A default is the
+    // thing that works.
+    expect(await svc({}).engineFor("cc1")).toBe("RELAY");
+    expect(await svc({ voiceAiEnabled: true }).engineFor("cc1")).toBe("RELAY");
   });
 
   it("still honours a shop that chose the older one", async () => {
-    // Somebody who deliberately picked the chained engine — to compare them,
-    // or because it suits their line — must keep it.
     expect(await svc({ voiceEngine: "RELAY" }).engineFor("cc1")).toBe("RELAY");
   });
 

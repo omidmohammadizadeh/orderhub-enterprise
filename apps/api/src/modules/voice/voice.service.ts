@@ -292,22 +292,22 @@ export class VoiceService {
     const chosen = (loc?.settings as any)?.voiceEngine;
     if (chosen === "REALTIME" || chosen === "RELAY") return chosen;
 
-    // Unset means speech-to-speech, where it is configured.
+    // Unset means the chained engine, and this was the wrong way round for a
+    // few hours today.
     //
-    // The chained engine turns the caller into text before anything can think
-    // about it, and that text is where the orders were being lost — "twelve
-    // inch pepperoni, chips and garlic" arrived as "twelve inch pepperoni",
-    // with the rest of the sentence simply gone. Nothing downstream recovers
-    // words that were never written down, and no amount of menu matching
-    // helps: the matcher was never given them.
+    // Speech-to-speech is the better answer to the fault that prompted it —
+    // "twelve inch pepperoni, chips and garlic" reaching us as "twelve inch
+    // pepperoni", with no transcript for the rest to fall out of. But it has
+    // not yet completed a single call: the socket has died mid-conversation
+    // and the session has failed to become ready, and each attempt costs the
+    // caller five seconds of silence before the call is handed back here.
     //
-    // Speech-to-speech has no transcript to lose them from. It costs more per
-    // minute and it has dropped its connection twice, which is why it is not
-    // trusted blindly — an unusable one falls straight through to the chained
-    // engine below, a dead socket mid-call hands the caller over, and both
-    // engines run the same tools, so neither can place an order that has not
-    // been read back.
-    return "REALTIME";
+    // A default is the thing that works. Making it the default before it had
+    // worked once charged that silence to every shop that had never heard of
+    // the setting, to buy an improvement none of them had asked for. It stays
+    // one keystroke away for anyone comparing them, and it goes back to being
+    // the default the first time it takes an order end to end.
+    return "RELAY";
   }
 
   /** Did this shop pick an engine, or are they on whatever the default is? */
