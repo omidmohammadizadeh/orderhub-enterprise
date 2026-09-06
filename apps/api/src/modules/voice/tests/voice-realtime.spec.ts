@@ -102,3 +102,89 @@ describe("what the speech-to-speech engine is told", () => {
     expect(prompt()).toMatch(/[Nn]ever ask them\s+to repeat a whole order/);
   });
 });
+
+describe("keypresses on the speech-to-speech engine", () => {
+  // The greeting invites them — "to place an order, press 1" — and on this
+  // engine they were logged and dropped. The webhook that used to handle them
+  // now stands down for realtime calls, correctly, and that left nobody
+  // handling them at all: the caller pressed 1, pressed it again, and nothing
+  // was listening.
+  const { VoiceRealtimeGateway } = require("../voice-realtime.gateway");
+
+  const gw = (over: Record<string, any> = {}) => {
+    const g: any = Object.create(VoiceRealtimeGateway.prototype);
+    g.logger = { log() {}, warn() {}, error() {} };
+    g.voice = { realtimeTool: jest.fn(async () => ({ result: "ok" })) };
+    g.telnyx = { transfer: jest.fn(async () => true) };
+    Object.assign(g, over);
+    return g;
+  };
+
+  const brain = () => {
+    const sent: any[] = [];
+    return {
+      sent,
+      readyState: 1, // WebSocket.OPEN
+      send: (raw: string) => sent.push(JSON.parse(raw)),
+    };
+  };
+
+  it("tells the model what the caller pressed, and asks it to carry on", async () => {
+    const g = gw();
+    const b = brain();
+    await g.onDigit("1", "cc1", b);
+
+    const [item, response] = b.sent;
+    expect(item.type).toBe("conversation.item.create");
+    expect(item.item.content[0].text).toMatch(/pressed 1/);
+    expect(item.item.content[0].text).toMatch(/place an order/);
+    // Reading the menu back at somebody who just answered it is the thing
+    // that makes a phone line feel like a machine.
+    expect(item.item.content[0].text).toMatch(/without reading the options out again/);
+    expect(response.type).toBe("response.create");
+  });
+
+  it("knows what each option means", async () => {
+    for (const [digit, expected] of [
+      ["2", /update on an order/],
+      ["3", /change an order/],
+      ["4", /problem with an order/],
+      ["5", /hear the options again/],
+    ] as Array<[string, RegExp]>) {
+      const b = brain();
+      await gw().onDigit(digit, "cc1", b);
+      expect(b.sent[0].item.content[0].text).toMatch(expected);
+    }
+  });
+
+  it("puts zero through to a person in code, not by asking the model to notice", async () => {
+    // "Getting through to someone must always work" is not a promise to
+    // delegate.
+    const transfer = jest.fn(async () => true);
+    const g = gw({
+      voice: {
+        realtimeTool: jest.fn(async () => ({
+          result: "Putting you through.",
+          turn: { transferTo: "+441912312345" },
+        })),
+      },
+      telnyx: { transfer },
+    });
+    const b = brain();
+    await g.onDigit("0", "cc1", b);
+
+    expect(g.voice.realtimeTool).toHaveBeenCalledWith(
+      "cc1",
+      "transfer_to_staff",
+      expect.objectContaining({ reason: expect.stringMatching(/pressed 0/) }),
+    );
+    // Not handed to the model at all.
+    expect(b.sent).toHaveLength(0);
+  });
+
+  it("says nothing down a socket that has already gone", async () => {
+    const b = { ...brain(), readyState: 3 };
+    await gw().onDigit("1", "cc1", b as any);
+    expect(b.sent).toHaveLength(0);
+  });
+});

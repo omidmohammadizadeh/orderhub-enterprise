@@ -35,6 +35,7 @@ import { TelnyxCallControlService } from "./telnyx-call-control.service";
 interface TelnyxMediaFrame {
   event?: string;
   media?: { payload?: string };
+  dtmf?: { digit?: string };
   stream_id?: string;
   start?: { call_control_id?: string };
 }
@@ -372,6 +373,16 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         brain.send(
           JSON.stringify({ type: "input_audio_buffer.append", audio: frame.media.payload }),
         );
+        return;
+      }
+
+      // Keypresses. The greeting invites them — "to place an order, press 1" —
+      // and on this engine they were logged and dropped: the caller pressed 1,
+      // then pressed it again, and nothing on earth was listening. The webhook
+      // that used to handle them now stands down for realtime calls, which is
+      // right, but it left nobody handling them at all.
+      if (frame.event === "dtmf" && frame.dtmf?.digit) {
+        void this.onDigit(String(frame.dtmf.digit), ccid, brain);
       }
     });
 
@@ -387,6 +398,49 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     caller.on("error", (e: any) =>
       this.logger.warn(`realtime caller socket error on ${ccid.slice(-8)}: ${e?.message}`),
     );
+  }
+
+  /**
+   * The caller pressed a key.
+   *
+   * Zero is a person, and that is answered here rather than by asking the
+   * model to notice — "getting through to someone must always work" is not a
+   * promise to delegate. Everything else is handed over as plain speech,
+   * because the model already has the menu in its instructions and the same
+   * tools to act on it.
+   */
+  private async onDigit(digit: string, ccid: string, brain: WebSocket): Promise<void> {
+    if (brain.readyState !== WebSocket.OPEN) return;
+    this.logger.log(`realtime ${ccid.slice(-8)} pressed ${digit}`);
+
+    if (digit === "0") {
+      const out = await this.voice
+        .realtimeTool(ccid, "transfer_to_staff", { reason: "The caller pressed 0." })
+        .catch(() => null);
+      if (out?.turn?.transferTo) {
+        setTimeout(() => void this.telnyx.transfer(ccid, out.turn!.transferTo!), 3000);
+      }
+      return;
+    }
+
+    const meaning: Record<string, string> = {
+      "1": "wants to place an order",
+      "2": "wants an update on an order they have already placed",
+      "3": "wants to change an order they have already placed",
+      "4": "has a problem with an order",
+      "5": "wants to hear the options again",
+    };
+    const said = meaning[digit]
+      ? `The caller pressed ${digit} on their keypad, which means they ${meaning[digit]}. Carry on from there without reading the options out again.`
+      : `The caller pressed ${digit} on their keypad.`;
+
+    brain.send(
+      JSON.stringify({
+        type: "conversation.item.create",
+        item: { type: "message", role: "user", content: [{ type: "input_text", text: said }] },
+      }),
+    );
+    brain.send(JSON.stringify({ type: "response.create" }));
   }
 
   private async onModelEvent(
