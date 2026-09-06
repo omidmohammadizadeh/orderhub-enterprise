@@ -101,6 +101,16 @@ describe("what the speech-to-speech engine is told", () => {
   it("is told not to make them repeat a whole order", () => {
     expect(prompt()).toMatch(/[Nn]ever ask them\s+to repeat a whole order/);
   });
+
+  it("is told that no means no", () => {
+    // From a live call: asked "are you still at Sunningdale Drive?", the
+    // caller said no — and it called use_saved_address anyway. Proceeding
+    // through a no sends a driver to the wrong house.
+    const p = prompt();
+    expect(p).toMatch(/NO MEANS NO/);
+    expect(p).toMatch(/must NOT call use_saved_address/);
+    expect(p).toMatch(/Guessing yes\s+is the one guess you can never make/);
+  });
 });
 
 describe("keypresses on the speech-to-speech engine", () => {
@@ -264,5 +274,78 @@ describe("a tool call announced twice is still one tool call", () => {
     );
     expect(g.voice.realtimeTool).not.toHaveBeenCalled();
     expect(sent).toHaveLength(0);
+  });
+});
+
+describe("asking for a reply while one is still being spoken", () => {
+  // A tool call is announced WHILE the response containing it is still
+  // running. Asking for a new response then asks for two at once, and the
+  // second is refused — which is a line that stops talking mid-order.
+  const { VoiceRealtimeGateway } = require("../voice-realtime.gateway");
+
+  const setup = () => {
+    const g: any = Object.create(VoiceRealtimeGateway.prototype);
+    g.logger = { log() {}, warn() {}, error() {} };
+    g.seenEvents = new Set();
+    g.telnyx = { transfer: jest.fn(), hangup: jest.fn() };
+    g.voice = { realtimeTool: jest.fn(async () => ({ result: "Using their saved address." })) };
+    const sent: any[] = [];
+    const brain: any = { readyState: 1, send: (raw: string) => sent.push(JSON.parse(raw)) };
+    return { g, brain, sent };
+  };
+  const ev = (o: any) => JSON.stringify(o);
+
+  it("waits for the current reply to finish before asking for the next", async () => {
+    const { g, brain, sent } = setup();
+    await g.onModelEvent(ev({ type: "response.created" }), "cc1", brain, () => {});
+    await g.onModelEvent(
+      ev({
+        type: "response.function_call_arguments.done",
+        name: "use_saved_address",
+        call_id: "c1",
+        arguments: "{}",
+      }),
+      "cc1",
+      brain,
+      () => {},
+    );
+
+    // The result goes back straight away; the request for a reply does not.
+    expect(sent.some((m) => m.type === "conversation.item.create")).toBe(true);
+    expect(sent.some((m) => m.type === "response.create")).toBe(false);
+
+    await g.onModelEvent(ev({ type: "response.done" }), "cc1", brain, () => {});
+    expect(sent.filter((m) => m.type === "response.create")).toHaveLength(1);
+  });
+
+  it("asks immediately when nothing is being spoken", async () => {
+    const { g, brain, sent } = setup();
+    await g.onModelEvent(
+      ev({ type: "response.function_call_arguments.done", name: "x", call_id: "c2", arguments: "{}" }),
+      "cc1",
+      brain,
+      () => {},
+    );
+    expect(sent.filter((m) => m.type === "response.create")).toHaveLength(1);
+  });
+
+  it("does not ask twice when a reply finishes with nothing queued", async () => {
+    const { g, brain, sent } = setup();
+    await g.onModelEvent(ev({ type: "response.created" }), "cc1", brain, () => {});
+    await g.onModelEvent(ev({ type: "response.done" }), "cc1", brain, () => {});
+    expect(sent.filter((m) => m.type === "response.create")).toHaveLength(0);
+  });
+
+  it("logs what the line said, so silence can be told from unheard speech", async () => {
+    const { g, brain } = setup();
+    const said: string[] = [];
+    g.logger = { log: (m: string) => said.push(m), warn() {}, error() {} };
+    await g.onModelEvent(
+      ev({ type: "response.output_audio_transcript.done", transcript: "Is that right?" }),
+      "cc1",
+      brain,
+      () => {},
+    );
+    expect(said.join(" ")).toContain('said "Is that right?"');
   });
 });

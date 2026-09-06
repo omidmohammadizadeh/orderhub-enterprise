@@ -476,6 +476,31 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       // session.updated means our settings were accepted.
       case "session.created":
         return;
+
+      case "response.created":
+        (brain as any).__responseActive = true;
+        return;
+
+      case "response.done": {
+        (brain as any).__responseActive = false;
+        // A tool finished while this one was still speaking. Now is the moment.
+        if ((brain as any).__responsePending) {
+          (brain as any).__responsePending = false;
+          brain.send(JSON.stringify({ type: "response.create" }));
+        }
+        return;
+      }
+
+      // What the line actually SAID. Without it, "it went silent" is a report
+      // that cannot be told apart from "it spoke and the audio never arrived",
+      // and those have completely different causes.
+      case "response.output_audio_transcript.done":
+        if (event.transcript) {
+          this.logger.log(
+            `realtime ${ccid.slice(-8)} said ${JSON.stringify(String(event.transcript).trim().slice(0, 200))}`,
+          );
+        }
+        return;
       case "session.updated":
         (brain as any).__onConfigured?.();
         return;
@@ -529,7 +554,15 @@ export class VoiceRealtimeGateway implements OnModuleInit {
             },
           }),
         );
-        brain.send(JSON.stringify({ type: "response.create" }));
+        // A tool call is announced WHILE the response containing it is still
+        // running. Asking for a new response then is asking for two at once,
+        // and the second is refused — which is a line that stops talking in
+        // the middle of taking an address. Wait for the current one to finish.
+        if ((brain as any).__responseActive) {
+          (brain as any).__responsePending = true;
+        } else {
+          brain.send(JSON.stringify({ type: "response.create" }));
+        }
 
         // Telephony stays out of VoiceService — that is what lets both engines
         // share it — so the two side effects a tool can have are done here.
