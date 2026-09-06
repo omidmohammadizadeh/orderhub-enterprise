@@ -39,6 +39,7 @@ import {
   streetOf,
   type VoiceStage,
   numberedAsk,
+  parseYesNo,
 } from "./voice-flow";
 import {
   isConfident,
@@ -160,7 +161,9 @@ export interface VoiceState {
     /** Street agreed; waiting for the house number or name. */
     | "ADDR_HOUSE"
     /** A dish is chosen and one of its required choices is outstanding. */
-    | "ITEM_OPTION";
+    | "ITEM_OPTION"
+    /** Every choice made; offering them a note before it goes in the cart. */
+    | "ITEM_NOTE";
   /** The address being built up, one question at a time. `house` holds a
    *  number they gave BEFORE we could name the street, so it isn't asked for
    *  twice — "five signing their drive" is a five we already have. */
@@ -176,6 +179,12 @@ export interface VoiceState {
     chosen: string[];
     /** Answers to this dish's questions we could not read. */
     misses?: number;
+    /** Anything the caller wants the kitchen to know about this line. */
+    notes?: string;
+    /** Whether we have already offered them the chance to add one. */
+    notesAsked?: boolean;
+    /** Whether we actually asked them anything about this dish. */
+    walked?: boolean;
   };
   /**
    * What is on offer right now, in the order it was read out.
@@ -267,6 +276,9 @@ export function coerceState(raw: unknown): VoiceState {
               ? r.pendingItem.chosen.map(String)
               : [],
             misses: Number(r.pendingItem.misses) || 0,
+            notes: r.pendingItem.notes ? String(r.pendingItem.notes) : undefined,
+            notesAsked: r.pendingItem.notesAsked === true,
+            walked: r.pendingItem.walked === true,
           }
         : undefined,
     choices: Array.isArray(r.choices) ? r.choices.map(String) : undefined,
@@ -301,6 +313,7 @@ export function coerceState(raw: unknown): VoiceState {
         "ADDR_STREET",
         "ADDR_HOUSE",
         "ITEM_OPTION",
+        "ITEM_NOTE",
       ] as const
     ).includes(r.awaiting)
       ? r.awaiting
@@ -2035,9 +2048,15 @@ ${menu || "(no items available — apologise and transfer)"}`;
       this.absorbOptions(item, state, text);
       const ask = this.askNextOption(ctx, state);
       if (ask) return { say: `${opener} ${ask.say}`.trim(), next: ask.next };
-      // One sentence, not two. "Got it — Solo Meal. Got it — Chicken Gyros
-      // Wrap." is a machine reading a list back to itself.
-      const done = this.commitPendingItem(ctx, state);
+      // Every choice was already answered in the same breath as the order, so
+      // the only thing left to offer is the note. Same question either way:
+      // whether the sauce was asked for or volunteered changes nothing about
+      // whether the kitchen needs telling something.
+      const done = this.askNoteOrCommit(ctx, state);
+      if (state.pendingItem) {
+        return { say: `${opener} ${done}`.trim(), next: "ITEM_NOTE" };
+      }
+
       if (!opener) return { say: done };
       return {
         say: `${opener.replace(/\.$/, "")} and ${done.replace(/^Got it — /, "")}`,
@@ -2051,6 +2070,7 @@ ${menu || "(no items available — apologise and transfer)"}`;
         chosen: [],
       };
       state.choices = sizeOpen.group.variants.map((v: any) => v.id);
+      state.pendingItem.walked = true;
       return {
         say: `${opener} What size ${sizeOpen.group.base} would you like — ${sizesAloud(
           sizeOpen.group.variants,
@@ -2097,7 +2117,19 @@ ${menu || "(no items available — apologise and transfer)"}`;
     }
   }
 
-  /** The first required choice still outstanding, asked out loud. */
+  /**
+   * The first required choice still outstanding, read out with its numbers.
+   *
+   * Said in full — "for your wrap, press 1 for Gyros Wrap, 2 for Falafel, 3
+   * for Halloumi" — because the operator tried both on live calls and this is
+   * the one that gets orders through. It costs a few seconds a question
+   * against asking it conversationally, and buys a choice that cannot be
+   * misheard: no accent, no line noise and no menu word the transcriber has
+   * never been trained on can turn a 2 into something else.
+   *
+   * Speaking still works everywhere pressing does. Nobody is forced to use the
+   * keypad — they are simply always able to.
+   */
   private askNextOption(
     ctx: VoiceContext,
     state: VoiceState,
@@ -2110,37 +2142,80 @@ ${menu || "(no items available — apologise and transfer)"}`;
       if (!group.required) continue;
       const picked = group.options.filter((o: any) => pending.chosen.includes(o.id));
       if (picked.length >= Math.max(1, group.min)) continue;
-      // At most three read aloud. A caller cannot hold a list of nine, and the
-      // ones they want are nearly always near the top of the shop's own order.
-      const offered = group.options.slice(0, 3);
+
+      // Five is the ceiling. A caller holding a phone cannot keep nine numbered
+      // options in their head, and by the sixth they have forgotten the first —
+      // beyond that, saying it is genuinely the better way and they are told so.
+      const offered = group.options.slice(0, 5);
       state.choices = offered.map((o: any) => o.id);
-      const names = offered.map((o: any) => o.name);
-      const more = group.options.length > 3 ? ", or something else" : "";
-
-      // Twice on one dish means the matcher is not going to get there, and a
-      // third natural asking is just the same failure again in a friendlier
-      // voice. Numbers cannot be misheard.
-      if ((pending.misses ?? 0) >= 2) {
-        return { say: numberedAsk(group.name, names), next: "ITEM_OPTION" };
-      }
-
-      const ask = `Which ${group.name.toLowerCase()} would you like — ${names.slice(0, -1).join(", ")}${
-        names.length > 1 ? ` or ${names[names.length - 1]}` : names[0]
-      }${more}?`;
-      // The one sentence that makes the keypad exist for this caller. Said at
-      // the first question of the call and never again, because a line that
-      // explains itself twice is a phone tree.
-      if (!state.toldAboutKeypad && names.length > 1) {
-        state.toldAboutKeypad = true;
-        return {
-          say: `${ask} Say it, or press ${names.map((_: string, i: number) => i + 1).join(", ")}.`,
-          next: "ITEM_OPTION",
-        };
-      }
-      return { say: ask, next: "ITEM_OPTION" };
+      pending.walked = true;
+      const parts = offered.map((o: any, i: number) => `${i + 1} for ${o.name}`);
+      const more =
+        group.options.length > offered.length ? " Or just say what you'd like." : "";
+      return {
+        say: `For your ${group.name.toLowerCase()}, press ${parts.join(", ")}.${more}`,
+        next: "ITEM_OPTION",
+      };
     }
     return null;
   }
+
+  /**
+   * Every choice made. Offer the kitchen a note before the line is committed.
+   *
+   * "No onions", "extra crispy", "cut in half" — the things a caller says at
+   * the counter and has no way to say to a phone tree. Asked once per line and
+   * answered with a keypress by anyone who has nothing to add.
+   */
+  private askNoteOrCommit(ctx: VoiceContext, state: VoiceState): string {
+    const pending = state.pendingItem;
+    if (!pending) return "";
+    if (pending.notesAsked) return this.commitPendingItem(ctx, state);
+    // Only after a walkthrough. A caller who said "a doner with chilli" in one
+    // breath told us everything already, and answering a question they were
+    // never asked with a note they do not have is how a line grows a step per
+    // item for no reason.
+    if (!pending.walked) return this.commitPendingItem(ctx, state);
+    pending.notesAsked = true;
+    state.choices = undefined;
+    const item = pending.itemId ? ctx.itemIndex.get(pending.itemId) : undefined;
+    const { base } = splitSize(item?.name ?? "that");
+    return `Any notes for the ${base.toLowerCase()} — anything like no onions or extra sauce? Say it now, or press 1 if not.`;
+  }
+
+  /** The next thing to say once a choice has landed. */
+  private afterOption(ctx: VoiceContext, state: VoiceState): string {
+    const next = this.askNextOption(ctx, state);
+    return next ? next.say : this.askNoteOrCommit(ctx, state);
+  }
+
+  /**
+   * Their answer to "any notes?".
+   *
+   * Anything that is not a refusal is the note itself, because that is what a
+   * caller says: they do not say "yes" and wait to be asked again.
+   */
+  answerItemNote(ctx: VoiceContext, state: VoiceState, said: string): string | null {
+    const pending = state.pendingItem;
+    if (!pending) return null;
+    const text = String(said ?? "").trim();
+    if (!text) return null;
+
+    // The WHOLE utterance, not its first word. "No onions" is the commonest
+    // note on any takeaway ticket and it begins with "no" — reading that as a
+    // refusal drops the one instruction the kitchen actually needed, silently,
+    // and the caller has no way of knowing it went nowhere.
+    const refusal =
+      /^(no|none|nope|nah|nothing|no thanks?|no thank you|no that'?s it|that'?s it|thats it|all good|i'?m good|we'?re good)[.!]?$/i;
+    if (refusal.test(text)) return this.commitPendingItem(ctx, state);
+    // A "yes" on its own is somebody agreeing to add one, not the note.
+    if (parseYesNo(text) === "YES" && text.split(/\s+/).length <= 2) {
+      return "Go ahead — what would you like me to put on it?";
+    }
+    pending.notes = text.replace(/^(yes,?\s*|please\s+)/i, "").trim().slice(0, 200);
+    return this.commitPendingItem(ctx, state);
+  }
+
 
   /** Their answer to a required choice. Null means we could not tell. */
   answerItemOption(ctx: VoiceContext, state: VoiceState, said: string): string | null {
@@ -2160,8 +2235,7 @@ ${menu || "(no items available — apologise and transfer)"}`;
       pending.itemId = chosen.id;
       pending.variantIds = undefined;
       this.absorbOptions(chosen, state, said);
-      const next = this.askNextOption(ctx, state);
-      return next ? next.say : this.commitPendingItem(ctx, state);
+      return this.afterOption(ctx, state);
     }
 
     const item = pending.itemId ? ctx.itemIndex.get(pending.itemId) : undefined;
@@ -2180,10 +2254,9 @@ ${menu || "(no items available — apologise and transfer)"}`;
         return null;
       }
       pending.chosen.push(answer.item.id);
-      const next = this.askNextOption(ctx, state);
-      return next ? next.say : this.commitPendingItem(ctx, state);
+      return this.afterOption(ctx, state);
     }
-    return this.commitPendingItem(ctx, state);
+    return this.askNoteOrCommit(ctx, state);
   }
 
   /**
@@ -2210,8 +2283,7 @@ ${menu || "(no items available — apologise and transfer)"}`;
       pending.variantIds = undefined;
       pending.misses = 0;
       state.choices = undefined;
-      const next = this.askNextOption(ctx, state);
-      return next ? next.say : this.commitPendingItem(ctx, state);
+      return this.afterOption(ctx, state);
     }
 
     const item = pending.itemId ? ctx.itemIndex.get(pending.itemId) : undefined;
@@ -2222,8 +2294,7 @@ ${menu || "(no items available — apologise and transfer)"}`;
     pending.chosen.push(id);
     pending.misses = 0;
     state.choices = undefined;
-    const next = this.askNextOption(ctx, state);
-    return next ? next.say : this.commitPendingItem(ctx, state);
+    return this.afterOption(ctx, state);
   }
 
   /** Every required choice made — put it in the cart. */
@@ -2242,6 +2313,7 @@ ${menu || "(no items available — apologise and transfer)"}`;
       quantity: pending.quantity,
       unitBasePrice: item.price,
       modifiers,
+      ...(pending.notes ? { notes: pending.notes } : {}),
     } as any);
     state.pendingItem = undefined;
     state.choices = undefined;
@@ -2656,6 +2728,15 @@ NO MEANS NO
         ctx.tenantId,
       );
       state.orderId = order.id;
+      // Where it landed, in the words the operator uses: an unpaid card order
+      // is PENDING and sits in "Waiting for payment", not New, and "the order
+      // never arrived" is otherwise impossible to tell apart from "the order
+      // arrived somewhere I wasn't looking".
+      this.logger.log(
+        `Voice order ${order.orderNumber ?? order.id} placed — status ${order.status}, ` +
+          `${isCard ? "PAYMENT_LINK (waiting for payment)" : "CASH"}, ` +
+          `location ${ctx.locationId}${ctx.brandId ? `, brand ${ctx.brandId}` : ""}`,
+      );
 
       // Remember where they live, so the next call is one yes instead of a
       // recited address. After the order exists, deliberately: an abandoned
@@ -2917,24 +2998,12 @@ NO MEANS NO
     to: string,
   ): Promise<string> {
     try {
-      const origin = (
-        this.config.get<string>("WEB_URL") ?? "https://www.orderhubsolutions.com"
-      ).replace(/\/+$/, "");
-      const { url } = await this.payments.createCheckoutSession({
-        tenantId: ctx.tenantId,
-        orderId: order.id,
-        successUrl: `${origin}/p/paid`,
-        cancelUrl: `${origin}/p/cancelled`,
-      });
-      await this.sms.send({
-        tenantId: ctx.tenantId,
-        to,
-        body: `${ctx.locationName}: pay for order ${order.orderNumber} here ${url}`,
-        purpose: "PAYMENT_LINK",
-        locationId: ctx.locationId,
-        brandId: ctx.brandId ?? null,
-        orderId: order.id,
-      });
+      // The same send the dashboard's "Text payment link" button makes, rather
+      // than a second implementation of it. This one texted the raw Stripe
+      // checkout URL, which is nine SMS segments of unreadable query string
+      // against one for the short `/p/<code>` link — and billed the shop's
+      // wallet for all nine, on the message that is how they get paid.
+      await this.payments.sendOrderPaymentLinkSms(ctx.tenantId, order.id, to);
       return " A payment link has been texted to them.";
     } catch (e: any) {
       this.logger.warn(`Voice payment link failed for order ${order.id}: ${e?.message}`);
@@ -2943,4 +3012,5 @@ NO MEANS NO
       return " The payment text failed — tell them they can pay at the shop.";
     }
   }
+
 }

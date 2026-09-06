@@ -86,19 +86,59 @@ const ordering = () => {
 };
 
 describe("the question a caller hears", () => {
-  it("is asked like a person, not like a phone tree", () => {
+  // The operator ran both versions on live calls. Conversational is faster on
+  // paper and this is the one orders actually got through on, so this is the
+  // one that ships — a choice that cannot be misheard beats a choice that is
+  // three seconds quicker when it works.
+  it("reads the numbers out", () => {
     const { say } = ordering();
-    expect(say).toMatch(/Which wrap would you like — Gyros Wrap, Halloumi Wrap or Souvlaki Wrap\?/);
-    expect(say).not.toMatch(/press 1 for/i);
+    expect(say).toContain(
+      "For your wrap, press 1 for Gyros Wrap, 2 for Halloumi Wrap, 3 for Souvlaki Wrap.",
+    );
   });
 
-  it("mentions the keypad once in a call and then never again", () => {
-    const { s, c, st, say } = ordering();
-    expect(say).toMatch(/Say it, or press 1, 2, 3\./);
-
+  it("walks them through one question at a time", () => {
+    const { s, c, st } = ordering();
     const second = s.answerItemOption(c, st, "gyros");
-    expect(second).toMatch(/Which side/);
-    expect(second).not.toMatch(/Say it, or press/);
+    expect(second).toContain(
+      "For your side, press 1 for Oregano Fries, 2 for Olives, 3 for Halloumi Fries.",
+    );
+    const third = s.answerItemOption(c, st, "olives");
+    expect(third).toContain("For your drink, press 1 for Coke, 2 for Diet Coke.");
+  });
+
+  it("stops reading numbers when there are too many to hold in your head", () => {
+    // Nine numbered sauces is not a choice, it is a memory test. Past five,
+    // saying it is genuinely the better way and the caller is told so.
+    const s = svc();
+    const c = ctx();
+    const many = {
+      id: "big",
+      name: "Mixed Grill",
+      price: 15,
+      modifierGroups: [
+        {
+          id: "sauce",
+          name: "Sauce",
+          required: true,
+          min: 1,
+          options: Array.from({ length: 8 }, (_, i) => ({
+            id: `s${i}`,
+            name: `Sauce ${i + 1}`,
+            price: 0,
+          })),
+        },
+      ],
+    };
+    c.itemIndex.set("big", many);
+    const st: any = { cart: { items: [] }, turns: [] };
+    st.pendingItem = { itemId: "big", quantity: 1, chosen: [] };
+    const ask = s.askNextOption(c, st);
+
+    expect(ask.say).toContain("5 for Sauce 5");
+    expect(ask.say).not.toContain("6 for");
+    expect(ask.say).toContain("Or just say what you'd like.");
+    expect(st.choices).toHaveLength(5);
   });
 
   it("leaves the numbers standing even though it never says them", () => {
@@ -113,7 +153,7 @@ describe("pressing a number instead of saying it", () => {
     const say = s.chooseByNumber(c, st, "2");
 
     expect(st.pendingItem.chosen).toEqual(["w2"]);
-    expect(say).toMatch(/Which side/);
+    expect(say).toMatch(/For your side/);
     expect(st.choices).toEqual(["f1", "f2", "f3"]);
   });
 
@@ -121,7 +161,9 @@ describe("pressing a number instead of saying it", () => {
     const { s, c, st } = ordering();
     s.chooseByNumber(c, st, "1"); // Gyros Wrap
     s.chooseByNumber(c, st, "1"); // Oregano Fries
-    const done = s.chooseByNumber(c, st, "2"); // Diet Coke
+    const note = s.chooseByNumber(c, st, "2"); // Diet Coke
+    expect(note).toMatch(/Any notes for the solo meal/i);
+    const done = s.answerItemNote(c, st, "no");
 
     expect(st.cart.items).toHaveLength(1);
     expect(st.cart.items[0].modifiers.map((m: any) => m.name)).toEqual([
@@ -141,6 +183,7 @@ describe("pressing a number instead of saying it", () => {
     s.answerItemOption(c, st, "halloumi wrap");
     s.chooseByNumber(c, st, "2"); // Olives
     s.answerItemOption(c, st, "diet coke");
+    s.answerItemNote(c, st, "no");
 
     expect(st.cart.items[0].modifiers.map((m: any) => m.name)).toEqual([
       "Halloumi Wrap",
@@ -180,8 +223,8 @@ describe("when the matcher has failed the same caller twice", () => {
     expect(st.pendingItem.misses).toBe(2);
 
     const ask = s.askNextOption(c, st);
-    expect(ask.say).toBe(
-      "Sorry — let's do it by keypad. Which side: for Oregano Fries press 1, for Olives press 2, for Halloumi Fries press 3.",
+    expect(ask.say).toContain(
+      "For your side, press 1 for Oregano Fries, 2 for Olives, 3 for Halloumi Fries.",
     );
   });
 
@@ -201,8 +244,8 @@ describe("what survives being written to the database and read back", () => {
     const back = coerceState(JSON.parse(JSON.stringify(st)));
 
     expect(back.choices).toEqual(["w1", "w2", "w3"]);
-    expect(back.toldAboutKeypad).toBe(true);
     expect(back.pendingItem.misses).toBe(0);
+    expect(back.pendingItem.walked).toBe(true);
   });
 });
 
@@ -270,4 +313,85 @@ describe("answering a question with the one word that matters", () => {
     expect(pick("suvlaki", WRAPS, "Wrap")).toBe("Souvlaki Wrap");
     expect(pick("haloumi", SIDES, "Side")).toBe("Halloumi Fries");
   });
+});
+
+describe("the note the kitchen needs", () => {
+  // What a customer says across the counter and has never had a way to say to
+  // a phone: no onions, extra crispy, cut it in half. Asked once per dish they
+  // were walked through, and skippable with one key by everyone else.
+
+  const walked = () => {
+    const o = ordering();
+    o.s.chooseByNumber(o.c, o.st, "1");
+    o.s.chooseByNumber(o.c, o.st, "1");
+    const say = o.s.chooseByNumber(o.c, o.st, "1");
+    return { ...o, say };
+  };
+
+  it("is offered once every choice is made", () => {
+    const { say, st } = walked();
+    expect(say).toBe(
+      "Any notes for the solo meal — anything like no onions or extra sauce? Say it now, or press 1 if not.",
+    );
+    expect(st.pendingItem).toBeTruthy();
+    expect(st.cart.items).toHaveLength(0);
+    // Nothing is numbered here, so a stray keypress cannot pick a modifier.
+    expect(st.choices).toBeUndefined();
+  });
+
+  it("puts what they said on that line and nowhere else", () => {
+    const { s, c, st } = walked();
+    const done = s.answerItemNote(c, st, "no onions and extra chilli sauce");
+
+    expect(st.cart.items[0].notes).toBe("no onions and extra chilli sauce");
+    expect(done).toMatch(/Solo Meal/);
+    // It is a note, not an order: nothing about "extra chilli sauce" may turn
+    // into a second line or a modifier the caller never chose.
+    expect(st.cart.items).toHaveLength(1);
+    expect(st.cart.items[0].modifiers).toHaveLength(3);
+  });
+
+  it("takes no for an answer, however they say it", () => {
+    for (const said of ["no", "no thanks", "nope", "nothing", "no that's it"]) {
+      const { s, c, st } = walked();
+      expect(s.answerItemNote(c, st, said)).toMatch(/Solo Meal/);
+      expect(st.cart.items[0].notes).toBeUndefined();
+    }
+  });
+
+  it("asks what the note is when they only agreed to give one", () => {
+    // "Yes" is somebody accepting the offer, not the note itself. Writing it
+    // on the ticket would put the word "yes" in front of a chef.
+    const { s, c, st } = walked();
+    expect(s.answerItemNote(c, st, "yes")).toMatch(/what would you like me to put on it/i);
+    expect(st.cart.items).toHaveLength(0);
+
+    const done = s.answerItemNote(c, st, "yes, no onions please");
+    expect(st.cart.items[0].notes).toBe("no onions please");
+    expect(done).toMatch(/Solo Meal/);
+  });
+
+  it("is not asked of someone who was never asked anything", () => {
+    // "A garlic bread" has no choices to make. A note question after every
+    // single line is a step per item for no reason.
+    const s = svc();
+    const c = ctx();
+    const st: any = { cart: { items: [] }, turns: [] };
+    const out = s.quickAddAloud(c, st, "a garlic bread");
+
+    expect(out.say).not.toMatch(/notes/i);
+    expect(st.cart.items).toHaveLength(1);
+  });
+});
+
+it("does not mistake the commonest note there is for a refusal", () => {
+  // "No onions" begins with "no". Matching on the first word threw away the
+  // one instruction the kitchen needed and told the caller it was on there.
+  const o = ordering();
+  o.s.chooseByNumber(o.c, o.st, "1");
+  o.s.chooseByNumber(o.c, o.st, "1");
+  o.s.chooseByNumber(o.c, o.st, "1");
+  o.s.answerItemNote(o.c, o.st, "no onions");
+
+  expect(o.st.cart.items[0].notes).toBe("no onions");
 });

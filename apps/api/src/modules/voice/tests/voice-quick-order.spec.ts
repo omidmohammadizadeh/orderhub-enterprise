@@ -139,9 +139,12 @@ describe("a dish whose size they did not say", () => {
   it("takes the answer", () => {
     const c = ctxSized();
     const st = state();
-    svc().quickAddAloud(c, st, "two margheritas");
-    const say = svc().answerItemOption(c, st, "large");
-    expect(say).toContain("Margherita, 14 inch");
+    const s = svc();
+    s.quickAddAloud(c, st, "two margheritas");
+    // Size settled, so the only thing left is whether the kitchen needs telling
+    // anything about it.
+    expect(s.answerItemOption(c, st, "large")).toMatch(/Any notes for the margherita/i);
+    expect(s.answerItemNote(c, st, "no")).toContain("Margherita, 14 inch");
     expect(st.cart.items[0]).toMatchObject({ itemId: "m14", quantity: 2 });
   });
 
@@ -250,7 +253,9 @@ describe("a dish that needs a choice made about it", () => {
   it("asks the question itself instead of handing it over", () => {
     const st = state();
     const out = svc().quickAddAloud(ctxWithIndex(), st, "a doner kebab");
-    expect(out.say).toMatch(/which sauce/i);
+    // Numbered, because the operator ran both on live calls and this is the
+    // one orders got through on.
+    expect(out.say).toMatch(/For your sauce, press 1 for Chilli, 2 for Garlic\./);
     expect(out.next).toBe("ITEM_OPTION");
     expect(st.cart.items).toHaveLength(0);
     expect(st.pendingItem).toMatchObject({ itemId: "kebab", quantity: 1 });
@@ -261,8 +266,14 @@ describe("a dish that needs a choice made about it", () => {
     const st = state();
     svc().quickAddAloud(c, st, "a doner kebab");
 
-    const say = svc().answerItemOption(c, st, "chilli please");
-    expect(say).toMatch(/chilli/i);
+    const s = svc();
+    // Every choice made, so the kitchen gets offered a note before it is
+    // committed — the thing a caller would say at the counter.
+    const asked = s.answerItemOption(c, st, "chilli please");
+    expect(asked).toMatch(/Any notes for the doner kebab/i);
+    expect(st.cart.items).toHaveLength(0);
+
+    const say = s.answerItemNote(c, st, "no");
     expect(say).toMatch(/anything else/i);
     expect(st.pendingItem).toBeUndefined();
     expect(st.cart.items[0]).toMatchObject({ itemId: "kebab" });
@@ -274,7 +285,12 @@ describe("a dish that needs a choice made about it", () => {
     // asks for the dish. Asking it back is how a line feels like a form.
     const c = ctxWithIndex();
     const st = state();
-    const out = svc().quickAddAloud(c, st, "a doner kebab with chilli");
+    const s = svc();
+    const out = s.quickAddAloud(c, st, "a doner kebab with chilli");
+    // Nothing was asked of them, so nothing more is asked: the note question
+    // belongs at the end of a walkthrough, not after a sentence that already
+    // said everything.
+    expect(out.say).not.toMatch(/press 1 for Chilli/i);
     expect(out.say).toMatch(/anything else/i);
     expect(st.cart.items[0].modifiers[0]).toMatchObject({ name: "Chilli" });
   });
@@ -326,12 +342,13 @@ describe("the burst from the call that prompted all this", () => {
 
   it("takes the whole thing, mangled fragment and all", () => {
     const st = state();
-    const out = svc().quickAddAloud(
-      greekCtx(),
+    const s = svc();
+    const c = greekCtx();
+    const out = s.quickAddAloud(
+      c,
       st,
       "I would like to order solo meat and chicken gyro wrap as a wrap and always... and with the garlic sauce on it",
     );
-
     expect(st.cart.items.map((i: any) => i.name)).toEqual(["Solo Meal", "Chicken Gyros Wrap"]);
     // The sauce they already named is not asked for again.
     expect(out.say).not.toMatch(/which sauce/i);
@@ -346,7 +363,9 @@ describe("the burst from the call that prompted all this", () => {
     // refused, because the gap was 0.17 and the bar was 0.20. A menu with a
     // "Monster" and a "Furry" version of everything makes that gap permanent.
     const st = state();
-    svc().quickAddAloud(greekCtx(), st, "chicken gyro wrap as a wrap with garlic sauce");
+    const s = svc();
+    const c = greekCtx();
+    s.quickAddAloud(c, st, "chicken gyro wrap as a wrap with garlic sauce");
     expect(st.cart.items.map((i: any) => i.name)).toEqual(["Chicken Gyros Wrap"]);
   });
 });

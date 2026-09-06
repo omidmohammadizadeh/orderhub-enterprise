@@ -402,13 +402,28 @@ export class VoiceService {
     // The options were never read out as "press 1 for…" — they follow the
     // order they were spoken in — so this costs the caller who speaks nothing
     // at all, and saves the one on a bad line from repeating themselves.
+    // 1 answers "any notes for that?" with "none" — the fastest way past a
+    // question that most callers have no answer to.
+    if (state.awaiting === "ITEM_NOTE") {
+      const say = String(args.digit).trim() === "1"
+        ? this.ai.answerItemNote(ctx, state, "no")
+        : null;
+      if (!say) return null;
+      state.turns.push({ role: "user", text: `[pressed ${args.digit}]` });
+      state.turns.push({ role: "assistant", text: say });
+      state.confusion = 0;
+      state.awaiting = this.pendingSlot(state);
+      await this.save(call.id, state);
+      return { say };
+    }
+
     if (state.awaiting === "ITEM_OPTION" && state.choices?.length) {
       const say = this.ai.chooseByNumber(ctx, state, args.digit);
       if (say) {
         state.turns.push({ role: "user", text: `[pressed ${args.digit}]` });
         state.turns.push({ role: "assistant", text: say });
         state.confusion = 0;
-        state.awaiting = state.pendingItem ? "ITEM_OPTION" : undefined;
+        state.awaiting = this.pendingSlot(state);
         await this.save(call.id, state);
         this.logger.log(`call ${call.id} answered a choice with key ${args.digit}`);
         return { say };
@@ -428,6 +443,19 @@ export class VoiceService {
       return this.handOver(call, ctx, state);
     }
     return this.applyMenuChoice(call, ctx, state, choice);
+  }
+
+  /**
+   * Which question the dish being built is now waiting on.
+   *
+   * Three states share one pending item — a choice outstanding, a note offered,
+   * nothing left — and getting this wrong sends the caller's next words to the
+   * wrong reader: a note read as an option, or an option read as a note.
+   */
+  private pendingSlot(state: VoiceState): VoiceState["awaiting"] {
+    const pending = state.pendingItem;
+    if (!pending) return undefined;
+    return pending.notesAsked && !state.choices?.length ? "ITEM_NOTE" : "ITEM_OPTION";
   }
 
   /** Menu choice → the fixed line the caller hears and the stage they land in. */
@@ -759,7 +787,17 @@ export class VoiceService {
         const answer = this.ai.answerItemOption(ctx, state, said);
         if (!answer) return null;
         say = answer;
-        next = state.pendingItem ? "ITEM_OPTION" : undefined;
+        next = this.pendingSlot(state);
+        break;
+      }
+
+      case "ITEM_NOTE": {
+        // Whatever they say here belongs to the kitchen, not to a matcher:
+        // "no onions" is not an order and must never be read as one.
+        const answer = this.ai.answerItemNote(ctx, state, said);
+        if (!answer) return null;
+        say = answer;
+        next = this.pendingSlot(state);
         break;
       }
       case "ADDR_HOUSE": {
