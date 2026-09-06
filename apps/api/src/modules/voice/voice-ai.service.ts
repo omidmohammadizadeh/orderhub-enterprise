@@ -1996,6 +1996,25 @@ ${menu || "(no items available — apologise and transfer)"}`;
       }
 
       case "use_saved_address": {
+        // They have to have SAID yes.
+        //
+        // "Are you still at 11 Sunningdale Drive?" — no answer arrived, and
+        // ten seconds later this ran anyway and the order went to an address
+        // the caller had spent the call trying to change. There is a NO MEANS
+        // NO section in the prompt about exactly this; a prompt is a request,
+        // and the address a driver is sent to is not something to request.
+        //
+        // Nothing heard is not a yes either. Silence is the case that caused
+        // this, and it is the one a model is most likely to fill in for
+        // itself.
+        const heard = String(input?.__heard ?? "").trim();
+        if (!heard || parseYesNo(heard) !== "YES") {
+          return {
+            result: `They have not said yes to the address on file${
+              heard ? ` — the last thing they said was "${heard.slice(0, 60)}"` : ""
+            }. Do NOT use it. Ask "No problem — what's the delivery address?" and take the new one.`,
+          };
+        }
         const saved = state.savedAddress;
         if (!saved?.line1) {
           return {
@@ -2693,7 +2712,17 @@ NO MEANS NO
   what you already had; it is the caller correcting you, and proceeding anyway
   sends a driver to the wrong house.
 - If you did not catch whether it was a yes or a no, ask again. Guessing yes
-  is the one guess you can never make.`);
+  is the one guess you can never make.
+
+THE ADDRESS CAN BE CHANGED AT ANY POINT
+- "That address is wrong", "I've moved", "I want to change my address", "it's
+  going somewhere else" — at ANY moment in the call, including in the middle of
+  ordering food and including after you have already read the address back.
+- That is never a menu item. Do not search for it, do not offer them a drink.
+  Say "No problem — what's the new address?" and take it with
+  propose_delivery_address, exactly as you would have at the start.
+- A caller who has said it twice is a caller you have not listened to. Stop
+  whatever else you were doing and take the address.`);
   }
 
   /** Our tools, in the shape the realtime API wants them. */

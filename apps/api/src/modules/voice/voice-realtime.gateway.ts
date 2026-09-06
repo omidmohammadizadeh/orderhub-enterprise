@@ -863,6 +863,9 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         return;
 
       case "conversation.item.input_audio_transcription.completed":
+        // Kept, because a tool sometimes has to be held to what the caller
+        // actually said rather than to what the model believes they meant.
+        (brain as any).__lastHeard = String(event.transcript ?? "").trim();
         this.logger.log(
           `realtime ${ccid.slice(-8)} heard ${JSON.stringify(String(event.transcript ?? "").trim())}`,
         );
@@ -900,7 +903,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
           /* the model sent something unparseable; the tool decides */
         }
         const out = await this.voice
-          .realtimeTool(ccid, name, args)
+          .realtimeTool(ccid, name, { ...args, __heard: (brain as any).__lastHeard ?? null })
           .catch((e: any) => ({ result: `That failed: ${e?.message ?? e}`, turn: undefined }));
         // Everything below this point must survive a tool that answered oddly.
         // A thrown TypeError here would skip the output AND the reply, which

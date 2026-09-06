@@ -95,7 +95,11 @@ describe("chasing an order that was already placed", () => {
     await sim.say("Twenty four.");
     await sim.callTool("find_order", { reference: "24" });
 
-    expect(sim.toolCalls).toEqual([{ name: "find_order", input: { reference: "24" } }]);
+    // Every tool also carries what the caller last said, so a tool that needs
+    // their actual words — the saved address, above all — can be held to them.
+    expect(sim.toolCalls).toEqual([
+      { name: "find_order", input: { reference: "24", __heard: "Twenty four." } },
+    ]);
     // Pressing 2 must not be answered by reading the menu out again.
     const told = sim.toModel.find((m) => m.type === "conversation.item.create");
     expect(told.item.content[0].text).toMatch(/update on an order/);
