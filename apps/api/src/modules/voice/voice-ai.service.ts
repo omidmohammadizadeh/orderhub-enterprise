@@ -480,15 +480,20 @@ export class VoiceAiService {
    * Anything that cannot be found now is simply left out and said aloud, so
    * the caller hears exactly what they are agreeing to.
    */
-  usualAloud(
+  /**
+   * Last time's order, resolved against today's menu. Changes nothing.
+   *
+   * Both engines need this and they need it at different moments: the chained
+   * one offers it and loads the basket in one go, while the speech-to-speech
+   * one has to describe it in its instructions BEFORE the caller has said yes,
+   * and load it only when they do.
+   */
+  resolveUsual(
     ctx: VoiceContext,
-    state: VoiceState,
     last: {
-      fulfillmentType: string;
       items: Array<{ menuItemId?: string | null; name: string; quantity: number; notes?: string | null }>;
-      deliveryAddress?: any;
     },
-  ): { say: string; next: VoiceState["awaiting"] } | null {
+  ): { lines: Array<{ item: any; quantity: number; notes?: string | null }>; gone: string[] } | null {
     const lines: Array<{ item: any; quantity: number; notes?: string | null }> = [];
     const gone: string[] = [];
 
@@ -518,7 +523,16 @@ export class VoiceAiService {
     // One item off a two-item order is not "the usual" any more, and reading a
     // half-order back invites a yes to something they did not have.
     if (!lines.length || gone.length > lines.length) return null;
+    return { lines, gone };
+  }
 
+  /** Put a resolved usual into the basket. */
+  loadUsual(
+    state: VoiceState,
+    resolved: { lines: Array<{ item: any; quantity: number; notes?: string | null }> },
+    last: { fulfillmentType: string; deliveryAddress?: any },
+  ): void {
+    const lines = resolved.lines;
     state.cart.items = lines.map((l) => ({
       lineId: Math.random().toString(36).slice(2, 9),
       itemId: l.item.id,
@@ -533,22 +547,50 @@ export class VoiceAiService {
     if (state.cart.fulfillmentType === "DELIVERY" && last.deliveryAddress) {
       state.cart.deliveryAddress = last.deliveryAddress;
     }
+  }
 
+  /** How the usual is said aloud, given what resolved. */
+  usualSpoken(
+    resolved: { lines: Array<{ item: any; quantity: number }>; gone: string[] },
+    fulfillmentType: string,
+    addressLine1?: string | null,
+  ): string {
+    const lines = resolved.lines;
+    const gone = resolved.gone;
     const spoken = this.listAloud(
       lines.map(({ item, quantity }) => this.spokenLine(item.name, quantity)),
     );
     const where =
-      state.cart.fulfillmentType === "DELIVERY"
-        ? state.cart.deliveryAddress?.line1
-          ? `, delivered to ${state.cart.deliveryAddress.line1}`
+      fulfillmentType === "DELIVERY"
+        ? addressLine1
+          ? `, delivered to ${addressLine1}`
           : ", for delivery"
         : ", for collection";
     const missing = gone.length
       ? ` We're not doing ${this.listAloud(gone)} any more, so that's off.`
       : "";
 
+    return `Would you like the same as last time — ${spoken}${where}?${missing}`;
+  }
+
+  usualAloud(
+    ctx: VoiceContext,
+    state: VoiceState,
+    last: {
+      fulfillmentType: string;
+      items: Array<{ menuItemId?: string | null; name: string; quantity: number; notes?: string | null }>;
+      deliveryAddress?: any;
+    },
+  ): { say: string; next: VoiceState["awaiting"] } | null {
+    const resolved = this.resolveUsual(ctx, last);
+    if (!resolved) return null;
+    this.loadUsual(state, resolved, last);
     return {
-      say: `Would you like the same as last time — ${spoken}${where}?${missing}`,
+      say: this.usualSpoken(
+        resolved,
+        state.cart.fulfillmentType ?? "PICKUP",
+        state.cart.deliveryAddress?.line1,
+      ),
       next: "USUAL",
     };
   }
@@ -1615,6 +1657,12 @@ ${menu || "(no items available — apologise and transfer)"}`;
         },
       },
       {
+        name: "use_usual",
+        description:
+          "The caller said yes to having the same as last time. Puts that whole order — items, collection or delivery, and the address — into the basket. Only call this after they have agreed to the exact order you read out. Follow it with read_back_order.",
+        input_schema: { type: "object", properties: {} },
+      },
+      {
         name: "add_item",
         description:
           "Add one menu item to the order. Pass `said` with the caller's own words and it will be matched against the menu — you do not need the exact id, and matching handles mis-heard names. Ask for any REQUIRED option group before calling this. Callers list several things at once; call this once per item in the SAME turn rather than asking after each one.",
@@ -1824,6 +1872,15 @@ ${menu || "(no items available — apologise and transfer)"}`;
     switch (name) {
       case "find_item":
         return { result: this.findItem(String(input?.said ?? ""), ctx) };
+      // use_usual is answered by VoiceService before it reaches here: it needs
+      // the caller's number and the order history, neither of which belongs in
+      // this file. Reaching this line means the chained engine offered it a
+      // tool only the other engine has.
+      case "use_usual":
+        return {
+          result:
+            "That is not available on this call. Take the order from the beginning — ask whether it is collection or delivery.",
+        };
       case "add_item":
         return this.addItem(input, ctx, state);
       case "remove_item": {
@@ -2597,8 +2654,23 @@ THE MENU IS NOT IN FRONT OF YOU
     return `${text.slice(0, limit)}\n\n[instructions truncated]`;
   }
 
-  promptForRealtime(ctx: VoiceContext, state: VoiceState): string {
-    return this.cappedForRealtime(`${this.systemPrompt(ctx, state, { menu: "brief" })}
+  promptForRealtime(ctx: VoiceContext, state: VoiceState, usual?: string | null): string {
+    // A regular who rings back gets the same one-question call whichever
+    // engine answered. Said EXACTLY as written, because the whole value of it
+    // is that a yes cannot be misheard — a paraphrase invites a conversation.
+    const theUsual = usual
+      ? `
+
+THEY HAVE ORDERED HERE BEFORE
+- Once they have said they want to order, your FIRST question is this, word for
+  word: "${usual}"
+- If they say yes, call use_usual and then read_back_order. Do not ask them
+  anything else first — not collection or delivery, not the address. It is all
+  on the order already.
+- If they say no, or change any part of it, forget it entirely and take the
+  order from the beginning: "No problem — is that collection or delivery?"`
+      : "";
+    return this.cappedForRealtime(`${this.systemPrompt(ctx, state, { menu: "brief" })}${theUsual}
 
 YOU ARE SPEAKING, NOT WRITING
 - Everything you produce is heard aloud. Never say a bullet, a heading, an

@@ -304,3 +304,105 @@ describe("whose order it is allowed to remember", () => {
     expect(days).toBeLessThan(100);
   });
 });
+
+describe("the same offer on the speech-to-speech engine", () => {
+  // A regular ringing back must not get a worse call because of which engine
+  // happened to answer. The two differ in how they HEAR; never in what they
+  // can do for a caller.
+
+  const svcWith = (rows: any[]) => {
+    const s: any = Object.create(VoiceService.prototype);
+    s.logger = { log() {}, warn() {}, error() {} };
+    s.ai = ai();
+    s.save = jest.fn(async () => {});
+    s.prisma = {
+      order: {
+        findMany: async ({ where }: any) => {
+          const wanted = String(where?.customerPhone?.contains ?? "");
+          return rows.filter((o) => wanted && (o.customerPhone ?? "").includes(wanted));
+        },
+      },
+    };
+    return s;
+  };
+  const ROW = {
+    id: "o1",
+    displayId: "4012",
+    orderNumber: 4012,
+    orderSource: "VOICE",
+    customerPhone: "+447700900123",
+    fulfillmentType: "DELIVERY",
+    deliveryAddress: { line1: "5 Sunningdale Drive" },
+    items: [{ menuItemId: "pep", name: "PEPPERONI", quantity: 1, notes: null }],
+  };
+
+  it("is given to the model word for word, so a yes cannot be misheard", () => {
+    const p = ai().promptForRealtime(
+      ctx(),
+      state(),
+      "Would you like the same as last time — PEPPERONI, delivered to 5 Sunningdale Drive?",
+    );
+    expect(p).toMatch(/THEY HAVE ORDERED HERE BEFORE/);
+    expect(p).toContain(
+      'word for\n  word: "Would you like the same as last time — PEPPERONI, delivered to 5 Sunningdale Drive?"',
+    );
+    expect(p).toMatch(/call use_usual and then read_back_order/);
+    // And it must not then ask for things the old order already answers.
+    expect(p).toMatch(/not collection or delivery, not the address/);
+  });
+
+  it("says nothing about a usual when there isn't one", () => {
+    expect(ai().promptForRealtime(ctx(), state())).not.toMatch(/ORDERED HERE BEFORE/);
+  });
+
+  it("offers use_usual as a tool", () => {
+    const names = ai().toolsForRealtime(ctx()).map((t: any) => t.name);
+    expect(names).toContain("use_usual");
+  });
+
+  it("fills the basket when the caller says yes", async () => {
+    const s = svcWith([ROW]);
+    const st = state();
+    s.loadByControlId = async () => ({
+      call: { id: "c1", fromNumber: "+447700900123" },
+      ctx: ctx(),
+      state: st,
+    });
+
+    const out = await s.realtimeTool("cc1", "use_usual", {});
+
+    expect(out.result).toMatch(/Their usual is in the basket: 1 × PEPPERONI/);
+    expect(out.result).toMatch(/call read_back_order/);
+    expect(st.cart.items).toHaveLength(1);
+    expect(st.cart.fulfillmentType).toBe("DELIVERY");
+    expect(st.cart.deliveryAddress.line1).toBe("5 Sunningdale Drive");
+    // Written down, because the next tool call reads it back off the database.
+    expect(s.save).toHaveBeenCalled();
+  });
+
+  it("looks it up again rather than trusting the session", async () => {
+    // Everything stashed on the state at session time is dropped by the parser
+    // that reads it back between turns. Two indexed queries is a cheap price
+    // for not depending on that.
+    const s = svcWith([]);
+    s.loadByControlId = async () => ({
+      call: { id: "c1", fromNumber: "+447700900123" },
+      ctx: ctx(),
+      state: state(),
+    });
+
+    const out = await s.realtimeTool("cc1", "use_usual", {});
+    expect(out.result).toMatch(/no previous order to reuse/);
+    expect(out.result).toMatch(/collection or delivery/);
+  });
+
+  it("will not reuse a marketplace order here either", async () => {
+    const s = svcWith([{ ...ROW, orderSource: "UBER_EATS", customerPhone: "+441388436844 PIN 1" }]);
+    s.loadByControlId = async () => ({
+      call: { id: "c1", fromNumber: "+441388436844" },
+      ctx: ctx(),
+      state: state(),
+    });
+    expect((await s.realtimeTool("cc1", "use_usual", {})).result).toMatch(/no previous order/);
+  });
+});

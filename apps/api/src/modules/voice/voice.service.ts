@@ -358,9 +358,21 @@ export class VoiceService {
   } | null> {
     const loaded = await this.loadByControlId(callControlId);
     if (!loaded) return null;
-    const { ctx, state } = loaded;
+    const { call, ctx, state } = loaded;
+
+    // The same offer the chained engine makes. Both engines differ in how they
+    // HEAR, never in what they can do for a caller — and a regular ringing back
+    // should not get a worse call because of which engine answered.
+    const last = await this.lastOrderFor(ctx, call.fromNumber);
+    const resolved = last ? this.ai.resolveUsual(ctx, last) : null;
+    const usual =
+      last && resolved
+        ? this.ai.usualSpoken(resolved, last.fulfillmentType, last.deliveryAddress?.line1)
+        : null;
+    if (usual) this.logger.log(`call ${call.id} realtime session carries their usual`);
+
     return {
-      instructions: this.ai.promptForRealtime(ctx, state),
+      instructions: this.ai.promptForRealtime(ctx, state, usual),
       greeting: this.ai.greeting(ctx, state.knownName ?? null),
       tools: this.ai.toolsForRealtime(ctx),
     };
@@ -381,6 +393,31 @@ export class VoiceService {
     const loaded = await this.loadByControlId(callControlId);
     if (!loaded) return { result: "This call has ended." };
     const { call, ctx, state } = loaded;
+
+    // Looked up again rather than carried in the session.
+    //
+    // The state is written to the database and read back between every turn,
+    // through a parser that only keeps the fields it knows about — so anything
+    // stashed on it at session time is gone by the time a tool runs. Two
+    // queries against an indexed column is a cheap price for not depending on
+    // that.
+    if (name === "use_usual") {
+      const last = await this.lastOrderFor(ctx, call.fromNumber);
+      const resolved = last ? this.ai.resolveUsual(ctx, last) : null;
+      if (!last || !resolved) {
+        return {
+          result:
+            "There is no previous order to reuse here. Take the order from the beginning — ask whether it is collection or delivery.",
+        };
+      }
+      this.ai.loadUsual(state, resolved, last);
+      await this.save(call.id, state);
+      return {
+        result: `Their usual is in the basket: ${state.cart.items
+          .map((l) => `${l.quantity} × ${l.name}`)
+          .join(", ")}. Now call read_back_order and say it back with the price.`,
+      };
+    }
 
     // Timed at both ends. A tool that hangs used to look exactly like a model
     // that never called one — there was no line until it returned.
