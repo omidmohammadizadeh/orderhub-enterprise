@@ -1037,6 +1037,12 @@ export class VoiceService {
     });
     if (turn.endCall || turn.transferTo) next.stage = "DONE";
 
+    // A tool the model ran may have opened a question that code now owns —
+    // "press 1 for Gyros Wrap, 2 for…". Without this the caller's answer went
+    // straight back to the model and their keypress landed on nothing, because
+    // nothing had recorded that a numbered question was outstanding.
+    next.awaiting = this.pendingSlot(next) ?? next.awaiting;
+
     await this.db().voiceCall.update({
       where: { id: call.id },
       data: {

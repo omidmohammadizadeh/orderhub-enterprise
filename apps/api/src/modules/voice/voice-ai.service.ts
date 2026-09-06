@@ -1673,7 +1673,7 @@ ${menu || "(no items available — apologise and transfer)"}`;
       case "find_item":
         return { result: this.findItem(String(input?.said ?? ""), ctx) };
       case "add_item":
-        return { result: this.addItem(input, ctx, state) };
+        return this.addItem(input, ctx, state);
       case "remove_item": {
         const before = state.cart.items.length;
         state.cart.items = state.cart.items.filter((l) => l.lineId !== String(input?.lineId));
@@ -2400,7 +2400,11 @@ NO MEANS NO
       .join(", ")}. Ask the caller which one — do not choose for them.`;
   }
 
-  private addItem(input: any, ctx: VoiceContext, state: VoiceState): string {
+  private addItem(
+    input: any,
+    ctx: VoiceContext,
+    state: VoiceState,
+  ): { result: string; sayNow?: string } {
     // The caller's own words are the better input. A transcriber that has
     // never seen this menu turns "three cola" into "Drie coli", and asking a
     // model to pick an exact id out of that leaves it guessing or asking
@@ -2419,14 +2423,18 @@ NO MEANS NO
       // could only ever come back as a question.
       const matches = matchItemGroups(rest, ctx.items, { limit: 3 });
       if (!matches.length) {
-        return `Nothing on the menu matches "${said}". Say plainly that you don't have it, and offer the closest thing you do.`;
+        return {
+          result: `Nothing on the menu matches "${said}". Say plainly that you don't have it, and offer the closest thing you do.`,
+        };
       }
       if (!isConfidentGroup(matches)) {
         // Two plausible dishes is a question for the caller, not a coin toss
         // on their behalf — and getting it wrong here is a wrong meal cooked.
-        return `More than one thing matches "${said}": ${matches
-          .map((m) => m.group.base)
-          .join(" or ")}. Ask which one they meant, then add it.`;
+        return {
+          result: `More than one thing matches "${said}": ${matches
+            .map((m) => m.group.base)
+            .join(" or ")}. Ask which one they meant, then add it.`,
+        };
       }
 
       const { group } = matches[0]!;
@@ -2436,28 +2444,69 @@ NO MEANS NO
         // "a large margherita" already answered this; only ask when it didn't.
         const chosen = pickVariant(said, group.variants);
         if (!chosen) {
-          return `${group.base} comes in more than one size and they haven't said which. Ask: "What size ${group.base} — ${sizesAloud(group.variants)}?" Then add it.`;
+          return {
+            result: `${group.base} comes in more than one size and they haven't said which. Ask: "What size ${group.base} — ${sizesAloud(group.variants)}?" Then add it.`,
+          };
         }
         item = chosen;
       }
     }
 
-    if (!item) return "That item isn't on the menu — tell the caller and suggest something similar.";
+    if (!item) {
+      return {
+        result: "That item isn't on the menu — tell the caller and suggest something similar.",
+      };
+    }
 
     const chosenIds: string[] = Array.isArray(input?.modifierOptionIds)
       ? input.modifierOptionIds.map(String)
       : [];
 
     // A required group that was never asked about is the classic way an order
-    // reaches the kitchen wrong. Refuse and make the model ask.
-    for (const g of item.modifierGroups) {
-      if (!g.required) continue;
-      const picked = g.options.filter((o) => chosenIds.includes(o.id));
-      if (picked.length < Math.max(1, g.min)) {
-        return `Before adding this you must ask which ${g.name} they want. Options: ${g.options
-          .map((o) => o.name)
-          .join(", ")}.`;
+    // reaches the kitchen wrong — so the walkthrough takes over here, exactly
+    // as it does when the matcher added the dish itself.
+    //
+    // Telling the MODEL to ask was the old answer, and it is why the numbers
+    // came and went on a real call: "solo meal" was matched in code and got
+    // "press 1 for Gyros Wrap, 2 for…", while the same dish reached by any
+    // phrasing the matcher was less sure of went to the model, which asked in
+    // its own words. Same dish, same question, two different lines — and on
+    // the model's version the keypad did nothing, because nothing had recorded
+    // what 1 and 2 meant.
+    const needsChoice = (item.modifierGroups ?? []).some((g: any) => {
+      if (!g.required) return false;
+      const picked = g.options.filter((o: any) => chosenIds.includes(o.id));
+      return picked.length < Math.max(1, g.min);
+    });
+    if (needsChoice) {
+      state.pendingItem = {
+        itemId: item.id,
+        quantity: Math.max(1, Math.round(Number(input?.quantity) || quantityFromSpeech || 1)),
+        chosen: chosenIds,
+        ...(input?.notes ? { notes: String(input.notes), notesAsked: true } : {}),
+      };
+      const ask = this.askNextOption(ctx, state);
+      if (ask) {
+        return {
+          // Said verbatim rather than handed back for the model to paraphrase:
+          // the numbers only work if the words the caller hears are the words
+          // that were recorded against them.
+          sayNow: ask.say,
+          result: `Asking them: "${ask.say}" — their answer is being handled in code, so say nothing more.`,
+        };
       }
+      // No question could be built, which should not happen — but adding a
+      // dish whose required choices are unanswered puts the wrong food in the
+      // kitchen, so refuse the way this always has rather than guessing.
+      state.pendingItem = undefined;
+      const missing = (item.modifierGroups ?? []).find((g: any) => g.required);
+      return {
+        result: `Before adding this you must ask which ${missing?.name ?? "option"} they want. Options: ${(
+          missing?.options ?? []
+        )
+          .map((o: any) => o.name)
+          .join(", ")}.`,
+      };
     }
 
     const modifiers = chosenIds
@@ -2478,10 +2527,12 @@ NO MEANS NO
       notes: input?.notes ? String(input.notes) : undefined,
     };
     state.cart.items.push(line);
-    return `Added ${line.quantity} × ${item.name} at ${money(
-      lineUnitPrice(line),
-      ctx.currency,
-    )} each.\nOrder so far:\n${summarizeCart(state.cart, ctx.currency)}`;
+    return {
+      result: `Added ${line.quantity} × ${item.name} at ${money(
+        lineUnitPrice(line),
+        ctx.currency,
+      )} each.\nOrder so far:\n${summarizeCart(state.cart, ctx.currency)}`,
+    };
   }
 
   /**
