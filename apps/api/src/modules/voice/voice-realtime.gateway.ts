@@ -180,7 +180,12 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       const url = this.relayUrlFor(ccid);
       if (url && (await this.telnyx.startConversationRelay(ccid, {
         url,
-        greeting: "Sorry about that — I'm with you now. Is this collection or delivery?",
+        // The caller has already answered questions that this engine never
+        // recorded — no tool ran, so nothing was written down. Pretending to
+        // carry on would mean acting on an order we do not have. Admitting the
+        // restart is worse to hear and better than a wrong order.
+        greeting:
+          "Sorry about that, I lost you for a moment — let's take it from the top. Is this collection or delivery?",
       }))) {
         this.logger.log(`call ${ccid.slice(-8)} moved to the standard engine`);
         return;
@@ -268,7 +273,21 @@ export class VoiceRealtimeGateway implements OnModuleInit {
                 format,
                 // The model decides when the caller has stopped talking. This
                 // is the part that is meant to feel better than a timer.
-                turn_detection: { type: "server_vad", silence_duration_ms: 500 },
+                //
+                // At the default sensitivity it does not, on a phone: line
+                // noise came through as "Mhm.", which cut the greeting off at
+                // "for an update on an order, press" and sent the model
+                // straight to "collection or delivery?" before the caller had
+                // pressed anything. Everything after that was answering a
+                // question nobody asked. A higher bar and a minimum length of
+                // speech cost a fraction of a second on a real interruption
+                // and stop a car door from ordering a pizza.
+                turn_detection: {
+                  type: "server_vad",
+                  threshold: Number(this.config.get<string>("VOICE_REALTIME_VAD_THRESHOLD") ?? 0.65) || 0.65,
+                  prefix_padding_ms: 300,
+                  silence_duration_ms: 600,
+                },
                 // A transcript of the caller, PURELY so this engine can be
                 // debugged the way the chained one can. Losing `heard "..."`
                 // was the strongest argument against ever trying this.
@@ -363,6 +382,42 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     });
 
     brain.on("message", (raw) => void this.onModelEvent(raw.toString(), ccid, brain, sendAudio));
+
+    // A WebSocket that has died does not say so: it stays readyState OPEN,
+    // swallows everything sent into it and returns nothing. On the wire that
+    // is indistinguishable from a model taking its time — which is how a
+    // caller came to sit through fourteen seconds of nothing while we appended
+    // audio to a socket with no one on the other end. A ping every few seconds
+    // separates the two, and an unanswered one is a dead line, not a slow one.
+    const beat = setInterval(() => {
+      if (brain.readyState !== WebSocket.OPEN) return;
+      const stats = this.statsOf(brain);
+      if (stats.pingAt && !stats.pongAt) {
+        this.logger.error(
+          `realtime ${ccid.slice(-8)} model socket stopped answering — handing to the standard engine`,
+        );
+        clearInterval(beat);
+        this.calls.delete(ccid);
+        try {
+          brain.close();
+        } catch {
+          /* already gone */
+        }
+        void this.fallbackToRelay(ccid);
+        return;
+      }
+      stats.pingAt = Date.now();
+      stats.pongAt = 0;
+      try {
+        brain.ping?.();
+      } catch {
+        /* the close handler will deal with it */
+      }
+    }, Number(this.config?.get<string>("VOICE_REALTIME_PING_MS") ?? 5000) || 5000);
+    brain.on("pong", () => {
+      this.statsOf(brain).pongAt = Date.now();
+    });
+    brain.on("close", () => clearInterval(beat));
     brain.on("error", (e: any) =>
       this.logger.error(`realtime model socket error on ${ccid.slice(-8)}: ${e?.message}`),
     );
@@ -402,9 +457,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       }
       if (frame.stream_id) streamId = frame.stream_id;
       if (frame.event === "media" && frame.media?.payload && brain.readyState === WebSocket.OPEN) {
-        brain.send(
-          JSON.stringify({ type: "input_audio_buffer.append", audio: frame.media.payload }),
-        );
+        this.send(brain, { type: "input_audio_buffer.append", audio: frame.media.payload });
         return;
       }
 
@@ -472,7 +525,38 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         item: { type: "message", role: "user", content: [{ type: "input_text", text: said }] },
       }),
     );
-    brain.send(JSON.stringify({ type: "response.create" }));
+    this.send(brain, { type: "response.create" });
+  }
+
+  /**
+   * What has actually crossed the model socket.
+   *
+   * "It went silent" is four different faults wearing the same coat: the model
+   * never answered, the model answered and the audio never arrived, the socket
+   * died without saying so, or we stopped sending it anything. Only the first
+   * is the model's fault, and a log of first-occurrence event types cannot
+   * tell them apart — which is why the last one cost a live call to guess at.
+   */
+  private statsOf(brain: WebSocket): {
+    fromModel: number;
+    toModel: number;
+    audioIn: number;
+    audioOut: number;
+    lastEventAt: number;
+    lastType: string;
+    pingAt: number;
+    pongAt: number;
+  } {
+    return ((brain as any).__stats ??= {
+      fromModel: 0,
+      toModel: 0,
+      audioIn: 0,
+      audioOut: 0,
+      lastEventAt: Date.now(),
+      lastType: "-",
+      pingAt: 0,
+      pongAt: 0,
+    });
   }
 
   /** The responses currently being spoken, by id. */
@@ -480,11 +564,23 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     return ((brain as any).__responses ??= new Set<string>());
   }
 
+  /** Everything we say to the model goes through here, so it can be counted. */
+  private send(brain: WebSocket, frame: Record<string, unknown>): void {
+    const stats = this.statsOf(brain);
+    stats.toModel += 1;
+    if (frame.type === "input_audio_buffer.append") stats.audioOut += 1;
+    try {
+      brain.send(JSON.stringify(frame));
+    } catch (e: any) {
+      this.logger.error(`realtime could not reach the model: ${e?.message ?? e}`);
+    }
+  }
+
   /** A reply that was queued behind another one. */
   private flushPending(brain: WebSocket): void {
     if (!(brain as any).__responsePending) return;
     (brain as any).__responsePending = false;
-    brain.send(JSON.stringify({ type: "response.create" }));
+    this.send(brain, { type: "response.create" });
   }
 
   /** The model produced audio, so the line is alive. */
@@ -507,20 +603,42 @@ export class VoiceRealtimeGateway implements OnModuleInit {
   private watchForSilence(brain: WebSocket, ccid: string): void {
     // Optional chaining because this runs on the tool path: a throw here
     // would skip the reply, which is the very silence it exists to prevent.
-    const quiet = Number(this.config?.get<string>("VOICE_REALTIME_QUIET_MS") ?? 7000) || 7000;
+    // Five, not seven: a caller who has just answered a question and hears
+    // nothing gives it about that long before deciding the line is broken, and
+    // two rounds of seven is fourteen seconds of dead air — which is a hang-up,
+    // not a recovery.
+    const quiet = Number(this.config?.get<string>("VOICE_REALTIME_QUIET_MS") ?? 5000) || 5000;
     const timer = (brain as any).__quiet;
     if (timer) clearTimeout(timer);
     (brain as any).__quiet = setTimeout(() => {
       (brain as any).__quiet = undefined;
       if (brain.readyState !== WebSocket.OPEN) return;
+      const stats = this.statsOf(brain);
+      const since = Date.now() - stats.lastEventAt;
+      // Everything needed to name the cause on the FIRST log after a bad call:
+      // a live socket that answered a ping but sent no events is the model
+      // stalling; a socket with no pong is dead; audioOut climbing with
+      // audioIn flat is the model hearing nothing.
+      const picture =
+        `last "${stats.lastType}" ${since}ms ago, ${stats.fromModel} in / ${stats.toModel} out, ` +
+        `audio ${stats.audioIn} in / ${stats.audioOut} out, ` +
+        `socket ${brain.readyState}, pong ${stats.pongAt ? `${Date.now() - stats.pongAt}ms ago` : "never"}`;
       if (!(brain as any).__nudged) {
         (brain as any).__nudged = true;
-        this.logger.warn(`realtime ${ccid.slice(-8)} nothing came back — asking again`);
-        (brain as any).__responses = new Set<string>();
-        brain.send(JSON.stringify({ type: "response.create" }));
+        this.logger.warn(`realtime ${ccid.slice(-8)} nothing came back — asking again (${picture})`);
+        // Not cleared blindly: if a response really is running, pretending
+        // otherwise asks for a second one and earns a refusal.
+        if (this.responsesOf(brain).size > 0 && since > quiet) {
+          this.logger.warn(
+            `realtime ${ccid.slice(-8)} a reply was left half-finished — dropping it`,
+          );
+          (brain as any).__responses = new Set<string>();
+        }
+        this.send(brain, { type: "response.create" });
         this.watchForSilence(brain, ccid);
         return;
       }
+      this.logger.error(`realtime ${ccid.slice(-8)} still nothing (${picture})`);
       this.logger.error(
         `realtime ${ccid.slice(-8)} silent twice over — handing to the standard engine`,
       );
@@ -542,6 +660,10 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       return;
     }
     const type = String(event?.type ?? "");
+    const stats = this.statsOf(brain);
+    stats.fromModel += 1;
+    stats.lastEventAt = Date.now();
+    stats.lastType = type;
 
     switch (type) {
       // GA renamed this. Both spellings are accepted so a rename in either
@@ -549,6 +671,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       case "response.output_audio.delta":
       case "response.audio.delta":
         if (event.delta) {
+          this.statsOf(brain).audioIn += 1;
           this.heardFromModel(brain);
           sendAudio(event.delta);
         }
@@ -657,7 +780,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         if (this.responsesOf(brain).size > 0) {
           (brain as any).__responsePending = true;
         } else {
-          brain.send(JSON.stringify({ type: "response.create" }));
+          this.send(brain, { type: "response.create" });
         }
         // A tool answer that produces no speech is the same silence by another
         // route, so the clock runs on this too.
@@ -690,7 +813,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
             `realtime ${ccid.slice(-8)} reply refused as one was already running — queued`,
           );
           if (this.responsesOf(brain).size > 0) (brain as any).__responsePending = true;
-          else brain.send(JSON.stringify({ type: "response.create" }));
+          else this.send(brain, { type: "response.create" });
           return;
         }
         this.logger.error(`realtime model error on ${ccid.slice(-8)}: ${text.slice(0, 400)}`);

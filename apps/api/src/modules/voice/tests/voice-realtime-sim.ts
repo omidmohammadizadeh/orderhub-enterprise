@@ -28,6 +28,11 @@ class FakeSocket extends EventEmitter {
       this.sent.push(raw);
     }
   }
+  /** Answered unless the test says the far end has stopped listening. */
+  answersPing = true;
+  ping(): void {
+    if (this.answersPing) this.emit("pong");
+  }
   close(): void {
     if (this.readyState === 3) return;
     this.readyState = 3;
@@ -45,6 +50,7 @@ export interface RealtimeSimOptions {
   greeting?: string;
   /** How long a caller may wait before the line does something about it. */
   quietMs?: number;
+  pingMs?: number;
 }
 
 export class VoiceRealtimeSim {
@@ -72,6 +78,7 @@ export class VoiceRealtimeSim {
       VOICE_RELAY_URL: "wss://api.example/voice/relay",
       VOICE_RELAY_SECRET: "shh",
       ...(opts.quietMs ? { VOICE_REALTIME_QUIET_MS: String(opts.quietMs) } : {}),
+      ...(opts.pingMs ? { VOICE_REALTIME_PING_MS: String(opts.pingMs) } : {}),
     };
     g.config = { get: (k: string) => env[k] };
     g.connectToModel = () => this.brain;

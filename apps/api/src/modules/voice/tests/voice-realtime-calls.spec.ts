@@ -306,3 +306,60 @@ it("keeps talking when a tool answers with nothing", async () => {
   expect(typeof out.item.output).toBe("string");
   expect(sim.toModel.some((m) => m.type === "response.create")).toBe(true);
 });
+
+describe("a model socket that has died without saying so", () => {
+  // The real failure, from the call on 6 September: after "what's the delivery
+  // address?" the caller answered and not one event came back — no reply, no
+  // tool, no error, not even a rate-limit update — while we carried on
+  // appending their audio to it. The socket said OPEN throughout.
+
+  it("notices an unanswered ping and hands the call over", async () => {
+    const sim = new VoiceRealtimeSim({ pingMs: 30 });
+    await sim.answer();
+    const moved = jest.spyOn(sim.gateway.telnyx, "startConversationRelay");
+
+    sim.brain.answersPing = false;
+    await new Promise((r) => setTimeout(r, 120));
+
+    expect(moved).toHaveBeenCalled();
+    expect(sim.log.join(" ")).toMatch(/stopped answering/);
+  });
+
+  it("leaves a healthy socket alone", async () => {
+    const sim = new VoiceRealtimeSim({ pingMs: 30 });
+    await sim.answer();
+    const moved = jest.spyOn(sim.gateway.telnyx, "startConversationRelay");
+    await new Promise((r) => setTimeout(r, 120));
+    expect(moved).not.toHaveBeenCalled();
+  });
+
+  it("says what the silence looked like, not just that there was one", async () => {
+    // A log of first-occurrence event types cannot tell a stalled model from a
+    // dead socket from a line we stopped feeding, and every one of those has
+    // cost a live call to guess at.
+    const sim = new VoiceRealtimeSim({ quietMs: 40, pingMs: 10_000 });
+    await sim.answer();
+    sim.caller.deliver({ event: "media", stream_id: "s1", media: { payload: "QUJD" } });
+    await sim.say("Eleven Follingsby Drive.");
+    await new Promise((r) => setTimeout(r, 80));
+
+    const line = sim.log.find((l) => l.includes("nothing came back"))!;
+    expect(line).toMatch(/last "[\w.]+" \d+ms ago/);
+    expect(line).toMatch(/\d+ in \/ \d+ out/);
+    expect(line).toMatch(/audio \d+ in \/ \d+ out/);
+    expect(line).toMatch(/socket 1/);
+  });
+});
+
+it("does not let line noise talk over the greeting", async () => {
+  // "Mhm." was not the caller. It cut the greeting off mid-sentence and the
+  // model answered it, so the caller heard half the options and then a
+  // question they had not been asked.
+  const sim = new VoiceRealtimeSim();
+  await sim.answer();
+  const vad = sim.session.audio.input.turn_detection;
+
+  expect(vad.threshold).toBeGreaterThan(0.5);
+  expect(vad.prefix_padding_ms).toBeGreaterThanOrEqual(300);
+  expect(vad.silence_duration_ms).toBeGreaterThanOrEqual(600);
+});
