@@ -98,7 +98,10 @@ describe("chasing an order that was already placed", () => {
     // Every tool also carries what the caller last said, so a tool that needs
     // their actual words — the saved address, above all — can be held to them.
     expect(sim.toolCalls).toEqual([
-      { name: "find_order", input: { reference: "24", __heard: "Twenty four." } },
+      {
+        name: "find_order",
+        input: { reference: "24", __heard: "Twenty four.", __heardFresh: expect.any(Boolean) },
+      },
     ]);
     // Pressing 2 must not be answered by reading the menu out again.
     const told = sim.toModel.find((m) => m.type === "conversation.item.create");
@@ -1119,5 +1122,78 @@ describe("the size question that asked itself three times", () => {
     expect(done?.say).toMatch(/PEPPERONI/);
     expect(state.cart.items).toHaveLength(1);
     expect(state.cart.items[0].modifiers[0].name).toBe('12"');
+  });
+});
+
+describe("a transcript that arrives after the tool it belongs to", () => {
+  // use_usual ran at 11:22:57.838. The transcript of the answer it was acting
+  // on arrived at 11:22:58.086 — 248ms later. Whatever guard sits on that tool
+  // would have been judging the PREVIOUS caller turn, or nothing at all.
+
+  it("waits for the sentence already being written down", async () => {
+    const sim = new VoiceRealtimeSim({ tools: { use_usual: { result: "loaded" } } });
+    await sim.answer();
+    // We asked a question.
+    sim.brain.deliver({ type: "response.output_audio_transcript.done", transcript: "Same as last time?" });
+    // Their answer is being transcribed.
+    sim.brain.deliver({ type: "conversation.item.input_audio_transcription.delta" });
+
+    void sim.callTool("use_usual");
+    await new Promise((r) => setTimeout(r, 120));
+    // Still waiting: the tool has not run on a stale answer.
+    expect(sim.toolCalls).toHaveLength(0);
+
+    sim.brain.deliver({
+      type: "conversation.item.input_audio_transcription.completed",
+      transcript: "No, not the same as last time.",
+    });
+    await new Promise((r) => setTimeout(r, 200));
+
+    expect(sim.toolCalls).toHaveLength(1);
+    expect(sim.toolCalls[0].input.__heard).toBe("No, not the same as last time.");
+    expect(sim.toolCalls[0].input.__heardFresh).toBe(true);
+  }, 10000);
+
+  it("does not hold up a tool that needs no yes", async () => {
+    const sim = new VoiceRealtimeSim({ tools: { find_item: { result: "That's a Pepperoni." } } });
+    await sim.answer();
+    sim.brain.deliver({ type: "conversation.item.input_audio_transcription.delta" });
+
+    const started = Date.now();
+    await sim.callTool("find_item", { said: "pepperoni" });
+    expect(Date.now() - started).toBeLessThan(300);
+    expect(sim.toolCalls).toHaveLength(1);
+  });
+
+  it("gives up waiting rather than leaving the caller hanging", async () => {
+    const sim = new VoiceRealtimeSim({ tools: { use_usual: { result: "loaded" } } });
+    await sim.answer();
+    sim.brain.deliver({ type: "response.output_audio_transcript.done", transcript: "Same as last time?" });
+    sim.brain.deliver({ type: "conversation.item.input_audio_transcription.delta" });
+
+    // The transcript never comes.
+    void sim.callTool("use_usual");
+    await new Promise((r) => setTimeout(r, 1200));
+    expect(sim.toolCalls).toHaveLength(1);
+    // And it is marked as answering nothing, so the tool refuses.
+    expect(sim.toolCalls[0].input.__heardFresh).toBe(false);
+  }, 10000);
+
+  it("marks an answer given before the question as not fresh", async () => {
+    const sim = new VoiceRealtimeSim({ tools: { use_usual: { result: "loaded" } } });
+    await sim.answer();
+    // They said yes to something EARLIER.
+    sim.brain.deliver({
+      type: "conversation.item.input_audio_transcription.completed",
+      transcript: "yes",
+    });
+    await new Promise((r) => setTimeout(r, 5));
+    // Then we asked a new question.
+    sim.brain.deliver({ type: "response.output_audio_transcript.done", transcript: "Same as last time?" });
+    await new Promise((r) => setTimeout(r, 5));
+
+    await sim.callTool("use_usual");
+    await new Promise((r) => setTimeout(r, 50));
+    expect(sim.toolCalls[0].input.__heardFresh).toBe(false);
   });
 });

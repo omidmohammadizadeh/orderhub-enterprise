@@ -437,6 +437,15 @@ export class VoiceService {
     // queries against an indexed column is a cheap price for not depending on
     // that.
     if (name === "use_usual") {
+      // The same yes the address needs. "No, I don't want the same as last
+      // time" came back as "Sienos." and the whole previous order went into
+      // the basket unasked.
+      const consent = this.ai.agreed(input);
+      if (!consent.ok) {
+        return {
+          result: `They have not said yes to having the same as last time — ${consent.why}. Do NOT use it. Ask "No problem — is that collection or delivery?" and take the order from the beginning.`,
+        };
+      }
       const last = await this.lastOrderFor(ctx, call.fromNumber);
       const resolved = last ? this.ai.resolveUsual(ctx, last) : null;
       if (!last || !resolved) {

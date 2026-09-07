@@ -40,6 +40,12 @@ interface TelnyxMediaFrame {
   start?: { call_control_id?: string };
 }
 
+/**
+ * The tools that act on a caller having agreed to something. Each one changes
+ * what a kitchen makes, or where a driver goes, on the strength of one word.
+ */
+const NEEDS_CONSENT = new Set(["use_usual", "use_saved_address", "order_confirmed"]);
+
 @Injectable()
 export class VoiceRealtimeGateway implements OnModuleInit {
   private readonly logger = new Logger(VoiceRealtimeGateway.name);
@@ -754,6 +760,24 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     });
   }
 
+  /**
+   * Give a transcript that is already being written a moment to arrive.
+   *
+   * Only before the tools where a yes matters, and only for as long as a
+   * caller would not notice. Everything else runs immediately.
+   */
+  private async waitForTranscript(brain: WebSocket, ms = 900): Promise<void> {
+    const until = Date.now() + ms;
+    const spokeAt = (brain as any).__spokeAt ?? 0;
+    while (
+      Date.now() < until &&
+      (brain as any).__transcribing === true &&
+      ((brain as any).__lastHeardAt ?? 0) <= spokeAt
+    ) {
+      await new Promise((r) => setTimeout(r, 50));
+    }
+  }
+
   /** The responses currently being spoken, by id. */
   private responsesOf(brain: WebSocket): Set<string> {
     return ((brain as any).__responses ??= new Set<string>());
@@ -962,6 +986,12 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         this.responsesOf(brain).add(String(event.response?.id ?? `r${Date.now()}`));
         return;
 
+      // A transcript is on its way. Consent-critical tools wait for it rather
+      // than deciding on the last caller's words.
+      case "conversation.item.input_audio_transcription.delta":
+        (brain as any).__transcribing = true;
+        return;
+
       case "response.done": {
         // The line has stopped talking. Whatever happens next — the caller
         // answering, a tool, nothing at all — somebody is now waiting, and
@@ -983,6 +1013,9 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       // that cannot be told apart from "it spoke and the audio never arrived",
       // and those have completely different causes.
       case "response.output_audio_transcript.done":
+        // What we said, and when — a caller's answer only counts if it came
+        // after the question.
+        (brain as any).__spokeAt = Date.now();
         if (event.transcript) {
           this.logger.log(
             `realtime ${ccid.slice(-8)} said ${JSON.stringify(String(event.transcript).trim().slice(0, 200))}`,
@@ -1017,6 +1050,8 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // actually said rather than to what the model believes they meant.
         const heard = String(event.transcript ?? "").trim();
         (brain as any).__lastHeard = heard;
+        (brain as any).__lastHeardAt = Date.now();
+        (brain as any).__transcribing = false;
         this.logger.log(`realtime ${ccid.slice(-8)} heard ${JSON.stringify(heard)}`);
 
         // NOTHING was said.
@@ -1082,6 +1117,13 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         }
         handled.add(callId);
         this.logger.log(`realtime ${ccid.slice(-8)} calling ${name}`);
+
+        // Three tools turn a yes into food in a kitchen. On the call that
+        // prompted this, use_usual ran 248ms BEFORE the transcript of the
+        // answer it was acting on arrived — so the words it would have been
+        // judged against were the previous caller turn, or nothing at all.
+        // Wait for the sentence that is already being written down.
+        if (NEEDS_CONSENT.has(name)) await this.waitForTranscript(brain);
         let args: any = {};
         try {
           args = JSON.parse(event.arguments ?? item.arguments ?? "{}");
@@ -1089,7 +1131,14 @@ export class VoiceRealtimeGateway implements OnModuleInit {
           /* the model sent something unparseable; the tool decides */
         }
         const out = await this.voice
-          .realtimeTool(ccid, name, { ...args, __heard: (brain as any).__lastHeard ?? null })
+          .realtimeTool(ccid, name, {
+            ...args,
+            __heard: (brain as any).__lastHeard ?? null,
+            // Whether those words were said AFTER we last spoke. Anything
+            // older answered a different question.
+            __heardFresh:
+              ((brain as any).__lastHeardAt ?? 0) > ((brain as any).__spokeAt ?? 0),
+          })
           .catch((e: any) => ({ result: `That failed: ${e?.message ?? e}`, turn: undefined }));
         // Everything below this point must survive a tool that answered oddly.
         // A thrown TypeError here would skip the output AND the reply, which

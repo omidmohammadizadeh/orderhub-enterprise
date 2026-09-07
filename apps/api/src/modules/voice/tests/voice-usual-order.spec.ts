@@ -369,7 +369,11 @@ describe("the same offer on the speech-to-speech engine", () => {
       state: st,
     });
 
-    const out = await s.realtimeTool("cc1", "use_usual", {});
+    // With a yes, because a yes is now required — see voice-consent.spec.ts.
+    const out = await s.realtimeTool("cc1", "use_usual", {
+      __heard: "yes please",
+      __heardFresh: true,
+    });
 
     expect(out.result).toMatch(/Their usual is in the basket: 1 × PEPPERONI/);
     expect(out.result).toMatch(/call read_back_order/);
@@ -391,7 +395,10 @@ describe("the same offer on the speech-to-speech engine", () => {
       state: state(),
     });
 
-    const out = await s.realtimeTool("cc1", "use_usual", {});
+    const out = await s.realtimeTool("cc1", "use_usual", {
+      __heard: "yes",
+      __heardFresh: true,
+    });
     expect(out.result).toMatch(/no previous order to reuse/);
     expect(out.result).toMatch(/collection or delivery/);
   });
@@ -403,6 +410,8 @@ describe("the same offer on the speech-to-speech engine", () => {
       ctx: ctx(),
       state: state(),
     });
-    expect((await s.realtimeTool("cc1", "use_usual", {})).result).toMatch(/no previous order/);
+    expect(
+      (await s.realtimeTool("cc1", "use_usual", { __heard: "yes", __heardFresh: true })).result,
+    ).toMatch(/no previous order/);
   });
 });

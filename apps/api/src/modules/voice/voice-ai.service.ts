@@ -2007,12 +2007,10 @@ ${menu || "(no items available — apologise and transfer)"}`;
         // Nothing heard is not a yes either. Silence is the case that caused
         // this, and it is the one a model is most likely to fill in for
         // itself.
-        const heard = String(input?.__heard ?? "").trim();
-        if (!heard || parseYesNo(heard) !== "YES") {
+        const consent = this.agreed(input);
+        if (!consent.ok) {
           return {
-            result: `They have not said yes to the address on file${
-              heard ? ` — the last thing they said was "${heard.slice(0, 60)}"` : ""
-            }. Do NOT use it. Ask "No problem — what's the delivery address?" and take the new one.`,
+            result: `They have not said yes to the address on file — ${consent.why}. Do NOT use it. Ask "No problem — what's the delivery address?" and take the new one.`,
           };
         }
         const saved = state.savedAddress;
@@ -2064,6 +2062,15 @@ ${menu || "(no items available — apologise and transfer)"}`;
       case "order_confirmed": {
         if (state.cart.items.length === 0) {
           return { result: "The order is empty — nothing to confirm." };
+        }
+        // The read-back is the last gate before a kitchen starts cooking. A
+        // yes heard where there was none puts food nobody ordered on a
+        // stranger's doorstep, and the caller pays for it.
+        const agreedToOrder = this.agreed(input);
+        if (!agreedToOrder.ok) {
+          return {
+            result: `They have not confirmed the order — ${agreedToOrder.why}. Do NOT place it. Ask them plainly: "Is that all correct?" and wait for a clear yes.`,
+          };
         }
         state.orderConfirmed = true;
         return {
@@ -2579,6 +2586,34 @@ ${menu || "(no items available — apologise and transfer)"}`;
     pending.misses = 0;
     state.choices = undefined;
     return this.afterOption(ctx, state, this.spokenSize(picked?.name));
+  }
+
+  /**
+   * Did the caller actually agree?
+   *
+   * Three tools change what a kitchen makes on the strength of a yes: the
+   * address on file, the order they had last time, and the read-back. A model
+   * listening to a bad line will occasionally hear one where there was none —
+   * "no, I don't want the same as last time" came back as "Sienos." and the
+   * previous order went straight into the basket.
+   *
+   * So the caller's own words decide, and anything that is not a yes is not a
+   * yes: silence, noise, a mangled transcript, or a sentence about something
+   * else. The cost of being wrong here is a stranger's dinner cooked and sent
+   * to the wrong door; the cost of asking again is four seconds.
+   */
+  agreed(input: any): { ok: boolean; why: string } {
+    const heard = String(input?.__heard ?? "").trim();
+    // The transcript can arrive AFTER the tool it belongs to — 248ms after, on
+    // the call that prompted this. A stale one is somebody else's answer.
+    if (input?.__heardFresh === false) {
+      return { ok: false, why: "nothing they have said since you asked" };
+    }
+    if (!heard) return { ok: false, why: "nothing at all" };
+    if (parseYesNo(heard) !== "YES") {
+      return { ok: false, why: `"${heard.slice(0, 60)}"` };
+    }
+    return { ok: true, why: heard };
   }
 
   /** A size reads badly as a symbol: 12" is said "12 inch". */
