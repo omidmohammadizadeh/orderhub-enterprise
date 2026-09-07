@@ -368,14 +368,12 @@ describe("a model socket that has died without saying so", () => {
 it("does not let line noise talk over the greeting", async () => {
   // "Mhm." was not the caller. It cut the greeting off mid-sentence and the
   // model answered it, so the caller heard half the options and then a
-  // question they had not been asked.
+  // question they had not been asked. Raising the loudness bar helped and did
+  // not solve it — a breath is loud enough. Deciding a turn on what was
+  // actually SAID is the thing that can tell them apart.
   const sim = new VoiceRealtimeSim();
   await sim.answer();
-  const vad = sim.session.audio.input.turn_detection;
-
-  expect(vad.threshold).toBeGreaterThan(0.5);
-  expect(vad.prefix_padding_ms).toBeGreaterThanOrEqual(300);
-  expect(vad.silence_duration_ms).toBeGreaterThanOrEqual(600);
+  expect(sim.session.audio.input.turn_detection.type).toBe("semantic_vad");
 });
 
 it("hands over even when the menu cannot be read", () => {
@@ -924,4 +922,95 @@ describe("a keypress that answers the question just asked", () => {
     // Not routed through the question handler at all.
     expect(sim.gateway.voice.realtimeDigit).not.toHaveBeenCalled();
   }, 10000);
+});
+
+describe("a noise that is not an answer", () => {
+  // 7 September, 10:44:
+  //
+  //   said  "Would you like the same as last time — chips and garlic sauce,
+  //          delivered to 11 Follingsby Drive?"
+  //   heard ""
+  //   said  "No problem — is that collection or delivery?"
+  //
+  // Two hundred and twenty-six milliseconds apart. A breath tripped the voice
+  // detection, the model was handed a turn with no words in it, and decided
+  // that meant no. The caller had not spoken at all.
+
+  it("stops the reply to a turn with no words in it", async () => {
+    const sim = new VoiceRealtimeSim();
+    await sim.answer();
+    sim.brain.deliver({ type: "response.created", response: { id: "answering" } });
+    sim.brain.sent.length = 0;
+    sim.caller.sent.length = 0;
+
+    sim.brain.deliver({
+      type: "conversation.item.input_audio_transcription.completed",
+      transcript: "",
+    });
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(sim.toModel.map((m) => m.type)).toContain("response.cancel");
+    expect(sim.caller.sent.some((m: any) => m.event === "clear")).toBe(true);
+    expect(sim.log.join(" ")).toMatch(/that was not speech/);
+  });
+
+  it("tells the model the caller has not answered", async () => {
+    const sim = new VoiceRealtimeSim();
+    await sim.answer();
+    sim.brain.sent.length = 0;
+
+    sim.brain.deliver({
+      type: "conversation.item.input_audio_transcription.completed",
+      transcript: "  ...  ",
+    });
+    await new Promise((r) => setTimeout(r, 10));
+
+    const told = sim.toModel.find((m) => m.type === "conversation.item.create");
+    expect(told.item.content[0].text).toMatch(/has NOT answered you/);
+    expect(told.item.content[0].text).toMatch(/Do not treat it as a yes or a no/);
+    // And it does not ask for a reply — the caller is still thinking.
+    expect(sim.toModel.some((m) => m.type === "response.create")).toBe(false);
+  });
+
+  it("leaves a real answer alone", async () => {
+    const sim = new VoiceRealtimeSim();
+    await sim.answer();
+    sim.brain.sent.length = 0;
+
+    await sim.say("No.");
+
+    expect(sim.toModel.map((m) => m.type)).not.toContain("response.cancel");
+    expect(sim.log.join(" ")).not.toMatch(/not speech/);
+  });
+});
+
+describe("how the line decides the caller has finished talking", () => {
+  it("asks for semantic turn detection, which knows a breath from a word", async () => {
+    const sim = new VoiceRealtimeSim();
+    await sim.answer();
+    expect(sim.session.audio.input.turn_detection).toEqual({
+      type: "semantic_vad",
+      eagerness: "low",
+    });
+  });
+
+  it("falls back to silence detection if the account will not take it", async () => {
+    const sim = new VoiceRealtimeSim();
+    await sim.gateway.attach(sim.caller, "cc-vad");
+    sim.brain.emit("open");
+    await new Promise((r) => setTimeout(r, 5));
+
+    sim.brain.deliver({
+      type: "error",
+      error: { type: "invalid_request_error", message: "Unknown parameter: session.audio.input.turn_detection.eagerness" },
+    });
+    await new Promise((r) => setTimeout(r, 10));
+
+    const second = sim.brain.sent.filter((m: any) => m.type === "session.update").at(-1);
+    expect(second.session.audio.input.turn_detection.type).toBe("server_vad");
+    // Loud and slow: OpenAI's own advice for a noisy line, and a phone is the
+    // noisiest there is.
+    expect(second.session.audio.input.turn_detection.threshold).toBeGreaterThanOrEqual(0.8);
+    expect(sim.log.join(" ")).toMatch(/turn detection rejected/);
+  });
 });

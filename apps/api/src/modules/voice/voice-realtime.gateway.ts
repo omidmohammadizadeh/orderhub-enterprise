@@ -321,6 +321,35 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       "g711_ulaw",
     ];
     let formatIndex = 0;
+
+    // WHEN the caller has finished talking, and whether they were talking at
+    // all.
+    //
+    // Plain silence-detection cannot tell a breath from a word: it heard one,
+    // committed a turn with nothing in it, and the model answered "no problem"
+    // to a question the caller had not answered. Semantic detection classifies
+    // what was actually said before ending the turn, and "low" gives somebody
+    // on a phone room to pause mid-sentence without being cut off.
+    //
+    // A ladder, because it is newer than the rest of this and an account that
+    // will not take it must still get a working call: loud-and-slow silence
+    // detection is the fallback, with the threshold well above the default,
+    // which OpenAI's own guidance recommends for a noisy line — and a phone is
+    // the noisiest line there is.
+    const turnDetections: Array<Record<string, unknown>> = [
+      { type: "semantic_vad", eagerness: "low" },
+      {
+        type: "server_vad",
+        threshold: Number(this.config.get<string>("VOICE_REALTIME_VAD_THRESHOLD") ?? 0.8) || 0.8,
+        prefix_padding_ms: 300,
+        silence_duration_ms: 700,
+      },
+    ];
+    let turnIndex =
+      String(this.config.get<string>("VOICE_REALTIME_TURN_DETECTION") ?? "").toLowerCase() ===
+      "server_vad"
+        ? 1
+        : 0;
     let configured = false;
 
     const sendSessionUpdate = () => {
@@ -346,12 +375,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
                 // question nobody asked. A higher bar and a minimum length of
                 // speech cost a fraction of a second on a real interruption
                 // and stop a car door from ordering a pizza.
-                turn_detection: {
-                  type: "server_vad",
-                  threshold: Number(this.config.get<string>("VOICE_REALTIME_VAD_THRESHOLD") ?? 0.65) || 0.65,
-                  prefix_padding_ms: 300,
-                  silence_duration_ms: 600,
-                },
+                turn_detection: turnDetections[turnIndex],
                 // A transcript of the caller, PURELY so this engine can be
                 // debugged the way the chained one can. Losing `heard "..."`
                 // was the strongest argument against ever trying this.
@@ -376,6 +400,19 @@ export class VoiceRealtimeGateway implements OnModuleInit {
           },
         }),
       );
+    };
+
+    /** The API would not take semantic turn detection. Fall back to silence. */
+    const retryWithoutSemanticVad = (why: string): boolean => {
+      if (configured || turnIndex >= turnDetections.length - 1) return false;
+      turnIndex += 1;
+      this.logger.warn(
+        `realtime ${ccid.slice(-8)} turn detection rejected (${why}) — falling back to ${
+          (turnDetections[turnIndex] as any).type
+        }`,
+      );
+      sendSessionUpdate();
+      return true;
     };
 
     /** The API rejected our session. Try the next audio spelling, once each. */
@@ -403,13 +440,16 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       configured = true;
       clearTimeout((brain as any).__readyBy);
       this.logger.log(
-        `realtime session ready on ${ccid.slice(-8)} with audio ${JSON.stringify(formats[formatIndex])}`,
+        `realtime session ready on ${ccid.slice(-8)} with audio ${JSON.stringify(
+          formats[formatIndex],
+        )} and ${(turnDetections[turnIndex] as any).type}`,
       );
       // Speak first. The caller has just been answered and silence reads as a
       // dead line.
       greet();
     };
     (brain as any).__retryFormat = retryWithNextFormat;
+    (brain as any).__retryTurnDetection = retryWithoutSemanticVad;
     (brain as any).__configured = () => configured;
 
     // Never leave a caller on a line that cannot speak. If the session is not
@@ -971,18 +1011,54 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         this.watchForSilence(brain, ccid, "reply");
         return;
 
-      case "conversation.item.input_audio_transcription.completed":
+      case "conversation.item.input_audio_transcription.completed": {
         // Kept, because a tool sometimes has to be held to what the caller
         // actually said rather than to what the model believes they meant.
-        (brain as any).__lastHeard = String(event.transcript ?? "").trim();
-        this.logger.log(
-          `realtime ${ccid.slice(-8)} heard ${JSON.stringify(String(event.transcript ?? "").trim())}`,
-        );
+        const heard = String(event.transcript ?? "").trim();
+        (brain as any).__lastHeard = heard;
+        this.logger.log(`realtime ${ccid.slice(-8)} heard ${JSON.stringify(heard)}`);
+
+        // NOTHING was said.
+        //
+        //   said "Would you like the same as last time — chips and garlic
+        //         sauce, delivered to 11 Follingsby Drive?"
+        //   heard ""
+        //   said "No problem — is that collection or delivery?"
+        //
+        // Two hundred milliseconds apart. A breath tripped the voice
+        // detection, the model was handed a turn with no words in it, and it
+        // decided that meant no. The caller had not spoken.
+        //
+        // A reply to a turn containing no words is unfounded whatever it says,
+        // so it is stopped and the model is told what actually happened. The
+        // caller is still waiting to answer the question they were asked.
+        if (!heard || !/[a-z0-9]/i.test(heard)) {
+          this.logger.warn(
+            `realtime ${ccid.slice(-8)} that was not speech — not letting it count as an answer`,
+          );
+          this.interrupt(brain);
+          this.send(brain, {
+            type: "conversation.item.create",
+            item: {
+              type: "message",
+              role: "user",
+              content: [
+                {
+                  type: "input_text",
+                  text: "(That was background noise, not speech. The caller has NOT answered you. Do not treat it as a yes or a no. Wait — and if they still say nothing, ask your question again.)",
+                },
+              ],
+            },
+          });
+          this.watchForSilence(brain, ccid, "idle");
+          return;
+        }
         // The caller has finished a sentence and is now waiting. Everything
         // after this point is on a clock: whatever goes wrong upstream, a
         // person holding a phone gets an answer.
         this.watchForSilence(brain, ccid);
         return;
+      }
 
       // GA can deliver a finished tool call either way round. Handling only
       // one of them would look exactly like a model that never calls tools.
@@ -1066,6 +1142,14 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // A rejected audio format is recoverable — try the next spelling
         // rather than leaving the caller on a line that cannot speak.
         if (/format/i.test(text) && (brain as any).__retryFormat?.(String(err?.message ?? "").slice(0, 120))) {
+          return;
+        }
+        // Same idea for turn detection: a rejected setting is recoverable, and
+        // a caller should never pay for us having asked for something new.
+        if (
+          /turn_detection|semantic_vad|eagerness/i.test(text) &&
+          (brain as any).__retryTurnDetection?.(String(err?.message ?? "").slice(0, 120))
+        ) {
           return;
         }
         // "Conversation already has an active response." Nothing acted on
