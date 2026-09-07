@@ -205,10 +205,22 @@ describe('consent on this engine', () => {
     const st = fresh();
     a.addItemConversational({ said: 'chips' }, c, st);
     // No transcript anywhere in this input. The model says they agreed.
-    const early = await a.runToolForConversation('order_confirmed', { __spokeAfterQuestion: true }, c, st, null);
+    const early = await a.runToolForConversation(
+      'order_confirmed',
+      { __spokeAfterQuestion: true },
+      c,
+      st,
+      null,
+    );
     expect(early.result).toMatch(/has not been read back/);
     await a.runTool('read_back_order', {}, c, st, null);
-    const ok = await a.runToolForConversation('order_confirmed', { __spokeAfterQuestion: true }, c, st, null);
+    const ok = await a.runToolForConversation(
+      'order_confirmed',
+      { __spokeAfterQuestion: true },
+      c,
+      st,
+      null,
+    );
     expect(ok.result).toMatch(/Confirmed/);
   });
 
@@ -217,7 +229,13 @@ describe('consent on this engine', () => {
     const c = ctx();
     const st = fresh();
     st.cart.deliveryAddress = { line1: '1 Test Street', city: 'Gateshead', postcode: 'NE10 8YH' };
-    const out = await a.runToolForConversation('confirm_delivery_address', { __spokeAfterQuestion: true }, c, st, null);
+    const out = await a.runToolForConversation(
+      'confirm_delivery_address',
+      { __spokeAfterQuestion: true },
+      c,
+      st,
+      null,
+    );
     expect(out.result).toMatch(/Address confirmed/);
     expect(a.addressStillConfirmed(st)).toBe(true);
   });
@@ -444,5 +462,139 @@ describe('after the first live call on this engine', () => {
     sim.brain.deliver({ type: 'response.done', response: { id: 'r1' } });
     await settle(250);
     expect(sim.log.join(' ')).toMatch(/caller quiet — checking in/); // the caller is who the line waits on
+  });
+});
+
+describe('changing their mind — call ZW3PmRPw', () => {
+  // "No, I wanted one" → remove_item guessed a line id it had never seen,
+  // failed three times, "fixed" a two by adding a one, and announced a fresh
+  // start with three pizzas still in the basket.
+  const twoPizzas = () => {
+    const a = ai();
+    const c = ctx();
+    const st = fresh();
+    a.addItemConversational({ said: 'two 12 inch pepperoni', modifierNames: ['thin'] }, c, st);
+    a.addItemConversational({ said: 'chips' }, c, st);
+    return { a, c, st };
+  };
+
+  it('shows the model line ids it can use', () => {
+    const { a, c, st } = twoPizzas();
+    const out = a.addItemConversational({ said: 'garlic sauce' }, c, st);
+    expect(out.result).toMatch(/\[line [a-z0-9]+\] 2× Pepperoni \(12"\) \(Thin\)/);
+    expect(out.result).toMatch(/\[line [a-z0-9]+\] 1× Chips/);
+  });
+
+  it('"I wanted one" changes the quantity instead of removing and re-adding', async () => {
+    const { a, c, st } = twoPizzas();
+    const out = await a.runToolForConversation(
+      'change_item',
+      { said: 'the pepperoni', quantity: 1 },
+      c,
+      st,
+      null,
+    );
+    expect(out.result).toMatch(/^Changed Pepperoni \(12"\): quantity 1/);
+    expect(st.cart.items.find((l: any) => l.itemId === 'pep12').quantity).toBe(1);
+    expect(st.cart.items).toHaveLength(2);
+  });
+
+  it('removes by name, all or some', async () => {
+    const { a, c, st } = twoPizzas();
+    let out = await a.runToolForConversation(
+      'remove_item',
+      { said: 'one of the pepperonis', quantity: 1 },
+      c,
+      st,
+      null,
+    );
+    expect(out.result).toMatch(/^Took 1 off — now 1× Pepperoni/);
+    out = await a.runToolForConversation('remove_item', { said: 'the chips' }, c, st, null);
+    expect(out.result).toMatch(/^Removed 1× Chips/);
+    expect(st.cart.items.map((l: any) => l.itemId)).toEqual(['pep12']);
+  });
+
+  it('removes by line id too', async () => {
+    const { a, c, st } = twoPizzas();
+    const id = st.cart.items[1].lineId;
+    const out = await a.runToolForConversation('remove_item', { lineId: id }, c, st, null);
+    expect(out.result).toMatch(/^Removed 1× Chips/);
+  });
+
+  it('"make it deep pan" swaps the crust and keeps the size', async () => {
+    const { a, c, st } = twoPizzas();
+    const out = await a.runToolForConversation(
+      'change_item',
+      { said: 'the pepperoni', modifierNames: ['deep pan'] },
+      c,
+      st,
+      null,
+    );
+    expect(out.result).toMatch(/choices Deep Pan/);
+    expect(st.cart.items[0].modifiers.map((m: any) => m.name)).toEqual(['Deep Pan']);
+  });
+
+  it('asks rather than guessing when the name fits nothing or two things', async () => {
+    const { a, c, st } = twoPizzas();
+    const none = await a.runToolForConversation('remove_item', { said: 'the kebab' }, c, st, null);
+    expect(none.result).toMatch(/Nothing on the order matches "the kebab"/);
+    expect(none.result).toMatch(/\[line /);
+    a.addItemConversational({ said: '12 inch pepperoni', modifierNames: ['stuffed'] }, c, st);
+    const two = await a.runToolForConversation(
+      'remove_item',
+      { said: 'the pepperoni' },
+      c,
+      st,
+      null,
+    );
+    expect(two.result).toMatch(/Could be more than one line/);
+    expect(st.cart.items).toHaveLength(3);
+  });
+
+  it('clear_order actually empties it, and every change forgets an earlier confirmation', async () => {
+    const { a, c, st } = twoPizzas();
+    await a.runTool('read_back_order', {}, c, st, null);
+    await a.runToolForConversation('order_confirmed', { __spokeAfterQuestion: true }, c, st, null);
+    expect(a.orderStillConfirmed(st)).toBe(true);
+    await a.runToolForConversation(
+      'change_item',
+      { said: 'chips', notes: 'extra salt' },
+      c,
+      st,
+      null,
+    );
+    expect(a.orderStillConfirmed(st)).toBe(false);
+    const out = await a.runToolForConversation('clear_order', {}, c, st, null);
+    expect(out.result).toMatch(/The order is empty/);
+    expect(st.cart.items).toHaveLength(0);
+  });
+
+  it('offers the model the three tools, and tells it to use them', () => {
+    const names = ai()
+      .toolsForConversation(ctx())
+      .map((t: any) => t.name);
+    expect(names).toEqual(expect.arrayContaining(['remove_item', 'change_item', 'clear_order']));
+    const rm = ai()
+      .toolsForConversation(ctx())
+      .find((t: any) => t.name === 'remove_item') as any;
+    expect(rm.parameters.properties.said).toBeDefined();
+    expect(ai().promptForConversation(ctx(), fresh(), null)).toMatch(
+      /never say you've started fresh unless you called clear_order/,
+    );
+  });
+
+  it('runs parse_order on the fast model', async () => {
+    let usedModel = '';
+    const a = ai({
+      messages: {
+        create: async (req: any) => {
+          usedModel = req.model;
+          return { content: [{ type: 'text', text: '[]' }] };
+        },
+      },
+    });
+    a.parseModel = 'claude-haiku-4-5-20251001';
+    await a.runToolForConversation('parse_order', { said: 'chips' }, ctx(), fresh(), null);
+    expect(usedModel).toBe('claude-haiku-4-5-20251001');
   });
 });

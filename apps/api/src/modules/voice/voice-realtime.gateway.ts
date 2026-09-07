@@ -1395,7 +1395,8 @@ export class VoiceRealtimeGateway implements OnModuleInit {
           this.logger.log(
             `realtime ${ccid.slice(-8)} reply ${rid.slice(-8)} done: status ${event.response?.status ?? '?'}, audio ${hadAudio}, tool ${hadTool}`,
           );
-          if (rid && !hadAudio && !hadTool) {
+          const cancelled = String(event.response?.status ?? '') === 'cancelled';
+          if (rid && !hadAudio && !hadTool && !cancelled) {
             this.logger.warn(
               `realtime ${ccid.slice(-8)} empty reply ${rid.slice(-8)} — treating as a stall`,
             );

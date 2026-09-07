@@ -251,3 +251,15 @@ describe('2. the line is metered, the audio is not kept', () => {
     expect(sim.log.join(' ')).not.toContain(loud);
   }, 10000);
 });
+
+describe('a reply the caller talked over', () => {
+  it('is cancelled, not a stall', async () => {
+    const sim = conversationSim();
+    await sim.answer();
+    sim.brain.deliver({ type: 'response.created', response: { id: 'r1' } });
+    sim.brain.deliver({ type: 'input_audio_buffer.speech_started' });
+    sim.brain.deliver({ type: 'response.done', response: { id: 'r1', status: 'cancelled' } });
+    await settle();
+    expect(sim.log.join(' ')).not.toMatch(/treating as a stall/);
+  });
+});

@@ -380,6 +380,7 @@ export class VoiceAiService {
   private readonly logger = new Logger(VoiceAiService.name);
   private readonly anthropic: Anthropic | null;
   private readonly model: string;
+  private readonly parseModel: string;
 
   constructor(
     private readonly config: ConfigService,
@@ -398,6 +399,9 @@ export class VoiceAiService {
     // a caller notices a one-second pause. Configurable so the tier can be
     // tuned against real call recordings.
     this.model = this.config.get<string>('VOICE_MODEL') || DEFAULT_MODEL;
+    // parse_order is an extraction, not a conversation: 2.2 seconds of Sonnet
+    // mid-turn is a pause the caller hears. Haiku does it in a fraction.
+    this.parseModel = this.config.get<string>('VOICE_PARSE_MODEL') || 'claude-haiku-4-5-20251001';
   }
 
   private db(): any {
@@ -3180,6 +3184,9 @@ TAKING THE ORDER
 - Only the menu below and what the tools return are real. Never invent a dish, a size or a price. If it isn't on the menu, say so and offer the closest thing that is.
 - Quantities and notes ("no onions") go on the item. Allergies go in the notes AND you say you've noted it.
 
+CHANGING THEIR MIND
+- "I wanted one", "make it deep pan", "take the chips off", "start again" — use change_item, remove_item or clear_order, by the item's name or its line id from "Order so far". Never fix an order by adding to it, and never say you've started fresh unless you called clear_order.
+
 BEFORE IT'S PLACED
 - Call read_back_order and say the script it gives you word for word, then stop and wait.
 - Only when the caller clearly agrees: call order_confirmed, ask cash or card, then place_order. If they change anything after the read-back, read it back again — a yes only counts for what they heard.
@@ -3214,7 +3221,53 @@ ${this.compactMenu(ctx)}
           },
         };
       }
+      if (t.name === 'remove_item') {
+        return {
+          ...t,
+          description:
+            "Take something off the order. Say which item as the caller did ('the pepperoni', 'the chips') — or pass its line id from 'Order so far'. quantity removes that many; leave it out to remove the whole line.",
+          parameters: {
+            type: 'object',
+            properties: {
+              said: { type: 'string', description: "Which item, in the caller's words" },
+              lineId: { type: 'string', description: "The line id shown in 'Order so far'" },
+              quantity: {
+                type: 'integer',
+                minimum: 1,
+                description: 'How many to take off; omit for all',
+              },
+            },
+          },
+        };
+      }
       return t;
+    });
+    base.push({
+      type: 'function',
+      name: 'change_item',
+      description:
+        "Change something already on the order: how many ('I wanted one'), a choice ('make it deep pan'), or a note. Say which item as the caller did, or pass its line id. Use this instead of removing and re-adding.",
+      parameters: {
+        type: 'object',
+        properties: {
+          said: { type: 'string', description: "Which item, in the caller's words" },
+          lineId: { type: 'string' },
+          quantity: { type: 'integer', minimum: 1 },
+          modifierNames: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'New choices by name, e.g. ["deep pan"]',
+          },
+          notes: { type: 'string' },
+        },
+      },
+    });
+    base.push({
+      type: 'function',
+      name: 'clear_order',
+      description:
+        'The caller wants to start the order again from nothing. Empties it. Only call this when they have said so.',
+      parameters: { type: 'object', properties: {} },
     });
     base.push({
       type: 'function',
@@ -3254,6 +3307,14 @@ ${this.compactMenu(ctx)}
         return this.addItemConversational(input, ctx, state);
       case 'parse_order':
         return this.parseOrder(String(input?.said ?? ''), ctx, state);
+      case 'remove_item':
+        return this.removeItemConversational(input, ctx, state);
+      case 'change_item':
+        return this.changeItemConversational(input, ctx, state);
+      case 'clear_order':
+        state.cart.items = [];
+        this.forgetConfirmation(state);
+        return { result: 'The order is empty. Ask what they would like.' };
       case 'use_saved_address':
       case 'confirm_delivery_address':
       case 'order_confirmed': {
@@ -3277,6 +3338,197 @@ ${this.compactMenu(ctx)}
       default:
         return this.runTool(name, input, ctx, state, callerNumber);
     }
+  }
+
+  /**
+   * Every choice the caller has made about a dish, from ids, names, or their
+   * own words. Shared by add_item and change_item so "make it deep pan" is
+   * resolved exactly the way "deep pan" was when the pizza went on.
+   */
+  private chooseOptions(item: any, input: any, chosen: Set<string>): Set<string> {
+    const groups: any[] = item.modifierGroups ?? [];
+    const has = (g: any) => g.options.filter((o: any) => chosen.has(o.id)).length;
+    for (const id of Array.isArray(input?.modifierOptionIds) ? input.modifierOptionIds : []) {
+      if (groups.some((g) => g.options.some((o: any) => o.id === String(id))))
+        chosen.add(String(id));
+    }
+    for (const raw of Array.isArray(input?.modifierNames) ? input.modifierNames : []) {
+      const name = String(raw ?? '').trim();
+      if (!name) continue;
+      for (const g of groups) {
+        const hit = matchOption<any>(name, g.options, g.name);
+        if (!hit) continue;
+        // A new choice in a single-choice group replaces the old one:
+        // "make it deep pan" is not "deep pan as well as thin".
+        if (needed(g) <= 1) for (const o of g.options) chosen.delete(o.id);
+        chosen.add(hit.item.id);
+        break;
+      }
+    }
+    // Their own words, for required groups only — "12 inch pepperoni, deep
+    // pan" settles the crust without the model restating it. Never for an
+    // optional group: "pepperoni" must not add a paid pepperoni topping.
+    const said = String(input?.said ?? '');
+    if (said) {
+      for (const g of groups) {
+        if (!mustChoose(g) || has(g) >= needed(g)) continue;
+        const m = matchMenuItems<any>(said, g.options, { limit: 2, floor: 0.75 });
+        if (isConfident(m)) chosen.add(m[0]!.item.id);
+      }
+    }
+    return chosen;
+  }
+
+  /** The order as the model should see it: with the ids it needs to change it. */
+  private cartForModel(state: VoiceState, ctx: VoiceContext): string {
+    const lines = state.cart.items.map((l: any) => {
+      const mods = (l.modifiers ?? []).map((m: any) => m.name).join(', ');
+      const unit =
+        Number(l.unitBasePrice ?? 0) +
+        (l.modifiers ?? []).reduce((a: number, m: any) => a + Number(m.price ?? 0), 0);
+      return `- [line ${l.lineId}] ${l.quantity}× ${l.name}${mods ? ` (${mods})` : ''}${l.notes ? ` — note: ${l.notes}` : ''} — ${money(unit * l.quantity, ctx.currency)}`;
+    });
+    const subtotal = state.cart.items.reduce((a: number, l: any) => {
+      const unit =
+        Number(l.unitBasePrice ?? 0) +
+        (l.modifiers ?? []).reduce((x: number, m: any) => x + Number(m.price ?? 0), 0);
+      return a + unit * l.quantity;
+    }, 0);
+    return lines.length
+      ? `${lines.join('\n')}\nSubtotal: ${money(subtotal, ctx.currency)}`
+      : '(empty)';
+  }
+
+  /** Which line they mean: by id, or by the words they used for it. */
+  private findLine(input: any, state: VoiceState): { line?: any; result?: string } {
+    const items: any[] = state.cart.items;
+    if (!items.length) return { result: 'There is nothing on the order yet.' };
+    const byId = items.find((l) => l.lineId === String(input?.lineId ?? ''));
+    if (byId) return { line: byId };
+    const norm = (t: string) =>
+      String(t ?? '')
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    const said = norm(input?.said ?? '');
+    if (!said)
+      return {
+        result: `Say which item. The order is:\n${items.map((l) => `- [line ${l.lineId}] ${l.quantity}× ${l.name}`).join('\n')}`,
+      };
+    const words = said
+      .split(' ')
+      .filter(
+        (w) =>
+          w.length > 2 && !['the', 'one', 'two', 'that', 'those', 'pizza', 'pizzas'].includes(w),
+      );
+    const scored = items
+      .map((l) => {
+        const hay = norm(`${l.name} ${(l.modifiers ?? []).map((m: any) => m.name).join(' ')}`);
+        // "the pepperonis" is the pepperoni; "chips" is not "chip" + s only
+        // in a menu. Singular and plural both count.
+        const score = words.filter(
+          (w) => hay.includes(w) || hay.includes(w.replace(/s$/, '')) || hay.includes(`${w}s`),
+        ).length;
+        return { l, score };
+      })
+      .sort((a, b) => b.score - a.score);
+    const [best, second] = scored;
+    if (!best || best.score === 0) {
+      return {
+        result: `Nothing on the order matches "${input?.said}". The order is:\n${items.map((l) => `- [line ${l.lineId}] ${l.quantity}× ${l.name}`).join('\n')}`,
+      };
+    }
+    if (second && second.score === best.score) {
+      return {
+        result: `Could be more than one line. Ask which, or pass the line id:\n${scored
+          .filter((x) => x.score === best.score)
+          .map(
+            ({ l }) =>
+              `- [line ${l.lineId}] ${l.quantity}× ${l.name}${(l.modifiers ?? []).length ? ` (${l.modifiers.map((m: any) => m.name).join(', ')})` : ''}`,
+          )
+          .join('\n')}`,
+      };
+    }
+    return { line: best.l };
+  }
+
+  private forgetConfirmation(state: VoiceState): void {
+    state.orderConfirmed = false;
+    state.orderConfirmedOf = undefined;
+  }
+
+  /** "Take the chips off" / "just one of those". */
+  private removeItemConversational(
+    input: any,
+    ctx: VoiceContext,
+    state: VoiceState,
+  ): { result: string } {
+    const { line, result } = this.findLine(input, state);
+    if (!line) return { result: result! };
+    const n = Number(input?.quantity);
+    if (Number.isInteger(n) && n > 0 && n < line.quantity) {
+      line.quantity -= n;
+      this.forgetConfirmation(state);
+      return {
+        result: `Took ${n} off — now ${line.quantity}× ${line.name}.\nOrder so far:\n${this.cartForModel(state, ctx)}`,
+      };
+    }
+    state.cart.items = state.cart.items.filter((l: any) => l.lineId !== line.lineId);
+    this.forgetConfirmation(state);
+    return {
+      result: `Removed ${line.quantity}× ${line.name}.\nOrder so far:\n${this.cartForModel(state, ctx)}`,
+    };
+  }
+
+  /** "I wanted one" / "make it deep pan" / "no onions on that". */
+  private changeItemConversational(
+    input: any,
+    ctx: VoiceContext,
+    state: VoiceState,
+  ): { result: string } {
+    const { line, result } = this.findLine(input, state);
+    if (!line) return { result: result! };
+    const changed: string[] = [];
+    const q = Number(input?.quantity);
+    if (Number.isInteger(q) && q > 0 && q !== line.quantity) {
+      line.quantity = q;
+      changed.push(`quantity ${q}`);
+    }
+    if (Array.isArray(input?.modifierNames) && input.modifierNames.length) {
+      const item = ctx.itemIndex.get(line.itemId);
+      if (item) {
+        const chosen = this.chooseOptions(
+          item,
+          { modifierNames: input.modifierNames },
+          new Set((line.modifiers ?? []).map((m: any) => m.optionId)),
+        );
+        const groups: any[] = item.modifierGroups ?? [];
+        const missing = groups.filter(
+          (g) => mustChoose(g) && g.options.filter((o: any) => chosen.has(o.id)).length < needed(g),
+        );
+        if (missing.length) {
+          return {
+            result: `That change would leave the ${line.name} without a ${this.groupLabel(missing[0].name)}. Ask which they want.`,
+          };
+        }
+        line.modifiers = [...chosen]
+          .map((id) => ctx.optionIndex.get(id))
+          .filter(Boolean)
+          .map((m: any) => ({ optionId: m.option.id, name: m.option.name, price: m.option.price }));
+        changed.push(`choices ${line.modifiers.map((m: any) => m.name).join(', ')}`);
+      }
+    }
+    if (typeof input?.notes === 'string') {
+      line.notes = input.notes.trim().slice(0, 200) || undefined;
+      changed.push(line.notes ? `note "${line.notes}"` : 'note removed');
+    }
+    if (!changed.length)
+      return { result: `Nothing to change — say what should be different about the ${line.name}.` };
+    this.forgetConfirmation(state);
+    return {
+      result: `Changed ${line.name}: ${changed.join('; ')}.\nOrder so far:\n${this.cartForModel(state, ctx)}`,
+    };
   }
 
   /** Which dish they mean, from an id or their words. Mirrors add_item's opening. */
@@ -3329,37 +3581,8 @@ ${this.compactMenu(ctx)}
     if (!item) return { result: result ?? "That item isn't on the menu." };
 
     const groups: any[] = item.modifierGroups ?? [];
-    const chosen = new Set<string>();
+    const chosen = this.chooseOptions(item, input, new Set<string>());
     const has = (g: any) => g.options.filter((o: any) => chosen.has(o.id)).length;
-
-    for (const id of Array.isArray(input?.modifierOptionIds) ? input.modifierOptionIds : []) {
-      if (groups.some((g) => g.options.some((o: any) => o.id === String(id))))
-        chosen.add(String(id));
-    }
-    for (const raw of Array.isArray(input?.modifierNames) ? input.modifierNames : []) {
-      const name = String(raw ?? '').trim();
-      if (!name) continue;
-      for (const g of groups) {
-        if (has(g) >= (g.max ?? needed(g) ?? 1) && mustChoose(g)) continue;
-        const hit = matchOption<any>(name, g.options, g.name);
-        if (hit) {
-          chosen.add(hit.item.id);
-          break;
-        }
-      }
-    }
-    // Their own words, for required groups only — "12 inch pepperoni, deep
-    // pan" settles the crust without the model having to restate it. Never
-    // for optional groups: "pepperoni" must not add a paid pepperoni topping.
-    const said = String(input?.said ?? '');
-    if (said) {
-      for (const g of groups) {
-        if (!mustChoose(g) || has(g) >= needed(g)) continue;
-        const m = matchMenuItems<any>(said, g.options, { limit: 2, floor: 0.75 });
-        if (isConfident(m)) chosen.add(m[0]!.item.id);
-      }
-    }
-
     const missing = groups.filter((g) => mustChoose(g) && has(g) < needed(g));
     if (missing.length) {
       const { base } = splitSize(item.name);
@@ -3394,7 +3617,7 @@ ${this.compactMenu(ctx)}
 
     const withOpts = modifiers.length ? ` with ${modifiers.map((m) => m.name).join(', ')}` : '';
     return {
-      result: `Added ${quantity} × ${item.name}${withOpts}${notes ? ` (note: ${notes})` : ''}.\nOrder so far:\n${summarizeCart(state.cart, ctx.currency)}`,
+      result: `Added ${quantity} × ${item.name}${withOpts}${notes ? ` (note: ${notes})` : ''}.\nOrder so far:\n${this.cartForModel(state, ctx)}`,
     };
   }
 
@@ -3428,7 +3651,7 @@ ${this.compactMenu(ctx)}
     if (this.anthropic) {
       try {
         const res = await this.anthropic.messages.create({
-          model: this.model,
+          model: this.parseModel ?? this.model,
           max_tokens: 800,
           system:
             'You turn what a takeaway customer said on the phone into order lines. Use ONLY the menu given. Return JSON only: an array of {"itemId": string (from the menu), "quantity": number, "modifierNames": string[] (sizes, crusts, sauces, choices exactly as said), "notes": string}. Never invent items. If a phrase matches nothing, omit it. No prose.',
@@ -3483,7 +3706,7 @@ ${this.compactMenu(ctx)}
       (out.result.startsWith('NOT added') ? asks : added).push(out.result.split('\n')[0]!);
     }
     const summary = state.cart.items.length
-      ? `\nOrder so far:\n${summarizeCart(state.cart, ctx.currency)}`
+      ? `\nOrder so far:\n${this.cartForModel(state, ctx)}`
       : '';
     return {
       result:
