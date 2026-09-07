@@ -1013,3 +1013,111 @@ describe("how the line decides the caller has finished talking", () => {
     expect(sim.log.join(" ")).toMatch(/turn detection rejected/);
   });
 });
+
+describe("the size question that asked itself three times", () => {
+  // 7 September, 11:05:
+  //
+  //   said "For your select pizza size, press 1 for 10", 2 for 12"…"
+  //   pressed 2
+  //   calling add_item          ← the model re-added the pizza
+  //   said "For your select pizza size, press 1 for 10", 2 for 12"…"
+  //   pressed 2
+  //   calling add_item
+  //   said "Sorry, it looks like I'm having trouble understanding."
+  //
+  // The keypress never reached the handler that answers numbered questions,
+  // because that handler looked for an "outstanding question" slot and NOTHING
+  // on this engine had ever set one. add_item recorded the choices and moved
+  // on, so a press fell through to the model, which did the only thing it
+  // could think of — add the pizza again.
+
+  const { VoiceService } = require("../voice.service");
+  const { VoiceAiService } = require("../voice-ai.service");
+
+  const PIZZA = {
+    id: "pep",
+    name: "PEPPERONI",
+    price: 7.8,
+    modifierGroups: [
+      {
+        id: "size",
+        name: "select pizza size",
+        required: false,
+        min: 1,
+        options: [
+          { id: "s10", name: '10"', price: 0 },
+          { id: "s12", name: '12"', price: 2 },
+        ],
+      },
+    ],
+  };
+
+  const call = () => {
+    const ai: any = Object.create(VoiceAiService.prototype);
+    ai.logger = { log() {}, warn() {}, error() {} };
+    const items = [PIZZA];
+    const ctx: any = { currency: "GBP", items, deliveryZones: [] };
+    ctx.itemIndex = new Map([["pep", PIZZA]]);
+    ctx.optionIndex = new Map(
+      PIZZA.modifierGroups[0].options.map((o: any) => [
+        o.id,
+        { groupId: "size", itemId: "pep", option: o },
+      ]),
+    );
+    const state: any = {
+      cart: { items: [], fulfillmentChosen: true, fulfillmentType: "DELIVERY" },
+      turns: [],
+    };
+    const svc: any = Object.create(VoiceService.prototype);
+    svc.logger = { log() {}, warn() {}, error() {} };
+    svc.ai = ai;
+    svc.save = async () => {};
+    svc.prisma = { voiceCall: { update: async () => ({}) } };
+    svc.loadByControlId = async () => ({ call: { id: "c1", fromNumber: null }, ctx, state });
+    return { svc, state };
+  };
+
+  it("records that a numbered question is outstanding", async () => {
+    // The missing line. Without it nothing downstream knows a question was
+    // asked, however loudly the caller was asked it.
+    const { svc, state } = call();
+    await svc.realtimeTool("cc1", "add_item", { itemId: "pep" });
+
+    expect(state.choices).toEqual(["s10", "s12"]);
+    expect(state.awaiting).toBe("ITEM_OPTION");
+  });
+
+  it("answers the press instead of asking again", async () => {
+    const { svc, state } = call();
+    await svc.realtimeTool("cc1", "add_item", { itemId: "pep" });
+
+    const answered = await svc.realtimeDigit("cc1", "2");
+    expect(answered?.say).toMatch(/^12 inch\./);
+    expect(state.pendingItem.chosen).toEqual(["s12"]);
+    // And the question is closed, so a second press cannot re-open it.
+    expect(state.choices).toBeUndefined();
+  });
+
+  it("answers even if the slot was never recorded", async () => {
+    // Belt and braces: a live list of numbered options IS the question,
+    // whatever else did or did not get written down.
+    const { svc, state } = call();
+    await svc.realtimeTool("cc1", "add_item", { itemId: "pep" });
+    state.awaiting = undefined;
+
+    expect((await svc.realtimeDigit("cc1", "1"))?.say).toMatch(/^10 inch\./);
+    expect(state.pendingItem.chosen).toEqual(["s10"]);
+  });
+
+  it("takes 1 as 'no note' once the choices are done", async () => {
+    const { svc, state } = call();
+    await svc.realtimeTool("cc1", "add_item", { itemId: "pep" });
+    await svc.realtimeDigit("cc1", "2");
+    expect(state.awaiting).toBe("ITEM_NOTE");
+
+    const done = await svc.realtimeDigit("cc1", "1");
+    expect(done?.say).toMatch(/PEPPERONI/);
+    expect(state.cart.items).toHaveLength(1);
+    expect(state.cart.items[0].modifiers[0].name).toBe('12"');
+  });
+});

@@ -314,7 +314,10 @@ export class VoiceService {
     if (!loaded) return null;
     const { call, ctx, state } = loaded;
 
-    if (state.awaiting === "ITEM_OPTION" && state.choices?.length) {
+    // The choices themselves are the question, not the slot that names it.
+    // Belt and braces: whatever else is or is not recorded, a live list of
+    // numbered options means a number answers it.
+    if (state.choices?.length && state.pendingItem) {
       const say = this.ai.chooseByNumber(ctx, state, digit);
       if (!say) return null;
       state.awaiting = this.pendingSlot(state);
@@ -324,7 +327,11 @@ export class VoiceService {
     }
 
     // 1 is "no note", the way it is on the other engine.
-    if (state.awaiting === "ITEM_NOTE" && String(digit).trim() === "1") {
+    if (
+      state.pendingItem?.notesAsked &&
+      !state.choices?.length &&
+      String(digit).trim() === "1"
+    ) {
       const say = this.ai.answerItemNote(ctx, state, "no");
       if (!say) return null;
       state.awaiting = this.pendingSlot(state);
@@ -452,6 +459,19 @@ export class VoiceService {
     const startedAt = Date.now();
     const out = await this.ai.runToolForRealtime(name, input, ctx, state, call.fromNumber);
     this.logger.log(`realtime tool ${name} took ${Date.now() - startedAt}ms`);
+
+    // A tool that opened a numbered question has to SAY SO.
+    //
+    // add_item asked "press 1 for 10 inch, 2 for 12 inch", the caller pressed
+    // 2, and nothing was listening: the keypad handler looks for an
+    // outstanding question and nothing on this engine had ever recorded that
+    // there was one. So the press fell through to the model, which called
+    // add_item again, which asked the same question again — three times round
+    // before it gave up and said it was having trouble understanding.
+    //
+    // The chained engine sets this after every model turn. This one never did.
+    state.awaiting = this.pendingSlot(state) ?? state.awaiting;
+
     await this.db().voiceCall.update({
       where: { id: call.id },
       data: {
