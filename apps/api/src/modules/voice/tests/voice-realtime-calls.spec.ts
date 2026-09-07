@@ -210,16 +210,26 @@ describe("the ways a live call has actually gone quiet", () => {
   // Each of these is a sequence the API really produces and the caller
   // experiences identically: they answer a question and nothing comes back.
 
-  it("recovers when OpenAI refuses a reply because one is already running", async () => {
+  it("recovers a TOOL's reply that OpenAI refused as one already running", async () => {
     // "Conversation already has an active response." Nothing handled this, so
-    // the reply that was refused was simply never asked for again — and every
-    // later one was fine, but there were no later ones, because the line only
-    // speaks in response to something. One refusal ends the call.
-    const sim = new VoiceRealtimeSim();
+    // the tool output was never spoken about — and the line only speaks when
+    // asked to, so one refusal ended the call.
+    //
+    // Only a tool's reply is saved for later. A refused WATCHDOG nudge is
+    // dropped, because flushing that one made the model answer a question the
+    // caller had not been given a chance to answer.
+    const sim = new VoiceRealtimeSim({ tools: { add_item: { result: "Got it." } } });
     await sim.answer();
+    sim.brain.deliver({ type: "response.created", response: { id: "r1" } });
     sim.brain.sent.length = 0;
 
-    sim.brain.deliver({ type: "response.created", response: { id: "r1" } });
+    sim.brain.deliver({
+      type: "response.function_call_arguments.done",
+      name: "add_item",
+      call_id: "c1",
+      arguments: "{}",
+    });
+    await new Promise((r) => setTimeout(r, 10));
     sim.brain.deliver({
       type: "error",
       error: { type: "invalid_request_error", code: "conversation_already_has_active_response" },
@@ -687,4 +697,147 @@ describe("silence with nothing to trigger a recovery", () => {
 
     expect(sim.toModel.some((m) => m.type === "response.create")).toBe(false);
   });
+});
+
+describe("the watchdog answering for the caller", () => {
+  // 7 September, 10:07, verbatim:
+  //
+  //   10:07:05.788  pressed 1
+  //   10:07:06.146  nothing came back — asking again (last "response.created"
+  //                 217ms ago)
+  //   10:07:06.276  reply refused as one was already running — queued
+  //   10:07:07.424  said "Would you like the same as last time—chips and
+  //                 garlic sauce, delivered to 11 Follingsby Drive?"
+  //   10:07:08.959  said "No problem—let's start a fresh order. Is that for
+  //                 collection or delivery?"
+  //
+  // The caller said nothing at all. The nudge fired 217ms into a reply, was
+  // refused, queued, and flushed the moment that question finished — so the
+  // model answered the question on their behalf, with a no.
+
+  it("says nothing while a reply is being generated", async () => {
+    // The real numbers: the nudge fired 217ms into a reply, against a three
+    // second budget. A reply in flight IS the line working.
+    const sim = new VoiceRealtimeSim({ quietMs: 200 });
+    await sim.answer();
+    sim.brain.sent.length = 0;
+
+    sim.brain.deliver({ type: "input_audio_buffer.committed" });
+    sim.brain.deliver({ type: "response.created", response: { id: "r1" } });
+    await new Promise((r) => setTimeout(r, 120));
+
+    expect(sim.toModel.some((m) => m.type === "response.create")).toBe(false);
+    expect(sim.log.join(" ")).not.toMatch(/nothing came back/);
+  });
+
+  it("never queues a nudge behind the reply it collided with", async () => {
+    // The flush is what put words in the caller's mouth. A refused nudge is
+    // dropped: the reply it collided with is the line working.
+    const sim = new VoiceRealtimeSim();
+    await sim.answer();
+    sim.brain.deliver({ type: "response.created", response: { id: "r1" } });
+    sim.brain.sent.length = 0;
+
+    sim.brain.deliver({
+      type: "error",
+      error: { type: "invalid_request_error", code: "conversation_already_has_active_response" },
+    });
+    sim.brain.deliver({ type: "response.done", response: { id: "r1" } });
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(sim.toModel.some((m) => m.type === "response.create")).toBe(false);
+    expect(sim.log.join(" ")).toMatch(/refused as one was already running — dropped/);
+  });
+
+  it("still queues a reply a TOOL is waiting on", async () => {
+    // That queue exists for a reason: a tool announced mid-reply must be
+    // spoken about once the reply finishes.
+    const sim = new VoiceRealtimeSim({ tools: { add_item: { result: "Got it." } } });
+    await sim.answer();
+    sim.brain.deliver({ type: "response.created", response: { id: "r1" } });
+    sim.brain.sent.length = 0;
+
+    sim.brain.deliver({
+      type: "response.function_call_arguments.done",
+      name: "add_item",
+      call_id: "c1",
+      arguments: "{}",
+    });
+    await new Promise((r) => setTimeout(r, 10));
+    sim.brain.deliver({ type: "response.done", response: { id: "r1" } });
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(sim.toModel.filter((m) => m.type === "response.create")).toHaveLength(1);
+  });
+
+  it("cancels a reply that has genuinely stalled, rather than talking over it", async () => {
+    // Clearing our own bookkeeping was not enough: OpenAI still believed a
+    // response was running and refused the next one, which is how the nudge
+    // ended up queued behind the thing it was replacing.
+    const sim = new VoiceRealtimeSim({ quietMs: 40 });
+    await sim.answer();
+    sim.brain.deliver({ type: "response.created", response: { id: "stuck" } });
+    await new Promise((r) => setTimeout(r, 60));
+    sim.brain.sent.length = 0;
+    sim.brain.deliver({ type: "input_audio_buffer.committed" });
+    await new Promise((r) => setTimeout(r, 90));
+
+    const types = sim.toModel.map((m) => m.type);
+    expect(types).toContain("response.cancel");
+    expect(sim.log.join(" ")).toMatch(/left half-finished — cancelling it/);
+  });
+});
+
+describe("audio the caller is still listening to", () => {
+  // The model writes a twenty-second greeting in about three seconds and every
+  // frame goes straight to Telnyx, which plays it in real time. "The model has
+  // finished" and "the caller has finished listening" are twenty seconds
+  // apart.
+
+  it("stops the audio already queued when a key is pressed", async () => {
+    // Cancelling the model does nothing about what is already at Telnyx, which
+    // is why pressing 1 left the options playing to the end.
+    const sim = new VoiceRealtimeSim();
+    await sim.answer();
+    sim.brain.deliver({ type: "response.created", response: { id: "greeting" } });
+    sim.caller.sent.length = 0;
+
+    await sim.press("1");
+
+    expect(sim.caller.sent.some((m: any) => m.event === "clear")).toBe(true);
+  });
+
+  it("stops when the caller talks over it", async () => {
+    const sim = new VoiceRealtimeSim();
+    await sim.answer();
+    sim.caller.sent.length = 0;
+
+    sim.brain.deliver({ type: "input_audio_buffer.speech_started" });
+    await new Promise((r) => setTimeout(r, 5));
+
+    expect(sim.caller.sent.some((m: any) => m.event === "clear")).toBe(true);
+  });
+
+  it("does not ask if they are still there while it is still speaking", async () => {
+    // "Sorry, are you still there?" arrived ten seconds after the model
+    // finished generating — with the caller still listening to the greeting
+    // and still choosing an option.
+    const sim = new VoiceRealtimeSim({ idleMs: 50 });
+    await sim.answer();
+    sim.brain.sent.length = 0;
+
+    // Half a second of μ-law: 4000 bytes at 8kHz.
+    const halfSecond = Buffer.alloc(4000).toString("base64");
+    sim.brain.deliver({ type: "response.created", response: { id: "greeting" } });
+    sim.brain.deliver({ type: "response.output_audio.delta", delta: halfSecond });
+    sim.brain.deliver({ type: "response.done", response: { id: "greeting" } });
+
+    // Past the idle window, but not past the audio.
+    await new Promise((r) => setTimeout(r, 200));
+    expect(sim.toModel.some((m) => m.type === "response.create")).toBe(false);
+
+    // And once it HAS finished playing, the check-in happens.
+    await new Promise((r) => setTimeout(r, 450));
+    expect(sim.log.join(" ")).toMatch(/nothing came back/);
+  }, 10000);
 });

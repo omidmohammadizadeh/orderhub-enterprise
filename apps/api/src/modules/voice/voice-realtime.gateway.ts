@@ -282,7 +282,33 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     const sendAudio = (b64: string) => {
       if (caller.readyState !== WebSocket.OPEN) return;
       caller.send(JSON.stringify({ event: "media", stream_id: streamId, media: { payload: b64 } }));
+      // How long this will take to SAY.
+      //
+      // The model generates a twenty-second greeting in about three, and every
+      // frame of it goes straight to Telnyx, which then plays it out in real
+      // time. So "the model has finished" and "the caller has finished
+      // listening" are twenty seconds apart, and anything that measures
+      // silence from the first one is measuring while somebody is still being
+      // spoken to. μ-law at 8kHz is one byte per sample.
+      const ms = (Buffer.from(b64, "base64").length / 8000) * 1000;
+      const stats = this.statsOf(brain);
+      stats.speakingUntil = Math.max(stats.speakingUntil, Date.now()) + ms;
     };
+
+    /**
+     * Stop the audio the caller is CURRENTLY HEARING.
+     *
+     * Cancelling the model stops it generating; it does nothing about the
+     * twenty seconds already queued at Telnyx, which is why pressing 1 left
+     * the options playing to the end. Telnyx clears its queue on this and
+     * stops mid-word, which is exactly what a keypress should do.
+     */
+    const clearCaller = () => {
+      if (caller.readyState !== WebSocket.OPEN) return;
+      caller.send(JSON.stringify({ event: "clear", stream_id: streamId }));
+      this.statsOf(brain).speakingUntil = 0;
+    };
+    (brain as any).__clearCaller = clearCaller;
 
     // μ-law is what the phone line carries, and the GA schema takes a format
     // OBJECT where the beta took a string. Which spelling it wants is not
@@ -595,10 +621,15 @@ export class VoiceRealtimeGateway implements OnModuleInit {
    * caller hears the tail of an answer to a question they interrupted.
    */
   private interrupt(brain: WebSocket): void {
+    // The queued audio goes whether or not the model is still generating —
+    // by the time somebody presses a key the model has usually finished and
+    // the caller is only part-way through hearing it.
+    (brain as any).__clearCaller?.();
     if (this.responsesOf(brain).size === 0) return;
     this.send(brain, { type: "response.cancel" });
     (brain as any).__responses = new Set<string>();
     (brain as any).__responsePending = false;
+    (brain as any).__toolAwaitingReply = false;
     (brain as any).__pendingScript = undefined;
     // Until the next response starts, anything still arriving belongs to the
     // one that was cancelled.
@@ -623,6 +654,8 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     lastType: string;
     pingAt: number;
     pongAt: number;
+    /** When the audio already handed to Telnyx will finish playing. */
+    speakingUntil: number;
   } {
     return ((brain as any).__stats ??= {
       fromModel: 0,
@@ -633,6 +666,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       lastType: "-",
       pingAt: 0,
       pongAt: 0,
+      speakingUntil: 0,
     });
   }
 
@@ -657,6 +691,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
   private flushPending(brain: WebSocket): void {
     if (!(brain as any).__responsePending) return;
     (brain as any).__responsePending = false;
+    (brain as any).__toolAwaitingReply = false;
     const script = (brain as any).__pendingScript;
     (brain as any).__pendingScript = undefined;
     this.speakExactly(brain, script);
@@ -715,6 +750,11 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       mode === "idle"
         ? Number(this.config?.get<string>("VOICE_REALTIME_IDLE_MS") ?? 10_000) || 10_000
         : Number(this.config?.get<string>("VOICE_REALTIME_QUIET_MS") ?? 3000) || 3000;
+    // Wait until the line has actually stopped talking before starting to
+    // count. "Sorry, are you still there?" arrived ten seconds after the model
+    // finished GENERATING the greeting — while the caller was still listening
+    // to it, and still deciding which option to press.
+    const stillSpeaking = Math.max(0, this.statsOf(brain).speakingUntil - Date.now());
     const timer = (brain as any).__quiet;
     if (timer) clearTimeout(timer);
     const timer2 = setTimeout(() => {
@@ -730,16 +770,34 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         `last "${stats.lastType}" ${since}ms ago, ${stats.fromModel} in / ${stats.toModel} out, ` +
         `audio ${stats.audioIn} in / ${stats.audioOut} out, ` +
         `socket ${brain.readyState}, pong ${stats.pongAt ? `${Date.now() - stats.pongAt}ms ago` : "never"}`;
+      // The line is MID-SENTENCE. There is no silence to fix.
+      //
+      // This fired 217ms after a response had been created — while the model
+      // was generating the words "would you like the same as last time?" — and
+      // the nudge it sent was refused, queued, and then flushed the instant
+      // that question finished. The caller heard their own question answered
+      // for them: "No problem, let's start a fresh order." They had not said
+      // anything at all.
+      //
+      // A response in flight IS the line working. Wait for it.
+      if (this.responsesOf(brain).size > 0 && since < quiet) {
+        this.watchForSilence(brain, ccid, mode);
+        return;
+      }
+
       if (!(brain as any).__nudged) {
         (brain as any).__nudged = true;
         this.logger.warn(`realtime ${ccid.slice(-8)} nothing came back — asking again (${picture})`);
-        // Not cleared blindly: if a response really is running, pretending
-        // otherwise asks for a second one and earns a refusal.
-        if (this.responsesOf(brain).size > 0 && since > quiet) {
+        // A response that has been open and silent for longer than the whole
+        // budget is stuck, not working. Cancel it properly — clearing our own
+        // bookkeeping is not enough, because OpenAI still believes it is
+        // running and refuses the next request, which is how a nudge ends up
+        // queued behind the thing it was meant to replace.
+        if (this.responsesOf(brain).size > 0) {
           this.logger.warn(
-            `realtime ${ccid.slice(-8)} a reply was left half-finished — dropping it`,
+            `realtime ${ccid.slice(-8)} a reply was left half-finished — cancelling it`,
           );
-          (brain as any).__responses = new Set<string>();
+          this.interrupt(brain);
         }
         // WORDS, not another request for a reply.
         //
@@ -763,7 +821,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       );
       this.calls.delete(ccid);
       void this.fallbackToRelay(ccid, { alreadySpoke: true });
-    }, quiet);
+    }, quiet + stillSpeaking);
     // A watchdog is not a reason for a process to stay alive.
     (timer2 as any).unref?.();
     (brain as any).__quiet = timer2;
@@ -857,6 +915,14 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       // VAD says they have stopped talking. From here the line OWES them a
       // reply, and it is on the short clock — earlier and more reliable than
       // waiting for a transcript, which on the call above never came.
+      // They started talking. Stop, the way a person would — the model
+      // cancels its own reply server-side, but the audio already at Telnyx
+      // would carry on over the top of them.
+      case "input_audio_buffer.speech_started":
+        (brain as any).__clearCaller?.();
+        (brain as any).__dropAudio = true;
+        return;
+
       case "input_audio_buffer.speech_stopped":
       case "input_audio_buffer.committed":
         this.watchForSilence(brain, ccid, "reply");
@@ -932,6 +998,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         const script = (out as any)?.sayNow;
         if (this.responsesOf(brain).size > 0) {
           (brain as any).__responsePending = true;
+          (brain as any).__toolAwaitingReply = true;
           if (script) (brain as any).__pendingScript = script;
         } else {
           this.speakExactly(brain, script);
@@ -963,11 +1030,24 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // refusal was the end of the call. Ask again the moment the response
         // that was in the way finishes.
         if (/active_response|already has an active/i.test(text)) {
-          this.logger.warn(
-            `realtime ${ccid.slice(-8)} reply refused as one was already running — queued`,
-          );
-          if (this.responsesOf(brain).size > 0) (brain as any).__responsePending = true;
-          else this.send(brain, { type: "response.create" });
+          // Queued ONLY when a tool is waiting to be spoken about.
+          //
+          // A refused nudge must be dropped, not saved for later: the reply it
+          // collided with is the line working, and flushing the nudge
+          // afterwards makes the model answer a question the caller never
+          // asked. That is what put "No problem, let's start a fresh order"
+          // into a call one and a half seconds after "would you like the same
+          // as last time?".
+          if ((brain as any).__toolAwaitingReply && this.responsesOf(brain).size > 0) {
+            this.logger.warn(
+              `realtime ${ccid.slice(-8)} reply refused as one was already running — queued`,
+            );
+            (brain as any).__responsePending = true;
+          } else {
+            this.logger.warn(
+              `realtime ${ccid.slice(-8)} reply refused as one was already running — dropped`,
+            );
+          }
           return;
         }
         this.logger.error(`realtime model error on ${ccid.slice(-8)}: ${text.slice(0, 400)}`);
