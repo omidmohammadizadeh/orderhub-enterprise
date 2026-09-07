@@ -416,6 +416,17 @@ export class VoiceService {
   }
 
   /**
+   * Is the next caller turn code's to answer?
+   *
+   * True while a walkthrough question or a keypad yes/no is open. The gateway
+   * uses it to stop the model replying to a turn that a handler is going to
+   * answer verbatim.
+   */
+  private ownsTurn(state: VoiceState): boolean {
+    return !!state.pendingItem || !!(state.pendingConfirm?.asked && !state.pendingConfirm.answered);
+  }
+
+  /**
    * One thing at a time, per call.
    *
    * Three entry points load the call's state, change it and write it back:
@@ -448,22 +459,42 @@ export class VoiceService {
   realtimeDigit(
     callControlId: string,
     digit: string,
-  ): Promise<{ say: string; confirmed?: { intent: string; answered: "YES" | "NO" } } | null> {
-    return this.withCallLock(callControlId, () => this.realtimeDigitUnlocked(callControlId, digit));
+  ): Promise<{
+    say: string;
+    confirmed?: { intent: string; answered: "YES" | "NO" };
+    owned?: boolean;
+  } | null> {
+    return this.withCallLock(callControlId, async () => {
+      const out = await this.realtimeDigitUnlocked(callControlId, digit);
+      return out ? { ...out, owned: await this.stillOwned(callControlId) } : out;
+    });
   }
 
-  realtimeSaid(callControlId: string, said: string): Promise<{ say: string } | null> {
-    return this.withCallLock(callControlId, () => this.realtimeSaidUnlocked(callControlId, said));
+  realtimeSaid(
+    callControlId: string,
+    said: string,
+  ): Promise<{ say: string; owned?: boolean } | null> {
+    return this.withCallLock(callControlId, async () => {
+      const out = await this.realtimeSaidUnlocked(callControlId, said);
+      return out ? { ...out, owned: await this.stillOwned(callControlId) } : out;
+    });
   }
 
   realtimeTool(
     callControlId: string,
     name: string,
     input: any,
-  ): Promise<{ result: string; turn?: Partial<VoiceTurn>; sayNow?: string }> {
-    return this.withCallLock(callControlId, () =>
-      this.realtimeToolUnlocked(callControlId, name, input),
-    );
+  ): Promise<{ result: string; turn?: Partial<VoiceTurn>; sayNow?: string; owned?: boolean }> {
+    return this.withCallLock(callControlId, async () => {
+      const out = await this.realtimeToolUnlocked(callControlId, name, input);
+      return { ...out, owned: await this.stillOwned(callControlId) };
+    });
+  }
+
+  /** Re-read after the mutation: ownership is a fact about the saved state. */
+  private async stillOwned(callControlId: string): Promise<boolean> {
+    const loaded = await this.loadByControlId(callControlId).catch(() => null);
+    return loaded ? this.ownsTurn(loaded.state) : false;
   }
 
   /**

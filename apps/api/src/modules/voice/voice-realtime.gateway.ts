@@ -55,6 +55,25 @@ interface HeardItem {
   readable?: boolean;
 }
 
+/**
+ * One exchange, timed at the points that decide how a call FEELS.
+ *
+ * The handover's "said" timestamps were generation-done, which is not what
+ * the caller experiences. These are: when they stopped talking, when the
+ * first byte of the reply reached us, when it reached Telnyx, when the model
+ * finished, and when the line will fall silent (an estimate from μ-law bytes
+ * queued — playback is not observable from here).
+ */
+interface TurnTiming {
+  speechStoppedAt?: number;
+  committedAt?: number;
+  firstAudioAt?: number;
+  firstForwardedAt?: number;
+  generationDoneAt?: number;
+  playbackDoneAt?: number;
+  responseId?: string;
+}
+
 /** One assistant audio item as it plays down the phone line. */
 interface AudioItem {
   responseId: string;
@@ -381,6 +400,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
 
     const sendSessionUpdate = () => {
       const format = formats[formatIndex];
+      (brain as any).__turnDetection = turnDetections[turnIndex];
       brain.send(
         JSON.stringify({
           type: "session.update",
@@ -623,6 +643,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         /* already gone */
       }
       this.logger.log(`realtime audio closed for call ${ccid.slice(-8)}`);
+      this.summariseTiming(brain, ccid);
     });
     caller.on("error", (e: any) =>
       this.logger.warn(`realtime caller socket error on ${ccid.slice(-8)}: ${e?.message}`),
@@ -685,6 +706,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         },
       });
       this.speakExactly(brain, answered.say);
+      this.setTurnOwner(brain, answered.owned === true);
       return;
     }
 
@@ -900,6 +922,78 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     return { itemId: id, contentIndex: a.contentIndex, playedMs, totalMs: a.totalMs };
   }
 
+  /**
+   * Who answers the caller's next turn: the model, or code.
+   *
+   * While a code-owned question is open — a numbered walkthrough, or "press
+   * 1 for yes, 2 for no" — the server must NOT create a reply on its own when
+   * the caller stops talking. Two things were answering the same turn: the
+   * deterministic handler wrote the choice down and spoke the next question,
+   * and the model, hearing the same audio, called add_item for the same
+   * pizza. Both were right; together they were a loop.
+   *
+   * create_response is switched off for exactly that window and back on the
+   * moment the question closes. Code that takes the turn creates the reply
+   * itself; code that declines it hands the turn to the model explicitly.
+   */
+  private setTurnOwner(brain: WebSocket, code: boolean): void {
+    if (((brain as any).__codeOwnsTurn ?? false) === code) return;
+    (brain as any).__codeOwnsTurn = code;
+    const td = (brain as any).__turnDetection;
+    if (!td) return;
+    this.send(brain, {
+      type: "session.update",
+      session: {
+        type: "realtime",
+        audio: { input: { turn_detection: { ...td, create_response: !code } } },
+      },
+    });
+  }
+
+  private timingOf(brain: WebSocket): { open?: TurnTiming; done: TurnTiming[] } {
+    return ((brain as any).__timing ??= { open: undefined, done: [] });
+  }
+
+  /** Log what the caller waited for, once per reply, and roll it up at hangup. */
+  private closeTurnTiming(brain: WebSocket, ccid: string): void {
+    const t = this.timingOf(brain);
+    const o = t.open;
+    if (!o || !o.speechStoppedAt) return;
+    t.done.push(o);
+    t.open = undefined;
+    const d = (a?: number, b?: number) => (a && b ? b - a : undefined);
+    const fmt = (n?: number) => (n === undefined ? "—" : `${n}ms`);
+    this.logger.log(
+      `realtime ${ccid.slice(-8)} turn timing: stop→first-audio ${fmt(d(o.speechStoppedAt, o.firstAudioAt))}, ` +
+        `stop→forwarded ${fmt(d(o.speechStoppedAt, o.firstForwardedAt))}, ` +
+        `stop→generated ${fmt(d(o.speechStoppedAt, o.generationDoneAt))}, ` +
+        `stop→line-quiet(est) ${fmt(d(o.speechStoppedAt, o.playbackDoneAt))}`,
+    );
+  }
+
+  private summariseTiming(brain: WebSocket, ccid: string): void {
+    const rows = this.timingOf(brain).done;
+    if (!rows.length) return;
+    const pct = (xs: number[], p: number) => {
+      const s = [...xs].sort((a, b) => a - b);
+      return s[Math.min(s.length - 1, Math.floor((p / 100) * s.length))]!;
+    };
+    const col = (pick: (r: TurnTiming) => number | undefined) =>
+      rows.map(pick).filter((n): n is number => typeof n === "number" && n >= 0);
+    const line = (name: string, xs: number[]) =>
+      xs.length ? `${name} p50 ${pct(xs, 50)}ms p95 ${pct(xs, 95)}ms (n=${xs.length})` : `${name} n=0`;
+    const d = (a?: number, b?: number) => (a && b ? b - a : undefined);
+    this.logger.log(
+      `realtime ${ccid.slice(-8)} latency summary — ` +
+        [
+          line("stop→first-audio", col((r) => d(r.speechStoppedAt, r.firstAudioAt))),
+          line("stop→forwarded", col((r) => d(r.speechStoppedAt, r.firstForwardedAt))),
+          line("stop→generated", col((r) => d(r.speechStoppedAt, r.generationDoneAt))),
+          line("stop→line-quiet(est)", col((r) => d(r.speechStoppedAt, r.playbackDoneAt))),
+        ].join("; "),
+    );
+  }
+
   /** The responses currently being spoken, by id. */
   private responsesOf(brain: WebSocket): Set<string> {
     return ((brain as any).__responses ??= new Set<string>());
@@ -1092,6 +1186,11 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         if (!responseId && this.responsesOf(brain).size === 0 && t.cancelled.size > 0) return;
         this.statsOf(brain).audioIn += 1;
         this.heardFromModel(brain);
+        const tm = this.timingOf(brain).open;
+        if (tm && !tm.firstAudioAt) {
+          tm.firstAudioAt = Date.now();
+          tm.responseId = responseId;
+        }
         // Where this item will sit on the phone line: it starts playing when
         // whatever is queued ahead of it finishes. Recorded BEFORE sendAudio
         // advances the queue.
@@ -1113,6 +1212,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
           t.currentAudio = itemId;
         }
         sendAudio(event.delta);
+        if (tm && !tm.firstForwardedAt) tm.firstForwardedAt = Date.now();
         return;
       }
 
@@ -1157,6 +1257,14 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // there is not one line in the log after that. Nothing was watching,
         // so nothing recovered, and the call died in silence.
         this.watchForSilence(brain, ccid, "idle");
+        {
+          const tm = this.timingOf(brain).open;
+          if (tm && !tm.generationDoneAt) {
+            tm.generationDoneAt = Date.now();
+            tm.playbackDoneAt = Math.max(Date.now(), this.statsOf(brain).speakingUntil);
+            this.closeTurnTiming(brain, ccid);
+          }
+        }
         const running = this.responsesOf(brain);
         const id = String(event.response?.id ?? "");
         if (id && running.has(id)) running.delete(id);
@@ -1198,9 +1306,12 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         this.interrupt(brain);
         return;
 
-      case "input_audio_buffer.speech_stopped":
+      case "input_audio_buffer.speech_stopped": {
+        const tm = this.timingOf(brain);
+        tm.open = { speechStoppedAt: Date.now() };
         this.watchForSilence(brain, ccid, "reply");
         return;
+      }
 
       // The caller's turn is now a conversation item, in order. This is where
       // it gets stamped with the question it answers — its transcript may
@@ -1212,6 +1323,8 @@ export class VoiceRealtimeGateway implements OnModuleInit {
           t.heard.set(itemId, { askSeq: t.askSeq, committedAt: Date.now(), spoke: true });
           t.order.push(itemId);
         }
+        const tm = this.timingOf(brain);
+        if (tm.open && !tm.open.committedAt) tm.open.committedAt = Date.now();
         this.watchForSilence(brain, ccid, "reply");
         return;
       }
@@ -1318,9 +1431,15 @@ export class VoiceRealtimeGateway implements OnModuleInit {
           return;
         }
         void answering
-          .then((answered: { say: string } | null) => {
+          .then((answered: { say: string; owned?: boolean } | null) => {
             if (!answered?.say) {
-              // Not ours. The model has the turn, and the clock starts.
+              // Not ours. If code held the turn, the server did not create a
+              // reply — so the hand-over to the model is explicit, not hoped
+              // for. Then the clock starts.
+              if ((brain as any).__codeOwnsTurn) {
+                this.setTurnOwner(brain, false);
+                this.send(brain, { type: "response.create" });
+              }
               this.watchForSilence(brain, ccid);
               return;
             }
@@ -1339,6 +1458,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
               },
             });
             this.speakExactly(brain, answered.say);
+            this.setTurnOwner(brain, answered.owned === true);
           })
           .catch(() => this.watchForSilence(brain, ccid));
         return;
@@ -1427,6 +1547,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // chained engine has always spoken these verbatim; this one was
         // dropping the script on the floor.
         const script = (out as any)?.sayNow;
+        if (typeof (out as any)?.owned === "boolean") this.setTurnOwner(brain, (out as any).owned);
         if (this.responsesOf(brain).size > 0) {
           (brain as any).__responsePending = true;
           (brain as any).__toolAwaitingReply = true;
