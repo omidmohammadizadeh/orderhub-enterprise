@@ -1124,10 +1124,18 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     // recovery is a sentence the caller can answer, so it can afford to be
     // early. Two rounds is six seconds before the call moves engine, which is
     // about as long as anyone will hold.
-    const quiet =
+    let quiet =
       mode === 'idle'
         ? Number(this.config?.get<string>('VOICE_REALTIME_IDLE_MS') ?? 10_000) || 10_000
         : Number(this.config?.get<string>('VOICE_REALTIME_QUIET_MS') ?? 3000) || 3000;
+    // A person who has asked "what else?" and heard nothing says "anything
+    // else?" after six or seven seconds, not ten. Ten is a phone system.
+    if (mode === 'idle' && (brain as any).__mode === 'CONVERSATION') {
+      quiet = Math.min(
+        quiet,
+        Number(this.config?.get<string>('VOICE_CONVERSATION_IDLE_MS') ?? 7000) || 7000,
+      );
+    }
     // Wait until the line has actually stopped talking before starting to
     // count. "Sorry, are you still there?" arrived ten seconds after the model
     // finished GENERATING the greeting — while the caller was still listening
@@ -1384,12 +1392,17 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // The server cancels its own reply on this; the truncation and the
         // Telnyx queue are ours to deal with, and they are the same job a
         // keypress does.
+        // Logged, because without it a caller who spoke and was not heard
+        // is indistinguishable from one who said nothing: both are thirteen
+        // seconds of no events and then "are you still there?".
+        this.logger.log(`realtime ${ccid.slice(-8)} caller started speaking`);
         this.interrupt(brain, { serverCancels: true });
         return;
 
       case 'input_audio_buffer.speech_stopped': {
         const tm = this.timingOf(brain);
         tm.open = { speechStoppedAt: Date.now() };
+        this.logger.log(`realtime ${ccid.slice(-8)} caller stopped speaking`);
         this.watchForSilence(brain, ccid, 'reply');
         return;
       }

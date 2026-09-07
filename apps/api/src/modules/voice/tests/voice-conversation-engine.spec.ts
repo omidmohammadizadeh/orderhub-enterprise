@@ -395,3 +395,52 @@ describe('the facts of the shop, in the prompt', () => {
     expect(ai().promptForConversation(ctx(), fresh(), null)).not.toMatch(/CLOSED RIGHT NOW/);
   });
 });
+
+describe('after the first live call on this engine', () => {
+  it('tells the model to name two or three, never the list', () => {
+    const p = ai().promptForConversation(ctx(), fresh(), null);
+    expect(p).toMatch(/name two or three — short names/);
+    expect(p).toMatch(/Never read the whole list/);
+  });
+
+  it('logs when the caller starts and stops speaking', async () => {
+    const sim = new VoiceRealtimeSim();
+    await sim.answer();
+    sim.brain.deliver({ type: 'input_audio_buffer.speech_started' });
+    sim.brain.deliver({ type: 'input_audio_buffer.speech_stopped' });
+    await settle();
+    expect(sim.log.join(' ')).toMatch(/caller started speaking/);
+    expect(sim.log.join(' ')).toMatch(/caller stopped speaking/);
+  });
+
+  it('checks in sooner than the phone-system engine after a question goes unanswered', async () => {
+    // idleMs is what the other engine waits; conversation mode caps it.
+    const sim = new VoiceRealtimeSim({ idleMs: 5000 });
+    sim.gateway.voice.realtimeSession = async () => ({
+      instructions: 'x',
+      greeting: 'Hi',
+      tools: [],
+      mode: 'CONVERSATION',
+    });
+    sim.gateway.config = {
+      get: (k: string) =>
+        k === 'VOICE_CONVERSATION_IDLE_MS'
+          ? '60'
+          : k === 'VOICE_REALTIME_IDLE_MS'
+            ? '5000'
+            : undefined,
+    };
+    await sim.answer();
+    sim.brain.sent.length = 0;
+    sim.brain.deliver({ type: 'response.created', response: { id: 'r1' } });
+    sim.brain.deliver({
+      type: 'response.output_audio.delta',
+      response_id: 'r1',
+      item_id: 'a1',
+      delta: 'AAAA',
+    });
+    sim.brain.deliver({ type: 'response.done', response: { id: 'r1' } });
+    await settle(250);
+    expect(sim.log.join(' ')).toMatch(/nothing came back/); // well inside 5s
+  });
+});
