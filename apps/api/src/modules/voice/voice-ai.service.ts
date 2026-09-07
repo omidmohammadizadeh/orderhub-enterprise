@@ -2453,10 +2453,22 @@ ${menu || "(no items available — apologise and transfer)"}`;
     return `Any notes for the ${base.toLowerCase()} — anything like no onions or extra sauce? Say it now, or press 1 if not.`;
   }
 
-  /** The next thing to say once a choice has landed. */
-  private afterOption(ctx: VoiceContext, state: VoiceState): string {
+  /**
+   * The next thing to say once a choice has landed.
+   *
+   * Named back first. Somebody who pressed 2 has no idea whether it registered
+   * or what it registered AS — they pressed a key into silence and got a
+   * different question. One word closes that: "Twelve inch. Any notes...?"
+   * The commit line already names everything, so it does not need it twice.
+   */
+  private afterOption(ctx: VoiceContext, state: VoiceState, chosen?: string): string {
+    const said = chosen ? `${chosen.trim().replace(/[.]$/, "")}. ` : "";
     const next = this.askNextOption(ctx, state);
-    return next ? next.say : this.askNoteOrCommit(ctx, state);
+    if (next) return `${said}${next.say}`;
+    const pending = state.pendingItem;
+    const willAsk = pending && !pending.notesAsked && pending.walked;
+    const rest = this.askNoteOrCommit(ctx, state);
+    return willAsk ? `${said}${rest}` : rest;
   }
 
   /**
@@ -2524,7 +2536,7 @@ ${menu || "(no items available — apologise and transfer)"}`;
         return null;
       }
       pending.chosen.push(answer.item.id);
-      return this.afterOption(ctx, state);
+      return this.afterOption(ctx, state, this.spokenSize(answer.item.name));
     }
     return this.askNoteOrCommit(ctx, state);
   }
@@ -2553,7 +2565,8 @@ ${menu || "(no items available — apologise and transfer)"}`;
       pending.variantIds = undefined;
       pending.misses = 0;
       state.choices = undefined;
-      return this.afterOption(ctx, state);
+      const { size } = splitSize(chosen.name);
+      return this.afterOption(ctx, state, size ? this.spokenSize(size) : undefined);
     }
 
     const item = pending.itemId ? ctx.itemIndex.get(pending.itemId) : undefined;
@@ -2561,10 +2574,16 @@ ${menu || "(no items available — apologise and transfer)"}`;
       g.options?.some((o: any) => o.id === id),
     );
     if (!group) return null;
+    const picked = group.options.find((o: any) => o.id === id);
     pending.chosen.push(id);
     pending.misses = 0;
     state.choices = undefined;
-    return this.afterOption(ctx, state);
+    return this.afterOption(ctx, state, this.spokenSize(picked?.name));
+  }
+
+  /** A size reads badly as a symbol: 12" is said "12 inch". */
+  private spokenSize(name?: string | null): string {
+    return String(name ?? "").replace(/"/g, " inch").replace(/\s+/g, " ").trim();
   }
 
   /**

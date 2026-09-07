@@ -585,6 +585,49 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       return;
     }
 
+    // A numbered question beats the menu, always.
+    //
+    // "For your pizza size, press 1 for 10 inch, 2 for 12 inch" — and 2 was
+    // answered with "you want an update on an existing order". Every digit was
+    // being read as a main-menu choice for the whole call, however far past
+    // the menu it had got.
+    const answered = await this.voice.realtimeDigit?.(ccid, digit).catch(() => null);
+    if (answered?.say) {
+      this.interrupt(brain);
+      this.send(brain, {
+        type: "conversation.item.create",
+        item: {
+          type: "message",
+          role: "user",
+          content: [{ type: "input_text", text: `They pressed ${digit}, which answers your question.` }],
+        },
+      });
+      this.speakExactly(brain, answered.say);
+      return;
+    }
+
+    // Past the opening menu a digit is an answer to whatever was last asked,
+    // not a menu choice. Tell the model what was pressed and let it read that
+    // in context rather than announcing an intent the caller never had.
+    if (await this.voice.pastTheMenu?.(ccid).catch(() => false)) {
+      this.interrupt(brain);
+      this.send(brain, {
+        type: "conversation.item.create",
+        item: {
+          type: "message",
+          role: "user",
+          content: [
+            {
+              type: "input_text",
+              text: `The caller pressed ${digit} on their keypad. That is their answer to whatever you last asked them — it is NOT a main-menu choice, and this call is past the menu. If you cannot see what it answers, ask them plainly what they meant.`,
+            },
+          ],
+        },
+      });
+      this.send(brain, { type: "response.create" });
+      return;
+    }
+
     const meaning: Record<string, string> = {
       "1": "wants to place an order",
       "2": "wants an update on an order they have already placed",

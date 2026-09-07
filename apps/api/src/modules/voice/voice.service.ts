@@ -297,6 +297,64 @@ export class VoiceService {
 
 
   /**
+   * A keypress on the speech-to-speech engine, when a numbered question is on
+   * the table.
+   *
+   * "For your pizza size, press 1 for 10 inch, 2 for 12 inch" — and pressing 2
+   * was answered with "you want an update on an existing order", because that
+   * engine read EVERY digit as a main-menu choice. The caller had been asked a
+   * numbered question one sentence earlier.
+   *
+   * The chained engine has answered questions this way since the walkthrough
+   * was built; this is the same code, reached from the other engine. Null means
+   * no question is outstanding and the digit means whatever it usually means.
+   */
+  async realtimeDigit(callControlId: string, digit: string): Promise<{ say: string } | null> {
+    const loaded = await this.loadByControlId(callControlId);
+    if (!loaded) return null;
+    const { call, ctx, state } = loaded;
+
+    if (state.awaiting === "ITEM_OPTION" && state.choices?.length) {
+      const say = this.ai.chooseByNumber(ctx, state, digit);
+      if (!say) return null;
+      state.awaiting = this.pendingSlot(state);
+      await this.save(call.id, state);
+      this.logger.log(`call ${call.id} answered a choice with key ${digit}`);
+      return { say };
+    }
+
+    // 1 is "no note", the way it is on the other engine.
+    if (state.awaiting === "ITEM_NOTE" && String(digit).trim() === "1") {
+      const say = this.ai.answerItemNote(ctx, state, "no");
+      if (!say) return null;
+      state.awaiting = this.pendingSlot(state);
+      await this.save(call.id, state);
+      return { say };
+    }
+
+    return null;
+  }
+
+  /**
+   * Has this call moved past the opening menu?
+   *
+   * Once it has, a digit is not "press 2 for an order update" any more — it is
+   * an answer to whatever was last asked, and announcing an intent the caller
+   * never had derails a call that was going fine.
+   */
+  async pastTheMenu(callControlId: string): Promise<boolean> {
+    const loaded = await this.loadByControlId(callControlId).catch(() => null);
+    if (!loaded) return false;
+    const { state } = loaded;
+    return (
+      state.cart.fulfillmentChosen === true ||
+      (state.cart.items?.length ?? 0) > 0 ||
+      !!state.pendingItem ||
+      !!state.awaiting
+    );
+  }
+
+  /**
    * The words this shop's menu is made of, for the transcriber to listen for.
    *
    * Empty on any failure. A relay that starts without keyterms is a slightly

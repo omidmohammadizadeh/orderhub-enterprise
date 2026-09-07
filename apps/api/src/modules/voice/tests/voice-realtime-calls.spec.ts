@@ -841,3 +841,87 @@ describe("audio the caller is still listening to", () => {
     expect(sim.log.join(" ")).toMatch(/nothing came back/);
   }, 10000);
 });
+
+describe("a keypress that answers the question just asked", () => {
+  // 7 September, 10:19:
+  //
+  //   said "For your select pizza size, press 1 for 10", 2 for 12", 3 for 14"."
+  //   pressed 2
+  //   said "Got it. You want an update on an existing order."
+  //
+  // This engine read EVERY digit as a main-menu choice, for the whole call,
+  // however far past the menu it had got — so 2 meant "order status" one
+  // sentence after being offered as "12 inch".
+
+  it("answers the numbered question instead of the menu", async () => {
+    const sim = new VoiceRealtimeSim();
+    sim.gateway.voice.realtimeDigit = async (_c: string, d: string) =>
+      d === "2" ? { say: "Got it — 12 inch. Any notes for the pepperoni?" } : null;
+    await sim.answer();
+    sim.brain.sent.length = 0;
+
+    await sim.press("2");
+
+    const told = sim.toModel.find((m) => m.type === "conversation.item.create");
+    expect(told.item.content[0].text).toMatch(/answers your question/);
+    expect(told.item.content[0].text).not.toMatch(/update on an order/);
+
+    // Said verbatim: the size that was chosen is a fact about the basket.
+    const ask = sim.toModel.find((m) => m.type === "response.create");
+    expect(ask.response.instructions).toContain("12 inch");
+  });
+
+  it("stops the question playing when they answer it", async () => {
+    const sim = new VoiceRealtimeSim();
+    sim.gateway.voice.realtimeDigit = async () => ({ say: "Got it — 12 inch." });
+    await sim.answer();
+    sim.brain.deliver({ type: "response.created", response: { id: "asking" } });
+    sim.caller.sent.length = 0;
+
+    await sim.press("2");
+    expect(sim.caller.sent.some((m: any) => m.event === "clear")).toBe(true);
+  });
+
+  it("does not announce a menu choice once the call is past the menu", async () => {
+    // No numbered question outstanding, but an order under way. A stray 2 is
+    // an answer to something, not a request for an order update.
+    const sim = new VoiceRealtimeSim();
+    sim.gateway.voice.realtimeDigit = async () => null;
+    sim.gateway.voice.pastTheMenu = async () => true;
+    await sim.answer();
+    sim.brain.sent.length = 0;
+
+    await sim.press("2");
+
+    const told = sim.toModel.find((m) => m.type === "conversation.item.create");
+    expect(told.item.content[0].text).toMatch(/NOT a main-menu choice/);
+    expect(told.item.content[0].text).toMatch(/ask them plainly what they meant/);
+  });
+
+  it("still works as a menu at the start of the call", async () => {
+    const sim = new VoiceRealtimeSim();
+    sim.gateway.voice.realtimeDigit = async () => null;
+    sim.gateway.voice.pastTheMenu = async () => false;
+    await sim.answer();
+    sim.brain.sent.length = 0;
+
+    await sim.press("2");
+
+    const told = sim.toModel.find((m) => m.type === "conversation.item.create");
+    expect(told.item.content[0].text).toMatch(/update on an order/);
+  });
+
+  it("puts zero through to a person wherever it is pressed", async () => {
+    const sim = new VoiceRealtimeSim({
+      tools: { transfer_to_staff: { result: "Putting you through.", turn: { transferTo: "+44191" } } },
+    });
+    sim.gateway.voice.realtimeDigit = jest.fn(async () => null);
+    await sim.answer();
+    await sim.press("0");
+    await new Promise((r) => setTimeout(r, 3100));
+
+    expect(sim.transfers).toEqual(["+44191"]);
+    // Not routed through the question handler at all.
+    expect(sim.gateway.voice.realtimeDigit).not.toHaveBeenCalled();
+  }, 10000);
+});

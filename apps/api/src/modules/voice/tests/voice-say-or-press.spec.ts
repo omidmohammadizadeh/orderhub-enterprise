@@ -330,8 +330,11 @@ describe("the note the kitchen needs", () => {
 
   it("is offered once every choice is made", () => {
     const { say, st } = walked();
+    // Named back first: somebody who pressed 1 has no idea whether it
+    // registered, or what it registered AS. They pressed a key into silence
+    // and got a different question.
     expect(say).toBe(
-      "Any notes for the solo meal — anything like no onions or extra sauce? Say it now, or press 1 if not.",
+      "Coke. Any notes for the solo meal — anything like no onions or extra sauce? Say it now, or press 1 if not.",
     );
     expect(st.pendingItem).toBeTruthy();
     expect(st.cart.items).toHaveLength(0);
