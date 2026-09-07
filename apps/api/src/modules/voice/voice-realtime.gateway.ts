@@ -1,3 +1,13 @@
+import { InboundMeter } from './voice-signal';
+
+/** A frame for the log with the caller's audio replaced by its size. Never the audio. */
+const redactAudio = (frame: any): any =>
+  frame?.media?.payload
+    ? {
+        ...frame,
+        media: { ...frame.media, payload: `<${String(frame.media.payload).length} b64 chars>` },
+      }
+    : frame;
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpAdapterHost } from '@nestjs/core';
@@ -72,7 +82,14 @@ interface TurnTiming {
   generationDoneAt?: number;
   playbackDoneAt?: number;
   responseId?: string;
+  /** A tool ran between the caller stopping and the spoken reply. */
+  toolStartedAt?: number;
+  toolDoneAt?: number;
+  toolName?: string;
 }
+
+/** Who the line is waiting on. See watchForSilence. */
+type CallPhase = 'LISTENING' | 'WAITING_MODEL' | 'WAITING_TOOL' | 'PLAYING' | 'WAITING_CALLER';
 
 /** One assistant audio item as it plays down the phone line. */
 interface AudioItem {
@@ -490,7 +507,9 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       this.logger.log(
         `realtime session ready on ${ccid.slice(-8)} with audio ${JSON.stringify(
           formats[formatIndex],
-        )} and ${(turnDetections[turnIndex] as any).type}`,
+        )}, turn_detection ${JSON.stringify(turnDetections[turnIndex])}, create_response ${!(
+          brain as any
+        ).__codeOwnsTurn}, mode ${(brain as any).__mode ?? 'REALTIME'}`,
       );
       // Speak first. The caller has just been answered and silence reads as a
       // dead line.
@@ -623,12 +642,22 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       if (frame.event && !this.seenEvents.has(frame.event)) {
         this.seenEvents.add(frame.event);
         this.logger.log(
-          `realtime first "${frame.event}" frame: ${JSON.stringify(frame).slice(0, 300)}`,
+          `realtime first "${frame.event}" frame: ${JSON.stringify(redactAudio(frame)).slice(0, 300)}`,
         );
       }
       if (frame.stream_id) streamId = frame.stream_id;
       if (frame.event === 'media' && frame.media?.payload && brain.readyState === WebSocket.OPEN) {
         this.send(brain, { type: 'input_audio_buffer.append', audio: frame.media.payload });
+        // What the line sounds like, one number a second, and only logged
+        // when it is the thing worth knowing: loud, and nothing detected it.
+        // No audio is kept.
+        const meter: InboundMeter = ((brain as any).__meter ??= new InboundMeter());
+        const w = meter.frame(frame.media.payload);
+        if (w?.loudUndetected) {
+          this.logger.warn(
+            `realtime ${ccid.slice(-8)} inbound loud but undetected: peak ${w.peakDb.toFixed(0)} dBFS over ${w.frames} frames, phase ${this.phaseOf(brain).phase}`,
+          );
+        }
         return;
       }
 
@@ -651,6 +680,13 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       }
       this.logger.log(`realtime audio closed for call ${ccid.slice(-8)}`);
       this.summariseTiming(brain, ccid);
+      {
+        const m = (brain as any).__meter as InboundMeter | undefined;
+        if (m)
+          this.logger.log(
+            `realtime ${ccid.slice(-8)} inbound line: ${m.totals.windows}s metered, ${m.totals.loudWindows}s loud, ${m.totals.loudUndetected}s loud-but-undetected`,
+          );
+      }
     });
     caller.on('error', (e: any) =>
       this.logger.warn(`realtime caller socket error on ${ccid.slice(-8)}: ${e?.message}`),
@@ -1002,7 +1038,9 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     const d = (a?: number, b?: number) => (a && b ? b - a : undefined);
     const fmt = (n?: number) => (n === undefined ? '—' : `${n}ms`);
     this.logger.log(
-      `realtime ${ccid.slice(-8)} turn timing: stop→first-audio ${fmt(d(o.speechStoppedAt, o.firstAudioAt))}, ` +
+      `realtime ${ccid.slice(-8)} turn timing: vad(stop→committed) ${fmt(d(o.speechStoppedAt, o.committedAt))}, ` +
+        (o.toolName ? `tool ${o.toolName} ${fmt(d(o.toolStartedAt, o.toolDoneAt))}, ` : '') +
+        `stop→first-audio ${fmt(d(o.speechStoppedAt, o.firstAudioAt))}, ` +
         `stop→forwarded ${fmt(d(o.speechStoppedAt, o.firstForwardedAt))}, ` +
         `stop→generated ${fmt(d(o.speechStoppedAt, o.generationDoneAt))}, ` +
         `stop→line-quiet(est) ${fmt(d(o.speechStoppedAt, o.playbackDoneAt))}`,
@@ -1101,7 +1139,6 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     const timer = (brain as any).__quiet;
     if (timer) clearTimeout(timer);
     (brain as any).__quiet = undefined;
-    (brain as any).__nudged = false;
   }
 
   /**
@@ -1113,17 +1150,29 @@ export class VoiceRealtimeGateway implements OnModuleInit {
    * So: ask once, and if that also produces nothing, give the call to the
    * engine that has been answering this phone for months.
    */
+  /**
+   * Where the call is, in one word — because the right response to silence
+   * depends entirely on who was supposed to speak next.
+   *
+   * A caller who has gone quiet after "what else?" is thinking, or has put
+   * the phone down: they get a reminder, then another, then a polite goodbye,
+   * and their basket is in the database whichever it was. A MODEL that has
+   * gone quiet after being asked for a reply is a fault, and that is what the
+   * fallback engine is for. The first call on the conversation engine got the
+   * second treatment for the first condition.
+   */
+  private phaseOf(brain: WebSocket): { phase: CallPhase; since: number } {
+    return ((brain as any).__phase ??= { phase: 'WAITING_MODEL', since: Date.now() });
+  }
+
+  private setPhase(brain: WebSocket, phase: CallPhase): void {
+    const p = this.phaseOf(brain);
+    if (p.phase === phase) return;
+    p.phase = phase;
+    p.since = Date.now();
+  }
+
   private watchForSilence(brain: WebSocket, ccid: string, mode: 'reply' | 'idle' = 'reply'): void {
-    // Optional chaining because this runs on the tool path: a throw here
-    // would skip the reply, which is the very silence it exists to prevent.
-    // Three seconds.
-    //
-    // In a conversation that is already a long pause — say nothing for three
-    // seconds to somebody on a phone and they say "hello? hello?". Five was
-    // chosen when the recovery was a silent retry that might not work; now the
-    // recovery is a sentence the caller can answer, so it can afford to be
-    // early. Two rounds is six seconds before the call moves engine, which is
-    // about as long as anyone will hold.
     let quiet =
       mode === 'idle'
         ? Number(this.config?.get<string>('VOICE_REALTIME_IDLE_MS') ?? 10_000) || 10_000
@@ -1137,9 +1186,8 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       );
     }
     // Wait until the line has actually stopped talking before starting to
-    // count. "Sorry, are you still there?" arrived ten seconds after the model
-    // finished GENERATING the greeting — while the caller was still listening
-    // to it, and still deciding which option to press.
+    // count: "are you still there?" once arrived while the caller was still
+    // listening to the greeting.
     const stillSpeaking = Math.max(0, this.statsOf(brain).speakingUntil - Date.now());
     const timer = (brain as any).__quiet;
     if (timer) clearTimeout(timer);
@@ -1148,57 +1196,59 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       if (brain.readyState !== WebSocket.OPEN) return;
       const stats = this.statsOf(brain);
       const since = Date.now() - stats.lastEventAt;
-      // Everything needed to name the cause on the FIRST log after a bad call:
-      // a live socket that answered a ping but sent no events is the model
-      // stalling; a socket with no pong is dead; audioOut climbing with
-      // audioIn flat is the model hearing nothing.
       const picture =
-        `last "${stats.lastType}" ${since}ms ago, ${stats.fromModel} in / ${stats.toModel} out, ` +
-        `audio ${stats.audioIn} in / ${stats.audioOut} out, ` +
+        `phase ${this.phaseOf(brain).phase}, last "${stats.lastType}" ${since}ms ago, ` +
+        `${stats.fromModel} in / ${stats.toModel} out, audio ${stats.audioIn} in / ${stats.audioOut} out, ` +
         `socket ${brain.readyState}, pong ${stats.pongAt ? `${Date.now() - stats.pongAt}ms ago` : 'never'}`;
-      // The line is MID-SENTENCE. There is no silence to fix.
-      //
-      // This fired 217ms after a response had been created — while the model
-      // was generating the words "would you like the same as last time?" — and
-      // the nudge it sent was refused, queued, and then flushed the instant
-      // that question finished. The caller heard their own question answered
-      // for them: "No problem, let's start a fresh order." They had not said
-      // anything at all.
-      //
-      // A response in flight IS the line working. Wait for it.
+      // A reply in flight IS the line working. Wait for it.
       if (this.responsesOf(brain).size > 0 && since < quiet) {
         this.watchForSilence(brain, ccid, mode);
         return;
       }
 
-      if (!(brain as any).__nudged) {
-        (brain as any).__nudged = true;
+      const phase = this.phaseOf(brain).phase;
+      if (phase === 'WAITING_CALLER' || phase === 'LISTENING') {
+        // The caller's silence. Not a fault; never a reason to change engine.
+        const n = ((brain as any).__callerSilences = ((brain as any).__callerSilences ?? 0) + 1);
+        if (n === 1) {
+          this.logger.log(`realtime ${ccid.slice(-8)} caller quiet — checking in (${picture})`);
+          this.speakExactly(brain, 'Sorry, are you still there?');
+          this.watchForSilence(brain, ccid, 'idle');
+          return;
+        }
+        if (n === 2) {
+          this.logger.log(`realtime ${ccid.slice(-8)} caller still quiet — one more`);
+          this.speakExactly(brain, "Hello? I'm still here whenever you're ready.");
+          this.watchForSilence(brain, ccid, 'idle');
+          return;
+        }
+        // Three silences is a phone on a table. Say goodbye like a person
+        // would and put the line down; whatever was in the basket is saved.
+        this.logger.warn(`realtime ${ccid.slice(-8)} caller gone — ending the call politely`);
+        this.speakExactly(
+          brain,
+          "I'll let you go — call back any time and I'll pick up where we left off. Bye for now.",
+        );
+        const goodbye = setTimeout(() => void this.telnyx.hangup(ccid), 6000);
+        (goodbye as any).unref?.();
+        return;
+      }
+
+      // Waiting on the model, or on a tool. This is where a stall is a fault.
+      const n = ((brain as any).__modelStalls = ((brain as any).__modelStalls ?? 0) + 1);
+      if (n === 1) {
         this.logger.warn(
           `realtime ${ccid.slice(-8)} nothing came back — asking again (${picture})`,
         );
-        // A response that has been open and silent for longer than the whole
-        // budget is stuck, not working. Cancel it properly — clearing our own
-        // bookkeeping is not enough, because OpenAI still believes it is
-        // running and refuses the next request, which is how a nudge ends up
-        // queued behind the thing it was meant to replace.
         if (this.responsesOf(brain).size > 0) {
           this.logger.warn(
             `realtime ${ccid.slice(-8)} a reply was left half-finished — cancelling it`,
           );
           this.interrupt(brain);
         }
-        // WORDS, not another request for a reply.
-        //
-        // Asking a model that has just produced nothing to produce something
-        // is asking the same question that already failed. A caller sitting in
-        // silence needs to hear a human-sounding sentence and be given
-        // something to answer — from their side, silence on a phone line is
-        // indistinguishable from being hung up on.
         this.speakExactly(
           brain,
-          mode === 'idle'
-            ? 'Sorry, are you still there?'
-            : 'Sorry, I lost you there for a second. Where would you like to start — shall I take the order from the top?',
+          'Sorry, I lost you there for a second. Where would you like to start — shall I take the order from the top?',
         );
         this.watchForSilence(brain, ccid, mode);
         return;
@@ -1210,7 +1260,6 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       this.calls.delete(ccid);
       void this.fallbackToRelay(ccid, { alreadySpoke: true });
     }, quiet + stillSpeaking);
-    // A watchdog is not a reason for a process to stay alive.
     (timer2 as any).unref?.();
     (brain as any).__quiet = timer2;
   }
@@ -1256,6 +1305,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // the top of a reply that is playing.
         if (responseId) t.voiced.add(responseId);
         else for (const id of this.responsesOf(brain)) t.voiced.add(id);
+        this.setPhase(brain, 'PLAYING');
         const tm = this.timingOf(brain).open;
         if (tm && !tm.firstAudioAt) {
           tm.firstAudioAt = Date.now();
@@ -1309,6 +1359,11 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // ones a tool inside it may act on — however the model orders its
         // own speech and its tool calls within the reply.
         this.turnsOf(brain).responseAskSeq.set(id, this.turnsOf(brain).askSeq);
+        this.logger.log(
+          `realtime ${ccid.slice(-8)} reply ${id.slice(-8)} created at askSeq ${this.turnsOf(brain).askSeq}`,
+        );
+        (brain as any).__modelStalls = 0;
+        this.setPhase(brain, 'WAITING_MODEL');
         return;
       }
 
@@ -1337,18 +1392,34 @@ export class VoiceRealtimeGateway implements OnModuleInit {
           const rid = String(event.response?.id ?? '');
           const hadAudio = t.voiced.has(rid);
           const hadTool = t.toolResponses.has(rid);
+          this.logger.log(
+            `realtime ${ccid.slice(-8)} reply ${rid.slice(-8)} done: status ${event.response?.status ?? '?'}, audio ${hadAudio}, tool ${hadTool}`,
+          );
           if (rid && !hadAudio && !hadTool) {
             this.logger.warn(
               `realtime ${ccid.slice(-8)} empty reply ${rid.slice(-8)} — treating as a stall`,
             );
             this.watchForSilence(brain, ccid, 'reply');
+          } else if (hadTool && !hadAudio) {
+            // The tool's own reply is on its way. Not the caller's turn yet.
+            this.setPhase(brain, 'WAITING_MODEL');
+            this.watchForSilence(brain, ccid, 'reply');
           } else {
+            this.setPhase(brain, 'WAITING_CALLER');
             this.watchForSilence(brain, ccid, 'idle');
           }
         }
         {
           const tm = this.timingOf(brain).open;
-          if (tm && !tm.generationDoneAt) {
+          // A reply that only called a tool has not answered the caller yet;
+          // the timing stays open for the spoken continuation. Closing it
+          // here measured the tool turn at 428ms and never measured the
+          // "Got it…" that the caller actually waited for.
+          if (
+            tm &&
+            !tm.generationDoneAt &&
+            this.turnsOf(brain).voiced.has(String(event.response?.id ?? ''))
+          ) {
             tm.generationDoneAt = Date.now();
             tm.playbackDoneAt = Math.max(Date.now(), this.statsOf(brain).speakingUntil);
             this.closeTurnTiming(brain, ccid);
@@ -1396,6 +1467,9 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // is indistinguishable from one who said nothing: both are thirteen
         // seconds of no events and then "are you still there?".
         this.logger.log(`realtime ${ccid.slice(-8)} caller started speaking`);
+        (brain as any).__callerSilences = 0;
+        ((brain as any).__meter as InboundMeter | undefined)?.speechDetected();
+        this.setPhase(brain, 'LISTENING');
         this.interrupt(brain, { serverCancels: true });
         return;
 
@@ -1403,6 +1477,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         const tm = this.timingOf(brain);
         tm.open = { speechStoppedAt: Date.now() };
         this.logger.log(`realtime ${ccid.slice(-8)} caller stopped speaking`);
+        this.setPhase(brain, 'WAITING_MODEL');
         this.watchForSilence(brain, ccid, 'reply');
         return;
       }
@@ -1419,6 +1494,11 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         }
         const tm = this.timingOf(brain);
         if (tm.open && !tm.open.committedAt) tm.open.committedAt = Date.now();
+        this.logger.log(
+          `realtime ${ccid.slice(-8)} caller turn committed item=${itemId || '?'} askSeq=${t.askSeq}`,
+        );
+        (brain as any).__callerSilences = 0;
+        this.setPhase(brain, 'WAITING_MODEL');
         this.watchForSilence(brain, ccid, 'reply');
         return;
       }
@@ -1593,6 +1673,14 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // judged against were the previous caller turn, or nothing at all.
         // Wait for the sentence that is already being written down.
         const conversation = (brain as any).__mode === 'CONVERSATION';
+        this.setPhase(brain, 'WAITING_TOOL');
+        {
+          const tm = this.timingOf(brain).open;
+          if (tm && !tm.toolStartedAt) {
+            tm.toolStartedAt = Date.now();
+            tm.toolName = name;
+          }
+        }
         if (!conversation && NEEDS_CONSENT.has(name)) await this.waitForTranscript(brain);
         let args: any = {};
         try {
@@ -1608,9 +1696,21 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         const responseId = String(event.response_id ?? '');
         const askedAt = t.responseAskSeq.get(responseId) ?? t.askSeq;
         if (responseId) t.toolResponses.add(responseId);
+        // Did the caller SPEAK after the question this reply is acting on?
+        // From the committed audio turn, not its transcript — the evidence a
+        // yes needs on this engine is that a turn happened, not what the
+        // transcriber made of it.
+        const lastTurnId = t.order[t.order.length - 1];
+        const lastTurn = lastTurnId ? t.heard.get(lastTurnId) : undefined;
+        const spokeAfterQuestion =
+          !!lastTurnId && !!lastTurn && lastTurn.askSeq >= askedAt && !t.consumed.has(lastTurnId);
         const out = await (
           conversation
-            ? this.voice.conversationTool(ccid, name, args)
+            ? this.voice.conversationTool(ccid, name, {
+                ...args,
+                __conversation: true,
+                __spokeAfterQuestion: spokeAfterQuestion,
+              })
             : this.voice.realtimeTool(ccid, name, {
                 ...args,
                 __heard: latest?.text ?? null,
@@ -1631,7 +1731,15 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         const said = typeof out?.result === 'string' && out.result ? out.result : 'Done.';
         this.logger.log(`realtime ${ccid.slice(-8)} tool ${name} → ${said.slice(0, 120)}`);
         // Spent. The same "yes" cannot confirm two different things.
-        if (!conversation && NEEDS_CONSENT.has(name) && latest) t.consumed.add(latest.itemId);
+        if (NEEDS_CONSENT.has(name)) {
+          const spent = conversation ? lastTurnId : latest?.itemId;
+          if (spent) t.consumed.add(spent);
+        }
+        {
+          const tm = this.timingOf(brain).open;
+          if (tm && tm.toolStartedAt && !tm.toolDoneAt) tm.toolDoneAt = Date.now();
+        }
+        this.setPhase(brain, 'WAITING_MODEL');
         brain.send(
           JSON.stringify({
             type: 'conversation.item.create',

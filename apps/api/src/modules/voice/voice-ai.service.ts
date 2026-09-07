@@ -2831,7 +2831,14 @@ ${menu || '(no items available — apologise and transfer)'}`;
     state: VoiceState,
     intent: NonNullable<VoiceState['pendingConfirm']>['intent'],
     question: string,
-  ): { result: string; sayNow: string } {
+  ): { result: string; sayNow?: string } {
+    if ((state as any).__conversation === true) {
+      // No keypad on this engine. They have not answered; ask again, in
+      // words, and wait for a real turn before acting.
+      return {
+        result: `They haven't answered since you asked. Ask again in one short sentence — "${question}" — then WAIT for them to speak. Do not act until they have.`,
+      };
+    }
     state.pendingConfirm = { intent, asked: true, of: this.fingerprintFor(intent, state) };
     return {
       sayNow: `${question} Press 1 for yes, or 2 for no.`,
@@ -2906,6 +2913,18 @@ ${menu || '(no items available — apologise and transfer)'}`;
 
   agreed(input: any, state?: VoiceState): { ok: boolean; why: string; unclear?: boolean } {
     const heard = String(input?.__heard ?? '').trim();
+
+    // The conversation engine: the model reports the yes, the line proves a
+    // turn happened. Nothing reads the transcript's words — on 8kHz they are
+    // the one thing that cannot be trusted — but a yes with no caller turn
+    // since the question was asked is the model answering for them, and
+    // that is refused exactly as it was on the other engine.
+    if (input?.__conversation === true) {
+      if (input?.__spokeAfterQuestion === true) {
+        return { ok: true, why: 'the caller spoke after the question and the model reports a yes' };
+      }
+      return { ok: false, unclear: true, why: 'the caller has not spoken since you asked' };
+    }
 
     // A keypress outranks the transcript. It is the same yes, typed instead of
     // spoken, and it is the only answer on the call that cannot be garbled.
@@ -3240,8 +3259,20 @@ ${this.compactMenu(ctx)}
       case 'order_confirmed': {
         // The model's word is the consent. The fingerprint rules inside
         // still refuse a stale yes, a changed basket, or an unread order.
-        const asserted = { ...input, __heard: 'yes', __heardFresh: true, __heardReadable: true };
-        return this.runTool(name, asserted, ctx, state, callerNumber);
+        // No word is put in the caller's mouth. The gateway says whether a
+        // caller turn happened after the question; agreed() decides on that.
+        (state as any).__conversation = true;
+        try {
+          return await this.runTool(
+            name,
+            { ...input, __conversation: true },
+            ctx,
+            state,
+            callerNumber,
+          );
+        } finally {
+          delete (state as any).__conversation;
+        }
       }
       default:
         return this.runTool(name, input, ctx, state, callerNumber);

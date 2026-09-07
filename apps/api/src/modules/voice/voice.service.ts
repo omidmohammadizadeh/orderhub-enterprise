@@ -601,6 +601,12 @@ export class VoiceService {
     const { call, ctx, state } = loaded;
 
     if (name === 'use_usual') {
+      const consent = this.ai.agreed({ ...input, __conversation: true }, state);
+      if (!consent.ok) {
+        return {
+          result: `Not yet — ${consent.why}. Ask "would you like the same as last time?" and wait for them to answer.`,
+        };
+      }
       const last = await this.lastOrderFor(ctx, call.fromNumber);
       const resolved = last ? this.ai.resolveUsual(ctx, last) : null;
       if (!last || !resolved) {

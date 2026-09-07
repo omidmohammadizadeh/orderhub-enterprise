@@ -1,0 +1,253 @@
+// The review of call bvw4lTZA at 6f2ff279: what it asked for, proven.
+//
+// The call itself was fine — menu question answered, item added, "what else
+// would you like?" — and then thirteen seconds of nothing, an idle reminder,
+// and no way to tell whether the caller had spoken. Four things fall out:
+// silence has to be attributed before it is acted on, the caller's silence
+// is never a reason to change engine, a tool-only reply has not answered
+// anyone yet, and a yes on this engine needs a real caller turn behind it.
+
+import { VoiceAiService } from '../voice-ai.service';
+import { VoiceRealtimeSim } from './voice-realtime-sim';
+
+const settle = (ms = 10) => new Promise((r) => setTimeout(r, ms));
+const ONE_SECOND = Buffer.alloc(8000).toString('base64');
+
+const conversationSim = (opts: any = {}) => {
+  const sim = new VoiceRealtimeSim(opts);
+  sim.gateway.voice.realtimeSession = async () => ({
+    instructions: 'x',
+    greeting: 'Hi',
+    tools: [],
+    mode: 'CONVERSATION',
+  });
+  sim.gateway.voice.conversationTool = jest.fn(async () => ({ result: 'ok' }));
+  sim.gateway.fallbackToRelay = jest.fn(async () => {});
+  sim.gateway.telnyx = { ...(sim.gateway.telnyx ?? {}), hangup: jest.fn(async () => true) };
+  return sim;
+};
+const spoke = (sim: VoiceRealtimeSim, rid: string, delta = 'AAAA') => {
+  sim.brain.deliver({ type: 'response.created', response: { id: rid } });
+  sim.brain.deliver({
+    type: 'response.output_audio.delta',
+    response_id: rid,
+    item_id: `${rid}-a`,
+    delta,
+  });
+  sim.brain.deliver({
+    type: 'response.output_audio_transcript.done',
+    transcript: 'What else would you like?',
+  });
+  sim.brain.deliver({ type: 'response.done', response: { id: rid, status: 'completed' } });
+};
+
+describe('3. a quiet caller is not a broken model', () => {
+  it('reminds, reminds again, then says goodbye — and never changes engine', async () => {
+    const sim = conversationSim({ idleMs: 40 });
+    sim.gateway.config = {
+      get: (k: string) =>
+        k === 'VOICE_CONVERSATION_IDLE_MS'
+          ? '40'
+          : k === 'VOICE_REALTIME_IDLE_MS'
+            ? '40'
+            : undefined,
+    };
+    await sim.answer();
+    sim.brain.sent.length = 0;
+    spoke(sim, 'r1');
+    await settle(400);
+
+    const said = sim.toModel
+      .filter((m) => m.type === 'response.create')
+      .map((m) => m.response?.instructions ?? '');
+    expect(said.some((s) => s.includes('are you still there'))).toBe(true);
+    expect(said.some((s) => s.includes('still here whenever'))).toBe(true);
+    expect(said.some((s) => s.includes('Bye for now'))).toBe(true);
+    expect(sim.gateway.fallbackToRelay).not.toHaveBeenCalled();
+    expect(sim.log.join(' ')).toMatch(/caller gone — ending the call politely/);
+  });
+
+  it('a model that gives nothing back still gets the fallback', async () => {
+    const sim = conversationSim({ quietMs: 40, idleMs: 40 });
+    sim.gateway.config = {
+      get: (k: string) => (k === 'VOICE_REALTIME_QUIET_MS' ? '40' : undefined),
+    };
+    await sim.answer();
+    // The caller spoke; the server owes a reply and never starts one.
+    sim.brain.deliver({ type: 'input_audio_buffer.speech_started' });
+    sim.brain.deliver({ type: 'input_audio_buffer.speech_stopped' });
+    sim.brain.deliver({ type: 'input_audio_buffer.committed', item_id: 'u1' });
+    await settle(300);
+    expect(sim.log.join(' ')).toMatch(/nothing came back/);
+    expect(sim.gateway.fallbackToRelay).toHaveBeenCalled();
+  });
+
+  it('the caller speaking resets the silence count', async () => {
+    const sim = conversationSim({ idleMs: 40 });
+    sim.gateway.config = {
+      get: (k: string) =>
+        k === 'VOICE_CONVERSATION_IDLE_MS'
+          ? '40'
+          : k === 'VOICE_REALTIME_IDLE_MS'
+            ? '40'
+            : undefined,
+    };
+    await sim.answer();
+    spoke(sim, 'r1');
+    await settle(70); // one reminder
+    sim.brain.deliver({ type: 'input_audio_buffer.speech_started' });
+    sim.brain.deliver({ type: 'input_audio_buffer.speech_stopped' });
+    spoke(sim, 'r2');
+    await settle(70);
+    const goodbye = sim.toModel.some((m) =>
+      String(m.response?.instructions ?? '').includes('Bye for now'),
+    );
+    expect(goodbye).toBe(false);
+    expect(sim.gateway.telnyx.hangup).not.toHaveBeenCalled();
+  });
+});
+
+describe('4. timing survives a tool call', () => {
+  it('stays open across a tool-only reply and closes on the spoken one, tool time reported', async () => {
+    const sim = conversationSim();
+    await sim.answer();
+    sim.brain.deliver({ type: 'input_audio_buffer.speech_stopped' });
+    sim.brain.deliver({ type: 'input_audio_buffer.committed', item_id: 'u1' });
+    await sim.callTool('add_item', { said: 'chips' }); // response r? with only a tool call
+    expect(sim.log.join(' ')).not.toMatch(/turn timing/); // not closed yet
+    await settle(20);
+    spoke(sim, 'r2');
+    await settle();
+    const line = sim.log.find((l) => l.includes('turn timing'))!;
+    expect(line).toMatch(/vad\(stop→committed\) \d+ms/);
+    expect(line).toMatch(/tool add_item \d+ms/);
+    expect(line).toMatch(/stop→first-audio \d+ms/);
+  });
+});
+
+describe('5. a yes needs a caller turn behind it', () => {
+  const ai = () => {
+    const a: any = Object.create(VoiceAiService.prototype);
+    a.logger = { log() {}, warn() {}, error() {} };
+    return a;
+  };
+  const ctx = () =>
+    ({
+      currency: 'GBP',
+      items: [],
+      itemIndex: new Map(),
+      optionIndex: new Map(),
+      deliveryZones: [],
+    }) as any;
+  const withChips = () =>
+    ({
+      cart: {
+        items: [{ lineId: 'a', name: 'CHIPS', quantity: 1, unitBasePrice: 2, modifiers: [] }],
+      },
+      turns: [],
+    }) as any;
+
+  it('refuses order_confirmed when the caller has not spoken since the read-back — in words, no keypad', async () => {
+    const a = ai();
+    const c = ctx();
+    const st = withChips();
+    await a.runTool('read_back_order', {}, c, st, null);
+    const out = await a.runToolForConversation(
+      'order_confirmed',
+      { __spokeAfterQuestion: false },
+      c,
+      st,
+      null,
+    );
+    expect(out.result).toMatch(/haven't answered since you asked/);
+    expect(out.result).toMatch(/Ask again in one short sentence/);
+    expect(out.sayNow).toBeUndefined();
+    expect(st.pendingConfirm).toBeUndefined();
+    expect(st.orderConfirmed).toBeFalsy();
+  });
+
+  it('confirms when a caller turn followed the question', async () => {
+    const a = ai();
+    const c = ctx();
+    const st = withChips();
+    await a.runTool('read_back_order', {}, c, st, null);
+    const out = await a.runToolForConversation(
+      'order_confirmed',
+      { __spokeAfterQuestion: true },
+      c,
+      st,
+      null,
+    );
+    expect(out.result).toMatch(/Confirmed/);
+    expect((st as any).__conversation).toBeUndefined(); // transient, never persisted
+  });
+
+  it('the gateway passes the evidence: a committed turn after the question, and only once', async () => {
+    const sim = conversationSim();
+    await sim.answer();
+    const toolIn = (rid: string) => {
+      sim.brain.deliver({ type: 'response.created', response: { id: rid } });
+      sim.brain.deliver({
+        type: 'response.function_call_arguments.done',
+        response_id: rid,
+        name: 'order_confirmed',
+        call_id: `c-${rid}`,
+        arguments: '{}',
+      });
+    };
+    // Question asked, nobody spoke.
+    sim.brain.deliver({
+      type: 'response.output_audio_transcript.done',
+      transcript: 'Is that all correct?',
+    });
+    toolIn('r1');
+    await settle(30);
+    // Caller spoke after it.
+    sim.brain.deliver({ type: 'input_audio_buffer.committed', item_id: 'u1' });
+    toolIn('r2');
+    await settle(30);
+    // The same turn cannot be spent twice.
+    toolIn('r3');
+    await settle(30);
+
+    const calls = (sim.gateway.voice.conversationTool as jest.Mock).mock.calls.map(
+      (c) => c[2].__spokeAfterQuestion,
+    );
+    expect(calls).toEqual([false, true, false]);
+  });
+});
+
+describe('1. the log says what happened', () => {
+  it('names the VAD settings, create_response and the mode at session ready, and every reply and turn', async () => {
+    const sim = conversationSim();
+    await sim.answer();
+    expect(sim.log.join(' ')).toMatch(/turn_detection \{"type":"server_vad","threshold":0\.6/);
+    expect(sim.log.join(' ')).toMatch(/create_response true, mode CONVERSATION/);
+    sim.brain.deliver({ type: 'input_audio_buffer.committed', item_id: 'u1' });
+    spoke(sim, 'r1');
+    await settle();
+    expect(sim.log.join(' ')).toMatch(/caller turn committed item=u1 askSeq=\d+/);
+    expect(sim.log.join(' ')).toMatch(/reply .* created at askSeq/);
+    expect(sim.log.join(' ')).toMatch(/reply .* done: status completed, audio true, tool false/);
+  });
+});
+
+describe('2. the line is metered, the audio is not kept', () => {
+  it('flags a loud second with no detection, and never logs a payload', async () => {
+    const sim = conversationSim();
+    await sim.answer();
+    const loud = Buffer.alloc(160, 0x10).toString('base64'); // a loud μ-law byte, 20ms
+    const t0 = Date.now();
+    for (let i = 0; i < 60; i++)
+      sim.caller.deliver({ event: 'media', stream_id: 's1', media: { payload: loud } });
+    await settle(1100);
+    for (let i = 0; i < 5; i++)
+      sim.caller.deliver({ event: 'media', stream_id: 's1', media: { payload: loud } });
+    await settle();
+    expect(Date.now() - t0).toBeGreaterThan(1000);
+    expect(sim.log.join(' ')).toMatch(
+      /inbound loud but undetected: peak -?\d+ dBFS over \d+ frames/,
+    );
+    expect(sim.log.join(' ')).not.toContain(loud);
+  }, 10000);
+});

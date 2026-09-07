@@ -850,7 +850,7 @@ describe("audio the caller is still listening to", () => {
 
     // And once it HAS finished playing, the check-in happens.
     await new Promise((r) => setTimeout(r, 450));
-    expect(sim.log.join(" ")).toMatch(/nothing came back/);
+    expect(sim.log.join(" ")).toMatch(/caller quiet — checking in/); // the caller is who the line waits on
   }, 10000);
 });
 

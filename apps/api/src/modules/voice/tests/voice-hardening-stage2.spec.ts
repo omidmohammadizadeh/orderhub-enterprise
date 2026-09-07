@@ -118,7 +118,7 @@ describe("leftovers from the first live calls on this branch", () => {
     sim.brain.deliver({ type: "response.done", response: { id: "r1" } });   // no audio, no tool
     await settle(200);
     expect(sim.log.join(" ")).toMatch(/empty reply .* treating as a stall/);
-    expect(sim.log.join(" ")).toMatch(/nothing came back/);                // nudged well inside 5s
+    expect(sim.log.join(" ")).toMatch(/nothing came back/); // the MODEL is who the line waits on here
   });
 });
 

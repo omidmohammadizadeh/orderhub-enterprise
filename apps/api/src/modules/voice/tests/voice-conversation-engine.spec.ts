@@ -191,7 +191,7 @@ describe('add_item without a walkthrough', () => {
     const st = fresh();
     a.addItemConversational({ said: 'chips' }, c, st);
     await a.runTool('read_back_order', {}, c, st, null);
-    await a.runToolForConversation('order_confirmed', {}, c, st, null);
+    await a.runToolForConversation('order_confirmed', { __spokeAfterQuestion: true }, c, st, null);
     expect(a.orderStillConfirmed(st)).toBe(true);
     a.addItemConversational({ said: 'garlic sauce' }, c, st);
     expect(a.orderStillConfirmed(st)).toBe(false);
@@ -205,10 +205,10 @@ describe('consent on this engine', () => {
     const st = fresh();
     a.addItemConversational({ said: 'chips' }, c, st);
     // No transcript anywhere in this input. The model says they agreed.
-    const early = await a.runToolForConversation('order_confirmed', {}, c, st, null);
+    const early = await a.runToolForConversation('order_confirmed', { __spokeAfterQuestion: true }, c, st, null);
     expect(early.result).toMatch(/has not been read back/);
     await a.runTool('read_back_order', {}, c, st, null);
-    const ok = await a.runToolForConversation('order_confirmed', {}, c, st, null);
+    const ok = await a.runToolForConversation('order_confirmed', { __spokeAfterQuestion: true }, c, st, null);
     expect(ok.result).toMatch(/Confirmed/);
   });
 
@@ -217,7 +217,7 @@ describe('consent on this engine', () => {
     const c = ctx();
     const st = fresh();
     st.cart.deliveryAddress = { line1: '1 Test Street', city: 'Gateshead', postcode: 'NE10 8YH' };
-    const out = await a.runToolForConversation('confirm_delivery_address', {}, c, st, null);
+    const out = await a.runToolForConversation('confirm_delivery_address', { __spokeAfterQuestion: true }, c, st, null);
     expect(out.result).toMatch(/Address confirmed/);
     expect(a.addressStillConfirmed(st)).toBe(true);
   });
@@ -348,9 +348,11 @@ describe('the session and the gateway in conversation mode', () => {
     const sim = conversationSim();
     await sim.answer();
     await sim.callTool('add_item', { said: 'chips' });
-    expect(sim.gateway.voice.conversationTool).toHaveBeenCalledWith('cc-test', 'add_item', {
-      said: 'chips',
-    });
+    expect(sim.gateway.voice.conversationTool).toHaveBeenCalledWith(
+      'cc-test',
+      'add_item',
+      expect.objectContaining({ said: 'chips', __conversation: true }),
+    );
     expect(sim.gateway.voice.realtimeTool).not.toHaveBeenCalled();
   });
 });
@@ -441,6 +443,6 @@ describe('after the first live call on this engine', () => {
     });
     sim.brain.deliver({ type: 'response.done', response: { id: 'r1' } });
     await settle(250);
-    expect(sim.log.join(' ')).toMatch(/nothing came back/); // well inside 5s
+    expect(sim.log.join(' ')).toMatch(/caller quiet — checking in/); // the caller is who the line waits on
   });
 });
