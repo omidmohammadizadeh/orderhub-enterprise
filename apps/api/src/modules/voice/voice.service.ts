@@ -368,6 +368,54 @@ export class VoiceService {
   }
 
   /**
+   * A spoken answer to a question the walkthrough asked.
+   *
+   * The keypad had this and speech did not, which lost a whole pizza on a live
+   * call: "Any notes for the gran duca? Say it now, or press 1 if not." — the
+   * caller said "No", nothing routed it, the item never committed, and the
+   * basket went to the kitchen as chips, garlic sauce and Coke with no pizza
+   * in it. The model, told the item was being handled elsewhere, went quiet;
+   * ten seconds later the watchdog had to speak.
+   *
+   * Only the two item slots. Everything else on this engine — the address, the
+   * fulfilment, changing their mind — belongs to the model, and returning null
+   * is what hands it back.
+   */
+  async realtimeSaid(
+    callControlId: string,
+    said: string,
+  ): Promise<{ say: string } | null> {
+    const heard = String(said ?? "").trim();
+    if (!heard) return null;
+    const loaded = await this.loadByControlId(callControlId).catch(() => null);
+    if (!loaded) return null;
+    const { call, ctx, state } = loaded;
+
+    // Derived, not trusted: awaiting is a cache and the walkthrough itself is
+    // the truth about what was asked.
+    const slot = this.pendingSlot(state);
+    if (slot !== "ITEM_OPTION" && slot !== "ITEM_NOTE") return null;
+    state.awaiting = slot;
+
+    // Not swallowed. answerSlot mutates the cart and persists it before it
+    // returns, so a failure here is a call whose basket has moved without
+    // anyone being told — worth a line in the log, and the gateway still arms
+    // the silence watchdog on a rejection.
+    const turn = await this.answerSlot(call, ctx, state, heard).catch((e: any) => {
+      this.logger.error(
+        `call ${call.id} could not answer ${slot} out loud: ${e?.message ?? e}`,
+      );
+      throw e;
+    });
+    if (!turn?.say) return null;
+
+    state.awaiting = this.pendingSlot(state);
+    await this.save(call.id, state);
+    this.logger.log(`call ${call.id} answered ${slot} out loud`);
+    return { say: turn.say };
+  }
+
+  /**
    * Has this call moved past the opening menu?
    *
    * Once it has, a digit is not "press 2 for an order update" any more — it is

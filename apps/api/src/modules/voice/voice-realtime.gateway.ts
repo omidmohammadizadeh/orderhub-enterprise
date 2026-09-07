@@ -1131,10 +1131,46 @@ export class VoiceRealtimeGateway implements OnModuleInit {
           this.watchForSilence(brain, ccid, "idle");
           return;
         }
-        // The caller has finished a sentence and is now waiting. Everything
-        // after this point is on a clock: whatever goes wrong upstream, a
-        // person holding a phone gets an answer.
-        this.watchForSilence(brain, ccid);
+        // A question the walkthrough asked, answered out loud.
+        //
+        // The keypad had this route and speech did not, which lost a whole
+        // pizza: "Any notes for the gran duca? Say it now, or press 1 if not."
+        // — the caller said "No", nothing consumed it, the item never
+        // committed, and the model (told the item was being handled in code)
+        // said nothing at all until the watchdog fired ten seconds later.
+        // Held in a variable first. `a?.b().then()` short-circuits the WHOLE
+        // chain when the method is missing, which would skip the line below
+        // and leave nothing watching the call — the one thing that must never
+        // happen is silence.
+        const answering = this.voice.realtimeSaid?.(ccid, heard);
+        if (!answering) {
+          this.watchForSilence(brain, ccid);
+          return;
+        }
+        void answering
+          .then((answered: { say: string } | null) => {
+            if (!answered?.say) {
+              // Not ours. The model has the turn, and the clock starts.
+              this.watchForSilence(brain, ccid);
+              return;
+            }
+            this.interrupt(brain);
+            this.send(brain, {
+              type: "conversation.item.create",
+              item: {
+                type: "message",
+                role: "user",
+                content: [
+                  {
+                    type: "input_text",
+                    text: `They answered the question you asked, out loud, and it has ALREADY been applied to the order — you will say "${answered.say}" next. Do not call add_item, and do not ask that question again.`,
+                  },
+                ],
+              },
+            });
+            this.speakExactly(brain, answered.say);
+          })
+          .catch(() => this.watchForSilence(brain, ccid));
         return;
       }
 

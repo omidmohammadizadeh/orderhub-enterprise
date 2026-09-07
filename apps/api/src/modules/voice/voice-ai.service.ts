@@ -3034,10 +3034,14 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
     // the next keypress commits a duplicate.
     if (state.pendingItem?.itemId === item.id && state.pendingItem.walked) {
       const outstanding = this.askNextOption(ctx, state);
+      // Never claim it is in the basket. It is NOT — it sits in pendingItem
+      // until the last question about it is answered, and saying otherwise is
+      // how a pizza went missing from an order that had already been read
+      // back as containing one.
       return {
         result: outstanding
           ? `You have ALREADY asked them this and their answer is being handled in code. Do not call add_item again for the ${item.name}. Say nothing and wait.`
-          : `The ${item.name} is already being dealt with — every choice about it has been made and it is going into the basket. Do not call add_item again for it.`,
+          : `The ${item.name} is mid-order and NOT in the basket yet — they are being asked whether they want any notes on it, and that answer is handled in code. Do not call add_item again for it, and do not read the order back until it lands.`,
       };
     }
 

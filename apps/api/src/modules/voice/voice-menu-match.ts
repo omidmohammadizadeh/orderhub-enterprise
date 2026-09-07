@@ -25,8 +25,19 @@ const plain = (s: string): string =>
  * the same thing, while "coke" stays different from both.
  */
 export function soundFold(word: string): string {
+  // Digits survive whole.
+  //
+  // Stripping them made soundFold("12") and soundFold("10") both "", so every
+  // numeric option on a menu folded to the same empty string and matched every
+  // other one. On a pizza menu that is the SIZE list: "12 inch" scored exactly
+  // as well against 10" as against 12", the tie-break could not separate them,
+  // and a caller who said their size out loud was simply never understood.
+  //
+  // Nothing about a number is unreliable on a phone line in the way a vowel
+  // is — "12" is either heard or it isn't, and it is never heard as "10".
+  const digits = plain(word).replace(/[^0-9]/g, "");
   let w = plain(word).replace(/[^a-z]/g, "");
-  if (!w) return "";
+  if (!w) return digits;
   w = w
     .replace(/ph/g, "f")
     .replace(/th/g, "t")
@@ -43,7 +54,7 @@ export function soundFold(word: string): string {
   // Doubles carry no sound of their own.
   w = w.replace(/(.)\1+/g, "$1");
   const first = w[0] ?? "";
-  return first + w.slice(1).replace(/[aeiou]/g, "");
+  return digits + first + w.slice(1).replace(/[aeiou]/g, "");
 }
 
 /** Levenshtein, capped — we only care about near misses. */
@@ -335,7 +346,8 @@ const SIZE_RANK: Array<{ words: string[]; rank: "first" | "middle" | "last" }> =
 
 const NUMBER_WORDS: Record<string, number> = {
   six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12,
-  thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, eighteen: 18, twenty: 20,
+  thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17,
+  eighteen: 18, nineteen: 19, twenty: 20,
 };
 
 /** Every number a string mentions, words or digits. */
@@ -591,12 +603,30 @@ export function sizesAloud<T extends { name: string }>(variants: T[]): string {
  * 1 for "diet coke" — one by covering its whole name — and the answer is the
  * one that accounts for more of what the caller actually said.
  */
+/** "twelve" → "12". Only ever applied to what the caller said. */
+export function spokenNumbers(said: string): string {
+  return String(said ?? "")
+    .split(/\b/)
+    .map((part) => {
+      const n = NUMBER_WORDS[part.toLowerCase()];
+      return n === undefined ? part : String(n);
+    })
+    .join("");
+}
+
 export function matchOption<T extends { name: string }>(
   said: string,
   options: T[],
   groupName: string,
 ): { item: T; score: number } | null {
   const groupWords = new Set(plain(groupName).split(" ").filter(Boolean));
+  // Spoken numbers become digits, for the CALLER's words only.
+  //
+  // A menu writes 12" and a caller says "twelve inch" — one of the two has to
+  // move, and it cannot be the menu: turning "one" into "1" inside item names
+  // would rewrite half a pizzeria. Confined to a closed list, where a number
+  // is nearly always a size or a count and almost never part of a dish name.
+  said = spokenNumbers(said);
   const heard = plain(said).split(" ").filter(Boolean);
   if (!heard.length || !options.length) return null;
 
