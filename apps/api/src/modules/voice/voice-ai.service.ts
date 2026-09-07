@@ -128,6 +128,19 @@ export interface VoiceState {
    */
   addressConfirmed?: boolean;
   /**
+   * A yes/no question that speech could not answer, moved to the keypad.
+   *
+   * The three tools that change what a kitchen cooks all turn on a yes, and a
+   * transcriber that renders one as "Svensk." makes that yes unobtainable —
+   * so once speech has failed the question is asked as 1-or-2 and answered by
+   * a keypress, which cannot be misheard.
+   */
+  pendingConfirm?: {
+    intent: "usual" | "address" | "order";
+    asked?: boolean;
+    answered?: "YES" | "NO";
+  };
+  /**
    * The full order has been read back and confirmed aloud. place_order refuses
    * without it. The system prompt has always asked for this; a prompt is a
    * request, and the thing that gets the AI switched off for good deserves a
@@ -2007,12 +2020,24 @@ ${menu || "(no items available — apologise and transfer)"}`;
         // Nothing heard is not a yes either. Silence is the case that caused
         // this, and it is the one a model is most likely to fill in for
         // itself.
-        const consent = this.agreed(input);
+        const consent = this.agreed(input, state);
+        if (!consent.ok && consent.unclear) {
+          const saved = state.savedAddress;
+          return this.confirmByKeypad(
+            state,
+            "address",
+            saved?.line1
+              ? `Sorry — I didn't catch that. Are you still at ${saved.line1}?`
+              : "Sorry — I didn't catch that. Is the address we have on file still right?",
+          );
+        }
         if (!consent.ok) {
+          state.pendingConfirm = undefined;
           return {
             result: `They have not said yes to the address on file — ${consent.why}. Do NOT use it. Ask "No problem — what's the delivery address?" and take the new one.`,
           };
         }
+        state.pendingConfirm = undefined;
         const saved = state.savedAddress;
         if (!saved?.line1) {
           return {
@@ -2066,12 +2091,21 @@ ${menu || "(no items available — apologise and transfer)"}`;
         // The read-back is the last gate before a kitchen starts cooking. A
         // yes heard where there was none puts food nobody ordered on a
         // stranger's doorstep, and the caller pays for it.
-        const agreedToOrder = this.agreed(input);
+        const agreedToOrder = this.agreed(input, state);
+        if (!agreedToOrder.ok && agreedToOrder.unclear) {
+          return this.confirmByKeypad(
+            state,
+            "order",
+            "Sorry — I didn't catch that. Is that order all correct?",
+          );
+        }
         if (!agreedToOrder.ok) {
+          state.pendingConfirm = undefined;
           return {
             result: `They have not confirmed the order — ${agreedToOrder.why}. Do NOT place it. Ask them plainly: "Is that all correct?" and wait for a clear yes.`,
           };
         }
+        state.pendingConfirm = undefined;
         state.orderConfirmed = true;
         return {
           result:
@@ -2602,16 +2636,77 @@ ${menu || "(no items available — apologise and transfer)"}`;
    * else. The cost of being wrong here is a stranger's dinner cooked and sent
    * to the wrong door; the cost of asking again is four seconds.
    */
-  agreed(input: any): { ok: boolean; why: string } {
+  /**
+   * Ask it again with the keypad.
+   *
+   * Reached only once speech has already failed to produce a readable answer.
+   * "Svensk." was a no and "Телигов." was a yes on a real call, and asking the
+   * same question the same way simply collects another one of those — so the
+   * next attempt stops relying on the microphone at all.
+   */
+  confirmByKeypad(
+    state: VoiceState,
+    intent: NonNullable<VoiceState["pendingConfirm"]>["intent"],
+    question: string,
+  ): { result: string; sayNow: string } {
+    state.pendingConfirm = { intent, asked: true };
+    return {
+      sayNow: `${question} Press 1 for yes, or 2 for no.`,
+      result:
+        "Their answer could not be made out, so they have been asked to press 1 or 2. That keypress is handled in code — say nothing more, and do NOT act until it arrives.",
+    };
+  }
+
+  agreed(input: any, state?: VoiceState): { ok: boolean; why: string; unclear?: boolean } {
     const heard = String(input?.__heard ?? "").trim();
+
+    // A keypress outranks the transcript. It is the same yes, typed instead of
+    // spoken, and it is the only answer on the call that cannot be garbled.
+    const pressed = state?.pendingConfirm;
+    if (pressed?.answered === "YES") return { ok: true, why: "they pressed 1 for yes" };
+    if (pressed?.answered === "NO") return { ok: false, why: "they pressed 2 for no" };
+
+    // "Unclear" is not "no". A clear no is honoured and the call moves on; an
+    // answer nobody could read has to be asked again A DIFFERENT WAY, because
+    // asking it the same way gets the same unreadable answer forever — which
+    // is what a caller experiences as the line being broken.
     // The transcript can arrive AFTER the tool it belongs to — 248ms after, on
     // the call that prompted this. A stale one is somebody else's answer.
     if (input?.__heardFresh === false) {
-      return { ok: false, why: "nothing they have said since you asked" };
+      return { ok: false, unclear: true, why: "nothing they have said since you asked" };
     }
-    if (!heard) return { ok: false, why: "nothing at all" };
-    if (parseYesNo(heard) !== "YES") {
+    if (!heard) return { ok: false, unclear: true, why: "nothing at all" };
+    // "Svensk." was a no and "Телигов." was a yes, on a real call. Neither is
+    // a refusal — both are a small transcriber losing the language on 8kHz
+    // audio, and reading them as answers is how the same question got asked
+    // four times in a row.
+    if (input?.__heardReadable === false) {
+      return { ok: false, unclear: true, why: "something the transcriber could not make out" };
+    }
+    // A refusal in a whole sentence is still a refusal. parseYesNo gives up
+    // past four words on purpose — "no, and can I add chips" is a turn, not a
+    // slot answer — but "no I don't want the same as last time" is as clear a
+    // no as a person can give, and sending THAT to the keypad would make the
+    // caller press 2 to repeat themselves.
+    //
+    // Only the no side is widened. Refusing costs four seconds; a yes invented
+    // out of a long sentence costs a stranger's dinner, so a wordy yes still
+    // goes to the keypad.
+    const plainly = heard.toLowerCase().replace(/[^a-z\s']/g, " ");
+    if (
+      /^\s*(no|nope|nah)\b/.test(plainly) ||
+      /\b(don'?t want|do not want|not the same|nothing like|something else|rather not)\b/.test(
+        plainly,
+      )
+    ) {
       return { ok: false, why: `"${heard.slice(0, 60)}"` };
+    }
+    const verdict = parseYesNo(heard);
+    if (verdict === "NO") {
+      return { ok: false, why: `"${heard.slice(0, 60)}"` };
+    }
+    if (verdict !== "YES") {
+      return { ok: false, unclear: true, why: `"${heard.slice(0, 60)}"` };
     }
     return { ok: true, why: heard };
   }

@@ -97,19 +97,65 @@ describe("the order they had last time", () => {
     expect(state.cart.items).toHaveLength(0);
   });
 
-  it("is NOT loaded on a mangled transcript", async () => {
+  it("is NOT loaded on a mangled transcript — it moves to the keypad", async () => {
+    // "Sienos." was a caller saying no. "Svensk." was another. A transcript
+    // nobody can read is not a refusal and not a yes, and asking the same
+    // question again just collects another one — so the question changes.
     const { s, state } = svc();
-    expect(
-      (await s.realtimeTool("cc1", "use_usual", { __heard: "Sienos.", __heardFresh: true })).result,
-    ).toMatch(/have not said yes/);
+    const out = await s.realtimeTool("cc1", "use_usual", {
+      __heard: "Sienos.",
+      __heardFresh: true,
+      __heardReadable: false,
+    });
+
+    expect(out.sayNow).toMatch(/Press 1 for yes, or 2 for no/);
+    expect(out.result).toMatch(/do NOT act until it arrives/i);
+    expect(state.cart.items).toHaveLength(0);
+    expect(state.pendingConfirm).toMatchObject({ intent: "usual", asked: true });
+  });
+
+  it("loads it once they press 1, without needing the transcript", async () => {
+    const { s, state } = svc();
+    await s.realtimeTool("cc1", "use_usual", {
+      __heard: "Sienos.",
+      __heardFresh: true,
+      __heardReadable: false,
+    });
+    state.pendingConfirm.answered = "YES";
+
+    const out = await s.realtimeTool("cc1", "use_usual", {
+      __heard: "Svensk.",
+      __heardFresh: true,
+      __heardReadable: false,
+    });
+
+    // The keypress IS the consent: the tool gets past the gate on a transcript
+    // that is still unreadable. What it then finds in the order history is a
+    // separate question, and this harness has no menu behind it.
+    expect(out.result).not.toMatch(/have not said yes/);
+    expect(out.sayNow).toBeUndefined();
+  });
+
+  it("never loads it when they press 2", async () => {
+    const { s, state } = svc();
+    await s.realtimeTool("cc1", "use_usual", {
+      __heard: "Svensk.",
+      __heardFresh: true,
+      __heardReadable: false,
+    });
+    state.pendingConfirm.answered = "NO";
+
+    const out = await s.realtimeTool("cc1", "use_usual", { __heard: "", __heardFresh: true });
+
+    expect(out.result).toMatch(/have not said yes/);
     expect(state.cart.items).toHaveLength(0);
   });
 
   it("is NOT loaded on words that predate the question", async () => {
     const { s, state } = svc();
     expect(
-      (await s.realtimeTool("cc1", "use_usual", { __heard: "yes", __heardFresh: false })).result,
-    ).toMatch(/have not said yes/);
+      (await s.realtimeTool("cc1", "use_usual", { __heard: "yes", __heardFresh: false })).sayNow,
+    ).toMatch(/Press 1 for yes, or 2 for no/);
     expect(state.cart.items).toHaveLength(0);
   });
 });
@@ -125,15 +171,19 @@ describe("the read-back, which is the last gate before a kitchen starts", () => 
   };
 
   it("does not confirm on a misheard yes", async () => {
-    const { out, state } = confirm({ __heard: "Sienos.", __heardFresh: true });
-    expect((await out).result).toMatch(/have not confirmed the order/);
-    expect((await out).result).toMatch(/Do NOT place it/);
+    const { out, state } = confirm({
+      __heard: "Sienos.",
+      __heardFresh: true,
+      __heardReadable: false,
+    });
+    expect((await out).sayNow).toMatch(/Press 1 for yes, or 2 for no/);
+    expect((await out).result).toMatch(/do NOT act until it arrives/i);
     expect(state.orderConfirmed).toBeFalsy();
   });
 
   it("does not confirm on silence", async () => {
     const { out, state } = confirm({});
-    expect((await out).result).toMatch(/have not confirmed/);
+    expect((await out).sayNow).toMatch(/Press 1 for yes, or 2 for no/);
     expect(state.orderConfirmed).toBeFalsy();
   });
 

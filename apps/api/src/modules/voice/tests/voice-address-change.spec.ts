@@ -37,10 +37,13 @@ describe("using the address already on file", () => {
     // The exact failure: no transcript arrived between the question and the
     // tool call, and it went ahead. Silence is the case a model is most likely
     // to fill in for itself, and the one that sends a driver to the wrong door.
-    const out = await run({});
-    expect(out.result).toMatch(/have not said yes/);
-    expect(out.result).toMatch(/Do NOT use it/);
-    expect(out.result).toMatch(/what's the delivery address/);
+    const st = state();
+    const out = await run({}, st);
+    expect(out.sayNow).toMatch(/Press 1 for yes, or 2 for no/);
+    expect(out.result).toMatch(/do NOT act until it arrives/i);
+    // The address on file is still not on the order, which is the whole point.
+    expect(st.cart.deliveryAddress?.line1).toBeUndefined();
+    expect(st.addressConfirmed).toBeFalsy();
   });
 
   it("refuses when they said no", async () => {
@@ -64,8 +67,12 @@ describe("using the address already on file", () => {
   });
 
   it("refuses when something unrelated was the last thing said", async () => {
-    // "Can I get a coke" is not consent to an address.
-    expect((await run({ __heard: "can I get a coke" })).result).toMatch(/have not said yes/);
+    // "Can I get a coke" is not consent to an address. It is not a refusal
+    // either, so it goes to the keypad rather than being asked again in words.
+    const st = state();
+    const out = await run({ __heard: "can I get a coke" }, st);
+    expect(out.sayNow).toMatch(/Press 1 for yes, or 2 for no/);
+    expect(st.cart.deliveryAddress?.line1).toBeUndefined();
   });
 });
 

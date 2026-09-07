@@ -100,7 +100,12 @@ describe("chasing an order that was already placed", () => {
     expect(sim.toolCalls).toEqual([
       {
         name: "find_order",
-        input: { reference: "24", __heard: "Twenty four.", __heardFresh: expect.any(Boolean) },
+        input: {
+          reference: "24",
+          __heard: "Twenty four.",
+          __heardFresh: expect.any(Boolean),
+          __heardReadable: expect.any(Boolean),
+        },
       },
     ]);
     // Pressing 2 must not be answered by reading the menu out again.
@@ -982,6 +987,26 @@ describe("a noise that is not an answer", () => {
     expect(told.item.content[0].text).toMatch(/Do not treat it as a yes or a no/);
     // And it does not ask for a reply — the caller is still thinking.
     expect(sim.toModel.some((m) => m.type === "response.create")).toBe(false);
+  });
+
+  it("does not call mangled speech noise", async () => {
+    // "Телигов." was a caller saying yes. Calling that background noise
+    // interrupted a model that had heard them correctly and told it they had
+    // not spoken — so the call went backwards every time they opened their
+    // mouth. Letters in any alphabet mean a person spoke.
+    const sim = new VoiceRealtimeSim();
+    await sim.answer();
+    sim.brain.sent.length = 0;
+
+    sim.brain.deliver({
+      type: "conversation.item.input_audio_transcription.completed",
+      transcript: "Телигов.",
+    });
+    await new Promise((r) => setTimeout(r, 10));
+
+    const told = sim.toModel.find((m) => m.type === "conversation.item.create");
+    expect(told).toBeUndefined();
+    expect(sim.log.join(" ")).toMatch(/could not render/);
   });
 
   it("leaves a real answer alone", async () => {

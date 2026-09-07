@@ -649,7 +649,17 @@ export class VoiceRealtimeGateway implements OnModuleInit {
           content: [
             {
               type: "input_text",
-              text: `They pressed ${digit}. That answered your question and it has ALREADY been applied to the order — you will say "${answered.say}" next. Do not call add_item, and do not ask that question again.`,
+              // A confirmation keypress is the opposite instruction to a
+              // walkthrough one: there the answer is already applied and the
+              // model must keep out of it, here the answer has only been
+              // RECORDED and the model still has to act on it.
+              text: answered.confirmed
+                ? `They pressed ${digit}, which is a clear ${answered.confirmed.answered} to the question you asked. That is now recorded against this call. ${
+                    answered.confirmed.answered === "YES"
+                      ? "Call the tool you were about to call — it will see their yes."
+                      : "Treat it as a plain no and carry on without it."
+                  } Do not ask that question again.`
+                : `They pressed ${digit}. That answered your question and it has ALREADY been applied to the order — you will say "${answered.say}" next. Do not call add_item, and do not ask that question again.`,
             },
           ],
         },
@@ -1073,7 +1083,34 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // A reply to a turn containing no words is unfounded whatever it says,
         // so it is stopped and the model is told what actually happened. The
         // caller is still waiting to answer the question they were asked.
-        if (!heard || !/[a-z0-9]/i.test(heard)) {
+        // Non-Latin is MANGLED SPEECH, not silence.
+        //
+        //   said "Would you like the same as last time…?"
+        //   heard "Svensk."           ← the caller said no
+        //   heard "Телигов."          ← the caller said yes
+        //
+        // The sidecar transcriber is a small model on 8kHz phone audio and it
+        // guesses a language per utterance. The speech-to-speech model hears
+        // the real audio and got both of those right. Treating an unreadable
+        // transcript as "nothing was said" interrupted a model that was
+        // answering correctly and told it the caller had not spoken, which was
+        // false — so the call went backwards every time the caller talked.
+        //
+        // Empty is silence. Anything else is a person.
+        // Letters in ANY alphabet mean a person spoke. "..." is what this
+        // transcriber returns for a breath or a car door and carries none;
+        // "Телигов." carries plenty and was a caller saying yes.
+        const spoke = /\p{L}/u.test(heard);
+        const readable = /[a-z0-9]/i.test(heard);
+        (brain as any).__heardReadable = readable;
+        if (spoke && !readable) {
+          this.logger.warn(
+            `realtime ${ccid.slice(-8)} heard speech the transcriber could not render — letting the model answer it`,
+          );
+          this.watchForSilence(brain, ccid);
+          return;
+        }
+        if (!spoke) {
           this.logger.warn(
             `realtime ${ccid.slice(-8)} that was not speech — not letting it count as an answer`,
           );
@@ -1143,6 +1180,10 @@ export class VoiceRealtimeGateway implements OnModuleInit {
             // older answered a different question.
             __heardFresh:
               ((brain as any).__lastHeardAt ?? 0) > ((brain as any).__spokeAt ?? 0),
+            // Whether those words are worth reading at all. "Svensk." is not a
+            // no — it is a transcriber that lost the language, and a consent
+            // check that reads it as a refusal asks the same question forever.
+            __heardReadable: (brain as any).__heardReadable !== false,
           })
           .catch((e: any) => ({ result: `That failed: ${e?.message ?? e}`, turn: undefined }));
         // Everything below this point must survive a tool that answered oddly.

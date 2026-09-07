@@ -309,10 +309,35 @@ export class VoiceService {
    * was built; this is the same code, reached from the other engine. Null means
    * no question is outstanding and the digit means whatever it usually means.
    */
-  async realtimeDigit(callControlId: string, digit: string): Promise<{ say: string } | null> {
+  async realtimeDigit(
+    callControlId: string,
+    digit: string,
+  ): Promise<{
+    say: string;
+    confirmed?: { intent: string; answered: "YES" | "NO" };
+  } | null> {
     const loaded = await this.loadByControlId(callControlId);
     if (!loaded) return null;
     const { call, ctx, state } = loaded;
+
+    // A yes/no that speech could not deliver. Checked FIRST: while one of
+    // these is outstanding the caller was asked for 1 or 2 and nothing else,
+    // so a digit cannot mean anything but the answer to it.
+    if (state.pendingConfirm?.asked && !state.pendingConfirm.answered) {
+      const key = String(digit).trim();
+      if (key !== "1" && key !== "2") return null;
+      state.pendingConfirm.answered = key === "1" ? "YES" : "NO";
+      await this.save(call.id, state);
+      this.logger.log(
+        `call ${call.id} confirmed ${state.pendingConfirm.intent} by keypad: ${state.pendingConfirm.answered}`,
+      );
+      // Said back, then handed to the model to act on — the tool it calls next
+      // reads the keypress out of state and no longer needs the transcript.
+      return {
+        say: key === "1" ? "Yes — thank you." : "No problem.",
+        confirmed: { intent: state.pendingConfirm.intent, answered: state.pendingConfirm.answered },
+      };
+    }
 
     // The choices themselves are the question, not the slot that names it.
     // Belt and braces: whatever else is or is not recorded, a live list of
@@ -440,12 +465,24 @@ export class VoiceService {
       // The same yes the address needs. "No, I don't want the same as last
       // time" came back as "Sienos." and the whole previous order went into
       // the basket unasked.
-      const consent = this.ai.agreed(input);
+      const consent = this.ai.agreed(input, state);
+      if (!consent.ok && consent.unclear) {
+        const ask = this.ai.confirmByKeypad(
+          state,
+          "usual",
+          "Sorry — I didn't catch that. Would you like the same as last time?",
+        );
+        await this.save(call.id, state);
+        return ask;
+      }
       if (!consent.ok) {
+        state.pendingConfirm = undefined;
+        await this.save(call.id, state);
         return {
           result: `They have not said yes to having the same as last time — ${consent.why}. Do NOT use it. Ask "No problem — is that collection or delivery?" and take the order from the beginning.`,
         };
       }
+      state.pendingConfirm = undefined;
       const last = await this.lastOrderFor(ctx, call.fromNumber);
       const resolved = last ? this.ai.resolveUsual(ctx, last) : null;
       if (!last || !resolved) {
