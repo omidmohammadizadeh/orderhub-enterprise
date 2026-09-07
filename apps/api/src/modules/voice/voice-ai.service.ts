@@ -3307,6 +3307,17 @@ ${this.compactMenu(ctx)}
         return this.addItemConversational(input, ctx, state);
       case 'parse_order':
         return this.parseOrder(String(input?.said ?? ''), ctx, state);
+      case 'place_order': {
+        // The payment answer is a caller turn. No turn since the question,
+        // no order — whatever the model believes it heard.
+        if (input?.__spokeAfterQuestion !== true) {
+          return {
+            result:
+              "Not placed — the caller hasn't answered since you asked. Ask how they'd like to pay and WAIT for them to speak.",
+          };
+        }
+        return this.runTool(name, input, ctx, state, callerNumber);
+      }
       case 'remove_item':
         return this.removeItemConversational(input, ctx, state);
       case 'change_item':
@@ -4271,7 +4282,15 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
     }));
     const subtotal = cartSubtotal(state.cart);
     const deliveryFee = isDelivery ? this.feeForAddress(state.cart.deliveryAddress, ctx) : 0;
-    const isCard = String(input?.paymentMethod ?? '').toUpperCase() === 'CARD';
+    // Said, not defaulted. "Cash or card?" followed by silence placed an
+    // order as cash; anything that is not an actual answer is not an answer.
+    const method = String(input?.paymentMethod ?? '').toUpperCase();
+    if (method !== 'CASH' && method !== 'CARD') {
+      return {
+        result: `Not placed — they have not said how they'll pay${method ? ` ("${method}" is not cash or card)` : ''}. Ask "cash or card?" and wait for their answer.`,
+      };
+    }
+    const isCard = method === 'CARD';
 
     try {
       const order: any = await this.orders.create(

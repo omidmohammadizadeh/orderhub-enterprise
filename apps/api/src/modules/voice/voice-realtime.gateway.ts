@@ -88,6 +88,27 @@ interface TurnTiming {
   toolName?: string;
 }
 
+/** Why a reply was asked for. A reminder may speak; it may not act. */
+type ResponseOrigin = 'greeting' | 'script' | 'tool' | 'reminder' | 'caller';
+
+/** Tools that change what a kitchen makes or a driver does. Never from a reminder. */
+const STATE_CHANGING = new Set([
+  'add_item',
+  'parse_order',
+  'remove_item',
+  'change_item',
+  'clear_order',
+  'set_fulfillment',
+  'use_usual',
+  'use_saved_address',
+  'propose_delivery_address',
+  'confirm_delivery_address',
+  'order_confirmed',
+  'place_order',
+  'amend_order',
+  'take_message',
+]);
+
 /** Who the line is waiting on. See watchForSilence. */
 type CallPhase = 'LISTENING' | 'WAITING_MODEL' | 'WAITING_TOOL' | 'PLAYING' | 'WAITING_CALLER';
 
@@ -495,7 +516,12 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       brain.send(
         JSON.stringify({
           type: 'response.create',
-          response: { instructions: `Greet the caller with exactly: "${session.greeting}"` },
+          response: {
+            instructions: `Greet the caller with exactly: "${session.greeting}"`,
+            tools: [],
+            tool_choice: 'none',
+            metadata: { origin: 'greeting' },
+          },
         }),
       );
     };
@@ -652,8 +678,12 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // when it is the thing worth knowing: loud, and nothing detected it.
         // No audio is kept.
         const meter: InboundMeter = ((brain as any).__meter ??= new InboundMeter());
-        const w = meter.frame(frame.media.payload);
-        if (w?.loudUndetected) {
+        const w = meter.frame(
+          frame.media.payload,
+          Date.now(),
+          this.phaseOf(brain).phase === 'PLAYING',
+        );
+        if (w?.loudUndetected && meter.shouldWarn()) {
           this.logger.warn(
             `realtime ${ccid.slice(-8)} inbound loud but undetected: peak ${w.peakDb.toFixed(0)} dBFS over ${w.frames} frames, phase ${this.phaseOf(brain).phase}`,
           );
@@ -684,7 +714,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         const m = (brain as any).__meter as InboundMeter | undefined;
         if (m)
           this.logger.log(
-            `realtime ${ccid.slice(-8)} inbound line: ${m.totals.windows}s metered, ${m.totals.loudWindows}s loud, ${m.totals.loudUndetected}s loud-but-undetected`,
+            `realtime ${ccid.slice(-8)} inbound line: ${m.totals.windows}s metered, floor ${m.floorDb().toFixed(0)} dBFS, ${m.totals.loudWindows}s loud, ${m.totals.loudUndetected}s loud-but-undetected (not proof of missed speech)`,
           );
       }
     });
@@ -958,6 +988,9 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     toolResponses: Set<string>;
     /** Responses that produced at least one audio frame. */
     voiced: Set<string>;
+    originOf: Map<string, ResponseOrigin>;
+    /** Failed replies already retried once. */
+    retried: Set<string>;
   } {
     return ((brain as any).__turns ??= {
       askSeq: 0,
@@ -970,6 +1003,8 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       cancelled: new Set(),
       toolResponses: new Set(),
       voiced: new Set(),
+      originOf: new Map(),
+      retried: new Set(),
     });
   }
 
@@ -1120,18 +1155,32 @@ export class VoiceRealtimeGateway implements OnModuleInit {
    * retelling it in its own words is a model that can get it wrong in the one
    * place nobody can afford it.
    */
-  private speakExactly(brain: WebSocket, script?: string): void {
-    this.send(
-      brain,
-      script
-        ? {
-            type: 'response.create',
-            response: {
-              instructions: `Say this to the caller, word for word, and nothing else: "${script}"`,
-            },
-          }
-        : { type: 'response.create' },
-    );
+  /**
+   * Ask for the next reply — and say what kind of reply it is.
+   *
+   * A reminder is not a turn. "Sorry, are you still there?" was sent as an
+   * ordinary reply with every tool available, and the model, asked to say
+   * five words, called place_order instead and put an order through on a
+   * caller's silence. So a reply now carries its origin, and one that exists
+   * only to speak is given no tools at all — and, belt to braces, any
+   * state-changing tool it tries anyway is refused by origin.
+   */
+  private speakExactly(
+    brain: WebSocket,
+    script?: string,
+    opts: { origin?: ResponseOrigin; speechOnly?: boolean } = {},
+  ): void {
+    const origin: ResponseOrigin = opts.origin ?? (script ? 'script' : 'tool');
+    const speechOnly = opts.speechOnly ?? origin !== 'tool';
+    const response: Record<string, unknown> = { metadata: { origin } };
+    if (script)
+      response.instructions = `Say this to the caller, word for word, and nothing else: "${script}"`;
+    if (speechOnly) {
+      response.tools = [];
+      response.tool_choice = 'none';
+    }
+    (brain as any).__lastCreate = { type: 'response.create', response };
+    this.send(brain, { type: 'response.create', response });
   }
 
   /** The model produced audio, so the line is alive. */
@@ -1212,13 +1261,19 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         const n = ((brain as any).__callerSilences = ((brain as any).__callerSilences ?? 0) + 1);
         if (n === 1) {
           this.logger.log(`realtime ${ccid.slice(-8)} caller quiet — checking in (${picture})`);
-          this.speakExactly(brain, 'Sorry, are you still there?');
+          this.speakExactly(brain, 'Sorry, are you still there?', {
+            origin: 'reminder',
+            speechOnly: true,
+          });
           this.watchForSilence(brain, ccid, 'idle');
           return;
         }
         if (n === 2) {
           this.logger.log(`realtime ${ccid.slice(-8)} caller still quiet — one more`);
-          this.speakExactly(brain, "Hello? I'm still here whenever you're ready.");
+          this.speakExactly(brain, "Hello? I'm still here whenever you're ready.", {
+            origin: 'reminder',
+            speechOnly: true,
+          });
           this.watchForSilence(brain, ccid, 'idle');
           return;
         }
@@ -1228,6 +1283,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         this.speakExactly(
           brain,
           "I'll let you go — call back any time and I'll pick up where we left off. Bye for now.",
+          { origin: 'reminder', speechOnly: true },
         );
         const goodbye = setTimeout(() => void this.telnyx.hangup(ccid), 6000);
         (goodbye as any).unref?.();
@@ -1249,6 +1305,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         this.speakExactly(
           brain,
           'Sorry, I lost you there for a second. Where would you like to start — shall I take the order from the top?',
+          { origin: 'reminder', speechOnly: true },
         );
         this.watchForSilence(brain, ccid, mode);
         return;
@@ -1359,8 +1416,10 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // ones a tool inside it may act on — however the model orders its
         // own speech and its tool calls within the reply.
         this.turnsOf(brain).responseAskSeq.set(id, this.turnsOf(brain).askSeq);
+        const origin = String(event.response?.metadata?.origin ?? 'caller') as ResponseOrigin;
+        this.turnsOf(brain).originOf.set(id, origin);
         this.logger.log(
-          `realtime ${ccid.slice(-8)} reply ${id.slice(-8)} created at askSeq ${this.turnsOf(brain).askSeq}`,
+          `realtime ${ccid.slice(-8)} reply ${id.slice(-8)} created at askSeq ${this.turnsOf(brain).askSeq} (${origin})`,
         );
         (brain as any).__modelStalls = 0;
         this.setPhase(brain, 'WAITING_MODEL');
@@ -1395,8 +1454,29 @@ export class VoiceRealtimeGateway implements OnModuleInit {
           this.logger.log(
             `realtime ${ccid.slice(-8)} reply ${rid.slice(-8)} done: status ${event.response?.status ?? '?'}, audio ${hadAudio}, tool ${hadTool}`,
           );
-          const cancelled = String(event.response?.status ?? '') === 'cancelled';
-          if (rid && !hadAudio && !hadTool && !cancelled) {
+          const status = String(event.response?.status ?? '');
+          const cancelled = status === 'cancelled';
+          if (status === 'failed' || status === 'incomplete') {
+            // Three replies died fifty milliseconds after a tool result on one
+            // call, each costing a three-second stall, and the log said only
+            // "failed". The reason is in status_details; it is logged without
+            // any caller content, and the ask is retried exactly once.
+            const d = event.response?.status_details ?? {};
+            this.logger.error(
+              `realtime ${ccid.slice(-8)} reply ${rid.slice(-8)} ${status}: type=${d.type ?? '?'} reason=${d.reason ?? '?'} ` +
+                `code=${d.error?.code ?? '?'} message=${String(d.error?.message ?? '').slice(0, 160)}`,
+            );
+            const last = (brain as any).__lastCreate;
+            if (last && !t.retried.has(rid)) {
+              t.retried.add(rid);
+              this.logger.warn(`realtime ${ccid.slice(-8)} retrying the reply once`);
+              this.send(brain, last);
+              this.watchForSilence(brain, ccid, 'reply');
+              this.responsesOf(brain).delete(rid);
+              return;
+            }
+          }
+          if (rid && !hadAudio && !hadTool && !cancelled && status !== 'failed') {
             this.logger.warn(
               `realtime ${ccid.slice(-8)} empty reply ${rid.slice(-8)} — treating as a stall`,
             );
@@ -1478,6 +1558,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         const tm = this.timingOf(brain);
         tm.open = { speechStoppedAt: Date.now() };
         this.logger.log(`realtime ${ccid.slice(-8)} caller stopped speaking`);
+        ((brain as any).__meter as InboundMeter | undefined)?.speechEnded();
         this.setPhase(brain, 'WAITING_MODEL');
         this.watchForSilence(brain, ccid, 'reply');
         return;
@@ -1674,6 +1755,31 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // judged against were the previous caller turn, or nothing at all.
         // Wait for the sentence that is already being written down.
         const conversation = (brain as any).__mode === 'CONVERSATION';
+        // A reply that exists only to speak does not get to act. The tools
+        // were withheld from it; if one arrives anyway, it is refused here.
+        {
+          const origin = this.turnsOf(brain).originOf.get(String(event.response_id ?? ''));
+          if (
+            (origin === 'reminder' || origin === 'greeting' || origin === 'script') &&
+            STATE_CHANGING.has(name)
+          ) {
+            this.logger.warn(
+              `realtime ${ccid.slice(-8)} refused ${name} from a ${origin} reply — nothing the caller said asked for it`,
+            );
+            brain.send(
+              JSON.stringify({
+                type: 'conversation.item.create',
+                item: {
+                  type: 'function_call_output',
+                  call_id: callId,
+                  output:
+                    'Refused: this reply was only meant to speak, not to change the order. Wait for the caller to answer.',
+                },
+              }),
+            );
+            return;
+          }
+        }
         this.setPhase(brain, 'WAITING_TOOL');
         {
           const tm = this.timingOf(brain).open;
@@ -1732,7 +1838,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         const said = typeof out?.result === 'string' && out.result ? out.result : 'Done.';
         this.logger.log(`realtime ${ccid.slice(-8)} tool ${name} → ${said.slice(0, 120)}`);
         // Spent. The same "yes" cannot confirm two different things.
-        if (NEEDS_CONSENT.has(name)) {
+        if (NEEDS_CONSENT.has(name) || (conversation && name === 'place_order')) {
           const spent = conversation ? lastTurnId : latest?.itemId;
           if (spent) t.consumed.add(spent);
         }

@@ -8,37 +8,37 @@ import {
   HttpStatus,
   Inject,
   forwardRef,
-} from "@nestjs/common";
-import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
-import type { Prisma, Order, OrderStatus, OrderStatusActorType } from "@orderhub/database";
-import { QUEUES, ORDER_JOBS, usesTap } from "@orderhub/shared";
-import { PrismaService } from "../../infrastructure/database/prisma.service";
-import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
-import { SocketService } from "../../infrastructure/socket/socket.service";
-import { computeServiceCharge, readServiceCharge } from "./service-charge";
-import { AuditLogService } from "../auth/services/audit-log.service";
-import { OutboxService } from "../outbox/outbox.service";
-import { PrintQueueService } from "../printers/print-queue.service";
-import { PrintJobsService } from "../printers/print-jobs.service";
-import { HubRiseOrderSyncService } from "../integrations/hubrise/hubrise-order-sync.service";
-import { CustomerPushService } from "../customer-push/customer-push.service";
-import { HubRiseDeliverySyncService } from "../integrations/hubrise/hubrise-delivery-sync.service";
-import { PaymentsService } from "../payments/payments.service";
-import { TapService } from "../payments/tap.service";
-import { PromoCodesService } from "../promo-codes/promo-codes.service";
+} from '@nestjs/common';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+import type { Prisma, Order, OrderStatus, OrderStatusActorType } from '@orderhub/database';
+import { QUEUES, ORDER_JOBS, usesTap } from '@orderhub/shared';
+import { PrismaService } from '../../infrastructure/database/prisma.service';
+import type { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
+import { SocketService } from '../../infrastructure/socket/socket.service';
+import { computeServiceCharge, readServiceCharge } from './service-charge';
+import { AuditLogService } from '../auth/services/audit-log.service';
+import { OutboxService } from '../outbox/outbox.service';
+import { PrintQueueService } from '../printers/print-queue.service';
+import { PrintJobsService } from '../printers/print-jobs.service';
+import { HubRiseOrderSyncService } from '../integrations/hubrise/hubrise-order-sync.service';
+import { CustomerPushService } from '../customer-push/customer-push.service';
+import { HubRiseDeliverySyncService } from '../integrations/hubrise/hubrise-delivery-sync.service';
+import { PaymentsService } from '../payments/payments.service';
+import { TapService } from '../payments/tap.service';
+import { PromoCodesService } from '../promo-codes/promo-codes.service';
 import {
   assertTransition,
   assertWebhookTransition,
   getTimestampField,
-} from "./order-state-machine";
+} from './order-state-machine';
 import {
   resolveOrderScope as resolveOrderScopePure,
   ORDER_ADMIN_ROLES,
   type OrderScope,
-} from "./order-access";
-import type { CreateOrderDto } from "./dto/create-order.dto";
-import type { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
-import type { CanonicalOrder } from "@orderhub/shared";
+} from './order-access';
+import type { CreateOrderDto } from './dto/create-order.dto';
+import type { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import type { CanonicalOrder } from '@orderhub/shared';
 
 // Phase AM — if the operator scheduled this order more than this many seconds
 // into the future, we suppress the immediate PrinterJob and surface a
@@ -47,7 +47,7 @@ const SCHEDULED_FUTURE_THRESHOLD_SECONDS = 60 * 10; // 10 min
 
 const ORDER_INCLUDE = {
   items: true,
-  statusHistory: { orderBy: { createdAt: "asc" as const } },
+  statusHistory: { orderBy: { createdAt: 'asc' as const } },
   // Phase AW — include the location's primary brand too so the
   // dashboard board + receipt renderer have a brand-name fallback
   // when Order.brandId is null (POS walk-in, manual order, anything
@@ -65,7 +65,17 @@ const ORDER_INCLUDE = {
       // orders side by side — formatting them all in the selected location's
       // currency would misprice half the screen.
       currency: true,
-      brand: { select: { id: true, name: true, logoUrl: true, phone: true, addressLine1: true, city: true, postcode: true } },
+      brand: {
+        select: {
+          id: true,
+          name: true,
+          logoUrl: true,
+          phone: true,
+          addressLine1: true,
+          city: true,
+          postcode: true,
+        },
+      },
     },
   },
   // Surface the order's brand to the dashboard so the board can render
@@ -116,8 +126,8 @@ export function canAmendOrderPayment(input: {
   paymentMethod: string | null | undefined;
   paymentStatus: string;
 }): boolean {
-  if ((input.paymentMethod ?? "").toUpperCase() === "CASH") return true;
-  return input.paymentStatus !== "PAID";
+  if ((input.paymentMethod ?? '').toUpperCase() === 'CASH') return true;
+  return input.paymentStatus !== 'PAID';
 }
 
 /**
@@ -133,31 +143,30 @@ export function canAmendOrderPayment(input: {
  * timezone and which channels a shop can sell through.
  */
 /** The pretend rider's name on a simulated courier run. */
-const SIM_COURIER_NAME = "Test Rider";
+const SIM_COURIER_NAME = 'Test Rider';
 
-const TEST_ADDRESSES: Record<
-  string,
-  { line1: string; city: string; postcode: string }
-> = {
-  GB: { line1: "10 Grainger Street", city: "Newcastle upon Tyne", postcode: "NE1 5JQ" },
-  IE: { line1: "12 Grafton Street", city: "Dublin", postcode: "D02 XY45" },
+const TEST_ADDRESSES: Record<string, { line1: string; city: string; postcode: string }> = {
+  GB: { line1: '10 Grainger Street', city: 'Newcastle upon Tyne', postcode: 'NE1 5JQ' },
+  IE: { line1: '12 Grafton Street', city: 'Dublin', postcode: 'D02 XY45' },
   // Gulf addressing is area + street, and postcodes are not used the way they
   // are in the UK — an empty postcode here is correct, not missing data.
-  AE: { line1: "Villa 12, Al Wasl Road, Jumeirah 1", city: "Dubai", postcode: "" },
-  SA: { line1: "3421 Olaya Street, Al Olaya", city: "Riyadh", postcode: "12244" },
-  KW: { line1: "Block 4, Street 12, Salmiya", city: "Kuwait City", postcode: "" },
-  QA: { line1: "Building 24, Al Sadd Street", city: "Doha", postcode: "" },
-  BH: { line1: "Road 2827, Block 428, Seef", city: "Manama", postcode: "" },
-  OM: { line1: "Way 3021, Al Khuwair", city: "Muscat", postcode: "" },
-  JO: { line1: "23 Rainbow Street, Jabal Amman", city: "Amman", postcode: "11181" },
-  EG: { line1: "15 Road 9, Maadi", city: "Cairo", postcode: "11728" },
+  AE: { line1: 'Villa 12, Al Wasl Road, Jumeirah 1', city: 'Dubai', postcode: '' },
+  SA: { line1: '3421 Olaya Street, Al Olaya', city: 'Riyadh', postcode: '12244' },
+  KW: { line1: 'Block 4, Street 12, Salmiya', city: 'Kuwait City', postcode: '' },
+  QA: { line1: 'Building 24, Al Sadd Street', city: 'Doha', postcode: '' },
+  BH: { line1: 'Road 2827, Block 428, Seef', city: 'Manama', postcode: '' },
+  OM: { line1: 'Way 3021, Al Khuwair', city: 'Muscat', postcode: '' },
+  JO: { line1: '23 Rainbow Street, Jabal Amman', city: 'Amman', postcode: '11181' },
+  EG: { line1: '15 Road 9, Maadi', city: 'Cairo', postcode: '11728' },
 };
 
 /** Falls back to the UK address for a shop whose country is unset. */
 function testAddressFor(country: string | null | undefined) {
-  const key = String(country ?? "").trim().toUpperCase();
+  const key = String(country ?? '')
+    .trim()
+    .toUpperCase();
   const hit = TEST_ADDRESSES[key] ?? TEST_ADDRESSES.GB!;
-  return { ...hit, country: key || "GB" };
+  return { ...hit, country: key || 'GB' };
 }
 
 @Injectable()
@@ -196,9 +205,7 @@ export class OrdersService {
    * can reach HubRiseDeliverySyncService without WebhooksModule importing
    * HubRiseModule (that edge would create a boot-time module cycle).
    */
-  handleHubriseDelivery(
-    args: Parameters<HubRiseDeliverySyncService["handleDeliveryWebhook"]>[0],
-  ) {
+  handleHubriseDelivery(args: Parameters<HubRiseDeliverySyncService['handleDeliveryWebhook']>[0]) {
     return this.hubriseDelivery.handleDeliveryWebhook(args);
   }
 
@@ -212,12 +219,10 @@ export class OrdersService {
    * before giving up and letting the order ship without a short code
    * (orderNumber still uniquely identifies it for ops).
    */
-  private async generateShortDisplayCode(
-    tenantId: string,
-  ): Promise<string | null> {
-    const ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // 30 unambiguous chars
+  private async generateShortDisplayCode(tenantId: string): Promise<string | null> {
+    const ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // 30 unambiguous chars
     const pick = () => {
-      let s = "";
+      let s = '';
       for (let i = 0; i < 5; i++) {
         s += ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
       }
@@ -282,7 +287,7 @@ export class OrdersService {
    * auto-accept location captures + prints + accepts the order. Covers both
    * the online storefront and WhatsApp card orders.
    */
-  @OnEvent("payment.authorized")
+  @OnEvent('payment.authorized')
   async onPaymentAuthorized(ev: {
     orderId: string;
     tenantId: string;
@@ -298,16 +303,10 @@ export class OrdersService {
    * forward-only status ladder, so the completion has to happen here
    * rather than being duplicated inside PaymentsService.
    */
-  @OnEvent("order.settled_in_full")
-  async onOrderSettledInFull(ev: {
-    orderId: string;
-    tenantId: string;
-  }): Promise<void> {
-    await this.completeAndFreeTable(ev.orderId, ev.tenantId, "terminal").catch(
-      (e) =>
-        this.logger.warn(
-          `Split-card settle: complete/free failed for ${ev.orderId}: ${e?.message}`,
-        ),
+  @OnEvent('order.settled_in_full')
+  async onOrderSettledInFull(ev: { orderId: string; tenantId: string }): Promise<void> {
+    await this.completeAndFreeTable(ev.orderId, ev.tenantId, 'terminal').catch((e) =>
+      this.logger.warn(`Split-card settle: complete/free failed for ${ev.orderId}: ${e?.message}`),
     );
   }
 
@@ -346,10 +345,8 @@ export class OrdersService {
         },
       });
       if (!fresh) return;
-      if (fresh.status !== "PENDING") {
-        this.logger.log(
-          `Auto-accept skipped order ${orderId} — already ${fresh.status}`,
-        );
+      if (fresh.status !== 'PENDING') {
+        this.logger.log(`Auto-accept skipped order ${orderId} — already ${fresh.status}`);
         return;
       }
       // Never auto-accept an order we haven't been paid for yet when WE
@@ -366,24 +363,22 @@ export class OrdersService {
       const payMethod = (fresh as any).paymentMethod ?? fmeta.paymentMethod;
       const payStatus = (fresh as any).paymentStatus ?? fmeta.paymentStatus;
       const isDirectSource =
-        fresh.orderSource === "POS" ||
-        fresh.orderSource === "DIRECT" ||
-        fresh.orderSource === "ONLINE" ||
-        fresh.orderSource === "WHATSAPP" ||
-        fresh.orderSource === "VOICE";
+        fresh.orderSource === 'POS' ||
+        fresh.orderSource === 'DIRECT' ||
+        fresh.orderSource === 'ONLINE' ||
+        fresh.orderSource === 'WHATSAPP' ||
+        fresh.orderSource === 'VOICE';
       const unpaidPaymentLink =
-        (payMethod === "PAYMENT_LINK" || payMethod === "QR_CODE") &&
-        payStatus !== "PAID";
+        (payMethod === 'PAYMENT_LINK' || payMethod === 'QR_CODE') && payStatus !== 'PAID';
       // Card-terminal (S700 / WisePad 3) is our own collect-payment-now flow:
       // the ticket must NOT accept or print until the reader charge succeeds,
       // exactly like a payment link. settleTerminalPi re-fires this once PAID.
-      const unpaidCardTerminal =
-        payMethod === "CARD_TERMINAL" && payStatus !== "PAID";
+      const unpaidCardTerminal = payMethod === 'CARD_TERMINAL' && payStatus !== 'PAID';
       const unpaidDirectCard =
         isDirectSource &&
-        payMethod === "CARD" &&
-        payStatus !== "PAID" &&
-        payStatus !== "AUTHORIZED";
+        payMethod === 'CARD' &&
+        payStatus !== 'PAID' &&
+        payStatus !== 'AUTHORIZED';
       // Walk-in cash: the customer is AT THE COUNTER, so the money is taken
       // before the ticket is worth printing. Accepting at placement printed
       // "CASH NOT PAID" the instant the operator hit Place order, which is
@@ -395,15 +390,8 @@ export class OrdersService {
       // cash-and-unpaid, but the customer is not in the shop yet, so it must
       // keep printing immediately for the kitchen to start cooking.
       const unpaidWalkInCash =
-        (fresh as any).isWalkIn === true &&
-        payMethod === "CASH" &&
-        payStatus !== "PAID";
-      if (
-        unpaidPaymentLink ||
-        unpaidCardTerminal ||
-        unpaidDirectCard ||
-        unpaidWalkInCash
-      ) {
+        (fresh as any).isWalkIn === true && payMethod === 'CASH' && payStatus !== 'PAID';
+      if (unpaidPaymentLink || unpaidCardTerminal || unpaidDirectCard || unpaidWalkInCash) {
         this.logger.log(
           `Auto-accept skipped order ${orderId} — awaiting payment (${payMethod}/${payStatus})`,
         );
@@ -419,17 +407,13 @@ export class OrdersService {
       await this.updateStatus(
         orderId,
         tenantId,
-        { status: "ACCEPTED" } as UpdateOrderStatusDto,
-        "system:auto-accept",
-        "SYSTEM" as OrderStatusActorType,
+        { status: 'ACCEPTED' } as UpdateOrderStatusDto,
+        'system:auto-accept',
+        'SYSTEM' as OrderStatusActorType,
       );
-      this.logger.log(
-        `Auto-accepted order ${orderId} (${fresh.platform}/${fresh.orderSource})`,
-      );
+      this.logger.log(`Auto-accepted order ${orderId} (${fresh.platform}/${fresh.orderSource})`);
     } catch (err: any) {
-      this.logger.warn(
-        `Auto-accept failed for order ${orderId}: ${err?.message ?? err}`,
-      );
+      this.logger.warn(`Auto-accept failed for order ${orderId}: ${err?.message ?? err}`);
     }
   }
 
@@ -446,9 +430,7 @@ export class OrdersService {
     // to one of the tenant's brands so the ticket + board show the right
     // brand instead of the location default. Best-effort + logged.
     if (!(canonical as any).brandId) {
-      const hint = String(
-        ((canonical.metadata as any) ?? {}).hubriseBrandName ?? "",
-      ).trim();
+      const hint = String(((canonical.metadata as any) ?? {}).hubriseBrandName ?? '').trim();
       if (hint) {
         try {
           // The same brand name can exist as multiple records across
@@ -460,7 +442,7 @@ export class OrdersService {
           const nameWhere = {
             tenantId,
             deletedAt: null,
-            name: { equals: hint, mode: "insensitive" as const },
+            name: { equals: hint, mode: 'insensitive' as const },
           };
           const sel = { id: true, name: true, primaryLocationId: true };
           const byPrimaryLocation = await this.prisma.brand.findFirst({
@@ -507,8 +489,7 @@ export class OrdersService {
             // The reroute stays for non-HubRise paths where the webhook's
             // location genuinely carries no connection for the brand.
             const viaHubrise =
-              (canonical as any).viaHubrise === true ||
-              canonical.platform === "HUBRISE";
+              (canonical as any).viaHubrise === true || canonical.platform === 'HUBRISE';
             if (
               !viaHubrise &&
               !byConnectionHere &&
@@ -544,7 +525,7 @@ export class OrdersService {
             // when the storefront resolved one (?brand=<id> on the
             // public URL). The Orders board, receipt header, and
             // Stripe Connect resolution all key off this.
-            ...(((canonical as any).brandId) && {
+            ...((canonical as any).brandId && {
               brandId: (canonical as any).brandId as string,
             }),
             externalId: canonical.externalId,
@@ -554,7 +535,7 @@ export class OrdersService {
             integrationSource: canonical.integrationSource,
             viaHubrise: canonical.viaHubrise,
             fulfillmentType: canonical.fulfillmentType,
-            status: "PENDING",
+            status: 'PENDING',
             isSandbox: options.isSandbox ?? false,
             // Written HERE, not in create()'s follow-up posUpdate.
             //
@@ -625,8 +606,7 @@ export class OrdersService {
               : {}),
             ...((canonical as any).courierPhoneAccessCode
               ? {
-                  courierPhoneAccessCode: (canonical as any)
-                    .courierPhoneAccessCode as string,
+                  courierPhoneAccessCode: (canonical as any).courierPhoneAccessCode as string,
                 }
               : {}),
             // Just Eat names the collection time on the order itself rather
@@ -634,8 +614,7 @@ export class OrdersService {
             // before a driver is even assigned.
             ...((canonical as any).courierPickupEtaAt
               ? {
-                  courierPickupEtaAt: (canonical as any)
-                    .courierPickupEtaAt as Date,
+                  courierPickupEtaAt: (canonical as any).courierPickupEtaAt as Date,
                 }
               : {}),
             // Phase AV — promote deliveryType from canonical metadata
@@ -646,23 +625,21 @@ export class OrdersService {
             // `as any` until prisma generate picks up the new column
             // (workspace builds in CI regen the client; locally the
             // type lags by one push).
-            ...(((canonical as any).deliveryType ??
-              (canonical.metadata as any)?.deliveryType) && {
-              deliveryType:
-                ((canonical as any).deliveryType ??
-                  (canonical.metadata as any)?.deliveryType) as any,
+            ...(((canonical as any).deliveryType ?? (canonical.metadata as any)?.deliveryType) && {
+              deliveryType: ((canonical as any).deliveryType ??
+                (canonical.metadata as any)?.deliveryType) as any,
             }),
             statusHistory: {
               create: {
                 tenantId,
-                toStatus: "PENDING",
-                actorType: (canonical.integrationSource !== "DIRECT"
-                  ? "WEBHOOK"
-                  : "SYSTEM") as OrderStatusActorType,
+                toStatus: 'PENDING',
+                actorType: (canonical.integrationSource !== 'DIRECT'
+                  ? 'WEBHOOK'
+                  : 'SYSTEM') as OrderStatusActorType,
                 changedBy:
-                  canonical.integrationSource !== "DIRECT"
+                  canonical.integrationSource !== 'DIRECT'
                     ? `webhook:${canonical.integrationSource}`
-                    : "system",
+                    : 'system',
               },
             },
             items: {
@@ -696,13 +673,13 @@ export class OrdersService {
       });
 
       this.logger.log(
-        `Order ingested: ${order.id} (${canonical.platform}/${canonical.externalId}) items=${canonical.items?.length ?? 0} pay=${(canonical as any).paymentMethod ?? (canonical.metadata as any)?.paymentMethod ?? "null"}/${(canonical as any).paymentStatus ?? (canonical.metadata as any)?.paymentStatus ?? "null"}`,
+        `Order ingested: ${order.id} (${canonical.platform}/${canonical.externalId}) items=${canonical.items?.length ?? 0} pay=${(canonical as any).paymentMethod ?? (canonical.metadata as any)?.paymentMethod ?? 'null'}/${(canonical as any).paymentStatus ?? (canonical.metadata as any)?.paymentStatus ?? 'null'}`,
       );
 
       void this.audit.log({
         tenantId,
-        event: "order.received",
-        resource: "order",
+        event: 'order.received',
+        resource: 'order',
         resourceId: order.id,
         meta: {
           platform: canonical.platform,
@@ -714,15 +691,15 @@ export class OrdersService {
 
       // Phase LG — operator-facing activity feed (dashboard Logs page).
       // Central emit covers every channel this ingest serves.
-      this.events.emit("activity.log", {
+      this.events.emit('activity.log', {
         tenantId,
         locationId,
         brandId: (order as any).brandId ?? null,
-        category: "ORDERS",
-        channel: canonical.platform ?? "DIRECT",
-        action: "order.received",
-        status: "SUCCESS",
-        message: `Order #${(order as any).orderNumber ?? order.id} received from ${canonical.platform ?? "storefront"} (£${Number(canonical.total ?? 0).toFixed(2)})`,
+        category: 'ORDERS',
+        channel: canonical.platform ?? 'DIRECT',
+        action: 'order.received',
+        status: 'SUCCESS',
+        message: `Order #${(order as any).orderNumber ?? order.id} received from ${canonical.platform ?? 'storefront'} (£${Number(canonical.total ?? 0).toFixed(2)})`,
         details: {
           orderId: order.id,
           externalId: canonical.externalId,
@@ -739,8 +716,7 @@ export class OrdersService {
       // gate manually. markAuthorized() emits the new-order event when
       // the customer actually pays.
       const meta: any = (canonical as any).metadata ?? {};
-      const isUnpaidCard =
-        meta.paymentMethod === "CARD" && meta.paymentStatus === "PENDING";
+      const isUnpaidCard = meta.paymentMethod === 'CARD' && meta.paymentStatus === 'PENDING';
       // POS "Payment link" orders are placed unpaid — they belong in the
       // "Waiting for payment" tab, NOT in New, and must not print until the
       // customer pays. Suppress the new-order broadcast + auto-accept until
@@ -751,18 +727,16 @@ export class OrdersService {
       // paymentMethod/paymentStatus may arrive top-level on the canonical
       // envelope OR inside metadata (POS vs storefront) — check both, same as
       // the Order-row mapping above.
-      const resolvedPayMethod =
-        (canonical as any).paymentMethod ?? meta.paymentMethod;
-      const resolvedPayStatus =
-        (canonical as any).paymentStatus ?? meta.paymentStatus;
+      const resolvedPayMethod = (canonical as any).paymentMethod ?? meta.paymentMethod;
+      const resolvedPayStatus = (canonical as any).paymentStatus ?? meta.paymentStatus;
       const isUnpaidPaymentLink =
-        (resolvedPayMethod === "PAYMENT_LINK" ||
-          resolvedPayMethod === "QR_CODE" ||
+        (resolvedPayMethod === 'PAYMENT_LINK' ||
+          resolvedPayMethod === 'QR_CODE' ||
           // Card-terminal (S700 / WisePad 3): collect-now flow, holds in
           // "Waiting for payment" until the reader charge settles — same as
           // a payment link. settleTerminalPi re-emits new-order + accept.
-          resolvedPayMethod === "CARD_TERMINAL") &&
-        resolvedPayStatus !== "PAID";
+          resolvedPayMethod === 'CARD_TERMINAL') &&
+        resolvedPayStatus !== 'PAID';
 
       // Socket emit is best-effort and immediate — it does NOT affect downstream
       // processing which is guaranteed by the outbox.
@@ -782,10 +756,8 @@ export class OrdersService {
       // payment status — anything not flagged DIRECT is a platform order.
       const isPlatformOrder =
         (canonical as any).viaHubrise === true ||
-        ((canonical as any).integrationSource &&
-          (canonical as any).integrationSource !== "DIRECT");
-      const waitForOurAuth =
-        !isPlatformOrder && (isUnpaidCard || isUnpaidPaymentLink);
+        ((canonical as any).integrationSource && (canonical as any).integrationSource !== 'DIRECT');
+      const waitForOurAuth = !isPlatformOrder && (isUnpaidCard || isUnpaidPaymentLink);
       // POS "scheduled for later" orders (metadata.isScheduled) are the one
       // exception maybeAutoAccept itself enforces — they stay PENDING
       // regardless of the location's auto-accept setting. A marketplace
@@ -805,27 +777,28 @@ export class OrdersService {
       //
       // Unpaid card and payment-link orders are still held: those are not real
       // to the kitchen until the money lands, which is a different rule.
-      if (!isUnpaidCard && !isUnpaidPaymentLink) this.socket.emitNewOrder(locationId, {
-        orderId: order.id,
-        tenantId,
-        locationId,
-        platform: order.platform,
-        orderSource: order.orderSource,
-        fulfillmentType: order.fulfillmentType,
-        displayId: order.displayId,
-        status: order.status,
-        total: Number(order.total),
-        itemCount: canonical.items.reduce((sum, i) => sum + i.quantity, 0),
-        customerName: canonical.customerInfo.name,
-        scheduledFor: order.scheduledFor?.toISOString() ?? null,
-        createdAt: order.createdAt.toISOString(),
-      });
+      if (!isUnpaidCard && !isUnpaidPaymentLink)
+        this.socket.emitNewOrder(locationId, {
+          orderId: order.id,
+          tenantId,
+          locationId,
+          platform: order.platform,
+          orderSource: order.orderSource,
+          fulfillmentType: order.fulfillmentType,
+          displayId: order.displayId,
+          status: order.status,
+          total: Number(order.total),
+          itemCount: canonical.items.reduce((sum, i) => sum + i.quantity, 0),
+          customerName: canonical.customerInfo.name,
+          scheduledFor: order.scheduledFor?.toISOString() ?? null,
+          createdAt: order.createdAt.toISOString(),
+        });
 
       return order;
     } catch (err: any) {
       // P2002 = unique constraint violation — concurrent ingest already created this order.
       // The matching outbox event was also not created (transaction rolled back), which is correct.
-      if (err?.code === "P2002") {
+      if (err?.code === 'P2002') {
         this.logger.warn(
           `Concurrent ingest detected for ${canonical.platform}/${canonical.externalId} — returning existing order`,
         );
@@ -843,7 +816,7 @@ export class OrdersService {
           // Safety net: if the order is still PENDING (e.g. the original
           // create event failed to auto-accept), try again on this repeat
           // event so it never gets stuck waiting for a manual tap.
-          if (existing.status === "PENDING") {
+          if (existing.status === 'PENDING') {
             void this.maybeAutoAccept(existing.id, tenantId, locationId);
           }
           return existing;
@@ -872,15 +845,15 @@ export class OrdersService {
       include: { items: true },
     });
     if (!order) return null;
-    if (["COMPLETED", "CANCELLED", "REJECTED", "FAILED"].includes(order.status)) {
+    if (['COMPLETED', 'CANCELLED', 'REJECTED', 'FAILED'].includes(order.status)) {
       return order; // too late to change a finished order
     }
     // The marketplace re-offered the order for the merchant to re-accept (Uber
     // sends state=OFFERED after a customer resolves a fulfillment issue). Put
     // it back to PENDING so it alerts + shows Accept/Cancel like a new order,
     // flagged as a customer update so the card labels it correctly.
-    const reOffer = opts.reOffered === true && order.status !== "PENDING";
-    const nextStatus = reOffer ? "PENDING" : order.status;
+    const reOffer = opts.reOffered === true && order.status !== 'PENDING';
+    const nextStatus = reOffer ? 'PENDING' : order.status;
     const nextSourceMeta = reOffer
       ? {
           ...((order as any).sourceMetadata ?? {}),
@@ -891,15 +864,15 @@ export class OrdersService {
     const items = canonical.items ?? [];
     if (items.length === 0) return order; // never blank out a live order
 
-    const subtotal =
-      canonical.subtotal ??
-      items.reduce((sum: number, i) => sum + i.totalPrice, 0);
+    const subtotal = canonical.subtotal ?? items.reduce((sum: number, i) => sum + i.totalPrice, 0);
     const total = canonical.total ?? subtotal;
     const taxAmount = canonical.taxAmount ?? 0;
 
-    const beforeCount = (((order as any).items ?? []) as Array<{
-      quantity: number;
-    }>).reduce((s: number, i) => s + i.quantity, 0);
+    const beforeCount = (
+      ((order as any).items ?? []) as Array<{
+        quantity: number;
+      }>
+    ).reduce((s: number, i) => s + i.quantity, 0);
     const afterCount = items.reduce((s: number, i) => s + i.quantity, 0);
 
     const updated = await this.prisma.$transaction(async (tx) => {
@@ -933,9 +906,9 @@ export class OrdersService {
           tenantId,
           fromStatus: order.status,
           toStatus: nextStatus,
-          actorType: "WEBHOOK",
+          actorType: 'WEBHOOK',
           changedBy: `webhook:${platform}`,
-          note: `Customer updated order: ${beforeCount} → ${afterCount} item(s), total £${Number(order.total).toFixed(2)} → £${total.toFixed(2)}${reOffer ? " — re-offered for acceptance" : ""}`,
+          note: `Customer updated order: ${beforeCount} → ${afterCount} item(s), total £${Number(order.total).toFixed(2)} → £${total.toFixed(2)}${reOffer ? ' — re-offered for acceptance' : ''}`,
         },
       });
       return u;
@@ -954,7 +927,7 @@ export class OrdersService {
       status: updated.status,
       total: Number(updated.total),
       itemCount: afterCount,
-      customerName: updated.customerName ?? "",
+      customerName: updated.customerName ?? '',
       scheduledFor: updated.scheduledFor?.toISOString() ?? null,
       createdAt: updated.createdAt.toISOString(),
     };
@@ -968,7 +941,7 @@ export class OrdersService {
       ...socketPayload,
       ...(reOffer ? { customerUpdated: true } : {}),
     } as any);
-    this.events.emit("order.items_edited", {
+    this.events.emit('order.items_edited', {
       orderId: updated.id,
       locationId: updated.locationId,
     });
@@ -981,7 +954,7 @@ export class OrdersService {
     const location = await this.prisma.location.findFirst({
       where: { id: dto.locationId, brand: { tenantId } },
     });
-    if (!location) throw new NotFoundException("Location not found");
+    if (!location) throw new NotFoundException('Location not found');
 
     const scheduledFor = dto.scheduledFor ? new Date(dto.scheduledFor) : undefined;
     const isScheduled = dto.isScheduled === true || this.isFutureScheduled(scheduledFor);
@@ -998,10 +971,7 @@ export class OrdersService {
     // orders failed at the Prisma write every single time. The real value is
     // VOICE. Widening a union here is not enough on its own: a new source must
     // exist in OrderPlatform AND OrderSource, or the write still throws.
-    const resolvedSource = (dto.orderSource ?? "DIRECT") as
-      | "POS"
-      | "DIRECT"
-      | "VOICE";
+    const resolvedSource = (dto.orderSource ?? 'DIRECT') as 'POS' | 'DIRECT' | 'VOICE';
     const idPrefix = resolvedSource.toLowerCase();
 
     // POS display brand: a location can pin a "POS display name" brand in its
@@ -1026,10 +996,8 @@ export class OrdersService {
         select: { settings: true },
       });
       locationSettings = loc?.settings ?? null;
-      const posBrandId = (loc?.settings as any)?.posBrandId as
-        | string
-        | undefined;
-      const countertop = resolvedSource === "POS" || resolvedSource === "VOICE";
+      const posBrandId = (loc?.settings as any)?.posBrandId as string | undefined;
+      const countertop = resolvedSource === 'POS' || resolvedSource === 'VOICE';
       if (!effectiveBrandId && countertop && posBrandId) {
         effectiveBrandId = posBrandId;
       }
@@ -1041,7 +1009,7 @@ export class OrdersService {
     // showed what trusting client money maths costs.
     const svc = computeServiceCharge({
       settings: locationSettings,
-      fulfillmentType: dto.fulfillmentType ?? "DELIVERY",
+      fulfillmentType: dto.fulfillmentType ?? 'DELIVERY',
       subtotal: Number(dto.subtotal ?? 0),
       discount: Number(dto.discount ?? 0),
     });
@@ -1050,9 +1018,9 @@ export class OrdersService {
       externalId: `${idPrefix}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
       platform: resolvedSource as any,
       orderSource: resolvedSource as any,
-      integrationSource: "DIRECT" as const,
+      integrationSource: 'DIRECT' as const,
       viaHubrise: false,
-      fulfillmentType: dto.fulfillmentType ?? ("DELIVERY" as const),
+      fulfillmentType: dto.fulfillmentType ?? ('DELIVERY' as const),
       displayId: undefined,
       customerInfo: dto.customerInfo,
       // Country falls back to the SHOP's, not to a constant. A Dubai POS order
@@ -1061,7 +1029,7 @@ export class OrdersService {
       deliveryAddress: dto.deliveryAddress
         ? {
             ...dto.deliveryAddress,
-            country: dto.deliveryAddress.country ?? location?.country ?? "GB",
+            country: dto.deliveryAddress.country ?? location?.country ?? 'GB',
           }
         : undefined,
       items: dto.items.map((i) => ({
@@ -1150,9 +1118,7 @@ export class OrdersService {
     if (dto.preparationMinutes !== undefined) {
       posUpdate.preparationMinutes = dto.preparationMinutes;
       if (dto.preparationMinutes > 0 && !isScheduled) {
-        posUpdate.estimatedReadyAt = new Date(
-          Date.now() + dto.preparationMinutes * 60_000,
-        );
+        posUpdate.estimatedReadyAt = new Date(Date.now() + dto.preparationMinutes * 60_000);
       }
     }
     if (scheduledFor) posUpdate.scheduledAt = scheduledFor;
@@ -1181,10 +1147,14 @@ export class OrdersService {
     // that and skip the counter — the operator wants the marketplace's
     // number on the card so the customer service ticket lookups still
     // work both ways.
+    // A phone order is ours as much as a till order is. Without this a
+    // voice order reached the receipt with no number and the caller was
+    // told "that's all booked in" with nothing to quote back.
     const isInternal =
-      (canonical.orderSource as string) === "POS" ||
-      (canonical.orderSource as string) === "DIRECT" ||
-      (canonical.orderSource as string) === "ONLINE";
+      (canonical.orderSource as string) === 'POS' ||
+      (canonical.orderSource as string) === 'DIRECT' ||
+      (canonical.orderSource as string) === 'ONLINE' ||
+      (canonical.orderSource as string) === 'VOICE';
     if (isInternal) {
       const orderNumber = await this.allocateOrderNumber(tenantId);
       posUpdate.orderNumber = orderNumber;
@@ -1199,6 +1169,10 @@ export class OrdersService {
         where: { id: order.id },
         data: posUpdate,
       });
+      // The caller of this function is told the number too. Returning the
+      // pre-update row meant a voice order was placed with a number in the
+      // database and nothing to say down the phone.
+      Object.assign(order, posUpdate);
     }
 
     // Promo code: bump usage AFTER persistence so we don't burn a use on a
@@ -1210,16 +1184,13 @@ export class OrdersService {
     // SMS-marketing consent from the POS "Send me offers by SMS" box. Only when
     // the operator actually asked (undefined = untouched). Fire-and-forget via
     // the event bus so MarketingSmsService captures it without coupling here.
-    if (
-      dto.marketingConsent !== undefined &&
-      dto.customerInfo?.phone
-    ) {
-      this.events.emit("marketing.consent", {
+    if (dto.marketingConsent !== undefined && dto.customerInfo?.phone) {
+      this.events.emit('marketing.consent', {
         tenantId,
         locationId: dto.locationId,
         phone: dto.customerInfo.phone,
         firstName: dto.customerInfo.name ?? null,
-        source: (order as any).orderSource ?? "POS",
+        source: (order as any).orderSource ?? 'POS',
         consent: dto.marketingConsent === true,
       });
     }
@@ -1242,7 +1213,7 @@ export class OrdersService {
     userId: string,
     overrides: {
       customerName?: string;
-      fulfillmentType?: "PICKUP" | "DELIVERY";
+      fulfillmentType?: 'PICKUP' | 'DELIVERY';
       /**
        * Pretend the order came from a marketplace.
        *
@@ -1251,7 +1222,7 @@ export class OrdersService {
        * else — so a DIRECT test order can never exercise that path. Passing a
        * platform here is what makes the QR print.
        */
-      platform?: "DELIVEROO" | "UBER_EATS" | "JUST_EAT";
+      platform?: 'DELIVEROO' | 'UBER_EATS' | 'JUST_EAT';
       /**
        * Walk the order through the courier stages after it lands:
        * driver assigned → out for delivery → delivered.
@@ -1268,22 +1239,22 @@ export class OrdersService {
       where: { id: locationId, brand: { tenantId } },
       select: { id: true, brandId: true, name: true, country: true },
     });
-    if (!location) throw new NotFoundException("Location not found");
+    if (!location) throw new NotFoundException('Location not found');
 
     // Deterministic-but-unique external id so the @@unique([externalId, platform])
     // constraint prevents accidental double-clicks from producing dupes.
     const externalId = `test-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    const customerName = overrides.customerName ?? "Test Order";
-    const fulfillmentType = overrides.fulfillmentType ?? "DELIVERY";
+    const customerName = overrides.customerName ?? 'Test Order';
+    const fulfillmentType = overrides.fulfillmentType ?? 'DELIVERY';
 
     const items = [
-      { name: "Sample Burger", quantity: 1, unitPrice: 9.5, totalPrice: 9.5, modifiers: [] },
-      { name: "Fries", quantity: 1, unitPrice: 3.5, totalPrice: 3.5, modifiers: [] },
-      { name: "Soft Drink", quantity: 1, unitPrice: 2.0, totalPrice: 2.0, modifiers: [] },
+      { name: 'Sample Burger', quantity: 1, unitPrice: 9.5, totalPrice: 9.5, modifiers: [] },
+      { name: 'Fries', quantity: 1, unitPrice: 3.5, totalPrice: 3.5, modifiers: [] },
+      { name: 'Soft Drink', quantity: 1, unitPrice: 2.0, totalPrice: 2.0, modifiers: [] },
     ];
     const subtotal = items.reduce((sum, i) => sum + i.totalPrice, 0);
     const taxAmount = 0;
-    const deliveryFee = fulfillmentType === "DELIVERY" ? 2.5 : 0;
+    const deliveryFee = fulfillmentType === 'DELIVERY' ? 2.5 : 0;
     const total = subtotal + taxAmount + deliveryFee;
 
     // A simulated marketplace order carries that marketplace's identity all
@@ -1293,22 +1264,20 @@ export class OrdersService {
     const simulated = overrides.platform;
     const canonical = {
       externalId,
-      platform: (simulated ?? "DIRECT") as any,
-      orderSource: (simulated ?? "POS") as any,
+      platform: (simulated ?? 'DIRECT') as any,
+      orderSource: (simulated ?? 'POS') as any,
       // NOT the marketplace name. IntegrationSource is only DIRECT | HUBRISE
       // — it records HOW an order reached us, not who sent it. A real direct
       // Deliveroo order is platform DELIVEROO with integrationSource DIRECT;
       // a HubRise-relayed one is the same platform with HUBRISE. Setting this
       // to "DELIVEROO" is rejected by Prisma, and 500'd every simulate.
-      integrationSource: "DIRECT" as const,
+      integrationSource: 'DIRECT' as const,
       viaHubrise: false,
       fulfillmentType,
-      displayId: `${simulated ? "SIM" : "TEST"}-${externalId.slice(-4).toUpperCase()}`,
-      customerInfo: { name: customerName, phone: "+440000000000" },
+      displayId: `${simulated ? 'SIM' : 'TEST'}-${externalId.slice(-4).toUpperCase()}`,
+      customerInfo: { name: customerName, phone: '+440000000000' },
       deliveryAddress:
-        fulfillmentType === "DELIVERY"
-          ? testAddressFor(location.country)
-          : undefined,
+        fulfillmentType === 'DELIVERY' ? testAddressFor(location.country) : undefined,
       items,
       subtotal,
       taxAmount,
@@ -1317,7 +1286,7 @@ export class OrdersService {
       total,
       specialInstructions: simulated
         ? `Simulated ${simulated} order — not real, safe to discard`
-        : "Phase AJ manual test order — safe to discard",
+        : 'Phase AJ manual test order — safe to discard',
       metadata: {
         isTestOrder: true,
         createdByUserId: userId,
@@ -1325,23 +1294,20 @@ export class OrdersService {
       },
     };
 
-    const order = await this.ingestCanonical(
-      canonical as any,
-      tenantId,
-      locationId,
-      { isSandbox: true },
-    );
+    const order = await this.ingestCanonical(canonical as any, tenantId, locationId, {
+      isSandbox: true,
+    });
 
     void this.audit.log({
       tenantId,
       userId,
-      event: "order.test.created",
-      resource: "order",
+      event: 'order.test.created',
+      resource: 'order',
       resourceId: order.id,
       meta: { locationId, externalId, fulfillmentType, withDriver: !!overrides.withDriver },
     });
 
-    if (overrides.withDriver && fulfillmentType === "DELIVERY") {
+    if (overrides.withDriver && fulfillmentType === 'DELIVERY') {
       void this.simulateCourier(order.id, tenantId, simulated ?? null);
     }
 
@@ -1374,10 +1340,10 @@ export class OrdersService {
             .update({
               where: { id: orderId },
               data: {
-                status: "ASSIGNED_DRIVER" as any,
+                status: 'ASSIGNED_DRIVER' as any,
                 courierName,
-                courierPhone: "+440000000000",
-                courierStatus: "assigned",
+                courierPhone: '+440000000000',
+                courierStatus: 'assigned',
                 courierAssignedAt: new Date(),
               },
             })
@@ -1390,8 +1356,8 @@ export class OrdersService {
             .update({
               where: { id: orderId },
               data: {
-                status: "OUT_FOR_DELIVERY" as any,
-                courierStatus: "in_delivery",
+                status: 'OUT_FOR_DELIVERY' as any,
+                courierStatus: 'in_delivery',
                 courierPickedUpAt: new Date(),
               },
             })
@@ -1404,8 +1370,8 @@ export class OrdersService {
             .update({
               where: { id: orderId },
               data: {
-                status: "COMPLETED" as any,
-                courierStatus: "delivered",
+                status: 'COMPLETED' as any,
+                courierStatus: 'delivered',
                 courierDeliveredAt: new Date(),
               },
             })
@@ -1417,9 +1383,7 @@ export class OrdersService {
       setTimeout(() => {
         void step.run().catch((err: any) => {
           // A cancelled or deleted test order is the normal way this ends.
-          this.logger.warn(
-            `Courier simulation for ${orderId} stopped: ${err?.message ?? err}`,
-          );
+          this.logger.warn(`Courier simulation for ${orderId} stopped: ${err?.message ?? err}`);
         });
       }, step.afterMs);
     }
@@ -1480,7 +1444,7 @@ export class OrdersService {
     orderId: string,
     tenantId: string,
     dto: {
-      fulfillmentType: "PICKUP" | "DELIVERY";
+      fulfillmentType: 'PICKUP' | 'DELIVERY';
       deliveryAddress?: {
         line1: string;
         line2?: string;
@@ -1495,37 +1459,30 @@ export class OrdersService {
     const order = await this.prisma.order.findFirst({
       where: { id: orderId, tenantId },
     });
-    if (!order) throw new NotFoundException("Order not found");
+    if (!order) throw new NotFoundException('Order not found');
 
-    if (order.orderSource !== "POS") {
+    if (order.orderSource !== 'POS') {
       throw new BadRequestException(
-        "Only POS orders can be switched between collection and delivery",
+        'Only POS orders can be switched between collection and delivery',
       );
     }
     // Wider than editOrder's window on purpose: a collection order sitting on
     // the counter marked READY is exactly when a customer rings to ask for it
     // to be brought instead. Once it is out with a driver or finished, the
     // question is moot.
-    const SWITCHABLE = new Set<OrderStatus>([
-      "PENDING",
-      "ACCEPTED",
-      "PREPARING",
-      "READY",
-    ]);
+    const SWITCHABLE = new Set<OrderStatus>(['PENDING', 'ACCEPTED', 'PREPARING', 'READY']);
     if (!SWITCHABLE.has(order.status)) {
-      throw new BadRequestException(
-        "This order has already gone out — it can't be switched now",
-      );
+      throw new BadRequestException("This order has already gone out — it can't be switched now");
     }
     if (order.fulfillmentType === dto.fulfillmentType) {
       throw new BadRequestException(
-        `This order is already ${dto.fulfillmentType === "DELIVERY" ? "a delivery" : "a collection"}`,
+        `This order is already ${dto.fulfillmentType === 'DELIVERY' ? 'a delivery' : 'a collection'}`,
       );
     }
-    const toDelivery = dto.fulfillmentType === "DELIVERY";
+    const toDelivery = dto.fulfillmentType === 'DELIVERY';
     if (toDelivery && !dto.deliveryAddress?.line1?.trim()) {
       throw new BadRequestException(
-        "A delivery needs an address — nobody can deliver to a blank line",
+        'A delivery needs an address — nobody can deliver to a blank line',
       );
     }
 
@@ -1577,7 +1534,7 @@ export class OrdersService {
       status: updated.status,
       fulfillmentType: updated.fulfillmentType,
     } as any);
-    this.events.emit("order.items_edited", {
+    this.events.emit('order.items_edited', {
       orderId: updated.id,
       locationId: updated.locationId,
     });
@@ -1585,8 +1542,8 @@ export class OrdersService {
     void this.audit.log({
       tenantId,
       userId,
-      event: "order.fulfillment.switched",
-      resource: "order",
+      event: 'order.fulfillment.switched',
+      resource: 'order',
       resourceId: updated.id,
       meta: {
         from: order.fulfillmentType,
@@ -1643,13 +1600,11 @@ export class OrdersService {
       where: { id: orderId, tenantId },
       include: { items: true },
     });
-    if (!order) throw new NotFoundException("Order not found");
+    if (!order) throw new NotFoundException('Order not found');
 
-    const EDITABLE = new Set<OrderStatus>(["PENDING", "ACCEPTED", "PREPARING"]);
+    const EDITABLE = new Set<OrderStatus>(['PENDING', 'ACCEPTED', 'PREPARING']);
     if (!EDITABLE.has(order.status)) {
-      throw new BadRequestException(
-        "Order can only be edited before it's marked Ready",
-      );
+      throw new BadRequestException("Order can only be edited before it's marked Ready");
     }
     // Additive on purpose: every order that was editable before still is.
     // Operators rang in about the gap — a customer adds a item to an unpaid
@@ -1662,7 +1617,7 @@ export class OrdersService {
       })
     ) {
       throw new BadRequestException(
-        "This order has already been paid by card. Refund it or take a separate payment for the difference.",
+        'This order has already been paid by card. Refund it or take a separate payment for the difference.',
       );
     }
     // VOICE belongs here with POS. An order this shop took over the phone is
@@ -1671,13 +1626,13 @@ export class OrdersService {
     // chips should not be refused because the first call was answered by the
     // AI. Online and marketplace orders still have their own correction flows,
     // which is what this guard was actually protecting.
-    if (order.orderSource !== "POS" && order.orderSource !== "VOICE") {
+    if (order.orderSource !== 'POS' && order.orderSource !== 'VOICE') {
       throw new BadRequestException(
-        "Only orders taken by the shop (POS or phone) are editable from this flow",
+        'Only orders taken by the shop (POS or phone) are editable from this flow',
       );
     }
     if (!dto.items.length) {
-      throw new BadRequestException("Order must have at least one item");
+      throw new BadRequestException('Order must have at least one item');
     }
 
     const updated = await this.prisma.$transaction(async (tx) => {
@@ -1695,14 +1650,10 @@ export class OrdersService {
       });
 
       const customerInfoUpdate =
-        dto.customerInfo !== undefined
-          ? (dto.customerInfo as any)
-          : (order.customerInfo as any);
+        dto.customerInfo !== undefined ? (dto.customerInfo as any) : (order.customerInfo as any);
 
-      const customerNameUpdate =
-        dto.customerInfo?.name ?? order.customerName ?? null;
-      const customerPhoneUpdate =
-        dto.customerInfo?.phone ?? order.customerPhone ?? null;
+      const customerNameUpdate = dto.customerInfo?.name ?? order.customerName ?? null;
+      const customerPhoneUpdate = dto.customerInfo?.phone ?? order.customerPhone ?? null;
 
       const u = await tx.order.update({
         where: { id: order.id },
@@ -1717,9 +1668,8 @@ export class OrdersService {
           customerPhone: customerPhoneUpdate,
           deliveryAddress: dto.deliveryAddress
             ? (dto.deliveryAddress as any)
-            : order.deliveryAddress ?? undefined,
-          specialInstructions:
-            dto.specialInstructions ?? order.specialInstructions,
+            : (order.deliveryAddress ?? undefined),
+          specialInstructions: dto.specialInstructions ?? order.specialInstructions,
           updatedAt: new Date(),
         },
       });
@@ -1734,7 +1684,7 @@ export class OrdersService {
           tenantId,
           fromStatus: order.status,
           toStatus: order.status,
-          actorType: "STAFF",
+          actorType: 'STAFF',
           changedBy: userId,
           note: `Order edited: ${beforeCount} → ${afterCount} item(s), total £${beforeTotal.toFixed(2)} → £${afterTotal.toFixed(2)}`,
         },
@@ -1757,7 +1707,7 @@ export class OrdersService {
       status: updated.status,
       total: Number(updated.total),
       itemCount: dto.items.reduce((s, i) => s + i.quantity, 0),
-      customerName: updated.customerName ?? "",
+      customerName: updated.customerName ?? '',
       scheduledFor: updated.scheduledFor?.toISOString() ?? null,
       createdAt: updated.createdAt.toISOString(),
       isEdit: true,
@@ -1773,7 +1723,7 @@ export class OrdersService {
       status: updated.status,
       total: Number(updated.total),
       itemCount: dto.items.reduce((s, i) => s + i.quantity, 0),
-      customerName: updated.customerName ?? "",
+      customerName: updated.customerName ?? '',
       scheduledFor: updated.scheduledFor?.toISOString() ?? null,
       createdAt: updated.createdAt.toISOString(),
     });
@@ -1782,7 +1732,7 @@ export class OrdersService {
     // KDS must refresh routed items + tick states and flag the card updated.
     // Decoupled via the event bus (KDS listens) to keep OrdersModule from
     // importing KdsModule.
-    this.events.emit("order.items_edited", {
+    this.events.emit('order.items_edited', {
       orderId: updated.id,
       locationId: updated.locationId,
     });
@@ -1812,32 +1762,25 @@ export class OrdersService {
     }>,
     userId: string,
   ): Promise<Order> {
-    if (!items.length) throw new BadRequestException("No items to add");
+    if (!items.length) throw new BadRequestException('No items to add');
     const order = await this.prisma.order.findFirst({
       where: { id: orderId, tenantId },
       include: { items: true },
     });
-    if (!order) throw new NotFoundException("Order not found");
+    if (!order) throw new NotFoundException('Order not found');
     if (!order.tableId) {
-      throw new BadRequestException("This order is not a table tab");
+      throw new BadRequestException('This order is not a table tab');
     }
     // READY is included: a dine-in tab has no stage ladder (KDS bumps no
     // longer READY tabs), but a tab that reached READY under the old rules —
     // or via a manual board action — must still accept more rounds. Only a
     // truly closed/cancelled tab refuses.
-    const EDITABLE = new Set<OrderStatus>([
-      "PENDING",
-      "ACCEPTED",
-      "PREPARING",
-      "READY",
-    ]);
+    const EDITABLE = new Set<OrderStatus>(['PENDING', 'ACCEPTED', 'PREPARING', 'READY']);
     if (!EDITABLE.has(order.status)) {
-      throw new BadRequestException(
-        "Can't add to this tab — it's already closed",
-      );
+      throw new BadRequestException("Can't add to this tab — it's already closed");
     }
-    if (order.paymentStatus === "PAID") {
-      throw new BadRequestException("This tab is already settled");
+    if (order.paymentStatus === 'PAID') {
+      throw new BadRequestException('This tab is already settled');
     }
 
     const addedTotal = items.reduce((s, i) => s + Number(i.totalPrice), 0);
@@ -1862,7 +1805,7 @@ export class OrdersService {
     // Round number for the paper chit: round 1 was the initial send, each
     // prior "Tab round added" history row is one appended round since.
     const priorRounds = await this.prisma.orderStatusHistory.count({
-      where: { orderId: order.id, note: { startsWith: "Tab round added" } },
+      where: { orderId: order.id, note: { startsWith: 'Tab round added' } },
     });
     const roundNumber = priorRounds + 2;
 
@@ -1905,7 +1848,7 @@ export class OrdersService {
           tenantId,
           fromStatus: order.status,
           toStatus: order.status,
-          actorType: "STAFF",
+          actorType: 'STAFF',
           changedBy: userId,
           note: `Tab round added: +${addedCount} item(s), +£${addedTotal.toFixed(2)}`,
         },
@@ -1925,13 +1868,12 @@ export class OrdersService {
       displayId: updated.displayId,
       status: updated.status,
       total: Number(updated.total),
-      itemCount:
-        order.items.reduce((s, i) => s + i.quantity, 0) + addedCount,
-      customerName: updated.customerName ?? "",
+      itemCount: order.items.reduce((s, i) => s + i.quantity, 0) + addedCount,
+      customerName: updated.customerName ?? '',
       scheduledFor: updated.scheduledFor?.toISOString() ?? null,
       createdAt: updated.createdAt.toISOString(),
     });
-    this.events.emit("order.items_edited", {
+    this.events.emit('order.items_edited', {
       orderId: updated.id,
       locationId: updated.locationId,
     });
@@ -1978,10 +1920,10 @@ export class OrdersService {
       where: { id: orderId, tenantId },
       select: { id: true, total: true, paymentStatus: true, tableId: true },
     });
-    if (!order) throw new NotFoundException("Order not found");
+    if (!order) throw new NotFoundException('Order not found');
     const payments = await this.prisma.payment.findMany({
-      where: { orderId, status: "SUCCEEDED" },
-      orderBy: { createdAt: "asc" },
+      where: { orderId, status: 'SUCCEEDED' },
+      orderBy: { createdAt: 'asc' },
       select: {
         id: true,
         amount: true,
@@ -2008,7 +1950,7 @@ export class OrdersService {
       total,
       paid: round2(paid),
       remaining: round2(Math.max(0, total - paid)),
-      settled: order.paymentStatus === "PAID",
+      settled: order.paymentStatus === 'PAID',
       paidItemIds,
       payments,
     };
@@ -2020,7 +1962,7 @@ export class OrdersService {
     tenantId: string,
     dto: {
       amount: number;
-      method: "CASH" | "CARD";
+      method: 'CASH' | 'CARD';
       note?: string;
       /** Lines this part covers, when paying by item. */
       itemIds?: string[];
@@ -2038,15 +1980,15 @@ export class OrdersService {
         status: true,
       },
     });
-    if (!order) throw new NotFoundException("Order not found");
+    if (!order) throw new NotFoundException('Order not found');
     const amount = round2(Number(dto.amount));
     if (!Number.isFinite(amount) || amount <= 0) {
-      throw new BadRequestException("Amount must be greater than zero");
+      throw new BadRequestException('Amount must be greater than zero');
     }
 
     const before = await this.paymentSummary(orderId, tenantId);
     if (before.remaining <= 0) {
-      throw new BadRequestException("This bill is already fully paid");
+      throw new BadRequestException('This bill is already fully paid');
     }
 
     // Reject lines that someone has already settled. Without this the
@@ -2054,9 +1996,7 @@ export class OrdersService {
     // strike-through would silently disagree with the money taken.
     const itemIds = Array.from(new Set((dto.itemIds ?? []).map(String)));
     if (itemIds.length) {
-      const alreadyPaid = itemIds.filter((id) =>
-        before.paidItemIds.includes(id),
-      );
+      const alreadyPaid = itemIds.filter((id) => before.paidItemIds.includes(id));
       if (alreadyPaid.length) {
         throw new BadRequestException(
           "Some of those items have already been paid for — reopen the split to see what's left.",
@@ -2082,12 +2022,12 @@ export class OrdersService {
         tenantId,
         orderId,
         amount,
-        currency: "gbp",
-        status: "SUCCEEDED",
+        currency: 'gbp',
+        status: 'SUCCEEDED',
         method: dto.method,
         netAmount: amount,
         metadata: {
-          source: "SPLIT_BILL",
+          source: 'SPLIT_BILL',
           takenBy: userId,
           note: dto.note ?? null,
           ...(itemIds.length ? { itemIds } : {}),
@@ -2101,22 +2041,20 @@ export class OrdersService {
       settled = true;
       await this.prisma.order.update({
         where: { id: orderId },
-        data: { paymentStatus: "PAID" },
+        data: { paymentStatus: 'PAID' },
       });
       // Dine-in tabs finish the moment the money's in: complete the order
       // and free the table so the floor plan is accurate without a second
       // trip to the POS. Best-effort — the payment is what matters.
       if (order.tableId) {
         await this.completeAndFreeTable(orderId, tenantId, userId).catch((e) =>
-          this.logger.warn(
-            `Split-bill settle: complete/free failed for ${orderId}: ${e?.message}`,
-          ),
+          this.logger.warn(`Split-bill settle: complete/free failed for ${orderId}: ${e?.message}`),
         );
       }
     }
     this.logger.log(
       `Split payment £${amount.toFixed(2)} ${dto.method} on ${orderId} — ` +
-        `paid £${after.paid.toFixed(2)}/${after.total.toFixed(2)}${settled ? " (SETTLED)" : ""}`,
+        `paid £${after.paid.toFixed(2)}/${after.total.toFixed(2)}${settled ? ' (SETTLED)' : ''}`,
     );
     return { ...after, settled };
   }
@@ -2127,30 +2065,26 @@ export class OrdersService {
    * legitimately sits in ACCEPTED/PREPARING when the money arrives, and the
    * forward-only ladder would reject PREPARING → COMPLETED.
    */
-  async completeAndFreeTable(
-    orderId: string,
-    tenantId: string,
-    userId: string,
-  ) {
+  async completeAndFreeTable(orderId: string, tenantId: string, userId: string) {
     const order = await this.prisma.order.findFirst({
       where: { id: orderId, tenantId },
       select: { id: true, status: true, tableId: true },
     });
     if (!order) return;
-    if (order.status !== "COMPLETED" && order.status !== "CANCELLED") {
+    if (order.status !== 'COMPLETED' && order.status !== 'CANCELLED') {
       await this.prisma.order.update({
         where: { id: orderId },
-        data: { status: "COMPLETED" },
+        data: { status: 'COMPLETED' },
       });
       await this.prisma.orderStatusHistory.create({
         data: {
           orderId,
           tenantId,
           fromStatus: order.status,
-          toStatus: "COMPLETED",
-          actorType: "STAFF",
+          toStatus: 'COMPLETED',
+          actorType: 'STAFF',
           changedBy: userId,
-          note: "Tab settled — bill paid in full",
+          note: 'Tab settled — bill paid in full',
         },
       });
     }
@@ -2158,7 +2092,7 @@ export class OrdersService {
       await this.prisma.table.updateMany({
         where: { id: order.tableId },
         data: {
-          status: "FREE",
+          status: 'FREE',
           currentOrderId: null,
           openedAt: null,
           // A freed table is a NEW sitting — never inherit the last
@@ -2190,7 +2124,7 @@ export class OrdersService {
         status: settled.status,
         total: Number(settled.total),
         itemCount: settled.items.reduce((s, i) => s + (i.quantity ?? 0), 0),
-        customerName: (settled as any).customerName ?? "",
+        customerName: (settled as any).customerName ?? '',
         scheduledFor: settled.scheduledFor?.toISOString() ?? null,
         createdAt: settled.createdAt.toISOString(),
       } as any);
@@ -2204,19 +2138,19 @@ export class OrdersService {
     tenantId: string,
     dto: UpdateOrderStatusDto,
     changedBy: string,
-    actorType: OrderStatusActorType = "STAFF",
+    actorType: OrderStatusActorType = 'STAFF',
   ): Promise<Order> {
     const order = await this.prisma.order.findFirst({
       where: { id: orderId, tenantId },
     });
-    if (!order) throw new NotFoundException("Order not found");
+    if (!order) throw new NotFoundException('Order not found');
 
     const newStatus = dto.status as OrderStatus;
     // WEBHOOK actor = courier/platform pushing the delivery lifecycle. It can
     // legitimately outrun our kitchen state (e.g. "delivered" while we still
     // show PREPARING), so it may fast-forward to any later stage; only a
     // terminal order is protected. Everyone else follows the strict machine.
-    if (actorType === "WEBHOOK") {
+    if (actorType === 'WEBHOOK') {
       assertWebhookTransition(order.status, newStatus);
     } else {
       assertTransition(order.status, newStatus);
@@ -2234,21 +2168,21 @@ export class OrdersService {
     // state; the courier-side statuses (ASSIGNED_DRIVER, OUT_FOR_DELIVERY,
     // RIDER_ARRIVED, DISPATCHED) are intermediate.
     const POST_READY: OrderStatus[] = [
-      "PENDING_DISPATCH",
-      "ASSIGNED_DRIVER",
-      "ACCEPTED_BY_DRIVER",
-      "RIDER_ARRIVED",
-      "OUT_FOR_DELIVERY",
-      "DISPATCHED",
-      "COMPLETED",
+      'PENDING_DISPATCH',
+      'ASSIGNED_DRIVER',
+      'ACCEPTED_BY_DRIVER',
+      'RIDER_ARRIVED',
+      'OUT_FOR_DELIVERY',
+      'DISPATCHED',
+      'COMPLETED',
     ];
     if (
-      (order as any).deliveryType === "PLATFORM" &&
-      actorType === "STAFF" &&
+      (order as any).deliveryType === 'PLATFORM' &&
+      actorType === 'STAFF' &&
       POST_READY.includes(newStatus)
     ) {
       throw new BadRequestException(
-        "This order is delivered by the marketplace courier — the platform updates this stage automatically. You can only mark up to Ready.",
+        'This order is delivered by the marketplace courier — the platform updates this stage automatically. You can only mark up to Ready.',
       );
     }
 
@@ -2268,7 +2202,7 @@ export class OrdersService {
 
       if (result.count === 0) {
         throw new ConflictException(
-          "Order was modified by another request. Fetch the latest state and retry.",
+          'Order was modified by another request. Fetch the latest state and retry.',
         );
       }
 
@@ -2313,12 +2247,12 @@ export class OrdersService {
     // is NOT a User.id — writing it to auditLog.userId violated the FK and
     // spammed warnings on every marketplace status push. Store the label in
     // meta.changedBy instead and leave userId null for non-staff actors.
-    const auditUserId = actorType === "STAFF" ? changedBy : undefined;
+    const auditUserId = actorType === 'STAFF' ? changedBy : undefined;
     void this.audit.log({
       tenantId,
       userId: auditUserId,
       event: `order.status.${newStatus.toLowerCase()}`,
-      resource: "order",
+      resource: 'order',
       resourceId: orderId,
       before: { status: order.status },
       after: { status: newStatus },
@@ -2344,10 +2278,14 @@ export class OrdersService {
     // the service.
     const triggerForStatus = (() => {
       switch (newStatus) {
-        case "ACCEPTED": return "ORDER_ACCEPTED";
-        case "PREPARING": return "ORDER_PREPARING";
-        case "READY": return "ORDER_READY";
-        default: return null;
+        case 'ACCEPTED':
+          return 'ORDER_ACCEPTED';
+        case 'PREPARING':
+          return 'ORDER_PREPARING';
+        case 'READY':
+          return 'ORDER_READY';
+        default:
+          return null;
       }
     })();
     if (triggerForStatus) {
@@ -2360,7 +2298,7 @@ export class OrdersService {
         );
     }
 
-    if (newStatus === "ACCEPTED") {
+    if (newStatus === 'ACCEPTED') {
       // Phase AS-2 fully owns the print pipeline now. The legacy
       // `printQueue.enqueueForNewOrder(orderId)` call used to fire here
       // as well, which double-created PrintJob rows — one from the
@@ -2380,11 +2318,9 @@ export class OrdersService {
         .catch((err: any) =>
           this.logger.error(`Stripe capture failed for ${orderId}: ${err.message}`),
         );
-    } else if (newStatus === "CANCELLED" || newStatus === "REJECTED") {
+    } else if (newStatus === 'CANCELLED' || newStatus === 'REJECTED') {
       this.printQueue.enqueueCancel(orderId).catch((err: any) => {
-        this.logger.warn(
-          `enqueueCancel failed for ${orderId}: ${err.message}`,
-        );
+        this.logger.warn(`enqueueCancel failed for ${orderId}: ${err.message}`);
       });
       // Phase AP-8 — refund-or-cancel based on capture state.
       // refundForOrder() is the smart entry point: if the payment is
@@ -2412,7 +2348,7 @@ export class OrdersService {
             })
           : null;
         if (usesTap(loc?.country)) {
-          await this.tap.refundOrder(orderId, dto.cancelReason ?? "Order cancelled");
+          await this.tap.refundOrder(orderId, dto.cancelReason ?? 'Order cancelled');
         } else {
           await this.payments.refundForOrder(orderId, dto.cancelReason ?? undefined);
         }
@@ -2423,7 +2359,7 @@ export class OrdersService {
 
     // In-process event so channels (e.g. WhatsApp) can notify the customer of
     // status changes. Best-effort, decoupled via EventEmitter (no module cycle).
-    this.events.emit("order.status_changed", {
+    this.events.emit('order.status_changed', {
       orderId,
       tenantId,
       locationId: order.locationId,
@@ -2435,18 +2371,15 @@ export class OrdersService {
     });
 
     // Phase LG — dashboard Logs page. One readable line per transition.
-    this.events.emit("activity.log", {
+    this.events.emit('activity.log', {
       tenantId,
       locationId: order.locationId,
       brandId: (order as any).brandId ?? null,
-      category: "ORDERS",
-      channel: (order as any).platform ?? "DIRECT",
+      category: 'ORDERS',
+      channel: (order as any).platform ?? 'DIRECT',
       action: `order.${newStatus.toLowerCase()}`,
-      status:
-        newStatus === "CANCELLED" || newStatus === "REJECTED"
-          ? "WARNING"
-          : "INFO",
-      message: `Order #${(order as any).orderNumber ?? orderId} → ${newStatus}${actorType === "WEBHOOK" ? " (from platform)" : ""}`,
+      status: newStatus === 'CANCELLED' || newStatus === 'REJECTED' ? 'WARNING' : 'INFO',
+      message: `Order #${(order as any).orderNumber ?? orderId} → ${newStatus}${actorType === 'WEBHOOK' ? ' (from platform)' : ''}`,
       details: { orderId, fromStatus: order.status, actorType },
     });
 
@@ -2463,8 +2396,8 @@ export class OrdersService {
     });
 
     // Broadcast update — best-effort, immediate
-    if (newStatus === "CANCELLED") {
-      this.socket.emitToLocation(order.locationId, "order:cancelled", {
+    if (newStatus === 'CANCELLED') {
+      this.socket.emitToLocation(order.locationId, 'order:cancelled', {
         orderId,
         locationId: order.locationId,
         reason: dto.cancelReason ?? null,
@@ -2482,7 +2415,7 @@ export class OrdersService {
         status: updated.status,
         total: Number(updated.total),
         itemCount: 0,
-        customerName: (updated.customerInfo as any)?.name ?? "",
+        customerName: (updated.customerInfo as any)?.name ?? '',
         scheduledFor: updated.scheduledFor?.toISOString() ?? null,
         createdAt: updated.createdAt.toISOString(),
       });
@@ -2532,7 +2465,7 @@ export class OrdersService {
   async setPaymentStatus(
     orderId: string,
     tenantId: string,
-    paymentStatus: "PAID" | "PENDING" | "FAILED",
+    paymentStatus: 'PAID' | 'PENDING' | 'FAILED',
     // How it was settled — recorded so the board/receipt say "Paid · Cash"
     // rather than just "Paid" (table tabs settle cash at Pay & close).
     paymentMethod?: string,
@@ -2541,7 +2474,7 @@ export class OrdersService {
       where: { id: orderId, tenantId },
       select: { id: true, locationId: true },
     });
-    if (!order) throw new NotFoundException("Order not found");
+    if (!order) throw new NotFoundException('Order not found');
     const updated = await this.prisma.order.update({
       where: { id: orderId },
       data: {
@@ -2560,7 +2493,7 @@ export class OrdersService {
       status: updated.status,
       total: Number(updated.total),
       itemCount: 0,
-      customerName: updated.customerName ?? "",
+      customerName: updated.customerName ?? '',
       scheduledFor: updated.scheduledFor?.toISOString() ?? null,
       createdAt: updated.createdAt.toISOString(),
     });
@@ -2573,7 +2506,7 @@ export class OrdersService {
     // has settleTerminalPi. Cash taken at the counter had nothing, so a
     // guarded walk-in order would have sat PENDING for ever and never
     // printed — the guard is only safe BECAUSE of this call.
-    if (paymentStatus === "PAID" && updated.status === "PENDING") {
+    if (paymentStatus === 'PAID' && updated.status === 'PENDING') {
       void this.maybeAutoAccept(orderId, tenantId, order.locationId);
     }
     return updated;
@@ -2675,16 +2608,7 @@ export class OrdersService {
   }
 
   async findMany(user: AuthenticatedUser, filters: OrderFilters) {
-    const {
-      locationId,
-      status,
-      platform,
-      orderSource,
-      from,
-      to,
-      page = 1,
-      limit = 50,
-    } = filters;
+    const { locationId, status, platform, orderSource, from, to, page = 1, limit = 50 } = filters;
 
     const access = await this.resolveOrderAccessWhere(user, locationId);
     if (!access) return { total: 0, page, limit, orders: [] };
@@ -2696,14 +2620,11 @@ export class OrdersService {
       // findLiveOrders hides them from everyone but a platform admin. History
       // has to apply the same rule or the board hides a fake Deliveroo order
       // and the history screen hands it straight back.
-      ...(user.role === "PLATFORM_ADMIN"
+      ...(user.role === 'PLATFORM_ADMIN'
         ? {}
         : {
             NOT: {
-              AND: [
-                { isSandbox: true },
-                { orderSource: { notIn: ["POS", "DIRECT"] } },
-              ],
+              AND: [{ isSandbox: true }, { orderSource: { notIn: ['POS', 'DIRECT'] } }],
             },
           }),
       ...(status && {
@@ -2726,7 +2647,7 @@ export class OrdersService {
       this.prisma.order.findMany({
         where,
         include: ORDER_INCLUDE,
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
       }),
@@ -2740,7 +2661,7 @@ export class OrdersService {
       where: { id: orderId, tenantId },
       include: ORDER_INCLUDE,
     });
-    if (!order) throw new NotFoundException("Order not found");
+    if (!order) throw new NotFoundException('Order not found');
     // Table Tabs — resolve the table's name (Order.tableId has no Prisma
     // relation) so the POS header and the tablet Bluetooth print path can
     // show/print "TABLE T5" without a second round-trip.
@@ -2769,7 +2690,7 @@ export class OrdersService {
     return this.prisma.order.findMany({
       where: {
         ...access,
-        status: { in: ["PENDING"] },
+        status: { in: ['PENDING'] },
         // Either field. scheduledAt is the POS-side mirror, written only by
         // create(); ingestCanonical sets scheduledFor alone, so a Just Eat or
         // Deliveroo pre-order arriving through HubRise matched nothing here and
@@ -2781,7 +2702,7 @@ export class OrdersService {
         ],
       },
       include: ORDER_INCLUDE,
-      orderBy: { scheduledFor: "asc" },
+      orderBy: { scheduledFor: 'asc' },
     });
   }
 
@@ -2800,11 +2721,9 @@ export class OrdersService {
     const order = await this.prisma.order.findFirst({
       where: { id: orderId, tenantId },
     });
-    if (!order) throw new NotFoundException("Order not found");
-    if (order.status !== "PENDING") {
-      throw new ConflictException(
-        `Order is in status ${order.status} — cannot start preparing`,
-      );
+    if (!order) throw new NotFoundException('Order not found');
+    if (order.status !== 'PENDING') {
+      throw new ConflictException(`Order is in status ${order.status} — cannot start preparing`);
     }
 
     // Clear scheduledAt so the order disappears from the Scheduled board.
@@ -2817,9 +2736,9 @@ export class OrdersService {
     return this.updateStatus(
       orderId,
       tenantId,
-      { status: "ACCEPTED", note: "Started early via POS" },
+      { status: 'ACCEPTED', note: 'Started early via POS' },
       changedBy,
-      "STAFF",
+      'STAFF',
     );
   }
 
@@ -2837,14 +2756,9 @@ export class OrdersService {
    *   - Asked at 05:00 BST  → returns today 05:00 BST
    *   - Asked at 14:00 BST  → returns today 05:00 BST
    */
-  private computeBusinessDayCutoff(
-    timezone: string | undefined,
-    resetHour: number,
-  ): Date {
+  private computeBusinessDayCutoff(timezone: string | undefined, resetHour: number): Date {
     const now = new Date();
-    const local = timezone
-      ? new Date(now.toLocaleString("en-US", { timeZone: timezone }))
-      : now;
+    const local = timezone ? new Date(now.toLocaleString('en-US', { timeZone: timezone })) : now;
     // Drift between local and now (in ms) tells us how to shift
     // back to a real UTC Date once we've picked the calendar day
     // we want to anchor on.
@@ -2912,7 +2826,7 @@ export class OrdersService {
           //
           // The ordinary DIRECT test order is untouched: operators use that
           // to check printer and board wiring, and it stays visible to them.
-          ...(user.role === "PLATFORM_ADMIN"
+          ...(user.role === 'PLATFORM_ADMIN'
             ? []
             : [
                 {
@@ -2921,7 +2835,7 @@ export class OrdersService {
                       { isSandbox: true },
                       {
                         orderSource: {
-                          notIn: ["POS", "DIRECT"],
+                          notIn: ['POS', 'DIRECT'],
                         },
                       },
                     ],
@@ -2929,88 +2843,86 @@ export class OrdersService {
                 } satisfies Prisma.OrderWhereInput,
               ]),
           {
-        // Phase AP-8 — card orders aren't real to the kitchen until the
-        // customer's authorization webhook lands and we flip paymentStatus
-        // to AUTHORIZED. Hide PENDING+CARD from the board so staff don't
-        // start preparing food the customer hasn't successfully paid for.
-        // Phase AP-8 — card orders aren't real to the kitchen until
-        // the authorize webhook lands. But this filter ONLY applies to
-        // direct/storefront orders that go through Stripe Connect —
-        // marketplace orders (HubRise, Uber Eats, Deliveroo) settle on
-        // the channel side and arrive already paid, so they should
-        // never be hidden here even if their paymentStatus briefly
-        // shows PENDING during ingestion. Restricting by orderSource
-        // keeps the kitchen-safety check intact for DIRECT while
-        // letting HubRise/marketplace orders through.
-        NOT: {
-          AND: [
-            { paymentMethod: "CARD" },
-            { paymentStatus: "PENDING" },
-            // Phase AW-30 — storefront places these as orderSource:
-            // "ONLINE", DIRECT predates the AP flows. Hide both until
-            // Stripe authorisation lands. Marketplace sources stay
-            // visible because those orders arrive already paid.
-            // Phase AY — WhatsApp is our own card-collect flow too, so hide
-            // its PENDING card orders from the board until payment is
-            // authorised. They reliably flip to AUTHORIZED via the Stripe
-            // webhook or the WhatsAppReconcileCron (~20s), at which point
-            // they appear (and auto-accept if enabled).
-            { orderSource: { in: ["DIRECT", "ONLINE", "WHATSAPP"] } },
-          ],
-        },
-        OR: [
-          {
-            status: {
-              in: [
-                "PENDING",
-                "ACCEPTED",
-                "PREPARING",
-                "READY",
-                "PENDING_DISPATCH",
-                "ASSIGNED_DRIVER",
-                "ACCEPTED_BY_DRIVER",
-                "OUT_FOR_DELIVERY",
-                // A driver sliding "Arrived at customer" sets RIDER_ARRIVED.
-                // Leaving it out of this list made the order VANISH from the
-                // board mid-delivery — it only came back when the driver
-                // slid "delivered" and it landed in COMPLETED. It is a live
-                // stage of a live order and belongs here.
-                "RIDER_ARRIVED",
-                "DISPATCHED",
+            // Phase AP-8 — card orders aren't real to the kitchen until the
+            // customer's authorization webhook lands and we flip paymentStatus
+            // to AUTHORIZED. Hide PENDING+CARD from the board so staff don't
+            // start preparing food the customer hasn't successfully paid for.
+            // Phase AP-8 — card orders aren't real to the kitchen until
+            // the authorize webhook lands. But this filter ONLY applies to
+            // direct/storefront orders that go through Stripe Connect —
+            // marketplace orders (HubRise, Uber Eats, Deliveroo) settle on
+            // the channel side and arrive already paid, so they should
+            // never be hidden here even if their paymentStatus briefly
+            // shows PENDING during ingestion. Restricting by orderSource
+            // keeps the kitchen-safety check intact for DIRECT while
+            // letting HubRise/marketplace orders through.
+            NOT: {
+              AND: [
+                { paymentMethod: 'CARD' },
+                { paymentStatus: 'PENDING' },
+                // Phase AW-30 — storefront places these as orderSource:
+                // "ONLINE", DIRECT predates the AP flows. Hide both until
+                // Stripe authorisation lands. Marketplace sources stay
+                // visible because those orders arrive already paid.
+                // Phase AY — WhatsApp is our own card-collect flow too, so hide
+                // its PENDING card orders from the board until payment is
+                // authorised. They reliably flip to AUTHORIZED via the Stripe
+                // webhook or the WhatsAppReconcileCron (~20s), at which point
+                // they appear (and auto-accept if enabled).
+                { orderSource: { in: ['DIRECT', 'ONLINE', 'WHATSAPP'] } },
               ],
             },
-            // Scheduled orders stay ON the board. They used to be filtered
-            // out here because there was nowhere sensible to put them — the
-            // only home was the strip above the board, fed by a separate
-            // query. The board now has a Scheduled bucket that holds them and
-            // keeps them out of New, so hiding them from the feed only made
-            // them invisible: a POS pre-order (create() mirrors scheduledFor
-            // onto scheduledAt) matched this filter and never reached the
-            // board, the auto-print hook, or the Scheduled bucket itself.
-            //
-            // Online pre-orders were hidden by a different accident — the
-            // storefront goes through ingestCanonical, which never writes
-            // scheduledAt, so they slipped through this filter and landed in
-            // New looking like ASAP work.
-          },
-          {
-            status: { in: ["COMPLETED", "CANCELLED", "REJECTED", "FAILED"] },
-            // Terminal orders belong to the business day they were PLACED in,
-            // not last-touched — so an order created yesterday but completed
-            // (by staff or the 5am rollover) still drops off at the reset,
-            // rather than lingering because its updatedAt got bumped.
-            createdAt: { gte: since24h },
-          },
-        ],
+            OR: [
+              {
+                status: {
+                  in: [
+                    'PENDING',
+                    'ACCEPTED',
+                    'PREPARING',
+                    'READY',
+                    'PENDING_DISPATCH',
+                    'ASSIGNED_DRIVER',
+                    'ACCEPTED_BY_DRIVER',
+                    'OUT_FOR_DELIVERY',
+                    // A driver sliding "Arrived at customer" sets RIDER_ARRIVED.
+                    // Leaving it out of this list made the order VANISH from the
+                    // board mid-delivery — it only came back when the driver
+                    // slid "delivered" and it landed in COMPLETED. It is a live
+                    // stage of a live order and belongs here.
+                    'RIDER_ARRIVED',
+                    'DISPATCHED',
+                  ],
+                },
+                // Scheduled orders stay ON the board. They used to be filtered
+                // out here because there was nowhere sensible to put them — the
+                // only home was the strip above the board, fed by a separate
+                // query. The board now has a Scheduled bucket that holds them and
+                // keeps them out of New, so hiding them from the feed only made
+                // them invisible: a POS pre-order (create() mirrors scheduledFor
+                // onto scheduledAt) matched this filter and never reached the
+                // board, the auto-print hook, or the Scheduled bucket itself.
+                //
+                // Online pre-orders were hidden by a different accident — the
+                // storefront goes through ingestCanonical, which never writes
+                // scheduledAt, so they slipped through this filter and landed in
+                // New looking like ASAP work.
+              },
+              {
+                status: { in: ['COMPLETED', 'CANCELLED', 'REJECTED', 'FAILED'] },
+                // Terminal orders belong to the business day they were PLACED in,
+                // not last-touched — so an order created yesterday but completed
+                // (by staff or the 5am rollover) still drops off at the reset,
+                // rather than lingering because its updatedAt got bumped.
+                createdAt: { gte: since24h },
+              },
+            ],
           },
         ],
       },
       include: ORDER_INCLUDE,
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
     });
-    return this.attachKitchenNames(
-      await this.attachCustomerVisitCounts(rows, user.tenantId),
-    );
+    return this.attachKitchenNames(await this.attachCustomerVisitCounts(rows, user.tenantId));
   }
 
   /**
@@ -3028,9 +2940,7 @@ export class OrdersService {
    * Costs one indexed lookup for shops that do not use the feature, and
    * returns before touching anything else.
    */
-  private async attachKitchenNames<T extends Record<string, any>>(
-    rows: T[],
-  ): Promise<T[]> {
+  private async attachKitchenNames<T extends Record<string, any>>(rows: T[]): Promise<T[]> {
     try {
       const locIds = Array.from(
         new Set(rows.map((r) => r.locationId).filter((x): x is string => !!x)),
@@ -3045,8 +2955,7 @@ export class OrdersService {
         locs
           .filter(
             (l) =>
-              ((l.settings ?? {}) as Record<string, unknown>)
-                .kitchenTicketSecondLanguage === true,
+              ((l.settings ?? {}) as Record<string, unknown>).kitchenTicketSecondLanguage === true,
           )
           .map((l) => l.id),
       );
@@ -3058,7 +2967,7 @@ export class OrdersService {
           live
             .flatMap((r) => r.items ?? [])
             .map((i: any) => i.menuItemId)
-            .filter((x: any): x is string => typeof x === "string" && !!x),
+            .filter((x: any): x is string => typeof x === 'string' && !!x),
         ),
       );
       const modNames = Array.from(
@@ -3066,7 +2975,7 @@ export class OrdersService {
           live
             .flatMap((r) => r.items ?? [])
             .flatMap((i: any) => i.modifiers ?? [])
-            .map((m: any) => String(m?.name ?? "").trim())
+            .map((m: any) => String(m?.name ?? '').trim())
             .filter(Boolean),
         ),
       );
@@ -3100,12 +3009,12 @@ export class OrdersService {
 
       const byItem = new Map(
         items
-          .filter((i) => (i.secondLanguageName ?? "").trim())
+          .filter((i) => (i.secondLanguageName ?? '').trim())
           .map((i) => [i.id, i.secondLanguageName!.trim()]),
       );
       const byMod = new Map(
         mods
-          .filter((m) => (m.secondLanguageName ?? "").trim())
+          .filter((m) => (m.secondLanguageName ?? '').trim())
           .map((m) => [m.name.trim(), m.secondLanguageName!.trim()]),
       );
       if (!byItem.size && !byMod.size) return rows;
@@ -3117,7 +3026,7 @@ export class OrdersService {
           // original, which is how a half-translated menu keeps working.
           if (n) it.secondLanguageName = n;
           for (const m of (it.modifiers ?? []) as any[]) {
-            const mn = byMod.get(String(m?.name ?? "").trim());
+            const mn = byMod.get(String(m?.name ?? '').trim());
             if (mn) m.secondLanguageName = mn;
           }
         }
@@ -3200,14 +3109,8 @@ export class OrdersService {
     // storefront use name + phone + postcode — phone is reliable when
     // it's ours, and the extra signals tighten the match for walk-ins
     // who share a postcode.
-    const MARKETPLACES = new Set([
-      "JUST_EAT",
-      "UBER_EATS",
-      "DELIVEROO",
-      "HUBRISE",
-    ]);
-    const norm = (s: string | null | undefined) =>
-      (s ?? "").replace(/\s+/g, "").toLowerCase();
+    const MARKETPLACES = new Set(['JUST_EAT', 'UBER_EATS', 'DELIVEROO', 'HUBRISE']);
+    const norm = (s: string | null | undefined) => (s ?? '').replace(/\s+/g, '').toLowerCase();
     // Phase AW-30 — identity is brand-scoped. Same customer ordering
     // from MONSTER and PIZZA UNO at the same kitchen lives in two
     // separate buckets so the receipt at MONSTER says "ORDER #4"
@@ -3224,13 +3127,11 @@ export class OrdersService {
       brandId: string | null;
     }): string | null => {
       const isMarketplace =
-        MARKETPLACES.has(o.integrationSource) ||
-        MARKETPLACES.has(o.platform) ||
-        o.viaHubrise;
+        MARKETPLACES.has(o.integrationSource) || MARKETPLACES.has(o.platform) || o.viaHubrise;
       const name = norm(o.customerName);
       const postcode = norm(o.postcode);
       const phone = norm(o.customerPhone);
-      const brand = o.brandId ?? "_";
+      const brand = o.brandId ?? '_';
       if (isMarketplace) {
         if (!name) return null;
         return `b:${brand}|mkt|${name}|${postcode}`;
@@ -3261,8 +3162,7 @@ export class OrdersService {
     const orClauses: any[] = [];
     if (names.size) orClauses.push({ customerName: { in: Array.from(names) } });
     if (phones.size) orClauses.push({ customerPhone: { in: Array.from(phones) } });
-    if (postcodes.size)
-      orClauses.push({ postcode: { in: Array.from(postcodes) } });
+    if (postcodes.size) orClauses.push({ postcode: { in: Array.from(postcodes) } });
 
     const oneYearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
     const countById = new Map<string, number>();
@@ -3272,7 +3172,7 @@ export class OrdersService {
           where: {
             tenantId,
             isSandbox: false,
-            status: { not: "CANCELLED" },
+            status: { not: 'CANCELLED' },
             createdAt: { gte: oneYearAgo },
             OR: orClauses,
           },
@@ -3308,7 +3208,7 @@ export class OrdersService {
       return {
         ...r,
         customerVisitCount: lifetime,
-        customerVisitTag: lifetime <= 1 ? "NEW" : "RETURNING",
+        customerVisitTag: lifetime <= 1 ? 'NEW' : 'RETURNING',
       };
     });
   }

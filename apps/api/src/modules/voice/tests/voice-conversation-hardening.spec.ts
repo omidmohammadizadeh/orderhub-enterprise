@@ -263,3 +263,197 @@ describe('a reply the caller talked over', () => {
     expect(sim.log.join(' ')).not.toMatch(/treating as a stall/);
   });
 });
+
+// ── call 9-LMxBjQ: an order placed on silence ───────────────────────────────
+describe('a reminder may speak; it may not act', () => {
+  it('asks for a check-in with no tools, and says what kind of reply it is', async () => {
+    const sim = conversationSim({ idleMs: 40 });
+    sim.gateway.config = {
+      get: (k: string) =>
+        k === 'VOICE_CONVERSATION_IDLE_MS' || k === 'VOICE_REALTIME_IDLE_MS' ? '40' : undefined,
+    };
+    await sim.answer();
+    sim.brain.sent.length = 0;
+    spoke(sim, 'r1');
+    await settle(120);
+    const reminder = sim.toModel.find(
+      (m) =>
+        m.type === 'response.create' &&
+        String(m.response?.instructions ?? '').includes('are you still there'),
+    );
+    expect(reminder).toBeDefined();
+    expect(reminder.response.tools).toEqual([]);
+    expect(reminder.response.tool_choice).toBe('none');
+    expect(reminder.response.metadata).toEqual({ origin: 'reminder' });
+  });
+
+  it('the greeting and a scripted read-back are speech-only too', async () => {
+    const sim = conversationSim();
+    await sim.answer();
+    const greet = sim.toModel.find(
+      (m) =>
+        m.type === 'response.create' &&
+        String(m.response?.instructions ?? '').includes('Greet the caller'),
+    );
+    expect(greet.response.tools).toEqual([]);
+    expect(greet.response.metadata).toEqual({ origin: 'greeting' });
+    (sim.gateway.voice.conversationTool as jest.Mock).mockResolvedValueOnce({
+      result: 'read back',
+      sayNow: "So that's chips. Is that all correct?",
+    });
+    await sim.callTool('read_back_order');
+    const script = sim.toModel.find(
+      (m) =>
+        m.type === 'response.create' &&
+        String(m.response?.instructions ?? '').includes("So that's chips"),
+    );
+    expect(script.response.tools).toEqual([]);
+    expect(script.response.metadata).toEqual({ origin: 'script' });
+  });
+
+  it('refuses place_order from a reminder reply even if the model tries', async () => {
+    const sim = conversationSim();
+    await sim.answer();
+    sim.brain.deliver({
+      type: 'response.created',
+      response: { id: 'rem1', metadata: { origin: 'reminder' } },
+    });
+    sim.brain.deliver({
+      type: 'response.function_call_arguments.done',
+      response_id: 'rem1',
+      name: 'place_order',
+      call_id: 'c1',
+      arguments: '{"paymentMethod":"CASH"}',
+    });
+    await settle(30);
+    expect(sim.gateway.voice.conversationTool).not.toHaveBeenCalled();
+    const out = sim.toModel.find(
+      (m) => m.type === 'conversation.item.create' && m.item?.type === 'function_call_output',
+    );
+    expect(out.item.output).toMatch(/^Refused/);
+    expect(sim.log.join(' ')).toMatch(/refused place_order from a reminder reply/);
+  });
+
+  it('lets a caller-driven reply use tools as before', async () => {
+    const sim = conversationSim();
+    await sim.answer();
+    sim.brain.deliver({ type: 'input_audio_buffer.committed', item_id: 'u1' });
+    sim.brain.deliver({ type: 'response.created', response: { id: 'r1' } }); // no metadata: the server made it for the caller
+    sim.brain.deliver({
+      type: 'response.function_call_arguments.done',
+      response_id: 'r1',
+      name: 'place_order',
+      call_id: 'c1',
+      arguments: '{"paymentMethod":"CASH"}',
+    });
+    await settle(30);
+    expect(sim.gateway.voice.conversationTool).toHaveBeenCalled();
+  });
+});
+
+describe('the payment question followed by silence cannot place an order', () => {
+  const ai = () => {
+    const a: any = Object.create(VoiceAiService.prototype);
+    a.logger = { log() {}, warn() {}, error() {} };
+    return a;
+  };
+  const c = () =>
+    ({
+      currency: 'GBP',
+      items: [],
+      itemIndex: new Map(),
+      optionIndex: new Map(),
+      deliveryZones: [],
+    }) as any;
+  const confirmed = async (a: any, ctx: any) => {
+    const st: any = {
+      cart: {
+        items: [{ lineId: 'a', name: 'CHIPS', quantity: 1, unitBasePrice: 2, modifiers: [] }],
+        fulfillmentType: 'PICKUP',
+        fulfillmentChosen: true,
+      },
+      turns: [],
+    };
+    await a.runTool('read_back_order', {}, ctx, st, null);
+    await a.runToolForConversation(
+      'order_confirmed',
+      { __spokeAfterQuestion: true },
+      ctx,
+      st,
+      null,
+    );
+    return st;
+  };
+
+  it('no caller turn since the question — not placed', async () => {
+    const a = ai();
+    const ctx = c();
+    const st = await confirmed(a, ctx);
+    const out = await a.runToolForConversation(
+      'place_order',
+      { paymentMethod: 'CASH', __spokeAfterQuestion: false },
+      ctx,
+      st,
+      '+44',
+    );
+    expect(out.result).toMatch(/hasn't answered since you asked/);
+    expect(st.orderId).toBeUndefined();
+  });
+
+  it('a caller turn but no payment method — not placed, and never defaulted to cash', async () => {
+    const a = ai();
+    const ctx = c();
+    const st = await confirmed(a, ctx);
+    for (const bad of [undefined, '', 'yes', 'later']) {
+      const out = await a.runToolForConversation(
+        'place_order',
+        { paymentMethod: bad, __spokeAfterQuestion: true },
+        ctx,
+        st,
+        '+44',
+      );
+      expect(out.result).toMatch(/have not said how they'll pay/);
+      expect(st.orderId).toBeUndefined();
+    }
+  });
+});
+
+describe('a failed reply says why, and is retried once', () => {
+  it('logs status_details without caller content, resends the last ask, and gives up the second time', async () => {
+    const sim = conversationSim();
+    await sim.answer();
+    (sim.gateway.voice.conversationTool as jest.Mock).mockResolvedValueOnce({
+      result: 'Added chips',
+    });
+    await sim.callTool('add_item', { said: 'chips' }); // the follow-up ask is now the last create
+    sim.brain.sent.length = 0;
+    sim.brain.deliver({ type: 'response.created', response: { id: 'f1' } });
+    sim.brain.deliver({
+      type: 'response.done',
+      response: {
+        id: 'f1',
+        status: 'failed',
+        status_details: {
+          type: 'failed',
+          error: { code: 'rate_limit_exceeded', message: 'Too many' },
+        },
+      },
+    });
+    await settle();
+    expect(sim.log.join(' ')).toMatch(
+      /reply .*f1 failed: type=failed reason=\? code=rate_limit_exceeded message=Too many/,
+    );
+    expect(sim.log.join(' ')).toMatch(/retrying the reply once/);
+    expect(sim.toModel.filter((m) => m.type === 'response.create')).toHaveLength(1);
+    expect(sim.log.join(' ')).not.toMatch(/treating as a stall/);
+
+    sim.brain.sent.length = 0;
+    sim.brain.deliver({ type: 'response.created', response: { id: 'f1' } }); // same id fails again
+    sim.brain.deliver({
+      type: 'response.done',
+      response: { id: 'f1', status: 'failed', status_details: { type: 'failed' } },
+    });
+    await settle();
+    expect(sim.toModel.filter((m) => m.type === 'response.create')).toHaveLength(0);
+  });
+});

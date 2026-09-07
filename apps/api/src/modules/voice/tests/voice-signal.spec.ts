@@ -54,3 +54,67 @@ describe('the inbound meter', () => {
     expect(m.totals.loudWindows).toBe(1);
   });
 });
+
+// ── call 9-LMxBjQ: 152 of 162 seconds "loud but undetected" on a -33 dBFS line
+describe('a meter that knows its own floor', () => {
+  const pcmToMulaw = (s: number): number => {
+    const BIAS = 0x84,
+      CLIP = 32635;
+    let sign = (s >> 8) & 0x80;
+    if (sign) s = -s;
+    if (s > CLIP) s = CLIP;
+    s += BIAS;
+    let exponent = 7;
+    for (let mask = 0x4000; (s & mask) === 0 && exponent > 0; exponent--, mask >>= 1);
+    return ~(sign | (exponent << 4) | ((s >> (exponent + 3)) & 0x0f)) & 0xff;
+  };
+  const level = (amplitude: number) =>
+    Buffer.from(
+      Array.from({ length: 160 }, (_, i) => pcmToMulaw(Math.round(amplitude * Math.sin(i / 3)))),
+    ).toString('base64');
+  const NOISE = level(700); // ≈ -33 dBFS, what that line idled at
+  const VOICE = level(16000); // ≈ -6 dBFS, what "cash" looks like
+
+  const second = (
+    m: InboundMeter,
+    payload: string,
+    t0: number,
+    opts: { playing?: boolean } = {},
+  ) => {
+    let r = null;
+    for (let i = 0; i <= 50; i++) r = m.frame(payload, t0 + i * 20, opts.playing) ?? r;
+    return r!;
+  };
+
+  it("does not call the line's own background loud", () => {
+    const m = new InboundMeter(1000, 12, -30, 5000, 0);
+    const reports = [0, 1, 2, 3, 4, 5].map((s) => second(m, NOISE, s * 1000));
+    expect(reports.every((r) => !r.loudUndetected)).toBe(true);
+    expect(m.floorDb()).toBeGreaterThan(-40);
+    expect(m.floorDb()).toBeLessThan(-25);
+  });
+
+  it('flags a voice-loud second above that floor with no detection — once — and not while we are playing', () => {
+    const m = new InboundMeter(1000, 12, -30, 5000, 0);
+    for (let s = 0; s < 5; s++) second(m, NOISE, s * 1000);
+    const burst = second(m, VOICE, 5000);
+    expect(burst.loudUndetected).toBe(true);
+    expect(m.shouldWarn(6000)).toBe(true);
+    expect(m.shouldWarn(7000)).toBe(false); // rate-limited
+    const echo = second(m, VOICE, 6000, { playing: true });
+    expect(echo.loudUndetected).toBe(false); // our own audio coming back
+  });
+
+  it('counts speech as detected from start to stop, across windows', () => {
+    const m = new InboundMeter(1000, 12, -30, 5000, 0);
+    for (let s = 0; s < 5; s++) second(m, NOISE, s * 1000);
+    m.speechDetected();
+    const w1 = second(m, VOICE, 5000);
+    const w2 = second(m, VOICE, 6000); // still talking, no new speech_started
+    m.speechEnded();
+    const w3 = second(m, VOICE, 7000); // talking after stop → undetected again
+    expect(w1.loudUndetected).toBe(false);
+    expect(w2.loudUndetected).toBe(false);
+    expect(w3.loudUndetected).toBe(true);
+  });
+});
