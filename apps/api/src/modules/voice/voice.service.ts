@@ -486,6 +486,24 @@ export class VoiceService {
   }
 
   /**
+   * The order this call has already placed, if any — so a recovery can say
+   * "it's in, number 1178" instead of taking it again.
+   */
+  async placedOrderFor(callControlId: string): Promise<{ reference: string } | null> {
+    const loaded = await this.loadByControlId(callControlId).catch(() => null);
+    const orderId = loaded?.state.orderId;
+    if (!orderId) return null;
+    const order = await this.db()
+      .order.findUnique({ where: { id: orderId }, select: { orderNumber: true, displayId: true } })
+      .catch(() => null);
+    const reference =
+      order?.orderNumber != null
+        ? spokenDigits(String(order.orderNumber))
+        : (order?.displayId ?? null);
+    return reference ? { reference } : null;
+  }
+
+  /**
    * Has this call moved past the opening menu?
    *
    * Once it has, a digit is not "press 2 for an order update" any more — it is

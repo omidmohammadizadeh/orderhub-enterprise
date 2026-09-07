@@ -109,6 +109,30 @@ const STATE_CHANGING = new Set([
   'take_message',
 ]);
 
+/**
+ * One request for a reply, and what has become of it.
+ *
+ * A retry is the same ask with a new reply id, so the budget lives here and
+ * not on the id. payload is null for a reply the server started itself (a
+ * caller turn), which cannot be retried by us and does not need to be.
+ */
+interface Ask {
+  payload: Record<string, unknown> | null;
+  origin: ResponseOrigin;
+  attempts: number;
+}
+
+/** Retries per ask, on top of the original. */
+const MAX_RETRIES = 2;
+
+/** "Please try again in 1.234s" / "in 800ms" → milliseconds, or null. */
+export function rateLimitResetMs(message: string): number | null {
+  const m = /try again in\s+(\d+(?:\.\d+)?)\s*(ms|s)\b/i.exec(message ?? '');
+  if (!m) return null;
+  const n = Number(m[1]);
+  return (m[2] ?? '').toLowerCase() === 's' ? Math.round(n * 1000) : Math.round(n);
+}
+
 /** Who the line is waiting on. See watchForSilence. */
 type CallPhase = 'LISTENING' | 'WAITING_MODEL' | 'WAITING_TOOL' | 'PLAYING' | 'WAITING_CALLER';
 
@@ -308,6 +332,12 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         /* fall through to the apology, which is still better than silence */
       }
     }
+    // An order that is already placed is not taken again. The caller is
+    // told it is in, with its number, and nothing more is asked of them.
+    const placed = await this.voice.placedOrderFor?.(ccid).catch(() => null);
+    if (placed?.reference) {
+      return `Sorry, the line's having trouble — but your order is in, number ${placed.reference}. The shop has it. Thanks for calling, goodbye.`;
+    }
     return "Sorry about that, I lost you for a moment — let's take it from the top. Is this collection or delivery?";
   }
 
@@ -438,6 +468,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       const format = formats[formatIndex];
       (brain as any).__turnDetection = turnDetections[turnIndex];
       (brain as any).__mode = (session as any).mode ?? 'REALTIME';
+      (brain as any).__ccid = ccid;
       brain.send(
         JSON.stringify({
           type: 'session.update',
@@ -703,6 +734,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
 
     caller.on('close', () => {
       this.calls.delete(ccid);
+      this.cancelRetry(brain, 'hangup');
       try {
         brain.close();
       } catch {
@@ -862,6 +894,70 @@ export class VoiceRealtimeGateway implements OnModuleInit {
    * generated for the cancelled reply is dropped rather than played, or the
    * caller hears the tail of an answer to a question they interrupted.
    */
+  /** Whatever retry is waiting, is not any more. */
+  private cancelRetry(brain: WebSocket, why: string): void {
+    const timer = (brain as any).__retryTimer;
+    if (!timer) return;
+    clearTimeout(timer);
+    (brain as any).__retryTimer = undefined;
+    this.logger.log(
+      `realtime ${String((brain as any).__ccid ?? '').slice(-8)} pending retry dropped — ${why}`,
+    );
+  }
+
+  /**
+   * A reply failed. Retry the ASK it belonged to — a bounded number of times,
+   * after the wait the API named — or stop and hand the caller to the engine
+   * that has its own budget.
+   */
+  private retryAsk(
+    brain: WebSocket,
+    ccid: string,
+    failedId: string,
+    code: string,
+    message: string,
+  ): void {
+    const t = this.turnsOf(brain);
+    const ask = t.asks.get(failedId);
+    if (!ask?.payload) {
+      // The server's own reply to a caller turn. Not ours to replay; the
+      // caller will say something again or the watchdog will speak.
+      this.watchForSilence(brain, ccid, 'reply');
+      return;
+    }
+    ask.attempts += 1;
+    if (ask.attempts > MAX_RETRIES) {
+      this.logger.error(
+        `realtime ${ccid.slice(-8)} giving up on a ${ask.origin} reply after ${MAX_RETRIES} retries (${code || 'unknown'})`,
+      );
+      if (!(brain as any).__gaveUp) {
+        (brain as any).__gaveUp = true;
+        // The other engine has a budget of its own. If an order is already
+        // in, the handover says so rather than taking it again.
+        this.calls.delete(ccid);
+        void this.fallbackToRelay(ccid, { alreadySpoke: true });
+      }
+      return;
+    }
+    const reset = code === 'rate_limit_exceeded' ? rateLimitResetMs(message) : null;
+    const backoff = 400 * 2 ** (ask.attempts - 1);
+    const delay = Math.max(reset ?? 0, backoff) + Math.floor(Math.random() * 250);
+    (brain as any).__createBlockedUntil = Date.now() + delay;
+    this.logger.warn(
+      `realtime ${ccid.slice(-8)} retry ${ask.attempts}/${MAX_RETRIES} of a ${ask.origin} reply in ${delay}ms` +
+        (reset !== null ? ` (API asked for ${reset}ms)` : ''),
+    );
+    this.cancelRetry(brain, 'superseded by a newer retry');
+    const timer = setTimeout(() => {
+      (brain as any).__retryTimer = undefined;
+      if (brain.readyState !== WebSocket.OPEN) return;
+      this.send(brain, ask.payload!, { retryOf: ask });
+      this.watchForSilence(brain, ccid, 'reply');
+    }, delay);
+    (timer as any).unref?.();
+    (brain as any).__retryTimer = timer;
+  }
+
   private interrupt(brain: WebSocket, opts: { serverCancels?: boolean } = {}): void {
     // The queued audio goes whether or not the model is still generating —
     // by the time somebody presses a key the model has usually finished and
@@ -989,8 +1085,10 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     /** Responses that produced at least one audio frame. */
     voiced: Set<string>;
     originOf: Map<string, ResponseOrigin>;
-    /** Failed replies already retried once. */
-    retried: Set<string>;
+    /** Every response.create we sent, in order, until the server names its id. */
+    pendingCreates: Ask[];
+    /** The ask behind each reply id — a retry's new id maps to the same ask. */
+    asks: Map<string, Ask>;
   } {
     return ((brain as any).__turns ??= {
       askSeq: 0,
@@ -1004,7 +1102,8 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       toolResponses: new Set(),
       voiced: new Set(),
       originOf: new Map(),
-      retried: new Set(),
+      pendingCreates: [],
+      asks: new Map(),
     });
   }
 
@@ -1125,8 +1224,34 @@ export class VoiceRealtimeGateway implements OnModuleInit {
   }
 
   /** Everything we say to the model goes through here, so it can be counted. */
-  private send(brain: WebSocket, frame: Record<string, unknown>): void {
+  private send(
+    brain: WebSocket,
+    frame: Record<string, unknown>,
+    opts: { retryOf?: Ask } = {},
+  ): void {
     const stats = this.statsOf(brain);
+    if (frame.type === 'response.create') {
+      // While the API is telling us to wait, nothing asks it for a reply —
+      // not a tool follow-up, not a watchdog, not a check-in. Only the
+      // scheduled retry gets through, and it is the one that waited.
+      const blockedUntil = Number((brain as any).__createBlockedUntil ?? 0);
+      if (!opts.retryOf && Date.now() < blockedUntil) {
+        this.logger.warn(
+          `realtime ${String((brain as any).__ccid ?? '').slice(-8)} held a reply (${String(
+            (frame.response as any)?.metadata?.origin ?? 'caller',
+          )}) — rate-limit cooldown for another ${blockedUntil - Date.now()}ms`,
+        );
+        return;
+      }
+      const t = this.turnsOf(brain);
+      t.pendingCreates.push(
+        opts.retryOf ?? {
+          payload: frame,
+          origin: String((frame.response as any)?.metadata?.origin ?? 'caller') as ResponseOrigin,
+          attempts: 0,
+        },
+      );
+    }
     stats.toModel += 1;
     if (frame.type === 'input_audio_buffer.append') stats.audioOut += 1;
     try {
@@ -1179,7 +1304,6 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       response.tools = [];
       response.tool_choice = 'none';
     }
-    (brain as any).__lastCreate = { type: 'response.create', response };
     this.send(brain, { type: 'response.create', response });
   }
 
@@ -1418,6 +1542,15 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         this.turnsOf(brain).responseAskSeq.set(id, this.turnsOf(brain).askSeq);
         const origin = String(event.response?.metadata?.origin ?? 'caller') as ResponseOrigin;
         this.turnsOf(brain).originOf.set(id, origin);
+        {
+          const t = this.turnsOf(brain);
+          // Ours, in order — or the server's own, for a caller turn.
+          const ask =
+            origin === 'caller' && !t.pendingCreates.length
+              ? { payload: null, origin, attempts: 0 }
+              : (t.pendingCreates.shift() ?? { payload: null, origin, attempts: 0 });
+          t.asks.set(id, ask);
+        }
         this.logger.log(
           `realtime ${ccid.slice(-8)} reply ${id.slice(-8)} created at askSeq ${this.turnsOf(brain).askSeq} (${origin})`,
         );
@@ -1431,6 +1564,20 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       case 'conversation.item.input_audio_transcription.delta':
         (brain as any).__transcribing = true;
         return;
+
+      // Remaining budget, from the API's own accounting. The number that
+      // explains a whole call's worth of failures before the first one.
+      case 'rate_limits.updated': {
+        const lims: any[] = Array.isArray(event.rate_limits) ? event.rate_limits : [];
+        const line = lims
+          .map(
+            (l) =>
+              `${l.name} ${l.remaining ?? '?'}/${l.limit ?? '?'} (reset ${l.reset_seconds ?? '?'}s)`,
+          )
+          .join(', ');
+        if (line) this.logger.log(`realtime ${ccid.slice(-8)} rate limits: ${line}`);
+        return;
+      }
 
       case 'response.done': {
         // The line has stopped talking. Whatever happens next — the caller
@@ -1457,24 +1604,23 @@ export class VoiceRealtimeGateway implements OnModuleInit {
           const status = String(event.response?.status ?? '');
           const cancelled = status === 'cancelled';
           if (status === 'failed' || status === 'incomplete') {
-            // Three replies died fifty milliseconds after a tool result on one
-            // call, each costing a three-second stall, and the log said only
-            // "failed". The reason is in status_details; it is logged without
-            // any caller content, and the ask is retried exactly once.
+            // Sixty-one retries in one call. The first version keyed "retry
+            // once" on the FAILED reply's id, and every retry is a new reply
+            // with a new id — so the guard never matched, and a line that was
+            // being told to back off was hit every 180ms instead. The budget
+            // now belongs to the ASK: the response.create that started it,
+            // carried through each retry. And a rate limit is a wait, not a
+            // fault: the reset the API names is honoured, with backoff and
+            // jitter on top, by every reply path at once.
             const d = event.response?.status_details ?? {};
+            const message = String(d.error?.message ?? '');
             this.logger.error(
               `realtime ${ccid.slice(-8)} reply ${rid.slice(-8)} ${status}: type=${d.type ?? '?'} reason=${d.reason ?? '?'} ` +
-                `code=${d.error?.code ?? '?'} message=${String(d.error?.message ?? '').slice(0, 160)}`,
+                `code=${d.error?.code ?? '?'} message=${message.slice(0, 400)}`,
             );
-            const last = (brain as any).__lastCreate;
-            if (last && !t.retried.has(rid)) {
-              t.retried.add(rid);
-              this.logger.warn(`realtime ${ccid.slice(-8)} retrying the reply once`);
-              this.send(brain, last);
-              this.watchForSilence(brain, ccid, 'reply');
-              this.responsesOf(brain).delete(rid);
-              return;
-            }
+            this.responsesOf(brain).delete(rid);
+            this.retryAsk(brain, ccid, rid, String(d.error?.code ?? ''), message);
+            return;
           }
           if (rid && !hadAudio && !hadTool && !cancelled && status !== 'failed') {
             this.logger.warn(
@@ -1579,6 +1725,9 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         this.logger.log(
           `realtime ${ccid.slice(-8)} caller turn committed item=${itemId || '?'} askSeq=${t.askSeq}`,
         );
+        // The caller has moved on; a retry of what we were about to say to
+        // them is stale. The server will reply to their turn.
+        this.cancelRetry(brain, 'caller spoke');
         (brain as any).__callerSilences = 0;
         this.setPhase(brain, 'WAITING_MODEL');
         this.watchForSilence(brain, ccid, 'reply');

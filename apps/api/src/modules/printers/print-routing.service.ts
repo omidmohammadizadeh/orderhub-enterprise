@@ -24,6 +24,7 @@
 //                                                     delivery order)
 
 import { Injectable, Logger } from "@nestjs/common";
+import { receiptOrderNumber } from './receipt-order-number';
 import { formatMoney } from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import {
@@ -300,7 +301,7 @@ export class PrintRoutingService {
             modifiers: i.modifiers ?? [],
             notes: i.notes ?? null,
           })),
-          orderNumber: order.displayId ?? order.orderNumber ?? null,
+          orderNumber: receiptOrderNumber(order),
           displayId: order.displayId ?? null,
           platform: order.platform ?? null,
           orderSource: order.orderSource ?? null,
@@ -359,7 +360,7 @@ export class PrintRoutingService {
                 modifiers: i.modifiers ?? [],
                 notes: i.notes ?? null,
               })),
-              orderNumber: order.displayId ?? order.orderNumber ?? null,
+              orderNumber: receiptOrderNumber(order),
               displayId: order.displayId ?? null,
               platform: order.platform ?? null,
               orderSource: order.orderSource ?? null,
@@ -620,7 +621,7 @@ export class PrintRoutingService {
       ...header,
       customerVisitCount: visit.customerVisitCount,
       customerVisitTag: visit.customerVisitTag,
-      orderNumber: order.displayId ?? order.orderNumber ?? null,
+      orderNumber: receiptOrderNumber(order),
       displayId: order.displayId ?? null,
       currency: (order as any)?.location?.currency ?? null,
       // Order origin shown above the items so the kitchen instantly knows
@@ -678,7 +679,7 @@ export class PrintRoutingService {
       ...header,
       customerVisitCount: visit.customerVisitCount,
       customerVisitTag: visit.customerVisitTag,
-      orderNumber: order.displayId ?? order.orderNumber ?? null,
+      orderNumber: receiptOrderNumber(order),
       displayId: order.displayId ?? null,
       platform: order.platform ?? null,
       orderSource: order.orderSource ?? null,

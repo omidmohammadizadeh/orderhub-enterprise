@@ -418,42 +418,179 @@ describe('the payment question followed by silence cannot place an order', () =>
   });
 });
 
-describe('a failed reply says why, and is retried once', () => {
-  it('logs status_details without caller content, resends the last ask, and gives up the second time', async () => {
+// (the single-retry test that stood here encoded the id-keyed guard that
+// let call RDhsJSAg retry sixty-one times; the budgeted engine below replaces it)
+
+// ── call RDhsJSAg: sixty-one retries against a rate limit ───────────────────
+import { rateLimitResetMs } from '../voice-realtime.gateway';
+
+describe('a failed reply is retried for its ASK, within a budget, after the wait the API named', () => {
+  const RL = (id: string, ms = 20) => ({
+    type: 'response.done',
+    response: {
+      id,
+      status: 'failed',
+      status_details: {
+        type: 'failed',
+        error: {
+          code: 'rate_limit_exceeded',
+          message: `Rate limit reached for gpt-realtime on tokens per min (TPM): Limit 40000, Used 39669, Requested 800. Please try again in ${ms}ms.`,
+        },
+      },
+    },
+  });
+  const creates = (sim: VoiceRealtimeSim) =>
+    sim.toModel.filter((m) => m.type === 'response.create');
+
+  it('reads the reset the API asks for', () => {
+    expect(rateLimitResetMs('Please try again in 1.234s. Visit …')).toBe(1234);
+    expect(rateLimitResetMs('Please try again in 800ms.')).toBe(800);
+    expect(rateLimitResetMs('no hint here')).toBeNull();
+  });
+
+  it('stops after the budget even though every retry has a fresh id, then hands over once', async () => {
     const sim = conversationSim();
     await sim.answer();
     (sim.gateway.voice.conversationTool as jest.Mock).mockResolvedValueOnce({
       result: 'Added chips',
     });
-    await sim.callTool('add_item', { said: 'chips' }); // the follow-up ask is now the last create
+    await sim.callTool('add_item', { said: 'chips' }); // one tool follow-up ask
     sim.brain.sent.length = 0;
-    sim.brain.deliver({ type: 'response.created', response: { id: 'f1' } });
-    sim.brain.deliver({
-      type: 'response.done',
-      response: {
-        id: 'f1',
-        status: 'failed',
-        status_details: {
-          type: 'failed',
-          error: { code: 'rate_limit_exceeded', message: 'Too many' },
-        },
-      },
-    });
-    await settle();
-    expect(sim.log.join(' ')).toMatch(
-      /reply .*f1 failed: type=failed reason=\? code=rate_limit_exceeded message=Too many/,
-    );
-    expect(sim.log.join(' ')).toMatch(/retrying the reply once/);
-    expect(sim.toModel.filter((m) => m.type === 'response.create')).toHaveLength(1);
-    expect(sim.log.join(' ')).not.toMatch(/treating as a stall/);
+    const original = { type: 'response.create', response: { metadata: { origin: 'tool' } } };
 
-    sim.brain.sent.length = 0;
-    sim.brain.deliver({ type: 'response.created', response: { id: 'f1' } }); // same id fails again
+    // fail → retry 1 (≥400ms) → fail → retry 2 (≥800ms) → fail → give up
     sim.brain.deliver({
-      type: 'response.done',
-      response: { id: 'f1', status: 'failed', status_details: { type: 'failed' } },
+      type: 'response.created',
+      response: { id: 'f1', metadata: { origin: 'tool' } },
+    });
+    sim.brain.deliver(RL('f1'));
+    await settle(20);
+    expect(sim.log.join(' ')).toMatch(/retry 1\/2 of a tool reply in \d+ms \(API asked for 20ms\)/);
+    await settle(700);
+    expect(creates(sim)).toHaveLength(1);
+    expect(creates(sim)[0]).toEqual(original); // the ORIGINAL ask, not something else
+    sim.brain.deliver({
+      type: 'response.created',
+      response: { id: 'f2', metadata: { origin: 'tool' } },
+    });
+    sim.brain.deliver(RL('f2'));
+    await settle(20);
+    expect(sim.log.join(' ')).toMatch(/retry 2\/2/);
+    await settle(1100);
+    expect(creates(sim)).toHaveLength(2);
+    sim.brain.deliver({
+      type: 'response.created',
+      response: { id: 'f3', metadata: { origin: 'tool' } },
+    });
+    sim.brain.deliver(RL('f3'));
+    await settle(20);
+    expect(sim.log.join(' ')).toMatch(
+      /giving up on a tool reply after 2 retries \(rate_limit_exceeded\)/,
+    );
+    expect(sim.gateway.fallbackToRelay).toHaveBeenCalledTimes(1);
+    await settle(1800);
+    expect(creates(sim)).toHaveLength(2); // nothing after giving up
+  }, 10000);
+
+  it('holds every other reply while the line is cooling down — a watchdog cannot restart the storm', async () => {
+    const sim = conversationSim();
+    await sim.answer();
+    (sim.gateway.voice.conversationTool as jest.Mock).mockResolvedValueOnce({ result: 'ok' });
+    await sim.callTool('add_item', { said: 'chips' });
+    sim.brain.sent.length = 0;
+    sim.brain.deliver({
+      type: 'response.created',
+      response: { id: 'f1', metadata: { origin: 'tool' } },
+    });
+    sim.brain.deliver(RL('f1', 300));
+    await settle(20);
+    (sim.gateway as any).speakExactly(sim.brain, 'Sorry, are you still there?', {
+      origin: 'reminder',
+      speechOnly: true,
+    });
+    expect(creates(sim)).toHaveLength(0);
+    expect(sim.log.join(' ')).toMatch(/held a reply \(reminder\) — rate-limit cooldown/);
+  });
+
+  it('a hangup cancels the pending retry', async () => {
+    const sim = conversationSim();
+    await sim.answer();
+    (sim.gateway.voice.conversationTool as jest.Mock).mockResolvedValueOnce({ result: 'ok' });
+    await sim.callTool('add_item', { said: 'chips' });
+    sim.brain.sent.length = 0;
+    sim.brain.deliver({
+      type: 'response.created',
+      response: { id: 'f1', metadata: { origin: 'tool' } },
+    });
+    sim.brain.deliver(RL('f1'));
+    await settle(20);
+    sim.caller.close();
+    await settle(800);
+    expect(creates(sim)).toHaveLength(0);
+    expect(sim.log.join(' ')).toMatch(/pending retry dropped — hangup/);
+  });
+
+  it('a caller who speaks again cancels it too — the server replies to them', async () => {
+    const sim = conversationSim();
+    await sim.answer();
+    (sim.gateway.voice.conversationTool as jest.Mock).mockResolvedValueOnce({ result: 'ok' });
+    await sim.callTool('add_item', { said: 'chips' });
+    sim.brain.sent.length = 0;
+    sim.brain.deliver({
+      type: 'response.created',
+      response: { id: 'f1', metadata: { origin: 'tool' } },
+    });
+    sim.brain.deliver(RL('f1'));
+    await settle(20);
+    sim.brain.deliver({ type: 'input_audio_buffer.committed', item_id: 'u9' });
+    await settle(800);
+    expect(creates(sim)).toHaveLength(0);
+    expect(sim.log.join(' ')).toMatch(/pending retry dropped — caller spoke/);
+  });
+
+  it('a failed reply the server made for a caller turn is not ours to replay', async () => {
+    const sim = conversationSim();
+    await sim.answer();
+    sim.brain.sent.length = 0;
+    sim.brain.deliver({ type: 'input_audio_buffer.committed', item_id: 'u1' });
+    sim.brain.deliver({ type: 'response.created', response: { id: 'c1' } }); // no metadata: the server's own
+    sim.brain.deliver(RL('c1'));
+    await settle(600);
+    expect(creates(sim)).toHaveLength(0);
+    expect(sim.log.join(' ')).not.toMatch(/retry 1\/2/);
+  });
+
+  it("logs the API's own remaining budget", async () => {
+    const sim = conversationSim();
+    await sim.answer();
+    sim.brain.deliver({
+      type: 'rate_limits.updated',
+      rate_limits: [{ name: 'tokens', limit: 40000, remaining: 1200, reset_seconds: 1.8 }],
     });
     await settle();
-    expect(sim.toModel.filter((m) => m.type === 'response.create')).toHaveLength(0);
+    expect(sim.log.join(' ')).toMatch(/rate limits: tokens 1200\/40000 \(reset 1\.8s\)/);
+  });
+});
+
+describe('a recovery announces an order that is already in', () => {
+  it('placedOrderFor speaks the number digit by digit', async () => {
+    const { VoiceService } = require('../voice.service');
+    const s: any = Object.create(VoiceService.prototype);
+    s.logger = { log() {}, warn() {}, error() {} };
+    s.loadByControlId = async () => ({
+      call: { id: 'c1' },
+      ctx: {},
+      state: { orderId: 'o1', cart: { items: [] }, turns: [] },
+    });
+    s.db = () => ({
+      order: { findUnique: async () => ({ orderNumber: 1178, displayId: 'JVMX7' }) },
+    });
+    expect(await s.placedOrderFor('cc1')).toEqual({ reference: '1, 1, 7, 8' });
+    s.loadByControlId = async () => ({
+      call: { id: 'c1' },
+      ctx: {},
+      state: { cart: { items: [] }, turns: [] },
+    });
+    expect(await s.placedOrderFor('cc1')).toBeNull();
   });
 });
