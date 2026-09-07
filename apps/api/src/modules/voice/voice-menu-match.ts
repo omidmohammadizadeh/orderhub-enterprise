@@ -733,10 +733,13 @@ export function segmentItems<T extends { name: string; categoryName?: string }>(
   said: string,
   items: T[],
   opts: { limit?: number; floor?: number; maxWords?: number } = {},
-): { found: Array<{ quantity: number; match: GroupMatch<T>; phrase: string }>; leftovers: string[] } {
+): {
+  found: Array<{ quantity: number; match: GroupMatch<T>; phrase: string; trailing: string }>;
+  leftovers: string[];
+} {
   const tokens = plain(said).split(" ").filter(Boolean);
   const maxWords = opts.maxWords ?? 6;
-  const found: Array<{ quantity: number; match: GroupMatch<T>; phrase: string }> = [];
+  const found: Array<{ quantity: number; match: GroupMatch<T>; phrase: string; trailing: string }> = [];
   const leftovers: string[] = [];
 
   let i = 0;
@@ -744,6 +747,12 @@ export function segmentItems<T extends { name: string; categoryName?: string }>(
     let taken = 0;
     for (let len = Math.min(maxWords, tokens.length - i); len >= 1; len--) {
       const phrase = tokens.slice(i, i + len).join(" ");
+      // A size at the END of a window, with more of the sentence to come,
+      // belongs to the next dish. "Two chips and a ten inch pepperoni": the
+      // chips explained "and a ten inch" away as noise and size, so the
+      // pepperoni arrived on its own with no size and had to be asked about.
+      // Sizes come before the dish in speech; leave them for it.
+      if (i + len < tokens.length && endsWithSize(tokens.slice(i, i + len))) continue;
       const { quantity, matches } = matchWithQuantity(phrase, items, opts);
       if (!isConfidentGroup(matches)) continue;
       // The dish has to EXPLAIN the words it is taking.
@@ -756,7 +765,7 @@ export function segmentItems<T extends { name: string; categoryName?: string }>(
       // whole pizza on its way past. So a window is only taken if what is left
       // over is noise or a size.
       if (!explains(phrase, matches[0]!.group)) continue;
-      found.push({ quantity, match: matches[0]!, phrase });
+      found.push({ quantity, match: matches[0]!, phrase, trailing: "" });
       taken = len;
       break;
     }
@@ -764,10 +773,45 @@ export function segmentItems<T extends { name: string; categoryName?: string }>(
       i += taken;
       continue;
     }
+    // What belongs to nothing is remembered twice: as a leftover, and as the
+    // words that followed the dish just found. "Deep pan" three words after
+    // the pizza is that pizza's crust, and nobody else's.
     leftovers.push(tokens[i]!);
+    const last = found[found.length - 1];
+    if (last) last.trailing = `${last.trailing} ${tokens[i]!}`.trim();
     i += 1;
   }
   return { found, leftovers };
+}
+
+/**
+ * Did the caller actually SAY this option, word for word?
+ *
+ * The fuzzy matcher is for dish names heard through a phone line. A choice
+ * lifted out of the caller's own words has to be stricter: through the
+ * phonetic fold "ten inch pepperoni" IS "thin", and a ten-inch went to the
+ * kitchen on a thin crust nobody asked for. Every word of the option has to
+ * be there, plurals aside.
+ */
+export function saysOption(said: string, optionName: string): boolean {
+  const have = new Set(plain(said).split(" ").filter(Boolean).map(singular));
+  const want = plain(optionName).split(" ").filter((t) => t && !NOISE.has(t)).map(singular);
+  return want.length > 0 && want.every((t) => have.has(t));
+}
+
+/** Do these words, once the noise at the end is ignored, end on a size? */
+function endsWithSize(tokens: string[]): boolean {
+  for (let k = tokens.length - 1; k >= 0; k--) {
+    const t = tokens[k]!;
+    if (NOISE.has(t)) continue;
+    return (
+      /^\d+$/.test(t) ||
+      NUMBER_WORDS[t] !== undefined ||
+      /^(inch|inches)$/.test(t) ||
+      SIZE_RANK.some((s) => s.words.includes(t))
+    );
+  }
+  return false;
 }
 
 /**

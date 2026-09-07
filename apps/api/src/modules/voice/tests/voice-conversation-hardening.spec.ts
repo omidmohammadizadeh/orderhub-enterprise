@@ -548,17 +548,7 @@ describe('a failed reply is retried for its ASK, within a budget, after the wait
     expect(sim.log.join(' ')).toMatch(/pending retry dropped — caller spoke/);
   });
 
-  it('a failed reply the server made for a caller turn is not ours to replay', async () => {
-    const sim = conversationSim();
-    await sim.answer();
-    sim.brain.sent.length = 0;
-    sim.brain.deliver({ type: 'input_audio_buffer.committed', item_id: 'u1' });
-    sim.brain.deliver({ type: 'response.created', response: { id: 'c1' } }); // no metadata: the server's own
-    sim.brain.deliver(RL('c1'));
-    await settle(600);
-    expect(creates(sim)).toHaveLength(0);
-    expect(sim.log.join(' ')).not.toMatch(/retry 1\/2/);
-  });
+  // (a throttled caller reply IS replayed now — see "a throttled caller reply is replayed" below)
 
   it("logs the API's own remaining budget", async () => {
     const sim = conversationSim();
@@ -592,5 +582,175 @@ describe('a recovery announces an order that is already in', () => {
       state: { cart: { items: [] }, turns: [] },
     });
     expect(await s.placedOrderFor('cc1')).toBeNull();
+  });
+});
+
+// ── call RHyj98mQ: two pizzas, no chips, no delivery fee, a lie on recovery ──
+describe("parse_order lets the matcher go first", () => {
+  const { VoiceAiService } = require("../voice-ai.service");
+  const G = (id: string, name: string, opts: string[]) => ({ id, name, required: true, min: 1, options: opts.map((o, i) => ({ id: `${id}${i + 1}`, name: o, price: 0 })) });
+  const MENU: any[] = [
+    { id: "pep12", name: 'Pepperoni (12")', price: 8.9, categoryName: "Pizzas", modifierGroups: [G("cr", "Select Your Pizza Crust", ["Thin", "Deep Pan"])] },
+    { id: "chips", name: "Chips", price: 2.9, categoryName: "Sides", modifierGroups: [] },
+    { id: "gs", name: "Garlic Sauce", price: 1.3, categoryName: "Sides", modifierGroups: [] },
+  ];
+  const ctx = () => { const c: any = { currency: "GBP", items: MENU, deliveryZones: [] }; c.itemIndex = new Map(MENU.map((i) => [i.id, i])); c.optionIndex = new Map(MENU.flatMap((i: any) => i.modifierGroups.flatMap((g: any) => g.options.map((o: any) => [o.id, { groupId: g.id, itemId: i.id, option: o }])))); return c; };
+  const ai = (claude: any = null) => { const a: any = Object.create(VoiceAiService.prototype); a.logger = { log() {}, warn() {}, error() {} }; a.anthropic = claude; a.model = "m"; return a; };
+
+  it("places the whole sentence without Claude, and does not call Claude when nothing is left over", async () => {
+    let claudeCalls = 0;
+    const a = ai({ messages: { create: async () => { claudeCalls++; return { content: [{ type: "text", text: "[]" }] }; } } });
+    const st: any = { cart: { items: [] }, turns: [] };
+    const out = await a.runToolForConversation("parse_order", { said: "twelve inch pepperoni, deep pan, chips and garlic sauce" }, ctx(), st, null);
+    expect(st.cart.items.map((l: any) => l.itemId)).toEqual(["pep12", "chips", "gs"]);
+    expect(st.cart.items[0].modifiers.map((m: any) => m.name)).toEqual(["Deep Pan"]);
+    expect(claudeCalls).toBe(0);
+    expect(out.result).not.toMatch(/note: chips/);
+  });
+
+  it("sends Claude only the words the matcher could not place", async () => {
+    let asked = "";
+    const a = ai({ messages: { create: async (req: any) => { asked = req.messages[0].content; return { content: [{ type: "text", text: '[{"itemId":"gs","quantity":1}]' }] }; } } });
+    const st: any = { cart: { items: [] }, turns: [] };
+    await a.runToolForConversation("parse_order", { said: "chips and a thingy" }, ctx(), st, null);
+    expect(asked).toMatch(/CUSTOMER SAID: ".*thingy.*"/);
+    expect(asked).not.toMatch(/CUSTOMER SAID: ".*chips.*"/);
+  });
+});
+
+describe("two pizzas in one sentence each keep their own words", () => {
+  const { VoiceAiService } = require("../voice-ai.service");
+  const { segmentItems, saysOption } = require("../voice-menu-match");
+  const G = (id: string, name: string, opts: string[]) => ({ id, name, required: true, min: 1, options: opts.map((o, i) => ({ id: `${id}${i + 1}`, name: o, price: 0 })) });
+  const MENU: any[] = [
+    { id: "pep10", name: 'Pepperoni (10")', price: 7.9, categoryName: "Pizzas", modifierGroups: [G("cr", "Select Your Pizza Crust", ["Thin", "Deep Pan", "Stuffed"])] },
+    { id: "pep12", name: 'Pepperoni (12")', price: 8.9, categoryName: "Pizzas", modifierGroups: [G("cr", "Select Your Pizza Crust", ["Thin", "Deep Pan", "Stuffed"])] },
+    { id: "chips", name: "Chips", price: 2.9, categoryName: "Sides", modifierGroups: [] },
+  ];
+  const ctx = () => { const c: any = { currency: "GBP", items: MENU, deliveryZones: [] }; c.itemIndex = new Map(MENU.map((i) => [i.id, i])); c.optionIndex = new Map(MENU.flatMap((i: any) => i.modifierGroups.flatMap((g: any) => g.options.map((o: any) => [o.id, { groupId: g.id, itemId: i.id, option: o }])))); return c; };
+  const ai = () => { const a: any = Object.create(VoiceAiService.prototype); a.logger = { log() {}, warn() {}, error() {} }; a.anthropic = null; a.model = "m"; return a; };
+  const SAID = "a 12 inch pepperoni deep pan, two chips and a ten inch pepperoni";
+
+  it("leaves a size at the end of one dish's words for the next dish, and hands each dish the words after it", () => {
+    const { found, leftovers } = segmentItems(SAID, MENU, { limit: 3 });
+    expect(found.map((f: any) => f.phrase)).toEqual(["a 12 inch pepperoni", "two chips and a", "ten inch pepperoni"]);
+    expect(found.map((f: any) => f.trailing)).toEqual(["deep pan", "", ""]);
+    expect(leftovers).toEqual(["deep", "pan"]);
+  });
+
+  it("a choice is taken from the caller's words only when they said it — 'ten inch' is not 'thin'", () => {
+    expect(saysOption("ten inch pepperoni", "Thin")).toBe(false);
+    expect(saysOption("a 12 inch pepperoni deep pan", "Deep Pan")).toBe(true);
+    expect(saysOption("two large chips", "Large")).toBe(true);
+    expect(saysOption("pepperoni", "Pepperoni Topping")).toBe(false);
+  });
+
+  it("adds the deep pan 12-inch and the chips, and asks the crust of the 10-inch instead of guessing thin", async () => {
+    const a = ai(); const st: any = { cart: { items: [] }, turns: [] };
+    const out = await a.runToolForConversation("parse_order", { said: SAID }, ctx(), st, null);
+    expect(st.cart.items.map((l: any) => `${l.quantity}x${l.itemId}`)).toEqual(["1xpep12", "2xchips"]);
+    expect(st.cart.items[0].modifiers.map((m: any) => m.name)).toEqual(["Deep Pan"]);
+    expect(out.result).toMatch(/Still to ask: NOT added yet\. The Pepperoni still needs a choice of: pizza crust/);
+  });
+
+  it("files a dish that still needs its size under 'still to ask', not under 'added'", async () => {
+    const a = ai(); const st: any = { cart: { items: [] }, turns: [] };
+    const out = await a.runToolForConversation("parse_order", { said: "chips and a pepperoni" }, ctx(), st, null);
+    expect(st.cart.items.map((l: any) => l.itemId)).toEqual(["chips"]);
+    expect(out.result).toMatch(/^Added 1 × Chips\.\nStill to ask: Pepperoni comes in more than one size/);
+  });
+});
+
+describe("the same line twice in one breath is once", () => {
+  const { VoiceAiService } = require("../voice-ai.service");
+  const MENU: any[] = [{ id: "chips", name: "Chips", price: 2.9, modifierGroups: [] }, { id: "gs", name: "Garlic Sauce", price: 1.3, modifierGroups: [] }];
+  const ctx = () => { const c: any = { currency: "GBP", items: MENU, deliveryZones: [] }; c.itemIndex = new Map(MENU.map((i) => [i.id, i])); c.optionIndex = new Map(); return c; };
+  const ai = () => { const a: any = Object.create(VoiceAiService.prototype); a.logger = { log() {}, warn() {}, error() {} }; return a; };
+
+  it("refuses an identical add seconds after the first, allows a different one, and allows it again later", () => {
+    const a = ai(); const c = ctx(); const st: any = { cart: { items: [] }, turns: [] };
+    expect(a.addItemConversational({ said: "chips" }, c, st).result).toMatch(/^Added/);
+    expect(a.addItemConversational({ said: "chips" }, c, st).result).toMatch(/^Already on the order/);
+    expect(a.addItemConversational({ said: "garlic sauce" }, c, st).result).toMatch(/^Added/);
+    expect(st.cart.items).toHaveLength(2);
+    (st as any).__lastAdd.at -= 10_000;
+    expect(a.addItemConversational({ said: "garlic sauce" }, c, st).result).toMatch(/^Added/);
+    expect(st.cart.items).toHaveLength(3);
+  });
+});
+
+describe("a throttled caller reply is replayed, not apologised for", () => {
+  const RL = (id: string) => ({ type: "response.done", response: { id, status: "failed", status_details: { type: "failed", error: { code: "rate_limit_exceeded", message: "Rate limit reached. Please try again in 20ms." } } } });
+  it("re-asks for the caller's reply after the reset, with no script and no tools withheld", async () => {
+    const sim = conversationSim();
+    await sim.answer();
+    sim.brain.sent.length = 0;
+    sim.brain.deliver({ type: "input_audio_buffer.committed", item_id: "u1" });
+    sim.brain.deliver({ type: "response.created", response: { id: "c1" } });    // the server's own reply to "yes"
+    sim.brain.deliver(RL("c1")); await settle(700);
+    const creates = sim.toModel.filter((m) => m.type === "response.create");
+    expect(creates).toHaveLength(1);
+    expect(creates[0].response).toEqual({ metadata: { origin: "caller" } });
+    expect(sim.log.join(" ")).toMatch(/retry 1\/2 of a caller reply/);
+  });
+  it("leaves any other failure of a caller reply to the watchdog", async () => {
+    const sim = conversationSim();
+    await sim.answer();
+    sim.brain.sent.length = 0;
+    sim.brain.deliver({ type: "input_audio_buffer.committed", item_id: "u1" });
+    sim.brain.deliver({ type: "response.created", response: { id: "c1" } });
+    sim.brain.deliver({ type: "response.done", response: { id: "c1", status: "failed", status_details: { type: "failed", error: { code: "server_error", message: "boom" } } } });
+    await settle(700);
+    expect(sim.toModel.filter((m) => m.type === "response.create")).toHaveLength(0);
+  });
+});
+
+describe("a reminder may not claim anything happened", () => {
+  it("says so in its instructions", async () => {
+    const sim = conversationSim({ idleMs: 40 });
+    sim.gateway.config = { get: (k: string) => (k === "VOICE_CONVERSATION_IDLE_MS" || k === "VOICE_REALTIME_IDLE_MS" ? "40" : undefined) };
+    await sim.answer(); sim.brain.sent.length = 0;
+    spoke(sim, "r1"); await settle(120);
+    const reminder = sim.toModel.find((m) => m.type === "response.create" && String(m.response?.instructions ?? "").includes("are you still there"));
+    expect(reminder.response.instructions).toMatch(/Do not say that anything has been confirmed, placed, sent or done/);
+  });
+});
+
+describe("what a reply costs", () => {
+  it("is reported from the API's own accounting, and the session size once", async () => {
+    const sim = conversationSim();
+    await sim.answer();
+    expect(sim.log.join(" ")).toMatch(/session size: instructions \d+ chars, tools \d+ chars \(~\d+ tokens per reply/);
+    sim.brain.deliver({ type: "rate_limits.updated", rate_limits: [{ name: "tokens", limit: 40000, remaining: 30000, reset_seconds: 10 }] });
+    sim.brain.deliver({ type: "rate_limits.updated", rate_limits: [{ name: "tokens", limit: 40000, remaining: 24600, reset_seconds: 18 }] });
+    await settle();
+    expect(sim.log.join(" ")).toMatch(/tokens 24600\/40000 \(reset 18s\) — this reply ≈ 5400 tokens/);
+  });
+});
+
+describe("a delivery is priced or it is not read back", () => {
+  const { VoiceAiService } = require("../voice-ai.service");
+  const ai = () => { const a: any = Object.create(VoiceAiService.prototype); a.logger = { log() {}, warn() {}, error() {} }; return a; };
+  const gb = () => ({ currency: "GBP", country: "GB", items: [], itemIndex: new Map(), optionIndex: new Map(), deliveryZones: [{ id: "z", postcodePrefix: "NE37", fee: 3 }], address: { city: "Washington" } }) as any;
+
+  it("propose_delivery_address uses the postcode the lookup found when the model leaves it out", async () => {
+    const a = ai(); const st: any = { cart: { items: [] }, turns: [], addr: { postcode: "NE37 2LL", street: "Sunningdale Drive", city: "Washington" } };
+    const out = await a.runTool("propose_delivery_address", { line1: "11 Sunningdale Drive", city: "Washington" }, gb(), st, null);
+    expect(out.sayNow).toMatch(/So that's 11 Sunningdale Drive/);
+    expect(st.cart.deliveryAddress.postcode).toBe("NE37 2LL");
+  });
+
+  it("refuses an address with no postcode at all, in a postcode-priced shop", async () => {
+    const a = ai(); const st: any = { cart: { items: [] }, turns: [] };
+    const out = await a.runTool("propose_delivery_address", { line1: "11 Sunningdale Drive", city: "Washington" }, gb(), st, null);
+    expect(out.result).toMatch(/Not taken — there is no postcode/);
+    expect(st.cart.deliveryAddress).toBeUndefined();
+  });
+
+  it("will not read back a delivery it cannot price", async () => {
+    const a = ai(); const st: any = { cart: { items: [{ lineId: "a", name: "CHIPS", quantity: 1, unitBasePrice: 2.9, modifiers: [] }], fulfillmentType: "DELIVERY", fulfillmentChosen: true, deliveryAddress: { line1: "11 Sunningdale Drive", city: "Washington" } }, turns: [] };
+    const out = await a.runTool("read_back_order", {}, gb(), st, null);
+    expect(out.result).toMatch(/Not read back — the delivery address has no postcode/);
+    expect(out.sayNow).toBeUndefined();
   });
 });

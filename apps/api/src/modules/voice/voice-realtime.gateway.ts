@@ -469,6 +469,11 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       (brain as any).__turnDetection = turnDetections[turnIndex];
       (brain as any).__mode = (session as any).mode ?? 'REALTIME';
       (brain as any).__ccid = ccid;
+      // Re-counted against the rate limit on EVERY reply. The number to look
+      // at when a call runs out of budget.
+      this.logger.log(
+        `realtime ${ccid.slice(-8)} session size: instructions ${String(session.instructions ?? '').length} chars, tools ${JSON.stringify(session.tools ?? []).length} chars (~${Math.round((String(session.instructions ?? '').length + JSON.stringify(session.tools ?? []).length) / 4)} tokens per reply before the conversation)`,
+      );
       brain.send(
         JSON.stringify({
           type: 'session.update',
@@ -919,11 +924,21 @@ export class VoiceRealtimeGateway implements OnModuleInit {
   ): void {
     const t = this.turnsOf(brain);
     const ask = t.asks.get(failedId);
-    if (!ask?.payload) {
-      // The server's own reply to a caller turn. Not ours to replay; the
-      // caller will say something again or the watchdog will speak.
+    if (!ask) {
       this.watchForSilence(brain, ccid, 'reply');
       return;
+    }
+    if (!ask.payload) {
+      // The server's own reply to a caller turn. If it was throttled, what
+      // the caller needs is THAT reply, after the wait — not a scripted
+      // apology that the model, still holding their "yes", turned into
+      // "the address is confirmed" with nothing confirmed. Anything else
+      // that kills a caller reply is left to the watchdog.
+      if (code !== 'rate_limit_exceeded') {
+        this.watchForSilence(brain, ccid, 'reply');
+        return;
+      }
+      ask.payload = { type: 'response.create', response: { metadata: { origin: 'caller' } } };
     }
     ask.attempts += 1;
     if (ask.attempts > MAX_RETRIES) {
@@ -1298,8 +1313,13 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     const origin: ResponseOrigin = opts.origin ?? (script ? 'script' : 'tool');
     const speechOnly = opts.speechOnly ?? origin !== 'tool';
     const response: Record<string, unknown> = { metadata: { origin } };
-    if (script)
-      response.instructions = `Say this to the caller, word for word, and nothing else: "${script}"`;
+    if (script) {
+      response.instructions =
+        `Say this to the caller, word for word, and nothing else: "${script}"` +
+        (origin === 'reminder'
+          ? ' Do not say that anything has been confirmed, placed, sent or done — nothing has.'
+          : '');
+    }
     if (speechOnly) {
       response.tools = [];
       response.tool_choice = 'none';
@@ -1575,7 +1595,14 @@ export class VoiceRealtimeGateway implements OnModuleInit {
               `${l.name} ${l.remaining ?? '?'}/${l.limit ?? '?'} (reset ${l.reset_seconds ?? '?'}s)`,
           )
           .join(', ');
-        if (line) this.logger.log(`realtime ${ccid.slice(-8)} rate limits: ${line}`);
+        const tokens = lims.find((l) => l.name === 'tokens');
+        const prev = (brain as any).__tokensRemaining;
+        (brain as any).__tokensRemaining = tokens?.remaining;
+        const cost =
+          typeof prev === 'number' && typeof tokens?.remaining === 'number' && tokens.remaining < prev
+            ? ` — this reply ≈ ${prev - tokens.remaining} tokens`
+            : '';
+        if (line) this.logger.log(`realtime ${ccid.slice(-8)} rate limits: ${line}${cost}`);
         return;
       }
 

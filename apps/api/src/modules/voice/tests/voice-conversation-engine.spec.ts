@@ -594,7 +594,7 @@ describe('changing their mind — call ZW3PmRPw', () => {
       },
     });
     a.parseModel = 'claude-haiku-4-5-20251001';
-    await a.runToolForConversation('parse_order', { said: 'chips' }, ctx(), fresh(), null);
+    await a.runToolForConversation('parse_order', { said: 'a thingamajig' }, ctx(), fresh(), null);
     expect(usedModel).toBe('claude-haiku-4-5-20251001');
   });
 });

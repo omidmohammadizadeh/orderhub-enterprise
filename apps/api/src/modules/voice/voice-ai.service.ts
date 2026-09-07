@@ -56,6 +56,7 @@ import {
   explains,
   mustChoose,
   needed,
+  saysOption,
 } from './voice-menu-match';
 import { isCurrentlyOpen } from '../../common/opening-hours.util';
 import {
@@ -2038,13 +2039,24 @@ ${menu || '(no items available — apologise and transfer)'}`;
         // to exactly one area whose outward code ends with what we heard, that
         // is not a guess, it is the only possibility. Two candidates and we
         // say nothing and let them be asked again.
+        // The postcode lookup_postcode just resolved is the postcode, whether
+        // or not the model passes it back. On a live call it did not, the
+        // address went in without one, and a £3 delivery was priced at
+        // nothing. A postcode-priced shop does not take an address without
+        // one.
         const heard = input?.postcode ? String(input.postcode) : undefined;
-        const postcode = heard
-          ? (resolveHeardPostcode(
-              heard,
-              ctx.deliveryZones.map((z) => z.postcodePrefix),
-            ) ?? undefined)
-          : undefined;
+        const postcode =
+          (heard
+            ? (resolveHeardPostcode(
+                heard,
+                ctx.deliveryZones.map((z) => z.postcodePrefix),
+              ) ?? undefined)
+            : undefined) ?? state.addr?.postcode ?? undefined;
+        if (!postcode && zoneMode(ctx.deliveryZones as any) === 'POSTCODE' && postcodeRequiredFor(ctx.country)) {
+          return {
+            result: 'Not taken — there is no postcode for this address, and delivery is priced by postcode. Ask for the postcode, run lookup_postcode, then propose the address again.',
+          };
+        }
 
         state.cart.fulfillmentType = 'DELIVERY';
         state.cart.fulfillmentChosen = true;
@@ -2180,6 +2192,16 @@ ${menu || '(no items available — apologise and transfer)'}`;
       case 'read_back_order': {
         if (state.cart.items.length === 0) {
           return { result: 'Nothing on the order yet — there is nothing to read back.' };
+        }
+        if (
+          state.cart.fulfillmentType === 'DELIVERY' &&
+          zoneMode(ctx.deliveryZones as any) === 'POSTCODE' &&
+          postcodeRequiredFor(ctx.country) &&
+          !state.cart.deliveryAddress?.postcode
+        ) {
+          return {
+            result: 'Not read back — the delivery address has no postcode, so the delivery charge cannot be worked out. Get the postcode and propose the address again first.',
+          };
         }
         if (state.pendingItem) {
           return {
@@ -3379,12 +3401,20 @@ ${this.compactMenu(ctx)}
     // Their own words, for required groups only — "12 inch pepperoni, deep
     // pan" settles the crust without the model restating it. Never for an
     // optional group: "pepperoni" must not add a paid pepperoni topping.
-    const said = String(input?.said ?? '');
+    // "Twelve inch pepperoni, deep pan, chips and garlic sauce": the crust
+    // belongs to the pizza even though the segmenter filed it three words
+    // away. choicesFrom is the whole sentence; said is only the words that
+    // named the dish.
+    // Word for word, not by sound: fuzzily, "ten inch" chose Thin. Of the
+    // options they named, the most specific one — "deep pan" over "pan".
+    const said = String(input?.choicesFrom ?? input?.said ?? '');
     if (said) {
       for (const g of groups) {
         if (!mustChoose(g) || has(g) >= needed(g)) continue;
-        const m = matchMenuItems<any>(said, g.options, { limit: 2, floor: 0.75 });
-        if (isConfident(m)) chosen.add(m[0]!.item.id);
+        const named = g.options
+          .filter((o: any) => saysOption(said, String(o.name)))
+          .sort((a: any, b: any) => String(b.name).length - String(a.name).length);
+        if (named.length) chosen.add(named[0]!.id);
       }
     }
     return chosen;
@@ -3613,6 +3643,17 @@ ${this.compactMenu(ctx)}
     const notes = String(input?.notes ?? '')
       .trim()
       .slice(0, 200);
+    // The same line, seconds apart, from two different tool calls is one
+    // order, not two: parse_order took 2.7s, the caller spoke again, and
+    // the model — prompted by the new turn — added the pizza a second time.
+    const recent = (state as any).__lastAdd as { key: string; at: number } | undefined;
+    const key = `${item.id}|${[...chosen].sort().join(',')}|${notes}`;
+    if (recent && recent.key === key && Date.now() - recent.at < 8000) {
+      return {
+        result: `Already on the order — that ${item.name} was added a moment ago. Not adding it again.\nOrder so far:\n${this.cartForModel(state, ctx)}`,
+      };
+    }
+    (state as any).__lastAdd = { key, at: Date.now() };
     state.cart.items.push({
       lineId: Math.random().toString(36).slice(2, 9),
       itemId: item.id,
@@ -3653,51 +3694,68 @@ ${this.compactMenu(ctx)}
     type Parsed = {
       itemId?: string;
       said?: string;
+      choicesFrom?: string;
       quantity?: number;
       modifierNames?: string[];
       notes?: string;
     };
-    let parsed: Parsed[] | null = null;
 
-    if (this.anthropic) {
+    // The matcher first. "Twelve inch pepperoni, deep pan, chips and garlic
+    // sauce" is exactly what it was built for, it answers in a millisecond,
+    // and it does not invent — Claude, given the whole menu and asked to
+    // read that sentence, returned "garlic sauce, note: chips". Claude is
+    // for the words the matcher could not place, and only those.
+    const { found, leftovers } = segmentItems(text, ctx.items, { limit: 3 });
+    // Each dish is offered its own words and the ones that followed it, not
+    // the whole sentence: read the sentence, "Thin" scored as well as "Deep
+    // Pan" for the 12-inch because of the "ten inch" three items later, and
+    // the crust that had been said plainly was asked for again.
+    const parsed: Parsed[] = found.map((f) => ({
+      said: f.phrase,
+      choicesFrom: `${f.phrase} ${f.trailing}`.trim(),
+      quantity: f.quantity,
+      itemId: f.match.group.variants.length === 1 ? f.match.group.variants[0]!.id : undefined,
+    }));
+    // Words the segmenter left over that are the NAME of a choice on one of
+    // the dishes it found ("deep pan") are that choice, not a missing item —
+    // they are absorbed below and must not be sent to Claude to guess at.
+    const optionWords = new Set<string>();
+    for (const f of found)
+      for (const v of f.match.group.variants)
+        for (const g of (v as any).modifierGroups ?? [])
+          for (const o of g.options ?? [])
+            for (const w of String(o.name).toLowerCase().split(/[^a-z0-9]+/)) if (w) optionWords.add(w);
+    const unplaced = leftovers
+      .map((l) => l.split(/\s+/).filter((w) => !optionWords.has(w.toLowerCase().replace(/[^a-z0-9]/g, ''))).join(' '))
+      .join(' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (unplaced && this.anthropic) {
       try {
         const res = await this.anthropic.messages.create({
           model: this.parseModel ?? this.model,
-          max_tokens: 800,
+          max_tokens: 400,
           system:
-            'You turn what a takeaway customer said on the phone into order lines. Use ONLY the menu given. Return JSON only: an array of {"itemId": string (from the menu), "quantity": number, "modifierNames": string[] (sizes, crusts, sauces, choices exactly as said), "notes": string}. Never invent items. If a phrase matches nothing, omit it. No prose.',
+            'You turn what a takeaway customer said on the phone into order lines. Use ONLY the menu given. Return JSON only: an array of {"itemId": string (from the menu), "quantity": number, "modifierNames": string[] (sizes, crusts, sauces, choices exactly as said), "notes": string}. Never invent items; never turn one item into another with a note. If a phrase matches nothing, omit it. No prose.',
           messages: [
             {
               role: 'user',
               content: `MENU (each line: id | name | price)\n${(ctx.items ?? [])
                 .map((i: any) => `${i.id} | ${i.name} | ${money(i.price, ctx.currency)}`)
-                .join('\n')}\n\nCUSTOMER SAID: "${text}"`,
+                .join('\n')}\n\nCUSTOMER SAID: "${unplaced}"`,
             },
           ],
         });
-        const raw = res.content
-          .filter((b): b is Anthropic.TextBlock => b.type === 'text')
-          .map((b) => b.text)
-          .join('');
+        const raw = res.content.filter((b): b is Anthropic.TextBlock => b.type === 'text').map((b) => b.text).join('');
         const json = raw.slice(raw.indexOf('['), raw.lastIndexOf(']') + 1);
         const arr = JSON.parse(json);
-        if (Array.isArray(arr)) parsed = arr;
+        if (Array.isArray(arr)) for (const p of arr) parsed.push(p);
       } catch (e: any) {
-        this.logger.warn(`parse_order via Claude failed: ${e?.message ?? e} — using the matcher`);
+        this.logger.warn(`parse_order via Claude failed: ${e?.message ?? e} — matcher only`);
       }
     }
-    if (!parsed) {
-      const { found, leftovers } = segmentItems(text, ctx.items, { limit: 3 });
-      parsed = found.map((f) => ({
-        said: f.phrase,
-        quantity: f.quantity,
-        itemId: f.match.group.variants.length === 1 ? f.match.group.variants[0]!.id : undefined,
-      }));
-      if (!parsed.length && leftovers.length) {
-        return {
-          result: `Couldn't match "${text}" to the menu. Ask what they'd like, one item at a time.`,
-        };
-      }
+    if (!parsed.length) {
+      return { result: `Couldn't match "${text}" to the menu. Ask what they'd like, one item at a time.` };
     }
 
     const added: string[] = [];
@@ -3707,6 +3765,7 @@ ${this.compactMenu(ctx)}
         {
           itemId: p.itemId,
           said: p.said ?? text,
+          choicesFrom: p.choicesFrom ?? p.said ?? text,
           quantity: p.quantity,
           modifierNames: p.modifierNames,
           notes: p.notes,
@@ -3714,15 +3773,18 @@ ${this.compactMenu(ctx)}
         ctx,
         state,
       );
-      (out.result.startsWith('NOT added') ? asks : added).push(out.result.split('\n')[0]!);
+      // Anything that is not an "Added" is something still to settle — a
+      // missing choice, a size, a name that fits two dishes. It was filed as
+      // added if it did not begin "NOT added", and "Pepperoni comes in more
+      // than one size" read as good news.
+      (out.result.startsWith('Added') ? added : asks).push(out.result.split('\n')[0]!);
     }
-    const summary = state.cart.items.length
-      ? `\nOrder so far:\n${this.cartForModel(state, ctx)}`
-      : '';
+    const summary = state.cart.items.length ? `\nOrder so far:\n${this.cartForModel(state, ctx)}` : '';
     return {
       result:
         `${added.length ? added.join(' ') : 'Nothing added yet.'}` +
-        `${asks.length ? `\nStill to ask: ${asks.join(' ')}` : ''}${summary}`,
+        `${asks.length ? `\nStill to ask: ${asks.join(' ')}` : ''}${summary}` +
+        `${unplaced && !this.anthropic ? `\nCould not place: "${unplaced}".` : ''}`,
     };
   }
 
