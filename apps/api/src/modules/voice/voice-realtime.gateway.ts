@@ -1,13 +1,13 @@
-import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { HttpAdapterHost } from "@nestjs/core";
-import { createHmac, timingSafeEqual } from "crypto";
-import type { IncomingMessage } from "http";
-import type { Duplex } from "stream";
-import { WebSocketServer, WebSocket } from "ws";
-import { PrismaService } from "../../infrastructure/database/prisma.service";
-import { VoiceService } from "./voice.service";
-import { TelnyxCallControlService } from "./telnyx-call-control.service";
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { HttpAdapterHost } from '@nestjs/core';
+import { createHmac, timingSafeEqual } from 'crypto';
+import type { IncomingMessage } from 'http';
+import type { Duplex } from 'stream';
+import { WebSocketServer, WebSocket } from 'ws';
+import { PrismaService } from '../../infrastructure/database/prisma.service';
+import { VoiceService } from './voice.service';
+import { TelnyxCallControlService } from './telnyx-call-control.service';
 
 // Speech to speech, as a second engine — not a replacement.
 //
@@ -83,7 +83,7 @@ interface AudioItem {
   totalMs: number;
 }
 
-const NEEDS_CONSENT = new Set(["use_usual", "use_saved_address", "order_confirmed"]);
+const NEEDS_CONSENT = new Set(['use_usual', 'use_saved_address', 'order_confirmed']);
 
 @Injectable()
 export class VoiceRealtimeGateway implements OnModuleInit {
@@ -117,17 +117,17 @@ export class VoiceRealtimeGateway implements OnModuleInit {
    */
   private apiKey(): string | undefined {
     return (
-      this.config.get<string>("VOICE_OPENAI_API_KEY") ||
-      this.config.get<string>("OPENAI_API_KEY") ||
+      this.config.get<string>('VOICE_OPENAI_API_KEY') ||
+      this.config.get<string>('OPENAI_API_KEY') ||
       undefined
     );
   }
 
   /** Where Telnyx should stream this call's audio. Null = engine unavailable. */
   streamUrl(callControlId: string): string | null {
-    const base = this.config.get<string>("VOICE_REALTIME_URL");
+    const base = this.config.get<string>('VOICE_REALTIME_URL');
     if (!base || !this.apiKey()) return null;
-    return `${base.replace(/\/+$/, "")}?call=${encodeURIComponent(
+    return `${base.replace(/\/+$/, '')}?call=${encodeURIComponent(
       callControlId,
     )}&t=${this.tokenFor(callControlId)}`;
   }
@@ -137,26 +137,26 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     if (!this.apiKey()) {
       return {
         ok: false,
-        why: "neither VOICE_OPENAI_API_KEY nor OPENAI_API_KEY is set on the API service",
+        why: 'neither VOICE_OPENAI_API_KEY nor OPENAI_API_KEY is set on the API service',
       };
     }
-    if (!this.config.get<string>("VOICE_REALTIME_URL")) {
-      return { ok: false, why: "VOICE_REALTIME_URL is not set on the API service" };
+    if (!this.config.get<string>('VOICE_REALTIME_URL')) {
+      return { ok: false, why: 'VOICE_REALTIME_URL is not set on the API service' };
     }
     return { ok: true };
   }
 
   private tokenFor(callControlId: string): string {
     const secret =
-      this.config.get<string>("VOICE_RELAY_SECRET") ??
-      this.config.get<string>("TELNYX_API_KEY") ??
-      "";
-    return createHmac("sha256", secret).update(callControlId).digest("hex").slice(0, 32);
+      this.config.get<string>('VOICE_RELAY_SECRET') ??
+      this.config.get<string>('TELNYX_API_KEY') ??
+      '';
+    return createHmac('sha256', secret).update(callControlId).digest('hex').slice(0, 32);
   }
 
   private validToken(callControlId: string, token: string): boolean {
     const want = Buffer.from(this.tokenFor(callControlId));
-    const got = Buffer.from(String(token ?? ""));
+    const got = Buffer.from(String(token ?? ''));
     return want.length === got.length && timingSafeEqual(want, got);
   }
 
@@ -165,10 +165,10 @@ export class VoiceRealtimeGateway implements OnModuleInit {
   }
 
   onModuleInit(): void {
-    if (!this.config.get<string>("VOICE_REALTIME_URL")) return;
+    if (!this.config.get<string>('VOICE_REALTIME_URL')) return;
     const server = this.adapterHost.httpAdapter?.getHttpServer();
     if (!server) {
-      this.logger.error("No HTTP server to attach the realtime voice socket to");
+      this.logger.error('No HTTP server to attach the realtime voice socket to');
       return;
     }
 
@@ -176,27 +176,27 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     // so socket.io and both voice transports can share one port without any of
     // them claiming a path that isn't theirs.
     this.wss = new WebSocketServer({ noServer: true });
-    server.on("upgrade", (req: IncomingMessage, socket: Duplex, head: Buffer) => {
+    server.on('upgrade', (req: IncomingMessage, socket: Duplex, head: Buffer) => {
       let url: URL;
       try {
-        url = new URL(req.url ?? "", "http://localhost");
+        url = new URL(req.url ?? '', 'http://localhost');
       } catch {
         return;
       }
-      if (!url.pathname.startsWith("/voice/media")) return;
+      if (!url.pathname.startsWith('/voice/media')) return;
 
-      const call = url.searchParams.get("call") ?? "";
-      const token = url.searchParams.get("t") ?? "";
+      const call = url.searchParams.get('call') ?? '';
+      const token = url.searchParams.get('t') ?? '';
       if (!call || !this.validToken(call, token)) {
         this.logger.warn(`Rejected realtime upgrade for "${call.slice(-8)}"`);
-        socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
+        socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
         socket.destroy();
         return;
       }
       this.wss!.handleUpgrade(req, socket, head, (ws) => void this.attach(ws, call));
     });
 
-    this.logger.log("Speech-to-speech engine listening on /voice/media");
+    this.logger.log('Speech-to-speech engine listening on /voice/media');
   }
 
   /** The call hung up — drop the model socket with it. */
@@ -226,14 +226,17 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     try {
       await this.telnyx.stopMediaStream(ccid);
       const url = this.relayUrlFor(ccid);
-      if (url && (await this.telnyx.startConversationRelay(ccid, {
-        url,
-        // Never a reason to fail: this runs when the caller is already in
-        // silence, and a handover that dies looking up a menu is worse than a
-        // handover onto a transcriber that has not been told the menu.
-        keyterms: await this.keytermsQuietly(ccid),
-        greeting: await this.handoverGreeting(ccid, opts.alreadySpoke === true),
-      }))) {
+      if (
+        url &&
+        (await this.telnyx.startConversationRelay(ccid, {
+          url,
+          // Never a reason to fail: this runs when the caller is already in
+          // silence, and a handover that dies looking up a menu is worse than a
+          // handover onto a transcriber that has not been told the menu.
+          keyterms: await this.keytermsQuietly(ccid),
+          greeting: await this.handoverGreeting(ccid, opts.alreadySpoke === true),
+        }))
+      ) {
         this.logger.log(`call ${ccid.slice(-8)} moved to the standard engine`);
         return;
       }
@@ -281,9 +284,9 @@ export class VoiceRealtimeGateway implements OnModuleInit {
 
   /** The relay's own URL builder, without importing the relay gateway. */
   private relayUrlFor(ccid: string): string | null {
-    const base = this.config.get<string>("VOICE_RELAY_URL");
+    const base = this.config.get<string>('VOICE_RELAY_URL');
     if (!base) return null;
-    return `${base.replace(/\/+$/, "")}?call=${encodeURIComponent(ccid)}&t=${this.tokenFor(ccid)}`;
+    return `${base.replace(/\/+$/, '')}?call=${encodeURIComponent(ccid)}&t=${this.tokenFor(ccid)}`;
   }
 
   /**
@@ -314,8 +317,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       return;
     }
 
-    const model =
-      this.config.get<string>("VOICE_REALTIME_MODEL") || "gpt-realtime";
+    const model = this.config.get<string>('VOICE_REALTIME_MODEL') || 'gpt-realtime';
     const model_url = `wss://api.openai.com/v1/realtime?model=${encodeURIComponent(model)}`;
     // No OpenAI-Beta header. The beta shape is switched off server-side now:
     //   "The Realtime Beta API is no longer supported. Please use /v1/realtime
@@ -326,7 +328,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     let streamId: string | undefined;
     const sendAudio = (b64: string) => {
       if (caller.readyState !== WebSocket.OPEN) return;
-      caller.send(JSON.stringify({ event: "media", stream_id: streamId, media: { payload: b64 } }));
+      caller.send(JSON.stringify({ event: 'media', stream_id: streamId, media: { payload: b64 } }));
       // How long this will take to SAY.
       //
       // The model generates a twenty-second greeting in about three, and every
@@ -335,7 +337,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       // listening" are twenty seconds apart, and anything that measures
       // silence from the first one is measuring while somebody is still being
       // spoken to. μ-law at 8kHz is one byte per sample.
-      const ms = (Buffer.from(b64, "base64").length / 8000) * 1000;
+      const ms = (Buffer.from(b64, 'base64').length / 8000) * 1000;
       const stats = this.statsOf(brain);
       stats.speakingUntil = Math.max(stats.speakingUntil, Date.now()) + ms;
     };
@@ -350,7 +352,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
      */
     const clearCaller = () => {
       if (caller.readyState !== WebSocket.OPEN) return;
-      caller.send(JSON.stringify({ event: "clear", stream_id: streamId }));
+      caller.send(JSON.stringify({ event: 'clear', stream_id: streamId }));
       this.statsOf(brain).speakingUntil = 0;
     };
     (brain as any).__clearCaller = clearCaller;
@@ -360,11 +362,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     // written down anywhere I can find, so try them in order of likelihood and
     // say which one worked — the same ladder that settled the Telnyx
     // transcription model after three live calls guessing at it.
-    const formats: Array<unknown> = [
-      { type: "audio/pcmu" },
-      { type: "g711_ulaw" },
-      "g711_ulaw",
-    ];
+    const formats: Array<unknown> = [{ type: 'audio/pcmu' }, { type: 'g711_ulaw' }, 'g711_ulaw'];
     let formatIndex = 0;
 
     // WHEN the caller has finished talking.
@@ -384,16 +382,16 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     // tried again deliberately, on a line somebody is watching.
     const turnDetections: Array<Record<string, unknown>> = [
       {
-        type: "server_vad",
-        threshold: Number(this.config.get<string>("VOICE_REALTIME_VAD_THRESHOLD") ?? 0.6) || 0.6,
+        type: 'server_vad',
+        threshold: Number(this.config.get<string>('VOICE_REALTIME_VAD_THRESHOLD') ?? 0.6) || 0.6,
         prefix_padding_ms: 300,
         silence_duration_ms: 600,
       },
-      { type: "semantic_vad", eagerness: "low" },
+      { type: 'semantic_vad', eagerness: 'low' },
     ];
     let turnIndex =
-      String(this.config.get<string>("VOICE_REALTIME_TURN_DETECTION") ?? "").toLowerCase() ===
-      "semantic_vad"
+      String(this.config.get<string>('VOICE_REALTIME_TURN_DETECTION') ?? '').toLowerCase() ===
+      'semantic_vad'
         ? 1
         : 0;
     let configured = false;
@@ -401,13 +399,14 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     const sendSessionUpdate = () => {
       const format = formats[formatIndex];
       (brain as any).__turnDetection = turnDetections[turnIndex];
+      (brain as any).__mode = (session as any).mode ?? 'REALTIME';
       brain.send(
         JSON.stringify({
-          type: "session.update",
+          type: 'session.update',
           session: {
-            type: "realtime",
+            type: 'realtime',
             instructions: session.instructions,
-            output_modalities: ["audio"],
+            output_modalities: ['audio'],
             audio: {
               input: {
                 format,
@@ -428,24 +427,24 @@ export class VoiceRealtimeGateway implements OnModuleInit {
                 // was the strongest argument against ever trying this.
                 transcription: {
                   model:
-                    this.config.get<string>("VOICE_REALTIME_TRANSCRIBE_MODEL") ||
-                    "gpt-4o-mini-transcribe",
+                    this.config.get<string>('VOICE_REALTIME_TRANSCRIBE_MODEL') ||
+                    'gpt-4o-mini-transcribe',
                   // "delivery" came back as "डिलिवरी". The model itself heard
                   // it correctly and carried on, so this only corrupts the log
                   // — but the log is the only way to tell the two engines
                   // apart, so it has to be readable.
-                  language: this.config.get<string>("VOICE_REALTIME_LANGUAGE") || "en",
+                  language: this.config.get<string>('VOICE_REALTIME_LANGUAGE') || 'en',
                 },
               },
               output: {
                 format,
                 // marin and cedar are the two OpenAI recommends for quality on
                 // gpt-realtime. cedar is the other option, one env var away.
-                voice: this.config.get<string>("VOICE_REALTIME_VOICE") || "marin",
+                voice: this.config.get<string>('VOICE_REALTIME_VOICE') || 'marin',
               },
             },
             tools: session.tools,
-            tool_choice: "auto",
+            tool_choice: 'auto',
           },
         }),
       );
@@ -478,7 +477,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     const greet = () => {
       brain.send(
         JSON.stringify({
-          type: "response.create",
+          type: 'response.create',
           response: { instructions: `Greet the caller with exactly: "${session.greeting}"` },
         }),
       );
@@ -505,47 +504,50 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     // accepted within a few seconds — a rejected format we ran out of guesses
     // for, a model that will not load, an account without realtime access —
     // give the call back to the engine that works.
-    const readyBy = setTimeout(() => {
-      if (configured) return;
-      const stats = this.statsOf(brain);
-      // Which of the three this was cannot be guessed at afterwards: a socket
-      // that never opened, one that opened and heard nothing back, or a
-      // session that was refused in a way we failed to notice. They need
-      // different fixes and they look identical in a log that only says the
-      // call was handed over.
-      this.logger.error(
-        `realtime session never became ready on ${ccid.slice(-8)} — handing the call to the standard engine ` +
-          `(socket ${brain.readyState}, ${stats.fromModel} events in / ${stats.toModel} out, ` +
-          `last "${stats.lastType}")`,
-      );
-      try {
-        brain.close();
-      } catch {
-        /* already gone */
-      }
-      this.calls.delete(ccid);
-      try {
-        caller.close();
-      } catch {
-        /* already gone */
-      }
-      // Nothing has been said to this caller yet, so they get greeted rather
-      // than apologised to.
-      void this.fallbackToRelay(ccid, { alreadySpoke: false });
-    }, Number(this.config.get<string>("VOICE_REALTIME_READY_MS")) || 5000);
+    const readyBy = setTimeout(
+      () => {
+        if (configured) return;
+        const stats = this.statsOf(brain);
+        // Which of the three this was cannot be guessed at afterwards: a socket
+        // that never opened, one that opened and heard nothing back, or a
+        // session that was refused in a way we failed to notice. They need
+        // different fixes and they look identical in a log that only says the
+        // call was handed over.
+        this.logger.error(
+          `realtime session never became ready on ${ccid.slice(-8)} — handing the call to the standard engine ` +
+            `(socket ${brain.readyState}, ${stats.fromModel} events in / ${stats.toModel} out, ` +
+            `last "${stats.lastType}")`,
+        );
+        try {
+          brain.close();
+        } catch {
+          /* already gone */
+        }
+        this.calls.delete(ccid);
+        try {
+          caller.close();
+        } catch {
+          /* already gone */
+        }
+        // Nothing has been said to this caller yet, so they get greeted rather
+        // than apologised to.
+        void this.fallbackToRelay(ccid, { alreadySpoke: false });
+      },
+      Number(this.config.get<string>('VOICE_REALTIME_READY_MS')) || 5000,
+    );
     (readyBy as any).unref?.();
     (brain as any).__readyBy = readyBy;
 
-    brain.on("open", () => {
+    brain.on('open', () => {
       this.logger.log(
         `realtime model connected for ${ccid.slice(-8)} (${model}, key=${
-          this.config.get<string>("VOICE_OPENAI_API_KEY") ? "voice" : "shared"
+          this.config.get<string>('VOICE_OPENAI_API_KEY') ? 'voice' : 'shared'
         })`,
       );
       sendSessionUpdate();
     });
 
-    brain.on("message", (raw) => void this.onModelEvent(raw.toString(), ccid, brain, sendAudio));
+    brain.on('message', (raw) => void this.onModelEvent(raw.toString(), ccid, brain, sendAudio));
 
     // A WebSocket that has died does not say so: it stays readyState OPEN,
     // swallows everything sent into it and returns nothing. On the wire that
@@ -553,43 +555,46 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     // caller came to sit through fourteen seconds of nothing while we appended
     // audio to a socket with no one on the other end. A ping every few seconds
     // separates the two, and an unanswered one is a dead line, not a slow one.
-    const beat = setInterval(() => {
-      if (brain.readyState !== WebSocket.OPEN) return;
-      const stats = this.statsOf(brain);
-      if (stats.pingAt && !stats.pongAt) {
-        this.logger.error(
-          `realtime ${ccid.slice(-8)} model socket stopped answering — handing to the standard engine`,
-        );
-        clearInterval(beat);
-        this.calls.delete(ccid);
-        try {
-          brain.close();
-        } catch {
-          /* already gone */
+    const beat = setInterval(
+      () => {
+        if (brain.readyState !== WebSocket.OPEN) return;
+        const stats = this.statsOf(brain);
+        if (stats.pingAt && !stats.pongAt) {
+          this.logger.error(
+            `realtime ${ccid.slice(-8)} model socket stopped answering — handing to the standard engine`,
+          );
+          clearInterval(beat);
+          this.calls.delete(ccid);
+          try {
+            brain.close();
+          } catch {
+            /* already gone */
+          }
+          void this.fallbackToRelay(ccid, { alreadySpoke: true });
+          return;
         }
-        void this.fallbackToRelay(ccid, { alreadySpoke: true });
-        return;
-      }
-      stats.pingAt = Date.now();
-      stats.pongAt = 0;
-      try {
-        brain.ping?.();
-      } catch {
-        /* the close handler will deal with it */
-      }
-    }, Number(this.config?.get<string>("VOICE_REALTIME_PING_MS") ?? 5000) || 5000);
+        stats.pingAt = Date.now();
+        stats.pongAt = 0;
+        try {
+          brain.ping?.();
+        } catch {
+          /* the close handler will deal with it */
+        }
+      },
+      Number(this.config?.get<string>('VOICE_REALTIME_PING_MS') ?? 5000) || 5000,
+    );
     // Nothing about a heartbeat should keep a process alive on its own.
     (beat as any).unref?.();
-    brain.on("pong", () => {
+    brain.on('pong', () => {
       this.statsOf(brain).pongAt = Date.now();
     });
-    brain.on("close", () => clearInterval(beat));
-    brain.on("error", (e: any) =>
+    brain.on('close', () => clearInterval(beat));
+    brain.on('error', (e: any) =>
       this.logger.error(`realtime model socket error on ${ccid.slice(-8)}: ${e?.message}`),
     );
-    brain.on("close", (code, reason) => {
+    brain.on('close', (code, reason) => {
       this.logger.log(
-        `realtime model closed for ${ccid.slice(-8)} (${code} ${reason?.toString() ?? ""})`,
+        `realtime model closed for ${ccid.slice(-8)} (${code} ${reason?.toString() ?? ''})`,
       );
       // The caller is still on the line and the thing that was talking to them
       // has gone. A deploy does this — the old instance shuts down mid-call and
@@ -608,7 +613,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       void this.fallbackToRelay(ccid, { alreadySpoke: true });
     });
 
-    caller.on("message", (raw) => {
+    caller.on('message', (raw) => {
       let frame: TelnyxMediaFrame;
       try {
         frame = JSON.parse(raw.toString());
@@ -622,8 +627,8 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         );
       }
       if (frame.stream_id) streamId = frame.stream_id;
-      if (frame.event === "media" && frame.media?.payload && brain.readyState === WebSocket.OPEN) {
-        this.send(brain, { type: "input_audio_buffer.append", audio: frame.media.payload });
+      if (frame.event === 'media' && frame.media?.payload && brain.readyState === WebSocket.OPEN) {
+        this.send(brain, { type: 'input_audio_buffer.append', audio: frame.media.payload });
         return;
       }
 
@@ -632,12 +637,12 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       // then pressed it again, and nothing on earth was listening. The webhook
       // that used to handle them now stands down for realtime calls, which is
       // right, but it left nobody handling them at all.
-      if (frame.event === "dtmf" && frame.dtmf?.digit) {
+      if (frame.event === 'dtmf' && frame.dtmf?.digit) {
         void this.onDigit(String(frame.dtmf.digit), ccid, brain);
       }
     });
 
-    caller.on("close", () => {
+    caller.on('close', () => {
       this.calls.delete(ccid);
       try {
         brain.close();
@@ -647,7 +652,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       this.logger.log(`realtime audio closed for call ${ccid.slice(-8)}`);
       this.summariseTiming(brain, ccid);
     });
-    caller.on("error", (e: any) =>
+    caller.on('error', (e: any) =>
       this.logger.warn(`realtime caller socket error on ${ccid.slice(-8)}: ${e?.message}`),
     );
   }
@@ -665,13 +670,35 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     if (brain.readyState !== WebSocket.OPEN) return;
     this.logger.log(`realtime ${ccid.slice(-8)} pressed ${digit}`);
 
-    if (digit === "0") {
+    if (digit === '0') {
       const out = await this.voice
-        .realtimeTool(ccid, "transfer_to_staff", { reason: "The caller pressed 0." })
+        .realtimeTool(ccid, 'transfer_to_staff', { reason: 'The caller pressed 0.' })
         .catch(() => null);
       if (out?.turn?.transferTo) {
         setTimeout(() => void this.telnyx.transfer(ccid, out.turn!.transferTo!), 3000);
       }
+      return;
+    }
+
+    // On the conversation engine there is no menu and no walkthrough: a
+    // digit is whatever the model asked, answered — or a caller who thinks
+    // this is a phone system, which the model can gently correct.
+    if ((brain as any).__mode === 'CONVERSATION') {
+      this.interrupt(brain);
+      this.send(brain, {
+        type: 'conversation.item.create',
+        item: {
+          type: 'message',
+          role: 'user',
+          content: [
+            {
+              type: 'input_text',
+              text: `(The caller pressed ${digit} on their keypad. If that answers what you just asked, take it as the answer; otherwise tell them they can just talk to you, and ask what they'd like.)`,
+            },
+          ],
+        },
+      });
+      this.send(brain, { type: 'response.create' });
       return;
     }
 
@@ -685,22 +712,22 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     if (answered?.say) {
       this.interrupt(brain);
       this.send(brain, {
-        type: "conversation.item.create",
+        type: 'conversation.item.create',
         item: {
-          type: "message",
-          role: "user",
+          type: 'message',
+          role: 'user',
           content: [
             {
-              type: "input_text",
+              type: 'input_text',
               // A confirmation keypress is the opposite instruction to a
               // walkthrough one: there the answer is already applied and the
               // model must keep out of it, here the answer has only been
               // RECORDED and the model still has to act on it.
               text: answered.confirmed
                 ? `They pressed ${digit}, which is a clear ${answered.confirmed.answered} to the question you asked. That is now recorded against this call. ${
-                    answered.confirmed.answered === "YES"
-                      ? "Call the tool you were about to call — it will see their yes."
-                      : "Treat it as a plain no and carry on without it."
+                    answered.confirmed.answered === 'YES'
+                      ? 'Call the tool you were about to call — it will see their yes.'
+                      : 'Treat it as a plain no and carry on without it.'
                   } Do not ask that question again.`
                 : `They pressed ${digit}. That answered your question and it has ALREADY been applied to the order — you will say "${answered.say}" next. Do not call add_item, and do not ask that question again.`,
             },
@@ -718,28 +745,28 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     if (await this.voice.pastTheMenu?.(ccid).catch(() => false)) {
       this.interrupt(brain);
       this.send(brain, {
-        type: "conversation.item.create",
+        type: 'conversation.item.create',
         item: {
-          type: "message",
-          role: "user",
+          type: 'message',
+          role: 'user',
           content: [
             {
-              type: "input_text",
+              type: 'input_text',
               text: `The caller pressed ${digit} on their keypad. That is their answer to whatever you last asked them — it is NOT a main-menu choice, and this call is past the menu. If you cannot see what it answers, ask them plainly what they meant.`,
             },
           ],
         },
       });
-      this.send(brain, { type: "response.create" });
+      this.send(brain, { type: 'response.create' });
       return;
     }
 
     const meaning: Record<string, string> = {
-      "1": "wants to place an order",
-      "2": "wants an update on an order they have already placed",
-      "3": "wants to change an order they have already placed",
-      "4": "has a problem with an order",
-      "5": "wants to hear the options again",
+      '1': 'wants to place an order',
+      '2': 'wants an update on an order they have already placed',
+      '3': 'wants to change an order they have already placed',
+      '4': 'has a problem with an order',
+      '5': 'wants to hear the options again',
     };
     const said = meaning[digit]
       ? `The caller pressed ${digit} on their keypad, which means they ${meaning[digit]}. Carry on from there without reading the options out again.`
@@ -754,10 +781,10 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     this.interrupt(brain);
 
     this.send(brain, {
-      type: "conversation.item.create",
-      item: { type: "message", role: "user", content: [{ type: "input_text", text: said }] },
+      type: 'conversation.item.create',
+      item: { type: 'message', role: 'user', content: [{ type: 'input_text', text: said }] },
     });
-    this.send(brain, { type: "response.create" });
+    this.send(brain, { type: 'response.create' });
   }
 
   /**
@@ -787,7 +814,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     const t = this.turnsOf(brain);
     if (playing && playing.playedMs < playing.totalMs) {
       this.send(brain, {
-        type: "conversation.item.truncate",
+        type: 'conversation.item.truncate',
         item_id: playing.itemId,
         content_index: playing.contentIndex,
         audio_end_ms: Math.floor(playing.playedMs),
@@ -805,7 +832,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     for (const id of this.responsesOf(brain)) t.cancelled.add(id);
     // On speech_started the server has already cancelled its own reply;
     // sending another cancel just earns "no active response found".
-    if (!opts.serverCancels) this.send(brain, { type: "response.cancel" });
+    if (!opts.serverCancels) this.send(brain, { type: 'response.cancel' });
     (brain as any).__responses = new Set<string>();
     (brain as any).__responsePending = false;
     (brain as any).__toolAwaitingReply = false;
@@ -839,7 +866,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       audioIn: 0,
       audioOut: 0,
       lastEventAt: Date.now(),
-      lastType: "-",
+      lastType: '-',
       pingAt: 0,
       pongAt: 0,
       speakingUntil: 0,
@@ -922,7 +949,9 @@ export class VoiceRealtimeGateway implements OnModuleInit {
   }
 
   /** What the caller is currently hearing, and how far through it they are. */
-  private playbackOf(brain: WebSocket): { itemId: string; contentIndex: number; playedMs: number; totalMs: number } | undefined {
+  private playbackOf(
+    brain: WebSocket,
+  ): { itemId: string; contentIndex: number; playedMs: number; totalMs: number } | undefined {
     const t = this.turnsOf(brain);
     const id = t.currentAudio;
     const a = id ? t.audio.get(id) : undefined;
@@ -951,9 +980,9 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     const td = (brain as any).__turnDetection;
     if (!td) return;
     this.send(brain, {
-      type: "session.update",
+      type: 'session.update',
       session: {
-        type: "realtime",
+        type: 'realtime',
         audio: { input: { turn_detection: { ...td, create_response: !code } } },
       },
     });
@@ -971,7 +1000,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     t.done.push(o);
     t.open = undefined;
     const d = (a?: number, b?: number) => (a && b ? b - a : undefined);
-    const fmt = (n?: number) => (n === undefined ? "—" : `${n}ms`);
+    const fmt = (n?: number) => (n === undefined ? '—' : `${n}ms`);
     this.logger.log(
       `realtime ${ccid.slice(-8)} turn timing: stop→first-audio ${fmt(d(o.speechStoppedAt, o.firstAudioAt))}, ` +
         `stop→forwarded ${fmt(d(o.speechStoppedAt, o.firstForwardedAt))}, ` +
@@ -988,18 +1017,32 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       return s[Math.min(s.length - 1, Math.floor((p / 100) * s.length))]!;
     };
     const col = (pick: (r: TurnTiming) => number | undefined) =>
-      rows.map(pick).filter((n): n is number => typeof n === "number" && n >= 0);
+      rows.map(pick).filter((n): n is number => typeof n === 'number' && n >= 0);
     const line = (name: string, xs: number[]) =>
-      xs.length ? `${name} p50 ${pct(xs, 50)}ms p95 ${pct(xs, 95)}ms (n=${xs.length})` : `${name} n=0`;
+      xs.length
+        ? `${name} p50 ${pct(xs, 50)}ms p95 ${pct(xs, 95)}ms (n=${xs.length})`
+        : `${name} n=0`;
     const d = (a?: number, b?: number) => (a && b ? b - a : undefined);
     this.logger.log(
       `realtime ${ccid.slice(-8)} latency summary — ` +
         [
-          line("stop→first-audio", col((r) => d(r.speechStoppedAt, r.firstAudioAt))),
-          line("stop→forwarded", col((r) => d(r.speechStoppedAt, r.firstForwardedAt))),
-          line("stop→generated", col((r) => d(r.speechStoppedAt, r.generationDoneAt))),
-          line("stop→line-quiet(est)", col((r) => d(r.speechStoppedAt, r.playbackDoneAt))),
-        ].join("; "),
+          line(
+            'stop→first-audio',
+            col((r) => d(r.speechStoppedAt, r.firstAudioAt)),
+          ),
+          line(
+            'stop→forwarded',
+            col((r) => d(r.speechStoppedAt, r.firstForwardedAt)),
+          ),
+          line(
+            'stop→generated',
+            col((r) => d(r.speechStoppedAt, r.generationDoneAt)),
+          ),
+          line(
+            'stop→line-quiet(est)',
+            col((r) => d(r.speechStoppedAt, r.playbackDoneAt)),
+          ),
+        ].join('; '),
     );
   }
 
@@ -1012,7 +1055,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
   private send(brain: WebSocket, frame: Record<string, unknown>): void {
     const stats = this.statsOf(brain);
     stats.toModel += 1;
-    if (frame.type === "input_audio_buffer.append") stats.audioOut += 1;
+    if (frame.type === 'input_audio_buffer.append') stats.audioOut += 1;
     try {
       brain.send(JSON.stringify(frame));
     } catch (e: any) {
@@ -1044,10 +1087,12 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       brain,
       script
         ? {
-            type: "response.create",
-            response: { instructions: `Say this to the caller, word for word, and nothing else: "${script}"` },
+            type: 'response.create',
+            response: {
+              instructions: `Say this to the caller, word for word, and nothing else: "${script}"`,
+            },
           }
-        : { type: "response.create" },
+        : { type: 'response.create' },
     );
   }
 
@@ -1068,7 +1113,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
    * So: ask once, and if that also produces nothing, give the call to the
    * engine that has been answering this phone for months.
    */
-  private watchForSilence(brain: WebSocket, ccid: string, mode: "reply" | "idle" = "reply"): void {
+  private watchForSilence(brain: WebSocket, ccid: string, mode: 'reply' | 'idle' = 'reply'): void {
     // Optional chaining because this runs on the tool path: a throw here
     // would skip the reply, which is the very silence it exists to prevent.
     // Three seconds.
@@ -1080,9 +1125,9 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     // early. Two rounds is six seconds before the call moves engine, which is
     // about as long as anyone will hold.
     const quiet =
-      mode === "idle"
-        ? Number(this.config?.get<string>("VOICE_REALTIME_IDLE_MS") ?? 10_000) || 10_000
-        : Number(this.config?.get<string>("VOICE_REALTIME_QUIET_MS") ?? 3000) || 3000;
+      mode === 'idle'
+        ? Number(this.config?.get<string>('VOICE_REALTIME_IDLE_MS') ?? 10_000) || 10_000
+        : Number(this.config?.get<string>('VOICE_REALTIME_QUIET_MS') ?? 3000) || 3000;
     // Wait until the line has actually stopped talking before starting to
     // count. "Sorry, are you still there?" arrived ten seconds after the model
     // finished GENERATING the greeting — while the caller was still listening
@@ -1102,7 +1147,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       const picture =
         `last "${stats.lastType}" ${since}ms ago, ${stats.fromModel} in / ${stats.toModel} out, ` +
         `audio ${stats.audioIn} in / ${stats.audioOut} out, ` +
-        `socket ${brain.readyState}, pong ${stats.pongAt ? `${Date.now() - stats.pongAt}ms ago` : "never"}`;
+        `socket ${brain.readyState}, pong ${stats.pongAt ? `${Date.now() - stats.pongAt}ms ago` : 'never'}`;
       // The line is MID-SENTENCE. There is no silence to fix.
       //
       // This fired 217ms after a response had been created — while the model
@@ -1120,7 +1165,9 @@ export class VoiceRealtimeGateway implements OnModuleInit {
 
       if (!(brain as any).__nudged) {
         (brain as any).__nudged = true;
-        this.logger.warn(`realtime ${ccid.slice(-8)} nothing came back — asking again (${picture})`);
+        this.logger.warn(
+          `realtime ${ccid.slice(-8)} nothing came back — asking again (${picture})`,
+        );
         // A response that has been open and silent for longer than the whole
         // budget is stuck, not working. Cancel it properly — clearing our own
         // bookkeeping is not enough, because OpenAI still believes it is
@@ -1141,9 +1188,9 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // indistinguishable from being hung up on.
         this.speakExactly(
           brain,
-          mode === "idle"
-            ? "Sorry, are you still there?"
-            : "Sorry, I lost you there for a second. Where would you like to start — shall I take the order from the top?",
+          mode === 'idle'
+            ? 'Sorry, are you still there?'
+            : 'Sorry, I lost you there for a second. Where would you like to start — shall I take the order from the top?',
         );
         this.watchForSilence(brain, ccid, mode);
         return;
@@ -1172,7 +1219,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     } catch {
       return;
     }
-    const type = String(event?.type ?? "");
+    const type = String(event?.type ?? '');
     const stats = this.statsOf(brain);
     stats.fromModel += 1;
     stats.lastEventAt = Date.now();
@@ -1181,11 +1228,11 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     switch (type) {
       // GA renamed this. Both spellings are accepted so a rename in either
       // direction cannot silence the line.
-      case "response.output_audio.delta":
-      case "response.audio.delta": {
+      case 'response.output_audio.delta':
+      case 'response.audio.delta': {
         if (!event.delta) return;
         const t = this.turnsOf(brain);
-        const responseId = String(event.response_id ?? "");
+        const responseId = String(event.response_id ?? '');
         // Late audio from a cancelled response. Dropped by WHICH response it
         // belongs to, so the next reply's first frames are never dropped
         // with it.
@@ -1209,9 +1256,9 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // Where this item will sit on the phone line: it starts playing when
         // whatever is queued ahead of it finishes. Recorded BEFORE sendAudio
         // advances the queue.
-        const itemId = String(event.item_id ?? "");
+        const itemId = String(event.item_id ?? '');
         if (itemId) {
-          const bytes = Buffer.from(String(event.delta), "base64").length;
+          const bytes = Buffer.from(String(event.delta), 'base64').length;
           const ms = (bytes / 8000) * 1000;
           let a = t.audio.get(itemId);
           if (!a) {
@@ -1235,7 +1282,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       // DEFAULTS — 24kHz PCM. Greeting on it sent 24kHz audio down an 8kHz
       // μ-law phone line, which is silence with extra steps. Only
       // session.updated means our settings were accepted.
-      case "session.created":
+      case 'session.created':
         // Logged, because its absence is the whole diagnosis when a session
         // never becomes ready: this arriving means OpenAI accepted the socket
         // and is answering, and the fault is in what we asked for. Nothing
@@ -1247,7 +1294,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       // and one of them finishing then read as "nothing is running". The next
       // tool asked for a reply mid-reply, was refused, and the line stopped
       // talking. Count them.
-      case "response.created": {
+      case 'response.created': {
         const id = String(event.response?.id ?? `r${Date.now()}`);
         this.responsesOf(brain).add(id);
         // The words the caller had said BEFORE this reply started are the
@@ -1259,11 +1306,11 @@ export class VoiceRealtimeGateway implements OnModuleInit {
 
       // A transcript is on its way. Consent-critical tools wait for it rather
       // than deciding on the last caller's words.
-      case "conversation.item.input_audio_transcription.delta":
+      case 'conversation.item.input_audio_transcription.delta':
         (brain as any).__transcribing = true;
         return;
 
-      case "response.done": {
+      case 'response.done': {
         // The line has stopped talking. Whatever happens next — the caller
         // answering, a tool, nothing at all — somebody is now waiting, and
         // until this the watchdog was armed ONLY by a transcript arriving or a
@@ -1279,14 +1326,16 @@ export class VoiceRealtimeGateway implements OnModuleInit {
           // ten seconds of idle-timer before being asked. That is a stall and
           // gets the short clock.
           const t = this.turnsOf(brain);
-          const rid = String(event.response?.id ?? "");
+          const rid = String(event.response?.id ?? '');
           const hadAudio = t.voiced.has(rid);
           const hadTool = t.toolResponses.has(rid);
           if (rid && !hadAudio && !hadTool) {
-            this.logger.warn(`realtime ${ccid.slice(-8)} empty reply ${rid.slice(-8)} — treating as a stall`);
-            this.watchForSilence(brain, ccid, "reply");
+            this.logger.warn(
+              `realtime ${ccid.slice(-8)} empty reply ${rid.slice(-8)} — treating as a stall`,
+            );
+            this.watchForSilence(brain, ccid, 'reply');
           } else {
-            this.watchForSilence(brain, ccid, "idle");
+            this.watchForSilence(brain, ccid, 'idle');
           }
         }
         {
@@ -1298,9 +1347,9 @@ export class VoiceRealtimeGateway implements OnModuleInit {
           }
         }
         const running = this.responsesOf(brain);
-        const id = String(event.response?.id ?? "");
+        const id = String(event.response?.id ?? '');
         if (id && running.has(id)) running.delete(id);
-        else running.delete(running.values().next().value ?? "");
+        else running.delete(running.values().next().value ?? '');
         if (running.size === 0) this.flushPending(brain);
         return;
       }
@@ -1308,7 +1357,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       // What the line actually SAID. Without it, "it went silent" is a report
       // that cannot be told apart from "it spoke and the audio never arrived",
       // and those have completely different causes.
-      case "response.output_audio_transcript.done":
+      case 'response.output_audio_transcript.done':
         // We have finished saying something. Whatever the caller says next is
         // in answer to THIS, and whatever they said before it was not.
         this.turnsOf(brain).askSeq += 1;
@@ -1318,7 +1367,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
           );
         }
         return;
-      case "session.updated":
+      case 'session.updated':
         (brain as any).__onConfigured?.();
         return;
 
@@ -1331,44 +1380,46 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       // They started talking. Stop, the way a person would — the model
       // cancels its own reply server-side, but the audio already at Telnyx
       // would carry on over the top of them.
-      case "input_audio_buffer.speech_started":
+      case 'input_audio_buffer.speech_started':
         // The server cancels its own reply on this; the truncation and the
         // Telnyx queue are ours to deal with, and they are the same job a
         // keypress does.
         this.interrupt(brain, { serverCancels: true });
         return;
 
-      case "input_audio_buffer.speech_stopped": {
+      case 'input_audio_buffer.speech_stopped': {
         const tm = this.timingOf(brain);
         tm.open = { speechStoppedAt: Date.now() };
-        this.watchForSilence(brain, ccid, "reply");
+        this.watchForSilence(brain, ccid, 'reply');
         return;
       }
 
       // The caller's turn is now a conversation item, in order. This is where
       // it gets stamped with the question it answers — its transcript may
       // arrive any time later, and possibly after a newer turn's.
-      case "input_audio_buffer.committed": {
+      case 'input_audio_buffer.committed': {
         const t = this.turnsOf(brain);
-        const itemId = String(event.item_id ?? "");
+        const itemId = String(event.item_id ?? '');
         if (itemId && !t.heard.has(itemId)) {
           t.heard.set(itemId, { askSeq: t.askSeq, committedAt: Date.now(), spoke: true });
           t.order.push(itemId);
         }
         const tm = this.timingOf(brain);
         if (tm.open && !tm.open.committedAt) tm.open.committedAt = Date.now();
-        this.watchForSilence(brain, ccid, "reply");
+        this.watchForSilence(brain, ccid, 'reply');
         return;
       }
 
-      case "conversation.item.input_audio_transcription.completed": {
+      case 'conversation.item.input_audio_transcription.completed': {
         // Kept, because a tool sometimes has to be held to what the caller
         // actually said rather than to what the model believes they meant.
-        const heard = String(event.transcript ?? "").trim();
+        const heard = String(event.transcript ?? '').trim();
         const t = this.turnsOf(brain);
         // An event with no item id still happened. Filed under a synthetic id
         // so it is never lost — and never mistaken for a different turn.
-        const itemId = String(event.item_id ?? "") || `anon-${(brain as any).__anonSeq = ((brain as any).__anonSeq ?? 0) + 1}`;
+        const itemId =
+          String(event.item_id ?? '') ||
+          `anon-${((brain as any).__anonSeq = ((brain as any).__anonSeq ?? 0) + 1)}`;
         (brain as any).__transcribing = false;
         this.logger.log(`realtime ${ccid.slice(-8)} heard ${JSON.stringify(heard)}`);
 
@@ -1431,19 +1482,19 @@ export class VoiceRealtimeGateway implements OnModuleInit {
             `realtime ${ccid.slice(-8)} the transcriber returned nothing for that turn`,
           );
           this.send(brain, {
-            type: "conversation.item.create",
+            type: 'conversation.item.create',
             item: {
-              type: "message",
-              role: "user",
+              type: 'message',
+              role: 'user',
               content: [
                 {
-                  type: "input_text",
-                  text: "(The transcriber returned no words for what was just heard. If you understood them, answer that. If it was only a noise, or you are not sure, ask them to say it again. It was NOT a yes.)",
+                  type: 'input_text',
+                  text: '(The transcriber returned no words for what was just heard. If you understood them, answer that. If it was only a noise, or you are not sure, ask them to say it again. It was NOT a yes.)',
                 },
               ],
             },
           });
-          this.watchForSilence(brain, ccid, "idle");
+          this.watchForSilence(brain, ccid, 'idle');
           return;
         }
         // A question the walkthrough asked, answered out loud.
@@ -1457,6 +1508,12 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // chain when the method is missing, which would skip the line below
         // and leave nothing watching the call — the one thing that must never
         // happen is silence.
+        // The conversation engine has no walkthrough to answer. The model
+        // has the turn; the clock starts.
+        if ((brain as any).__mode === 'CONVERSATION') {
+          this.watchForSilence(brain, ccid);
+          return;
+        }
         const answering = this.voice.realtimeSaid?.(ccid, heard);
         if (!answering) {
           this.watchForSilence(brain, ccid);
@@ -1470,20 +1527,20 @@ export class VoiceRealtimeGateway implements OnModuleInit {
               // for. Then the clock starts.
               if ((brain as any).__codeOwnsTurn) {
                 this.setTurnOwner(brain, false);
-                this.send(brain, { type: "response.create" });
+                this.send(brain, { type: 'response.create' });
               }
               this.watchForSilence(brain, ccid);
               return;
             }
             this.interrupt(brain);
             this.send(brain, {
-              type: "conversation.item.create",
+              type: 'conversation.item.create',
               item: {
-                type: "message",
-                role: "user",
+                type: 'message',
+                role: 'user',
                 content: [
                   {
-                    type: "input_text",
+                    type: 'input_text',
                     text: `They answered the question you asked, out loud, and it has ALREADY been applied to the order — you will say "${answered.say}" next. Do not call add_item, and do not ask that question again.`,
                   },
                 ],
@@ -1503,14 +1560,13 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       // outputs came back under one call_id, and two responses were asked for
       // at once. The second collided with the first and the line went silent
       // mid-order. Once per call_id, whichever event announces it first.
-      case "response.output_item.done":
-      case "response.function_call_arguments.done": {
+      case 'response.output_item.done':
+      case 'response.function_call_arguments.done': {
         const item = event.item ?? {};
-        if (type === "response.output_item.done" && item.type !== "function_call") return;
-        const name = String(event.name ?? item.name ?? "");
-        const callId = String(event.call_id ?? item.call_id ?? "");
-        const handled: Set<string> =
-          ((brain as any).__handledTools ??= new Set<string>());
+        if (type === 'response.output_item.done' && item.type !== 'function_call') return;
+        const name = String(event.name ?? item.name ?? '');
+        const callId = String(event.call_id ?? item.call_id ?? '');
+        const handled: Set<string> = ((brain as any).__handledTools ??= new Set<string>());
         if (!callId || handled.has(callId)) {
           if (callId) this.logger.log(`realtime ${ccid.slice(-8)} ignored a repeat of ${name}`);
           return;
@@ -1523,10 +1579,11 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // answer it was acting on arrived — so the words it would have been
         // judged against were the previous caller turn, or nothing at all.
         // Wait for the sentence that is already being written down.
-        if (NEEDS_CONSENT.has(name)) await this.waitForTranscript(brain);
+        const conversation = (brain as any).__mode === 'CONVERSATION';
+        if (!conversation && NEEDS_CONSENT.has(name)) await this.waitForTranscript(brain);
         let args: any = {};
         try {
-          args = JSON.parse(event.arguments ?? item.arguments ?? "{}");
+          args = JSON.parse(event.arguments ?? item.arguments ?? '{}');
         } catch {
           /* the model sent something unparseable; the tool decides */
         }
@@ -1535,36 +1592,38 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // and never a turn a previous consent decision already spent.
         const t = this.turnsOf(brain);
         const latest = this.latestHeard(brain);
-        const responseId = String(event.response_id ?? "");
+        const responseId = String(event.response_id ?? '');
         const askedAt = t.responseAskSeq.get(responseId) ?? t.askSeq;
         if (responseId) t.toolResponses.add(responseId);
-        const out = await this.voice
-          .realtimeTool(ccid, name, {
-            ...args,
-            __heard: latest?.text ?? null,
-            __heardItemId: latest?.itemId ?? null,
-            // Said in answer to the current question — not merely after we
-            // last spoke, and not already used to decide something else.
-            __heardFresh:
-              !!latest && latest.askSeq >= askedAt && !t.consumed.has(latest.itemId),
-            // Whether those words are worth reading at all. "Svensk." is not a
-            // no — it is a transcriber that lost the language, and a consent
-            // check that reads it as a refusal asks the same question forever.
-            __heardReadable: latest?.readable !== false,
-          })
-          .catch((e: any) => ({ result: `That failed: ${e?.message ?? e}`, turn: undefined }));
+        const out = await (
+          conversation
+            ? this.voice.conversationTool(ccid, name, args)
+            : this.voice.realtimeTool(ccid, name, {
+                ...args,
+                __heard: latest?.text ?? null,
+                __heardItemId: latest?.itemId ?? null,
+                // Said in answer to the current question — not merely after we
+                // last spoke, and not already used to decide something else.
+                __heardFresh:
+                  !!latest && latest.askSeq >= askedAt && !t.consumed.has(latest.itemId),
+                // Whether those words are worth reading at all. "Svensk." is not a
+                // no — it is a transcriber that lost the language, and a consent
+                // check that reads it as a refusal asks the same question forever.
+                __heardReadable: latest?.readable !== false,
+              })
+        ).catch((e: any) => ({ result: `That failed: ${e?.message ?? e}`, turn: undefined }));
         // Everything below this point must survive a tool that answered oddly.
         // A thrown TypeError here would skip the output AND the reply, which
         // the caller experiences as the line simply stopping.
-        const said = typeof out?.result === "string" && out.result ? out.result : "Done.";
+        const said = typeof out?.result === 'string' && out.result ? out.result : 'Done.';
         this.logger.log(`realtime ${ccid.slice(-8)} tool ${name} → ${said.slice(0, 120)}`);
         // Spent. The same "yes" cannot confirm two different things.
-        if (NEEDS_CONSENT.has(name) && latest) t.consumed.add(latest.itemId);
+        if (!conversation && NEEDS_CONSENT.has(name) && latest) t.consumed.add(latest.itemId);
         brain.send(
           JSON.stringify({
-            type: "conversation.item.create",
+            type: 'conversation.item.create',
             item: {
-              type: "function_call_output",
+              type: 'function_call_output',
               call_id: callId,
               output: said,
             },
@@ -1580,7 +1639,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // chained engine has always spoken these verbatim; this one was
         // dropping the script on the floor.
         const script = (out as any)?.sayNow;
-        if (typeof (out as any)?.owned === "boolean") this.setTurnOwner(brain, (out as any).owned);
+        if (typeof (out as any)?.owned === 'boolean') this.setTurnOwner(brain, (out as any).owned);
         if (this.responsesOf(brain).size > 0) {
           (brain as any).__responsePending = true;
           (brain as any).__toolAwaitingReply = true;
@@ -1602,19 +1661,22 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         return;
       }
 
-      case "error": {
+      case 'error': {
         const err = event.error ?? event;
         const text = JSON.stringify(err);
         // A rejected audio format is recoverable — try the next spelling
         // rather than leaving the caller on a line that cannot speak.
-        if (/format/i.test(text) && (brain as any).__retryFormat?.(String(err?.message ?? "").slice(0, 120))) {
+        if (
+          /format/i.test(text) &&
+          (brain as any).__retryFormat?.(String(err?.message ?? '').slice(0, 120))
+        ) {
           return;
         }
         // Same idea for turn detection: a rejected setting is recoverable, and
         // a caller should never pay for us having asked for something new.
         if (
           /turn_detection|semantic_vad|eagerness/i.test(text) &&
-          (brain as any).__retryTurnDetection?.(String(err?.message ?? "").slice(0, 120))
+          (brain as any).__retryTurnDetection?.(String(err?.message ?? '').slice(0, 120))
         ) {
           return;
         }
@@ -1650,7 +1712,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // this, a caller sat in silence for five more seconds after OpenAI had
         // already said no — on a call where the greeting had not been spoken
         // yet, so all they heard was a shop that did not answer its phone.
-        if (!(brain as any).__configured?.() && /session\./.test(String(err?.param ?? ""))) {
+        if (!(brain as any).__configured?.() && /session\./.test(String(err?.param ?? ''))) {
           this.logger.error(
             `realtime ${ccid.slice(-8)} session refused — handing to the standard engine now`,
           );

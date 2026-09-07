@@ -1,9 +1,6 @@
-import { Injectable, Logger } from "@nestjs/common";
-import { PrismaService } from "../../infrastructure/database/prisma.service";
-import {
-  WhatsAppMenuService,
-  type WaMenuContext,
-} from "../whatsapp/whatsapp-menu.service";
+import { Injectable, Logger } from '@nestjs/common';
+import { PrismaService } from '../../infrastructure/database/prisma.service';
+import { WhatsAppMenuService, type WaMenuContext } from '../whatsapp/whatsapp-menu.service';
 
 // Which restaurant is this call for?
 //
@@ -27,7 +24,7 @@ export interface VoiceContext extends WaMenuContext {
   /** The language the line SPEAKS. Per shop later; English until then. */
   spokenLanguage?: string;
   /** Which engine answers: the chained pipeline, or speech-to-speech. */
-  voiceEngine?: "RELAY" | "REALTIME";
+  voiceEngine?: 'RELAY' | 'REALTIME' | 'CONVERSATION';
   /** Operator kill switch — the AI answers only when this is on. */
   enabled: boolean;
   /** Answer without charging. For our own testing: a £1 debit per attempt
@@ -67,10 +64,10 @@ export interface VoiceContext extends WaMenuContext {
 /** Digits only — the same number arrives as +447700900123, 447700900123 or
  *  07700 900123 depending on who is calling and how it was typed in. */
 export function normaliseNumber(raw?: string | null): string {
-  if (!raw) return "";
-  const digits = String(raw).replace(/\D/g, "");
+  if (!raw) return '';
+  const digits = String(raw).replace(/\D/g, '');
   // UK national → international, so 07700… and +447700… compare equal.
-  if (digits.startsWith("0") && digits.length === 11) return `44${digits.slice(1)}`;
+  if (digits.startsWith('0') && digits.length === 11) return `44${digits.slice(1)}`;
   return digits;
 }
 
@@ -103,7 +100,7 @@ export class VoiceContextService {
       where: {
         deletedAt: null,
         isActive: true,
-        settings: { path: ["voiceNumber"], equals: dialled },
+        settings: { path: ['voiceNumber'], equals: dialled },
       },
     });
     if (exact) return exact;
@@ -112,9 +109,7 @@ export class VoiceContextService {
       where: { deletedAt: null, isActive: true, NOT: { settings: { equals: null } } },
       select: { id: true, settings: true },
     });
-    const hit = candidates.find(
-      (l: any) => normaliseNumber(l?.settings?.voiceNumber) === wanted,
-    );
+    const hit = candidates.find((l: any) => normaliseNumber(l?.settings?.voiceNumber) === wanted);
     if (!hit) return null;
     return this.db().location.findUnique({ where: { id: hit.id } });
   }
@@ -139,7 +134,7 @@ export class VoiceContextService {
     // the till would not.
     const menuCtx = await this.menus.resolveContext(undefined, {
       locationIdOverride: location.id,
-      channel: "POS",
+      channel: 'POS',
       // Which brand this number answers as. Unset means the location's own.
       brandIdOverride: settings.voiceBrandId ?? null,
     });
@@ -183,7 +178,7 @@ export class VoiceContextService {
       // What the line speaks. The speech model picks a language from what it
       // hears unless told, and on a live call it answered a UK caller in
       // Persian. English by default; a shop can set voiceLanguage later.
-      spokenLanguage: String(settings.voiceLanguage || "English"),
+      spokenLanguage: String(settings.voiceLanguage || 'English'),
       // Default OFF. An AI that starts answering a restaurant's phone because
       // a number got assigned is not a feature.
       enabled: settings.voiceAiEnabled === true,
@@ -194,7 +189,16 @@ export class VoiceContextService {
       // lock, the delivery-area refusal and the menu matching apply either
       // way: the comparison is between how they HEAR, not what they are
       // allowed to do.
-      voiceEngine: settings.voiceEngine === "REALTIME" ? "REALTIME" : "RELAY",
+      // CONVERSATION is the speech-to-speech transport with the conversation
+      // layer rebuilt around the model: no keypad menu, no slot machine, the
+      // menu in context, Claude behind the tools. Per shop, so a test line
+      // gets it first and every other shop is one setting away from it.
+      voiceEngine:
+        settings.voiceEngine === 'CONVERSATION'
+          ? 'CONVERSATION'
+          : settings.voiceEngine === 'REALTIME'
+            ? 'REALTIME'
+            : 'RELAY',
       testMode: settings.voiceTestMode === true,
       smsReceipt: settings.voiceSmsReceipt === true,
       timezone: location.timezone ?? null,
@@ -210,14 +214,8 @@ export class VoiceContextService {
       // JSON rather than quietly running unfenced.
       address: {
         line1: location.addressLine1 ?? addressJson.line1 ?? addressJson.street ?? null,
-        city:
-          location.city ??
-          addressJson.city ??
-          addressJson.town ??
-          addressJson.locality ??
-          null,
-        postcode:
-          location.postcode ?? addressJson.postcode ?? addressJson.postCode ?? null,
+        city: location.city ?? addressJson.city ?? addressJson.town ?? addressJson.locality ?? null,
+        postcode: location.postcode ?? addressJson.postcode ?? addressJson.postCode ?? null,
       },
       deliveryZones: zones.map((z: any) => ({
         id: String(z.id),

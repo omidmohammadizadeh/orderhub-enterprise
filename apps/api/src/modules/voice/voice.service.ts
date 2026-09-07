@@ -1,16 +1,16 @@
-import { Injectable, Logger } from "@nestjs/common";
-import { PrismaService } from "../../infrastructure/database/prisma.service";
-import { WalletService } from "../wallet/wallet.service";
-import { VoiceContextService, normaliseNumber } from "./voice-context.service";
-import { AddressLookupService } from "../address-lookup/address-lookup.service";
+import { Injectable, Logger } from '@nestjs/common';
+import { PrismaService } from '../../infrastructure/database/prisma.service';
+import { WalletService } from '../wallet/wallet.service';
+import { VoiceContextService, normaliseNumber } from './voice-context.service';
+import { AddressLookupService } from '../address-lookup/address-lookup.service';
 import {
   VoiceAiService,
   coerceState,
   emptyState,
   type VoiceState,
   type VoiceTurn,
-} from "./voice-ai.service";
-import { keytermsFromMenu } from "./voice-keyterms";
+} from './voice-ai.service';
+import { keytermsFromMenu } from './voice-keyterms';
 import {
   boardReference,
   digitChoice,
@@ -30,7 +30,7 @@ import {
   spokenOrderStatus,
   wantsHuman,
   type MenuChoice,
-} from "./voice-flow";
+} from './voice-flow';
 
 // The call, start to finish. Everything the telephony layer needs, and nothing
 // about telephony itself — so the same lifecycle works whether the audio comes
@@ -107,7 +107,7 @@ export class VoiceService {
     const ctx = await this.contexts.resolve(args.to);
     if (!ctx) {
       this.logger.warn(`Inbound call to unmapped number ${args.to} — not answering`);
-      return { answer: false, reason: "UNKNOWN_NUMBER" };
+      return { answer: false, reason: 'UNKNOWN_NUMBER' };
     }
 
     const call = await this.db().voiceCall.upsert({
@@ -118,10 +118,10 @@ export class VoiceService {
         locationId: ctx.locationId,
         brandId: ctx.brandId ?? null,
         providerCallId: args.providerCallId,
-        provider: args.provider ?? "TELNYX",
+        provider: args.provider ?? 'TELNYX',
         fromNumber: args.from ?? null,
         toNumber: args.to,
-        status: "RINGING",
+        status: 'RINGING',
         wasOverflow: args.wasOverflow === true,
       },
     });
@@ -129,8 +129,8 @@ export class VoiceService {
     // Operator kill switch. Off by default — an AI that starts answering a
     // restaurant's phone because a number got assigned is not a feature.
     if (!ctx.enabled) {
-      await this.markNotAnswered(call.id, "DISABLED");
-      return { answer: false, callId: call.id, reason: "DISABLED" };
+      await this.markNotAnswered(call.id, 'DISABLED');
+      return { answer: false, callId: call.id, reason: 'DISABLED' };
     }
 
     // The money gate. Tries the saved card inline before refusing, so a shop
@@ -143,7 +143,7 @@ export class VoiceService {
       ? { ok: true as const, balanceMinor: 0, priceMinor: 0, reason: undefined }
       : await this.wallet.canAnswerVoiceCall(ctx.tenantId, ctx.locationId);
     if (!verdict.ok) {
-      await this.markNotAnswered(call.id, verdict.reason ?? "NO_FUNDS");
+      await this.markNotAnswered(call.id, verdict.reason ?? 'NO_FUNDS');
       this.logger.warn(
         `Not answering call ${call.id} for location ${ctx.locationId}: ${verdict.reason} (balance ${verdict.balanceMinor}p, price ${verdict.priceMinor}p)`,
       );
@@ -157,7 +157,7 @@ export class VoiceService {
     // its first reply introduces the shop a second time. It also saves the
     // telephony layer a column: the greeting to play is simply turn zero.
     const state = emptyState();
-    state.turns.push({ role: "assistant", text: greeting });
+    state.turns.push({ role: 'assistant', text: greeting });
     state.callId = call.id;
     state.knownName = known.name ?? undefined;
     state.savedAddress = known.address ?? undefined;
@@ -165,7 +165,7 @@ export class VoiceService {
     await this.db().voiceCall.update({
       where: { id: call.id },
       data: {
-        status: "ANSWERED",
+        status: 'ANSWERED',
         answeredAt: new Date(),
         transcript: state as any,
       },
@@ -192,7 +192,7 @@ export class VoiceService {
     // Silence, not an apology. This is reached when the call has already been
     // handed to a human or closed — a late transcript arriving on a bridged
     // leg must not make us talk over the person who just picked up.
-    if (!loaded) return { say: "" };
+    if (!loaded) return { say: '' };
     const { call, ctx, state } = loaded;
 
     // A transcript that is not English is not an answer to anything. Passing
@@ -209,7 +209,10 @@ export class VoiceService {
       });
       if (misses >= 3) return this.handOver(call, ctx, state);
       return {
-        say: misses === 1 ? "Sorry, I missed that — say that again?" : "Sorry, I still didn't catch that. Could you say it once more?",
+        say:
+          misses === 1
+            ? 'Sorry, I missed that — say that again?'
+            : "Sorry, I still didn't catch that. Could you say it once more?",
       };
     }
 
@@ -218,22 +221,16 @@ export class VoiceService {
     // the model noticing, which is not the same thing.
     if (wantsHuman(args.text)) {
       state.askedForHuman = true;
-      state.turns.push({ role: "user", text: args.text });
+      state.turns.push({ role: 'user', text: args.text });
       return this.handOver(call, ctx, state);
     }
 
     switch (state.stage) {
-      case "MENU":
-        return this.applyMenuChoice(
-          call,
-          ctx,
-          state,
-          interpretMenuChoice(args.text),
-          args.text,
-        );
-      case "STATUS":
+      case 'MENU':
+        return this.applyMenuChoice(call, ctx, state, interpretMenuChoice(args.text), args.text);
+      case 'STATUS':
         return this.answerOrderStatus(call, ctx, state, args.text);
-      case "AMEND":
+      case 'AMEND':
         return this.answerAmendLookup(call, ctx, state, args.text);
       default: {
         // A read-back was just spoken, and the only answer that matters is
@@ -251,11 +248,11 @@ export class VoiceService {
         // The slot BEFORE the turn — answerSlot advances it on the way out, so
         // logging it afterwards named the question we were about to ask rather
         // than the one being answered.
-        const slotBefore = state.awaiting ?? "-";
+        const slotBefore = state.awaiting ?? '-';
         const fast = await this.answerSlot(call, ctx, state, args.text);
         this.logger.log(
           `call ${call.id} turn: stage=${state.stage} slot=${slotBefore} ` +
-            `→ ${state.awaiting ?? "-"} handled=${fast ? "scripted" : "model"}`,
+            `→ ${state.awaiting ?? '-'} handled=${fast ? 'scripted' : 'model'}`,
         );
         if (fast) return fast;
 
@@ -278,7 +275,7 @@ export class VoiceService {
    * context: this runs before the greeting, and the caller is listening to
    * silence while it does.
    */
-  async engineFor(_callControlId: string): Promise<"RELAY" | "REALTIME"> {
+  async engineFor(_callControlId: string): Promise<'RELAY' | 'REALTIME'> {
     // One engine. There is no setting any more.
     //
     // The two were built to be compared and they have been: speech-to-speech
@@ -290,11 +287,8 @@ export class VoiceService {
     // catches a call when this one cannot start or dies mid-sentence. That is
     // not a choice anybody makes; it is the floor. Tonight it is the reason an
     // order reached the kitchen at all after the model went quiet.
-    return "REALTIME";
+    return 'REALTIME';
   }
-
-
-
 
   /**
    * A keypress on the speech-to-speech engine, when a numbered question is on
@@ -314,7 +308,7 @@ export class VoiceService {
     digit: string,
   ): Promise<{
     say: string;
-    confirmed?: { intent: string; answered: "YES" | "NO" };
+    confirmed?: { intent: string; answered: 'YES' | 'NO' };
   } | null> {
     const loaded = await this.loadByControlId(callControlId);
     if (!loaded) return null;
@@ -325,8 +319,8 @@ export class VoiceService {
     // so a digit cannot mean anything but the answer to it.
     if (state.pendingConfirm?.asked && !state.pendingConfirm.answered) {
       const key = String(digit).trim();
-      if (key !== "1" && key !== "2") return null;
-      state.pendingConfirm.answered = key === "1" ? "YES" : "NO";
+      if (key !== '1' && key !== '2') return null;
+      state.pendingConfirm.answered = key === '1' ? 'YES' : 'NO';
       await this.save(call.id, state);
       this.logger.log(
         `call ${call.id} confirmed ${state.pendingConfirm.intent} by keypad: ${state.pendingConfirm.answered}`,
@@ -334,7 +328,7 @@ export class VoiceService {
       // Said back, then handed to the model to act on — the tool it calls next
       // reads the keypress out of state and no longer needs the transcript.
       return {
-        say: key === "1" ? "Yes — thank you." : "No problem.",
+        say: key === '1' ? 'Yes — thank you.' : 'No problem.',
         confirmed: { intent: state.pendingConfirm.intent, answered: state.pendingConfirm.answered },
       };
     }
@@ -352,12 +346,8 @@ export class VoiceService {
     }
 
     // 1 is "no note", the way it is on the other engine.
-    if (
-      state.pendingItem?.notesAsked &&
-      !state.choices?.length &&
-      String(digit).trim() === "1"
-    ) {
-      const say = this.ai.answerItemNote(ctx, state, "no");
+    if (state.pendingItem?.notesAsked && !state.choices?.length && String(digit).trim() === '1') {
+      const say = this.ai.answerItemNote(ctx, state, 'no');
       if (!say) return null;
       state.awaiting = this.pendingSlot(state);
       await this.save(call.id, state);
@@ -385,7 +375,7 @@ export class VoiceService {
     callControlId: string,
     said: string,
   ): Promise<{ say: string } | null> {
-    const heard = String(said ?? "").trim();
+    const heard = String(said ?? '').trim();
     if (!heard) return null;
     const loaded = await this.loadByControlId(callControlId).catch(() => null);
     if (!loaded) return null;
@@ -394,7 +384,7 @@ export class VoiceService {
     // Derived, not trusted: awaiting is a cache and the walkthrough itself is
     // the truth about what was asked.
     const slot = this.pendingSlot(state);
-    if (slot !== "ITEM_OPTION" && slot !== "ITEM_NOTE") return null;
+    if (slot !== 'ITEM_OPTION' && slot !== 'ITEM_NOTE') return null;
     state.awaiting = slot;
 
     // Not swallowed. answerSlot mutates the cart and persists it before it
@@ -402,9 +392,7 @@ export class VoiceService {
     // anyone being told — worth a line in the log, and the gateway still arms
     // the silence watchdog on a rejection.
     const turn = await this.answerSlot(call, ctx, state, heard).catch((e: any) => {
-      this.logger.error(
-        `call ${call.id} could not answer ${slot} out loud: ${e?.message ?? e}`,
-      );
+      this.logger.error(`call ${call.id} could not answer ${slot} out loud: ${e?.message ?? e}`);
       throw e;
     });
     if (!turn?.say) return null;
@@ -461,7 +449,7 @@ export class VoiceService {
     digit: string,
   ): Promise<{
     say: string;
-    confirmed?: { intent: string; answered: "YES" | "NO" };
+    confirmed?: { intent: string; answered: 'YES' | 'NO' };
     owned?: boolean;
   } | null> {
     return this.withCallLock(callControlId, async () => {
@@ -549,6 +537,7 @@ export class VoiceService {
     instructions: string;
     greeting: string;
     tools: Array<Record<string, unknown>>;
+    mode: 'REALTIME' | 'CONVERSATION';
   } | null> {
     const loaded = await this.loadByControlId(callControlId);
     if (!loaded) return null;
@@ -565,11 +554,80 @@ export class VoiceService {
         : null;
     if (usual) this.logger.log(`call ${call.id} realtime session carries their usual`);
 
+    if (ctx.voiceEngine === 'CONVERSATION') {
+      this.logger.log(`call ${call.id} answering on the conversation engine`);
+      return {
+        instructions: this.ai.promptForConversation(ctx, state, usual),
+        greeting: this.ai.conversationGreeting(ctx, state.knownName ?? null),
+        tools: this.ai.toolsForConversation(ctx),
+        mode: 'CONVERSATION',
+      };
+    }
     return {
       instructions: this.ai.promptForRealtime(ctx, state, usual),
       greeting: this.ai.greeting(ctx, state.knownName ?? null),
       tools: this.ai.toolsForRealtime(ctx),
+      mode: 'REALTIME',
     };
+  }
+
+  /**
+   * A tool the conversation engine asked for.
+   *
+   * The model heard the caller; it says whether they agreed. No transcript
+   * gate stands between it and the basket, because the transcript is the
+   * one thing on this line that cannot be trusted. What still stands is
+   * everything that does not depend on hearing: an order is placed only for
+   * the exact basket that was read back, and an address only for the one
+   * that was confirmed.
+   */
+  conversationTool(
+    callControlId: string,
+    name: string,
+    input: any,
+  ): Promise<{ result: string; turn?: Partial<VoiceTurn>; sayNow?: string }> {
+    return this.withCallLock(callControlId, () =>
+      this.conversationToolUnlocked(callControlId, name, input),
+    );
+  }
+
+  private async conversationToolUnlocked(
+    callControlId: string,
+    name: string,
+    input: any,
+  ): Promise<{ result: string; turn?: Partial<VoiceTurn>; sayNow?: string }> {
+    const loaded = await this.loadByControlId(callControlId);
+    if (!loaded) return { result: 'This call has ended.' };
+    const { call, ctx, state } = loaded;
+
+    if (name === 'use_usual') {
+      const last = await this.lastOrderFor(ctx, call.fromNumber);
+      const resolved = last ? this.ai.resolveUsual(ctx, last) : null;
+      if (!last || !resolved) {
+        return {
+          result: 'There is no previous order to reuse. Take the order from the beginning.',
+        };
+      }
+      this.ai.loadUsual(state, resolved, last);
+      await this.save(call.id, state);
+      return {
+        result: `Their usual is in the basket: ${state.cart.items
+          .map((l) => `${l.quantity} × ${l.name}`)
+          .join(', ')}. Call read_back_order now and say it back with the price.`,
+      };
+    }
+
+    const startedAt = Date.now();
+    const out = await this.ai.runToolForConversation(name, input, ctx, state, call.fromNumber);
+    this.logger.log(`conversation tool ${name} took ${Date.now() - startedAt}ms`);
+    await this.db().voiceCall.update({
+      where: { id: call.id },
+      data: {
+        transcript: state as any,
+        ...(state.orderId ? { orderId: state.orderId, outcome: 'ORDER' } : {}),
+      },
+    });
+    return out;
   }
 
   /**
@@ -585,7 +643,7 @@ export class VoiceService {
     input: any,
   ): Promise<{ result: string; turn?: Partial<VoiceTurn>; sayNow?: string }> {
     const loaded = await this.loadByControlId(callControlId);
-    if (!loaded) return { result: "This call has ended." };
+    if (!loaded) return { result: 'This call has ended.' };
     const { call, ctx, state } = loaded;
 
     // Looked up again rather than carried in the session.
@@ -595,7 +653,7 @@ export class VoiceService {
     // stashed on it at session time is gone by the time a tool runs. Two
     // queries against an indexed column is a cheap price for not depending on
     // that.
-    if (name === "use_usual") {
+    if (name === 'use_usual') {
       // The same yes the address needs. "No, I don't want the same as last
       // time" came back as "Sienos." and the whole previous order went into
       // the basket unasked.
@@ -603,7 +661,7 @@ export class VoiceService {
       if (!consent.ok && consent.unclear) {
         const ask = this.ai.confirmByKeypad(
           state,
-          "usual",
+          'usual',
           "Sorry — I didn't catch that. Would you like the same as last time?",
         );
         await this.save(call.id, state);
@@ -622,7 +680,7 @@ export class VoiceService {
       if (!last || !resolved) {
         return {
           result:
-            "There is no previous order to reuse here. Take the order from the beginning — ask whether it is collection or delivery.",
+            'There is no previous order to reuse here. Take the order from the beginning — ask whether it is collection or delivery.',
         };
       }
       this.ai.loadUsual(state, resolved, last);
@@ -630,7 +688,7 @@ export class VoiceService {
       return {
         result: `Their usual is in the basket: ${state.cart.items
           .map((l) => `${l.quantity} × ${l.name}`)
-          .join(", ")}. Now call read_back_order and say it back with the price.`,
+          .join(', ')}. Now call read_back_order and say it back with the price.`,
       };
     }
 
@@ -656,7 +714,7 @@ export class VoiceService {
       where: { id: call.id },
       data: {
         transcript: state as any,
-        ...(state.orderId ? { orderId: state.orderId, outcome: "ORDER" } : {}),
+        ...(state.orderId ? { orderId: state.orderId, outcome: 'ORDER' } : {}),
       },
     });
     return out;
@@ -666,7 +724,7 @@ export class VoiceService {
   private async loadByControlId(callControlId: string) {
     const row = await this.db().voiceCall.findFirst({
       where: { providerCallId: callControlId },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
     });
     return row ? this.load(row.id) : null;
   }
@@ -679,9 +737,9 @@ export class VoiceService {
    * is not one.
    */
   private quickAdd(call: any, ctx: any, state: VoiceState, said: string): VoiceTurn | null {
-    if (state.stage !== "ORDER" || state.awaiting) return null;
+    if (state.stage !== 'ORDER' || state.awaiting) return null;
     if (!state.cart.fulfillmentChosen) return null;
-    if (state.cart.fulfillmentType === "DELIVERY" && !state.addressConfirmed) return null;
+    if (state.cart.fulfillmentType === 'DELIVERY' && !state.addressConfirmed) return null;
     if (state.orderConfirmed || state.orderId) return null;
 
     const before = state.cart.items.length;
@@ -690,8 +748,8 @@ export class VoiceService {
     const say = out.say;
     state.awaiting = out.next;
 
-    state.turns.push({ role: "user", text: said });
-    state.turns.push({ role: "assistant", text: say });
+    state.turns.push({ role: 'user', text: said });
+    state.turns.push({ role: 'assistant', text: say });
     state.confusion = 0;
     void this.db()
       .voiceCall.update({ where: { id: call.id }, data: { transcript: state as any } })
@@ -704,11 +762,13 @@ export class VoiceService {
       `call ${call.id} quick-added from "${said.slice(0, 60)}" → ${
         state.cart.items.length - before
       } new (cart now ${state.cart.items.length})${
-        state.pendingItem ? ", asking for a required choice" : ""
-      }: ${state.cart.items
-        .slice(before)
-        .map((l) => `${l.quantity}× ${l.name}`)
-        .join(", ") || "-"}`,
+        state.pendingItem ? ', asking for a required choice' : ''
+      }: ${
+        state.cart.items
+          .slice(before)
+          .map((l) => `${l.quantity}× ${l.name}`)
+          .join(', ') || '-'
+      }`,
     );
     return { say };
   }
@@ -727,7 +787,7 @@ export class VoiceService {
 
     // Zero is a person wherever it is pressed, and it outranks everything
     // below — a caller reaching for help must not have it read as a choice.
-    if (String(args.digit).trim() === "0") return this.handOver(call, ctx, state);
+    if (String(args.digit).trim() === '0') return this.handOver(call, ctx, state);
 
     // A number pressed while a question is on the table answers that question.
     // The options were never read out as "press 1 for…" — they follow the
@@ -735,24 +795,23 @@ export class VoiceService {
     // at all, and saves the one on a bad line from repeating themselves.
     // 1 answers "any notes for that?" with "none" — the fastest way past a
     // question that most callers have no answer to.
-    if (state.awaiting === "ITEM_NOTE") {
-      const say = String(args.digit).trim() === "1"
-        ? this.ai.answerItemNote(ctx, state, "no")
-        : null;
+    if (state.awaiting === 'ITEM_NOTE') {
+      const say =
+        String(args.digit).trim() === '1' ? this.ai.answerItemNote(ctx, state, 'no') : null;
       if (!say) return null;
-      state.turns.push({ role: "user", text: `[pressed ${args.digit}]` });
-      state.turns.push({ role: "assistant", text: say });
+      state.turns.push({ role: 'user', text: `[pressed ${args.digit}]` });
+      state.turns.push({ role: 'assistant', text: say });
       state.confusion = 0;
       state.awaiting = this.pendingSlot(state);
       await this.save(call.id, state);
       return { say };
     }
 
-    if (state.awaiting === "ITEM_OPTION" && state.choices?.length) {
+    if (state.awaiting === 'ITEM_OPTION' && state.choices?.length) {
       const say = this.ai.chooseByNumber(ctx, state, args.digit);
       if (say) {
-        state.turns.push({ role: "user", text: `[pressed ${args.digit}]` });
-        state.turns.push({ role: "assistant", text: say });
+        state.turns.push({ role: 'user', text: `[pressed ${args.digit}]` });
+        state.turns.push({ role: 'assistant', text: say });
         state.confusion = 0;
         state.awaiting = this.pendingSlot(state);
         await this.save(call.id, state);
@@ -769,8 +828,8 @@ export class VoiceService {
 
     // Outside the menu, only "get me a person" still means anything. A stray
     // keypress mid-order must not restart the call.
-    if (state.stage !== "MENU") {
-      if (choice.kind !== "HUMAN") return null;
+    if (state.stage !== 'MENU') {
+      if (choice.kind !== 'HUMAN') return null;
       return this.handOver(call, ctx, state);
     }
     return this.applyMenuChoice(call, ctx, state, choice);
@@ -783,10 +842,10 @@ export class VoiceService {
    * nothing left — and getting this wrong sends the caller's next words to the
    * wrong reader: a note read as an option, or an option read as a note.
    */
-  private pendingSlot(state: VoiceState): VoiceState["awaiting"] {
+  private pendingSlot(state: VoiceState): VoiceState['awaiting'] {
     const pending = state.pendingItem;
     if (!pending) return undefined;
-    return pending.notesAsked && !state.choices?.length ? "ITEM_NOTE" : "ITEM_OPTION";
+    return pending.notesAsked && !state.choices?.length ? 'ITEM_NOTE' : 'ITEM_OPTION';
   }
 
   /** Menu choice → the fixed line the caller hears and the stage they land in. */
@@ -797,42 +856,42 @@ export class VoiceService {
     choice: MenuChoice,
     said?: string,
   ): Promise<VoiceTurn> {
-    if (said) state.turns.push({ role: "user", text: said });
-    if (choice.kind === "HUMAN") return this.handOver(call, ctx, state);
+    if (said) state.turns.push({ role: 'user', text: said });
+    if (choice.kind === 'HUMAN') return this.handOver(call, ctx, state);
 
-    if (choice.kind === "STATUS") {
-      state.stage = "STATUS";
+    if (choice.kind === 'STATUS') {
+      state.stage = 'STATUS';
       const say = this.ai.statusOpener();
-      state.turns.push({ role: "assistant", text: say });
+      state.turns.push({ role: 'assistant', text: say });
       await this.save(call.id, state);
-      return { say, outcome: "ORDER_STATUS" };
+      return { say, outcome: 'ORDER_STATUS' };
     }
 
-    if (choice.kind === "AMEND") {
-      state.stage = "AMEND";
+    if (choice.kind === 'AMEND') {
+      state.stage = 'AMEND';
       const say = this.ai.amendOpener();
-      state.turns.push({ role: "assistant", text: say });
+      state.turns.push({ role: 'assistant', text: say });
       await this.save(call.id, state);
       return { say };
     }
 
-    if (choice.kind === "COMPLAINT") {
+    if (choice.kind === 'COMPLAINT') {
       // No triage, no apology loop, no attempt to fix it. A complaint is the
       // one thing on this line that must reach a person immediately.
       return this.handOver(call, ctx, state, this.ai.complaintOpener());
     }
 
-    if (choice.kind === "REPEAT") {
+    if (choice.kind === 'REPEAT') {
       // The options only — not the greeting. Nobody wants to be welcomed to
       // the shop a second time.
       const say = this.ai.menuOptions();
-      state.turns.push({ role: "assistant", text: say });
-      state.stage = "MENU";
+      state.turns.push({ role: 'assistant', text: say });
+      state.stage = 'MENU';
       await this.save(call.id, state);
       return { say };
     }
 
-    state.stage = "ORDER";
+    state.stage = 'ORDER';
     // They talked over the menu and went straight into ordering. Their words
     // are the first real turn — asking "collection or delivery?" as if we
     // hadn't heard them is exactly the deafness this design is trying to fix.
@@ -848,7 +907,7 @@ export class VoiceService {
     const last = await this.lastOrderFor(ctx, call.fromNumber);
     const usual = last ? this.ai.usualAloud(ctx, state, last) : null;
     if (usual) {
-      state.turns.push({ role: "assistant", text: usual.say });
+      state.turns.push({ role: 'assistant', text: usual.say });
       state.awaiting = usual.next;
       await this.save(call.id, state);
       this.logger.log(
@@ -858,10 +917,10 @@ export class VoiceService {
     }
 
     const say = this.ai.orderOpener(state);
-    state.turns.push({ role: "assistant", text: say });
+    state.turns.push({ role: 'assistant', text: say });
     // "Collection or delivery?" has two answers. Arm the slot so the reply is
     // understood in code rather than costing a model call.
-    state.awaiting = "FULFILLMENT";
+    state.awaiting = 'FULFILLMENT';
     await this.save(call.id, state);
     return { say };
   }
@@ -886,14 +945,12 @@ export class VoiceService {
     // Order numbers are per-tenant Ints. A caller reciting their phone number
     // by mistake would otherwise overflow the column and 500 the turn.
     const number =
-      parsed && parsed.length <= 9 && Number.isSafeInteger(Number(parsed))
-        ? parsed
-        : null;
+      parsed && parsed.length <= 9 && Number.isSafeInteger(Number(parsed)) ? parsed : null;
     const caller = normaliseNumber(call.fromNumber);
 
     // Whatever they said belongs on the call record even though no model saw
     // it — the transcript on the dashboard is what settles a dispute.
-    state.turns.push({ role: "user", text });
+    state.turns.push({ role: 'user', text });
 
     // Matching happens HERE, not in the query.
     //
@@ -910,7 +967,7 @@ export class VoiceService {
     const recent = forms.length
       ? await this.db().order.findMany({
           where: { locationId: ctx.locationId, createdAt: { gte: since } },
-          orderBy: { createdAt: "desc" },
+          orderBy: { createdAt: 'desc' },
           take: 500,
           select: { ...STATUS_FIELDS, collectionCode: true },
         })
@@ -960,7 +1017,7 @@ export class VoiceService {
               locationId: ctx.locationId,
               customerPhone: { contains: caller.slice(-9) },
             },
-            orderBy: { createdAt: "desc" },
+            orderBy: { createdAt: 'desc' },
             select: STATUS_FIELDS,
           })
         : null;
@@ -969,7 +1026,11 @@ export class VoiceService {
     // Deliveroo customers in one evening — so matching on it would read one
     // stranger's dinner out to another. Their own reference is the only safe
     // way in, and asking for it is the correct outcome.
-    if (fallback && !marketplaceName(fallback.orderSource) && this.phoneReallyMatches(fallback.customerPhone, caller)) {
+    if (
+      fallback &&
+      !marketplaceName(fallback.orderSource) &&
+      this.phoneReallyMatches(fallback.customerPhone, caller)
+    ) {
       order = fallback;
     }
 
@@ -985,9 +1046,9 @@ export class VoiceService {
         const say = forms.length
           ? `Sorry, I can't find that one. Could you read it out to me one character at a time?`
           : `Sorry, I didn't catch that. Could you read your order number out one character at a time?`;
-        state.turns.push({ role: "user", text });
-        state.turns.push({ role: "assistant", text: say });
-        state.stage = "STATUS";
+        state.turns.push({ role: 'user', text });
+        state.turns.push({ role: 'assistant', text: say });
+        state.stage = 'STATUS';
         await this.save(call.id, state);
         return { say };
       }
@@ -1001,9 +1062,7 @@ export class VoiceService {
     state.confusion = 0;
 
     const mins = order.estimatedReadyAt
-      ? Math.round(
-          (new Date(order.estimatedReadyAt).getTime() - Date.now()) / 60000,
-        )
+      ? Math.round((new Date(order.estimatedReadyAt).getTime() - Date.now()) / 60000)
       : null;
     const courierMins = order.courierEtaAt
       ? Math.round((new Date(order.courierEtaAt).getTime() - Date.now()) / 60000)
@@ -1022,8 +1081,8 @@ export class VoiceService {
           : null,
       courierMinutesAway: courierMins,
       awaitingPayment:
-        (order.paymentMethod === "PAYMENT_LINK" || order.paymentMethod === "QR_CODE") &&
-        order.paymentStatus !== "PAID",
+        (order.paymentMethod === 'PAYMENT_LINK' || order.paymentMethod === 'QR_CODE') &&
+        order.paymentStatus !== 'PAID',
     });
     if (spoken.transfer) return this.handOver(call, ctx, state, spoken.say);
 
@@ -1032,12 +1091,12 @@ export class VoiceService {
     // order — the caller hears it against what is in front of them.
     const reference = spokenReference(matched ?? boardReference(order));
     const say = `Order ${reference}. ${spoken.say} Is there anything else I can help with?`;
-    state.turns.push({ role: "assistant", text: say });
+    state.turns.push({ role: 'assistant', text: say });
     // Whatever they say next is ordinary conversation — the brain can take an
     // order, answer a question, or say goodbye from here.
-    state.stage = "ORDER";
+    state.stage = 'ORDER';
     await this.save(call.id, state);
-    return { say, outcome: "ORDER_STATUS" };
+    return { say, outcome: 'ORDER_STATUS' };
   }
 
   /**
@@ -1056,13 +1115,13 @@ export class VoiceService {
     const slot = state.awaiting;
     if (!slot) return null;
 
-    let say = "";
+    let say = '';
     let extra: Partial<VoiceTurn> | undefined;
-    let next: VoiceState["awaiting"];
+    let next: VoiceState['awaiting'];
     const confusionBefore = state.confusion ?? 0;
 
     switch (slot) {
-      case "FULFILLMENT": {
+      case 'FULFILLMENT': {
         const choice = parseFulfillment(said);
         if (!choice) return null;
         const out = this.ai.fulfillmentAloud(ctx, state, choice);
@@ -1070,7 +1129,7 @@ export class VoiceService {
         next = out.next;
         break;
       }
-      case "ADDR_FULL": {
+      case 'ADDR_FULL': {
         // The whole address in one question. Falls through to the postcode
         // ladder inside addressAloud when it doesn't resolve.
         const startedAt = Date.now();
@@ -1083,14 +1142,14 @@ export class VoiceService {
         );
         this.logger.log(
           `address for call ${call.id}: ${Date.now() - startedAt}ms, ` +
-            `${state.cart.deliveryAddress?.line1 ? `resolved "${state.cart.deliveryAddress.line1}"` : "not resolved"}` +
-            `${state.addr?.postcode ? ` (${state.addr.postcode})` : ""}`,
+            `${state.cart.deliveryAddress?.line1 ? `resolved "${state.cart.deliveryAddress.line1}"` : 'not resolved'}` +
+            `${state.addr?.postcode ? ` (${state.addr.postcode})` : ''}`,
         );
         say = out.say;
         next = out.next;
         break;
       }
-      case "ADDR_POSTCODE": {
+      case 'ADDR_POSTCODE': {
         // One short question, one checkable answer. The lookup is injected so
         // the conversation logic stays testable without a Places key.
         // Our own past deliveries first, the network only for a postcode
@@ -1101,14 +1160,14 @@ export class VoiceService {
         );
         this.logger.log(
           `postcode lookup for call ${call.id} took ${Date.now() - startedAt}ms → ${
-            state.addr?.street ?? "no street"
+            state.addr?.street ?? 'no street'
           }`,
         );
         say = out.say;
         next = out.next;
         break;
       }
-      case "ADDR_STREET": {
+      case 'ADDR_STREET': {
         const answer = parseYesNo(said);
         if (!answer) {
           // "Eleven." to "is that Sunningdale Drive?" is a yes with the answer
@@ -1122,14 +1181,14 @@ export class VoiceService {
           break;
         }
         const out =
-          answer === "YES"
+          answer === 'YES'
             ? this.ai.streetAgreedAloud(ctx, state)
             : this.ai.streetRejectedAloud(state);
         say = out.say;
         next = out.next;
         break;
       }
-      case "ITEM_OPTION": {
+      case 'ITEM_OPTION': {
         // "Which sauce?" is a fixed list and a matcher's job, not five seconds
         // of a model's. Anything it cannot read still goes to the model, which
         // is where a caller changing their mind mid-choice belongs.
@@ -1140,17 +1199,17 @@ export class VoiceService {
         break;
       }
 
-      case "USUAL": {
+      case 'USUAL': {
         const answer = parseYesNo(said);
         if (!answer) return null;
-        if (answer === "NO") {
+        if (answer === 'NO') {
           // Everything loaded on their behalf goes back, or a caller who said
           // no ends up with last week's dinner attached to this one.
           state.cart.items = [];
           state.cart.fulfillmentChosen = false;
           state.cart.deliveryAddress = undefined;
-          say = "No problem — is that collection or delivery?";
-          next = "FULFILLMENT";
+          say = 'No problem — is that collection or delivery?';
+          next = 'FULFILLMENT';
           break;
         }
         // Straight to the read-back. They have already heard the order; what
@@ -1161,7 +1220,7 @@ export class VoiceService {
         break;
       }
 
-      case "ITEM_NOTE": {
+      case 'ITEM_NOTE': {
         // Whatever they say here belongs to the kitchen, not to a matcher:
         // "no onions" is not an order and must never be read as one.
         const answer = this.ai.answerItemNote(ctx, state, said);
@@ -1170,14 +1229,14 @@ export class VoiceService {
         next = this.pendingSlot(state);
         break;
       }
-      case "ADDR_HOUSE": {
+      case 'ADDR_HOUSE': {
         const out = this.ai.houseNumberAloud(ctx, state, said);
         say = out.say;
         next = out.next;
         break;
       }
-      case "ADDRESS_CONFIRM":
-      case "ORDER_CONFIRM": {
+      case 'ADDRESS_CONFIRM':
+      case 'ORDER_CONFIRM': {
         const answer = parseYesNo(said);
         if (!answer) {
           // A bare number answering "is that Sunningdale Drive, NE37 2LL?" is
@@ -1185,7 +1244,7 @@ export class VoiceService {
           const line1 = state.cart.deliveryAddress?.line1;
           const house = houseNumberFrom(said);
           if (
-            slot === "ADDRESS_CONFIRM" &&
+            slot === 'ADDRESS_CONFIRM' &&
             line1 &&
             hasStreetType(line1) &&
             streetOf(line1) === line1 &&
@@ -1200,26 +1259,26 @@ export class VoiceService {
           }
           return null;
         }
-        if (answer === "NO") {
+        if (answer === 'NO') {
           const rejected = this.ai.rejectedReadBack(slot);
           say = rejected.say;
           next = rejected.next;
           // A read-back they rejected is a wrong address, so nothing built on
           // top of it survives into the second attempt.
-          if (slot === "ADDRESS_CONFIRM") {
+          if (slot === 'ADDRESS_CONFIRM') {
             state.addr = undefined;
             state.cart.deliveryAddress = undefined;
             state.addressConfirmed = false;
           }
-        } else if (slot === "ADDRESS_CONFIRM") {
+        } else if (slot === 'ADDRESS_CONFIRM') {
           say = await this.ai.confirmAddressAloud(ctx, state);
         } else {
           say = this.ai.confirmOrderAloud(state);
-          next = "PAYMENT";
+          next = 'PAYMENT';
         }
         break;
       }
-      case "PAYMENT": {
+      case 'PAYMENT': {
         const method = parsePayment(said);
         if (!method) return null;
         const out = await this.ai.payAndPlaceAloud(ctx, state, method, call.fromNumber);
@@ -1232,7 +1291,7 @@ export class VoiceService {
         next = out.next;
         break;
       }
-      case "NAME": {
+      case 'NAME': {
         const name = this.nameFrom(said);
         if (!name) return null;
         state.knownName = name;
@@ -1246,7 +1305,7 @@ export class VoiceService {
         return null;
     }
 
-    state.turns.push({ role: "user", text: said });
+    state.turns.push({ role: 'user', text: said });
     state.awaiting = next;
     // Reaching here is not the same as having understood. A slot handler that
     // could not parse the answer still returns something to SAY — the re-ask —
@@ -1256,14 +1315,14 @@ export class VoiceService {
     // not to do. So only a handler that did NOT raise the count gets to clear
     // it.
     if ((state.confusion ?? 0) <= confusionBefore) state.confusion = 0;
-    state.turns.push({ role: "assistant", text: say });
-    if (extra?.endCall || extra?.transferTo) state.stage = "DONE";
+    state.turns.push({ role: 'assistant', text: say });
+    if (extra?.endCall || extra?.transferTo) state.stage = 'DONE';
 
     await this.db().voiceCall.update({
       where: { id: call.id },
       data: {
         transcript: state as any,
-        ...(state.orderId ? { orderId: state.orderId, outcome: "ORDER" } : {}),
+        ...(state.orderId ? { orderId: state.orderId, outcome: 'ORDER' } : {}),
       },
     });
     return { say, ...extra };
@@ -1277,13 +1336,13 @@ export class VoiceService {
    * not have "actually can I add chips" written on the ticket as their name.
    */
   private nameFrom(said: string): string | null {
-    const t = String(said ?? "")
-      .replace(/[^a-zA-Z\s'-]/g, " ")
-      .replace(/\b(it'?s|its|my name'?s?|i'?m|this is|name is|call me|yeah|yes|hi|hello)\b/gi, " ")
-      .replace(/\s+/g, " ")
+    const t = String(said ?? '')
+      .replace(/[^a-zA-Z\s'-]/g, ' ')
+      .replace(/\b(it'?s|its|my name'?s?|i'?m|this is|name is|call me|yeah|yes|hi|hello)\b/gi, ' ')
+      .replace(/\s+/g, ' ')
       .trim();
     if (!t) return null;
-    const words = t.split(" ").filter(Boolean);
+    const words = t.split(' ').filter(Boolean);
     if (words.length === 0 || words.length > 3) return null;
     const first = words[0];
     if (!first || first.length < 2 || first.length > 20) return null;
@@ -1306,13 +1365,13 @@ export class VoiceService {
     text: string,
   ): Promise<VoiceTurn> {
     const { forms } = parseOrderReference(text);
-    state.turns.push({ role: "user", text });
+    state.turns.push({ role: 'user', text });
 
     const since = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
     const recent = forms.length
       ? await this.db().order.findMany({
           where: { locationId: ctx.locationId, createdAt: { gte: since } },
-          orderBy: { createdAt: "desc" },
+          orderBy: { createdAt: 'desc' },
           take: 500,
           select: {
             id: true,
@@ -1328,9 +1387,12 @@ export class VoiceService {
       : [];
 
     const order = recent.find((o: any) =>
-      [o.displayId, o.collectionCode, o.orderNumber != null ? String(o.orderNumber) : null, o.id].some(
-        (identifier) => referenceMatches(forms, identifier),
-      ),
+      [
+        o.displayId,
+        o.collectionCode,
+        o.orderNumber != null ? String(o.orderNumber) : null,
+        o.id,
+      ].some((identifier) => referenceMatches(forms, identifier)),
     );
 
     if (!order) {
@@ -1338,8 +1400,8 @@ export class VoiceService {
       state.confusion = misses;
       if (misses < 3) {
         const say = `Sorry, I can't find that one. Could you read the order number out one character at a time?`;
-        state.turns.push({ role: "assistant", text: say });
-        state.stage = "AMEND";
+        state.turns.push({ role: 'assistant', text: say });
+        state.stage = 'AMEND';
         await this.save(call.id, state);
         return { say };
       }
@@ -1362,15 +1424,15 @@ export class VoiceService {
     // us, and telling them to go and change it on Just Eat would be nonsense.
     // Everything else belongs to somebody else's basket: the marketplaces own
     // the payment and the refund, and the shop's own website has its own.
-    const ownOrder = order.orderSource === "POS" || order.orderSource === "VOICE";
+    const ownOrder = order.orderSource === 'POS' || order.orderSource === 'VOICE';
     if (!ownOrder) {
       // Not a transfer. The shop cannot change an Uber Eats order either, so
       // putting the caller through only delays them being told the same thing
       // by a person. Name the platform and let them go and do it.
-      const where = via ?? "our website";
+      const where = via ?? 'our website';
       const say = this.ai.amendElsewhere(where);
-      state.turns.push({ role: "assistant", text: say });
-      state.stage = "ORDER";
+      state.turns.push({ role: 'assistant', text: say });
+      state.stage = 'ORDER';
       await this.save(call.id, state);
       return { say };
     }
@@ -1378,13 +1440,13 @@ export class VoiceService {
     // Past PREPARING the kitchen has finished with it and editOrder refuses
     // anyway — better to say so now, in terms that are true of this order,
     // than to take the addition and fail at the end of the call.
-    if (!["PENDING", "ACCEPTED", "PREPARING"].includes(order.status)) {
-      const say = `${this.ai.amendTooLate(order.status, order.fulfillmentType === "DELIVERY")} Would you like me to put you through to the shop?`;
-      state.turns.push({ role: "assistant", text: say });
+    if (!['PENDING', 'ACCEPTED', 'PREPARING'].includes(order.status)) {
+      const say = `${this.ai.amendTooLate(order.status, order.fulfillmentType === 'DELIVERY')} Would you like me to put you through to the shop?`;
+      state.turns.push({ role: 'assistant', text: say });
       // Not handed over unasked: they may simply want to place another order,
       // and deciding for them is how a call ends in a queue they did not
       // choose to join.
-      state.stage = "ORDER";
+      state.stage = 'ORDER';
       await this.save(call.id, state);
       return { say };
     }
@@ -1397,10 +1459,10 @@ export class VoiceService {
     });
 
     const say = `Right, that's order ${spokenReference(reference)}. What would you like to add?`;
-    state.turns.push({ role: "assistant", text: say });
+    state.turns.push({ role: 'assistant', text: say });
     // The ordering brain takes it from here — same tools, same read-back —
     // and finishes with amend_order instead of place_order.
-    state.stage = "ORDER";
+    state.stage = 'ORDER';
     await this.save(call.id, state);
     return { say };
   }
@@ -1420,7 +1482,7 @@ export class VoiceService {
       callerNumber: call.fromNumber,
       onPartial,
     });
-    if (turn.endCall || turn.transferTo) next.stage = "DONE";
+    if (turn.endCall || turn.transferTo) next.stage = 'DONE';
 
     // A tool the model ran may have opened a question that code now owns —
     // "press 1 for Gyros Wrap, 2 for…". Without this the caller's answer went
@@ -1432,7 +1494,7 @@ export class VoiceService {
       where: { id: call.id },
       data: {
         transcript: next as any,
-        ...(next.orderId ? { orderId: next.orderId, outcome: "ORDER" } : {}),
+        ...(next.orderId ? { orderId: next.orderId, outcome: 'ORDER' } : {}),
         ...(turn.outcome && !next.orderId ? { outcome: turn.outcome } : {}),
       },
     });
@@ -1440,24 +1502,19 @@ export class VoiceService {
   }
 
   /** Hand to a human. Always available, from any stage, however they asked. */
-  private async handOver(
-    call: any,
-    ctx: any,
-    state: VoiceState,
-    say?: string,
-  ): Promise<VoiceTurn> {
+  private async handOver(call: any, ctx: any, state: VoiceState, say?: string): Promise<VoiceTurn> {
     const line =
       say ??
       (ctx.transferNumber
         ? "No problem, I'll put you through to the shop now."
         : "Sorry, there's nobody I can put you through to right now. I'll take a message instead — what would you like me to pass on?");
-    state.turns.push({ role: "assistant", text: line });
+    state.turns.push({ role: 'assistant', text: line });
     // Without a transfer number there is nobody to hand to, so the call stays
     // with us and takes a message rather than dropping the caller.
-    state.stage = ctx.transferNumber ? "DONE" : "ORDER";
+    state.stage = ctx.transferNumber ? 'DONE' : 'ORDER';
     await this.save(call.id, state);
     return ctx.transferNumber
-      ? { say: line, transferTo: ctx.transferNumber, outcome: "TRANSFERRED" }
+      ? { say: line, transferTo: ctx.transferNumber, outcome: 'TRANSFERRED' }
       : { say: line };
   }
 
@@ -1471,21 +1528,19 @@ export class VoiceService {
    */
   private phoneReallyMatches(stored?: string | null, caller?: string): boolean {
     if (!stored || !caller) return false;
-    const phonePart = String(stored).split(/\s*PIN\s*/i)[0] ?? "";
-    const digits = phonePart.replace(/\D/g, "");
+    const phonePart = String(stored).split(/\s*PIN\s*/i)[0] ?? '';
+    const digits = phonePart.replace(/\D/g, '');
     return digits.length >= 9 && digits.endsWith(caller.slice(-9));
   }
 
   /** Call row + context + state, or null if any of them has gone. */
-  private async load(
-    callId: string,
-  ): Promise<{ call: any; ctx: any; state: VoiceState } | null> {
+  private async load(callId: string): Promise<{ call: any; ctx: any; state: VoiceState } | null> {
     const call = await this.db().voiceCall.findUnique({ where: { id: callId } });
     if (!call) return null;
     // A call we have already handed over or closed takes no further turns. A
     // keypress arriving after a hand-over used to start a brand new order on a
     // call nobody was listening to any more.
-    if (["TRANSFERRED", "COMPLETED", "NOT_ANSWERED"].includes(call.status)) {
+    if (['TRANSFERRED', 'COMPLETED', 'NOT_ANSWERED'].includes(call.status)) {
       return null;
     }
     const state = coerceState(call.transcript);
@@ -1493,8 +1548,8 @@ export class VoiceService {
     // decided to hand over returns, so it lags by one turn. The stage is
     // written inside the turn itself and is what actually stops a second
     // hand-over going out for the same caller.
-    if (state.stage === "DONE") return null;
-    const ctx = await this.contextFor(callId, call.toNumber ?? "");
+    if (state.stage === 'DONE') return null;
+    const ctx = await this.contextFor(callId, call.toNumber ?? '');
     if (!ctx) return null;
     return { call, ctx, state };
   }
@@ -1554,10 +1609,9 @@ export class VoiceService {
 
     // A call we never answered stays as it was — refusing to answer must never
     // be turned into a billable event by an end-of-call webhook.
-    if (call.status === "NOT_ANSWERED") return;
+    if (call.status === 'NOT_ANSWERED') return;
 
-    const status =
-      args.status ?? (call.status === "TRANSFERRED" ? "TRANSFERRED" : "COMPLETED");
+    const status = args.status ?? (call.status === 'TRANSFERRED' ? 'TRANSFERRED' : 'COMPLETED');
     const updated = await this.db().voiceCall.update({
       where: { id: call.id },
       data: {
@@ -1566,7 +1620,7 @@ export class VoiceService {
         durationSeconds: Math.max(0, Math.round(args.durationSeconds)),
         // A call that reached no conclusion is an abandon — worth seeing on the
         // dashboard, because a lot of them means the AI is losing people.
-        ...(call.outcome ? {} : { outcome: "ABANDONED" }),
+        ...(call.outcome ? {} : { outcome: 'ABANDONED' }),
       },
     });
 
@@ -1608,7 +1662,7 @@ export class VoiceService {
   private async markNotAnswered(callId: string, reason: string): Promise<void> {
     await this.db().voiceCall.update({
       where: { id: callId },
-      data: { status: "NOT_ANSWERED", notAnsweredReason: reason, endedAt: new Date() },
+      data: { status: 'NOT_ANSWERED', notAnsweredReason: reason, endedAt: new Date() },
     });
   }
 
@@ -1643,7 +1697,12 @@ export class VoiceService {
   ): Promise<{
     reference: string;
     fulfillmentType: string;
-    items: Array<{ menuItemId: string | null; name: string; quantity: number; notes?: string | null }>;
+    items: Array<{
+      menuItemId: string | null;
+      name: string;
+      quantity: number;
+      notes?: string | null;
+    }>;
     deliveryAddress: any;
   } | null> {
     const caller = normaliseNumber(from);
@@ -1657,10 +1716,10 @@ export class VoiceService {
           customerPhone: { contains: caller.slice(-9) },
           // Only what they ordered FROM THIS SHOP, by phone or at the till or
           // on its own site. Never a marketplace.
-          orderSource: { in: ["VOICE", "POS", "ONLINE", "DIRECT"] },
-          status: { notIn: ["CANCELLED", "REJECTED", "FAILED"] },
+          orderSource: { in: ['VOICE', 'POS', 'ONLINE', 'DIRECT'] },
+          status: { notIn: ['CANCELLED', 'REJECTED', 'FAILED'] },
         },
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
         take: 5,
         select: {
           id: true,
@@ -1710,22 +1769,22 @@ export class VoiceService {
           firstName: true,
           lastName: true,
           addresses: {
-            orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
+            orderBy: [{ isDefault: 'desc' }, { createdAt: 'desc' }],
             take: 1,
             select: { line1: true, city: true, postcode: true, country: true },
           },
         },
-        orderBy: { updatedAt: "desc" },
+        orderBy: { updatedAt: 'desc' },
       });
       const raw = customer?.firstName ?? null;
       const addr = customer?.addresses?.[0] ?? null;
       return {
-        name: raw ? (String(raw).trim().split(" ")[0] ?? null) : null,
+        name: raw ? (String(raw).trim().split(' ')[0] ?? null) : null,
         address: addr?.line1
           ? {
               line1: String(addr.line1),
-              city: String(addr.city ?? ""),
-              postcode: String(addr.postcode ?? ""),
+              city: String(addr.city ?? ''),
+              postcode: String(addr.postcode ?? ''),
               country: addr.country ? String(addr.country) : undefined,
             }
           : null,

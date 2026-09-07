@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 // Phase AN — Tabbed Location create/edit modal.
 //
@@ -12,25 +12,25 @@
 // Tab 1 is the only one available when CREATING a location (no id yet);
 // tabs 2 + 3 appear after first save.
 
-import { useEffect, useMemo, useState } from "react";
-import { SUPPORTED_COUNTRIES, dialCodeForCountry } from "@orderhub/shared";
-import { useCurrency } from "@/hooks/use-currency";
-import { useRouter } from "next/navigation";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Wand2, X } from "lucide-react";
+import { useEffect, useMemo, useState } from 'react';
+import { SUPPORTED_COUNTRIES, dialCodeForCountry } from '@orderhub/shared';
+import { useCurrency } from '@/hooks/use-currency';
+import { useRouter } from 'next/navigation';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Loader2, Wand2, X } from 'lucide-react';
 import {
   locationsClient,
   brandsClient,
   type Location,
   type LocationStatus,
-} from "@/lib/api/locations.client";
-import { OpeningHoursEditor } from "./opening-hours-editor";
-import { WhatsAppConnectionSection } from "./whatsapp-connection-section";
-import { StuartConnectionSection } from "./stuart-connection-section";
-import { UberDirectConnectionSection } from "./uber-direct-connection-section";
-import { ImageUploader } from "@/components/products/image-uploader";
-import { SearchableSelect } from "@/components/ui/searchable-select";
-import { KITCHEN_LANGUAGES } from "@/lib/kitchen-languages";
+} from '@/lib/api/locations.client';
+import { OpeningHoursEditor } from './opening-hours-editor';
+import { WhatsAppConnectionSection } from './whatsapp-connection-section';
+import { StuartConnectionSection } from './stuart-connection-section';
+import { UberDirectConnectionSection } from './uber-direct-connection-section';
+import { ImageUploader } from '@/components/products/image-uploader';
+import { SearchableSelect } from '@/components/ui/searchable-select';
+import { KITCHEN_LANGUAGES } from '@/lib/kitchen-languages';
 
 interface Props {
   locationId: string | null; // null = create
@@ -38,17 +38,17 @@ interface Props {
   onSaved: () => void;
 }
 
-type Tab = "general" | "hours";
+type Tab = 'general' | 'hours';
 
 export function LocationEditModal({ locationId, onClose, onSaved }: Props) {
   // Prices follow the selected location's currency, not a hardcoded pound.
   const { money, symbol } = useCurrency();
   const router = useRouter();
   const isCreate = locationId === null;
-  const [tab, setTab] = useState<Tab>("general");
+  const [tab, setTab] = useState<Tab>('general');
 
   const detailQuery = useQuery({
-    queryKey: ["locations", "detail", locationId],
+    queryKey: ['locations', 'detail', locationId],
     queryFn: () => locationsClient.get(locationId!),
     enabled: !isCreate,
   });
@@ -62,12 +62,10 @@ export function LocationEditModal({ locationId, onClose, onSaved }: Props) {
         <header className="flex items-center justify-between border-b border-zinc-200 px-4 py-3">
           <div>
             <h2 className="text-sm font-semibold text-zinc-900">
-              {isCreate ? "Add location" : detailQuery.data?.name ?? "Location"}
+              {isCreate ? 'Add location' : (detailQuery.data?.name ?? 'Location')}
             </h2>
             {!isCreate && (
-              <p className="text-xs text-zinc-500">
-                {detailQuery.data?.brand?.name ?? "Brand"}
-              </p>
+              <p className="text-xs text-zinc-500">{detailQuery.data?.brand?.name ?? 'Brand'}</p>
             )}
           </div>
           <button onClick={onClose} className="rounded-md p-1 text-zinc-400 hover:bg-zinc-100">
@@ -77,14 +75,10 @@ export function LocationEditModal({ locationId, onClose, onSaved }: Props) {
 
         {/* Tabs */}
         <nav className="flex gap-1 border-b border-zinc-200 px-4">
-          <TabBtn active={tab === "general"} onClick={() => setTab("general")}>
+          <TabBtn active={tab === 'general'} onClick={() => setTab('general')}>
             General
           </TabBtn>
-          <TabBtn
-            active={tab === "hours"}
-            disabled={isCreate}
-            onClick={() => setTab("hours")}
-          >
+          <TabBtn active={tab === 'hours'} disabled={isCreate} onClick={() => setTab('hours')}>
             Opening hours
           </TabBtn>
           {/* Brands is a page, not a tab. Wiring a marketplace means store
@@ -105,11 +99,11 @@ export function LocationEditModal({ locationId, onClose, onSaved }: Props) {
         </nav>
 
         <div className="flex-1 overflow-y-auto p-4">
-          {tab === "general" && (
+          {tab === 'general' &&
             // For edit mode we hold the General tab until the detail
             // query lands so the form mounts with real values and not
             // empty defaults. Create mode mounts immediately.
-            isCreate ? (
+            (isCreate ? (
               <GeneralTab location={null} isCreate onSaved={onSaved} />
             ) : detailQuery.isLoading ? (
               <p className="py-10 text-center text-xs text-zinc-400">Loading…</p>
@@ -118,7 +112,7 @@ export function LocationEditModal({ locationId, onClose, onSaved }: Props) {
                 <p className="text-xs text-red-600">
                   {(detailQuery.error as any)?.response?.data?.message ??
                     (detailQuery.error as any)?.message ??
-                    "Failed to load location"}
+                    'Failed to load location'}
                 </p>
                 <button
                   onClick={() => detailQuery.refetch()}
@@ -128,14 +122,9 @@ export function LocationEditModal({ locationId, onClose, onSaved }: Props) {
                 </button>
               </div>
             ) : (
-              <GeneralTab
-                location={detailQuery.data}
-                isCreate={false}
-                onSaved={onSaved}
-              />
-            )
-          )}
-          {tab === "hours" && locationId && (
+              <GeneralTab location={detailQuery.data} isCreate={false} onSaved={onSaved} />
+            ))}
+          {tab === 'hours' && locationId && (
             <div className="space-y-5">
               <OpeningHoursEditor locationId={locationId} />
               <PrepTimeSection locationId={locationId} />
@@ -163,55 +152,53 @@ function GeneralTab({
   // default brand for the tenant and the operator adds real brands later
   // from the Brands section.
 
-  const [name, setName] = useState(location?.name ?? "");
-  const [line1, setLine1] = useState(location?.addressLine1 ?? "");
-  const [line2, setLine2] = useState(location?.addressLine2 ?? "");
-  const [city, setCity] = useState(location?.city ?? "");
-  const [postcode, setPostcode] = useState(location?.postcode ?? "");
-  const [country, setCountry] = useState(location?.country ?? "GB");
-  const [phone, setPhone] = useState(location?.phone ?? "");
-  const [about, setAbout] = useState(location?.about ?? "");
-  const [logoUrl, setLogoUrl] = useState(location?.logoUrl ?? "");
+  const [name, setName] = useState(location?.name ?? '');
+  const [line1, setLine1] = useState(location?.addressLine1 ?? '');
+  const [line2, setLine2] = useState(location?.addressLine2 ?? '');
+  const [city, setCity] = useState(location?.city ?? '');
+  const [postcode, setPostcode] = useState(location?.postcode ?? '');
+  const [country, setCountry] = useState(location?.country ?? 'GB');
+  const [phone, setPhone] = useState(location?.phone ?? '');
+  const [about, setAbout] = useState(location?.about ?? '');
+  const [logoUrl, setLogoUrl] = useState(location?.logoUrl ?? '');
   // Phase AW — customDomain, stripeConnectedAccountId, and the
   // applicationFee* fields moved onto the brand. State + UI for them
   // is gone; the brand settings drawer is the single source of truth.
-  const [googleReviewUrl, setGoogleReviewUrl] = useState(
-    location?.googleReviewUrl ?? "",
-  );
-  const [slug, setSlug] = useState(location?.onlineOrderingSlug ?? "");
-  const [status, setStatus] = useState<LocationStatus>(location?.status ?? "active");
+  const [googleReviewUrl, setGoogleReviewUrl] = useState(location?.googleReviewUrl ?? '');
+  const [slug, setSlug] = useState(location?.onlineOrderingSlug ?? '');
+  const [status, setStatus] = useState<LocationStatus>(location?.status ?? 'active');
   // POS Stripe settings — the Connect account + platform fee used by POS
   // "Payment link" charges at this location. Fixed fee held in £ for the input,
   // converted to pence on save.
   const [posStripeAccountId, setPosStripeAccountId] = useState<string>(
-    (location as any)?.posStripeAccountId ?? "",
+    (location as any)?.posStripeAccountId ?? '',
   );
   const [posFeePercent, setPosFeePercent] = useState<string>(
     (location as any)?.posApplicationFeePercent != null
       ? String((location as any).posApplicationFeePercent)
-      : "",
+      : '',
   );
   const [posFeeFixed, setPosFeeFixed] = useState<string>(
     (location as any)?.posApplicationFeeFixedMinor != null
       ? String((location as any).posApplicationFeeFixedMinor / 100)
-      : "",
+      : '',
   );
   // Card-reader fee. Held as strings so "" (inherit) stays distinguishable
   // from "0" (explicitly charge nothing) — the two mean different things.
   const [posTerminalFeePercent, setPosTerminalFeePercent] = useState<string>(
     (location as any)?.posTerminalApplicationFeePercent != null
       ? String((location as any).posTerminalApplicationFeePercent)
-      : "",
+      : '',
   );
   const [posTerminalFeeFixed, setPosTerminalFeeFixed] = useState<string>(
     (location as any)?.posTerminalApplicationFeeFixedMinor != null
       ? String((location as any).posTerminalApplicationFeeFixedMinor / 100)
-      : "",
+      : '',
   );
   // POS display name — which brand's name POS + receipts show for this
   // location's walk-in/phone orders. Empty = use the order's own brand.
   const [posBrandId, setPosBrandId] = useState<string>(
-    (location as any)?.settings?.posBrandId ?? "",
+    (location as any)?.settings?.posBrandId ?? '',
   );
   // Per-location telephony identity (SMS + caller ID). Stored on
   // Location.settings; the API resolves the Twilio "From" from these so each
@@ -226,28 +213,29 @@ function GeneralTab({
   // their kitchen reads, and a dropdown of ten languages would be wrong for
   // the eleventh.
   const [kitchenLanguage, setKitchenLanguage] = useState<string>(
-    (location as any)?.settings?.kitchenTicketLanguage ?? "",
+    (location as any)?.settings?.kitchenTicketLanguage ?? '',
   );
   const [smsSenderName, setSmsSenderName] = useState<string>(
-    (location as any)?.settings?.smsSenderName ?? "",
+    (location as any)?.settings?.smsSenderName ?? '',
   );
-  const [smsNumber, setSmsNumber] = useState<string>(
-    (location as any)?.settings?.smsNumber ?? "",
-  );
+  const [smsNumber, setSmsNumber] = useState<string>((location as any)?.settings?.smsNumber ?? '');
   const [callerIdNumber, setCallerIdNumber] = useState<string>(
-    (location as any)?.settings?.callerIdNumber ?? "",
+    (location as any)?.settings?.callerIdNumber ?? '',
   );
   // AI phone line — the Telnyx number this shop's overflow calls forward to,
   // and the kill switch. Default OFF: assigning a number must never be what
   // starts an AI answering a restaurant's phone.
   const [voiceNumber, setVoiceNumber] = useState<string>(
-    (location as any)?.settings?.voiceNumber ?? "",
+    (location as any)?.settings?.voiceNumber ?? '',
   );
   const [voiceAiEnabled, setVoiceAiEnabled] = useState<boolean>(
     (location as any)?.settings?.voiceAiEnabled === true,
   );
   const [voiceTransferNumber, setVoiceTransferNumber] = useState<string>(
-    (location as any)?.settings?.voiceTransferNumber ?? "",
+    (location as any)?.settings?.voiceTransferNumber ?? '',
+  );
+  const [voiceConversation, setVoiceConversation] = useState<boolean>(
+    (location as any)?.settings?.voiceEngine === 'CONVERSATION',
   );
   const [voiceTestMode, setVoiceTestMode] = useState<boolean>(
     (location as any)?.settings?.voiceTestMode === true,
@@ -266,7 +254,7 @@ function GeneralTab({
   // one phone number, and only the operator knows which name a caller who
   // dialled it expects to hear.
   const [voiceBrandId, setVoiceBrandId] = useState<string>(
-    (location as any)?.settings?.voiceBrandId ?? "",
+    (location as any)?.settings?.voiceBrandId ?? '',
   );
 
   // Kiosk payment options. Default ON: every kiosk before this setting
@@ -279,7 +267,7 @@ function GeneralTab({
     (location as any)?.settings?.kiosk?.acceptCard !== false,
   );
   const posBrandsQuery = useQuery({
-    queryKey: ["brands", "location", location?.id, "pos-display"],
+    queryKey: ['brands', 'location', location?.id, 'pos-display'],
     queryFn: () => brandsClient.list(location!.id),
     enabled: !!location?.id,
   });
@@ -288,12 +276,12 @@ function GeneralTab({
   // access token back from the server (it's encrypted and write-only).
   // `hubriseConnected` is the boolean the API returns so we can show
   // a "Connected" pill without exposing the secret.
-  const [hubriseAccessToken, setHubriseAccessToken] = useState("");
+  const [hubriseAccessToken, setHubriseAccessToken] = useState('');
   const [hubriseCatalogId, setHubriseCatalogId] = useState(
-    (location as any)?.hubriseCatalogId ?? "",
+    (location as any)?.hubriseCatalogId ?? '',
   );
   const [hubriseLocationId, setHubriseLocationId] = useState(
-    (location as any)?.hubriseLocationId ?? "",
+    (location as any)?.hubriseLocationId ?? '',
   );
   const hubriseConnected = !!(location as any)?.hubriseConnected;
   // Inline state for the Connect button so the operator sees what's
@@ -304,7 +292,7 @@ function GeneralTab({
 
   // Live preview of the online ordering URL using the runtime origin.
   const liveUrl = useMemo(() => {
-    if (!slug || typeof window === "undefined") return "";
+    if (!slug || typeof window === 'undefined') return '';
     return `${window.location.origin}/order/${slug}`;
   }, [slug]);
 
@@ -315,7 +303,7 @@ function GeneralTab({
       const created = await locationsClient.create({
         name,
         address:
-          line1 || line2 || city || postcode || country !== "GB"
+          line1 || line2 || city || postcode || country !== 'GB'
             ? {
                 line1: line1 || undefined,
                 line2: line2 || undefined,
@@ -338,14 +326,14 @@ function GeneralTab({
       if (about) extras.about = about;
       if (logoUrl) extras.logoUrl = logoUrl;
       if (googleReviewUrl) extras.googleReviewUrl = googleReviewUrl;
-      if (status !== "active") extras.status = status;
+      if (status !== 'active') extras.status = status;
       if (Object.keys(extras).length > 0) {
         await locationsClient.update(created.id, extras as any);
       }
       return created;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["locations"] });
+      qc.invalidateQueries({ queryKey: ['locations'] });
       onSaved();
     },
     onError: (err: any) => setError(err?.response?.data?.message ?? err.message),
@@ -370,17 +358,13 @@ function GeneralTab({
         // operator typed a new one (so we don't accidentally clobber
         // a stored token with the empty input field). Catalog id is
         // safe to round-trip on every save.
-        ...(hubriseAccessToken.trim()
-          ? { hubriseAccessToken: hubriseAccessToken.trim() }
-          : {}),
+        ...(hubriseAccessToken.trim() ? { hubriseAccessToken: hubriseAccessToken.trim() } : {}),
         hubriseCatalogId: hubriseCatalogId || null,
         hubriseLocationId: hubriseLocationId || null,
         // Payment link Stripe settings (DB columns keep their historical
         // pos* names — see the section comment in the form below).
         posStripeAccountId: posStripeAccountId.trim() || null,
-        posApplicationFeePercent: posFeePercent.trim()
-          ? Number(posFeePercent)
-          : null,
+        posApplicationFeePercent: posFeePercent.trim() ? Number(posFeePercent) : null,
         posApplicationFeeFixedMinor: posFeeFixed.trim()
           ? Math.round(Number(posFeeFixed) * 100)
           : null,
@@ -406,6 +390,7 @@ function GeneralTab({
           voiceAiEnabled: voiceAiEnabled === true,
           voiceTransferNumber: voiceTransferNumber.trim() || null,
           voiceTestMode: voiceTestMode === true,
+          voiceEngine: voiceConversation ? 'CONVERSATION' : 'REALTIME',
           voiceSmsReceipt: voiceSmsReceipt === true,
           voiceBrandId: voiceBrandId || null,
           kiosk: {
@@ -415,7 +400,7 @@ function GeneralTab({
         },
       } as any),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["locations"] });
+      qc.invalidateQueries({ queryKey: ['locations'] });
       onSaved();
     },
     onError: (err: any) => setError(err?.response?.data?.message ?? err.message),
@@ -424,22 +409,18 @@ function GeneralTab({
   const generateSlug = useMutation({
     mutationFn: async () => {
       if (!location?.id) {
-        throw new Error("Save the location first, then click Generate.");
+        throw new Error('Save the location first, then click Generate.');
       }
       return locationsClient.generateSlug(location.id, name || location.name);
     },
     onSuccess: (res) => {
       setSlug(res.slug);
       setError(null);
-      qc.invalidateQueries({ queryKey: ["locations"] });
-      qc.invalidateQueries({ queryKey: ["locations", "detail", location?.id] });
+      qc.invalidateQueries({ queryKey: ['locations'] });
+      qc.invalidateQueries({ queryKey: ['locations', 'detail', location?.id] });
     },
     onError: (err: any) =>
-      setError(
-        err?.response?.data?.message ??
-          err?.message ??
-          "Failed to generate URL",
-      ),
+      setError(err?.response?.data?.message ?? err?.message ?? 'Failed to generate URL'),
   });
 
   const submit = () => {
@@ -472,7 +453,11 @@ function GeneralTab({
           <Input value={city} onChange={setCity} placeholder="Consett" />
         </Field>
         <Field label="Postcode">
-          <Input value={postcode} onChange={(v) => setPostcode(v.toUpperCase())} placeholder="DH8 5AA" />
+          <Input
+            value={postcode}
+            onChange={(v) => setPostcode(v.toUpperCase())}
+            placeholder="DH8 5AA"
+          />
         </Field>
       </div>
       <div className="grid grid-cols-2 gap-3">
@@ -540,10 +525,7 @@ function GeneralTab({
         label="Logo"
         help="Optional. Recommended square aspect; we resize to 1064×768 with letterboxing if needed."
       >
-        <ImageUploader
-          value={logoUrl || null}
-          onChange={(v) => setLogoUrl(v ?? "")}
-        />
+        <ImageUploader value={logoUrl || null} onChange={(v) => setLogoUrl(v ?? '')} />
       </Field>
 
       {/* Phase AW — Custom domain moved onto the Brand settings drawer.
@@ -569,18 +551,16 @@ function GeneralTab({
         label="Online ordering URL"
         help={
           isCreate
-            ? "Generate available after the location is created."
-            : "Customers will visit this URL to place online orders."
+            ? 'Generate available after the location is created.'
+            : 'Customers will visit this URL to place online orders.'
         }
       >
         <div className="flex items-center gap-2">
-          <span className="text-xs text-zinc-400 whitespace-nowrap">/order/</span>
+          <span className="whitespace-nowrap text-xs text-zinc-400">/order/</span>
           <input
             value={slug}
-            onChange={(e) =>
-              setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))
-            }
-            placeholder={isCreate ? "auto-generated" : "klo-consett"}
+            onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+            placeholder={isCreate ? 'auto-generated' : 'klo-consett'}
             disabled={isCreate}
             className="flex-1 rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none disabled:bg-zinc-50"
           />
@@ -600,7 +580,7 @@ function GeneralTab({
         </div>
         {liveUrl && !isCreate && (
           <p className="mt-1 text-[11px] text-zinc-500">
-            Public URL:{" "}
+            Public URL:{' '}
             <a href={liveUrl} target="_blank" rel="noreferrer" className="underline">
               {liveUrl}
             </a>
@@ -613,7 +593,7 @@ function GeneralTab({
           The token field is write-only — we never reload it from the
           server, just show "Connected" when one is stored. Operator
           must regenerate + paste again to rotate. */}
-      <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3 space-y-3">
+      <div className="space-y-3 rounded-md border border-zinc-200 bg-zinc-50 p-3">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
             HubRise integration
@@ -625,9 +605,8 @@ function GeneralTab({
           )}
         </div>
         <p className="text-[11px] text-zinc-500">
-          HubRise injects orders from Just Eat, Uber Eats, Deliveroo,
-          and other channels you've connected on their side. The
-          recommended setup is one-click: we'll send you to HubRise,
+          HubRise injects orders from Just Eat, Uber Eats, Deliveroo, and other channels you've
+          connected on their side. The recommended setup is one-click: we'll send you to HubRise,
           you approve, and the token + webhook are wired automatically.
         </p>
         {location?.id && (
@@ -639,21 +618,17 @@ function GeneralTab({
                 setHubriseError(null);
                 setHubriseBusy(true);
                 try {
-                  const { hubriseClient } = await import(
-                    "@/lib/api/hubrise.client"
-                  );
+                  const { hubriseClient } = await import('@/lib/api/hubrise.client');
                   const url = await hubriseClient.connect(location.id);
                   if (!url) {
-                    throw new Error(
-                      "API returned no authorize URL — is the backend deployed?",
-                    );
+                    throw new Error('API returned no authorize URL — is the backend deployed?');
                   }
                   window.location.href = url;
                 } catch (err: any) {
                   setHubriseError(
                     err?.response?.data?.message ??
                       err?.message ??
-                      "Could not open HubRise. Check the server logs.",
+                      'Could not open HubRise. Check the server logs.',
                   );
                   setHubriseBusy(false);
                 }
@@ -661,14 +636,12 @@ function GeneralTab({
               className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
             >
               {hubriseBusy
-                ? "Opening HubRise…"
+                ? 'Opening HubRise…'
                 : hubriseConnected
-                  ? "Reconnect with HubRise"
-                  : "Connect with HubRise"}
+                  ? 'Reconnect with HubRise'
+                  : 'Connect with HubRise'}
             </button>
-            {hubriseError && (
-              <p className="text-[11px] text-red-600">{hubriseError}</p>
-            )}
+            {hubriseError && <p className="text-[11px] text-red-600">{hubriseError}</p>}
           </div>
         )}
         <details className="mt-2 rounded-md border border-zinc-200 bg-white p-2">
@@ -676,38 +649,37 @@ function GeneralTab({
             Advanced — paste token manually
           </summary>
           <div className="mt-2 space-y-3">
-        <Field label="HubRise Access Token" help={
-          hubriseConnected
-            ? "A token is already stored. Paste a new one to rotate, or leave blank to keep it."
-            : "Generated against a HubRise location (terminal/curl). Stored encrypted."
-        }>
-          {/* The Input wrapper doesn't support type="password" yet —
+            <Field
+              label="HubRise Access Token"
+              help={
+                hubriseConnected
+                  ? 'A token is already stored. Paste a new one to rotate, or leave blank to keep it.'
+                  : 'Generated against a HubRise location (terminal/curl). Stored encrypted.'
+              }
+            >
+              {/* The Input wrapper doesn't support type="password" yet —
               use a raw input so token paste is masked. */}
-          <input
-            type="password"
-            value={hubriseAccessToken}
-            onChange={(e) => setHubriseAccessToken(e.target.value)}
-            placeholder={hubriseConnected ? "•••••••••• (paste to replace)" : "ohr_…"}
-            className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
-          />
-        </Field>
-          <Field label="HubRise Catalog ID" help="The menu HubRise will sync against.">
-            <Input
-              value={hubriseCatalogId}
-              onChange={setHubriseCatalogId}
-              placeholder="cat_…"
-            />
-          </Field>
-          <Field
-            label="HubRise Location ID"
-            help="HubRise's own location identifier — required for menu publish, order status update, inventory 86, and pause/resume. Auto-filled when you Connect with HubRise."
-          >
-            <Input
-              value={hubriseLocationId}
-              onChange={setHubriseLocationId}
-              placeholder="loc_…"
-            />
-          </Field>
+              <input
+                type="password"
+                value={hubriseAccessToken}
+                onChange={(e) => setHubriseAccessToken(e.target.value)}
+                placeholder={hubriseConnected ? '•••••••••• (paste to replace)' : 'ohr_…'}
+                className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+              />
+            </Field>
+            <Field label="HubRise Catalog ID" help="The menu HubRise will sync against.">
+              <Input value={hubriseCatalogId} onChange={setHubriseCatalogId} placeholder="cat_…" />
+            </Field>
+            <Field
+              label="HubRise Location ID"
+              help="HubRise's own location identifier — required for menu publish, order status update, inventory 86, and pause/resume. Auto-filled when you Connect with HubRise."
+            >
+              <Input
+                value={hubriseLocationId}
+                onChange={setHubriseLocationId}
+                placeholder="loc_…"
+              />
+            </Field>
           </div>
         </details>
       </div>
@@ -728,22 +700,21 @@ function GeneralTab({
           settings silently applied to all sibling brands). Edit per
           brand under Brands tab → Direct online ordering → Settings. */}
       <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-[11px] text-amber-800">
-        <strong>Moved.</strong> Stripe Connect and the application-fee
-        settings now live on each brand individually. Open the Brands
-        tab, expand a brand, and click Connect on the "Direct online
-        ordering" channel to configure payouts.
+        <strong>Moved.</strong> Stripe Connect and the application-fee settings now live on each
+        brand individually. Open the Brands tab, expand a brand, and click Connect on the "Direct
+        online ordering" channel to configure payouts.
       </div>
 
       {/* Kiosk — what the self-service screen is allowed to take.
           Per location, not per brand: the kiosk is a physical screen in one
           shop's doorway, and whether that shop has a till drawer or a reader
           beside it is a property of the shop. */}
-      <div className="rounded-md border border-zinc-200 p-3 space-y-3">
+      <div className="space-y-3 rounded-md border border-zinc-200 p-3">
         <div>
           <h3 className="text-sm font-semibold text-zinc-900">Kiosk</h3>
           <p className="text-[11px] text-zinc-500">
-            How customers may pay at the self-service screen. Turning one off
-            hides that button — it is never shown and then refused.
+            How customers may pay at the self-service screen. Turning one off hides that button — it
+            is never shown and then refused.
           </p>
         </div>
         <label className="flex cursor-pointer items-start gap-2 rounded-md bg-zinc-50 p-2.5">
@@ -756,8 +727,8 @@ function GeneralTab({
           <span className="text-xs text-zinc-700">
             <strong>Accept cash</strong>
             <span className="mt-0.5 block text-[11px] text-zinc-500">
-              Shows &ldquo;Pay at the counter&rdquo;. The order reaches the
-              kitchen immediately and staff take the money on collection.
+              Shows &ldquo;Pay at the counter&rdquo;. The order reaches the kitchen immediately and
+              staff take the money on collection.
             </span>
           </span>
         </label>
@@ -771,15 +742,15 @@ function GeneralTab({
           <span className="text-xs text-zinc-700">
             <strong>Accept card</strong>
             <span className="mt-0.5 block text-[11px] text-zinc-500">
-              Shows &ldquo;Pay by card&rdquo; and opens the reader. The kitchen
-              only sees the order once the payment settles.
+              Shows &ldquo;Pay by card&rdquo; and opens the reader. The kitchen only sees the order
+              once the payment settles.
             </span>
           </span>
         </label>
         {!kioskAcceptCash && !kioskAcceptCard && (
           <p className="rounded-md border border-amber-200 bg-amber-50 p-2 text-[11px] text-amber-800">
-            With both off the kiosk can take no payment at all, so it will ask
-            customers to order at the counter instead.
+            With both off the kiosk can take no payment at all, so it will ask customers to order at
+            the counter instead.
           </p>
         )}
       </div>
@@ -792,15 +763,12 @@ function GeneralTab({
           pos* names deliberately — this row is written by raw SQL to survive
           a stale Prisma client, and a rename is the last thing to put in
           front of that. */}
-      <div className="rounded-md border border-zinc-200 p-3 space-y-3">
+      <div className="space-y-3 rounded-md border border-zinc-200 p-3">
         <div>
-          <h3 className="text-sm font-semibold text-zinc-900">
-            Payment link settings
-          </h3>
+          <h3 className="text-sm font-semibold text-zinc-900">Payment link settings</h3>
           <p className="text-[11px] text-zinc-500">
-            Used only for <strong>payment link</strong> charges at this
-            location — not card readers. Leave the account blank to use the
-            brand&apos;s Stripe account.
+            Used only for <strong>payment link</strong> charges at this location — not card readers.
+            Leave the account blank to use the brand&apos;s Stripe account.
           </p>
         </div>
         <Field label="Stripe connected account ID">
@@ -836,10 +804,9 @@ function GeneralTab({
           </Field>
         </div>
         <p className="text-[11px] text-zinc-400">
-          Platform fee per payment-link charge. Both parts come out of
-          the restaurant&apos;s payout &mdash; nothing is added to the
-          customer&apos;s bill, so a payment link costs the customer exactly
-          the same as any other way of paying. Both optional.
+          Platform fee per payment-link charge. Both parts come out of the restaurant&apos;s payout
+          &mdash; nothing is added to the customer&apos;s bill, so a payment link costs the customer
+          exactly the same as any other way of paying. Both optional.
         </p>
       </div>
 
@@ -847,14 +814,12 @@ function GeneralTab({
           brand's applicationFee*, so a shop couldn't price a counter tap
           differently from a delivery order. Per-location by design: these are
           the shop's card-present takings, and a brand can span several shops. */}
-      <div className="rounded-md border border-zinc-200 p-3 space-y-3">
+      <div className="space-y-3 rounded-md border border-zinc-200 p-3">
         <div>
-          <h3 className="text-sm font-semibold text-zinc-900">
-            Card reader fee (POS terminal)
-          </h3>
+          <h3 className="text-sm font-semibold text-zinc-900">Card reader fee (POS terminal)</h3>
           <p className="text-[11px] text-zinc-500">
-            Platform fee on payments taken through a card reader at this shop —
-            S700, WisePad 3, and Tap to Pay on iPhone or Android.
+            Platform fee on payments taken through a card reader at this shop — S700, WisePad 3, and
+            Tap to Pay on iPhone or Android.
           </p>
         </div>
         <div className="grid grid-cols-2 gap-3">
@@ -882,21 +847,19 @@ function GeneralTab({
           </Field>
         </div>
         <p className="text-[11px] text-zinc-400">
-          Leave both blank to keep using the brand&apos;s online-ordering fee
-          for card readers. Enter <strong>0</strong> to charge nothing on
-          terminal payments — that&apos;s different from leaving it blank.
+          Leave both blank to keep using the brand&apos;s online-ordering fee for card readers.
+          Enter <strong>0</strong> to charge nothing on terminal payments — that&apos;s different
+          from leaving it blank.
         </p>
       </div>
 
       {/* Kitchen-language tickets. Off unless a shop actually needs it. */}
-      <div className="rounded-md border border-zinc-200 p-3 space-y-3">
+      <div className="space-y-3 rounded-md border border-zinc-200 p-3">
         <div>
-          <h3 className="text-sm font-semibold text-zinc-900">
-            Kitchen ticket language
-          </h3>
+          <h3 className="text-sm font-semibold text-zinc-900">Kitchen ticket language</h3>
           <p className="text-[11px] text-zinc-500">
-            For a kitchen that reads a different language from the menu — an
-            English menu for customers, a Chinese ticket for the kitchen.
+            For a kitchen that reads a different language from the menu — an English menu for
+            customers, a Chinese ticket for the kitchen.
           </p>
         </div>
         <label className="flex items-start gap-2.5">
@@ -911,10 +874,9 @@ function GeneralTab({
               Print kitchen tickets in a second language
             </span>
             <span className="block text-[11px] text-zinc-500">
-              Adds a &ldquo;Kitchen name&rdquo; box to every product. Items
-              without one keep printing their English name, so you can
-              translate the menu a bit at a time. Customer receipts and the
-              menu itself are never affected.
+              Adds a &ldquo;Kitchen name&rdquo; box to every product. Items without one keep
+              printing their English name, so you can translate the menu a bit at a time. Customer
+              receipts and the menu itself are never affected.
             </span>
           </span>
         </label>
@@ -926,7 +888,7 @@ function GeneralTab({
             <SearchableSelect
               options={KITCHEN_LANGUAGES.map((l) => ({ value: l, label: l }))}
               value={kitchenLanguage || undefined}
-              onChange={(v) => setKitchenLanguage(v ?? "")}
+              onChange={(v) => setKitchenLanguage(v ?? '')}
               placeholder="Pick a language"
               searchPlaceholder="Type to find a language…"
               emptyLabel="No language matches — tell us and we'll add it"
@@ -939,14 +901,12 @@ function GeneralTab({
 
       {/* Per-location phone identity — the number/name this shop's texts and
           caller-ID use. Each client texts from its own sender. */}
-      <div className="rounded-md border border-zinc-200 p-3 space-y-3">
+      <div className="space-y-3 rounded-md border border-zinc-200 p-3">
         <div>
-          <h3 className="text-sm font-semibold text-zinc-900">
-            Phone &amp; SMS sender
-          </h3>
+          <h3 className="text-sm font-semibold text-zinc-900">Phone &amp; SMS sender</h3>
           <p className="text-[11px] text-zinc-500">
-            How this shop&apos;s texts and caller ID appear. Leave blank to use
-            the platform default.
+            How this shop&apos;s texts and caller ID appear. Leave blank to use the platform
+            default.
           </p>
         </div>
         <Field label="SMS sender name (shown on payment links)">
@@ -959,10 +919,10 @@ function GeneralTab({
           />
         </Field>
         <p className="text-[11px] text-zinc-400">
-          Up to 11 letters/numbers, must include a letter. Customers see this
-          name instead of a number on payment-link texts. Note: a name-only
-          sender is one-way — replies and &ldquo;STOP&rdquo; can&apos;t reach it,
-          so <strong>marketing</strong> texts use the number below instead.
+          Up to 11 letters/numbers, must include a letter. Customers see this name instead of a
+          number on payment-link texts. Note: a name-only sender is one-way — replies and
+          &ldquo;STOP&rdquo; can&apos;t reach it, so <strong>marketing</strong> texts use the number
+          below instead.
         </p>
         <div className="grid grid-cols-2 gap-3">
           <Field label="SMS number (marketing & replies)">
@@ -983,8 +943,8 @@ function GeneralTab({
           </Field>
         </div>
         <p className="text-[11px] text-zinc-400">
-          The SMS number must be a number in your Twilio account. Marketing texts
-          send from it so customers can reply &ldquo;STOP&rdquo; to opt out.
+          The SMS number must be a number in your Twilio account. Marketing texts send from it so
+          customers can reply &ldquo;STOP&rdquo; to opt out.
         </p>
       </div>
 
@@ -992,12 +952,12 @@ function GeneralTab({
           setting that makes a machine answer a restaurant's phone, and it
           should never be something an operator flips by accident while
           editing a sender name. */}
-      <div className="rounded-md border border-zinc-200 p-3 space-y-3">
+      <div className="space-y-3 rounded-md border border-zinc-200 p-3">
         <div>
           <h3 className="text-sm font-semibold text-zinc-900">AI phone line</h3>
           <p className="text-[11px] text-zinc-500">
-            Answers calls this shop can&apos;t get to, takes the order, and puts
-            it on the board. Billed per answered call from the wallet.
+            Answers calls this shop can&apos;t get to, takes the order, and puts it on the board.
+            Billed per answered call from the wallet.
           </p>
         </div>
         <Field label="AI phone number">
@@ -1009,10 +969,9 @@ function GeneralTab({
           />
         </Field>
         <p className="text-[11px] text-zinc-400">
-          The number the AI answers on. Don&apos;t give this to customers — set
-          the shop&apos;s existing line to <strong>forward on no answer</strong>{" "}
-          to it, so callers keep dialling the number they already know and the
-          AI only picks up what staff couldn&apos;t.
+          The number the AI answers on. Don&apos;t give this to customers — set the shop&apos;s
+          existing line to <strong>forward on no answer</strong> to it, so callers keep dialling the
+          number they already know and the AI only picks up what staff couldn&apos;t.
         </p>
         <Field label="Transfer calls to">
           <input
@@ -1023,9 +982,8 @@ function GeneralTab({
           />
         </Field>
         <p className="text-[11px] text-zinc-400">
-          Where the AI sends a caller who asks for a person, complains, or wants
-          something it can&apos;t do. Leave blank to use the shop&apos;s own
-          number.
+          Where the AI sends a caller who asks for a person, complains, or wants something it
+          can&apos;t do. Leave blank to use the shop&apos;s own number.
         </p>
         <Field label="Answers as">
           <select
@@ -1042,14 +1000,13 @@ function GeneralTab({
           </select>
         </Field>
         <p className="text-[11px] text-zinc-400">
-          The name the AI greets callers with, and whose menu it reads from. Set
-          this when one kitchen trades under more than one brand — a caller who
-          dialled this number should hear the brand they think they rang.
+          The name the AI greets callers with, and whose menu it reads from. Set this when one
+          kitchen trades under more than one brand — a caller who dialled this number should hear
+          the brand they think they rang.
         </p>
         <p className="text-[11px] text-zinc-400">
-          Prices, choices and 86&rsquo;d items always come from the{" "}
-          <strong>POS menu</strong>, so the phone offers exactly what the till
-          does. Nothing to publish separately.
+          Prices, choices and 86&rsquo;d items always come from the <strong>POS menu</strong>, so
+          the phone offers exactly what the till does. Nothing to publish separately.
         </p>
         <label className="flex cursor-pointer items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-2.5">
           <input
@@ -1061,9 +1018,25 @@ function GeneralTab({
           <span className="text-xs text-amber-900">
             <strong>Test mode — don&apos;t charge for calls</strong>
             <span className="mt-0.5 block text-[11px] text-amber-800">
-              Answers as normal but takes nothing from the wallet, and works
-              even on an empty balance. For our own testing — turn it off before
-              the shop goes live, or their calls are free.
+              Answers as normal but takes nothing from the wallet, and works even on an empty
+              balance. For our own testing — turn it off before the shop goes live, or their calls
+              are free.
+            </span>
+          </span>
+        </label>
+        <label className="flex cursor-pointer items-start gap-2 rounded-md bg-zinc-50 p-2.5">
+          <input
+            type="checkbox"
+            checked={voiceConversation}
+            onChange={(e) => setVoiceConversation(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-zinc-300"
+          />
+          <span className="text-xs text-zinc-800">
+            <strong>Conversation engine (beta)</strong>
+            <span className="mt-0.5 block text-[11px] text-zinc-500">
+              Answers like a person: no &quot;press 1&quot;, asks about sizes and crusts in its own
+              words, takes a whole order in one breath. Same phone line and safety checks. Off means
+              the current engine.
             </span>
           </span>
         </label>
@@ -1077,9 +1050,8 @@ function GeneralTab({
           <span className="text-xs text-zinc-700">
             <strong>Text a confirmation on cash phone orders</strong>
             <span className="mt-0.5 block text-[11px] text-zinc-500">
-              Sends the order number and total after the call. Costs one SMS
-              from the wallet per order. Card orders already get the payment
-              link, so they&apos;re never texted twice.
+              Sends the order number and total after the call. Costs one SMS from the wallet per
+              order. Card orders already get the payment link, so they&apos;re never texted twice.
             </span>
           </span>
         </label>
@@ -1093,9 +1065,8 @@ function GeneralTab({
           <span className="text-xs text-zinc-700">
             <strong>Let the AI answer calls for this shop</strong>
             <span className="mt-0.5 block text-[11px] text-zinc-500">
-              Off by default. With this off the number simply doesn&apos;t
-              answer, so calls keep ringing at the shop exactly as they do now —
-              switching it off is always safe.
+              Off by default. With this off the number simply doesn&apos;t answer, so calls keep
+              ringing at the shop exactly as they do now — switching it off is always safe.
             </span>
           </span>
         </label>
@@ -1113,9 +1084,7 @@ function GeneralTab({
         </select>
       </Field>
 
-      {error && (
-        <p className="rounded-md bg-red-50 px-3 py-2 text-xs text-red-700">{error}</p>
-      )}
+      {error && <p className="rounded-md bg-red-50 px-3 py-2 text-xs text-red-700">{error}</p>}
 
       <div className="flex justify-end gap-2 border-t border-zinc-200 pt-3">
         <button
@@ -1124,7 +1093,7 @@ function GeneralTab({
           className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
         >
           {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-          {isCreate ? "Create location" : "Save changes"}
+          {isCreate ? 'Create location' : 'Save changes'}
         </button>
       </div>
     </div>
@@ -1140,21 +1109,17 @@ function GeneralTab({
 function PrepTimeSection({ locationId }: { locationId: string }) {
   const qc = useQueryClient();
   const detail = useQuery({
-    queryKey: ["locations", "detail", locationId],
+    queryKey: ['locations', 'detail', locationId],
     queryFn: () => locationsClient.get(locationId),
   });
-  const [prep, setPrep] = useState("");
-  const [busy, setBusy] = useState("");
+  const [prep, setPrep] = useState('');
+  const [busy, setBusy] = useState('');
   const [seeded, setSeeded] = useState(false);
 
   useEffect(() => {
     if (detail.data && !seeded) {
-      setPrep(detail.data.prepTime != null ? String(detail.data.prepTime) : "");
-      setBusy(
-        detail.data.busyExtraPrepTime != null
-          ? String(detail.data.busyExtraPrepTime)
-          : "",
-      );
+      setPrep(detail.data.prepTime != null ? String(detail.data.prepTime) : '');
+      setBusy(detail.data.busyExtraPrepTime != null ? String(detail.data.busyExtraPrepTime) : '');
       setSeeded(true);
     }
   }, [detail.data, seeded]);
@@ -1162,12 +1127,12 @@ function PrepTimeSection({ locationId }: { locationId: string }) {
   const save = useMutation({
     mutationFn: () =>
       locationsClient.update(locationId, {
-        prepTime: prep === "" ? null : Number(prep),
-        busyExtraPrepTime: busy === "" ? null : Number(busy),
+        prepTime: prep === '' ? null : Number(prep),
+        busyExtraPrepTime: busy === '' ? null : Number(busy),
       } as any),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["locations", "detail", locationId] });
-      qc.invalidateQueries({ queryKey: ["locations"] });
+      qc.invalidateQueries({ queryKey: ['locations', 'detail', locationId] });
+      qc.invalidateQueries({ queryKey: ['locations'] });
     },
   });
 
@@ -1177,8 +1142,7 @@ function PrepTimeSection({ locationId }: { locationId: string }) {
         Prep time
       </h3>
       <p className="mb-3 text-[11px] text-zinc-500">
-        Used by HubRise and WhatsApp when this brand has no prep time of its
-        own. Minutes.
+        Used by HubRise and WhatsApp when this brand has no prep time of its own. Minutes.
       </p>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Base prep time (mins)">
@@ -1216,7 +1180,7 @@ function PrepTimeSection({ locationId }: { locationId: string }) {
         <p className="mt-1 text-[11px] text-red-600">
           {(save.error as any)?.response?.data?.message ??
             (save.error as any)?.message ??
-            "Failed to save"}
+            'Failed to save'}
         </p>
       )}
     </div>
@@ -1224,7 +1188,6 @@ function PrepTimeSection({ locationId }: { locationId: string }) {
 }
 
 // ── Brands tab ────────────────────────────────────────────────────────────
-
 
 // ── Atoms ────────────────────────────────────────────────────────────────
 
@@ -1268,7 +1231,7 @@ function Input({
 }) {
   return (
     <input
-      value={value ?? ""}
+      value={value ?? ''}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       disabled={disabled}
@@ -1292,10 +1255,10 @@ function TabBtn({
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`px-3 py-2 text-xs font-medium border-b-2 disabled:opacity-40 ${
+      className={`border-b-2 px-3 py-2 text-xs font-medium disabled:opacity-40 ${
         active
-          ? "border-zinc-900 text-zinc-900"
-          : "border-transparent text-zinc-500 hover:text-zinc-700"
+          ? 'border-zinc-900 text-zinc-900'
+          : 'border-transparent text-zinc-500 hover:text-zinc-700'
       }`}
     >
       {children}
@@ -1303,13 +1266,7 @@ function TabBtn({
   );
 }
 
-function Backdrop({
-  children,
-  onClose,
-}: {
-  children: React.ReactNode;
-  onClose: () => void;
-}) {
+function Backdrop({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
