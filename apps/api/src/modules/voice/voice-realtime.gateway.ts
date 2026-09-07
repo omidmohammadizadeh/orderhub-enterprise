@@ -767,7 +767,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
    * generated for the cancelled reply is dropped rather than played, or the
    * caller hears the tail of an answer to a question they interrupted.
    */
-  private interrupt(brain: WebSocket): void {
+  private interrupt(brain: WebSocket, opts: { serverCancels?: boolean } = {}): void {
     // The queued audio goes whether or not the model is still generating —
     // by the time somebody presses a key the model has usually finished and
     // the caller is only part-way through hearing it.
@@ -801,7 +801,9 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     // single "drop everything until the next response starts" flag dropped
     // the first frames of the NEXT reply too when the two overlapped.
     for (const id of this.responsesOf(brain)) t.cancelled.add(id);
-    this.send(brain, { type: "response.cancel" });
+    // On speech_started the server has already cancelled its own reply;
+    // sending another cancel just earns "no active response found".
+    if (!opts.serverCancels) this.send(brain, { type: "response.cancel" });
     (brain as any).__responses = new Set<string>();
     (brain as any).__responsePending = false;
     (brain as any).__toolAwaitingReply = false;
@@ -888,6 +890,9 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     audio: Map<string, AudioItem>;
     currentAudio?: string;
     cancelled: Set<string>;
+    toolResponses: Set<string>;
+    /** Responses that produced at least one audio frame. */
+    voiced: Set<string>;
   } {
     return ((brain as any).__turns ??= {
       askSeq: 0,
@@ -898,6 +903,8 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       audio: new Map(),
       currentAudio: undefined,
       cancelled: new Set(),
+      toolResponses: new Set(),
+      voiced: new Set(),
     });
   }
 
@@ -1186,6 +1193,12 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         if (!responseId && this.responsesOf(brain).size === 0 && t.cancelled.size > 0) return;
         this.statsOf(brain).audioIn += 1;
         this.heardFromModel(brain);
+        // Audio flowed, so whichever response it belongs to is not empty. A
+        // frame with no id is credited to every active response — erring
+        // towards "somebody spoke", because the alternative is nudging over
+        // the top of a reply that is playing.
+        if (responseId) t.voiced.add(responseId);
+        else for (const id of this.responsesOf(brain)) t.voiced.add(id);
         const tm = this.timingOf(brain).open;
         if (tm && !tm.firstAudioAt) {
           tm.firstAudioAt = Date.now();
@@ -1256,7 +1269,24 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // "would you like the same as last time?", the caller said no, and
         // there is not one line in the log after that. Nothing was watching,
         // so nothing recovered, and the call died in silence.
-        this.watchForSilence(brain, ccid, "idle");
+        {
+          // A reply with nothing in it — no audio, no tool call — is the
+          // model declining to speak, not the caller thinking. Seen after
+          // order_confirmed: the tool said "now ask how they'd like to pay",
+          // the model returned an empty response, and the caller sat through
+          // ten seconds of idle-timer before being asked. That is a stall and
+          // gets the short clock.
+          const t = this.turnsOf(brain);
+          const rid = String(event.response?.id ?? "");
+          const hadAudio = t.voiced.has(rid);
+          const hadTool = t.toolResponses.has(rid);
+          if (rid && !hadAudio && !hadTool) {
+            this.logger.warn(`realtime ${ccid.slice(-8)} empty reply ${rid.slice(-8)} — treating as a stall`);
+            this.watchForSilence(brain, ccid, "reply");
+          } else {
+            this.watchForSilence(brain, ccid, "idle");
+          }
+        }
         {
           const tm = this.timingOf(brain).open;
           if (tm && !tm.generationDoneAt) {
@@ -1303,7 +1333,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // The server cancels its own reply on this; the truncation and the
         // Telnyx queue are ours to deal with, and they are the same job a
         // keypress does.
-        this.interrupt(brain);
+        this.interrupt(brain, { serverCancels: true });
         return;
 
       case "input_audio_buffer.speech_stopped": {
@@ -1505,6 +1535,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         const latest = this.latestHeard(brain);
         const responseId = String(event.response_id ?? "");
         const askedAt = t.responseAskSeq.get(responseId) ?? t.askSeq;
+        if (responseId) t.toolResponses.add(responseId);
         const out = await this.voice
           .realtimeTool(ccid, name, {
             ...args,

@@ -24,6 +24,8 @@ export interface VoiceContext extends WaMenuContext {
   locationPhone?: string | null;
   /** Where to send a call the AI can't handle. Usually the shop's own line. */
   transferNumber?: string | null;
+  /** The language the line SPEAKS. Per shop later; English until then. */
+  spokenLanguage?: string;
   /** Which engine answers: the chained pipeline, or speech-to-speech. */
   voiceEngine?: "RELAY" | "REALTIME";
   /** Operator kill switch — the AI answers only when this is on. */
@@ -178,6 +180,10 @@ export class VoiceContextService {
       // Where an escalation goes. Falls back to the shop's own published
       // number, which is almost always right.
       transferNumber: settings.voiceTransferNumber ?? location.phone ?? null,
+      // What the line speaks. The speech model picks a language from what it
+      // hears unless told, and on a live call it answered a UK caller in
+      // Persian. English by default; a shop can set voiceLanguage later.
+      spokenLanguage: String(settings.voiceLanguage || "English"),
       // Default OFF. An AI that starts answering a restaurant's phone because
       // a number got assigned is not a feature.
       enabled: settings.voiceAiEnabled === true,

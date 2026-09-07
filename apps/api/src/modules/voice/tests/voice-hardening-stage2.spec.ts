@@ -89,3 +89,56 @@ describe("9. latency instrumentation", () => {
     expect(summary).toMatch(/stop→first-audio p50 \d+ms p95 \d+ms \(n=3\)/);
   });
 });
+
+describe("leftovers from the first live calls on this branch", () => {
+  it("does not send response.cancel on speech_started — the server already did", async () => {
+    const sim = new VoiceRealtimeSim();
+    await sim.answer();
+    sim.brain.deliver({ type: "response.created", response: { id: "r1" } });
+    sim.brain.deliver({ type: "response.output_audio.delta", response_id: "r1", item_id: "a1", delta: "AAAA" });
+    sim.brain.sent.length = 0;
+    sim.brain.deliver({ type: "input_audio_buffer.speech_started" });
+    await settle();
+    expect(sim.toModel.some((m) => m.type === "response.cancel")).toBe(false);
+    expect(sim.toModel.some((m) => m.type === "conversation.item.truncate")).toBe(true);
+    // but a keypress still cancels
+    await sim.press("1");
+    sim.brain.deliver({ type: "response.created", response: { id: "r2" } });
+    sim.brain.deliver({ type: "response.output_audio.delta", response_id: "r2", item_id: "a2", delta: "AAAA" });
+    sim.brain.sent.length = 0;
+    await sim.press("2");
+    expect(sim.toModel.some((m) => m.type === "response.cancel")).toBe(true);
+  });
+
+  it("treats a reply with nothing in it as a stall, on the short clock", async () => {
+    const sim = new VoiceRealtimeSim({ quietMs: 40, idleMs: 5000 });
+    await sim.answer();
+    sim.brain.sent.length = 0;
+    sim.brain.deliver({ type: "response.created", response: { id: "r1" } });
+    sim.brain.deliver({ type: "response.done", response: { id: "r1" } });   // no audio, no tool
+    await settle(200);
+    expect(sim.log.join(" ")).toMatch(/empty reply .* treating as a stall/);
+    expect(sim.log.join(" ")).toMatch(/nothing came back/);                // nudged well inside 5s
+  });
+});
+
+describe("what goes on the ticket", () => {
+  const { VoiceAiService } = require("../voice-ai.service");
+  const ai = () => { const a: any = Object.create(VoiceAiService.prototype); a.logger = { log() {}, warn() {}, error() {} }; return a; };
+  it("never writes the payment answer down as the customer's name", () => {
+    const a = ai();
+    for (const bad of ["cash", "Card", "yes", "No.", "", "   "]) {
+      expect(a.customerNameFrom(bad, { knownName: undefined })).toBe("Phone order");
+    }
+    expect(a.customerNameFrom("cash", { knownName: "Omid" })).toBe("Omid");
+    expect(a.customerNameFrom("Sarah", {})).toBe("Sarah");
+  });
+  it("tells the line to speak English whatever it hears", () => {
+    const a = ai();
+    const ctx: any = { currency: "GBP", items: [], itemIndex: new Map(), optionIndex: new Map(), locationName: "T", spokenLanguage: "English", deliveryZones: [] };
+    const p = a.promptForRealtime(ctx, { cart: { items: [] }, turns: [] });
+    expect(p).toMatch(/LANGUAGE/);
+    expect(p).toMatch(/Speak English, and only English/);
+    expect(p).toMatch(/Never switch/);
+  });
+});

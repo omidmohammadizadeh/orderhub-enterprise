@@ -1697,6 +1697,11 @@ THINGS TO GET RIGHT
 
 ${savedGuidance}${closedGuidance}
 
+LANGUAGE
+- Speak ${ctx.spokenLanguage ?? "English"}, and only ${ctx.spokenLanguage ?? "English"} — every word,
+  for the whole call, whatever language or accent the caller uses. If they
+  speak another language, reply in ${ctx.spokenLanguage ?? "English"} anyway. Never switch.
+
 MENU
 ${menu || "(no items available — apologise and transfer)"}`;
   }
@@ -2753,6 +2758,17 @@ ${menu || "(no items available — apologise and transfer)"}`;
     };
   }
 
+  /** What goes on the ticket as the caller's name — never the last word they said. */
+  private customerNameFrom(raw: unknown, state: VoiceState): string {
+    const t = String(raw ?? "").trim();
+    const notAName =
+      !t ||
+      t.length > 60 ||
+      /^(cash|card|credit|debit|pay|payment|yes|yeah|yep|no|nope|ok|okay|delivery|collection|pickup|phone order)[.!]?$/i.test(t);
+    if (!notAName) return t;
+    return state.knownName?.trim() || "Phone order";
+  }
+
   /**
    * The order as it stands, as one string. Same order → same string.
    *
@@ -3478,7 +3494,10 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
           orderSource: "VOICE",
           fulfillmentType: isDelivery ? "DELIVERY" : "PICKUP",
           customerInfo: {
-            name: String(input?.customerName ?? "Phone order"),
+            // "cash" reached a receipt as the customer's name: the model
+            // answered its own payment question into the name field. A name
+            // is not a payment method, a yes, a no, or nothing.
+            name: this.customerNameFrom(input?.customerName, state),
             phone: callerNumber ?? undefined,
           },
           ...(isDelivery ? { deliveryAddress: state.cart.deliveryAddress } : {}),
@@ -3550,7 +3569,7 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
         sayNow: `That's all booked in${
           digits ? `, order number ${digits}` : ""
         }. That's ${total}, and it'll be about ${mins} minutes. Thanks for calling, goodbye.`,
-        result: `Order placed. Order number ${digits}, total ${total}, about ${mins} minutes.${extra}`,
+        result: `Order placed.${digits ? ` Order number ${digits},` : ""} total ${total}, about ${mins} minutes.${extra}`,
         turn: { orderId: order.id, outcome: "ORDER" },
       };
     } catch (e: any) {
