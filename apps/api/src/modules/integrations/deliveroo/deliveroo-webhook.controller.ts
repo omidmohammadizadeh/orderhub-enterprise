@@ -16,10 +16,50 @@ import { Public } from '../../../common/decorators/public.decorator';
 // route it (BA-3b): order.new → ingestCanonical, order.status_update →
 // updateStatus, rider.status_update → courier columns. Routing is best-effort
 // and fully swallowed — a handler failure never turns into a non-200.
+//
+// The 200 goes back BEFORE routing runs. Deliveroo's own dashboard showed 330
+// of 6,220 callbacks (5.3%) coming back `-1` — no HTTP response at all —
+// because we made them wait for the whole ingest: menu resolution, order
+// write, customer backfill, print jobs. Node does not abort a handler when the
+// client disconnects, so those orders did land and the retry was deduped; the
+// cost was a permanent 5% failure band on the dashboard, no headroom before
+// retries start missing too, and real faults hidden inside the noise.
+//
+// This weakens nothing: routing errors were ALREADY swallowed into a 200, so
+// Deliveroo never retried on a handler failure. What changes is only that it
+// stops waiting for work whose outcome it was never told.
 @ApiTags('deliveroo')
 @Controller({ path: 'integrations/deliveroo', version: '1' })
 export class DeliverooWebhookController {
   private readonly logger = new Logger(DeliverooWebhookController.name);
+
+  /**
+   * One event at a time per order.
+   *
+   * Answering in milliseconds instead of seconds means Deliveroo's next event
+   * for the same order can arrive while the previous one is still being
+   * processed — and a status_update that overtakes its own order.new finds no
+   * order to update and is dropped as unhandled. These were previously spaced
+   * apart by the very latency being removed, so the ordering was luck rather
+   * than design.
+   *
+   * Keyed by order id: different orders still run concurrently.
+   */
+  private readonly lanes = new Map<string, Promise<unknown>>();
+
+  private inOrder<T>(key: string, work: () => Promise<T>): Promise<T> {
+    const prev = this.lanes.get(key) ?? Promise.resolve();
+    const run = prev.then(work, work);
+    const tail = run.then(
+      () => undefined,
+      () => undefined,
+    );
+    this.lanes.set(key, tail);
+    void tail.then(() => {
+      if (this.lanes.get(key) === tail) this.lanes.delete(key);
+    });
+    return run;
+  }
 
   constructor(
     private readonly client: DeliverooClientService,
@@ -134,56 +174,79 @@ export class DeliverooWebhookController {
     // then treat as a duplicate — the underlying ingest/updateStatus paths
     // are themselves idempotent).
     if (willRoute) {
-      try {
-        const result = await this.orderRouter.route(event, body);
-        // What the router DID with it. An unrouted event name or an order we
-        // can't find is the difference between "Deliveroo never told us" and
-        // "Deliveroo told us and we ignored it", and only one of those is
-        // ours to fix.
-        if (!result.handled) {
-          this.logger.warn(`Deliveroo webhook ${event} not handled: ${result.reason ?? 'unknown'}`);
-        }
-        // Only bookkeeping — there's no row to update when no guid arrived.
-        if (sequenceGuid)
-          await this.prisma.webhookEvent
-            .update({
-              where: {
-                platform_externalEventId: {
-                  platform: 'DELIVEROO',
-                  externalEventId: sequenceGuid,
+      // Not awaited. Everything below happens after Deliveroo has its 200.
+      const lane =
+        String(
+          body?.body?.order?.id ??
+            body?.order?.id ??
+            body?.order_id ??
+            body?.body?.order_id ??
+            sequenceGuid ??
+            'unkeyed',
+        ) || 'unkeyed';
+      void this.inOrder(lane, async () => {
+        const startedAt = Date.now();
+        try {
+          const result = await this.orderRouter.route(event, body);
+          // How long Deliveroo WOULD have been waiting. The number that made
+          // this change necessary, kept so it can be watched.
+          this.logger.log(
+            `Deliveroo webhook ${event} routed in ${Date.now() - startedAt}ms ` +
+              `(handled=${result.handled}${result.orderId ? ` order=${result.orderId}` : ''})`,
+          );
+          // What the router DID with it. An unrouted event name or an order we
+          // can't find is the difference between "Deliveroo never told us" and
+          // "Deliveroo told us and we ignored it", and only one of those is
+          // ours to fix.
+          if (!result.handled) {
+            this.logger.warn(
+              `Deliveroo webhook ${event} not handled: ${result.reason ?? 'unknown'}`,
+            );
+          }
+          // Only bookkeeping — there's no row to update when no guid arrived.
+          if (sequenceGuid)
+            await this.prisma.webhookEvent
+              .update({
+                where: {
+                  platform_externalEventId: {
+                    platform: 'DELIVEROO',
+                    externalEventId: sequenceGuid,
+                  },
                 },
-              },
-              data: {
-                orderId: result.orderId ?? null,
-                processedAt: new Date(),
-                metadata: { event, valid, ...result },
-              },
-            })
-            .catch(() => {
-              /* best-effort bookkeeping */
-            });
-      } catch (err: any) {
-        this.logger.error(
-          `Deliveroo webhook routing failed for ${event}/${sequenceGuid}: ${err?.message}`,
-        );
-        if (sequenceGuid) {
-          await this.prisma.webhookEvent
-            .update({
-              where: {
-                platform_externalEventId: {
-                  platform: 'DELIVEROO',
-                  externalEventId: sequenceGuid,
+                data: {
+                  orderId: result.orderId ?? null,
+                  processedAt: new Date(),
+                  metadata: { event, valid, ...result },
                 },
-              },
-              data: { processingError: String(err) },
-            })
-            .catch(() => {
-              /* best-effort */
-            });
+              })
+              .catch(() => {
+                /* best-effort bookkeeping */
+              });
+        } catch (err: any) {
+          this.logger.error(
+            `Deliveroo webhook routing failed for ${event}/${sequenceGuid} ` +
+              `after ${Date.now() - startedAt}ms: ${err?.message}`,
+          );
+          if (sequenceGuid) {
+            await this.prisma.webhookEvent
+              .update({
+                where: {
+                  platform_externalEventId: {
+                    platform: 'DELIVEROO',
+                    externalEventId: sequenceGuid,
+                  },
+                },
+                data: { processingError: String(err) },
+              })
+              .catch(() => {
+                /* best-effort */
+              });
+          }
         }
-      }
+      });
     }
 
+    // Deliveroo is done waiting. Routing continues behind this line.
     return { ok: true };
   }
 }
