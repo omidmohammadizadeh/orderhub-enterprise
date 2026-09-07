@@ -139,7 +139,22 @@ export interface VoiceState {
     intent: "usual" | "address" | "order";
     asked?: boolean;
     answered?: "YES" | "NO";
+    /** What the question was ABOUT. A press for a basket that has since
+     *  changed answers a question nobody is asking any more. */
+    of?: string;
   };
+  /**
+   * Which version of the order each confirmation was given for.
+   *
+   * A flag alone goes stale the moment anything changes: "yes, that's all
+   * correct" said about a pizza and chips does not cover the garlic bread
+   * added afterwards, or the address corrected a minute later. The fingerprint
+   * is the basket as it was when the words were said; a mismatch means the
+   * confirmation is for a different order and does not count.
+   */
+  readBackOf?: string;
+  orderConfirmedOf?: string;
+  addressConfirmedOf?: string;
   /**
    * The full order has been read back and confirmed aloud. place_order refuses
    * without it. The system prompt has always asked for this; a prompt is a
@@ -289,8 +304,12 @@ export function coerceState(raw: unknown): VoiceState {
               r.pendingConfirm.answered === "YES" || r.pendingConfirm.answered === "NO"
                 ? r.pendingConfirm.answered
                 : undefined,
+            of: r.pendingConfirm.of ? String(r.pendingConfirm.of) : undefined,
           }
         : undefined,
+    readBackOf: r.readBackOf ? String(r.readBackOf) : undefined,
+    orderConfirmedOf: r.orderConfirmedOf ? String(r.orderConfirmedOf) : undefined,
+    addressConfirmedOf: r.addressConfirmedOf ? String(r.addressConfirmedOf) : undefined,
     savedAddress:
       r.savedAddress && typeof r.savedAddress === "object"
         ? {
@@ -639,7 +658,15 @@ export class VoiceAiService {
    * the shop's own zones, and asks the next question — no model involved.
    */
   async confirmAddressAloud(ctx: VoiceContext, state: VoiceState): Promise<string> {
-    await this.runTool("confirm_delivery_address", {}, ctx, state, null);
+    // The yes was parsed by the slot machine before this ran — that is the
+    // only way in here — so it is handed to the tool as the consent it is.
+    await this.runTool(
+      "confirm_delivery_address",
+      { __heard: "yes", __heardFresh: true, __heardReadable: true },
+      ctx,
+      state,
+      null,
+    );
     if (!state.addressConfirmed) {
       // Outside the delivery area. Say so — but never leave them with nowhere
       // to go, because "we don't deliver there" with no follow-up is where a
@@ -2010,6 +2037,26 @@ ${menu || "(no items available — apologise and transfer)"}`;
         if (!addr?.line1) {
           return { result: "There is no address to confirm — take one first." };
         }
+        // The same yes the saved address needs. The address was read back;
+        // this tool means the caller said it was right. A model that calls it
+        // on its own initiative sends a driver to whatever it heard.
+        const said = this.agreed(input, state);
+        if (!said.ok && said.unclear) {
+          return this.confirmByKeypad(
+            state,
+            "address",
+            `Sorry — I didn't catch that. Is ${addr.line1} the right address?`,
+          );
+        }
+        if (!said.ok) {
+          state.pendingConfirm = undefined;
+          state.addressConfirmed = false;
+          state.addressConfirmedOf = undefined;
+          return {
+            result: `They have not said that address is right — ${said.why}. Ask what needs correcting and take it again.`,
+          };
+        }
+        state.pendingConfirm = undefined;
         // The fee is quoted from the same resolver every other surface uses,
         // at the moment the address is finally agreed — not from whatever was
         // guessed earlier in the call.
@@ -2024,6 +2071,7 @@ ${menu || "(no items available — apologise and transfer)"}`;
           return { result: check };
         }
         state.addressConfirmed = true;
+        state.addressConfirmedOf = this.addressFingerprint(state);
         return {
           result: `Address confirmed. ${check} Tell them the delivery charge, then ask what they would like to order.`,
         };
@@ -2078,6 +2126,7 @@ ${menu || "(no items available — apologise and transfer)"}`;
         // are still there. Making them hear it read back a second time is the
         // kind of thing that makes a line feel like a form.
         state.addressConfirmed = true;
+        state.addressConfirmedOf = this.addressFingerprint(state);
         // A saved address carries a postcode, not a named community, so in an
         // area-priced shop there is nothing here to check it against. Ask,
         // rather than quoting a fee resolved from the wrong field.
@@ -2097,7 +2146,16 @@ ${menu || "(no items available — apologise and transfer)"}`;
         if (state.cart.items.length === 0) {
           return { result: "Nothing on the order yet — there is nothing to read back." };
         }
+        if (state.pendingItem) {
+          return {
+            result:
+              "An item is still being finished — its choices or note have not all been answered yet. Do not read the order back until it is in the basket.",
+          };
+        }
         state.awaiting = "ORDER_CONFIRM";
+        // The read-back is a statement about THIS order. A yes to it does not
+        // cover anything added, removed or changed afterwards.
+        state.readBackOf = this.orderFingerprint(state);
         return {
           result:
             "Order read back to the caller. Wait for their answer. Call order_confirmed if they say yes; if they say no, ask what needs changing.",
@@ -2108,6 +2166,22 @@ ${menu || "(no items available — apologise and transfer)"}`;
       case "order_confirmed": {
         if (state.cart.items.length === 0) {
           return { result: "The order is empty — nothing to confirm." };
+        }
+        if (state.pendingItem) {
+          return {
+            result:
+              "An item is still being finished. Nothing can be confirmed until it is in the basket.",
+          };
+        }
+        const now = this.orderFingerprint(state);
+        if (state.readBackOf !== now) {
+          state.orderConfirmed = false;
+          state.orderConfirmedOf = undefined;
+          return {
+            result: state.readBackOf
+              ? "The order has CHANGED since it was read back. Call read_back_order again, say it, and get a fresh yes for the order as it is now."
+              : "The order has not been read back. Call read_back_order first — a yes only counts for an order the caller has heard.",
+          };
         }
         // The read-back is the last gate before a kitchen starts cooking. A
         // yes heard where there was none puts food nobody ordered on a
@@ -2128,6 +2202,7 @@ ${menu || "(no items available — apologise and transfer)"}`;
         }
         state.pendingConfirm = undefined;
         state.orderConfirmed = true;
+        state.orderConfirmedOf = now;
         return {
           result:
             "Confirmed. Now ask how they would like to pay — cash, or card — and then place it.",
@@ -2670,12 +2745,63 @@ ${menu || "(no items available — apologise and transfer)"}`;
     intent: NonNullable<VoiceState["pendingConfirm"]>["intent"],
     question: string,
   ): { result: string; sayNow: string } {
-    state.pendingConfirm = { intent, asked: true };
+    state.pendingConfirm = { intent, asked: true, of: this.fingerprintFor(intent, state) };
     return {
       sayNow: `${question} Press 1 for yes, or 2 for no.`,
       result:
         "Their answer could not be made out, so they have been asked to press 1 or 2. That keypress is handled in code — say nothing more, and do NOT act until it arrives.",
     };
+  }
+
+  /**
+   * The order as it stands, as one string. Same order → same string.
+   *
+   * Everything a caller could be confirming: what, how many, with what on it,
+   * any note, collection or delivery, and where. Prices are derived from these
+   * so they need not be listed. Nothing here is a timestamp or an id, so
+   * reading it back twice without touching it gives the same fingerprint.
+   */
+  orderFingerprint(state: VoiceState): string {
+    const items = (state.cart.items ?? []).map((i: any) => ({
+      id: i.menuItemId ?? i.id ?? i.name,
+      q: i.quantity,
+      m: (i.modifiers ?? []).map((m: any) => m.id ?? m.optionId ?? m.name).sort(),
+      n: i.notes ?? i.note ?? "",
+    }));
+    return JSON.stringify({
+      items,
+      f: state.cart.fulfillmentType ?? null,
+      a: this.addressFingerprint(state),
+    });
+  }
+
+  addressFingerprint(state: VoiceState): string {
+    const a: any = state.cart.deliveryAddress;
+    if (!a) return "";
+    return JSON.stringify([a.line1 ?? "", a.city ?? "", a.postcode ?? "", a.area ?? ""]);
+  }
+
+  /** The thing a keypad question would be about, for this intent. */
+  private fingerprintFor(intent: "usual" | "address" | "order", state: VoiceState): string {
+    return intent === "address" ? this.addressFingerprint(state) : this.orderFingerprint(state);
+  }
+
+  /** Confirmed, and nothing about the address has changed since. */
+  addressStillConfirmed(state: VoiceState): boolean {
+    return (
+      state.addressConfirmed === true &&
+      !!state.addressConfirmedOf &&
+      state.addressConfirmedOf === this.addressFingerprint(state)
+    );
+  }
+
+  /** Confirmed, and nothing about the order has changed since. */
+  orderStillConfirmed(state: VoiceState): boolean {
+    return (
+      state.orderConfirmed === true &&
+      !!state.orderConfirmedOf &&
+      state.orderConfirmedOf === this.orderFingerprint(state)
+    );
   }
 
   agreed(input: any, state?: VoiceState): { ok: boolean; why: string; unclear?: boolean } {
@@ -2684,8 +2810,22 @@ ${menu || "(no items available — apologise and transfer)"}`;
     // A keypress outranks the transcript. It is the same yes, typed instead of
     // spoken, and it is the only answer on the call that cannot be garbled.
     const pressed = state?.pendingConfirm;
-    if (pressed?.answered === "YES") return { ok: true, why: "they pressed 1 for yes" };
-    if (pressed?.answered === "NO") return { ok: false, why: "they pressed 2 for no" };
+    if (pressed?.answered && state) {
+      // Stale if the basket or address moved between the question and the
+      // key. The press answered a question about something that no longer
+      // exists; it must not be spent on what replaced it.
+      const about = pressed.of;
+      const now = this.fingerprintFor(pressed.intent, state);
+      if (about !== undefined && about !== now) {
+        return {
+          ok: false,
+          unclear: true,
+          why: "their keypress was about an earlier version of the order",
+        };
+      }
+      if (pressed.answered === "YES") return { ok: true, why: "they pressed 1 for yes" };
+      return { ok: false, why: "they pressed 2 for no" };
+    }
 
     // "Unclear" is not "no". A clear no is honoured and the call moves on; an
     // answer nobody could read has to be asked again A DIFFERENT WAY, because
@@ -3277,10 +3417,17 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
     // switched off permanently — food nobody ordered, and a driver at the
     // wrong door. So they are enforced here, where the model cannot talk its
     // way past them.
-    if (!state.orderConfirmed) {
+    if (state.pendingItem) {
       return {
         result:
-          "You have not read the order back yet. Call read_back_order, say it, and get a yes before placing anything.",
+          "An item is still being finished — it is not in the basket. Nothing can be placed until it is.",
+      };
+    }
+    if (!this.orderStillConfirmed(state)) {
+      return {
+        result: state.orderConfirmed
+          ? "The order has CHANGED since it was confirmed. Call read_back_order again and get a fresh yes before placing anything."
+          : "You have not read the order back yet. Call read_back_order, say it, and get a yes before placing anything.",
       };
     }
     const isDelivery = state.cart.fulfillmentType === "DELIVERY";
@@ -3293,7 +3440,9 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
     if (isDelivery && !(state.cart.deliveryAddress?.line1 && located)) {
       return { result: "You need a delivery address first. Ask for it." };
     }
-    if (isDelivery && !state.addressConfirmed) {
+    // The flag alone goes stale: an address confirmed and then corrected is an
+    // unconfirmed address wearing a confirmed flag.
+    if (isDelivery && !this.addressStillConfirmed(state)) {
       return {
         result:
           "The address has not been read back and confirmed. Read it back, wait for a yes, then call confirm_delivery_address.",

@@ -105,6 +105,7 @@ describe("chasing an order that was already placed", () => {
           __heard: "Twenty four.",
           __heardFresh: expect.any(Boolean),
           __heardReadable: expect.any(Boolean),
+          __heardItemId: expect.anything(),
         },
       },
     ]);
@@ -966,9 +967,12 @@ describe("a noise that is not an answer", () => {
     });
     await new Promise((r) => setTimeout(r, 10));
 
-    expect(sim.toModel.map((m) => m.type)).toContain("response.cancel");
-    expect(sim.caller.sent.some((m: any) => m.event === "clear")).toBe(true);
-    expect(sim.log.join(" ")).toMatch(/that was not speech/);
+    // No words is NOT proof of no speech. The detector committed audio, the
+    // transcriber returned nothing for it; the model heard the audio and is
+    // the only one who can tell a breath from a short word. So: no cancel, no
+    // clear, and the model is told precisely what happened.
+    expect(sim.toModel.map((m) => m.type)).not.toContain("response.cancel");
+    expect(sim.log.join(" ")).toMatch(/returned nothing for that turn/);
   });
 
   it("tells the model the caller has not answered", async () => {
@@ -983,8 +987,8 @@ describe("a noise that is not an answer", () => {
     await new Promise((r) => setTimeout(r, 10));
 
     const told = sim.toModel.find((m) => m.type === "conversation.item.create");
-    expect(told.item.content[0].text).toMatch(/has NOT answered you/);
-    expect(told.item.content[0].text).toMatch(/Do not treat it as a yes or a no/);
+    expect(told.item.content[0].text).toMatch(/returned no words/);
+    expect(told.item.content[0].text).toMatch(/NOT a yes/);
     // And it does not ask for a reply — the caller is still thinking.
     expect(sim.toModel.some((m) => m.type === "response.create")).toBe(false);
   });

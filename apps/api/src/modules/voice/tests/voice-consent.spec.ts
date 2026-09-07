@@ -166,7 +166,11 @@ describe("the read-back, which is the last gate before a kitchen starts", () => 
       cart: { items: [{ lineId: "a", name: "CHIPS", quantity: 1, unitBasePrice: 2, modifiers: [] }] },
       turns: [],
     };
-    const out = ai().runTool("order_confirmed", input, { currency: "GBP" } as any, state, null);
+    const a = ai();
+    // A yes only counts for an order the caller has heard: this is the
+    // read-back having happened, for the order as it stands.
+    state.readBackOf = a.orderFingerprint(state);
+    const out = a.runTool("order_confirmed", input, { currency: "GBP" } as any, state, null);
     return { out, state };
   };
 

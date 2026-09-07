@@ -44,6 +44,26 @@ interface TelnyxMediaFrame {
  * The tools that act on a caller having agreed to something. Each one changes
  * what a kitchen makes, or where a driver goes, on the strength of one word.
  */
+/** One caller turn, filed against the question it answered. */
+interface HeardItem {
+  /** Assistant utterances that had finished when this audio was committed. */
+  askSeq: number;
+  committedAt: number;
+  /** The voice detector heard speech; a transcript may still say nothing. */
+  spoke: boolean;
+  text?: string;
+  readable?: boolean;
+}
+
+/** One assistant audio item as it plays down the phone line. */
+interface AudioItem {
+  responseId: string;
+  contentIndex: number;
+  /** When its first byte starts playing — after whatever was queued ahead. */
+  startsAt: number;
+  totalMs: number;
+}
+
 const NEEDS_CONSENT = new Set(["use_usual", "use_saved_address", "order_confirmed"]);
 
 @Injectable()
@@ -730,15 +750,40 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     // by the time somebody presses a key the model has usually finished and
     // the caller is only part-way through hearing it.
     (brain as any).__clearCaller?.();
+
+    // Tell the model where it was cut off.
+    //
+    // Without this the model's own transcript says it delivered the whole
+    // sentence, and it carries on as though the caller heard all of it. The
+    // truncation point is the PLAYBACK position — what reached the caller's
+    // ear — which is not where generation had got to: generation finishes
+    // seconds ahead of the phone line, and can be finished entirely while the
+    // caller is still listening.
+    const playing = this.playbackOf(brain);
+    const t = this.turnsOf(brain);
+    if (playing && playing.playedMs < playing.totalMs) {
+      this.send(brain, {
+        type: "conversation.item.truncate",
+        item_id: playing.itemId,
+        content_index: playing.contentIndex,
+        audio_end_ms: Math.floor(playing.playedMs),
+      });
+      const a = t.audio.get(playing.itemId);
+      if (a) a.totalMs = playing.playedMs;
+    }
+    t.currentAudio = undefined;
+
     if (this.responsesOf(brain).size === 0) return;
+    // Anything still arriving for these belongs to what was cancelled, and
+    // must not leak into the reply that follows. Tracked per response — a
+    // single "drop everything until the next response starts" flag dropped
+    // the first frames of the NEXT reply too when the two overlapped.
+    for (const id of this.responsesOf(brain)) t.cancelled.add(id);
     this.send(brain, { type: "response.cancel" });
     (brain as any).__responses = new Set<string>();
     (brain as any).__responsePending = false;
     (brain as any).__toolAwaitingReply = false;
     (brain as any).__pendingScript = undefined;
-    // Until the next response starts, anything still arriving belongs to the
-    // one that was cancelled.
-    (brain as any).__dropAudio = true;
   }
 
   /**
@@ -783,14 +828,76 @@ export class VoiceRealtimeGateway implements OnModuleInit {
    */
   private async waitForTranscript(brain: WebSocket, ms = 900): Promise<void> {
     const until = Date.now() + ms;
-    const spokeAt = (brain as any).__spokeAt ?? 0;
-    while (
-      Date.now() < until &&
-      (brain as any).__transcribing === true &&
-      ((brain as any).__lastHeardAt ?? 0) <= spokeAt
-    ) {
+    const t = this.turnsOf(brain);
+    // A committed caller turn whose words have not arrived yet is a transcript
+    // on its way. That is the precise thing to wait for; a clock is not.
+    // …or a delta has arrived and the completion has not: same thing, seen
+    // from the other end, and the only signal when an event lacks an item id.
+    const stillComing = () =>
+      (brain as any).__transcribing === true ||
+      t.order.some((id) => t.heard.get(id)?.text === undefined);
+    while (Date.now() < until && stillComing()) {
       await new Promise((r) => setTimeout(r, 50));
     }
+  }
+
+  /**
+   * Who said what, and in answer to which question.
+   *
+   * Everything here used to be three globals: the last transcript, the time
+   * it arrived, and the time we last spoke. That answers "did they say
+   * something after we did?", which is not the question. The question is
+   * "did they say THIS in answer to THAT, and has it been used already?" —
+   * and transcripts arrive out of order, so arrival time cannot answer it.
+   *
+   * askSeq counts assistant utterances. A caller item is stamped with the
+   * askSeq in force when its audio was COMMITTED (which is in order), not when
+   * its transcript arrived (which is not). A response is stamped with the
+   * askSeq in force when it was created, so a tool inside it can be judged
+   * against the words the caller said before it started — even if the model
+   * spoke first in the same response.
+   */
+  private turnsOf(brain: WebSocket): {
+    askSeq: number;
+    responseAskSeq: Map<string, number>;
+    heard: Map<string, HeardItem>;
+    order: string[];
+    consumed: Set<string>;
+    audio: Map<string, AudioItem>;
+    currentAudio?: string;
+    cancelled: Set<string>;
+  } {
+    return ((brain as any).__turns ??= {
+      askSeq: 0,
+      responseAskSeq: new Map(),
+      heard: new Map(),
+      order: [],
+      consumed: new Set(),
+      audio: new Map(),
+      currentAudio: undefined,
+      cancelled: new Set(),
+    });
+  }
+
+  /** The most recently committed caller turn that has words. */
+  private latestHeard(brain: WebSocket): (HeardItem & { itemId: string }) | undefined {
+    const t = this.turnsOf(brain);
+    for (let i = t.order.length - 1; i >= 0; i--) {
+      const id = t.order[i]!;
+      const h = t.heard.get(id);
+      if (h && h.text !== undefined) return { ...h, itemId: id };
+    }
+    return undefined;
+  }
+
+  /** What the caller is currently hearing, and how far through it they are. */
+  private playbackOf(brain: WebSocket): { itemId: string; contentIndex: number; playedMs: number; totalMs: number } | undefined {
+    const t = this.turnsOf(brain);
+    const id = t.currentAudio;
+    const a = id ? t.audio.get(id) : undefined;
+    if (!id || !a) return undefined;
+    const playedMs = Math.max(0, Math.min(a.totalMs, Date.now() - a.startsAt));
+    return { itemId: id, contentIndex: a.contentIndex, playedMs, totalMs: a.totalMs };
   }
 
   /** The responses currently being spoken, by id. */
@@ -972,13 +1079,42 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       // GA renamed this. Both spellings are accepted so a rename in either
       // direction cannot silence the line.
       case "response.output_audio.delta":
-      case "response.audio.delta":
-        if (event.delta && !(brain as any).__dropAudio) {
-          this.statsOf(brain).audioIn += 1;
-          this.heardFromModel(brain);
-          sendAudio(event.delta);
+      case "response.audio.delta": {
+        if (!event.delta) return;
+        const t = this.turnsOf(brain);
+        const responseId = String(event.response_id ?? "");
+        // Late audio from a cancelled response. Dropped by WHICH response it
+        // belongs to, so the next reply's first frames are never dropped
+        // with it.
+        if (responseId && t.cancelled.has(responseId)) return;
+        // No id to judge by and nothing being generated: that is a tail from
+        // whatever was cancelled, by elimination.
+        if (!responseId && this.responsesOf(brain).size === 0 && t.cancelled.size > 0) return;
+        this.statsOf(brain).audioIn += 1;
+        this.heardFromModel(brain);
+        // Where this item will sit on the phone line: it starts playing when
+        // whatever is queued ahead of it finishes. Recorded BEFORE sendAudio
+        // advances the queue.
+        const itemId = String(event.item_id ?? "");
+        if (itemId) {
+          const bytes = Buffer.from(String(event.delta), "base64").length;
+          const ms = (bytes / 8000) * 1000;
+          let a = t.audio.get(itemId);
+          if (!a) {
+            a = {
+              responseId,
+              contentIndex: Number(event.content_index ?? 0) || 0,
+              startsAt: Math.max(Date.now(), this.statsOf(brain).speakingUntil),
+              totalMs: 0,
+            };
+            t.audio.set(itemId, a);
+          }
+          a.totalMs += ms;
+          t.currentAudio = itemId;
         }
+        sendAudio(event.delta);
         return;
+      }
 
       // session.created arrives the instant the socket opens, carrying the
       // DEFAULTS — 24kHz PCM. Greeting on it sent 24kHz audio down an 8kHz
@@ -996,10 +1132,15 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       // and one of them finishing then read as "nothing is running". The next
       // tool asked for a reply mid-reply, was refused, and the line stopped
       // talking. Count them.
-      case "response.created":
-        (brain as any).__dropAudio = false;
-        this.responsesOf(brain).add(String(event.response?.id ?? `r${Date.now()}`));
+      case "response.created": {
+        const id = String(event.response?.id ?? `r${Date.now()}`);
+        this.responsesOf(brain).add(id);
+        // The words the caller had said BEFORE this reply started are the
+        // ones a tool inside it may act on — however the model orders its
+        // own speech and its tool calls within the reply.
+        this.turnsOf(brain).responseAskSeq.set(id, this.turnsOf(brain).askSeq);
         return;
+      }
 
       // A transcript is on its way. Consent-critical tools wait for it rather
       // than deciding on the last caller's words.
@@ -1028,9 +1169,9 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       // that cannot be told apart from "it spoke and the audio never arrived",
       // and those have completely different causes.
       case "response.output_audio_transcript.done":
-        // What we said, and when — a caller's answer only counts if it came
-        // after the question.
-        (brain as any).__spokeAt = Date.now();
+        // We have finished saying something. Whatever the caller says next is
+        // in answer to THIS, and whatever they said before it was not.
+        this.turnsOf(brain).askSeq += 1;
         if (event.transcript) {
           this.logger.log(
             `realtime ${ccid.slice(-8)} said ${JSON.stringify(String(event.transcript).trim().slice(0, 200))}`,
@@ -1051,38 +1192,69 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       // cancels its own reply server-side, but the audio already at Telnyx
       // would carry on over the top of them.
       case "input_audio_buffer.speech_started":
-        (brain as any).__clearCaller?.();
-        (brain as any).__dropAudio = true;
+        // The server cancels its own reply on this; the truncation and the
+        // Telnyx queue are ours to deal with, and they are the same job a
+        // keypress does.
+        this.interrupt(brain);
         return;
 
       case "input_audio_buffer.speech_stopped":
-      case "input_audio_buffer.committed":
         this.watchForSilence(brain, ccid, "reply");
         return;
+
+      // The caller's turn is now a conversation item, in order. This is where
+      // it gets stamped with the question it answers — its transcript may
+      // arrive any time later, and possibly after a newer turn's.
+      case "input_audio_buffer.committed": {
+        const t = this.turnsOf(brain);
+        const itemId = String(event.item_id ?? "");
+        if (itemId && !t.heard.has(itemId)) {
+          t.heard.set(itemId, { askSeq: t.askSeq, committedAt: Date.now(), spoke: true });
+          t.order.push(itemId);
+        }
+        this.watchForSilence(brain, ccid, "reply");
+        return;
+      }
 
       case "conversation.item.input_audio_transcription.completed": {
         // Kept, because a tool sometimes has to be held to what the caller
         // actually said rather than to what the model believes they meant.
         const heard = String(event.transcript ?? "").trim();
-        (brain as any).__lastHeard = heard;
-        (brain as any).__lastHeardAt = Date.now();
+        const t = this.turnsOf(brain);
+        // An event with no item id still happened. Filed under a synthetic id
+        // so it is never lost — and never mistaken for a different turn.
+        const itemId = String(event.item_id ?? "") || `anon-${(brain as any).__anonSeq = ((brain as any).__anonSeq ?? 0) + 1}`;
         (brain as any).__transcribing = false;
         this.logger.log(`realtime ${ccid.slice(-8)} heard ${JSON.stringify(heard)}`);
 
-        // NOTHING was said.
+        // A person spoke if there is a letter in ANY alphabet — or a digit.
         //
-        //   said "Would you like the same as last time — chips and garlic
-        //         sauce, delivered to 11 Follingsby Drive?"
-        //   heard ""
-        //   said "No problem — is that collection or delivery?"
+        //   said  "For your select pizza size, press 1 for 10", 2 for 12"…"
+        //   heard "12"
         //
-        // Two hundred milliseconds apart. A breath tripped the voice
-        // detection, the model was handed a turn with no words in it, and it
-        // decided that meant no. The caller had not spoken.
-        //
-        // A reply to a turn containing no words is unfounded whatever it says,
-        // so it is stopped and the model is told what actually happened. The
-        // caller is still waiting to answer the question they were asked.
+        // The letters-only test read that as background noise and told the
+        // model the caller had not answered. Numbers are the most reliable
+        // thing a transcriber returns, not the least.
+        const spoke = /[\p{L}\p{N}]/u.test(heard);
+        const readable = /[a-z0-9]/i.test(heard);
+
+        // Filed against the turn it belongs to, which may not be the newest.
+        // A transcript arriving late does not become the answer to a question
+        // asked after it was said.
+        let rec = itemId ? t.heard.get(itemId) : undefined;
+        if (itemId && !rec) {
+          // Completed before committed — seen, and legal. Stamp it with the
+          // question in force now; nothing better is known.
+          rec = { askSeq: t.askSeq, committedAt: Date.now(), spoke: true };
+          t.heard.set(itemId, rec);
+          t.order.push(itemId);
+        }
+        if (rec) {
+          rec.text = heard;
+          rec.readable = readable;
+          rec.spoke = rec.spoke || spoke;
+        }
+
         // Non-Latin is MANGLED SPEECH, not silence.
         //
         //   said "Would you like the same as last time…?"
@@ -1091,18 +1263,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         //
         // The sidecar transcriber is a small model on 8kHz phone audio and it
         // guesses a language per utterance. The speech-to-speech model hears
-        // the real audio and got both of those right. Treating an unreadable
-        // transcript as "nothing was said" interrupted a model that was
-        // answering correctly and told it the caller had not spoken, which was
-        // false — so the call went backwards every time the caller talked.
-        //
-        // Empty is silence. Anything else is a person.
-        // Letters in ANY alphabet mean a person spoke. "..." is what this
-        // transcriber returns for a breath or a car door and carries none;
-        // "Телигов." carries plenty and was a caller saying yes.
-        const spoke = /\p{L}/u.test(heard);
-        const readable = /[a-z0-9]/i.test(heard);
-        (brain as any).__heardReadable = readable;
+        // the real audio and got both of those right.
         if (spoke && !readable) {
           this.logger.warn(
             `realtime ${ccid.slice(-8)} heard speech the transcriber could not render — letting the model answer it`,
@@ -1110,11 +1271,20 @@ export class VoiceRealtimeGateway implements OnModuleInit {
           this.watchForSilence(brain, ccid);
           return;
         }
+
+        // NO WORDS came back.
+        //
+        // That is not proof the caller said nothing. The audio was committed
+        // because the voice detector heard speech; the transcriber then
+        // returned nothing for it, which it does on a breath — and also on a
+        // short word over a bad line. The model heard the audio itself and is
+        // the only party that can tell those apart. So it is told exactly what
+        // happened, and it decides; what it may NOT do is treat the empty
+        // string as a yes, which is the mistake this guard was born from.
         if (!spoke) {
           this.logger.warn(
-            `realtime ${ccid.slice(-8)} that was not speech — not letting it count as an answer`,
+            `realtime ${ccid.slice(-8)} the transcriber returned nothing for that turn`,
           );
-          this.interrupt(brain);
           this.send(brain, {
             type: "conversation.item.create",
             item: {
@@ -1123,7 +1293,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
               content: [
                 {
                   type: "input_text",
-                  text: "(That was background noise, not speech. The caller has NOT answered you. Do not treat it as a yes or a no. Wait — and if they still say nothing, ask your question again.)",
+                  text: "(The transcriber returned no words for what was just heard. If you understood them, answer that. If it was only a noise, or you are not sure, ask them to say it again. It was NOT a yes.)",
                 },
               ],
             },
@@ -1208,18 +1378,26 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         } catch {
           /* the model sent something unparseable; the tool decides */
         }
+        // The caller's words this tool may act on: the newest committed turn,
+        // judged against the question in force when THIS response started,
+        // and never a turn a previous consent decision already spent.
+        const t = this.turnsOf(brain);
+        const latest = this.latestHeard(brain);
+        const responseId = String(event.response_id ?? "");
+        const askedAt = t.responseAskSeq.get(responseId) ?? t.askSeq;
         const out = await this.voice
           .realtimeTool(ccid, name, {
             ...args,
-            __heard: (brain as any).__lastHeard ?? null,
-            // Whether those words were said AFTER we last spoke. Anything
-            // older answered a different question.
+            __heard: latest?.text ?? null,
+            __heardItemId: latest?.itemId ?? null,
+            // Said in answer to the current question — not merely after we
+            // last spoke, and not already used to decide something else.
             __heardFresh:
-              ((brain as any).__lastHeardAt ?? 0) > ((brain as any).__spokeAt ?? 0),
+              !!latest && latest.askSeq >= askedAt && !t.consumed.has(latest.itemId),
             // Whether those words are worth reading at all. "Svensk." is not a
             // no — it is a transcriber that lost the language, and a consent
             // check that reads it as a refusal asks the same question forever.
-            __heardReadable: (brain as any).__heardReadable !== false,
+            __heardReadable: latest?.readable !== false,
           })
           .catch((e: any) => ({ result: `That failed: ${e?.message ?? e}`, turn: undefined }));
         // Everything below this point must survive a tool that answered oddly.
@@ -1227,6 +1405,8 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // the caller experiences as the line simply stopping.
         const said = typeof out?.result === "string" && out.result ? out.result : "Done.";
         this.logger.log(`realtime ${ccid.slice(-8)} tool ${name} → ${said.slice(0, 120)}`);
+        // Spent. The same "yes" cannot confirm two different things.
+        if (NEEDS_CONSENT.has(name) && latest) t.consumed.add(latest.itemId);
         brain.send(
           JSON.stringify({
             type: "conversation.item.create",

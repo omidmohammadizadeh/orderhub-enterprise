@@ -73,6 +73,8 @@ describe("place_order gates", () => {
       country: "GB",
     };
     state.addressConfirmed = false;
+    // The ORDER was confirmed, for this exact order. Only the address wasn't.
+    state.orderConfirmedOf = svc().orderFingerprint(state);
 
     const out = await svc().placeOrder(
       { customerName: "Omid", paymentMethod: "CASH" },

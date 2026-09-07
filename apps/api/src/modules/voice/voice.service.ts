@@ -309,7 +309,7 @@ export class VoiceService {
    * was built; this is the same code, reached from the other engine. Null means
    * no question is outstanding and the digit means whatever it usually means.
    */
-  async realtimeDigit(
+  private async realtimeDigitUnlocked(
     callControlId: string,
     digit: string,
   ): Promise<{
@@ -381,7 +381,7 @@ export class VoiceService {
    * fulfilment, changing their mind — belongs to the model, and returning null
    * is what hands it back.
    */
-  async realtimeSaid(
+  private async realtimeSaidUnlocked(
     callControlId: string,
     said: string,
   ): Promise<{ say: string } | null> {
@@ -413,6 +413,57 @@ export class VoiceService {
     await this.save(call.id, state);
     this.logger.log(`call ${call.id} answered ${slot} out loud`);
     return { say: turn.say };
+  }
+
+  /**
+   * One thing at a time, per call.
+   *
+   * Three entry points load the call's state, change it and write it back:
+   * a keypress, a spoken answer, and a tool the model called. They arrive on
+   * different sockets and they overlap — the caller presses 2 while the model
+   * is already calling add_item for the same pizza. Two load-modify-save
+   * cycles interleaved is one of them overwriting the other, which is a size
+   * chosen and then silently gone, or one item committed twice.
+   *
+   * Only the state changes queue. The audio path never comes through here.
+   */
+  private withCallLock<T>(callControlId: string, fn: () => Promise<T>): Promise<T> {
+    const locks = ((this as any).__callLocks ??= new Map<string, Promise<unknown>>()) as Map<
+      string,
+      Promise<unknown>
+    >;
+    const prev = locks.get(callControlId) ?? Promise.resolve();
+    const run = prev.then(fn, fn);
+    const tail = run.then(
+      () => undefined,
+      () => undefined,
+    );
+    locks.set(callControlId, tail);
+    void tail.then(() => {
+      if (locks.get(callControlId) === tail) locks.delete(callControlId);
+    });
+    return run;
+  }
+
+  realtimeDigit(
+    callControlId: string,
+    digit: string,
+  ): Promise<{ say: string; confirmed?: { intent: string; answered: "YES" | "NO" } } | null> {
+    return this.withCallLock(callControlId, () => this.realtimeDigitUnlocked(callControlId, digit));
+  }
+
+  realtimeSaid(callControlId: string, said: string): Promise<{ say: string } | null> {
+    return this.withCallLock(callControlId, () => this.realtimeSaidUnlocked(callControlId, said));
+  }
+
+  realtimeTool(
+    callControlId: string,
+    name: string,
+    input: any,
+  ): Promise<{ result: string; turn?: Partial<VoiceTurn>; sayNow?: string }> {
+    return this.withCallLock(callControlId, () =>
+      this.realtimeToolUnlocked(callControlId, name, input),
+    );
   }
 
   /**
@@ -497,7 +548,7 @@ export class VoiceService {
    * or a hangup — this service deliberately owns no telephony, which is what
    * lets both engines share it.
    */
-  async realtimeTool(
+  private async realtimeToolUnlocked(
     callControlId: string,
     name: string,
     input: any,
