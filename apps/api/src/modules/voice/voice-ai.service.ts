@@ -220,6 +220,8 @@ export interface VoiceState {
     notesAsked?: boolean;
     /** Whether we actually asked them anything about this dish. */
     walked?: boolean;
+    /** A deal: what it comes with was said first, all choices invited at once. */
+    overview?: boolean;
   };
   /**
    * What is on offer right now, in the order it was read out.
@@ -339,6 +341,7 @@ export function coerceState(raw: unknown): VoiceState {
             notes: r.pendingItem.notes ? String(r.pendingItem.notes) : undefined,
             notesAsked: r.pendingItem.notesAsked === true,
             walked: r.pendingItem.walked === true,
+            overview: r.pendingItem.overview === true,
           }
         : undefined,
     choices: Array.isArray(r.choices) ? r.choices.map(String) : undefined,
@@ -2542,6 +2545,22 @@ ${menu || "(no items available — apologise and transfer)"}`;
    * Speaking still works everywhere pressing does. Nobody is forced to use the
    * keypad — they are simply always able to.
    */
+  /** "Select Pizza Size" → "pizza size". The verb was for a screen. */
+  private groupLabel(name: string): string {
+    return String(name ?? "")
+      .toLowerCase()
+      .replace(/^(please\s+)?(select|choose|pick)\s+(your\s+|a\s+|the\s+)?/, "")
+      .replace(/^your\s+/, "")
+      .trim() || "option";
+  }
+
+  /** "thin, deep pan or stuffed" */
+  private spokenList(names: string[], joiner: "or" | "and" = "or"): string {
+    const n = names.map((x) => String(x).trim()).filter(Boolean);
+    if (n.length <= 1) return n[0] ?? "";
+    return `${n.slice(0, -1).join(", ")} ${joiner} ${n[n.length - 1]}`;
+  }
+
   private askNextOption(
     ctx: VoiceContext,
     state: VoiceState,
@@ -2555,19 +2574,29 @@ ${menu || "(no items available — apologise and transfer)"}`;
       const picked = group.options.filter((o: any) => pending.chosen.includes(o.id));
       if (picked.length >= needed(group)) continue;
 
-      // Five is the ceiling. A caller holding a phone cannot keep nine numbered
-      // options in their head, and by the sixth they have forgotten the first —
-      // beyond that, saying it is genuinely the better way and they are told so.
-      const offered = group.options.slice(0, 5);
+      // Asked the way a person asks it: the choices, said, and "which would
+      // you like?" The numbers are still recorded in speech order so a key
+      // press answers exactly the same question — and after two answers the
+      // line could not make out, they are offered aloud as the way through.
+      const offered = group.options.slice(0, 8);
       state.choices = offered.map((o: any) => o.id);
+      // Decided BEFORE walked is set: the first thing said about a dish names
+      // it — "Pepperoni Pizza comes with…" — even when the caller already
+      // answered the size in their order; every question after is "And for…".
+      const first = !pending.walked && !pending.overview;
       pending.walked = true;
-      const parts = offered.map((o: any, i: number) => `${i + 1} for ${o.name}`);
-      const more =
-        group.options.length > offered.length ? " Or just say what you'd like." : "";
-      return {
-        say: `For your ${group.name.toLowerCase()}, press ${parts.join(", ")}.${more}`,
-        next: "ITEM_OPTION",
-      };
+      const label = this.groupLabel(group.name);
+      const list = this.spokenList(offered.map((o: any) => this.spokenSize(o.name)));
+      const more = group.options.length > offered.length ? ", or something else" : "";
+      const numbers =
+        (pending.misses ?? 0) >= 2
+          ? ` Or press ${offered.map((o: any, i: number) => `${i + 1} for ${this.spokenSize(o.name)}`).join(", ")}.`
+          : "";
+      const { base } = splitSize(item.name);
+      const say = first
+        ? `${base} comes with a choice of ${label} — ${list}${more}. Which would you like?${numbers}`
+        : `And for the ${label} — ${list}${more}?${numbers}`;
+      return { say, next: "ITEM_OPTION" };
     }
     return null;
   }
@@ -2674,11 +2703,34 @@ ${menu || "(no items available — apologise and transfer)"}`;
       // "which wrap?" and must not be sent to a model to think about.
       const answer = matchOption<any>(said, group.options, group.name);
       if (!answer) {
+        // Not an answer to THIS question — but "margherita, chips and a
+        // coke" answers three at once, which is what a meal deal invites.
+        // Anything the utterance names confidently, in any group, is taken.
+        const before = pending.chosen.length;
+        this.absorbOptions(item, state, said);
+        if (pending.chosen.length > before) {
+          const names = pending.chosen
+            .slice(before)
+            .map((id) => ctx.optionIndex.get(id)?.option?.name)
+            .filter(Boolean)
+            .map((n) => this.spokenSize(String(n)));
+          return this.afterOption(ctx, state, this.spokenList(names));
+        }
         pending.misses = (pending.misses ?? 0) + 1;
         return null;
       }
+      const before = pending.chosen.length;
       pending.chosen.push(answer.item.id);
-      return this.afterOption(ctx, state, this.spokenSize(answer.item.name));
+      // "Margherita, doner, chips and a fanta" answers the pizza question AND
+      // the three after it. Whatever else the same breath named, take now,
+      // or the caller is asked for things they have just said.
+      this.absorbOptions(item, state, said);
+      const names = pending.chosen
+        .slice(before)
+        .map((id) => ctx.optionIndex.get(id)?.option?.name ?? "")
+        .filter(Boolean)
+        .map((n) => this.spokenSize(String(n)));
+      return this.afterOption(ctx, state, this.spokenList(names));
     }
     return this.askNoteOrCommit(ctx, state);
   }
@@ -3208,6 +3260,26 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
         chosen: chosenIds,
         ...(input?.notes ? { notes: String(input.notes), notesAsked: true } : {}),
       };
+      // A deal is several choices at once. Saying what it comes with and
+      // inviting all of them in one breath is how a person takes "meal deal
+      // 2" — then only what is still missing gets asked for.
+      const required = (item.modifierGroups ?? []).filter((g: any) => mustChoose(g));
+      // Three or more, not two: a pizza with a size and a crust is two plain
+      // questions, and asking for "your choices" about it sounds like a form.
+      // A deal — pizza, kebab, chips, drinks — is where saying it all in one
+      // breath is what a person would do.
+      if (required.length >= 3 && chosenIds.length === 0) {
+        state.pendingItem.overview = true;
+        state.pendingItem.walked = true;
+        state.choices = undefined;
+        const { base } = splitSize(item.name);
+        const parts = this.spokenList(required.map((g: any) => this.groupLabel(g.name)), "and");
+        const say = `${base} comes with ${parts}. Tell me your choices and I'll add them for you.`;
+        return {
+          sayNow: say,
+          result: `Asking them: "${say}" — their answer is being handled in code, so say nothing more.`,
+        };
+      }
       const ask = this.askNextOption(ctx, state);
       if (ask) {
         return {

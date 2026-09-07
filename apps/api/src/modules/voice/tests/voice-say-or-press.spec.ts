@@ -92,19 +92,15 @@ describe("the question a caller hears", () => {
   // three seconds quicker when it works.
   it("reads the numbers out", () => {
     const { say } = ordering();
-    expect(say).toContain(
-      "For your wrap, press 1 for Gyros Wrap, 2 for Halloumi Wrap, 3 for Souvlaki Wrap.",
-    );
+    expect(say).toContain("Solo Meal comes with a choice of wrap — Gyros Wrap, Halloumi Wrap or Souvlaki Wrap. Which would you like?");
   });
 
   it("walks them through one question at a time", () => {
     const { s, c, st } = ordering();
     const second = s.answerItemOption(c, st, "gyros");
-    expect(second).toContain(
-      "For your side, press 1 for Oregano Fries, 2 for Olives, 3 for Halloumi Fries.",
-    );
+    expect(second).toContain("Gyros Wrap. And for the side — Oregano Fries, Olives or Halloumi Fries?");
     const third = s.answerItemOption(c, st, "olives");
-    expect(third).toContain("For your drink, press 1 for Coke, 2 for Diet Coke.");
+    expect(third).toContain("Olives. And for the drink — Coke or Diet Coke?");
   });
 
   it("stops reading numbers when there are too many to hold in your head", () => {
@@ -135,10 +131,10 @@ describe("the question a caller hears", () => {
     st.pendingItem = { itemId: "big", quantity: 1, chosen: [] };
     const ask = s.askNextOption(c, st);
 
-    expect(ask.say).toContain("5 for Sauce 5");
-    expect(ask.say).not.toContain("6 for");
-    expect(ask.say).toContain("Or just say what you'd like.");
-    expect(st.choices).toHaveLength(5);
+    // Spoken, not numbered — and eight is the ceiling of what is read out.
+    expect(ask.say).toContain("Sauce 7 or Sauce 8. Which would you like?");
+    expect(ask.say).not.toContain("press 1");
+    expect(st.choices).toHaveLength(8);
   });
 
   it("leaves the numbers standing even though it never says them", () => {
@@ -153,7 +149,7 @@ describe("pressing a number instead of saying it", () => {
     const say = s.chooseByNumber(c, st, "2");
 
     expect(st.pendingItem.chosen).toEqual(["w2"]);
-    expect(say).toMatch(/For your side/);
+    expect(say).toMatch(/And for the side —/);
     expect(st.choices).toEqual(["f1", "f2", "f3"]);
   });
 
@@ -223,9 +219,7 @@ describe("when the matcher has failed the same caller twice", () => {
     expect(st.pendingItem.misses).toBe(2);
 
     const ask = s.askNextOption(c, st);
-    expect(ask.say).toContain(
-      "For your side, press 1 for Oregano Fries, 2 for Olives, 3 for Halloumi Fries.",
-    );
+    expect(ask.say).toContain("Or press 1 for Oregano Fries, 2 for Olives, 3 for Halloumi Fries.");
   });
 
   it("forgets the misses once something lands", () => {
@@ -449,9 +443,8 @@ describe("how a menu says a choice is compulsory", () => {
     st.pendingItem = { itemId: "pep", quantity: 1, chosen: [] };
     const ask = s.askNextOption(c, st);
 
-    expect(ask.say).toContain(
-      "For your select your pizza crust, press 1 for Classic, 2 for Thin, 3 for Stuffed.",
-    );
+    // "select your" was for a screen; a person just says what it is.
+    expect(ask.say).toContain("choice of pizza crust — Classic, Thin or Stuffed. Which would you like?");
     expect(st.choices).toEqual(["c1", "c2", "c3"]);
   });
 
@@ -483,7 +476,8 @@ describe("how a menu says a choice is compulsory", () => {
     st.pendingItem = { itemId: "mix", quantity: 1, chosen: [] };
     // Said in lower case, because a menu shouting at a caller reads as a
     // machine: "For your select your sauces, press 1 for Garlic…"
-    expect(s.askNextOption(c, st).say).toContain("select your sauces");
+    expect(s.askNextOption(c, st).say).toContain("choice of sauces — ");
+    expect(s.askNextOption(c, st).say).not.toMatch(/SELECT/);
     // One picked is not enough.
     st.pendingItem.chosen = ["s1"];
     expect(s.askNextOption(c, st)).not.toBeNull();

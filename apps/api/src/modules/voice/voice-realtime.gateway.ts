@@ -439,7 +439,9 @@ export class VoiceRealtimeGateway implements OnModuleInit {
               },
               output: {
                 format,
-                voice: this.config.get<string>("VOICE_REALTIME_VOICE") || "alloy",
+                // marin and cedar are the two OpenAI recommends for quality on
+                // gpt-realtime. cedar is the other option, one env var away.
+                voice: this.config.get<string>("VOICE_REALTIME_VOICE") || "marin",
               },
             },
             tools: session.tools,

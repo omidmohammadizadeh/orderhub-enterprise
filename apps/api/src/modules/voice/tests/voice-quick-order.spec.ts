@@ -255,7 +255,7 @@ describe("a dish that needs a choice made about it", () => {
     const out = svc().quickAddAloud(ctxWithIndex(), st, "a doner kebab");
     // Numbered, because the operator ran both on live calls and this is the
     // one orders got through on.
-    expect(out.say).toMatch(/For your sauce, press 1 for Chilli, 2 for Garlic\./);
+    expect(out.say).toMatch(/choice of sauce — Chilli or Garlic\. Which would you like\?/);
     expect(out.next).toBe("ITEM_OPTION");
     expect(st.cart.items).toHaveLength(0);
     expect(st.pendingItem).toMatchObject({ itemId: "kebab", quantity: 1 });

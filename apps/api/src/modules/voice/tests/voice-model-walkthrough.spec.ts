@@ -57,7 +57,7 @@ describe("a dish the model added, not the matcher", () => {
     const st = state();
     const out = runTool(s, c, st, { itemId: "kebab" });
 
-    expect(out.sayNow).toBe("For your sauce, press 1 for Chilli, 2 for Garlic.");
+    expect(out.sayNow).toBe("Doner Kebab comes with a choice of sauce — Chilli or Garlic. Which would you like?");
     expect(st.choices).toEqual(["s1", "s2"]);
     expect(st.pendingItem).toMatchObject({ itemId: "kebab", quantity: 1 });
     expect(st.cart.items).toHaveLength(0);
@@ -67,7 +67,7 @@ describe("a dish the model added, not the matcher", () => {
     // The numbers only mean anything if the words the caller hears are the
     // words that were recorded against them.
     const out = runTool(svc(), ctx(), state(), { itemId: "kebab" });
-    expect(out.sayNow).toContain("press 1 for Chilli");
+    expect(out.sayNow).toContain("Chilli or Garlic. Which would you like?");
     expect(out.result).toMatch(/handled in code, so say nothing more/);
   });
 

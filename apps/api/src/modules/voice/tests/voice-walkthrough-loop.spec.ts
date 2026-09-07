@@ -64,7 +64,7 @@ describe("a walkthrough already running", () => {
     // The caller asks for a pepperoni pizza and is asked for the size.
     const first = s.addItem({ itemId: "pep" }, c, st);
     expect(first.sayNow).toBe(
-      'For your select pizza size, press 1 for 10", 2 for 12", 3 for 14".',
+      "Pepperoni Pizza comes with a choice of pizza size — 10 inch, 12 inch or 14 inch. Which would you like?",
     );
 
     // They press 2. This is the part that always worked.
@@ -129,6 +129,6 @@ describe("a walkthrough already running", () => {
     expect(st.cart.items).toHaveLength(1);
 
     const second = s.addItem({ itemId: "pep" }, c, st);
-    expect(second.sayNow).toMatch(/press 1 for 10/);
+    expect(second.sayNow).toMatch(/choice of pizza size — 10 inch/);
   });
 });

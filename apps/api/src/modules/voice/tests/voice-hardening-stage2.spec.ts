@@ -142,3 +142,85 @@ describe("what goes on the ticket", () => {
     expect(p).toMatch(/Never switch/);
   });
 });
+
+
+describe("asking the way a person asks", () => {
+  const { VoiceAiService } = require("../voice-ai.service");
+  const ai = () => { const a: any = Object.create(VoiceAiService.prototype); a.logger = { log() {}, warn() {}, error() {} }; return a; };
+  const G = (id: string, name: string, opts: string[]) => ({
+    id, name, required: true, min: 1,
+    options: opts.map((o, i) => ({ id: `${id}${i + 1}`, name: o, price: 0 })),
+  });
+  const DEAL = { id: "deal2", name: "Meal Deal 2", price: 25, modifierGroups: [
+    G("pz", "Select Your Pizza", ["Margherita", "Pepperoni"]),
+    G("kb", "Kebab", ["Doner", "Chicken"]),
+    G("sd", "Side", ["Chips", "Salad"]),
+    G("dr", "Drink", ["Coke", "Fanta", "Water"]),
+  ] };
+  const PIZZA = { id: "pep", name: "Pepperoni Pizza", price: 9, modifierGroups: [
+    G("sz", "Select Pizza Size", ['10"', '12"']),
+    G("cr", "Select Your Pizza Crust", ["Thin", "Deep Pan", "Stuffed"]),
+  ] };
+  const MENU: any[] = [DEAL, PIZZA];
+  const ctx = () => {
+    const c: any = { currency: "GBP", items: MENU };
+    c.itemIndex = new Map(MENU.map((i: any) => [i.id, i]));
+    c.optionIndex = new Map(MENU.flatMap((i: any) => i.modifierGroups.flatMap((g: any) =>
+      g.options.map((o: any) => [o.id, { groupId: g.id, itemId: i.id, option: o }]))));
+    return c;
+  };
+  const fresh = () => ({ cart: { items: [] }, turns: [] }) as any;
+
+  it("a deal is described first, then all the choices are taken in one breath", () => {
+    const a = ai(); const c = ctx(); const st = fresh();
+    const open = a.addItem({ itemId: "deal2" }, c, st);
+    expect(open.sayNow).toBe("Meal Deal 2 comes with pizza, kebab, side and drink. Tell me your choices and I'll add them for you.");
+    expect(st.choices).toBeUndefined();
+
+    const said = a.answerItemOption(c, st, "margherita, doner kebab, chips and a fanta");
+    expect(st.pendingItem.chosen).toEqual(expect.arrayContaining(["pz1", "kb1", "sd1", "dr2"]));
+    // Everything answered: straight to the note question, not a fifth question.
+    expect(said).toMatch(/Any notes/);
+  });
+
+  it("asks only for what a partial answer left out", () => {
+    const a = ai(); const c = ctx(); const st = fresh();
+    a.addItem({ itemId: "deal2" }, c, st);
+    const said = a.answerItemOption(c, st, "pepperoni and a coke please");
+    expect(st.pendingItem.chosen).toEqual(expect.arrayContaining(["pz2", "dr1"]));
+    expect(said).toMatch(/And for the kebab — Doner or Chicken\?/);
+    // and the keypad still maps to the question just asked
+    expect(st.choices).toEqual(["kb1", "kb2"]);
+  });
+
+  it("a pizza with a size and a crust is two plain questions, not a form", () => {
+    const a = ai(); const c = ctx(); const st = fresh();
+    const open = a.addItem({ itemId: "pep" }, c, st);
+    expect(open.sayNow).toBe("Pepperoni Pizza comes with a choice of pizza size — 10 inch or 12 inch. Which would you like?");
+    expect(st.pendingItem.overview).toBeFalsy();
+    expect(a.chooseByNumber(c, st, "2")).toBe("12 inch. And for the pizza crust — Thin, Deep Pan or Stuffed?");
+  });
+
+  it('"12 pepperoni" only gets asked about the crust', () => {
+    const a = ai(); const c = ctx(); const st = fresh();
+    const open = a.addItem({ itemId: "pep", modifierOptionIds: ["sz2"] }, c, st);
+    expect(open.sayNow).toBe("Pepperoni Pizza comes with a choice of pizza crust — Thin, Deep Pan or Stuffed. Which would you like?");
+  });
+
+  it("offers the numbers only once speech has failed twice", () => {
+    const a = ai(); const c = ctx(); const st = fresh();
+    a.addItem({ itemId: "pep" }, c, st);
+    expect(a.answerItemOption(c, st, "Svensk")).toBeNull();
+    expect(a.askNextOption(c, st).say).not.toMatch(/press 1/);
+    expect(a.answerItemOption(c, st, "Телигов")).toBeNull();
+    expect(a.askNextOption(c, st).say).toMatch(/Or press 1 for 10 inch, 2 for 12 inch\./);
+  });
+});
+
+describe("the voice", () => {
+  it("defaults to marin", async () => {
+    const sim = new VoiceRealtimeSim();
+    await sim.answer();
+    expect(sim.session.audio.output.voice).toBe("marin");
+  });
+});
