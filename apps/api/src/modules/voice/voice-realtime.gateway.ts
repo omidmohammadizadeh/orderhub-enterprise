@@ -646,7 +646,12 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         item: {
           type: "message",
           role: "user",
-          content: [{ type: "input_text", text: `They pressed ${digit}, which answers your question.` }],
+          content: [
+            {
+              type: "input_text",
+              text: `They pressed ${digit}. That answered your question and it has ALREADY been applied to the order — you will say "${answered.say}" next. Do not call add_item, and do not ask that question again.`,
+            },
+          ],
         },
       });
       this.speakExactly(brain, answered.say);

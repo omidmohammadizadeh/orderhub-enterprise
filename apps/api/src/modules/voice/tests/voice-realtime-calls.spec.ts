@@ -869,8 +869,12 @@ describe("a keypress that answers the question just asked", () => {
     await sim.press("2");
 
     const told = sim.toModel.find((m) => m.type === "conversation.item.create");
-    expect(told.item.content[0].text).toMatch(/answers your question/);
+    expect(told.item.content[0].text).toMatch(/answered your question/);
     expect(told.item.content[0].text).not.toMatch(/update on an order/);
+    // And it is told not to re-add the dish. Doing exactly that is what put a
+    // caller through the same size question three times: the press landed, the
+    // model added the pizza again, and the answer was thrown away.
+    expect(told.item.content[0].text).toMatch(/Do not call add_item/);
 
     // Said verbatim: the size that was chosen is a fact about the basket.
     const ask = sim.toModel.find((m) => m.type === "response.create");

@@ -2902,6 +2902,29 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
       const picked = g.options.filter((o: any) => chosenIds.includes(o.id));
       return picked.length < needed(g);
     });
+    // A walkthrough already running is not restarted.
+    //
+    // This is the loop. The caller pressed 2, the keypad handler took it and
+    // moved on to the note question — and six hundred milliseconds later the
+    // model called add_item again, which built a brand new pendingItem, threw
+    // away the size that had just been chosen, and asked for it again. Every
+    // press worked. Every press was undone.
+    //
+    // Whatever the model believes, an item mid-walkthrough is being handled
+    // somewhere it cannot see.
+    // Keyed on the walkthrough being open, not on what the model passed. A
+    // re-add that happens to carry the choices does not restart anything — it
+    // adds a second line and leaves the half-answered one open behind it, so
+    // the next keypress commits a duplicate.
+    if (state.pendingItem?.itemId === item.id && state.pendingItem.walked) {
+      const outstanding = this.askNextOption(ctx, state);
+      return {
+        result: outstanding
+          ? `You have ALREADY asked them this and their answer is being handled in code. Do not call add_item again for the ${item.name}. Say nothing and wait.`
+          : `The ${item.name} is already being dealt with — every choice about it has been made and it is going into the basket. Do not call add_item again for it.`,
+      };
+    }
+
     if (needsChoice) {
       state.pendingItem = {
         itemId: item.id,
