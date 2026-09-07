@@ -365,15 +365,20 @@ describe("a model socket that has died without saying so", () => {
   });
 });
 
-it("does not let line noise talk over the greeting", async () => {
-  // "Mhm." was not the caller. It cut the greeting off mid-sentence and the
-  // model answered it, so the caller heard half the options and then a
-  // question they had not been asked. Raising the loudness bar helped and did
-  // not solve it — a breath is loud enough. Deciding a turn on what was
-  // actually SAID is the thing that can tell them apart.
+it("listens with silence detection, because semantic detection went deaf", async () => {
+  // Semantic detection reads better on paper and stopped detecting turns at
+  // all on this phone line: three calls in a row where the caller said hello
+  // and not one speech event came back. Too eager was a bug; deaf is worse.
+  //
+  // The breath problem it was meant to solve is handled on the transcript
+  // instead — a turn with no words in it cannot count as an answer, whatever
+  // detected it.
   const sim = new VoiceRealtimeSim();
   await sim.answer();
-  expect(sim.session.audio.input.turn_detection.type).toBe("semantic_vad");
+  const vad = sim.session.audio.input.turn_detection;
+  expect(vad.type).toBe("server_vad");
+  expect(vad.threshold).toBeGreaterThanOrEqual(0.6);
+  expect(vad.silence_duration_ms).toBeGreaterThanOrEqual(600);
 });
 
 it("hands over even when the menu cannot be read", () => {
@@ -985,16 +990,13 @@ describe("a noise that is not an answer", () => {
 });
 
 describe("how the line decides the caller has finished talking", () => {
-  it("asks for semantic turn detection, which knows a breath from a word", async () => {
+  it("uses the detection that has actually taken orders on this line", async () => {
     const sim = new VoiceRealtimeSim();
     await sim.answer();
-    expect(sim.session.audio.input.turn_detection).toEqual({
-      type: "semantic_vad",
-      eagerness: "low",
-    });
+    expect(sim.session.audio.input.turn_detection.type).toBe("server_vad");
   });
 
-  it("falls back to silence detection if the account will not take it", async () => {
+  it("falls back to the other one if the account will not take it", async () => {
     const sim = new VoiceRealtimeSim();
     await sim.gateway.attach(sim.caller, "cc-vad");
     sim.brain.emit("open");
@@ -1007,10 +1009,7 @@ describe("how the line decides the caller has finished talking", () => {
     await new Promise((r) => setTimeout(r, 10));
 
     const second = sim.brain.sent.filter((m: any) => m.type === "session.update").at(-1);
-    expect(second.session.audio.input.turn_detection.type).toBe("server_vad");
-    // Loud and slow: OpenAI's own advice for a noisy line, and a phone is the
-    // noisiest there is.
-    expect(second.session.audio.input.turn_detection.threshold).toBeGreaterThanOrEqual(0.8);
+    expect(second.session.audio.input.turn_detection.type).toBe("semantic_vad");
     expect(sim.log.join(" ")).toMatch(/turn detection rejected/);
   });
 });

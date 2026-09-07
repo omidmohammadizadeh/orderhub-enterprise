@@ -322,32 +322,33 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     ];
     let formatIndex = 0;
 
-    // WHEN the caller has finished talking, and whether they were talking at
-    // all.
+    // WHEN the caller has finished talking.
     //
-    // Plain silence-detection cannot tell a breath from a word: it heard one,
-    // committed a turn with nothing in it, and the model answered "no problem"
-    // to a question the caller had not answered. Semantic detection classifies
-    // what was actually said before ending the turn, and "low" gives somebody
-    // on a phone room to pause mid-sentence without being cut off.
+    // Silence detection, and it stays silence detection. Semantic detection
+    // reads better on paper — it classifies what was actually SAID before
+    // ending a turn, which is the honest answer to a breath being taken for a
+    // word — and on this phone line it stopped detecting turns at all. Three
+    // calls in a row: the caller said hello and not one speech_started,
+    // transcript or reply came back. Too eager was a bug; deaf is worse.
     //
-    // A ladder, because it is newer than the rest of this and an account that
-    // will not take it must still get a working call: loud-and-slow silence
-    // detection is the fallback, with the threshold well above the default,
-    // which OpenAI's own guidance recommends for a noisy line — and a phone is
-    // the noisiest line there is.
+    // The breath problem is handled where it actually belongs, on the
+    // transcript: a turn with no words in it is not allowed to count as an
+    // answer, whatever detected it. That fix does not depend on this setting.
+    //
+    // Kept behind VOICE_REALTIME_TURN_DETECTION=semantic_vad so it can be
+    // tried again deliberately, on a line somebody is watching.
     const turnDetections: Array<Record<string, unknown>> = [
-      { type: "semantic_vad", eagerness: "low" },
       {
         type: "server_vad",
-        threshold: Number(this.config.get<string>("VOICE_REALTIME_VAD_THRESHOLD") ?? 0.8) || 0.8,
+        threshold: Number(this.config.get<string>("VOICE_REALTIME_VAD_THRESHOLD") ?? 0.6) || 0.6,
         prefix_padding_ms: 300,
-        silence_duration_ms: 700,
+        silence_duration_ms: 600,
       },
+      { type: "semantic_vad", eagerness: "low" },
     ];
     let turnIndex =
       String(this.config.get<string>("VOICE_REALTIME_TURN_DETECTION") ?? "").toLowerCase() ===
-      "server_vad"
+      "semantic_vad"
         ? 1
         : 0;
     let configured = false;
