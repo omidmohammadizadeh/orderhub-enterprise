@@ -270,6 +270,27 @@ export function coerceState(raw: unknown): VoiceState {
       : "ORDER",
     addressConfirmed: r.addressConfirmed === true,
     orderConfirmed: r.orderConfirmed === true,
+    // Dropped here once, which cost a whole call: the keypad question was
+    // asked and saved, this rebuilt the state without it, and the caller's
+    // "2" arrived to find nothing waiting for it — so it was read as the main
+    // menu's "press 2 for an order update" and they were transferred out of
+    // their own order. Anything the caller is mid-answering has to survive a
+    // reload, because the answer always arrives on a LATER event.
+    pendingConfirm:
+      r.pendingConfirm && typeof r.pendingConfirm === "object"
+        ? {
+            intent: (["usual", "address", "order"] as const).includes(
+              r.pendingConfirm.intent,
+            )
+              ? r.pendingConfirm.intent
+              : "order",
+            asked: r.pendingConfirm.asked === true,
+            answered:
+              r.pendingConfirm.answered === "YES" || r.pendingConfirm.answered === "NO"
+                ? r.pendingConfirm.answered
+                : undefined,
+          }
+        : undefined,
     savedAddress:
       r.savedAddress && typeof r.savedAddress === "object"
         ? {

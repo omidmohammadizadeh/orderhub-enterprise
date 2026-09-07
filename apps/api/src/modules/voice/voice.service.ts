@@ -382,6 +382,10 @@ export class VoiceService {
       state.cart.fulfillmentChosen === true ||
       (state.cart.items?.length ?? 0) > 0 ||
       !!state.pendingItem ||
+      // Asked "press 1 for yes, or 2 for no" and still waiting. Belt to the
+      // braces above: even if nothing else about this call has started, a
+      // digit answers THAT question and is not a menu choice.
+      !!state.pendingConfirm?.asked ||
       !!state.awaiting
     );
   }
