@@ -34,17 +34,17 @@ describe('the inbound meter', () => {
   });
 
   it('flags a loud window with no detection — the deaf-line signature', () => {
-    const m = new InboundMeter(1000, -35, 0);
+    const m = new InboundMeter(1000, 12, -30, 5000, 0);
     for (let i = 0; i < 49; i++) expect(m.frame(tone(6000), i * 20)).toBeNull();
     const r = m.frame(tone(6000), 1000)!;
     expect(r.frames).toBe(50);
-    expect(r.peakDb).toBeGreaterThan(-35);
+    expect(r.peakDb).toBeGreaterThan(-20); // judged absolutely: no floor is known yet
     expect(r.loudUndetected).toBe(true);
     expect(m.totals.loudUndetected).toBe(1);
   });
 
   it('does not flag a loud window the detector did fire in, nor a quiet one', () => {
-    const m = new InboundMeter(1000, -35, 0);
+    const m = new InboundMeter(1000, 12, -30, 5000, 0);
     m.speechDetected();
     for (let i = 0; i < 49; i++) m.frame(tone(6000), i * 20);
     expect(m.frame(tone(6000), 1000)!.loudUndetected).toBe(false);
