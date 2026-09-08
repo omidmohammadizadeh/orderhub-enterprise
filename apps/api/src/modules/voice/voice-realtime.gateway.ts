@@ -157,6 +157,10 @@ export class VoiceRealtimeGateway implements OnModuleInit {
   /** call_control_id → the caller's socket, so a transfer can close it. */
   private readonly calls = new Map<string, WebSocket>();
   private readonly seenEvents = new Set<string>();
+  /** Calls already handed to the other engine, so a second watcher cannot hand them over again. */
+  private handedOver?: Map<string, number>;
+  /** The engine stands down until then — an account with no credits refuses every call the same way. */
+  private standDown?: { until: number; why: string };
 
   constructor(
     private readonly config: ConfigService,
@@ -207,6 +211,13 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     }
     if (!this.config.get<string>('VOICE_REALTIME_URL')) {
       return { ok: false, why: 'VOICE_REALTIME_URL is not set on the API service' };
+    }
+    // Two callers in a row each spent two seconds on a model that answered
+    // "no credits remaining", then heard an apology for a fault that was
+    // ours. An account refusal is not going to change in the next minute;
+    // answer on the engine that works and say why, once per call.
+    if (this.standDown && Date.now() < this.standDown.until) {
+      return { ok: false, why: this.standDown.why };
     }
     return { ok: true };
   }
@@ -288,6 +299,18 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     ccid: string,
     opts: { alreadySpoke?: boolean } = {},
   ): Promise<void> {
+    // Once. The model dropping and the readiness timer both watch the same
+    // call, and on 7de77pbA both handed it over: the second start was refused
+    // by Telnyx as "already in progress" three times and logged as a failure
+    // to move a call that had moved fine.
+    const now = Date.now();
+    const handed = (this.handedOver ??= new Map<string, number>());
+    for (const [id, at] of handed) if (now - at > 10 * 60_000) handed.delete(id);
+    if (handed.has(ccid)) {
+      this.logger.log(`call ${ccid.slice(-8)} already handed to the standard engine — not again`);
+      return;
+    }
+    handed.set(ccid, now);
     try {
       await this.telnyx.stopMediaStream(ccid);
       const url = this.relayUrlFor(ccid);
@@ -378,6 +401,25 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     this.calls.set(ccid, caller);
     this.logger.log(`realtime audio open for call ${ccid.slice(-8)}`);
 
+    // Telnyx sends the start frame the instant the socket opens — before the
+    // session lookup below has returned. With nobody listening it was simply
+    // lost, and with it the media_format this call actually arrived in: the
+    // first frame ever logged on 7de77pbA was media chunk 18. Kept here and
+    // replayed once the real listener is in place. Audio from before then is
+    // of no use — there is no model to hear it yet — and is let go.
+    let streamId: string | undefined;
+    const early: TelnyxMediaFrame[] = [];
+    const earlyFrames = (raw: { toString(): string }) => {
+      try {
+        const f: TelnyxMediaFrame = JSON.parse(raw.toString());
+        if (f.stream_id) streamId = f.stream_id;
+        if (f.event === 'start') early.push(f);
+      } catch {
+        /* not ours */
+      }
+    };
+    caller.on('message', earlyFrames);
+
     const session = await this.voice.realtimeSession(ccid).catch((e: any) => {
       this.logger.error(`realtime session setup failed: ${e?.message ?? e}`);
       return null;
@@ -396,7 +438,6 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     // which arrived as a 4000 close one second into a live call.
     const brain = this.connectToModel(model_url);
 
-    let streamId: string | undefined;
     const sendAudio = (b64: string) => {
       if (caller.readyState !== WebSocket.OPEN) return;
       caller.send(JSON.stringify({ event: 'media', stream_id: streamId, media: { payload: b64 } }));
@@ -590,7 +631,8 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     // give the call back to the engine that works.
     const readyBy = setTimeout(
       () => {
-        if (configured) return;
+        // Already configured, or already handed over / hung up: nothing to watch.
+        if (configured || !this.calls.has(ccid)) return;
         const stats = this.statsOf(brain);
         // Which of the three this was cannot be guessed at afterwards: a socket
         // that never opened, one that opened and heard nothing back, or a
@@ -686,6 +728,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       // is the one outcome that is never acceptable.
       if (!this.calls.has(ccid)) return;
       this.calls.delete(ccid);
+      clearTimeout((brain as any).__readyBy);
       this.logger.error(
         `realtime model dropped mid-call on ${ccid.slice(-8)} — handing to the standard engine`,
       );
@@ -697,7 +740,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       void this.fallbackToRelay(ccid, { alreadySpoke: true });
     });
 
-    caller.on('message', (raw) => {
+    const onCallerFrame = (raw: { toString(): string }) => {
       let frame: TelnyxMediaFrame;
       try {
         frame = JSON.parse(raw.toString());
@@ -764,7 +807,10 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       if (frame.event === 'dtmf' && frame.dtmf?.digit) {
         void this.onDigit(String(frame.dtmf.digit), ccid, brain);
       }
-    });
+    };
+    caller.off('message', earlyFrames);
+    caller.on('message', onCallerFrame);
+    for (const f of early) onCallerFrame(JSON.stringify(f));
 
     caller.on('close', () => {
       this.calls.delete(ccid);
@@ -2190,6 +2236,16 @@ export class VoiceRealtimeGateway implements OnModuleInit {
           return;
         }
         this.logger.error(`realtime model error on ${ccid.slice(-8)}: ${text.slice(0, 400)}`);
+
+        if (/insufficient_quota|credit_balance_exhausted|billing/i.test(text)) {
+          const minutes =
+            Number(this.config.get<string>('VOICE_REALTIME_STAND_DOWN_MINUTES') ?? 10) || 10;
+          this.standDown = {
+            until: Date.now() + minutes * 60_000,
+            why: `the OpenAI account has no credits (${String(err?.code ?? err?.type ?? 'insufficient_quota')}) — standing down for ${minutes} minutes; top up at platform.openai.com`,
+          };
+          this.logger.error(`realtime ${this.standDown.why}`);
+        }
 
         // A session we asked for and were refused is not going to be accepted
         // by waiting. Until the readiness timer was the only thing watching

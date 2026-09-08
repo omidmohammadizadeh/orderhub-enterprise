@@ -978,3 +978,79 @@ describe("what the line carries, checked against what the model expects", () => 
     expect(sim.gateway.fallbackToRelay).not.toHaveBeenCalled();
   });
 });
+
+// ── calls 7de77pbA / lVMD0vUw: no credits, handed over twice, start frame lost ──
+describe("a call is handed to the other engine once, whichever watcher noticed first", () => {
+  it("the model dropping before the session was ready does not also trip the readiness timer", async () => {
+    const sim = new VoiceRealtimeSim({ readyMs: 40 });
+    const started = jest.spyOn(sim.gateway.telnyx, 'startConversationRelay');
+    await sim.gateway.attach(sim.caller, 'cc-drop');
+    sim.brain.emit('open');
+    await settle(5);
+    sim.brain.deliver({ type: 'error', error: { type: 'insufficient_quota', code: 'credit_balance_exhausted', message: 'You have no credits remaining.' } });
+    sim.brain.close();
+    await settle(90);
+    expect(started).toHaveBeenCalledTimes(1);
+    expect(sim.log.join('\n')).toMatch(/dropped mid-call/);
+    expect(sim.log.join('\n')).not.toMatch(/never became ready/);
+    expect(sim.log.join('\n')).not.toMatch(/could not be moved/);
+  });
+
+  it("a second hand-over of the same call is declined, not attempted", async () => {
+    const sim = new VoiceRealtimeSim();
+    const started = jest.spyOn(sim.gateway.telnyx, 'startConversationRelay');
+    await sim.answer('cc-twice');
+    await sim.gateway.fallbackToRelay('cc-twice', { alreadySpoke: true });
+    await sim.gateway.fallbackToRelay('cc-twice', { alreadySpoke: true });
+    expect(started).toHaveBeenCalledTimes(1);
+    expect(sim.log.join('\n')).toMatch(/already handed to the standard engine — not again/);
+  });
+});
+
+describe("an account with no credits stands the engine down", () => {
+  it("answers the next calls on the standard engine, says why, and comes back after the wait", async () => {
+    const sim = new VoiceRealtimeSim();
+    await sim.answer();
+    expect(sim.gateway.available()).toEqual({ ok: true });
+    sim.brain.deliver({ type: 'error', error: { type: 'insufficient_quota', code: 'credit_balance_exhausted', message: 'You have no credits remaining. Add credits…' } });
+    const a = sim.gateway.available();
+    expect(a.ok).toBe(false);
+    expect(a.why).toMatch(/no credits \(credit_balance_exhausted\) — standing down for 10 minutes/);
+    expect(sim.log.join('\n')).toMatch(/ERROR realtime the OpenAI account has no credits/);
+    sim.gateway.standDown.until = Date.now() - 1;
+    expect(sim.gateway.available()).toEqual({ ok: true });
+  });
+
+  it("a rate limit is not a reason to stand down", async () => {
+    const sim = new VoiceRealtimeSim();
+    await sim.answer();
+    sim.brain.deliver({ type: 'error', error: { type: 'rate_limit_exceeded', code: 'rate_limit_exceeded', message: 'Rate limit reached' } });
+    expect(sim.gateway.available()).toEqual({ ok: true });
+  });
+});
+
+describe("the start frame that arrives before the session lookup returns", () => {
+  it("is kept and read once the listener is in place — and a wrong codec still hands over", async () => {
+    const sim = conversationSim();
+    const slow = sim.gateway.voice.realtimeSession;
+    sim.gateway.voice.realtimeSession = async (...args: any[]) => { await settle(30); return slow(...args); };
+    const attaching = sim.gateway.attach(sim.caller, 'cc-early');
+    // Telnyx does not wait for us.
+    sim.caller.deliver({ event: 'start', stream_id: 's-early', start: { media_format: { encoding: 'PCMA', sample_rate: 8000, channels: 1 } } });
+    sim.caller.deliver({ event: 'media', media: { track: 'inbound', payload: 'AAAA' } });
+    await attaching;
+    expect(sim.log.join('\n')).toMatch(/inbound audio: PCMA, 8000Hz, 1ch/);
+    expect(sim.gateway.fallbackToRelay).toHaveBeenCalledTimes(1);
+  });
+
+  it("a μ-law start frame that arrived early is logged and nothing is handed over", async () => {
+    const sim = conversationSim();
+    const slow = sim.gateway.voice.realtimeSession;
+    sim.gateway.voice.realtimeSession = async (...args: any[]) => { await settle(30); return slow(...args); };
+    const attaching = sim.gateway.attach(sim.caller, 'cc-early-ok');
+    sim.caller.deliver({ event: 'start', stream_id: 's-early', start: { media_format: { encoding: 'PCMU', sample_rate: 8000, channels: 1 } } });
+    await attaching;
+    expect(sim.log.join('\n')).toMatch(/inbound audio: PCMU, 8000Hz, 1ch/);
+    expect(sim.gateway.fallbackToRelay).not.toHaveBeenCalled();
+  });
+});
