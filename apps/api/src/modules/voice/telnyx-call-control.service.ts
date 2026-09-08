@@ -269,6 +269,12 @@ export class TelnyxCallControlService {
     const body: Record<string, unknown> = {
       stream_url: url,
       stream_track: this.config.get<string>("VOICE_STREAM_TRACK") || "inbound_track",
+      // What Telnyx sends US. Left at "default" it is whatever the call
+      // negotiated — A-law on plenty of UK routes — while the model has been
+      // told to expect μ-law. Decoded as the wrong codec, speech is loud
+      // noise: the meter reads -6 dBFS and the detector hears nothing at all.
+      // Transcoded at Telnyx's edge, every call arrives the same way.
+      stream_codec: this.config.get<string>("VOICE_STREAM_INBOUND_CODEC") || "PCMU",
       stream_bidirectional_mode:
         this.config.get<string>("VOICE_STREAM_BIDIRECTIONAL_MODE") || "rtp",
       stream_bidirectional_codec:

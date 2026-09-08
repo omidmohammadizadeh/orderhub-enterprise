@@ -55,7 +55,14 @@ describe('3. a quiet caller is not a broken model', () => {
     await sim.answer();
     sim.brain.sent.length = 0;
     spoke(sim, 'r1');
+    // The line is up: silence keeps arriving from Telnyx, as it does on a
+    // real call. A line delivering nothing at all is a different case, below.
+    const keepAlive = setInterval(
+      () => sim.caller.deliver({ event: 'media', media: { track: 'inbound', payload: ONE_SECOND } }),
+      10,
+    );
     await settle(400);
+    clearInterval(keepAlive);
 
     const said = sim.toModel
       .filter((m) => m.type === 'response.create')
@@ -863,5 +870,111 @@ describe("a known caller with no address on file is still known", () => {
     const p = ai().promptForConversation({ currency: "GBP", items: [], deliveryZones: [] } as any, { cart: { items: [] }, turns: [], knownName: "Omid" }, null);
     expect(p).toMatch(/You know this caller — Omid\. Don't ask their name/);
     expect(p).toMatch(/otherwise ask for a first name, once, before you place it\. Never make one up/);
+  });
+});
+
+// ── call XpumpnRg: -6 dBFS on the line, nothing detected, "are you still there?" ──
+describe("what the line carries, checked against what the model expects", () => {
+  const idle = (sim: any) => {
+    sim.gateway.config = {
+      get: (k: string) => (k === 'VOICE_CONVERSATION_IDLE_MS' || k === 'VOICE_REALTIME_IDLE_MS' ? '40' : undefined),
+    };
+  };
+  const fakeMeter = () => ({
+    totals: { windows: 0, loudWindows: 0, loudUndetected: 0 },
+    frame: () => null,
+    shouldWarn: () => false,
+    speechDetected() {},
+    speechEnded() {},
+    floorDb: () => -40,
+  });
+
+  it("logs the inbound format from the start frame, and forwards only the inbound track", async () => {
+    const sim = conversationSim();
+    await sim.answer();
+    sim.caller.deliver({ event: 'start', stream_id: 's1', start: { media_format: { encoding: 'PCMU', sample_rate: 8000, channels: 1 } } });
+    expect(sim.log.join('\n')).toMatch(/inbound audio: PCMU, 8000Hz, 1ch \(model expects μ-law 8kHz\)/);
+    expect(sim.gateway.fallbackToRelay).not.toHaveBeenCalled();
+    sim.brain.sent.length = 0;
+    sim.caller.deliver({ event: 'media', media: { track: 'outbound', payload: 'AAAA' } });
+    sim.caller.deliver({ event: 'media', media: { track: 'inbound', payload: 'BBBB' } });
+    sim.caller.deliver({ event: 'media', media: { payload: 'CCCC' } });
+    const appended = sim.toModel.filter((m) => m.type === 'input_audio_buffer.append').map((m) => m.audio);
+    expect(appended).toEqual(['BBBB', 'CCCC']);
+  });
+
+  it("hands over at once when the stream is not μ-law 8kHz — the model would hear noise", async () => {
+    const sim = conversationSim();
+    await sim.answer();
+    sim.caller.deliver({ event: 'start', stream_id: 's1', start: { media_format: { encoding: 'PCMA', sample_rate: 8000, channels: 1 } } });
+    expect(sim.log.join('\n')).toMatch(/ERROR .*inbound audio is PCMA at 8000Hz, not μ-law 8kHz/);
+    expect(sim.gateway.fallbackToRelay).toHaveBeenCalledTimes(1);
+    sim.brain.sent.length = 0;
+    sim.caller.deliver({ event: 'media', media: { track: 'inbound', payload: 'BBBB' } });
+    expect(sim.toModel.filter((m) => m.type === 'input_audio_buffer.append')).toHaveLength(0);
+  });
+
+  it("logs the turn detection the server accepted, not only the one we asked for", async () => {
+    const sim = conversationSim();
+    await sim.answer();
+    sim.brain.deliver({ type: 'session.updated', session: { audio: { input: { turn_detection: { type: 'server_vad', threshold: 0.6, silence_duration_ms: 600 } } } } });
+    expect(sim.log.join('\n')).toMatch(/server accepted turn_detection \{"type":"server_vad","threshold":0\.6,"silence_duration_ms":600\}/);
+  });
+
+  it("describes each wait in frames delivered and seconds loud-but-undetected", async () => {
+    const sim = conversationSim({ idleMs: 40 }); idle(sim);
+    await sim.answer();
+    (sim.brain as any).__meter = fakeMeter();
+    spoke(sim, 'r1');
+    for (let i = 0; i < 5; i++) sim.caller.deliver({ event: 'media', media: { track: 'inbound', payload: ONE_SECOND } });
+    await settle(70);
+    expect(sim.log.join('\n')).toMatch(/checking in \(.*line 5 frames in \/ 0s loud-undetected this wait/);
+  });
+
+  it("a loud line the detector never hears is handed over on the second wait, not asked a third time", async () => {
+    const sim = conversationSim({ idleMs: 40 }); idle(sim);
+    await sim.answer();
+    const meter = fakeMeter();
+    (sim.brain as any).__meter = meter;
+    spoke(sim, 'r1');
+    const keepAlive = setInterval(() => sim.caller.deliver({ event: 'media', media: { track: 'inbound', payload: ONE_SECOND } }), 5);
+    await settle(70); // first check-in: "are you still there?"
+    expect(sim.log.join(' ')).toMatch(/caller quiet — checking in/);
+    meter.totals.loudUndetected += 3; // three loud seconds, no speech_started
+    await settle(70);
+    clearInterval(keepAlive);
+    expect(sim.log.join('\n')).toMatch(/ERROR .*the line was loud for 3s and the detector heard none of it/);
+    expect(sim.gateway.fallbackToRelay).toHaveBeenCalledTimes(1);
+    expect(sim.gateway.telnyx.hangup).not.toHaveBeenCalled();
+    const said = sim.toModel.filter((m) => m.type === 'response.create').map((m) => m.response?.instructions ?? '');
+    expect(said.some((s) => s.includes('Bye for now'))).toBe(false);
+  });
+
+  it("a line delivering no audio at all across two waits is a dead line, not a quiet caller", async () => {
+    const sim = conversationSim({ idleMs: 40 }); idle(sim);
+    await sim.answer();
+    spoke(sim, 'r1');
+    await settle(160); // two waits, not one frame
+    expect(sim.log.join('\n')).toMatch(/ERROR .*no inbound audio from the line across two waits/);
+    expect(sim.gateway.fallbackToRelay).toHaveBeenCalledTimes(1);
+    expect(sim.gateway.telnyx.hangup).not.toHaveBeenCalled();
+  });
+
+  it("one early loud window does not move a call, and the caller speaking wipes the slate", async () => {
+    const sim = conversationSim({ idleMs: 40 }); idle(sim);
+    await sim.answer();
+    const meter = fakeMeter();
+    (sim.brain as any).__meter = meter;
+    spoke(sim, 'r1');
+    const keepAlive = setInterval(() => sim.caller.deliver({ event: 'media', media: { track: 'inbound', payload: ONE_SECOND } }), 5);
+    meter.totals.loudUndetected += 1;
+    await settle(70); // one loud second before the first check-in
+    sim.brain.deliver({ type: 'input_audio_buffer.speech_started' });
+    sim.brain.deliver({ type: 'input_audio_buffer.speech_stopped' });
+    spoke(sim, 'r2');
+    meter.totals.loudUndetected += 1;
+    await settle(70);
+    clearInterval(keepAlive);
+    expect(sim.gateway.fallbackToRelay).not.toHaveBeenCalled();
   });
 });

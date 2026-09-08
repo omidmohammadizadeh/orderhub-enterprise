@@ -256,3 +256,25 @@ describe("telling the transcriber what the shop sells", () => {
     expect(second.transcription_model).toEqual(expect.any(String));
   });
 });
+
+describe("startMediaStream", () => {
+  it("asks Telnyx for μ-law on the inbound stream, whatever the call negotiated", async () => {
+    // Left at "default" the stream carries the call's own codec — A-law on
+    // plenty of UK routes — and the model, told to expect μ-law, hears noise.
+    const s = svc();
+    s.config = { get: () => undefined };
+    await s.startMediaStream("cc1", "wss://x");
+    const body = s.command.mock.calls[0][2];
+    expect(body.stream_codec).toBe("PCMU");
+    expect(body.stream_track).toBe("inbound_track");
+    expect(body.stream_bidirectional_codec).toBe("PCMU");
+    expect(body.stream_bidirectional_mode).toBe("rtp");
+  });
+
+  it("lets the inbound codec be overridden for a deliberate experiment", async () => {
+    const s = svc();
+    s.config = { get: (k: string) => (k === "VOICE_STREAM_INBOUND_CODEC" ? "L16" : undefined) };
+    await s.startMediaStream("cc1", "wss://x");
+    expect(s.command.mock.calls[0][2].stream_codec).toBe("L16");
+  });
+});

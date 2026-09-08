@@ -44,10 +44,13 @@ import { TelnyxCallControlService } from './telnyx-call-control.service';
 /** Telnyx → us. */
 interface TelnyxMediaFrame {
   event?: string;
-  media?: { payload?: string };
+  media?: { payload?: string; track?: string };
   dtmf?: { digit?: string };
   stream_id?: string;
-  start?: { call_control_id?: string };
+  start?: {
+    call_control_id?: string;
+    media_format?: { encoding?: string; sample_rate?: number; channels?: number };
+  };
 }
 
 /**
@@ -708,7 +711,33 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         );
       }
       if (frame.stream_id) streamId = frame.stream_id;
+      // What the line is actually sending, checked against what the model was
+      // told to expect. A strong reading on the meter is not proof of speech:
+      // A-law decoded as μ-law is loud, and it is noise. The model would sit
+      // through it detecting nothing, and the caller would be asked whether
+      // they are still there — three times, then goodbye.
+      if (frame.event === 'start') {
+        const mf = frame.start?.media_format;
+        const enc = String(mf?.encoding ?? '').trim();
+        const rate = Number(mf?.sample_rate ?? 8000) || 8000;
+        const mulaw = !enc || /pcmu|mulaw|ulaw|g711u/i.test(enc);
+        this.logger.log(
+          `realtime ${ccid.slice(-8)} inbound audio: ${enc || 'encoding unstated'}, ${rate}Hz, ${mf?.channels ?? 1}ch (model expects μ-law 8kHz)`,
+        );
+        if (!mulaw || rate !== 8000) {
+          this.logger.error(
+            `realtime ${ccid.slice(-8)} inbound audio is ${enc || '?'} at ${rate}Hz, not μ-law 8kHz — the model would hear noise. Handing the call to the other engine.`,
+          );
+          (brain as any).__badAudio = true;
+          void this.fallbackToRelay(ccid, { alreadySpoke: this.statsOf(brain).audioIn > 0 });
+        }
+        return;
+      }
       if (frame.event === 'media' && frame.media?.payload && brain.readyState === WebSocket.OPEN) {
+        // Only the caller's side. With both tracks streamed our own audio
+        // would come back down this socket and into the model's ears.
+        if (frame.media.track && frame.media.track !== 'inbound') return;
+        if ((brain as any).__badAudio) return;
         this.send(brain, { type: 'input_audio_buffer.append', audio: frame.media.payload });
         // What the line sounds like, one number a second, and only logged
         // when it is the thing worth knowing: loud, and nothing detected it.
@@ -1384,14 +1413,28 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     const stillSpeaking = Math.max(0, this.statsOf(brain).speakingUntil - Date.now());
     const timer = (brain as any).__quiet;
     if (timer) clearTimeout(timer);
+    // Where the line stood when the wait began, so the wait can be described
+    // afterwards in the two numbers that tell "no audio" from "audio, no
+    // speech": frames the line delivered, and seconds loud with no detection.
+    const meterAtStart = (brain as any).__meter as InboundMeter | undefined;
+    const mark = {
+      frames: this.statsOf(brain).audioOut,
+      undetected: meterAtStart?.totals.loudUndetected ?? 0,
+    };
     const timer2 = setTimeout(() => {
       (brain as any).__quiet = undefined;
       if (brain.readyState !== WebSocket.OPEN) return;
       const stats = this.statsOf(brain);
       const since = Date.now() - stats.lastEventAt;
+      const meter = (brain as any).__meter as InboundMeter | undefined;
+      const line = {
+        framesIn: stats.audioOut - mark.frames,
+        deafSeconds: (meter?.totals.loudUndetected ?? 0) - mark.undetected,
+      };
       const picture =
         `phase ${this.phaseOf(brain).phase}, last "${stats.lastType}" ${since}ms ago, ` +
         `${stats.fromModel} in / ${stats.toModel} out, audio ${stats.audioIn} in / ${stats.audioOut} out, ` +
+        `line ${line.framesIn} frames in / ${line.deafSeconds}s loud-undetected this wait, ` +
         `socket ${brain.readyState}, pong ${stats.pongAt ? `${Date.now() - stats.pongAt}ms ago` : 'never'}`;
       // A reply in flight IS the line working. Wait for it.
       if (this.responsesOf(brain).size > 0 && since < quiet) {
@@ -1401,8 +1444,32 @@ export class VoiceRealtimeGateway implements OnModuleInit {
 
       const phase = this.phaseOf(brain).phase;
       if (phase === 'WAITING_CALLER' || phase === 'LISTENING') {
-        // The caller's silence. Not a fault; never a reason to change engine.
+        // The caller's silence is not a fault and never a reason to change
+        // engine. But two things look exactly like it from here and are not
+        // it, and each is a fault: no audio reaching us at all, and audio
+        // reaching us — loud — that the detector never once heard. A caller
+        // in either is talking to a deaf line; the other engine listens
+        // through a different path. Judged over two waits, never one, so a
+        // single early meter window cannot move a call.
         const n = ((brain as any).__callerSilences = ((brain as any).__callerSilences ?? 0) + 1);
+        const dead = ((brain as any).__deadWindows =
+          line.framesIn === 0 ? ((brain as any).__deadWindows ?? 0) + 1 : 0);
+        const deaf = ((brain as any).__deafSeconds =
+          ((brain as any).__deafSeconds ?? 0) + line.deafSeconds);
+        if (n >= 2 && dead >= 2) {
+          this.logger.error(
+            `realtime ${ccid.slice(-8)} no inbound audio from the line across two waits — not the caller's silence. Handing over (${picture})`,
+          );
+          void this.fallbackToRelay(ccid, { alreadySpoke: true });
+          return;
+        }
+        if (n >= 2 && deaf >= 2) {
+          this.logger.error(
+            `realtime ${ccid.slice(-8)} the line was loud for ${deaf}s and the detector heard none of it — the caller may be talking to a deaf line. Handing over (${picture})`,
+          );
+          void this.fallbackToRelay(ccid, { alreadySpoke: true });
+          return;
+        }
         if (n === 1) {
           this.logger.log(`realtime ${ccid.slice(-8)} caller quiet — checking in (${picture})`);
           this.speakExactly(brain, 'Sorry, are you still there?', {
@@ -1700,9 +1767,20 @@ export class VoiceRealtimeGateway implements OnModuleInit {
           );
         }
         return;
-      case 'session.updated':
+      case 'session.updated': {
+        // What the server ACCEPTED, not what was asked for. The ready line
+        // below prints our request; a threshold quietly overridden by a
+        // runtime setting would otherwise be invisible.
+        const accepted =
+          event.session?.audio?.input?.turn_detection ?? event.session?.turn_detection;
+        if (accepted) {
+          this.logger.log(
+            `realtime ${ccid.slice(-8)} server accepted turn_detection ${JSON.stringify(accepted)}`,
+          );
+        }
         (brain as any).__onConfigured?.();
         return;
+      }
 
       // The caller's own words, logged in the same shape the chained engine
       // logs them. Without this the two engines cannot be compared, and a bad
@@ -1722,6 +1800,8 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // seconds of no events and then "are you still there?".
         this.logger.log(`realtime ${ccid.slice(-8)} caller started speaking`);
         (brain as any).__callerSilences = 0;
+        (brain as any).__deadWindows = 0;
+        (brain as any).__deafSeconds = 0;
         ((brain as any).__meter as InboundMeter | undefined)?.speechDetected();
         this.setPhase(brain, 'LISTENING');
         this.interrupt(brain, { serverCancels: true });
