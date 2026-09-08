@@ -50,6 +50,7 @@ import {
 import {
   isConfident,
   isConfidentGroup,
+  dishPhrase,
   matchItemGroups,
   matchMenuItems,
   pickVariant,
@@ -442,6 +443,26 @@ export function coerceState(raw: unknown): VoiceState {
       ? r.awaiting
       : undefined,
   };
+}
+
+/**
+ * Did the caller just name one of the dishes we offered them?
+ *
+ * Only the shortlist is searched, so "Margarita" against
+ * [PEPPERONI, MARGHERITHA, GRAN DUCA] resolves instead of tying with the whole
+ * menu again. A clear winner within the shortlist is enough: they are choosing
+ * between these three, not reordering.
+ */
+function pickOffered(said: string, offered: any[]): any | null {
+  const names = offered.map((g) => ({ name: String(g.base ?? ''), group: g }));
+  const matches = matchItemGroups(said, names as any, { limit: 3 });
+  if (!matches.length) return null;
+  const best = matches[0]!;
+  const second = matches[1];
+  if (best.score < 0.75) return null;
+  if (second && best.score - second.score < 0.2 && !best.exact) return null;
+  const hit = names.find((n) => n.name === best.group.base);
+  return hit ? hit.group : null;
 }
 
 @Injectable()
@@ -3958,14 +3979,34 @@ ${this.compactMenu(ctx)}
   private resolveDish(
     input: any,
     ctx: VoiceContext,
-  ): { item?: any; quantity: number; result?: string } {
+  ): { item?: any; quantity: number; result?: string; candidates?: any[] } {
     const explicit = ctx.itemIndex.get(String(input?.itemId ?? ''));
     const said = String(input?.said ?? '').trim();
     // "Two Pizza Deal" is a dish, "two chips" is two of one: both readings of
     // a leading number are tried against the menu and the better one wins.
-    const { quantity: spokenQty, matches } = said
+    let { quantity: spokenQty, matches } = said
       ? matchWithQuantity(said, ctx.items, { limit: 3 })
       : { quantity: undefined, matches: [] as ReturnType<typeof matchItemGroups<any>> };
+    // Ambiguous because of the toppings, not the dish. "a 12-inch margarita
+    // with extra jalapeno and green pepper" scored PEPPERONI level with
+    // MARGHERITHA on the word "pepper", so the pizza they named could not win.
+    // Try again on the dish half — only after the whole sentence has failed,
+    // since real dishes are named "… With Chips, Salad & Sauce".
+    if (said && matches.length && !isConfidentGroup(matches)) {
+      const dishOnly = dishPhrase(said);
+      if (dishOnly && dishOnly !== said) {
+        const retry = matchWithQuantity(dishOnly, ctx.items, { limit: 3 });
+        if (retry.matches.length && isConfidentGroup(retry.matches)) {
+          this.logger.log(
+            `resolveDish: "${said}" was ambiguous (${matches
+              .map((m) => `${m.group.base} ${m.score.toFixed(2)}`)
+              .join(', ')}) → "${dishOnly}" resolved to ${retry.matches[0]!.group.base}`,
+          );
+          matches = retry.matches;
+          spokenQty = retry.quantity ?? spokenQty;
+        }
+      }
+    }
     const quantity = Math.max(1, Math.round(Number(input?.quantity) || spokenQty || 1));
     if (explicit) return { item: explicit, quantity };
     if (!said) return { quantity, result: "Say which item — pass `said` with the caller's words." };
@@ -3979,6 +4020,7 @@ ${this.compactMenu(ctx)}
     if (!isConfidentGroup(matches)) {
       return {
         quantity,
+        candidates: matches.map((m) => m.group),
         result: `Could be ${matches.map((m) => m.group.base).join(' or ')}. Ask which they meant.`,
       };
     }
@@ -4033,10 +4075,33 @@ ${this.compactMenu(ctx)}
       }
     }
     if (!item) {
-      const r = this.resolveDish(input, ctx);
-      if (!r.item) return { result: r.result ?? "That item isn't on the menu." };
-      item = r.item;
-      quantity = r.quantity;
+      // Answering the question we just asked. When the last turn offered
+      // "PEPPERONI or MARGHERITHA or GRAN DUCA", the caller saying one of them
+      // must land on THAT one — on call TiqIEZ-A the same three came back four
+      // times because each answer was re-matched against the whole menu from
+      // scratch, and "Margarita" kept tying with the pepperoni it had already
+      // been offered against.
+      const offered: any[] = ((state as any).__offeredDishes ?? []) as any[];
+      const answered = said && offered.length ? pickOffered(said, offered) : null;
+      if (answered) {
+        item = answered.variants?.length === 1 ? answered.variants[0] : pickVariant(said, answered.variants ?? []);
+        (state as any).__offeredDishes = undefined;
+        if (!item) {
+          return {
+            result: `${answered.base} comes in more than one size — ${sizesAloud(answered.variants)}. Ask which, then add it.`,
+          };
+        }
+      } else {
+        const r = this.resolveDish(input, ctx);
+        if (!r.item) {
+          // Remember what we offered so the answer resolves against it.
+          (state as any).__offeredDishes = r.candidates ?? undefined;
+          return { result: r.result ?? "That item isn't on the menu." };
+        }
+        (state as any).__offeredDishes = undefined;
+        item = r.item;
+        quantity = r.quantity;
+      }
     }
     const continuing = !!draft && draft.itemId === item.id;
     const picks = continuing ? [...draft!.picks] : [];

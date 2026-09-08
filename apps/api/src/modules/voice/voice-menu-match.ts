@@ -527,6 +527,29 @@ export function matchItemGroups<T extends { name: string; categoryName?: string 
 }
 
 /** Same bar as isConfident, over dishes rather than sizes. */
+/**
+ * The dish half of a sentence, with the toppings cut off.
+ *
+ * On call TiqIEZ-A the caller asked for "a 12-inch margarita with extra
+ * jalapeno and green pepper". Scored whole, "green pepper" put PEPPERONI level
+ * with MARGHERITHA at 1.00 — the pizza they actually named could not win, and
+ * the bot asked which of three pizzas they meant, four times.
+ *
+ * Cuts at the first word that starts a list of extras. Never used on its own:
+ * the full sentence is matched first and this is only tried when that came out
+ * ambiguous, because plenty of real dishes have "with" in the name — "Portion
+ * Of Chicken Shawarma With Chips, Salad & Sauce" is one of this tenant's.
+ */
+export function dishPhrase(said: string): string {
+  const text = String(said ?? '');
+  const cut = text.search(/\b(?:extra|extras|add|added|topped|no|without|hold)\b/i);
+  if (cut <= 0) return text.trim();
+  return text
+    .slice(0, cut)
+    .replace(/\s*\b(?:with|and|plus|,)\s*$/i, '')
+    .trim();
+}
+
 export function isConfidentGroup<T>(matches: Array<GroupMatch<T>>): boolean {
   const [best, second] = matches;
   if (!best || best.score < 0.75) return false;
