@@ -22,8 +22,8 @@ const ORDER = {
   status: "PREPARING",
   fulfillmentType: "DELIVERY",
   items: [
-    { name: "PEPPERONI", quantity: 1, unitPrice: 7.8, notes: null },
-    { name: "GARLIC BREAD", quantity: 2, unitPrice: 4, notes: "well done" },
+    { name: "PEPPERONI", quantity: 1, unitPrice: 7.8, notes: null, menuItemId: "mi-pep" },
+    { name: "GARLIC BREAD", quantity: 2, unitPrice: 4, notes: "well done", menuItemId: null },
   ],
   createdAt: new Date(),
 };

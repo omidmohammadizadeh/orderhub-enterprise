@@ -1264,7 +1264,7 @@ describe("changing an order that is already in — on this call or a later one",
     fulfillmentType: "DELIVERY", paymentMethod: "CASH", paymentStatus: "PENDING", customerPhone: "+447700900123",
     deliveryAddress: { line1: "11 Follingsby Drive", city: "Gateshead", postcode: "NE10 8YH", country: "GB" },
     deliveryFee: 1, discount: 2, taxAmount: 0, tipAmount: 0, serviceCharge: 0, updatedAt: new Date("2026-09-08T10:00:00Z"), createdAt: new Date(),
-    items: [{ name: 'Pepperoni (12")', quantity: 1, unitPrice: 8.9, notes: "no onions", modifiers: [{ name: "Deep Pan", price: 0 }] }],
+    items: [{ name: 'Pepperoni (12")', quantity: 1, unitPrice: 8.9, notes: "no onions", modifiers: [{ name: "Deep Pan", price: 0 }], menuItemId: "pep12" }],
     ...over,
   });
   const ai = (order: any, recheck: any = order) => {
@@ -1291,15 +1291,18 @@ describe("changing an order that is already in — on this call or a later one",
     a.addItemConversational({ said: "chips" }, c(), st);
     const rb = await a.runTool("read_back_order", {}, c(), st, null);
     expect(rb.sayNow).toMatch(/Pepperoni \(12 inch\) with Deep Pan, no onions, then Chips, for delivery to 11 Follingsby Drive.*plus £1\.00 delivery less £2\.00 discount That comes to £10\.80/);
-    await a.runToolForConversation("order_confirmed", { __spokeAfterQuestion: true }, c(), st, null);
-    const saved = await a.runToolForConversation("amend_order", {}, c(), st, "+447700900123");
-    expect(saved.result).toMatch(/^Order 4J79Y updated — the kitchen has the new ticket.*£10\.80/);
+    // The yes to the read-back saves it there and then.
+    const saved = await a.runToolForConversation("order_confirmed", { __spokeAfterQuestion: true }, c(), st, "+447700900123");
+    expect(saved.result).toMatch(/^Order 4J79Y saved with the change — new total £10\.80/);
+    expect(saved.sayNow).toMatch(/^Done — order 4, J, 7, 9, Y is updated, and it now comes to £10\.80\./);
     const [id, tenant, dto, who] = a.orders.editOrder.mock.calls[0];
     expect([id, tenant, who]).toEqual(["o1", "t1", "voice-ai"]);
     expect(dto.items.map((i: any) => [i.name, i.modifiers?.map((m: any) => m.name), i.notes])).toEqual([
       ['Pepperoni (12")', ["Deep Pan"], "no onions"],
       ["Chips", undefined, undefined],
     ]);
+    // The KDS routes by menuItemId: the loaded line keeps the order's, the new line carries the menu's.
+    expect(dto.items.map((i: any) => i.menuItemId)).toEqual(["pep12", "chips"]);
     expect(dto).toMatchObject({ subtotal: 11.8, deliveryFee: 1, discount: 2, total: 10.8, deliveryAddress: { line1: "11 Follingsby Drive", postcode: "NE10 8YH" } });
     expect(st.amendOrderId).toBeUndefined();
   });
@@ -1328,8 +1331,7 @@ describe("changing an order that is already in — on this call or a later one",
     await a.runToolForConversation("find_order_to_change", {}, c(), st, "+447700900123");
     a.addItemConversational({ said: "chips" }, c(), st);
     await a.runTool("read_back_order", {}, c(), st, null);
-    await a.runToolForConversation("order_confirmed", { __spokeAfterQuestion: true }, c(), st, null);
-    const out = await a.runToolForConversation("amend_order", {}, c(), st, null);
+    const out = await a.runToolForConversation("order_confirmed", { __spokeAfterQuestion: true }, c(), st, null);
     expect(out.result).toMatch(/already made up and waiting for a driver.*The kitchen moved on while we were talking/);
     expect(out.turn?.transferTo).toBe("+441912312345");
     expect(a.orders.editOrder).not.toHaveBeenCalled();
@@ -1341,9 +1343,8 @@ describe("changing an order that is already in — on this call or a later one",
     const st: any = { cart: { items: [] }, turns: [], orderId: "o1" };
     await a.runToolForConversation("find_order_to_change", {}, c(), st, "+447700900123");
     await a.runTool("read_back_order", {}, c(), st, null);
-    await a.runToolForConversation("order_confirmed", { __spokeAfterQuestion: true }, c(), st, null);
     a.addItemConversational({ said: "chips" }, c(), st);
-    // Adding a line wipes the confirmation; either way, nothing is saved.
+    // A line added after the read-back: nothing is saved until it is read back again.
     expect((await a.runToolForConversation("amend_order", {}, c(), st, null)).result).toMatch(/CHANGED since it was read back/);
     expect(a.orders.editOrder).not.toHaveBeenCalled();
     expect((await a.runToolForConversation("place_order", { paymentMethod: "CASH", __spokeAfterQuestion: true }, c(), st, null)).result).toMatch(/Use amend_order, not place_order/);
@@ -1583,7 +1584,8 @@ describe("the caller's yes to an amended read-back saves it", () => {
   it("'that's fine' after the read-back saves the change once, with no second read-back", async () => {
     const a = ai(); const { st } = await readBack(a);
     const out = await a.runToolForConversation("amend_order", yes("That's fine."), c(), st, "+447700900123");
-    expect(out.result).toMatch(/^Order 58EAU updated — the kitchen has the new ticket.*£27\.90/);
+    expect(out.result).toMatch(/^Order 58EAU saved with the change — new total £27\.90/);
+    expect(out.sayNow).toMatch(/^Done — order 5, 8, E, A, U is updated, and it now comes to £27\.90\./);
     expect(a.orders.editOrder).toHaveBeenCalledTimes(1);
     expect(a.orders.editOrder.mock.calls[0][2].items.map((i: any) => i.name)).toEqual(["MEAL DEAL 2", "Chips"]);
     const again = await a.runToolForConversation("amend_order", yes("Okay."), c(), st, "+447700900123");
@@ -1593,9 +1595,9 @@ describe("the caller's yes to an amended read-back saves it", () => {
 
   it("'okay' does too, and so does a turn the transcriber could not read", async () => {
     const a = ai(); const { st } = await readBack(a);
-    expect((await a.runToolForConversation("amend_order", yes("Okay."), c(), st, null)).result).toMatch(/^Order 58EAU updated/);
+    expect((await a.runToolForConversation("amend_order", yes("Okay."), c(), st, null)).result).toMatch(/^Order 58EAU saved/);
     const b = ai(); const two = await readBack(b);
-    expect((await b.runToolForConversation("amend_order", { __conversation: true, __spokeAfterQuestion: true, __heard: null }, c(), two.st, null)).result).toMatch(/^Order 58EAU updated/);
+    expect((await b.runToolForConversation("amend_order", { __conversation: true, __spokeAfterQuestion: true, __heard: null }, c(), two.st, null)).result).toMatch(/^Order 58EAU saved/);
   });
 
   it("a no, or a yes-but, is not a yes", async () => {
@@ -1624,12 +1626,16 @@ describe("the caller's yes to an amended read-back saves it", () => {
     expect(a.orders.editOrder).not.toHaveBeenCalled();
   });
 
-  it("order_confirmed while changing an order points at amend_order, not at payment", async () => {
+  it("order_confirmed while changing an order saves it there and then — no payment question, no second tool", async () => {
     const a = ai(); const { st } = await readBack(a);
     const out = await a.runToolForConversation("order_confirmed", { __spokeAfterQuestion: true }, c(), st, null);
-    expect(out.result).toMatch(/Confirmed\. Call amend_order now to save the change to order 58EAU/);
-    expect(out.result).not.toMatch(/cash/);
-    expect((await a.runToolForConversation("amend_order", yes("yes"), c(), st, null)).result).toMatch(/^Order 58EAU updated/);
+    expect(out.result).toMatch(/^Order 58EAU saved with the change — new total £27\.90/);
+    expect(out.result).not.toMatch(/cash|kitchen has the new ticket/);
+    expect(out.sayNow).toBe("Done — order 5, 8, E, A, U is updated, and it now comes to £27.90. Anything else?");
+    expect(a.orders.editOrder).toHaveBeenCalledTimes(1);
+    // The model calling amend_order afterwards anyway saves nothing twice.
+    expect((await a.runToolForConversation("amend_order", yes("yes"), c(), st, null)).result).toMatch(/no existing order being changed/);
+    expect(a.orders.editOrder).toHaveBeenCalledTimes(1);
   });
 
   it("'that's it' with nothing being chosen is pointed at the read-back or the save", async () => {

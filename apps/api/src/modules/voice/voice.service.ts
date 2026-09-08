@@ -1424,7 +1424,7 @@ export class VoiceService {
             orderSource: true,
             status: true,
             fulfillmentType: true,
-            items: { select: { name: true, quantity: true, unitPrice: true, notes: true } },
+            items: { select: { name: true, quantity: true, unitPrice: true, notes: true, modifiers: true, menuItemId: true } },
           },
         })
       : [];

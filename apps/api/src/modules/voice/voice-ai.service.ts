@@ -2356,9 +2356,10 @@ ${menu || '(no items available — apologise and transfer)'}`;
         state.orderConfirmed = true;
         state.orderConfirmedOf = now;
         if (state.amendOrderId) {
-          return {
-            result: `Confirmed. Call amend_order now to save the change to order ${state.amendReference ?? state.amendOrderId}. No payment question — that was settled when the order was placed.`,
-          };
+          // The yes to a changed order IS the save. Asking the model to call
+          // amend_order next cost a whole composed reply — six seconds on
+          // call kwPJfhWA — between a confirmed change and saving it.
+          return this.amendOrder(ctx, state, input);
         }
         return {
           result:
@@ -5143,7 +5144,7 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
       serviceCharge: true,
       updatedAt: true,
       createdAt: true,
-      items: { select: { name: true, quantity: true, unitPrice: true, notes: true, modifiers: true } },
+      items: { select: { name: true, quantity: true, unitPrice: true, notes: true, modifiers: true, menuItemId: true } },
     };
     let order: any = null;
     try {
@@ -5251,7 +5252,7 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
     ctx: VoiceContext,
     state: VoiceState,
     input: any = {},
-  ): Promise<{ result: string; turn?: Partial<VoiceTurn> }> {
+  ): Promise<{ result: string; turn?: Partial<VoiceTurn>; sayNow?: string }> {
     const amendId = state.amendOrderId;
     if (!amendId) {
       return { result: 'There is no existing order being changed here. Call find_order_to_change first.' };
@@ -5330,6 +5331,9 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
     }
 
     const items = state.cart.items.map((l) => ({
+      // The KDS routes by this. Lost on the way through here on call
+      // kwPJfhWA, and every station dropped the order's ticket.
+      menuItemId: l.itemId || null,
       name: l.name,
       quantity: l.quantity,
       unitPrice: round2(lineUnitPrice(l)),
@@ -5374,14 +5378,16 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
       );
       const done = amendId;
       const ref = state.amendReference ?? done;
+      const total = money(round2(subtotal + fee + tax + tip + service - discount), ctx.currency);
       state.amendOrderId = undefined;
       state.amendLoaded = undefined;
-      this.logger.log(`Voice order ${ref} amended — ${items.length} line(s), total ${money(round2(subtotal + fee + tax + tip + service - discount), ctx.currency)}`);
+      this.logger.log(`Voice order ${ref} amended — ${items.length} line(s), total ${total}`);
+      // Said as a script — the saved fact, not a claim about the kitchen,
+      // and not a reply the model has to compose while the minute's budget
+      // is spent. A retry of this reply is speech only; the save is done.
       return {
-        result: `Order ${ref} updated — the kitchen has the new ticket. Tell them it's been added and the new total is ${money(
-          round2(subtotal + fee + tax + tip + service - discount),
-          ctx.currency,
-        )}.`,
+        result: `Order ${ref} saved with the change — new total ${total}. The caller is being told; if they want anything else, carry on, otherwise end_call when they say goodbye.`,
+        sayNow: `Done — order ${spokenReference(ref)} is updated, and it now comes to ${total}. Anything else?`,
         turn: { orderId: done, outcome: 'ORDER' },
       };
     } catch (e: any) {
@@ -5419,6 +5425,8 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
         unitPrice: number | string;
         notes?: string | null;
         modifiers?: unknown;
+        /** The menu item the line was made from — the KDS routes by it. */
+        menuItemId?: string | null;
       }>;
       deliveryAddress?: unknown;
       status?: string | null;
@@ -5440,7 +5448,9 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
     state.cart.fulfillmentChosen = true;
     state.cart.items = order.items.map((it) => ({
       lineId: Math.random().toString(36).slice(2, 9),
-      itemId: '',
+      // Kept from the order, never guessed from the name: a line with no
+      // menu item stays unrouted rather than routed to the wrong station.
+      itemId: String(it.menuItemId ?? ''),
       name: String(it.name),
       quantity: Math.max(1, Math.round(Number(it.quantity) || 1)),
       unitBasePrice: Number(it.unitPrice) || 0,

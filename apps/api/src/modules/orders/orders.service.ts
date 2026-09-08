@@ -1620,6 +1620,8 @@ export class OrdersService {
         totalPrice: number;
         notes?: string;
         sku?: string;
+        /** Carried to OrderItem.menuItemId — the KDS routes by it. Omitted keeps a kept line's own. */
+        menuItemId?: string | null;
         modifiers?: Array<{
           name: string;
           price: number;
@@ -1688,19 +1690,63 @@ export class OrdersService {
       throw new BadRequestException("Order must have at least one item");
     }
 
+    // A line that is still on the order keeps its row — and so its id, which
+    // is what a kitchen screen's tick states and "seen" list hang off. The
+    // old delete-everything-and-recreate gave every line a new id, so adding
+    // a drink un-bumped the grill, and a phone amendment that carried no
+    // menuItemId sent every station "no items route here anymore".
+    const signature = (x: {
+      name: string;
+      unitPrice: number | string | { toString(): string };
+      modifiers?: unknown;
+      notes?: string | null;
+    }) =>
+      JSON.stringify([
+        String(x.name).trim().toLowerCase(),
+        Number(x.unitPrice),
+        (Array.isArray(x.modifiers) ? (x.modifiers as any[]) : []).map((m) => [
+          String(m?.name ?? "").trim().toLowerCase(),
+          Number(m?.price ?? 0),
+        ]),
+        String(x.notes ?? "").trim(),
+      ]);
     const updated = await this.prisma.$transaction(async (tx) => {
-      await tx.orderItem.deleteMany({ where: { orderId: order.id } });
-      await tx.orderItem.createMany({
-        data: dto.items.map((it) => ({
-          orderId: order.id,
-          name: it.name,
-          quantity: it.quantity,
-          unitPrice: it.unitPrice,
-          totalPrice: it.totalPrice,
-          modifiers: (it.modifiers ?? []) as any,
-          notes: it.notes ?? null,
-        })),
-      });
+      const remaining = [...order.items];
+      const toCreate: typeof dto.items = [];
+      for (const it of dto.items) {
+        const idx = remaining.findIndex((row) => signature(row) === signature(it));
+        if (idx < 0) {
+          toCreate.push(it);
+          continue;
+        }
+        const row = remaining.splice(idx, 1)[0]!;
+        const data: Record<string, unknown> = {};
+        if (row.quantity !== it.quantity) data.quantity = it.quantity;
+        if (Number(row.totalPrice) !== it.totalPrice) data.totalPrice = it.totalPrice;
+        if (it.menuItemId && !row.menuItemId) data.menuItemId = it.menuItemId;
+        if (Object.keys(data).length) {
+          await tx.orderItem.update({ where: { id: row.id }, data });
+        }
+      }
+      if (remaining.length) {
+        await tx.orderItem.deleteMany({
+          where: { id: { in: remaining.map((r) => r.id) } },
+        });
+      }
+      if (toCreate.length) {
+        await tx.orderItem.createMany({
+          data: toCreate.map((it) => ({
+            orderId: order.id,
+            name: it.name,
+            quantity: it.quantity,
+            unitPrice: it.unitPrice,
+            totalPrice: it.totalPrice,
+            modifiers: (it.modifiers ?? []) as any,
+            notes: it.notes ?? null,
+            menuItemId: it.menuItemId ?? null,
+          })),
+        });
+      }
 
       const customerInfoUpdate =
         dto.customerInfo !== undefined
@@ -1786,8 +1832,9 @@ export class OrdersService {
       createdAt: updated.createdAt.toISOString(),
     });
 
-    // Re-sync kitchen tickets: the edit replaced OrderItems (new ids), so the
-    // KDS must refresh routed items + tick states and flag the card updated.
+    // Re-sync kitchen tickets: lines that changed have new ids, kept lines
+    // keep theirs, so the KDS refreshes routed items + tick states and flags
+    // only the stations an edit actually touched.
     // Decoupled via the event bus (KDS listens) to keep OrdersModule from
     // importing KdsModule.
     this.events.emit("order.items_edited", {
