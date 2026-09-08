@@ -140,6 +140,11 @@ const ANSWERS: Record<string, string> = {
   order_confirmed: 'read_back_order',
   amend_order: 'read_back_order',
   confirm_delivery_address: 'propose_delivery_address',
+  use_saved_address: 'set_fulfillment',
+};
+/** A script spoken for one tool that asks the question another tool's answer is judged by. */
+const ASKS_AS: Record<string, string> = {
+  resolve_address: 'propose_delivery_address',
 };
 
 /** Retries per ask, on top of the original. */
@@ -1930,7 +1935,10 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         const t = this.turnsOf(brain);
         t.askSeq += 1;
         const by = t.asks.get(String(event.response_id ?? ''))?.askedBy;
-        if (by) t.askedFor.set(by, t.askSeq);
+        if (by) {
+          t.askedFor.set(by, t.askSeq);
+          if (ASKS_AS[by]) t.askedFor.set(ASKS_AS[by]!, t.askSeq);
+        }
         if (event.transcript) {
           (brain as any).__lastSaid = String(event.transcript);
           this.logger.log(
@@ -2331,10 +2339,12 @@ export class VoiceRealtimeGateway implements OnModuleInit {
           (brain as any).__toolAwaitingReply = true;
           if (script) {
             (brain as any).__pendingScript = script;
-            (brain as any).__pendingScriptBy = name;
+            (brain as any).__pendingScriptBy = String((out as any)?.askedBy ?? name);
           }
         } else {
-          this.speakExactly(brain, script, { askedBy: script ? name : undefined });
+          this.speakExactly(brain, script, {
+            askedBy: script ? String((out as any)?.askedBy ?? name) : undefined,
+          });
         }
         // A tool answer that produces no speech is the same silence by another
         // route, so the clock runs on this too.

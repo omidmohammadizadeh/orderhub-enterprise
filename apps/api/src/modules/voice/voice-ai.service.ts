@@ -3331,6 +3331,94 @@ ${this.compactMenu(ctx)}
 * needs a choice — add_item tells you which`);
   }
 
+  /**
+   * Follow-ups the model does not need to compose.
+   *
+   * A reply the model writes costs the whole session again — instructions,
+   * tools, the conversation so far: about six thousand tokens against a
+   * forty-thousand-a-minute limit. A scripted reply carries only its own
+   * words and costs a fifth of that. On call G9JVU_7A the address was
+   * resolved in 170ms and then waited twelve seconds for the model to be
+   * allowed to repeat it. So the questions whose wording is already decided
+   * — is that the right address, collection or delivery is noted, cash or
+   * card, and the read-back once the address settles an order that is all
+   * there — are spoken as scripts, with the same gates behind them.
+   */
+  private async scripted(
+    name: string,
+    out: { result: string; turn?: Partial<VoiceTurn>; sayNow?: string; askedBy?: string },
+    ctx: VoiceContext,
+    state: VoiceState,
+  ): Promise<{ result: string; turn?: Partial<VoiceTurn>; sayNow?: string; askedBy?: string }> {
+    if (out.sayNow || out.turn?.transferTo || out.turn?.endCall) return out;
+    switch (name) {
+      case 'resolve_address': {
+        const addr = state.cart.deliveryAddress;
+        if (!/^That resolves to /.test(out.result) || !addr?.line1) return out;
+        state.addressConfirmed = false;
+        state.addressConfirmedOf = undefined;
+        state.awaiting = 'ADDRESS_CONFIRM';
+        return {
+          result:
+            'Address resolved and read back to the caller. Wait for their answer. Call confirm_delivery_address only if they say yes; if they say no, take it again.',
+          sayNow: `${this.spokenAddress(addr)} — is that right?`,
+          askedBy: 'propose_delivery_address',
+        };
+      }
+      case 'confirm_delivery_address': {
+        if (!/^Address confirmed/.test(out.result)) return out;
+        const fee = this.chargesFor(state, ctx).fee;
+        const lead = fee > 0 ? `Lovely — delivery to that address is ${money(fee, ctx.currency)}.` : 'Lovely, that address is fine.';
+        return this.thenReadBackOrAsk(out, lead, ctx, state);
+      }
+      case 'set_fulfillment': {
+        if (/^Set to collection/.test(out.result)) {
+          return this.thenReadBackOrAsk(out, 'Collection it is.', ctx, state);
+        }
+        if (/^Set to delivery\. This caller has an address on file/.test(out.result) && state.savedAddress?.line1) {
+          return { ...out, sayNow: `Are you still at ${state.savedAddress.line1}?`, askedBy: 'set_fulfillment' };
+        }
+        if (/^Set to delivery\. Now ask/.test(out.result)) {
+          return { ...out, sayNow: "Delivery — what's the address, with the postcode?" };
+        }
+        return out;
+      }
+      case 'order_confirmed': {
+        if (!/^Confirmed\. Now ask how they would like to pay/.test(out.result)) return out;
+        if (!(ctx.acceptsCash && ctx.acceptsCard)) return out;
+        return { ...out, sayNow: 'Lovely. How would you like to pay — cash, or card?' };
+      }
+      default:
+        return out;
+    }
+  }
+
+  /**
+   * Once collection or delivery is settled: if the order is all there, read
+   * it back now, charge included — the caller has usually said everything by
+   * the time the address comes up, and "is that all correct?" is where they
+   * add the thing they forgot. An empty basket is asked for; a dish still
+   * being chosen is left to the model.
+   */
+  private async thenReadBackOrAsk(
+    out: { result: string; turn?: Partial<VoiceTurn>; sayNow?: string },
+    lead: string,
+    ctx: VoiceContext,
+    state: VoiceState,
+  ): Promise<{ result: string; turn?: Partial<VoiceTurn>; sayNow?: string; askedBy?: string }> {
+    if (state.draft) return out;
+    if (!state.cart.items.length) {
+      return { ...out, sayNow: `${lead} What would you like to order?` };
+    }
+    const rb = await this.runTool('read_back_order', {}, ctx, state, null);
+    if (!rb.sayNow) return out;
+    return {
+      result: `${(out.result.split(' Tell them')[0] ?? out.result).split(' Ask what')[0] ?? out.result} The whole order was then read back to the caller, charge included. ${rb.result}`,
+      sayNow: `${lead} ${rb.sayNow}`,
+      askedBy: 'read_back_order',
+    };
+  }
+
   /** The same tools, described for a model that asks rather than walks through. */
   toolsForConversation(ctx: VoiceContext): Array<Record<string, unknown>> {
     const base = this.toolsForRealtime(ctx).map((t) => {
@@ -3438,7 +3526,7 @@ ${this.compactMenu(ctx)}
     ctx: VoiceContext,
     state: VoiceState,
     callerNumber?: string | null,
-  ): Promise<{ result: string; turn?: Partial<VoiceTurn>; sayNow?: string }> {
+  ): Promise<{ result: string; turn?: Partial<VoiceTurn>; sayNow?: string; askedBy?: string }> {
     switch (name) {
       case 'add_item':
         return this.addItemConversational(input, ctx, state);
@@ -3453,7 +3541,7 @@ ${this.compactMenu(ctx)}
               "Not placed — the caller hasn't answered since you asked. Ask how they'd like to pay and WAIT for them to speak.",
           };
         }
-        return this.runTool(name, input, ctx, state, callerNumber);
+        return this.scripted(name, await this.runTool(name, input, ctx, state, callerNumber), ctx, state);
       }
       case 'remove_item':
         return this.removeItemConversational(input, ctx, state);
@@ -3473,19 +3561,18 @@ ${this.compactMenu(ctx)}
         // caller turn happened after the question; agreed() decides on that.
         (state as any).__conversation = true;
         try {
-          return await this.runTool(
+          return await this.scripted(
             name,
-            { ...input, __conversation: true },
+            await this.runTool(name, { ...input, __conversation: true }, ctx, state, callerNumber),
             ctx,
             state,
-            callerNumber,
           );
         } finally {
           delete (state as any).__conversation;
         }
       }
       default:
-        return this.runTool(name, input, ctx, state, callerNumber);
+        return this.scripted(name, await this.runTool(name, input, ctx, state, callerNumber), ctx, state);
     }
   }
 
@@ -3989,10 +4076,22 @@ ${this.compactMenu(ctx)}
               missing[0].name,
             )} options as a short list and let them pick one, or offer transfer_to_staff. What is chosen is kept.`
           : ` Ask for what's missing in one question — they can answer several at once, in any order — then call add_item again with what they say; what is chosen is kept.`;
+      // One question with a known wording is spoken as a script — a fifth
+      // of the cost of having the model phrase it. Several missing, or a
+      // long list, or a caller who is not getting through: the model.
+      const only = missing.length === 1 ? missing[0] : undefined;
+      const sayNow =
+        only && only.options.length <= 6 && stalls < 2 && !merged.unmatched.length
+          ? `Which ${this.groupLabel(only.name)} for the ${this.spokenName(base)}${needed(only) - count(only) > 1 ? ` — ${needed(only) - count(only)} more` : ''}: ${this.spokenList(
+              only.options.map((o: any) => this.spokenName(o.name)),
+            )}?`
+          : undefined;
       return {
         result:
           `NOT added yet. The ${base}${chosen.length ? ` (so far: ${chosen.join('; ')})` : ''} still needs a choice of: ${asks.join('; ')}.` +
-          `${swapped}${unplaced}${done}${stuck}`,
+          `${swapped}${unplaced}${done}${stuck}` +
+          (sayNow ? ' (That question is being asked for you — wait for the answer.)' : ''),
+        ...(sayNow ? { sayNow } : {}),
       };
     }
 

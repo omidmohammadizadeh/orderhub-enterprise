@@ -1739,3 +1739,129 @@ describe("an answer lands in the group it belongs to, and a deal's fixed parts a
     expect(line).toMatch(/said="meal deal 2" names=\["10 inch pepperoni","thingamajig"\] → kept \[10" PEPPERONI\] replaced \[\] unplaced \[thingamajig\] missing \[drink, sauce, chips or salad, kebab\]/);
   });
 });
+
+// ── call G9JVU_7A: the address resolved in 170ms and waited twelve seconds to be repeated ──
+describe("questions with a known wording are spoken as scripts, not composed", () => {
+  const { VoiceAiService } = require("../voice-ai.service");
+  const G = (id: string, name: string, opts: string[]) => ({ id, name, required: true, min: 1, max: 1, selectionType: "VARIANT", options: opts.map((o, i) => ({ id: `${id}${i + 1}`, name: o, price: 0 })) });
+  const MENU: any[] = [
+    { id: "pep12", name: 'Pepperoni (12")', price: 8.9, categoryName: "Pizzas", modifierGroups: [G("cr", "Select Your Pizza Crust", ["Thin", "Deep Pan", "Stuffed"])] },
+    { id: "chips", name: "Chips", price: 2.9, categoryName: "Sides", modifierGroups: [] },
+    { id: "deal2", name: "MEAL DEAL 2", price: 25, categoryName: "Deals", modifierGroups: [G("dp", "Pizza", ["Margherita", "Pepperoni"]), G("dk", "Kebab", ["Donner", "Chicken"]), G("dd", "Drink", ["Coke", "Fanta"])] },
+  ];
+  const c = (over: any = {}) => { const x: any = { currency: "GBP", country: "GB", items: MENU, deliveryZones: [{ id: "z", postcodePrefix: "NE10", fee: 1 }], acceptsCash: true, acceptsCard: true, ...over }; x.itemIndex = new Map(MENU.map((i) => [i.id, i])); x.optionIndex = new Map(MENU.flatMap((i: any) => i.modifierGroups.flatMap((g: any) => g.options.map((o: any) => [o.id, { groupId: g.id, itemId: i.id, option: o }])))); return x; };
+  const ai = () => { const a: any = Object.create(VoiceAiService.prototype); a.logger = { log() {}, warn() {}, error() {} }; return a; };
+  const ADDR = { line1: "11 Follingsby Drive", city: "Gateshead", postcode: "NE10 8YH", country: "GB" };
+  const withChips = (over: any = {}) => ({ cart: { items: [{ lineId: "a", itemId: "chips", name: "Chips", quantity: 1, unitBasePrice: 2.9, modifiers: [] }], ...over }, turns: [] }) as any;
+
+  it("a resolved address is read back as a script, with the confirmation gate still in front of it", async () => {
+    const a = ai(); const st: any = { cart: { items: [], fulfillmentType: "DELIVERY", fulfillmentChosen: true, deliveryAddress: ADDR }, turns: [], addressConfirmed: true };
+    const out = await a.scripted("resolve_address", { result: "That resolves to 11 Follingsby Drive, Gateshead, N E 1 0, 8 Y H. Say exactly that followed by \"— is that right?\" and wait." }, c(), st);
+    expect(out.sayNow).toBe("11 Follingsby Drive, Gateshead, N E 1 0, 8 Y H — is that right?");
+    expect(out.askedBy).toBe("propose_delivery_address");
+    expect(out.result).toMatch(/Wait for their answer\. Call confirm_delivery_address only if they say yes/);
+    expect(st.addressConfirmed).toBe(false);
+    expect(a.addressStillConfirmed(st)).toBe(false);
+  });
+
+  it("confirming the address with the order already taken reads it straight back, charge included", async () => {
+    const a = ai(); const st = withChips({ fulfillmentType: "DELIVERY", fulfillmentChosen: true, deliveryAddress: ADDR });
+    const out = await a.runToolForConversation("confirm_delivery_address", { __conversation: true, __spokeAfterQuestion: true }, c(), st, null);
+    expect(out.sayNow).toBe("Lovely — delivery to that address is £1.00. So that's Chips, for delivery to 11 Follingsby Drive, Gateshead, N E 1 0, 8 Y H. plus £1.00 delivery That comes to £3.90. Is that all correct?");
+    expect(out.askedBy).toBe("read_back_order");
+    expect(out.result).toMatch(/^Address confirmed\. Delivers to NE10\. Fee £1\.00\. The whole order was then read back to the caller, charge included\. Order read back/);
+    expect(st.readBackOf).toBe(a.orderFingerprint(st));
+    expect(a.addressStillConfirmed(st)).toBe(true);
+  });
+
+  it("confirming the address with nothing ordered yet asks for the order; with a dish half-chosen it leaves the model to it", async () => {
+    const a = ai();
+    const empty: any = { cart: { items: [], fulfillmentType: "DELIVERY", fulfillmentChosen: true, deliveryAddress: ADDR }, turns: [] };
+    const one = await a.runToolForConversation("confirm_delivery_address", { __conversation: true, __spokeAfterQuestion: true }, c(), empty, null);
+    expect(one.sayNow).toBe("Lovely — delivery to that address is £1.00. What would you like to order?");
+    const mid = withChips({ fulfillmentType: "DELIVERY", fulfillmentChosen: true, deliveryAddress: ADDR });
+    mid.draft = { itemId: "pep12", quantity: 1, picks: [], startedAt: Date.now() };
+    const two = await a.runToolForConversation("confirm_delivery_address", { __conversation: true, __spokeAfterQuestion: true }, c(), mid, null);
+    expect(two.sayNow).toBeUndefined();
+    expect(two.result).toMatch(/^Address confirmed/);
+  });
+
+  it("collection or delivery is noted in a script — and read back at once when the order is all there", async () => {
+    const a = ai();
+    const st = withChips();
+    const pickup = await a.runToolForConversation("set_fulfillment", { type: "PICKUP" }, c(), st, null);
+    expect(pickup.sayNow).toBe("Collection it is. So that's Chips, for collection. That comes to £2.90. Is that all correct?");
+    expect(pickup.askedBy).toBe("read_back_order");
+    const known: any = { cart: { items: [] }, turns: [], savedAddress: { line1: "11 Sunningdale Drive", city: "Washington", postcode: "NE37 2LL" } };
+    const still = await a.runToolForConversation("set_fulfillment", { type: "DELIVERY" }, c(), known, null);
+    expect(still.sayNow).toBe("Are you still at 11 Sunningdale Drive?");
+    expect(still.askedBy).toBe("set_fulfillment");
+    const fresh: any = { cart: { items: [] }, turns: [] };
+    const ask = await a.runToolForConversation("set_fulfillment", { type: "DELIVERY" }, c(), fresh, null);
+    expect(ask.sayNow).toBe("Delivery — what's the address, with the postcode?");
+  });
+
+  it("the payment question is a script when the shop takes both, and the model's when it does not", async () => {
+    const a = ai();
+    const st = withChips({ fulfillmentType: "PICKUP", fulfillmentChosen: true });
+    await a.runTool("read_back_order", {}, c(), st, null);
+    const out = await a.runToolForConversation("order_confirmed", { __spokeAfterQuestion: true }, c(), st, null);
+    expect(out.sayNow).toBe("Lovely. How would you like to pay — cash, or card?");
+    const b = ai(); const st2 = withChips({ fulfillmentType: "PICKUP", fulfillmentChosen: true });
+    await b.runTool("read_back_order", {}, c({ acceptsCard: false }), st2, null);
+    const cashOnly = await b.runToolForConversation("order_confirmed", { __spokeAfterQuestion: true }, c({ acceptsCard: false }), st2, null);
+    expect(cashOnly.sayNow).toBeUndefined();
+  });
+
+  it("one missing choice is asked as a script; several, or a caller not getting through, go to the model", () => {
+    const a = ai(); const ctx = c();
+    const st: any = { cart: { items: [] }, turns: [] };
+    const one = a.addItemConversational({ said: "12 inch pepperoni" }, ctx, st);
+    expect(one.sayNow).toBe("Which pizza crust for the Pepperoni: Thin, Deep Pan or Stuffed?");
+    expect(one.result).toMatch(/That question is being asked for you/);
+    const st2: any = { cart: { items: [] }, turns: [] };
+    const many = a.addItemConversational({ said: "meal deal 2" }, ctx, st2);
+    expect(many.sayNow).toBeUndefined();
+    const st3: any = { cart: { items: [] }, turns: [] };
+    a.addItemConversational({ said: "12 inch pepperoni" }, ctx, st3);
+    a.addItemConversational({ modifierNames: ["blorp"] }, ctx, st3);
+    const stuck = a.addItemConversational({ modifierNames: ["blorp"] }, ctx, st3);
+    expect(stuck.sayNow).toBeUndefined();
+    expect(stuck.result).toMatch(/NOTHING they said matched/);
+  });
+
+  it("the gateway judges the yes against the question the script asked, whichever tool spoke it", async () => {
+    const sim = conversationSim();
+    (sim.gateway.voice.conversationTool as jest.Mock).mockImplementation(async (_c: string, name: string) =>
+      name === 'confirm_delivery_address'
+        ? { result: 'Address confirmed. The whole order was then read back.', sayNow: 'Lovely. So that is chips. Is that all correct?', askedBy: 'read_back_order' }
+        : name === 'resolve_address'
+          ? { result: 'Address resolved and read back.', sayNow: '11 Follingsby Drive — is that right?', askedBy: 'propose_delivery_address' }
+          : { result: 'ok' },
+    );
+    await sim.answer();
+    const toolIn = (rid: string, name: string) => {
+      sim.brain.deliver({ type: 'response.created', response: { id: rid } });
+      sim.brain.deliver({ type: 'response.function_call_arguments.done', response_id: rid, name, call_id: `c-${rid}`, arguments: '{}' });
+    };
+    const scriptSpoken = async (rid: string, sid: string, text: string) => {
+      await settle(30);
+      sim.brain.deliver({ type: 'response.done', response: { id: rid, status: 'completed' } });
+      await settle(10);
+      sim.brain.deliver({ type: 'response.created', response: { id: sid, metadata: { origin: 'script' } } });
+      sim.brain.deliver({ type: 'response.output_audio_transcript.done', response_id: sid, transcript: text });
+      sim.brain.deliver({ type: 'response.done', response: { id: sid, status: 'completed' } });
+    };
+    // resolve_address's script asks the address question; the yes is confirm_delivery_address's evidence
+    toolIn('r1', 'resolve_address');
+    await scriptSpoken('r1', 's1', '11 Follingsby Drive — is that right?');
+    sim.brain.deliver({ type: 'input_audio_buffer.committed', item_id: 'u-yes1' });
+    toolIn('r2', 'confirm_delivery_address');
+    await scriptSpoken('r2', 's2', 'Lovely. So that is chips. Is that all correct?');
+    sim.brain.deliver({ type: 'input_audio_buffer.committed', item_id: 'u-yes2' });
+    toolIn('r3', 'order_confirmed');
+    await settle(30);
+    const calls = (sim.gateway.voice.conversationTool as jest.Mock).mock.calls.map((k) => [k[1], k[2].__spokeAfterQuestion]);
+    expect(calls).toEqual([['resolve_address', false], ['confirm_delivery_address', true], ['order_confirmed', true]]);
+  });
+});
