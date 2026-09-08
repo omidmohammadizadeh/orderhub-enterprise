@@ -3338,6 +3338,195 @@ export class MenusService {
     };
   }
 
+  // ── Bulk base price: one percentage across every price in a menu ──────────
+  //
+  // The opposite tool to channel pricing, and the destructive one. Channel
+  // pricing writes OVERRIDES and never touches the base; this rewrites
+  // basePrice itself, for the day a shop puts the whole menu up 5% or runs a
+  // 10%-off week. Doing that by hand across 600 products is a day's work, so
+  // it gets done by re-importing a marketplace menu instead — which is how a
+  // menu ends up with a marketplace's uplift baked into its POS prices.
+  //
+  // There is no undo: the previous numbers are gone once this returns.
+  // Rounding is to the penny, so applying -10% then +10% does NOT land back
+  // where you started. That is why the route is admin-only and the modal
+  // makes you confirm.
+  //
+  // Channel/variant overrides move by the same percentage. They are absolute
+  // amounts, so leaving them behind would freeze Uber at the old price while
+  // POS moved — the 20% uplift the operator set would quietly become 33%.
+  async applyBulkBasePrice(
+    menuId: string,
+    tenantId: string,
+    dto: { percent: number; includeModifiers?: boolean },
+  ) {
+    const pct = Number(dto.percent);
+    if (!Number.isFinite(pct) || pct === 0) {
+      throw new BadRequestException("Pick a percentage other than 0");
+    }
+    if (pct <= -100) {
+      throw new BadRequestException("A price cannot be reduced by 100% or more");
+    }
+
+    const menu = await this.prisma.menu.findFirst({
+      where: { id: menuId, brand: { tenantId } },
+      select: { id: true, name: true },
+    });
+    if (!menu) throw new NotFoundException("Menu not found");
+
+    const round2 = (n: number) => Math.round(n * 100) / 100;
+    /** New price for one amount. Never negative, even at -90% of nothing. */
+    const shift = (v: unknown) => {
+      const n = Number(v);
+      if (!Number.isFinite(n)) return null;
+      return Math.max(0, round2(n * (1 + pct / 100)));
+    };
+    /**
+     * Move every override in the map by the same percentage.
+     *
+     * Values that aren't numbers are left exactly as they are — these maps are
+     * JSON columns written by several different screens, and dropping a key we
+     * don't recognise would lose a channel price the operator set by hand.
+     */
+    const shiftOverrides = (raw: unknown) => {
+      const src = (raw ?? {}) as Record<string, unknown>;
+      if (typeof src !== "object" || Array.isArray(src)) return { next: {}, changed: false };
+      const next: Record<string, unknown> = {};
+      let changed = false;
+      for (const [k, v] of Object.entries(src)) {
+        const moved = shift(v);
+        if (moved === null || moved === Number(v)) {
+          next[k] = v;
+          continue;
+        }
+        next[k] = moved;
+        changed = true;
+      }
+      return { next, changed };
+    };
+
+    // Every product this menu serves. A product can sit in more than one
+    // category, so it is de-duplicated by id — otherwise a dish listed under
+    // both "Pizzas" and "Meal deals" would take the uplift twice.
+    const cats = await this.prisma.menuCategory.findMany({
+      where: { menuId },
+      select: {
+        items: {
+          select: {
+            item: {
+              select: {
+                id: true,
+                basePrice: true,
+                productSkus: true,
+                platformPricingOverrides: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    const items = new Map<string, any>();
+    for (const c of cats) for (const l of c.items) items.set(l.item.id, l.item);
+
+    let itemsUpdated = 0;
+    let skusUpdated = 0;
+    const itemWrites: Array<{ id: string; data: Record<string, unknown> }> = [];
+
+    for (const item of items.values()) {
+      const data: Record<string, unknown> = {};
+
+      const base = Number(item.basePrice) || 0;
+      const nextBase = shift(base);
+      if (nextBase !== null && nextBase !== base) data.basePrice = nextBase;
+
+      const ov = shiftOverrides(item.platformPricingOverrides);
+      if (ov.changed) data.platformPricingOverrides = ov.next as any;
+
+      const skus = Array.isArray(item.productSkus) ? item.productSkus : [];
+      let skusTouched = false;
+      const nextSkus = skus.map((sku: any) => {
+        // productSkus is a JSON column: a null or a stray string in the array
+        // is possible, and reading .price off it would take the whole apply
+        // down with an anonymous 500.
+        if (!sku || typeof sku !== "object") return sku;
+        const out: any = { ...sku };
+        const price = shift(sku.price);
+        if (price !== null && price !== Number(sku.price)) {
+          out.price = price;
+          skusTouched = true;
+          skusUpdated++;
+        }
+        const po = shiftOverrides(sku.priceOverrides);
+        if (po.changed) {
+          out.priceOverrides = po.next;
+          skusTouched = true;
+        }
+        return out;
+      });
+      if (skusTouched) data.productSkus = nextSkus as any;
+
+      if (Object.keys(data).length > 0) {
+        itemWrites.push({ id: item.id, data });
+        itemsUpdated++;
+      }
+    }
+
+    await this.writeInBatches(itemWrites, (w) =>
+      this.prisma.menuItem.update({ where: { id: w.id }, data: w.data as any }),
+      (w, err) =>
+        `Bulk base price failed on product ${w.id} of menu ${menuId}: ${err}`,
+    );
+
+    // Toppings and upgrades are opt-in. A 5% rise on a £10 dish is 50p; the
+    // same 5% on a 50p topping is 2p, and most operators price extras on a
+    // round number they don't want disturbed — so this only runs when asked.
+    let optionsUpdated = 0;
+    if (dto.includeModifiers) {
+      const groupIds = await this.reachableGroupIdsForMenu(menuId, tenantId);
+      const optionWrites: Array<{ id: string; data: Record<string, unknown> }> = [];
+      if (groupIds.length) {
+        const options = await this.prisma.modifierOption.findMany({
+          where: { groupId: { in: groupIds } },
+          select: {
+            id: true,
+            priceAdjustment: true,
+            platformPricingOverrides: true,
+          },
+        });
+        for (const o of options) {
+          const data: Record<string, unknown> = {};
+          const cur = Number(o.priceAdjustment) || 0;
+          const next = shift(cur);
+          // A free option stays free: 0 × anything is 0, and writing it back
+          // would burn a round-trip per topping for no change.
+          if (next !== null && next !== cur) data.priceAdjustment = next;
+          const po = shiftOverrides(o.platformPricingOverrides);
+          if (po.changed) data.platformPricingOverrides = po.next as any;
+          if (Object.keys(data).length > 0) {
+            optionWrites.push({ id: o.id, data });
+            optionsUpdated++;
+          }
+        }
+      }
+      await this.writeInBatches(optionWrites, (w) =>
+        this.prisma.modifierOption.update({
+          where: { id: w.id },
+          data: w.data as any,
+        }),
+        (w, err) =>
+          `Bulk base price failed on option ${w.id} of menu ${menuId}: ${err}`,
+      );
+    }
+
+    this.logger.warn(
+      `Bulk base price ${pct > 0 ? "+" : ""}${pct}% on menu ${menuId} ` +
+        `(${menu.name}) → ${itemsUpdated} products, ${skusUpdated} sizes, ` +
+        `${optionsUpdated} options. Base prices REWRITTEN — not reversible.`,
+    );
+
+    return { percent: pct, itemsUpdated, skusUpdated, optionsUpdated };
+  }
+
   /** Every modifier group this menu can reach, nested ones included. */
   private async reachableGroupIdsForMenu(
     menuId: string,

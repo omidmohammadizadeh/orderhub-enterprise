@@ -42,6 +42,7 @@ import {
   Tag,
   SlidersHorizontal,
   Percent,
+  PoundSterling,
   Camera,
   ArrowDownAZ,
 } from "lucide-react";
@@ -60,6 +61,7 @@ import { AttachModal } from "@/components/products/attach-modal";
 import { ProductEditorModal } from "@/components/products/product-editor-modal";
 import { formatDisplayPrice } from "@/lib/menu/display-price";
 import { ChannelPricingModal } from "@/components/menu/channel-pricing-modal";
+import { BulkPriceModal } from "@/components/menu/bulk-price-modal";
 import { GeneratePhotosModal } from "@/components/menu/generate-photos-modal";
 
 /**
@@ -109,6 +111,7 @@ export default function MenuEditorPage() {
   // Phase AZ — pricing variants manager + per-product channel pricing.
   const [variantsOpen, setVariantsOpen] = useState(false);
   const [channelPricingOpen, setChannelPricingOpen] = useState(false);
+  const [bulkPriceOpen, setBulkPriceOpen] = useState(false);
   const [photosOpen, setPhotosOpen] = useState(false);
   const [pricingTarget, setPricingTarget] = useState<any | null>(null);
   const [newCatName, setNewCatName] = useState("");
@@ -149,6 +152,25 @@ export default function MenuEditorPage() {
     }
     return [...ids];
   }, [menu, categories]);
+
+  // Every product in the menu, de-duplicated — a dish can sit in two
+  // categories. Feeds the Bulk price change preview, which shows the operator
+  // real before/after numbers off their own menu.
+  const menuProducts = useMemo(() => {
+    const byId = new Map<string, { id: string; name: string; basePrice: number }>();
+    for (const c of categories) {
+      for (const link of (c as any).items ?? []) {
+        const it = link?.item;
+        if (!it?.id || byId.has(it.id)) continue;
+        byId.set(it.id, {
+          id: it.id,
+          name: it.name ?? "",
+          basePrice: Number(it.basePrice) || 0,
+        });
+      }
+    }
+    return [...byId.values()];
+  }, [categories]);
 
   const activeCat = useMemo(
     () => categories.find((c) => c.id === effectiveCatId) ?? null,
@@ -333,6 +355,19 @@ export default function MenuEditorPage() {
             <SlidersHorizontal className="h-4 w-4" />
             Pricing variants
           </Button>
+          {/* Admin only: this rewrites base prices menu-wide with no undo,
+              so it is not a control a shop manager should be able to reach. */}
+          {isAdmin && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 gap-1.5"
+              onClick={() => setBulkPriceOpen(true)}
+            >
+              <PoundSterling className="h-4 w-4" />
+              Bulk price change
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
@@ -404,6 +439,14 @@ export default function MenuEditorPage() {
         menuName={(menu as any)?.name ?? "this menu"}
         brandId={(menu as any)?.brandId ?? menuBrandIds[0] ?? ""}
         onClose={() => setChannelPricingOpen(false)}
+      />
+      <BulkPriceModal
+        open={bulkPriceOpen && isAdmin}
+        menuId={menuId}
+        menuName={(menu as any)?.name ?? "this menu"}
+        preview={menuProducts}
+        totalItems={menuProducts.length}
+        onClose={() => setBulkPriceOpen(false)}
       />
       <ProductVariantPricingModal
         open={pricingTarget !== null}

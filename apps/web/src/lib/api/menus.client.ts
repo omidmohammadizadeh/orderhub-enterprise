@@ -316,6 +316,23 @@ export const menusClient = {
       }>(`/v1/menus/${menuId}/channel-pricing`, body)
       .then((r) => r.data),
 
+  /**
+   * Move every base price in a menu by one percentage. Destructive and
+   * admin-only — see BulkPriceModal for the confirmation this sits behind.
+   */
+  applyBulkBasePrice: (
+    menuId: string,
+    body: { percent: number; includeModifiers?: boolean },
+  ) =>
+    apiClient
+      .post<{
+        percent: number;
+        itemsUpdated: number;
+        skusUpdated: number;
+        optionsUpdated: number;
+      }>(`/v1/menus/${menuId}/bulk-base-price`, body)
+      .then((r) => r.data),
+
   createMenu: (
     brandId: string,
     data: {

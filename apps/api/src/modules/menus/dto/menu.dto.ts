@@ -341,6 +341,14 @@ export class ChannelPricingChannelDto {
   @ApiProperty() @IsNumber() @Min(0) @Max(200) percent!: number;
 }
 
+// Bulk base price — the destructive twin of channel pricing. Negative reduces.
+// -90 rather than -100 is deliberate: "make everything free" is never what an
+// operator means by a discount, and 200 matches the channel-pricing ceiling.
+export class BulkBasePriceDto {
+  @ApiProperty() @IsNumber() @Min(-90) @Max(200) percent!: number;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() includeModifiers?: boolean;
+}
+
 export class ApplyChannelPricingDto {
   @ApiProperty() @IsString() brandId!: string;
   @ApiProperty({ type: [ChannelPricingChannelDto] })

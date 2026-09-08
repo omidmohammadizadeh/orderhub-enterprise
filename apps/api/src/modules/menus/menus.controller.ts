@@ -32,6 +32,7 @@ import { UberEatsMenuPublishService } from "../integrations/ubereats/ubereats-me
 import { JetMenuPublishService } from "../integrations/jet/jet-menu-publish.service";
 import {
   ApplyChannelPricingDto,
+  BulkBasePriceDto,
   CreateMenuDto,
   UpdateMenuDto,
   CreateMasterMenuDto,
@@ -1129,6 +1130,23 @@ export class MenusController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.menus.applyChannelPricing(menuId, user.tenantId, dto);
+  }
+
+  // Admin only, and deliberately not on the OWNER/MANAGER list every other
+  // menu route carries: this rewrites basePrice across the whole menu with no
+  // undo, so it is not a button a shop manager should be able to reach.
+  @Post("menus/:menuId/bulk-base-price")
+  @Roles("PLATFORM_ADMIN")
+  @ApiOperation({
+    summary:
+      "Move every base price in a menu by one percentage (destructive, admin only)",
+  })
+  applyBulkBasePrice(
+    @Param("menuId") menuId: string,
+    @Body() dto: BulkBasePriceDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.applyBulkBasePrice(menuId, user.tenantId, dto);
   }
 
 }
