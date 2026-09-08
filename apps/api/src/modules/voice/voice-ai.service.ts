@@ -65,6 +65,7 @@ import {
   needed,
   saysOption,
 } from './voice-menu-match';
+import { chargeableInNote } from './topping-note';
 import { isCurrentlyOpen } from '../../common/opening-hours.util';
 import {
   coerceCart,
@@ -3583,15 +3584,26 @@ ${this.compactMenu(ctx)}
    * resolved exactly the way "deep pan" was when the pizza went on.
    */
   /** The old shape, for change_item: a set of option ids, from a set. */
-  private chooseOptions(item: any, input: any, chosen: Set<string>): Set<string> {
+  private chooseOptions(
+    item: any,
+    input: any,
+    chosen: Set<string>,
+  ): { chosen: Set<string>; unmatched: string[] } {
     const groups: any[] = item.modifierGroups ?? [];
     const picks: Array<{ g: string; o: string }> = [];
     for (const id of chosen) {
       const g = groups.find((x) => x.options.some((o: any) => o.id === id));
       if (g) picks.push({ g: g.id, o: id });
     }
-    this.mergeChoices(item, input, picks);
-    return new Set(picks.map((p) => p.o));
+    // mergeChoices has always reported what it could not place; this threw
+    // that away and returned the ids alone. add_item passes the report on
+    // ("could not place: …") but change_item went through here, so a topping
+    // the menu could not match vanished and the model was told the change had
+    // worked. On call DCjjeFGw it then wrote the caller's "extra green
+    // pepper" into the note field, where nothing charges for it and no
+    // kitchen line prints it as an option.
+    const merged = this.mergeChoices(item, input, picks);
+    return { chosen: new Set(picks.map((p) => p.o)), unmatched: merged.unmatched };
   }
 
   /**
@@ -3887,14 +3899,17 @@ ${this.compactMenu(ctx)}
       line.quantity = q;
       changed.push(`quantity ${q}`);
     }
+    const unresolved: string[] = [];
     if (Array.isArray(input?.modifierNames) && input.modifierNames.length) {
       const item = ctx.itemIndex.get(line.itemId);
       if (item) {
-        const chosen = this.chooseOptions(
+        const picked = this.chooseOptions(
           item,
           { modifierNames: input.modifierNames },
           new Set((line.modifiers ?? []).map((m: any) => m.optionId)),
         );
+        const chosen = picked.chosen;
+        unresolved.push(...picked.unmatched);
         const groups: any[] = item.modifierGroups ?? [];
         const missing = groups.filter(
           (g) => mustChoose(g) && g.options.filter((o: any) => chosen.has(o.id)).length < needed(g),
@@ -3912,12 +3927,28 @@ ${this.compactMenu(ctx)}
       }
     }
     if (typeof input?.notes === 'string') {
+      const item = ctx.itemIndex.get(line.itemId);
+      const paid = item ? chargeableInNote(item, input.notes) : null;
+      if (paid) {
+        return {
+          result: `"${paid}" is a paid option on the ${line.name}, not a note — a note charges nothing and does not print as an option. Call change_item again with modifierNames: ["${paid}"]. Tell the caller it adds to the price.`,
+        };
+      }
       line.notes = input.notes.trim().slice(0, 200) || undefined;
       changed.push(line.notes ? `note "${line.notes}"` : 'note removed');
     }
-    if (!changed.length)
+    if (!changed.length && !unresolved.length)
       return { result: `Nothing to change — say what should be different about the ${line.name}.` };
     this.forgetConfirmation(state);
+    // Lead with what did NOT happen. Reporting only the successes is what let
+    // a missing topping pass for a completed change on call DCjjeFGw.
+    if (unresolved.length) {
+      const missed = unresolved.map((u) => `"${u}"`).join(', ');
+      const did = changed.length ? ` (${changed.join('; ')} did go on)` : '';
+      return {
+        result: `Could NOT put ${missed} on the ${line.name} — nothing on this item's menu matches it${did}. Do not write it in the note: a note charges nothing. Tell the caller it is not available and offer what is, or offer to pass it to staff.\nOrder so far:\n${this.cartForModel(state, ctx)}`,
+      };
+    }
     return {
       result: `Changed ${line.name}: ${changed.join('; ')}.\nOrder so far:\n${this.cartForModel(state, ctx)}`,
     };
@@ -4037,6 +4068,14 @@ ${this.compactMenu(ctx)}
     const notes = String(input?.notes ?? draft?.notes ?? '')
       .trim()
       .slice(0, 200);
+    // Same rule as change_item: a paid topping is never a note. Caught here
+    // too so it cannot arrive free on the way IN either.
+    const paidInNote = notes ? chargeableInNote(item, notes) : null;
+    if (paidInNote) {
+      return {
+        result: `"${paidInNote}" is a paid option on the ${item.name}, not a note — a note charges nothing and does not print as an option. Call add_item again with it in modifierNames and leave it out of notes. Tell the caller it adds to the price.`,
+      };
+    }
     const nameOf = (p: { o: string }) => ctx.optionIndex.get(p.o)?.option.name ?? '?';
     const { base } = splitSize(item.name);
 
