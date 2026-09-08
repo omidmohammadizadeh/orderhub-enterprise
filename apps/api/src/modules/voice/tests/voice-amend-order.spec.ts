@@ -308,3 +308,81 @@ describe("saving the change", () => {
     expect(second.result).toMatch(/no existing order being changed/);
   });
 });
+
+// ── call rSi25QgA: hanging up after the change was saved ──
+//
+// "Done — order G, X, R, 4, D is updated, and it now comes to £24.10." The
+// caller said "none of that, all thank you", the model called end_call, and
+// was told:
+//
+//     There is an unplaced order on this call. Do not hang up. Either finish
+//     placing it, or offer to take a message.
+//
+// The basket holds the amended order — that is how an amendment is edited —
+// and nothing said the call had written one, so the guard read a saved change
+// as an abandoned order and told the model to place it. place_order's own
+// block keys off the amend marker, which the save had just cleared. A model
+// that did as it was told would have put a second copy of that food in the
+// kitchen. This one said goodbye instead, which was luck.
+describe("ending the call after an amendment", () => {
+  const { VoiceAiService } = require("../voice-ai.service");
+  const CTX: any = { tenantId: "t1", locationId: "loc1", currency: "GBP", deliveryZones: [], transferNumber: "+441912312345" };
+  const svc = (editOrder: any = jest.fn().mockResolvedValue({})) => {
+    const a: any = Object.create(VoiceAiService.prototype);
+    a.logger = { log() {}, warn() {}, error() {} };
+    a.orders = { editOrder };
+    a.db = () => ({ order: { findFirst: async () => null } });
+    return a;
+  };
+  const loadedOrder = () => {
+    const a: any = Object.create(VoiceAiService.prototype);
+    const st: any = { cart: { items: [] }, turns: [] };
+    a.loadOrderForAmend(st, {
+      id: "cmtqamend0001",
+      reference: "4012",
+      fulfillmentType: "DELIVERY",
+      items: [{ name: "PEPPERONI", quantity: 1, unitPrice: 7.8, notes: null, menuItemId: "mi-pep" }],
+    });
+    st.orderConfirmed = true;
+    st.orderConfirmedOf = a.orderFingerprint(st);
+    return st;
+  };
+
+  it("hangs up cleanly once the change is saved", async () => {
+    const a = svc();
+    const st = loadedOrder();
+    const saved = await a.amendOrder(CTX, st);
+    expect(saved.result).toMatch(/saved with the change/);
+
+    const bye = await a.runToolForConversation("end_call", {}, CTX, st, null);
+    expect(bye.result).toBe("Ending call.");
+    expect(bye.turn?.endCall).toBe(true);
+  });
+
+  it("and will not place a second copy of the food it just amended", async () => {
+    const a = svc();
+    const st = loadedOrder();
+    await a.amendOrder(CTX, st);
+    const again = await a.runToolForConversation("place_order", { __spokeAfterQuestion: true }, CTX, st, null);
+    expect(again.result).toMatch(/Already placed/);
+  });
+
+  it("still refuses to hang up on a change that was never saved — and never says place it", async () => {
+    const a = svc();
+    const st = loadedOrder();
+    st.cart.items.push({ lineId: "x", itemId: "coke", name: "CAN COKE", quantity: 1, unitBasePrice: 1.2, modifiers: [] });
+    const bye = await a.runToolForConversation("end_call", {}, CTX, st, null);
+    expect(bye.turn?.endCall).toBeUndefined();
+    expect(bye.result).toMatch(/the change is not saved/);
+    expect(bye.result).toMatch(/call amend_order/);
+    expect(bye.result).not.toMatch(/finish placing it/);
+  });
+
+  it("a genuine unplaced order is still not hung up on", async () => {
+    const a = svc();
+    const st: any = { cart: { items: [{ lineId: "x", itemId: "coke", name: "CAN COKE", quantity: 1, unitBasePrice: 1.2, modifiers: [] }] }, turns: [] };
+    const bye = await a.runToolForConversation("end_call", {}, CTX, st, null);
+    expect(bye.turn?.endCall).toBeUndefined();
+    expect(bye.result).toMatch(/There is an unplaced order on this call/);
+  });
+});

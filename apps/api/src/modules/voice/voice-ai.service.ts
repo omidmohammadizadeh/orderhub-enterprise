@@ -2448,6 +2448,20 @@ ${menu || '(no items available — apologise and transfer)'}`;
       }
       case 'end_call': {
         // Never hang up on a basket. Somebody spent that call choosing food.
+        //
+        // Two different unfinished things look the same from here — a basket
+        // with food in it — and the advice for them is opposite. A new order
+        // that was never placed has to be placed. An order being CHANGED is
+        // already in the kitchen, and telling the model to "finish placing
+        // it" is telling it to make a second one carrying the same food.
+        // Call rSi25QgA was told exactly that, after its amendment had
+        // already saved, and only ignored it by luck.
+        if (state.amendOrderId) {
+          return {
+            result:
+              'This caller is CHANGING an order that already exists, and the change is not saved. Do not hang up, and do NOT place anything: read it back, get their yes, and call amend_order. If they have gone quiet or want nothing after all, say the original order stands unchanged and then end_call again.',
+          };
+        }
         if (state.cart.items.length > 0 && !state.orderId) {
           return {
             result:
@@ -5639,6 +5653,12 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
       const total = money(round2(subtotal + fee + tax + tip + service - discount), ctx.currency);
       state.amendOrderId = undefined;
       state.amendLoaded = undefined;
+      // This call has now written an order, and everything that asks "did
+      // this call end with an order" has to say yes: place_order refuses a
+      // second one, end_call stops treating the basket as abandoned, and a
+      // caller who rings back mid-call is told it is in rather than asked
+      // how they would like to pay.
+      state.orderId = done;
       this.logger.log(`Voice order ${ref} amended — ${items.length} line(s), total ${total}`);
       // Said as a script — the saved fact, not a claim about the kitchen,
       // and not a reply the model has to compose while the minute's budget
