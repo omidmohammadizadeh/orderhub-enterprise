@@ -584,7 +584,7 @@ describe('a recovery announces an order that is already in', () => {
     s.db = () => ({
       order: { findUnique: async () => ({ orderNumber: 1178, displayId: 'JVMX7' }) },
     });
-    expect(await s.placedOrderFor('cc1')).toEqual({ reference: '1, 1, 7, 8' });
+    expect(await s.placedOrderFor('cc1')).toEqual({ reference: 'J, V, M, X, 7' }); // what the board shows
     s.loadByControlId = async () => ({
       call: { id: 'c1' },
       ctx: {},
@@ -1228,5 +1228,170 @@ describe("handing over mid-order picks up where the call was", () => {
     await sim.gateway.fallbackToRelay('cc-resume', { alreadySpoke: true });
     expect(started.mock.calls.at(-1)![1].greeting).toMatch(/Your order's confirmed/);
     expect(started.mock.calls.at(-1)![1].greeting).not.toMatch(/take it from the top/);
+  });
+});
+
+// ── call laylhxjw: the number read out was not the one on the board; amendments; closing ──
+describe("one reference for an order, everywhere", () => {
+  const { VoiceAiService } = require("../voice-ai.service");
+  const ai = () => { const a: any = Object.create(VoiceAiService.prototype); a.logger = { log() {}, warn() {}, error() {} }; return a; };
+  const c = () => ({ currency: "GBP", items: [], itemIndex: new Map(), optionIndex: new Map(), deliveryZones: [], collectionPrepMinutes: 15, tenantId: "t1", locationId: "l1", locationName: "Pizza Uno" }) as any;
+
+  it("the caller is told what the board shows, spelled out", async () => {
+    const a = ai();
+    a.orders = { create: async () => ({ id: "o1", orderNumber: 1201, displayId: "4J79Y", status: "NEW" }) };
+    a.textReceipt = async () => ""; a.rememberCaller = async () => {}; a.rememberAddress = async () => {};
+    const st: any = { cart: { items: [{ lineId: "a", name: "CHIPS", quantity: 1, unitBasePrice: 2.9, modifiers: [] }], fulfillmentType: "PICKUP", fulfillmentChosen: true }, turns: [] };
+    await a.runTool("read_back_order", {}, c(), st, null);
+    await a.runToolForConversation("order_confirmed", { __spokeAfterQuestion: true }, c(), st, null);
+    const out = await a.runToolForConversation("place_order", { customerName: "Omid", paymentMethod: "CASH", __spokeAfterQuestion: true }, c(), st, "+447700900123");
+    expect(out.sayNow).toMatch(/order number 4, J, 7, 9, Y\./);
+    expect(out.sayNow).not.toMatch(/1, 2, 0, 1/);
+    expect(out.result).toMatch(/Order number 4, J, 7, 9, Y/);
+  });
+});
+
+describe("changing an order that is already in — on this call or a later one", () => {
+  const { VoiceAiService } = require("../voice-ai.service");
+  const G = (id: string, name: string, opts: string[]) => ({ id, name, required: true, min: 1, options: opts.map((o, i) => ({ id: `${id}${i + 1}`, name: o, price: 0 })) });
+  const MENU: any[] = [
+    { id: "pep12", name: 'Pepperoni (12")', price: 8.9, categoryName: "Pizzas", modifierGroups: [G("cr", "Select Your Pizza Crust", ["Thin", "Deep Pan"])] },
+    { id: "chips", name: "Chips", price: 2.9, categoryName: "Sides", modifierGroups: [] },
+  ];
+  const c = (over: any = {}) => { const x: any = { tenantId: "t1", locationId: "l1", currency: "GBP", country: "GB", items: MENU, deliveryZones: [{ id: "z", postcodePrefix: "NE10", fee: 1 }], transferNumber: "+441912312345", ...over }; x.itemIndex = new Map(MENU.map((i) => [i.id, i])); x.optionIndex = new Map(MENU.flatMap((i: any) => i.modifierGroups.flatMap((g: any) => g.options.map((o: any) => [o.id, { groupId: g.id, itemId: i.id, option: o }])))); return x; };
+  const PLACED = (over: any = {}) => ({
+    id: "o1", displayId: "4J79Y", collectionCode: null, orderNumber: 1201, orderSource: "VOICE", status: "ACCEPTED",
+    fulfillmentType: "DELIVERY", paymentMethod: "CASH", paymentStatus: "PENDING", customerPhone: "+447700900123",
+    deliveryAddress: { line1: "11 Follingsby Drive", city: "Gateshead", postcode: "NE10 8YH", country: "GB" },
+    deliveryFee: 1, discount: 2, taxAmount: 0, tipAmount: 0, serviceCharge: 0, updatedAt: new Date("2026-09-08T10:00:00Z"), createdAt: new Date(),
+    items: [{ name: 'Pepperoni (12")', quantity: 1, unitPrice: 8.9, notes: "no onions", modifiers: [{ name: "Deep Pan", price: 0 }] }],
+    ...over,
+  });
+  const ai = (order: any, recheck: any = order) => {
+    const a: any = Object.create(VoiceAiService.prototype);
+    a.logger = { log() {}, warn() {}, error() {} };
+    let calls = 0;
+    a.db = () => ({ order: { findFirst: async () => (calls++ === 0 ? order : recheck), findMany: async () => (order ? [order] : []) } });
+    a.orders = { editOrder: jest.fn(async () => ({})) };
+    return a;
+  };
+
+  it("loads the order placed on this call with its choices, note, address and charges, and adds chips to it", async () => {
+    const a = ai(PLACED());
+    const st: any = { cart: { items: [] }, turns: [], orderId: "o1" };
+    const found = await a.runToolForConversation("find_order_to_change", {}, c(), st, "+447700900123");
+    expect(found.result).toMatch(/^Loaded order 4J79Y to change \(ACCEPTED, delivery to 11 Follingsby Drive\)/);
+    expect(st.cart.items).toHaveLength(1);
+    expect(st.cart.items[0].modifiers.map((m: any) => m.name)).toEqual(["Deep Pan"]);
+    expect(st.cart.items[0].notes).toBe("no onions");
+    expect(st.cart.deliveryAddress.line1).toBe("11 Follingsby Drive");
+    expect(a.addressStillConfirmed(st)).toBe(true);
+    expect(st.amendLoaded).toMatchObject({ status: "ACCEPTED", deliveryFee: 1, discount: 2 });
+
+    a.addItemConversational({ said: "chips" }, c(), st);
+    const rb = await a.runTool("read_back_order", {}, c(), st, null);
+    expect(rb.sayNow).toMatch(/Pepperoni \(12"\) with Deep Pan, no onions, then Chips, for delivery to 11 Follingsby Drive.*plus £1\.00 delivery less £2\.00 discount That comes to £10\.80/);
+    await a.runToolForConversation("order_confirmed", { __spokeAfterQuestion: true }, c(), st, null);
+    const saved = await a.runToolForConversation("amend_order", {}, c(), st, "+447700900123");
+    expect(saved.result).toMatch(/^Order 4J79Y updated — the kitchen has the new ticket.*£10\.80/);
+    const [id, tenant, dto, who] = a.orders.editOrder.mock.calls[0];
+    expect([id, tenant, who]).toEqual(["o1", "t1", "voice-ai"]);
+    expect(dto.items.map((i: any) => [i.name, i.modifiers?.map((m: any) => m.name), i.notes])).toEqual([
+      ['Pepperoni (12")', ["Deep Pan"], "no onions"],
+      ["Chips", undefined, undefined],
+    ]);
+    expect(dto).toMatchObject({ subtotal: 11.8, deliveryFee: 1, discount: 2, total: 10.8, deliveryAddress: { line1: "11 Follingsby Drive", postcode: "NE10 8YH" } });
+    expect(st.amendOrderId).toBeUndefined();
+  });
+
+  it("finds an earlier order by the reference the caller reads, letters and all", async () => {
+    const a = ai(PLACED({ status: "PENDING" }));
+    const st: any = { cart: { items: [] }, turns: [] };
+    const found = await a.runToolForConversation("find_order_to_change", { orderNumber: "four J seven nine Y" }, c(), st, "+447700900123");
+    expect(found.result).toMatch(/^Loaded order 4J79Y/);
+    expect(st.amendOrderId).toBe("o1");
+  });
+
+  it("refuses, with the reason, an order the kitchen has finished, one paid by card, and one that is not ours", async () => {
+    const st = () => ({ cart: { items: [] }, turns: [] }) as any;
+    const ready = await ai(PLACED({ status: "READY" })).runToolForConversation("find_order_to_change", { orderNumber: "4J79Y" }, c(), st(), null);
+    expect(ready.result).toMatch(/Too late to change order 4J79Y — it is READY\. Say: "Sorry, that one's already made up and waiting for a driver/);
+    const paid = await ai(PLACED({ paymentMethod: "CARD", paymentStatus: "PAID" })).runToolForConversation("find_order_to_change", { orderNumber: "4J79Y" }, c(), st(), null);
+    expect(paid.result).toMatch(/already been paid by card/);
+    const je = await ai(PLACED({ orderSource: "JUST_EAT", displayId: "SIM-I2DC" })).runToolForConversation("find_order_to_change", { orderNumber: "S I M I 2 D C" }, c(), st(), null);
+    expect(je.result).toMatch(/Not ours to change — order SIM-I2DC came through Just Eat/);
+  });
+
+  it("a kitchen that moved on while the caller was choosing is caught before anything is written", async () => {
+    const a = ai(PLACED(), PLACED({ status: "READY" }));
+    const st: any = { cart: { items: [] }, turns: [], orderId: "o1" };
+    await a.runToolForConversation("find_order_to_change", {}, c(), st, "+447700900123");
+    a.addItemConversational({ said: "chips" }, c(), st);
+    await a.runTool("read_back_order", {}, c(), st, null);
+    await a.runToolForConversation("order_confirmed", { __spokeAfterQuestion: true }, c(), st, null);
+    const out = await a.runToolForConversation("amend_order", {}, c(), st, null);
+    expect(out.result).toMatch(/already made up and waiting for a driver.*The kitchen moved on while we were talking/);
+    expect(out.turn?.transferTo).toBe("+441912312345");
+    expect(a.orders.editOrder).not.toHaveBeenCalled();
+    expect(st.amendOrderId).toBeUndefined();
+  });
+
+  it("a change after the read-back needs a fresh yes, and place_order is refused while changing", async () => {
+    const a = ai(PLACED());
+    const st: any = { cart: { items: [] }, turns: [], orderId: "o1" };
+    await a.runToolForConversation("find_order_to_change", {}, c(), st, "+447700900123");
+    await a.runTool("read_back_order", {}, c(), st, null);
+    await a.runToolForConversation("order_confirmed", { __spokeAfterQuestion: true }, c(), st, null);
+    a.addItemConversational({ said: "chips" }, c(), st);
+    // Adding a line wipes the confirmation; either way, nothing is saved.
+    expect((await a.runToolForConversation("amend_order", {}, c(), st, null)).result).toMatch(/read the whole order back|CHANGED since it was confirmed/);
+    expect(a.orders.editOrder).not.toHaveBeenCalled();
+    expect((await a.runToolForConversation("place_order", { paymentMethod: "CASH", __spokeAfterQuestion: true }, c(), st, null)).result).toMatch(/Use amend_order, not place_order/);
+  });
+
+  it("the prompt tells the model the route", () => {
+    const a: any = Object.create(VoiceAiService.prototype); a.logger = { log() {}, warn() {}, error() {} };
+    const p = a.promptForConversation(c(), { cart: { items: [] }, turns: [] }, null);
+    expect(p).toMatch(/AN ORDER ALREADY PLACED/);
+    expect(p).toMatch(/find_order_to_change \(with the number if they read one\)/);
+    expect(p).toMatch(/pass it exactly as said, letters included/);
+  });
+});
+
+describe("a call ends without asking the model for one more reply", () => {
+  const RL = (id: string) => ({ type: 'response.done', response: { id, status: 'failed', status_details: { type: 'failed', error: { code: 'rate_limit_exceeded', message: 'Rate limit reached. Please try again in 7.369s.' } } } });
+
+  it("after a goodbye has already been said, end_call hangs up with no further reply and no retry", async () => {
+    const sim = conversationSim();
+    (sim.gateway.voice.conversationTool as jest.Mock).mockResolvedValue({ result: 'Ending call.', turn: { endCall: true } });
+    await sim.answer();
+    sim.brain.deliver({ type: 'response.created', response: { id: 'p1', metadata: { origin: 'script' } } });
+    sim.brain.deliver({ type: 'response.output_audio_transcript.done', response_id: 'p1', transcript: "That's all booked in, order number 4, J, 7, 9, Y. Thanks for calling, goodbye." });
+    sim.brain.deliver({ type: 'response.done', response: { id: 'p1', status: 'completed' } });
+    sim.brain.sent.length = 0;
+    await sim.callTool('end_call');
+    await settle(700);
+    expect(sim.toModel.filter((m) => m.type === 'response.create')).toHaveLength(0);
+    expect(sim.log.join('\n')).toMatch(/closing — goodbye already said, no further reply/);
+    expect(sim.gateway.telnyx.hangup).toHaveBeenCalledTimes(1);
+    expect(sim.log.join('\n')).not.toMatch(/retry 1\/2/);
+  });
+
+  it("otherwise one scripted goodbye — and if the API refuses it, hang up anyway rather than retry", async () => {
+    const sim = conversationSim();
+    (sim.gateway.voice.conversationTool as jest.Mock).mockResolvedValue({ result: 'Ending call.', turn: { endCall: true } });
+    await sim.answer();
+    sim.brain.sent.length = 0;
+    await sim.callTool('end_call');
+    const creates = sim.toModel.filter((m) => m.type === 'response.create');
+    expect(creates).toHaveLength(1);
+    expect(creates[0].response.instructions).toMatch(/bye for now/);
+    expect(creates[0].response.tool_choice).toBe('none');
+    sim.brain.deliver({ type: 'response.created', response: { id: 'g1', metadata: { origin: 'script' } } });
+    sim.brain.deliver(RL('g1'));
+    await settle(20);
+    expect(sim.log.join('\n')).toMatch(/closing — the goodbye was refused \(rate_limit_exceeded\); hanging up without it/);
+    expect(sim.log.join('\n')).not.toMatch(/retry 1\/2/);
+    expect(sim.gateway.telnyx.hangup).toHaveBeenCalled();
   });
 });

@@ -10,7 +10,7 @@ import {
 } from '@orderhub/shared';
 import { money } from '../whatsapp/whatsapp-cart';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
-import { OrdersService } from '../orders/orders.service';
+import { OrdersService, canAmendOrderPayment } from '../orders/orders.service';
 import { SmsService } from '../sms/sms.service';
 import { PaymentsService } from '../payments/payments.service';
 import { AddressLookupService } from '../address-lookup/address-lookup.service';
@@ -40,6 +40,12 @@ import {
   type VoiceStage,
   numberedAsk,
   parseYesNo,
+  boardReference,
+  spokenReference,
+  parseOrderReference,
+  referenceMatches,
+  marketplaceName,
+  spokenOrderStatus,
 } from './voice-flow';
 import {
   isConfident,
@@ -251,6 +257,21 @@ export interface VoiceState {
   /** What the board calls the order being amended, for reading back. */
   amendReference?: string;
   /**
+   * The order as it stood when it was loaded to be changed: the charges it
+   * already carries, so they survive the edit, and where the kitchen had got
+   * to, so a change that arrives after the kitchen moved on is refused.
+   */
+  amendLoaded?: {
+    status: string;
+    paymentStatus?: string | null;
+    updatedAt?: string;
+    deliveryFee: number;
+    discount: number;
+    taxAmount: number;
+    tipAmount: number;
+    serviceCharge: number;
+  };
+  /**
    * How many turns running we have failed to understand.
    *
    * Kept so that "I didn't catch that" can escalate into a different question
@@ -343,6 +364,19 @@ export function coerceState(raw: unknown): VoiceState {
       r.pendingPayment === 'CASH' || r.pendingPayment === 'CARD' ? r.pendingPayment : undefined,
     amendOrderId: r.amendOrderId ? String(r.amendOrderId) : undefined,
     amendReference: r.amendReference ? String(r.amendReference) : undefined,
+    amendLoaded:
+      r.amendLoaded && typeof r.amendLoaded === 'object'
+        ? {
+            status: String(r.amendLoaded.status ?? ''),
+            paymentStatus: r.amendLoaded.paymentStatus ? String(r.amendLoaded.paymentStatus) : null,
+            updatedAt: r.amendLoaded.updatedAt ? String(r.amendLoaded.updatedAt) : undefined,
+            deliveryFee: Number(r.amendLoaded.deliveryFee) || 0,
+            discount: Number(r.amendLoaded.discount) || 0,
+            taxAmount: Number(r.amendLoaded.taxAmount) || 0,
+            tipAmount: Number(r.amendLoaded.tipAmount) || 0,
+            serviceCharge: Number(r.amendLoaded.serviceCharge) || 0,
+          }
+        : undefined,
     confusion: Number.isFinite(Number(r.confusion)) ? Number(r.confusion) : 0,
     askedForHuman: r.askedForHuman === true,
     callId: r.callId ? String(r.callId) : undefined,
@@ -1898,9 +1932,20 @@ ${menu || '(no items available — apologise and transfer)'}`;
         },
       },
       {
+        name: 'find_order_to_change',
+        description:
+          "The caller wants to add to or change an order that is already placed — the one from this call, or an earlier one. Pass orderNumber exactly as they said it, letters included, if they read one out; leave it out for the order placed on this call or the most recent one from their number. Loads it, with everything already on it, so items can be added or changed. Then read_back_order, get a yes, and call amend_order — never place_order.",
+        input_schema: {
+          type: 'object',
+          properties: {
+            orderNumber: { type: 'string', description: 'Only if they read one out, exactly as said' },
+          },
+        },
+      },
+      {
         name: 'amend_order',
         description:
-          'Add the items now on the order to an order the caller placed earlier. Only available while changing an existing order. Read the WHOLE order back and get a yes first, exactly as you would before placing one.',
+          'Save the changes to the order loaded by find_order_to_change. Only available while changing an existing order. Read the WHOLE order back and get a yes first, exactly as you would before placing one.',
         input_schema: { type: 'object', properties: {} },
       },
       {
@@ -2290,6 +2335,8 @@ ${menu || '(no items available — apologise and transfer)'}`;
         return { result: this.openingHours(ctx) };
       case 'get_order_status':
         return { result: await this.orderStatus(ctx, callerNumber, input?.orderNumber) };
+      case 'find_order_to_change':
+        return this.findOrderToChange(ctx, state, callerNumber, input?.orderNumber);
       case 'amend_order':
         return this.amendOrder(ctx, state);
       case 'place_order':
@@ -3235,7 +3282,11 @@ BEFORE IT'S PLACED
 - place_order needs a name for the order. A caller you know needs no asking; otherwise ask for a first name, once, before you place it. Never make one up.
 ${delivery}
 - Read a new address back once, then confirm_delivery_address. Only use an address on file after they've said yes to it.${returning}
-- If they want a person, or press 0, transfer_to_staff. If something has gone wrong with an existing order, get_order_status or take_message.${theUsual}${closed}
+- If they want a person, or press 0, transfer_to_staff. If something has gone wrong with an existing order, take_message.
+
+AN ORDER ALREADY PLACED
+- "Where's my order?" — get_order_status. If they read a number, pass it exactly as said, letters included; otherwise leave it out and it uses their phone number. Say what it tells you to say.
+- "Can I add…" / "change…" to an order already placed, this call or earlier — find_order_to_change (with the number if they read one). It loads the whole order into the basket; add or change items as usual, then read_back_order, get a yes, and amend_order. Never place_order for a change.${theUsual}${closed}
 
 MENU
 ${this.compactMenu(ctx)}
@@ -4205,8 +4256,9 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
 
     const isDelivery = state.cart.fulfillmentType === 'DELIVERY';
     const subtotal = cartSubtotal(state.cart);
-    const fee = isDelivery ? this.feeForAddress(state.cart.deliveryAddress, ctx) : 0;
+    const { fee, discount, tax } = this.chargesFor(state, ctx);
     const feeLine = fee > 0 ? ` plus ${money(fee, ctx.currency)} delivery` : '';
+    const discountLine = discount > 0 ? ` less ${money(discount, ctx.currency)} discount` : '';
     const where = isDelivery
       ? `for delivery to ${this.spokenAddress(state.cart.deliveryAddress)}`
       : 'for collection';
@@ -4214,8 +4266,8 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
     // Bare speech: this is spoken to the caller verbatim, not handed to the
     // model to repeat. That is what makes the read-back trustworthy — the
     // prices and lines are the cart's, not a paraphrase of it.
-    return `So that's ${lines}, ${where}.${feeLine} That comes to ${money(
-      round2(subtotal + fee),
+    return `So that's ${lines}, ${where}.${feeLine}${discountLine} That comes to ${money(
+      round2(subtotal + fee + tax - discount),
       ctx.currency,
     )}. Is that all correct?`;
   }
@@ -4295,52 +4347,135 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
     return `Opening hours — ${parts}. Answer only the day they asked about.`;
   }
 
+  /** Does a stored number belong to this caller? A marketplace proxy number is never a match. */
+  private phoneMatches(stored?: string | null, caller?: string | null): boolean {
+    if (!stored || !caller) return false;
+    const phonePart = String(stored).split(/\s*PIN\s*/i)[0] ?? '';
+    const digits = phonePart.replace(/\D/g, '');
+    return digits.length >= 9 && digits.endsWith(caller.slice(-9));
+  }
+
+  /** Minutes until a time, or null when it has passed or was never set. */
+  private minutesUntil(at?: Date | string | null): number | null {
+    if (!at) return null;
+    const mins = Math.round((new Date(at).getTime() - Date.now()) / 60000);
+    return mins > 0 ? mins : null;
+  }
+
+  /**
+   * "Where's my order?" — by the reference the caller read out, or by the
+   * number they are ringing from.
+   *
+   * The reference is matched the way the board shows it — #4J79Y, a
+   * sequential number, a collection code — never by stripping it to digits:
+   * that turned 4J79Y into 479 and looked up somebody else's dinner. The
+   * kitchen's estimate and the courier's are kept apart, and an estimate
+   * that has passed is said to have passed, not turned into "0 minutes".
+   */
   private async orderStatus(
     ctx: VoiceContext,
     callerNumber?: string | null,
     orderNumber?: string,
   ): Promise<string> {
-    const where: any = { locationId: ctx.locationId };
-    if (orderNumber) {
-      // Order.orderNumber is an Int. Handing Prisma the digits as a STRING is
-      // not a near miss it coerces — it throws, the turn dies, and the caller
-      // who just carefully read out their number hears an apology instead of
-      // their order. Anything that is not a plausible order number is treated
-      // as "no number given" rather than crashing the turn.
-      const n = Number(String(orderNumber).replace(/\D/g, ''));
-      if (!Number.isSafeInteger(n) || n <= 0) {
-        return "That isn't a number I can look up. Ask them to read it out again, digit by digit.";
+    const said = String(orderNumber ?? '').trim();
+    const { number, forms } = said ? parseOrderReference(said) : { number: null, forms: [] as string[] };
+    if (said && !forms.length) {
+      return "That isn't a reference I can look up. Ask them to read it out again, one character at a time, and pass it exactly as said.";
+    }
+    const caller = normaliseNumber(callerNumber);
+    const since = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+    const select = {
+      id: true,
+      displayId: true,
+      collectionCode: true,
+      orderNumber: true,
+      status: true,
+      fulfillmentType: true,
+      total: true,
+      createdAt: true,
+      estimatedReadyAt: true,
+      courierName: true,
+      courierEtaAt: true,
+      customerPhone: true,
+      orderSource: true,
+      paymentMethod: true,
+      paymentStatus: true,
+    };
+    let order: any = null;
+    let others = 0;
+    if (forms.length) {
+      const recent: any[] = await this.db().order.findMany({
+        where: { locationId: ctx.locationId, createdAt: { gte: since } },
+        orderBy: { createdAt: 'desc' },
+        take: 500,
+        select,
+      });
+      const hits = recent.filter((o) =>
+        [
+          o.displayId,
+          o.collectionCode,
+          o.orderNumber != null ? String(o.orderNumber) : null,
+          o.id,
+        ].some((identifier) => referenceMatches(forms, identifier)),
+      );
+      const exact = number ? recent.find((o) => o.orderNumber === Number(number)) : undefined;
+      order =
+        exact ?? hits.find((o) => this.phoneMatches(o.customerPhone, caller)) ?? hits[0] ?? null;
+      if (!order) {
+        return `No order matching "${said}" at this shop in the last two weeks. Ask them to read it out one character at a time, or offer transfer_to_staff.`;
       }
-      where.orderNumber = n;
     } else {
-      const digits = normaliseNumber(callerNumber);
-      if (!digits) return 'No caller number — ask them for their order number.';
-      // Match on the last 9 digits so 07700…/+4477… both hit.
-      where.customerPhone = { contains: digits.slice(-9) };
+      if (!caller) return 'No caller number and no reference — ask them for their order number.';
+      const mine: any[] = await this.db().order.findMany({
+        where: {
+          locationId: ctx.locationId,
+          customerPhone: { contains: caller.slice(-9) },
+          createdAt: { gte: since },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select,
+      });
+      // A marketplace order stores a SHARED proxy number, so it is never
+      // matched by phone — one stranger's dinner must not be read to another.
+      const own = mine.filter(
+        (o) => !marketplaceName(o.orderSource) && this.phoneMatches(o.customerPhone, caller),
+      );
+      if (!own.length) return 'No recent order from this number. Ask them for their order number.';
+      order = own[0];
+      others = own.length - 1;
     }
-    const order = await this.db().order.findFirst({
-      where,
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        orderNumber: true,
-        status: true,
-        fulfillmentType: true,
-        total: true,
-        createdAt: true,
-        estimatedReadyAt: true,
-      },
+
+    const reference = boardReference(order);
+    const prepMins = this.minutesUntil(order.estimatedReadyAt);
+    const courierMins = this.minutesUntil(order.courierEtaAt);
+    const spoken = spokenOrderStatus({
+      status: order.status,
+      fulfillmentType: order.fulfillmentType,
+      minutesAway: prepMins,
+      source: order.orderSource,
+      courierName: order.courierName,
+      courierMinutesAway: courierMins,
+      awaitingPayment:
+        (order.paymentMethod === 'PAYMENT_LINK' || order.paymentMethod === 'QR_CODE') &&
+        order.paymentStatus !== 'PAID',
     });
-    if (!order) {
-      return 'No recent order found for this caller. Offer to transfer them to the shop.';
-    }
-    const mins = order.estimatedReadyAt
-      ? Math.max(0, Math.round((new Date(order.estimatedReadyAt).getTime() - Date.now()) / 60000))
-      : null;
-    return `Order ${order.orderNumber}, status ${order.status}, ${order.fulfillmentType}, total ${money(
-      Number(order.total),
-      ctx.currency,
-    )}${mins != null ? `, about ${mins} minutes away` : ''}.`;
+    const overdue =
+      order.estimatedReadyAt &&
+      prepMins === null &&
+      ['PENDING', 'ACCEPTED', 'PREPARING'].includes(String(order.status))
+        ? " It's past its estimate, so it should be ready any minute."
+        : '';
+    return (
+      `Order ${reference} — say the reference as "${spokenReference(reference)}". Status ${order.status}, ${order.fulfillmentType}, total ${money(
+        Number(order.total),
+        ctx.currency,
+      )}. Say: "${spoken.say}${overdue}"` +
+      (spoken.transfer ? ' Then offer transfer_to_staff.' : '') +
+      (others > 0
+        ? ` This is their most recent order; they have ${others} other recent one(s) — if they meant a different one, ask for its number.`
+        : '')
+    );
   }
 
   private async placeOrder(
@@ -4462,7 +4597,7 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
       // never arrived" is otherwise impossible to tell apart from "the order
       // arrived somewhere I wasn't looking".
       this.logger.log(
-        `Voice order ${order.orderNumber ?? order.id} placed — status ${order.status}, ` +
+        `Voice order ${boardReference(order)} placed — status ${order.status}, ` +
           `${isCard ? 'PAYMENT_LINK (waiting for payment)' : 'CASH'}, ` +
           `location ${ctx.locationId}${ctx.brandId ? `, brand ${ctx.brandId}` : ''}`,
       );
@@ -4490,7 +4625,11 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
       // The number is spelled out digit by digit because the caller may well
       // ring back and quote it, and "four thousand and twelve" is not
       // something they can match against a text message.
-      const digits = spokenDigits(order.orderNumber ?? '');
+      // The reference the BOARD shows, spelled out. The sequential number was
+      // read out on call laylhxjw while the board said #4J79Y — two names for
+      // one order, and the caller ringing back would have been told there was
+      // no such order.
+      const digits = spokenReference(boardReference(order));
       const total = money(round2(subtotal + deliveryFee), ctx.currency);
       return {
         // Said verbatim. An order that has just been placed is the one moment
@@ -4522,18 +4661,223 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
    * shop's rules, not this line's, and a phone call is not a reason to have a
    * different set.
    */
+  /**
+   * The charges on top of the basket.
+   *
+   * A new order is priced from the address. An order being CHANGED keeps the
+   * charges it already carries — the fee it was quoted, a discount the shop
+   * applied, tax — because editOrder writes whatever it is given and zero for
+   * whatever it is not, and a caller adding chips must not lose their discount.
+   */
+  private chargesFor(
+    state: VoiceState,
+    ctx: VoiceContext,
+  ): { fee: number; discount: number; tax: number; tip: number; service: number } {
+    const isDelivery = state.cart.fulfillmentType === 'DELIVERY';
+    const loaded = state.amendOrderId ? state.amendLoaded : undefined;
+    const fee = isDelivery
+      ? (loaded?.deliveryFee ?? this.feeForAddress(state.cart.deliveryAddress, ctx))
+      : 0;
+    return {
+      fee: round2(fee),
+      discount: round2(loaded?.discount ?? 0),
+      tax: round2(loaded?.taxAmount ?? 0),
+      tip: round2(loaded?.tipAmount ?? 0),
+      service: round2(loaded?.serviceCharge ?? 0),
+    };
+  }
+
+  /** Where an order can still be changed. Past PREPARING the kitchen has finished with it. */
+  private static readonly EDITABLE = new Set(['PENDING', 'ACCEPTED', 'PREPARING']);
+
+  /**
+   * Find the order the caller wants to change, check it can be, and load it.
+   *
+   * Three ways in: no reference and an order placed on this call — that one;
+   * a reference read out — matched the way the board shows it; nothing at
+   * all — the most recent order from the number they are ringing from. What
+   * comes back is only ever the shop's own order (POS or this line): a
+   * marketplace order belongs to the platform, with its refund. An order the
+   * kitchen has finished, or one already paid by card, is refused with the
+   * reason, before the caller has chosen anything.
+   */
+  private async findOrderToChange(
+    ctx: VoiceContext,
+    state: VoiceState,
+    callerNumber?: string | null,
+    said?: string,
+  ): Promise<{ result: string }> {
+    const reference = String(said ?? '').trim();
+    const caller = normaliseNumber(callerNumber);
+    const select = {
+      id: true,
+      displayId: true,
+      collectionCode: true,
+      orderNumber: true,
+      orderSource: true,
+      status: true,
+      fulfillmentType: true,
+      paymentMethod: true,
+      paymentStatus: true,
+      customerPhone: true,
+      deliveryAddress: true,
+      deliveryFee: true,
+      discount: true,
+      taxAmount: true,
+      tipAmount: true,
+      serviceCharge: true,
+      updatedAt: true,
+      createdAt: true,
+      items: { select: { name: true, quantity: true, unitPrice: true, notes: true, modifiers: true } },
+    };
+    let order: any = null;
+    try {
+      if (!reference && state.orderId) {
+        order = await this.db().order.findFirst({
+          where: { id: state.orderId, tenantId: ctx.tenantId },
+          select,
+        });
+      } else if (reference) {
+        const { number, forms } = parseOrderReference(reference);
+        if (!forms.length) {
+          return {
+            result:
+              "That isn't a reference I can look up. Ask them to read it out one character at a time, then call find_order_to_change with it exactly as said.",
+          };
+        }
+        const since = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+        const recent: any[] = await this.db().order.findMany({
+          where: { locationId: ctx.locationId, createdAt: { gte: since } },
+          orderBy: { createdAt: 'desc' },
+          take: 500,
+          select,
+        });
+        const hits = recent.filter((o) =>
+          [
+            o.displayId,
+            o.collectionCode,
+            o.orderNumber != null ? String(o.orderNumber) : null,
+            o.id,
+          ].some((identifier) => referenceMatches(forms, identifier)),
+        );
+        const exact = number ? recent.find((o) => o.orderNumber === Number(number)) : undefined;
+        order =
+          exact ?? hits.find((o) => this.phoneMatches(o.customerPhone, caller)) ?? hits[0] ?? null;
+      } else if (caller) {
+        const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const mine: any[] = await this.db().order.findMany({
+          where: {
+            locationId: ctx.locationId,
+            customerPhone: { contains: caller.slice(-9) },
+            createdAt: { gte: since },
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+          select,
+        });
+        order =
+          mine.find(
+            (o) => !marketplaceName(o.orderSource) && this.phoneMatches(o.customerPhone, caller),
+          ) ?? null;
+      }
+    } catch (e: any) {
+      this.logger.warn(`find_order_to_change lookup failed: ${e?.message ?? e}`);
+      return { result: 'The lookup failed. Ask for the order number and try once more, or offer transfer_to_staff.' };
+    }
+    if (!order) {
+      return {
+        result: reference
+          ? `No order matching "${reference}" at this shop in the last two weeks. Ask them to read it out one character at a time.`
+          : 'No recent order from this number and none placed on this call. Ask them for their order number, then call find_order_to_change with it.',
+      };
+    }
+    const ref = boardReference(order);
+    const via = marketplaceName(order.orderSource);
+    const own = order.orderSource === 'POS' || order.orderSource === 'VOICE';
+    if (!own) {
+      const where = via ?? 'our website';
+      return { result: `Not ours to change — order ${ref} came through ${where}. Say: "${this.amendElsewhere(where)}"` };
+    }
+    const delivery = order.fulfillmentType === 'DELIVERY';
+    if (!VoiceAiService.EDITABLE.has(String(order.status))) {
+      return {
+        result: `Too late to change order ${ref} — it is ${order.status}. Say: "${this.amendTooLate(String(order.status), delivery)}" Then offer transfer_to_staff, or a new order.`,
+      };
+    }
+    if (!canAmendOrderPayment({ paymentMethod: order.paymentMethod, paymentStatus: order.paymentStatus })) {
+      return {
+        result: `Order ${ref} has already been paid by card, so nothing can be added to it from here. Explain that, and offer a separate order for the extras or transfer_to_staff.`,
+      };
+    }
+    this.loadOrderForAmend(state, {
+      id: order.id,
+      reference: ref,
+      fulfillmentType: order.fulfillmentType,
+      items: order.items ?? [],
+      deliveryAddress: order.deliveryAddress,
+      status: order.status,
+      paymentStatus: order.paymentStatus,
+      updatedAt: order.updatedAt,
+      deliveryFee: order.deliveryFee,
+      discount: order.discount,
+      taxAmount: order.taxAmount,
+      tipAmount: order.tipAmount,
+      serviceCharge: order.serviceCharge,
+    });
+    const address = delivery && state.cart.deliveryAddress?.line1 ? `, delivery to ${state.cart.deliveryAddress.line1}` : delivery ? '' : ', collection';
+    return {
+      result:
+        `Loaded order ${ref} to change (${order.status}${address}). Everything already on it is in the basket below, with its choices and charges. ` +
+        `Add or change items as usual, then read_back_order, get a yes, and call amend_order — never place_order.\nOrder so far:\n${this.cartForModel(state, ctx)}`,
+    };
+  }
+
   private async amendOrder(
     ctx: VoiceContext,
     state: VoiceState,
   ): Promise<{ result: string; turn?: Partial<VoiceTurn> }> {
-    if (!state.amendOrderId) {
-      return { result: 'There is no existing order being changed here.' };
+    const amendId = state.amendOrderId;
+    if (!amendId) {
+      return { result: 'There is no existing order being changed here. Call find_order_to_change first.' };
     }
-    if (!state.orderConfirmed) {
+    if (!this.orderStillConfirmed(state)) {
       return {
-        result:
-          'You have not read the whole order back yet. Call read_back_order, say it, and get a yes — the same as before placing one.',
+        result: state.orderConfirmed
+          ? 'The order has CHANGED since it was confirmed. Call read_back_order again and get a fresh yes before saving.'
+          : 'You have not read the whole order back yet. Call read_back_order, say it, and get a yes — the same as before placing one.',
       };
+    }
+
+    // The kitchen may have moved on while the caller was choosing. What was
+    // true when the order was loaded is checked again now, before anything is
+    // written, in the same terms the caller was given.
+    const isDelivery = state.cart.fulfillmentType === 'DELIVERY';
+    try {
+      const now = await this.db().order.findFirst({
+        where: { id: state.amendOrderId, tenantId: ctx.tenantId },
+        select: { status: true, paymentMethod: true, paymentStatus: true, updatedAt: true },
+      });
+      if (now && !VoiceAiService.EDITABLE.has(String(now.status))) {
+        this.logger.warn(
+          `Voice amend of ${state.amendOrderId} refused: ${state.amendLoaded?.status ?? '?'} when loaded, ${now.status} now`,
+        );
+        state.amendOrderId = undefined;
+        state.amendLoaded = undefined;
+        return this.handoverTurn(
+          ctx,
+          `${this.amendTooLate(String(now.status), isDelivery)} The kitchen moved on while we were talking.`,
+        );
+      }
+      if (now && !canAmendOrderPayment({ paymentMethod: now.paymentMethod, paymentStatus: now.paymentStatus })) {
+        state.amendOrderId = undefined;
+        state.amendLoaded = undefined;
+        return this.handoverTurn(
+          ctx,
+          'That order has been paid by card since we started, so nothing can be added to it from here.',
+        );
+      }
+    } catch (e: any) {
+      this.logger.warn(`Voice amend re-check failed for ${state.amendOrderId}: ${e?.message ?? e}`);
     }
 
     const items = state.cart.items.map((l) => ({
@@ -4547,27 +4891,48 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
       ...(l.notes ? { notes: l.notes } : {}),
     }));
     const subtotal = cartSubtotal(state.cart);
-    const isDelivery = state.cart.fulfillmentType === 'DELIVERY';
-    const deliveryFee = isDelivery ? this.feeForAddress(state.cart.deliveryAddress, ctx) : 0;
+    const { fee, discount, tax, tip, service } = this.chargesFor(state, ctx);
+    const addr = state.cart.deliveryAddress;
 
     try {
       await this.orders.editOrder(
-        state.amendOrderId,
+        amendId,
         ctx.tenantId,
         {
           items,
           subtotal,
-          ...(deliveryFee > 0 ? { deliveryFee } : {}),
-          total: round2(subtotal + deliveryFee),
+          ...(fee > 0 ? { deliveryFee: fee } : {}),
+          ...(discount > 0 ? { discount } : {}),
+          ...(tax > 0 ? { taxAmount: tax } : {}),
+          ...(tip > 0 ? { tipAmount: tip } : {}),
+          total: round2(subtotal + fee + tax + tip + service - discount),
+          ...(isDelivery && addr?.line1
+            ? {
+                deliveryAddress: {
+                  line1: String(addr.line1),
+                  ...(addr.line2 ? { line2: String(addr.line2) } : {}),
+                  city: String(addr.city ?? ''),
+                  ...(addr.postcode ? { postcode: String(addr.postcode) } : {}),
+                  ...((addr as any).area ? { area: String((addr as any).area) } : {}),
+                  ...(addr.country ? { country: String(addr.country) } : {}),
+                },
+              }
+            : {}),
         } as any,
         // The change was made by the phone line, not by a member of staff.
         // The audit trail should say so.
         'voice-ai',
       );
-      const done = state.amendOrderId;
+      const done = amendId;
+      const ref = state.amendReference ?? done;
       state.amendOrderId = undefined;
+      state.amendLoaded = undefined;
+      this.logger.log(`Voice order ${ref} amended — ${items.length} line(s), total ${money(round2(subtotal + fee + tax + tip + service - discount), ctx.currency)}`);
       return {
-        result: `Order ${state.amendReference ?? done} updated. Tell them it's been added and the kitchen has the new ticket.`,
+        result: `Order ${ref} updated — the kitchen has the new ticket. Tell them it's been added and the new total is ${money(
+          round2(subtotal + fee + tax + tip + service - discount),
+          ctx.currency,
+        )}.`,
         turn: { orderId: done, outcome: 'ORDER' },
       };
     } catch (e: any) {
@@ -4587,9 +4952,11 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
   /**
    * Load an existing order into the cart so the caller can add to it.
    *
-   * Everything already on the order comes across, because editOrder replaces
-   * the item list wholesale — send only the additions and the customer loses
-   * the food they actually ordered.
+   * Everything already on the order comes across — lines, their choices, their
+   * notes, the address, the charges — because editOrder replaces the item list
+   * wholesale and writes zero for any charge it is not given. Send only the
+   * additions and the customer loses the food they actually ordered; send
+   * lines without their choices and a deep-pan pizza comes back thin.
    */
   loadOrderForAmend(
     state: VoiceState,
@@ -4602,12 +4969,24 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
         quantity: number;
         unitPrice: number | string;
         notes?: string | null;
+        modifiers?: unknown;
       }>;
+      deliveryAddress?: unknown;
+      status?: string | null;
+      paymentStatus?: string | null;
+      updatedAt?: Date | string | null;
+      deliveryFee?: number | string | null;
+      discount?: number | string | null;
+      taxAmount?: number | string | null;
+      tipAmount?: number | string | null;
+      serviceCharge?: number | string | null;
     },
   ): void {
     state.amendOrderId = order.id;
     state.amendReference = order.reference;
     state.orderConfirmed = false;
+    state.orderConfirmedOf = undefined;
+    state.readBackOf = undefined;
     state.cart.fulfillmentType = order.fulfillmentType === 'DELIVERY' ? 'DELIVERY' : 'PICKUP';
     state.cart.fulfillmentChosen = true;
     state.cart.items = order.items.map((it) => ({
@@ -4616,9 +4995,39 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
       name: String(it.name),
       quantity: Math.max(1, Math.round(Number(it.quantity) || 1)),
       unitBasePrice: Number(it.unitPrice) || 0,
-      modifiers: [],
+      modifiers: (Array.isArray(it.modifiers) ? it.modifiers : [])
+        .map((m: any) =>
+          typeof m === 'string'
+            ? { optionId: '', name: m, price: 0 }
+            : { optionId: String(m?.optionId ?? m?.id ?? ''), name: String(m?.name ?? ''), price: Number(m?.price) || 0 },
+        )
+        .filter((m) => m.name),
       ...(it.notes ? { notes: String(it.notes) } : {}),
     }));
+    const addr: any = order.deliveryAddress;
+    if (state.cart.fulfillmentType === 'DELIVERY' && addr && typeof addr === 'object' && addr.line1) {
+      state.cart.deliveryAddress = {
+        line1: String(addr.line1),
+        ...(addr.line2 ? { line2: String(addr.line2) } : {}),
+        city: String(addr.city ?? ''),
+        ...(addr.postcode ? { postcode: String(addr.postcode) } : {}),
+        ...(addr.area ? { area: String(addr.area) } : {}),
+        ...(addr.country ? { country: String(addr.country) } : {}),
+      } as any;
+      // The address on a placed order was confirmed when it was placed.
+      state.addressConfirmed = true;
+      state.addressConfirmedOf = this.addressFingerprint(state);
+    }
+    state.amendLoaded = {
+      status: String(order.status ?? ''),
+      paymentStatus: order.paymentStatus ?? null,
+      updatedAt: order.updatedAt ? new Date(order.updatedAt).toISOString() : undefined,
+      deliveryFee: Number(order.deliveryFee) || 0,
+      discount: Number(order.discount) || 0,
+      taxAmount: Number(order.taxAmount) || 0,
+      tipAmount: Number(order.tipAmount) || 0,
+      serviceCharge: Number(order.serviceCharge) || 0,
+    };
   }
 
   /** The delivery fee for whatever address the caller gave.
@@ -4748,7 +5157,7 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
       await this.sms.send({
         tenantId: ctx.tenantId,
         to,
-        body: `${ctx.locationName}: order ${order.orderNumber} confirmed, ${money(
+        body: `${ctx.locationName}: order ${boardReference(order)} confirmed, ${money(
           Number(order.total ?? 0),
           ctx.currency,
         )}. Thanks for calling.`,

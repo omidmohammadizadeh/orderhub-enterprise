@@ -1019,6 +1019,15 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     code: string,
     message: string,
   ): void {
+    if ((brain as any).__closing) {
+      this.logger.log(
+        `realtime ${ccid.slice(-8)} closing — the goodbye was refused (${code || 'unknown'}); hanging up without it`,
+      );
+      const prior = (brain as any).__hangup;
+      if (prior) clearTimeout(prior);
+      void this.telnyx.hangup(ccid);
+      return;
+    }
     const t = this.turnsOf(brain);
     const ask = t.asks.get(failedId);
     if (!ask) {
@@ -1408,6 +1417,45 @@ export class VoiceRealtimeGateway implements OnModuleInit {
    * only to speak is given no tools at all — and, belt to braces, any
    * state-changing tool it tries anyway is refused by origin.
    */
+  /**
+   * End the call deliberately.
+   *
+   * If the line has just said goodbye — the placement script ends with one —
+   * nothing more is asked of the model: the line is hung up once what is
+   * already playing has finished. Otherwise one scripted goodbye, speech
+   * only, and the hang-up follows it; a goodbye the API refuses is not
+   * retried, because the caller is leaving either way.
+   */
+  private closeCall(brain: WebSocket, ccid: string, script?: string): void {
+    (brain as any).__closing = true;
+    this.cancelRetry(brain, 'closing');
+    const watch = (brain as any).__quiet;
+    if (watch) clearTimeout(watch);
+    (brain as any).__quiet = undefined;
+    const hangIn = (ms: number) => {
+      const prior = (brain as any).__hangup;
+      if (prior) clearTimeout(prior);
+      const t = setTimeout(() => void this.telnyx.hangup(ccid), ms);
+      (t as any).unref?.();
+      (brain as any).__hangup = t;
+    };
+    const stillPlaying = Math.max(0, this.statsOf(brain).speakingUntil - Date.now());
+    const saidBye = /\b(bye|goodbye)\b/i.test(String((brain as any).__lastSaid ?? ''));
+    if (saidBye && !script) {
+      this.logger.log(
+        `realtime ${ccid.slice(-8)} closing — goodbye already said, no further reply; hanging up in ${stillPlaying + 500}ms`,
+      );
+      hangIn(stillPlaying + 500);
+      return;
+    }
+    this.logger.log(`realtime ${ccid.slice(-8)} closing — one goodbye, then hang up`);
+    this.speakExactly(brain, script ?? 'Thanks for calling — bye for now.', {
+      origin: 'script',
+      speechOnly: true,
+    });
+    hangIn(stillPlaying + 6000);
+  }
+
   private speakExactly(
     brain: WebSocket,
     script?: string,
@@ -1498,6 +1546,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     const timer2 = setTimeout(() => {
       (brain as any).__quiet = undefined;
       if (brain.readyState !== WebSocket.OPEN) return;
+      if ((brain as any).__closing) return;
       const stats = this.statsOf(brain);
       const since = Date.now() - stats.lastEventAt;
       const meter = (brain as any).__meter as InboundMeter | undefined;
@@ -1792,8 +1841,18 @@ export class VoiceRealtimeGateway implements OnModuleInit {
           // What this reply cost, from the response itself. The remaining-
           // budget delta logged with rate_limits.updated is an estimate that
           // moves with every reply in flight; this is the number.
+          if ((brain as any).__closing && String(event.response?.status ?? '') === 'completed') {
+            // The goodbye is generated; it plays out for a little longer.
+            const prior = (brain as any).__hangup;
+            if (prior) clearTimeout(prior);
+            const wait = Math.max(0, this.statsOf(brain).speakingUntil - Date.now()) + 500;
+            const t = setTimeout(() => void this.telnyx.hangup(ccid), wait);
+            (t as any).unref?.();
+            (brain as any).__hangup = t;
+            this.logger.log(`realtime ${ccid.slice(-8)} goodbye said — hanging up in ${wait}ms`);
+          }
           const u = event.response?.usage;
-          if (u && typeof u.total_tokens === 'number') {
+          if (u && typeof u.total_tokens === 'number' && u.total_tokens > 0) {
             const i = u.input_token_details ?? {};
             const o = u.output_token_details ?? {};
             this.logger.log(
@@ -1872,6 +1931,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         const by = t.asks.get(String(event.response_id ?? ''))?.askedBy;
         if (by) t.askedFor.set(by, t.askSeq);
         if (event.transcript) {
+          (brain as any).__lastSaid = String(event.transcript);
           this.logger.log(
             `realtime ${ccid.slice(-8)} said ${JSON.stringify(String(event.transcript).trim().slice(0, 200))}`,
           );
@@ -2249,6 +2309,14 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // dropping the script on the floor.
         const script = (out as any)?.sayNow;
         if (typeof (out as any)?.owned === 'boolean') this.setTurnOwner(brain, (out as any).owned);
+        // A call that is ending gets no ordinary follow-up reply and no
+        // recovery. On call laylhxjw end_call asked the model for one more
+        // reply, the API refused it for rate, and a retry was scheduled for a
+        // caller who had already said goodbye and hung up.
+        if (out?.turn?.endCall) {
+          this.closeCall(brain, ccid, script);
+          return;
+        }
         if (this.responsesOf(brain).size > 0) {
           (brain as any).__responsePending = true;
           (brain as any).__toolAwaitingReply = true;
@@ -2267,8 +2335,6 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // share it — so the two side effects a tool can have are done here.
         if (out?.turn?.transferTo) {
           setTimeout(() => void this.telnyx.transfer(ccid, out.turn!.transferTo!), 3000);
-        } else if (out?.turn?.endCall) {
-          setTimeout(() => void this.telnyx.hangup(ccid), 6000);
         }
         return;
       }

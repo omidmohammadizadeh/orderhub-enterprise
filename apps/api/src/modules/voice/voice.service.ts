@@ -496,10 +496,9 @@ export class VoiceService {
     const order = await this.db()
       .order.findUnique({ where: { id: orderId }, select: { orderNumber: true, displayId: true } })
       .catch(() => null);
-    const reference =
-      order?.orderNumber != null
-        ? spokenDigits(String(order.orderNumber))
-        : (order?.displayId ?? null);
+    // What the board shows, spelled out — the same reference the caller was
+    // given when the order was placed.
+    const reference = order ? spokenReference(boardReference(order)) : null;
     return reference ? { reference } : null;
   }
 

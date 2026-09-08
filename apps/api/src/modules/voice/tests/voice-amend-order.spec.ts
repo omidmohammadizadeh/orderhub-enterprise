@@ -207,10 +207,16 @@ describe("when the number is wrong", () => {
 });
 
 describe("saving the change", () => {
+  // A confirmation is of the order AS READ BACK: the flag alone is not one.
+  const confirm = (st: any) => {
+    st.orderConfirmed = true;
+    st.orderConfirmedOf = Object.create(VoiceAiService.prototype).orderFingerprint(st);
+  };
   const ai = (state: any, editOrder: any, transferNumber: string | null = "+441912312345") => {
     const a: any = Object.create(VoiceAiService.prototype);
     a.logger = { log() {}, warn() {}, error() {} };
     a.orders = { editOrder };
+    a.db = () => ({ order: { findFirst: async () => null } });
     return a.amendOrder(
       { tenantId: "t1", locationId: "loc1", currency: "GBP", deliveryZones: [], transferNumber },
       state,
@@ -238,7 +244,6 @@ describe("saving the change", () => {
 
   it("sends the existing lines AND the new one", async () => {
     const st = loaded();
-    st.orderConfirmed = true;
     st.cart.items.push({
       lineId: "x",
       itemId: "coke",
@@ -247,6 +252,7 @@ describe("saving the change", () => {
       unitBasePrice: 1.2,
       modifiers: [],
     });
+    confirm(st);
     const edit = jest.fn().mockResolvedValue({});
     const out = await ai(st, edit);
 
@@ -269,7 +275,7 @@ describe("saving the change", () => {
     // Say what it said rather than inventing an explanation, and get them a
     // person, because from here only a person can help.
     const st = loaded();
-    st.orderConfirmed = true;
+    confirm(st);
     const out = await ai(st, jest.fn().mockRejectedValue(new Error("Order already paid")));
 
     expect(out.result).toMatch(/Order already paid/);
@@ -282,7 +288,7 @@ describe("saving the change", () => {
     // that has stopped talking to them — and marks the call TRANSFERRED on the
     // dashboard, so nobody ever finds out it happened.
     const st = loaded();
-    st.orderConfirmed = true;
+    confirm(st);
     const out = await ai(st, jest.fn().mockRejectedValue(new Error("Order already paid")), null);
 
     expect(out.result).toMatch(/do NOT offer to/);
@@ -293,7 +299,7 @@ describe("saving the change", () => {
 
   it("cannot be run twice on the same order", async () => {
     const st = loaded();
-    st.orderConfirmed = true;
+    confirm(st);
     const edit = jest.fn().mockResolvedValue({});
     await ai(st, edit);
     const second = await ai(st, edit);

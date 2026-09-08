@@ -314,33 +314,82 @@ describe("never giving up", () => {
 });
 
 describe("get_order_status", () => {
-  it("looks the order up as a number, not a string", async () => {
-    // Order.orderNumber is an Int. Prisma does not coerce a string here, it
-    // throws — and the caller who had just read out their number heard an
-    // apology instead of their order.
-    const svcWithDb = () => {
-      const s = svc();
-      s.db = () => ({
-        order: {
-          findFirst: jest.fn().mockImplementation((args: any) => {
-            captured = args;
-            return Promise.resolve(null);
-          }),
-        },
-      });
-      return s;
-    };
-    let captured: any;
-    await svcWithDb().orderStatus(ctx(), "+447700900123", "24");
-    expect(captured.where.orderNumber).toBe(24);
-    expect(typeof captured.where.orderNumber).toBe("number");
+  const future = (mins: number) => new Date(Date.now() + mins * 60000);
+  const own = (over: Record<string, unknown> = {}) => ({
+    id: "cmt1",
+    displayId: "4J79Y",
+    collectionCode: null,
+    orderNumber: 1201,
+    status: "PREPARING",
+    fulfillmentType: "DELIVERY",
+    total: 14.1,
+    createdAt: new Date(),
+    estimatedReadyAt: future(12),
+    courierName: null,
+    courierEtaAt: null,
+    customerPhone: "+447700900123",
+    orderSource: "VOICE",
+    paymentMethod: "CASH",
+    paymentStatus: "PENDING",
+    ...over,
+  });
+  const withDb = (rows: any[]) => {
+    const s = svc();
+    s.db = () => ({ order: { findMany: jest.fn().mockResolvedValue(rows) } });
+    return s;
+  };
+
+  it("finds the order by the reference the board shows, letters included", async () => {
+    // "4J79Y" used to be stripped to 479 and looked up as a number — somebody
+    // else's order, or nobody's.
+    const out = await withDb([own()]).orderStatus(ctx(), "+447700900123", "four J seven nine Y");
+    expect(out).toContain("Order 4J79Y");
+    expect(out).toContain('"4, J, 7, 9, Y"');
+    expect(out).toMatch(/being made now\. It should be about 12 minutes/);
+    expect(out).not.toMatch(/0 minutes/);
   });
 
-  it("asks again rather than throwing on something that isn't a number", async () => {
-    const s = svc();
-    s.db = () => ({ order: { findFirst: jest.fn() } });
-    const out = await s.orderStatus(ctx(), "+447700900123", "the big one");
-    expect(out).toContain("read it out again");
+  it("a plain number still finds the numeric order", async () => {
+    const out = await withDb([own({ displayId: null })]).orderStatus(ctx(), null, "1201");
+    expect(out).toContain("Order 1201");
+  });
+
+  it("asks for it one character at a time when nothing matches", async () => {
+    const out = await withDb([own()]).orderStatus(ctx(), "+447700900123", "nine nine nine nine");
+    expect(out).toMatch(/No order matching/);
+    expect(out).toMatch(/read it out one character at a time/);
+  });
+
+  it("says an estimate has passed rather than turning it into zero minutes", async () => {
+    const out = await withDb([own({ estimatedReadyAt: future(-5) })]).orderStatus(ctx(), null, "4J79Y");
+    expect(out).toMatch(/past its estimate, so it should be ready any minute/);
+    expect(out).not.toMatch(/\b0 minutes/);
+  });
+
+  it("an order that has left the kitchen carries no kitchen estimate", async () => {
+    const out = await withDb([
+      own({ status: "OUT_FOR_DELIVERY", courierName: "Sam", courierEtaAt: future(7), estimatedReadyAt: future(-20) }),
+    ]).orderStatus(ctx(), null, "4J79Y");
+    expect(out).toMatch(/on its way to you now/);
+    expect(out).not.toMatch(/past its estimate/);
+    expect(out).not.toMatch(/\b0 minutes/);
+  });
+
+  it("by phone alone: the caller's most recent own order, never a marketplace one, and says if there are others", async () => {
+    const rows = [
+      own({ id: "je", displayId: "SIM-1", orderSource: "JUST_EAT", customerPhone: "+447700900123 PIN 1234" }),
+      own({ id: "pos1", displayId: "AB12C", orderSource: "POS", status: "ACCEPTED" }),
+      own({ id: "pos0", displayId: "ZZ999", orderSource: "POS", status: "COMPLETED" }),
+    ];
+    const out = await withDb(rows).orderStatus(ctx(), "+447700900123", undefined);
+    expect(out).toContain("Order AB12C");
+    expect(out).toMatch(/confirmed, and the kitchen is about to start it/);
+    expect(out).toMatch(/1 other recent one/);
+  });
+
+  it("with no number and no reference, asks for one", async () => {
+    const out = await withDb([]).orderStatus(ctx(), null, undefined);
+    expect(out).toMatch(/ask them for their order number/i);
   });
 });
 
@@ -437,7 +486,6 @@ describe("amending an existing order", () => {
 
   it("sends the combined order to editOrder and clears the amendment", async () => {
     const state = withExisting();
-    state.orderConfirmed = true;
     state.cart.items.push({
       lineId: "new1",
       itemId: "i2",
@@ -446,8 +494,12 @@ describe("amending an existing order", () => {
       unitBasePrice: 4,
       modifiers: [],
     });
+    state.orderConfirmed = true;
+    state.orderConfirmedOf = svc().orderFingerprint(state);
 
     const s = svc();
+    s.logger = { log: jest.fn(), warn: jest.fn(), error: jest.fn() };
+    s.db = () => ({ order: { findFirst: async () => null } });
     let sent: any;
     s.orders = {
       editOrder: jest.fn(async (_id: string, _t: string, dto: any) => {
@@ -469,8 +521,9 @@ describe("amending an existing order", () => {
   it("explains and hands over when the order can no longer be changed", async () => {
     const state = withExisting();
     state.orderConfirmed = true;
+    state.orderConfirmedOf = svc().orderFingerprint(state);
     const s = svc();
-    s.logger = { warn: jest.fn(), error: jest.fn() };
+    s.logger = { log: jest.fn(), warn: jest.fn(), error: jest.fn() };
     s.orders = {
       editOrder: jest.fn(async () => {
         throw new Error("Order can only be edited before it's marked Ready");
