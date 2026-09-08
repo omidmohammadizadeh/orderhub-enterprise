@@ -1665,3 +1665,77 @@ describe("the caller's yes to an amended read-back saves it", () => {
     expect(sim.log.join('\n')).toMatch(/said "So that is chips\. Is that all correct\?" \(38 chars\)/);
   });
 });
+
+// ── call HPHR9SFQ: "donner kebab" turned the pepperoni into a kebab pizza, and the kebab stayed missing ──
+describe("an answer lands in the group it belongs to, and a deal's fixed parts are not questions", () => {
+  const { VoiceAiService } = require("../voice-ai.service");
+  const G = (id: string, name: string, opts: string[], over: any = {}) => ({ id, name, required: true, min: 1, max: 1, selectionType: "VARIANT", options: opts.map((o, i) => ({ id: `${id}${i + 1}`, name: o, price: 0 })), ...over });
+  const deal = (kebabs: string[]) => ({ id: "deal2", name: "MEAL DEAL 2", price: 25, categoryName: "Deals", modifierGroups: [
+    G("dp", '10" pizza', ['10" PEPPERONI', '10"KEBAB PIZZA ', "10 inch AMELIO"]),
+    G("dd", "Drink", ["CAN Coke", "CAN Sprite"], { min: 2, max: 2, selectionType: "ADDON" }),
+    G("ds", "Sauce", ["+GARLIC", "+CHILLI"], { required: false, min: 1 }),
+    G("dc", "CHIPS OR SALAD", ["Chips", "Salad"], { required: false, min: 1 }),
+    G("dk", "Kebab", kebabs),
+  ] });
+  const c = (kebabs: string[] = ["DONNER KEBAB"]) => { const MENU = [deal(kebabs)]; const x: any = { currency: "GBP", items: MENU, deliveryZones: [] }; x.itemIndex = new Map(MENU.map((i) => [i.id, i])); x.optionIndex = new Map(MENU.flatMap((i: any) => i.modifierGroups.flatMap((g: any) => g.options.map((o: any) => [o.id, { groupId: g.id, itemId: i.id, option: o }])))); return x; };
+  const ai = () => { const a: any = Object.create(VoiceAiService.prototype); a.logger = { log: jest.fn(), warn() {}, error() {} }; return a; };
+  const fresh = () => ({ cart: { items: [], fulfillmentType: "PICKUP", fulfillmentChosen: true }, turns: [] }) as any;
+  const names = (st: any) => st.cart.items[0].modifiers.map((m: any) => m.name);
+
+  it("the caller's exact order from the call: pepperoni, chips, garlic, two cokes — the kebab fills itself and the deal is added once", async () => {
+    const a = ai(); const st = fresh(); const ctx = c();
+    const out = a.addItemConversational({ said: "meal deal 2", modifierNames: ["10 inch pepperoni", "chips", "garlic", "two cokes"] }, ctx, st);
+    // In the order they were said; the kebab, which nobody chose, last.
+    expect(out.result).toMatch(/^Added 1 × MEAL DEAL 2 with 10" PEPPERONI, Chips, \+GARLIC, CAN Coke, CAN Coke, DONNER KEBAB — £25\.00\./);
+    expect(st.cart.items).toHaveLength(1);
+    expect(names(st)).toEqual(['10" PEPPERONI', "Chips", "+GARLIC", "CAN Coke", "CAN Coke", "DONNER KEBAB"]);
+    const rb = await a.runTool("read_back_order", {}, ctx, st, null);
+    expect(rb.sayNow).toMatch(/MEAL DEAL 2 with 10 inch PEPPERONI, Chips, GARLIC, 2 CAN Coke and DONNER KEBAB, for collection\. That comes to £25\.00/);
+  });
+
+  it("with a real kebab choice, 'donner kebab' goes to the kebab group and the pepperoni stays", () => {
+    const a = ai(); const st = fresh(); const ctx = c(["DONNER KEBAB", "CHICKEN KEBAB"]);
+    const first = a.addItemConversational({ said: "meal deal 2", modifierNames: ["10 inch pepperoni", "chips", "garlic", "two cokes"] }, ctx, st);
+    expect(first.result).toMatch(/still needs a choice of: kebab \(DONNER KEBAB, CHICKEN KEBAB\)/);
+    expect(st.draft.picks.find((p: any) => p.g === "dp").o).toBe("dp1");
+    const out = a.addItemConversational({ said: "donner kebab" }, ctx, st);
+    expect(out.result).toMatch(/^Added 1 × MEAL DEAL 2 with 10" PEPPERONI, .*DONNER KEBAB/);
+    expect(names(st)).toContain('10" PEPPERONI');
+    expect(names(st)).not.toContain('10"KEBAB PIZZA ');
+    // "yes" to "do you want the donner kebab?" arrives as the option's name too
+    const b = ai(); const st2 = fresh();
+    b.addItemConversational({ said: "meal deal 2", modifierNames: ["10 inch pepperoni", "chips", "garlic", "two cokes"] }, ctx, st2);
+    b.addItemConversational({ modifierNames: ["donner kebab"] }, ctx, st2);
+    expect(st2.cart.items).toHaveLength(1);
+    expect(names(st2)).toContain('10" PEPPERONI');
+  });
+
+  it("an intentional 'kebab pizza' changes the pizza group only", () => {
+    const a = ai(); const st = fresh(); const ctx = c(["DONNER KEBAB", "CHICKEN KEBAB"]);
+    a.addItemConversational({ said: "meal deal 2", modifierNames: ["10 inch pepperoni", "chips", "garlic", "two cokes"] }, ctx, st);
+    const out = a.addItemConversational({ said: "change the pizza to kebab pizza", modifierNames: ["kebab pizza"] }, ctx, st);
+    expect(out.result).toMatch(/Replaced: 10" PEPPERONI/);
+    expect(out.result).toMatch(/still needs a choice of: kebab/);
+    expect(st.draft.picks.find((p: any) => p.g === "dp").o).toBe("dp2");
+    expect(st.draft.picks.filter((p: any) => p.g === "dk")).toHaveLength(0);
+  });
+
+  it("the same unmatched answer twice is not asked for a third time the same way", () => {
+    const a = ai(); const st = fresh(); const ctx = c(["DONNER KEBAB", "CHICKEN KEBAB"]);
+    a.addItemConversational({ said: "meal deal 2", modifierNames: ["10 inch pepperoni", "chips", "garlic", "two cokes"] }, ctx, st);
+    const one = a.addItemConversational({ said: "donate kavabit", modifierNames: ["donate kavabit"] }, ctx, st);
+    expect(one.result).toMatch(/Could not place: "donate kavabit"/);
+    expect(one.result).not.toMatch(/NOTHING they said matched/);
+    const two = a.addItemConversational({ said: "donate kavabit qivis", modifierNames: ["donate kavabit qivis"] }, ctx, st);
+    expect(two.result).toMatch(/NOTHING they said matched — 2 times running\. Do not ask the same way again: offer the kebab options as a short list.*or offer transfer_to_staff/);
+    expect(st.draft.picks).toHaveLength(5);
+    expect(st.draft.stalls).toBe(2);
+  });
+
+  it("logs what add_item was given and what it did with it", () => {
+    const a = ai(); const st = fresh(); const ctx = c(["DONNER KEBAB", "CHICKEN KEBAB"]);
+    a.addItemConversational({ said: "meal deal 2", modifierNames: ["10 inch pepperoni", "thingamajig"] }, ctx, st);
+    const line = (a.logger.log as jest.Mock).mock.calls.map((k) => String(k[0])).find((l) => l.startsWith("add_item MEAL DEAL 2"));
+    expect(line).toMatch(/said="meal deal 2" names=\["10 inch pepperoni","thingamajig"\] → kept \[10" PEPPERONI\] replaced \[\] unplaced \[thingamajig\] missing \[drink, sauce, chips or salad, kebab\]/);
+  });
+});

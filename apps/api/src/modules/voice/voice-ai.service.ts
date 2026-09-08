@@ -225,6 +225,8 @@ export interface VoiceState {
     picks: Array<{ g: string; o: string }>;
     notes?: string;
     startedAt: number;
+    /** Answers in a row that changed nothing. Two is the line asking the same way again. */
+    stalls?: number;
   };
   /** A dish chosen but not yet added, because it still needs a choice made
    *  about it. Most of a real takeaway menu has one. */
@@ -368,6 +370,7 @@ export function coerceState(raw: unknown): VoiceState {
               : [],
             notes: r.draft.notes ? String(r.draft.notes) : undefined,
             startedAt: Number(r.draft.startedAt) || Date.now(),
+            stalls: Number(r.draft.stalls) || 0,
           }
         : undefined,
     pendingItem:
@@ -3555,13 +3558,41 @@ ${this.compactMenu(ctx)}
       // "two pepperoni" in a group that takes two is two picks of it.
       const { quantity, rest } = splitQuantity(name);
       const want = rest || name;
-      // The best-fitting group, not the first one to bite: "chips" belongs
-      // to "Chips or Salad", however early "Sauce" comes in the list.
-      let best: { g: any; o: any; score: number } | null = null;
+      // The group this answer belongs to, judged before anything is touched.
+      // On call HPHR9SFQ "donner kebab" tied between the Kebab group's
+      // DONNER KEBAB and the pizza group's KEBAB PIZZA, the pizza group came
+      // first in the list, and the caller's pepperoni became a kebab pizza
+      // while the kebab stayed missing — for four more "donner kebab"s.
+      // So: an option that accounts for EVERY word said beats one that
+      // accounts for some; a group still waiting for an answer beats one
+      // already answered; then the score; then the group the words name.
+      const words = String(want)
+        .toLowerCase()
+        .split(/[^a-z0-9]+/)
+        .filter((w) => w && !['a', 'an', 'the', 'of', 'and', 'with', 'please', 'can', 'some'].includes(w));
+      type Fit = { g: any; o: any; score: number; covered: boolean; open: boolean; named: boolean };
+      const fits: Fit[] = [];
       for (const g of groups) {
         const hit = matchOption<any>(want, g.options, g.name);
-        if (hit && (!best || hit.score > best.score)) best = { g, o: hit.item, score: hit.score };
+        if (!hit) continue;
+        const inOption = (w: string) => scoreItem(w, `${hit.item.name} ${g.name}`) > 0;
+        fits.push({
+          g,
+          o: hit.item,
+          score: hit.score,
+          covered: words.length > 0 && words.every(inOption),
+          open: inGroup(g).length < Math.max(needed(g), mustChoose(g) ? 1 : 0),
+          named: words.some((w) => scoreItem(w, g.name) > 0),
+        });
       }
+      fits.sort(
+        (a, b) =>
+          Number(b.covered) - Number(a.covered) ||
+          Number(b.open) - Number(a.open) ||
+          b.score - a.score ||
+          Number(b.named) - Number(a.named),
+      );
+      const best = fits[0] ?? null;
       if (!best) {
         unmatched.push(name);
         continue;
@@ -3581,6 +3612,13 @@ ${this.compactMenu(ctx)}
           .sort((a: any, b: any) => String(b.name).length - String(a.name).length);
         if (named.length) put(g, named[0]);
       }
+    }
+    // A required group with one option is not a question. "Kebab: DONNER
+    // KEBAB" is what the deal comes with; the caller was asked to name it
+    // five times on call HPHR9SFQ and could not have said anything else.
+    for (const g of groups) {
+      if (!mustChoose(g) || g.options.length !== 1) continue;
+      while (inGroup(g).length < needed(g)) put(g, g.options[0]);
     }
     return { saved, replaced, unmatched };
   }
@@ -3897,6 +3935,17 @@ ${this.compactMenu(ctx)}
     const groups: any[] = item.modifierGroups ?? [];
     const count = (g: any) => picks.filter((p) => p.g === g.id).length;
     const missing = groups.filter((g) => mustChoose(g) && count(g) < needed(g));
+    // What the tool was given and what it did with it — the reply to the
+    // model is cut to 120 characters in the log, which hid exactly this.
+    this.logger.log(
+      `add_item ${item.name}: said=${JSON.stringify(said)} names=${JSON.stringify(
+        Array.isArray(input?.modifierNames) ? input.modifierNames : [],
+      )}${input?.done ? ' done' : ''} → kept [${merged.saved.join(', ')}] replaced [${merged.replaced
+        .filter(Boolean)
+        .join(', ')}] unplaced [${merged.unmatched.join(', ')}] missing [${missing
+        .map((g) => this.groupLabel(g.name))
+        .join(', ')}]`,
+    );
     const notes = String(input?.notes ?? draft?.notes ?? '')
       .trim()
       .slice(0, 200);
@@ -3905,12 +3954,15 @@ ${this.compactMenu(ctx)}
 
     if (missing.length) {
       // Kept, not lost: the next answer merges into this.
+      const progressed = merged.saved.length > 0 || merged.replaced.filter(Boolean).length > 0;
+      const stalls = continuing && !progressed ? (draft!.stalls ?? 0) + 1 : 0;
       state.draft = {
         itemId: item.id,
         quantity,
         picks,
         ...(notes ? { notes } : {}),
         startedAt: continuing ? draft!.startedAt : Date.now(),
+        stalls,
       };
       const chosen = groups
         .filter((g) => count(g) > 0)
@@ -3929,10 +3981,18 @@ ${this.compactMenu(ctx)}
         ? ` Replaced: ${merged.replaced.filter(Boolean).join(', ')}.`
         : '';
       const done = input?.done === true ? " They said that's it, but this is required, so it is not finished." : '';
+      // The same answer producing nothing twice is not fixed by asking the
+      // same way a third time.
+      const stuck =
+        stalls >= 2
+          ? ` NOTHING they said matched — ${stalls} times running. Do not ask the same way again: offer the ${this.groupLabel(
+              missing[0].name,
+            )} options as a short list and let them pick one, or offer transfer_to_staff. What is chosen is kept.`
+          : ` Ask for what's missing in one question — they can answer several at once, in any order — then call add_item again with what they say; what is chosen is kept.`;
       return {
         result:
           `NOT added yet. The ${base}${chosen.length ? ` (so far: ${chosen.join('; ')})` : ''} still needs a choice of: ${asks.join('; ')}.` +
-          `${swapped}${unplaced}${done} Ask for what's missing in one question — they can answer several at once, in any order — then call add_item again with what they say; what is chosen is kept.`,
+          `${swapped}${unplaced}${done}${stuck}`,
       };
     }
 
