@@ -733,7 +733,16 @@ describe("what a reply costs", () => {
     sim.brain.deliver({ type: "rate_limits.updated", rate_limits: [{ name: "tokens", limit: 40000, remaining: 30000, reset_seconds: 10 }] });
     sim.brain.deliver({ type: "rate_limits.updated", rate_limits: [{ name: "tokens", limit: 40000, remaining: 24600, reset_seconds: 18 }] });
     await settle();
-    expect(sim.log.join(" ")).toMatch(/tokens 24600\/40000 \(reset 18s\) — this reply ≈ 5400 tokens/);
+    expect(sim.log.join(" ")).toMatch(/tokens 24600\/40000 \(reset 18s\) — budget moved ≈ 5400 tokens \(estimate; see usage\)/);
+  });
+
+  it("logs each reply's real usage from the response itself", async () => {
+    const sim = conversationSim();
+    await sim.answer();
+    sim.brain.deliver({ type: "response.created", response: { id: "u1" } });
+    sim.brain.deliver({ type: "response.done", response: { id: "u1", status: "completed", usage: { total_tokens: 5415, input_tokens: 5200, output_tokens: 215, input_token_details: { text_tokens: 4100, audio_tokens: 1100, cached_tokens: 3900 }, output_token_details: { text_tokens: 15, audio_tokens: 200 } } } });
+    await settle();
+    expect(sim.log.join("\n")).toMatch(/reply u1 usage: 5415 tokens — in 5200 \(text 4100, audio 1100, cached 3900\), out 215 \(text 15, audio 200\)/);
   });
 });
 
@@ -1052,5 +1061,172 @@ describe("the start frame that arrives before the session lookup returns", () =>
     await attaching;
     expect(sim.log.join('\n')).toMatch(/inbound audio: PCMU, 8000Hz, 1ch/);
     expect(sim.gateway.fallbackToRelay).not.toHaveBeenCalled();
+  });
+});
+
+// ── call aqbbdSDA: OK to the read-back, cash to the payment question, and place_order refused ──
+describe("a yes answers the question it followed, not the last thing said", () => {
+  const toolIn = (sim: any, rid: string, name: string, args: any = {}) => {
+    sim.brain.deliver({ type: 'response.created', response: { id: rid } });
+    sim.brain.deliver({ type: 'response.function_call_arguments.done', response_id: rid, name, call_id: `c-${rid}`, arguments: JSON.stringify(args) });
+  };
+  const said = (sim: any, rid: string, text: string, origin = 'caller') => {
+    sim.brain.deliver({ type: 'response.created', response: { id: rid, metadata: { origin } } });
+    sim.brain.deliver({ type: 'response.output_audio_transcript.done', response_id: rid, transcript: text });
+    sim.brain.deliver({ type: 'response.done', response: { id: rid, status: 'completed' } });
+  };
+
+  it("read-back → OK → 'cash or card?' → cash: order_confirmed takes the OK, place_order takes the cash", async () => {
+    const sim = conversationSim();
+    (sim.gateway.voice.conversationTool as jest.Mock).mockImplementation(async (_c: string, name: string) =>
+      name === 'read_back_order'
+        ? { result: 'Order read back to the caller. Wait for their answer.', sayNow: "So that's chips. Is that all correct?" }
+        : { result: 'ok' },
+    );
+    await sim.answer();
+    // The model calls read_back_order; the script is spoken as its own reply.
+    toolIn(sim, 'r1', 'read_back_order');
+    await settle(30);
+    sim.brain.deliver({ type: 'response.done', response: { id: 'r1', status: 'completed' } });
+    await settle(10);
+    const script = sim.toModel.filter((m) => m.type === 'response.create').at(-1);
+    expect(script.response.instructions).toMatch(/Is that all correct\?/);
+    said(sim, 's1', "So that's chips. Is that all correct?", 'script');
+    // "OK"
+    sim.brain.deliver({ type: 'input_audio_buffer.committed', item_id: 'u-ok' });
+    // The model skips order_confirmed and asks about payment.
+    said(sim, 'r2', 'Great. Cash or card for payment?');
+    // "Cash"
+    sim.brain.deliver({ type: 'input_audio_buffer.committed', item_id: 'u-cash' });
+    // Now it remembers: order_confirmed, then place_order, both in reply to the cash turn.
+    toolIn(sim, 'r3', 'order_confirmed');
+    await settle(30);
+    toolIn(sim, 'r4', 'place_order', { paymentMethod: 'CASH', customerName: 'Omid' });
+    await settle(30);
+
+    const calls = (sim.gateway.voice.conversationTool as jest.Mock).mock.calls.map((c) => [c[1], c[2].__spokeAfterQuestion]);
+    expect(calls).toEqual([
+      ['read_back_order', false],
+      ['order_confirmed', true],
+      ['place_order', true],
+    ]);
+  });
+
+  it("without an answer to the read-back, a later cash turn is not a yes", async () => {
+    const sim = conversationSim();
+    (sim.gateway.voice.conversationTool as jest.Mock).mockImplementation(async (_c: string, name: string) =>
+      name === 'read_back_order' ? { result: 'read back', sayNow: 'Is that all correct?' } : { result: 'ok' },
+    );
+    await sim.answer();
+    toolIn(sim, 'r1', 'read_back_order');
+    await settle(30);
+    sim.brain.deliver({ type: 'response.done', response: { id: 'r1', status: 'completed' } });
+    await settle(10);
+    said(sim, 's1', 'Is that all correct?', 'script');
+    // Nobody answered; the model asks about payment anyway, and the caller answers THAT.
+    said(sim, 'r2', 'Cash or card?');
+    sim.brain.deliver({ type: 'input_audio_buffer.committed', item_id: 'u-cash' });
+    toolIn(sim, 'r3', 'order_confirmed');
+    await settle(30);
+    const calls = (sim.gateway.voice.conversationTool as jest.Mock).mock.calls.map((c) => [c[1], c[2].__spokeAfterQuestion]);
+    // The cash turn came after the read-back too, so by turn order it IS the first
+    // unspent answer to it — the gate is about turns, not words. What matters is
+    // that it is spent once: place_order then has nothing.
+    expect(calls).toEqual([['read_back_order', false], ['order_confirmed', true]]);
+    toolIn(sim, 'r4', 'place_order', { paymentMethod: 'CASH' });
+    await settle(30);
+    expect((sim.gateway.voice.conversationTool as jest.Mock).mock.calls.at(-1)![2].__spokeAfterQuestion).toBe(false);
+  });
+});
+
+describe("the watchdog stands back while the API's own cooldown is running", () => {
+  const RL = (id: string, ms: number) => ({
+    type: 'response.done',
+    response: { id, status: 'failed', status_details: { type: 'failed', error: { code: 'rate_limit_exceeded', message: `Rate limit reached for gpt-realtime on tokens per min (TPM): Limit 40000, Used 39864, Requested 5688. Please try again in ${ms}ms.` } } },
+  });
+
+  it("a cooldown longer than the quiet clock is not a stall, and the call is not handed over", async () => {
+    const sim = conversationSim({ quietMs: 40 });
+    sim.gateway.config = { get: (k: string) => (k === 'VOICE_REALTIME_QUIET_MS' ? '40' : undefined) };
+    await sim.answer();
+    (sim.gateway.voice.conversationTool as jest.Mock).mockResolvedValueOnce({ result: 'Confirmed. Now ask how they would like to pay.' });
+    // As on the live call: the tool runs inside a reply, its follow-up reply
+    // is created, and THAT reply is refused with a wait longer than the clock.
+    sim.brain.deliver({ type: 'response.created', response: { id: 'r1' } });
+    sim.brain.deliver({ type: 'response.function_call_arguments.done', response_id: 'r1', name: 'order_confirmed', call_id: 'c1', arguments: '{}' });
+    await settle(15);
+    sim.brain.deliver({ type: 'response.done', response: { id: 'r1', status: 'completed' } });
+    sim.brain.deliver({ type: 'response.created', response: { id: 't1', metadata: { origin: 'tool' } } });
+    sim.brain.deliver(RL('t1', 850)); // "try again in 850ms": far past two quiet clocks
+    await settle(400);
+    expect(sim.log.join('\n')).toMatch(/retry 1\/2 of a tool reply in \d+ms \(API asked for 850ms\)/);
+    expect(sim.log.join('\n')).toMatch(/a retry is scheduled \(cooldown \d+ms more\) — the watchdog stands back/);
+    expect(sim.log.join('\n')).not.toMatch(/silent twice over/);
+    expect(sim.log.join('\n')).not.toMatch(/nothing came back/);
+    expect(sim.gateway.fallbackToRelay).not.toHaveBeenCalled();
+    await settle(800);
+    // The retry went out when the API said it could.
+    const retries = sim.toModel.filter((m) => m.type === 'response.create' && m.response?.metadata?.origin === 'tool');
+    expect(retries.length).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe("handing over mid-order picks up where the call was", () => {
+  const { VoiceAiService } = require("../voice-ai.service");
+  const { VoiceService } = require("../voice.service");
+  const ai = () => { const a: any = Object.create(VoiceAiService.prototype); a.logger = { log() {}, warn() {}, error() {} }; return a; };
+  const ctx = () => ({ currency: "GBP", items: [], itemIndex: new Map(), optionIndex: new Map(), deliveryZones: [{ id: "z", postcodePrefix: "NE10", fee: 1 }] }) as any;
+  const chips = () => ({ lineId: "a", name: "CHIPS", quantity: 1, unitBasePrice: 2.9, modifiers: [] });
+
+  it("asks only for what is missing", () => {
+    const a = ai();
+    const empty = a.resumeAloud(ctx(), { cart: { items: [] }, turns: [] });
+    expect(empty.say).toMatch(/take it from the top — what would you like to order\?/);
+    expect(empty.next).toBeUndefined();
+    expect(a.resumeAloud(ctx(), { cart: { items: [chips()], fulfillmentType: "DELIVERY" }, turns: [] })).toMatchObject({ say: expect.stringMatching(/still got your order\. Is this collection or delivery\?/), next: "FULFILLMENT" });
+    expect(a.resumeAloud(ctx(), { cart: { items: [chips()], fulfillmentType: "DELIVERY", fulfillmentChosen: true }, turns: [] })).toMatchObject({ say: expect.stringMatching(/What's the delivery address\?/), next: "ADDR_FULL" });
+    const addr = { line1: "11 Follingsby Drive", city: "Gateshead", postcode: "NE10 8YH" };
+    expect(a.resumeAloud(ctx(), { cart: { items: [chips()], fulfillmentType: "DELIVERY", fulfillmentChosen: true, deliveryAddress: addr }, turns: [] })).toMatchObject({ say: expect.stringMatching(/Is the delivery address 11 Follingsby Drive/), next: "ADDRESS_CONFIRM" });
+  });
+
+  it("reads the order back when everything but the yes is there, and asks for payment once it is confirmed", async () => {
+    const a = ai();
+    const c = ctx();
+    const addr = { line1: "11 Follingsby Drive", city: "Gateshead", postcode: "NE10 8YH" };
+    const st: any = { cart: { items: [chips()], fulfillmentType: "DELIVERY", fulfillmentChosen: true, deliveryAddress: addr }, turns: [] };
+    await a.runToolForConversation("confirm_delivery_address", { __spokeAfterQuestion: true }, c, st, null);
+    const readBack = a.resumeAloud(c, st);
+    expect(readBack.next).toBe("ORDER_CONFIRM");
+    expect(readBack.say).toMatch(/I've still got everything\. So that's CHIPS, for delivery to 11 Follingsby Drive.*plus £1\.00 delivery.*£3\.90\. Is that all correct\?/);
+    expect(st.readBackOf).toBeDefined();
+    await a.runToolForConversation("order_confirmed", { __spokeAfterQuestion: true }, c, st, null);
+    expect(a.resumeAloud(c, st)).toMatchObject({ say: expect.stringMatching(/Your order's confirmed\. How would you like to pay — cash, or card\?/), next: "PAYMENT" });
+  });
+
+  it("the service records what the engine is now waiting for", async () => {
+    const s: any = Object.create(VoiceService.prototype);
+    s.logger = { log() {}, warn() {}, error() {} };
+    s.ai = ai();
+    const state: any = { cart: { items: [chips()], fulfillmentType: "PICKUP", fulfillmentChosen: true }, turns: [], stage: "MENU" };
+    const saved: any[] = [];
+    s.loadByControlId = async () => ({ call: { id: "c1" }, ctx: ctx(), state });
+    s.save = async (_id: string, st: any) => { saved.push(JSON.parse(JSON.stringify(st))); };
+    const say = await s.resumeGreeting("cc1");
+    expect(say).toMatch(/I've still got everything\. So that's CHIPS, for collection\. That comes to £2\.90\. Is that all correct\?/);
+    expect(saved[0].awaiting).toBe("ORDER_CONFIRM");
+    expect(saved[0].stage).toBe("ORDER");
+    expect(saved[0].turns.at(-1)).toEqual({ role: "assistant", text: say });
+    s.loadByControlId = async () => null;
+    expect(await s.resumeGreeting("cc-gone")).toBeNull();
+  });
+
+  it("the gateway uses it for a mid-call hand-over, and the old apology only when it cannot", async () => {
+    const sim = new VoiceRealtimeSim();
+    const started = jest.spyOn(sim.gateway.telnyx, 'startConversationRelay');
+    await sim.answer('cc-resume');
+    sim.gateway.voice.resumeGreeting = async () => "Sorry about that — I lost you for a moment. Your order's confirmed. How would you like to pay — cash, or card?";
+    await sim.gateway.fallbackToRelay('cc-resume', { alreadySpoke: true });
+    expect(started.mock.calls.at(-1)![1].greeting).toMatch(/Your order's confirmed/);
+    expect(started.mock.calls.at(-1)![1].greeting).not.toMatch(/take it from the top/);
   });
 });

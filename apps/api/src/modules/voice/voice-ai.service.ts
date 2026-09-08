@@ -3231,7 +3231,7 @@ CHANGING THEIR MIND
 
 BEFORE IT'S PLACED
 - Call read_back_order and say the script it gives you word for word, then stop and wait.
-- Only when the caller clearly agrees: call order_confirmed, ask cash or card, then place_order. If they change anything after the read-back, read it back again — a yes only counts for what they heard.
+- Only when the caller clearly agrees: call order_confirmed FIRST — before you say anything about payment — then ask cash or card, then place_order. If they change anything after the read-back, read it back again — a yes only counts for what they heard.
 - place_order needs a name for the order. A caller you know needs no asking; otherwise ask for a first name, once, before you place it. Never make one up.
 ${delivery}
 - Read a new address back once, then confirm_delivery_address. Only use an address on file after they've said yes to it.${returning}
@@ -4218,6 +4218,45 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
       round2(subtotal + fee),
       ctx.currency,
     )}. Is that all correct?`;
+  }
+
+  /**
+   * What to say when the call changes engine mid-order.
+   *
+   * Everything the caller has already answered is in the state; the only
+   * thing that changed is who is listening. So: apologise once, say what has
+   * been kept, and ask for the next thing actually missing — never "let's
+   * take it from the top" to somebody who has given the order, the address
+   * and a yes.
+   */
+  resumeAloud(ctx: VoiceContext, state: VoiceState): { say: string; next?: VoiceState['awaiting'] } {
+    const sorry = 'Sorry about that — I lost you for a moment.';
+    if (!state.cart.items.length) {
+      return { say: `${sorry} Let's take it from the top — what would you like to order?` };
+    }
+    if (!state.cart.fulfillmentChosen) {
+      return { say: `${sorry} I've still got your order. Is this collection or delivery?`, next: 'FULFILLMENT' };
+    }
+    if (state.cart.fulfillmentType === 'DELIVERY') {
+      const line1 = state.cart.deliveryAddress?.line1;
+      if (!line1) {
+        return { say: `${sorry} I've still got your order. What's the delivery address?`, next: 'ADDR_FULL' };
+      }
+      if (!this.addressStillConfirmed(state)) {
+        return {
+          say: `${sorry} I've still got your order. Is the delivery address ${this.spokenAddress(state.cart.deliveryAddress)}?`,
+          next: 'ADDRESS_CONFIRM',
+        };
+      }
+    }
+    if (!this.orderStillConfirmed(state)) {
+      state.readBackOf = this.orderFingerprint(state);
+      return { say: `${sorry} I've still got everything. ${this.readBackScript(ctx, state)}`, next: 'ORDER_CONFIRM' };
+    }
+    if (!state.orderId) {
+      return { say: `${sorry} Your order's confirmed. How would you like to pay — cash, or card?`, next: 'PAYMENT' };
+    }
+    return { say: `${sorry} Your order is already in — the shop has it.` };
   }
 
   /** Answer "do you deliver to X?" — where X is a postcode or a community,

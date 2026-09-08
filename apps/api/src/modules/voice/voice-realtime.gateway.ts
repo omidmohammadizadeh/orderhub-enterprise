@@ -123,7 +123,23 @@ interface Ask {
   payload: Record<string, unknown> | null;
   origin: ResponseOrigin;
   attempts: number;
+  /** The tool whose script this reply speaks — the question a later yes answers. */
+  askedBy?: string;
 }
+
+/**
+ * Which tool's script a consent tool is answering.
+ *
+ * On call aqbbdSDA the caller said "OK" to the read-back, the model asked
+ * "cash or card?" without calling order_confirmed, the caller said "cash",
+ * and order_confirmed then took the CASH turn as its yes — leaving nothing
+ * for place_order, which refused. A yes to the read-back is the first thing
+ * the caller said after the read-back, not the last thing they said.
+ */
+const ANSWERS: Record<string, string> = {
+  order_confirmed: 'read_back_order',
+  confirm_delivery_address: 'propose_delivery_address',
+};
 
 /** Retries per ask, on top of the original. */
 const MAX_RETRIES = 2;
@@ -364,6 +380,12 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     if (placed?.reference) {
       return `Sorry, the line's having trouble — but your order is in, number ${placed.reference}. The shop has it. Thanks for calling, goodbye.`;
     }
+    // The basket, the address and a confirmation all survive the hand-over;
+    // only the engine changed. Ask for what is actually missing — a caller
+    // told "let's take it from the top" with everything already taken said
+    // "I said it's for delivery, you already got the address, and I said cash".
+    const resumed = await this.voice.resumeGreeting?.(ccid).catch(() => null);
+    if (resumed) return resumed;
     return "Sorry about that, I lost you for a moment — let's take it from the top. Is this collection or delivery?";
   }
 
@@ -1179,6 +1201,8 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     pendingCreates: Ask[];
     /** The ask behind each reply id — a retry's new id maps to the same ask. */
     asks: Map<string, Ask>;
+    /** For each scripted question (by the tool that produced it), the askSeq its answers carry. */
+    askedFor: Map<string, number>;
   } {
     return ((brain as any).__turns ??= {
       askSeq: 0,
@@ -1194,6 +1218,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       originOf: new Map(),
       pendingCreates: [],
       asks: new Map(),
+      askedFor: new Map(),
     });
   }
 
@@ -1317,7 +1342,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
   private send(
     brain: WebSocket,
     frame: Record<string, unknown>,
-    opts: { retryOf?: Ask } = {},
+    opts: { retryOf?: Ask; askedBy?: string } = {},
   ): void {
     const stats = this.statsOf(brain);
     if (frame.type === 'response.create') {
@@ -1339,6 +1364,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
           payload: frame,
           origin: String((frame.response as any)?.metadata?.origin ?? 'caller') as ResponseOrigin,
           attempts: 0,
+          ...(opts.askedBy ? { askedBy: opts.askedBy } : {}),
         },
       );
     }
@@ -1357,8 +1383,10 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     (brain as any).__responsePending = false;
     (brain as any).__toolAwaitingReply = false;
     const script = (brain as any).__pendingScript;
+    const by = (brain as any).__pendingScriptBy;
     (brain as any).__pendingScript = undefined;
-    this.speakExactly(brain, script);
+    (brain as any).__pendingScriptBy = undefined;
+    this.speakExactly(brain, script, { askedBy: script ? by : undefined });
   }
 
   /**
@@ -1383,7 +1411,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
   private speakExactly(
     brain: WebSocket,
     script?: string,
-    opts: { origin?: ResponseOrigin; speechOnly?: boolean } = {},
+    opts: { origin?: ResponseOrigin; speechOnly?: boolean; askedBy?: string } = {},
   ): void {
     const origin: ResponseOrigin = opts.origin ?? (script ? 'script' : 'tool');
     const speechOnly = opts.speechOnly ?? origin !== 'tool';
@@ -1399,7 +1427,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       response.tools = [];
       response.tool_choice = 'none';
     }
-    this.send(brain, { type: 'response.create', response });
+    this.send(brain, { type: 'response.create', response }, { askedBy: opts.askedBy });
   }
 
   /** The model produced audio, so the line is alive. */
@@ -1545,6 +1573,26 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         const goodbye = setTimeout(() => void this.telnyx.hangup(ccid), 6000);
         (goodbye as any).unref?.();
         return;
+      }
+
+      // A reply the API told us to wait for is not a stall. On aqbbdSDA a
+      // retry was due in 8.5s and the watchdog, counting the wait as silence,
+      // handed the call over 3s before it would have fired. One recovery
+      // deadline: the retry's. It hands over itself when its budget is spent.
+      {
+        const blockedFor = Number((brain as any).__createBlockedUntil ?? 0) - Date.now();
+        if ((brain as any).__retryTimer || blockedFor > 0) {
+          this.logger.warn(
+            `realtime ${ccid.slice(-8)} a retry is scheduled (cooldown ${Math.max(0, blockedFor)}ms more) — the watchdog stands back (${picture})`,
+          );
+          const again = setTimeout(
+            () => this.watchForSilence(brain, ccid, mode),
+            Math.max(0, blockedFor) + 250,
+          );
+          (again as any).unref?.();
+          (brain as any).__quiet = again;
+          return;
+        }
       }
 
       // Waiting on the model, or on a tool. This is where a stall is a fault.
@@ -1713,7 +1761,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         (brain as any).__tokensRemaining = tokens?.remaining;
         const cost =
           typeof prev === 'number' && typeof tokens?.remaining === 'number' && tokens.remaining < prev
-            ? ` — this reply ≈ ${prev - tokens.remaining} tokens`
+            ? ` — budget moved ≈ ${prev - tokens.remaining} tokens (estimate; see usage)`
             : '';
         if (line) this.logger.log(`realtime ${ccid.slice(-8)} rate limits: ${line}${cost}`);
         return;
@@ -1741,6 +1789,19 @@ export class VoiceRealtimeGateway implements OnModuleInit {
           this.logger.log(
             `realtime ${ccid.slice(-8)} reply ${rid.slice(-8)} done: status ${event.response?.status ?? '?'}, audio ${hadAudio}, tool ${hadTool}`,
           );
+          // What this reply cost, from the response itself. The remaining-
+          // budget delta logged with rate_limits.updated is an estimate that
+          // moves with every reply in flight; this is the number.
+          const u = event.response?.usage;
+          if (u && typeof u.total_tokens === 'number') {
+            const i = u.input_token_details ?? {};
+            const o = u.output_token_details ?? {};
+            this.logger.log(
+              `realtime ${ccid.slice(-8)} reply ${rid.slice(-8)} usage: ${u.total_tokens} tokens — ` +
+                `in ${u.input_tokens ?? '?'} (text ${i.text_tokens ?? '?'}, audio ${i.audio_tokens ?? '?'}, cached ${i.cached_tokens ?? 0}), ` +
+                `out ${u.output_tokens ?? '?'} (text ${o.text_tokens ?? '?'}, audio ${o.audio_tokens ?? '?'})`,
+            );
+          }
           const status = String(event.response?.status ?? '');
           const cancelled = status === 'cancelled';
           if (status === 'failed' || status === 'incomplete') {
@@ -1803,16 +1864,20 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       // What the line actually SAID. Without it, "it went silent" is a report
       // that cannot be told apart from "it spoke and the audio never arrived",
       // and those have completely different causes.
-      case 'response.output_audio_transcript.done':
+      case 'response.output_audio_transcript.done': {
         // We have finished saying something. Whatever the caller says next is
         // in answer to THIS, and whatever they said before it was not.
-        this.turnsOf(brain).askSeq += 1;
+        const t = this.turnsOf(brain);
+        t.askSeq += 1;
+        const by = t.asks.get(String(event.response_id ?? ''))?.askedBy;
+        if (by) t.askedFor.set(by, t.askSeq);
         if (event.transcript) {
           this.logger.log(
             `realtime ${ccid.slice(-8)} said ${JSON.stringify(String(event.transcript).trim().slice(0, 200))}`,
           );
         }
         return;
+      }
       case 'session.updated': {
         // What the server ACCEPTED, not what was asked for. The ready line
         // below prints our request; a threshold quietly overridden by a
@@ -2109,10 +2174,24 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // From the committed audio turn, not its transcript — the evidence a
         // yes needs on this engine is that a turn happened, not what the
         // transcriber made of it.
-        const lastTurnId = t.order[t.order.length - 1];
+        // A consent tool answers a scripted question. Its evidence is the
+        // FIRST unspent turn after that question — the caller's answer to
+        // it — never whatever they said most recently to something else.
+        // Every other tool is judged against the newest turn, as before.
+        const question = ANSWERS[name];
+        const askedFrom = question ? t.askedFor.get(question) : undefined;
+        const firstAfter =
+          askedFrom === undefined
+            ? undefined
+            : t.order.find((id) => {
+                const h = t.heard.get(id);
+                return !!h && h.askSeq >= askedFrom && !t.consumed.has(id);
+              });
+        const lastTurnId = firstAfter ?? t.order[t.order.length - 1];
         const lastTurn = lastTurnId ? t.heard.get(lastTurnId) : undefined;
+        const since = firstAfter ? (askedFrom as number) : askedAt;
         const spokeAfterQuestion =
-          !!lastTurnId && !!lastTurn && lastTurn.askSeq >= askedAt && !t.consumed.has(lastTurnId);
+          !!lastTurnId && !!lastTurn && lastTurn.askSeq >= since && !t.consumed.has(lastTurnId);
         const out = await (
           conversation
             ? this.voice.conversationTool(ccid, name, {
@@ -2173,9 +2252,12 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         if (this.responsesOf(brain).size > 0) {
           (brain as any).__responsePending = true;
           (brain as any).__toolAwaitingReply = true;
-          if (script) (brain as any).__pendingScript = script;
+          if (script) {
+            (brain as any).__pendingScript = script;
+            (brain as any).__pendingScriptBy = name;
+          }
         } else {
-          this.speakExactly(brain, script);
+          this.speakExactly(brain, script, { askedBy: script ? name : undefined });
         }
         // A tool answer that produces no speech is the same silence by another
         // route, so the clock runs on this too.

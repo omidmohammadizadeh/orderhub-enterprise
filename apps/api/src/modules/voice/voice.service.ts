@@ -504,6 +504,26 @@ export class VoiceService {
   }
 
   /**
+   * The first thing the other engine says when it takes over a call mid-order.
+   *
+   * Picks up from the saved state, sets what the engine is now waiting for,
+   * and records what was said — so the caller's next words land on the
+   * question they were asked. Null when the call cannot be loaded.
+   */
+  async resumeGreeting(callControlId: string): Promise<string | null> {
+    const loaded = await this.loadByControlId(callControlId).catch(() => null);
+    if (!loaded) return null;
+    const { call, ctx, state } = loaded;
+    const { say, next } = this.ai.resumeAloud(ctx, state);
+    state.stage = 'ORDER';
+    state.awaiting = next;
+    state.turns.push({ role: 'assistant', text: say });
+    await this.save(call.id, state).catch(() => undefined);
+    this.logger.log(`call ${call.id} resumed on the standard engine, waiting for ${next ?? 'the order'}`);
+    return say;
+  }
+
+  /**
    * Has this call moved past the opening menu?
    *
    * Once it has, a digit is not "press 2 for an order update" any more — it is
