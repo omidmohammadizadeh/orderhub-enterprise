@@ -55,6 +55,12 @@ describe("a location without table service", () => {
     expect(created).toHaveLength(0);
   });
 
+  it("does not even answer questions about its tables", async () => {
+    const { s } = svc(off);
+    const free = await s.phoneAvailability("loc1", FRIDAY, 2, 90);
+    expect(free.available).toEqual([]);
+  });
+
   it("shows no bookings, and cannot change or cancel one", async () => {
     const { s } = svc({ ...off, existing: { id: "res1", tenantId: "t1", locationId: "loc1", startsAt: FRIDAY, partySize: 2, durationMins: 90 } });
     expect(await s.phoneSettings("loc1")).toBeNull();

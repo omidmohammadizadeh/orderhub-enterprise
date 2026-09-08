@@ -387,7 +387,14 @@ export class ReservationsService {
     return { ...settings, tenantId: loc.brand.tenantId };
   }
 
-  /** Is that slot free, and if not, what is? */
+  /**
+   * Is that slot free, and if not, what is?
+   *
+   * Gated like everything else on this door, even though it only reads: one
+   * rule for the whole phone side is worth more than one saved query, and a
+   * shop that does not do table service should not answer questions about
+   * its tables either.
+   */
   async phoneAvailability(
     locationId: string,
     startsAt: Date,
@@ -395,6 +402,9 @@ export class ReservationsService {
     durationMins: number,
     ignoreReservationId?: string,
   ) {
+    if (!(await this.phoneSettings(locationId))) {
+      return { available: [], tables: [], capacityLeft: 0 } as any;
+    }
     return this.availability(locationId, startsAt, partySize, durationMins, {
       onlineOnly: true,
       ...(ignoreReservationId ? { ignoreReservationId } : {}),
