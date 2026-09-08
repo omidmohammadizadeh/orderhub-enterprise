@@ -69,6 +69,8 @@ import {
 } from './voice-menu-match';
 import { chargeableInNote } from './topping-note';
 import { isCurrentlyOpen } from '../../common/opening-hours.util';
+import { ReservationsService } from '../reservations/reservations.service';
+import { shopNow, spokenWhen, whenInShop } from './voice-when';
 import {
   coerceCart,
   cartSubtotal,
@@ -278,6 +280,24 @@ export interface VoiceState {
   /** What the board calls the order being amended, for reading back. */
   amendReference?: string;
   /**
+   * The booking on the table, so to speak.
+   *
+   * `checked` is the slot availability was proved for, and book_table will
+   * not save a slot that was never checked or that has since been changed —
+   * the same shape of lock as the order read-back, for the same reason: the
+   * model must not be able to talk its way to a booking nobody agreed to.
+   */
+  booking?: {
+    whenIso?: string;
+    partySize?: number;
+    name?: string;
+    notes?: string;
+    checked?: string;
+    /** An existing booking this call has looked up, for a change or a cancel. */
+    id?: string;
+    reference?: string;
+  };
+  /**
    * The order as it stood when it was loaded to be changed: the charges it
    * already carries, so they survive the edit, and where the kitchen had got
    * to, so a change that arrives after the kitchen moved on is refused.
@@ -400,6 +420,18 @@ export function coerceState(raw: unknown): VoiceState {
       r.pendingPayment === 'CASH' || r.pendingPayment === 'CARD' ? r.pendingPayment : undefined,
     amendOrderId: r.amendOrderId ? String(r.amendOrderId) : undefined,
     amendReference: r.amendReference ? String(r.amendReference) : undefined,
+    booking:
+      r.booking && typeof r.booking === 'object'
+        ? {
+            ...(r.booking.whenIso ? { whenIso: String(r.booking.whenIso) } : {}),
+            ...(Number(r.booking.partySize) > 0 ? { partySize: Number(r.booking.partySize) } : {}),
+            ...(r.booking.name ? { name: String(r.booking.name) } : {}),
+            ...(r.booking.notes ? { notes: String(r.booking.notes) } : {}),
+            ...(r.booking.checked ? { checked: String(r.booking.checked) } : {}),
+            ...(r.booking.id ? { id: String(r.booking.id) } : {}),
+            ...(r.booking.reference ? { reference: String(r.booking.reference) } : {}),
+          }
+        : undefined,
     amendLoaded:
       r.amendLoaded && typeof r.amendLoaded === 'object'
         ? {
@@ -480,6 +512,7 @@ export class VoiceAiService {
     private readonly sms: SmsService,
     private readonly payments: PaymentsService,
     private readonly addresses: AddressLookupService,
+    private readonly reservations: ReservationsService,
   ) {
     const apiKey = this.config.get<string>('ANTHROPIC_API_KEY');
     this.anthropic = apiKey ? new Anthropic({ apiKey }) : null;
@@ -3365,9 +3398,32 @@ AN ORDER ALREADY PLACED
 - "Where's my order?" — get_order_status. If they read a number, pass it exactly as said, letters included; otherwise leave it out and it uses their phone number. Say what it tells you to say.
 - "Can I add…" / "change…" to an order already placed, this call or earlier — find_order_to_change (with the number if they read one). It loads the whole order into the basket; add or change items as usual — "extra pepperoni on the pizza" is change_item on that line with modifierNames, and it keeps the toppings already there — then read_back_order once. When they agree — yes, okay, fine, that's it — call amend_order: it records the yes and saves. Do not read it back again unless something changed. No payment question for a change. Never place_order for a change.${theUsual}${closed}
 
+${this.bookingsPrompt(ctx)}
 MENU
 ${this.compactMenu(ctx)}
 * needs a choice — add_item tells you which`);
+  }
+
+  /**
+   * The booking half of the line — for the shops that have tables.
+   *
+   * Empty for everyone else, and that is the point: a takeaway pays nothing
+   * for it. The date and time are stated because the model cannot know them
+   * and a booking is the one thing this line does where the exact day matters
+   * more than anything else it says.
+   */
+  private bookingsPrompt(ctx: VoiceContext): string {
+    if (!ctx.reservations) return '';
+    const tz = ctx.timezone || 'Europe/London';
+    return `
+BOOKING A TABLE
+- Right now it is ${spokenWhen(new Date(), tz)}, which is ${shopNow(tz)} on the shop's clock. Work every date out from that: "tomorrow", "Friday", "this evening".
+- "Can I book a table" / "reserve" — ask how many and when, then check_table. Never promise a table you have not checked.
+- Read the DAY back as well as the time: "Friday the twelfth, at seven, table for four — is that right?" The day is what they will notice is wrong, and it is the part I worked out rather than heard.
+- When they agree, ask what name it is under and call book_table. Do not read the reference out unless they ask for it.
+- "Change my booking" / "cancel it" — find_booking first, say what you found, then change_booking or cancel_booking. Only cancel when they have said so plainly.
+- A booking is not an order. Do not take food for it, do not ask collection or delivery, and do not read back a basket. If they want to order as well, that is a separate thing.
+`;
   }
 
   /**
@@ -3526,6 +3582,71 @@ ${this.compactMenu(ctx)}
         },
       },
     });
+    // Table bookings, and only for a shop that has tables. Five tools and a
+    // prompt section is roughly a fifth of a turn's input on a line already
+    // close to its per-minute limit, so a takeaway is offered none of it.
+    if (ctx.reservations) {
+      base.push(
+        {
+          type: 'function',
+          name: 'check_table',
+          description:
+            "The caller wants a table. Checks whether that time is free before you promise it. `when` is the shop's own clock as yyyy-mm-ddThh:mm — work it out from the date and time given to you above. Always call this before book_table.",
+          parameters: {
+            type: 'object',
+            properties: {
+              when: { type: 'string', description: "e.g. 2026-09-12T19:00 — the shop's local time" },
+              partySize: { type: 'integer', minimum: 1 },
+            },
+            required: ['when', 'partySize'],
+          },
+        },
+        {
+          type: 'function',
+          name: 'book_table',
+          description:
+            'Save the booking. Only after check_table said yes, you have read the day, date, time and party size back, and they have agreed. Needs their name.',
+          parameters: {
+            type: 'object',
+            properties: {
+              name: { type: 'string', description: 'The name to put the table under' },
+              notes: { type: 'string', description: 'Anything the shop should know — high chair, birthday, wheelchair' },
+            },
+            required: ['name'],
+          },
+        },
+        {
+          type: 'function',
+          name: 'find_booking',
+          description:
+            "Find the booking a caller wants to change or cancel. Uses their number; pass `reference` only if they read one out. Call this before change_booking or cancel_booking.",
+          parameters: {
+            type: 'object',
+            properties: { reference: { type: 'string' } },
+          },
+        },
+        {
+          type: 'function',
+          name: 'change_booking',
+          description:
+            'Move a booking found by find_booking, or change how many are coming. Read the new details back and get a yes first.',
+          parameters: {
+            type: 'object',
+            properties: {
+              when: { type: 'string', description: "The shop's local time, yyyy-mm-ddThh:mm" },
+              partySize: { type: 'integer', minimum: 1 },
+            },
+          },
+        },
+        {
+          type: 'function',
+          name: 'cancel_booking',
+          description:
+            'Cancel a booking found by find_booking. Only when they have said plainly that they want it cancelled.',
+          parameters: { type: 'object', properties: {} },
+        },
+      );
+    }
     base.push({
       type: 'function',
       name: 'clear_order',
@@ -3586,6 +3707,16 @@ ${this.compactMenu(ctx)}
         return this.removeItemConversational(input, ctx, state);
       case 'change_item':
         return this.changeItemConversational(input, ctx, state);
+      case 'check_table':
+        return this.checkTable(input, ctx, state);
+      case 'book_table':
+        return this.bookTable(input, ctx, state, callerNumber);
+      case 'find_booking':
+        return this.findBooking(input, ctx, state, callerNumber);
+      case 'change_booking':
+        return this.changeBooking(input, ctx, state);
+      case 'cancel_booking':
+        return this.cancelBooking(ctx, state);
       case 'clear_order':
         state.cart.items = [];
         state.draft = undefined;
@@ -5518,6 +5649,289 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
         `Loaded order ${ref} to change (${order.status}${address}). Everything already on it is in the basket below, with its choices and charges. ` +
         `Add or change items as usual, then read_back_order, get a yes, and call amend_order — never place_order.\nOrder so far:\n${this.cartForModel(state, ctx)}`,
     };
+  }
+
+  // ── Table bookings ──────────────────────────────────────────────────
+  //
+  // A different job from taking an order, sharing only the phone. What it
+  // borrows from the order side is the shape of its locks: nothing is saved
+  // that was not checked, nothing is saved that the caller was not read back,
+  // and the checks live here rather than in the prompt.
+
+  /** The shop's clock, and the time the caller asked for, or a reason it is no good. */
+  private bookingTime(
+    when: unknown,
+    ctx: VoiceContext,
+  ): { at?: Date; result?: string } {
+    const tz = ctx.timezone || 'Europe/London';
+    const at = whenInShop(String(when ?? ''), tz);
+    if (!at) {
+      return {
+        result: `"${String(when ?? '')}" is not a time I can read. Give it as the shop's own clock, like 2026-09-12T19:00, worked out from the date and time you were given.`,
+      };
+    }
+    const res = ctx.reservations!;
+    const earliest = new Date(Date.now() + res.leadTimeMins * 60_000);
+    if (at.getTime() < Date.now()) {
+      return { result: `${spokenWhen(at, tz)} has already gone. Check what day they mean — today is ${spokenWhen(new Date(), tz)}.` };
+    }
+    if (at < earliest) {
+      return {
+        result: `Too soon — the shop needs ${res.leadTimeMins} minutes' notice, so the earliest is ${spokenWhen(earliest, tz)}. Offer them that or later.`,
+      };
+    }
+    const latest = new Date(Date.now() + res.maxDaysAhead * 86_400_000);
+    if (at > latest) {
+      return { result: `That is further ahead than the diary goes — bookings stop at ${spokenWhen(latest, tz)}.` };
+    }
+    return { at };
+  }
+
+  /**
+   * Is that table there, before anybody is promised it.
+   *
+   * Answers with the day of the week spelled out, because the day is the part
+   * of a date a caller checks and the part the model computes. Reading back
+   * "Friday the twelfth" is the only thing standing between a slip in that
+   * arithmetic and a family arriving on the wrong evening.
+   */
+  private async checkTable(
+    input: any,
+    ctx: VoiceContext,
+    state: VoiceState,
+  ): Promise<{ result: string }> {
+    if (!ctx.reservations) return { result: 'This shop does not take table bookings.' };
+    const tz = ctx.timezone || 'Europe/London';
+    const party = Math.round(Number(input?.partySize));
+    if (!Number.isFinite(party) || party < 1) {
+      return { result: 'Ask how many people are coming, then check again.' };
+    }
+    if (party > ctx.reservations.maxPartySize) {
+      return {
+        result: `A party of ${party} is bigger than this line books. Tell them the shop will sort it out personally and offer to put them through or take a message. Do not book it.`,
+      };
+    }
+    const { at, result } = this.bookingTime(input?.when, ctx);
+    if (!at) return { result: result! };
+
+    // Friday's hours, not the hours while they are on the phone.
+    if (ctx.openingHours && !isCurrentlyOpen(ctx.openingHours, tz, at)) {
+      return {
+        result: `The shop is closed then — ${spokenWhen(at, tz)}. Tell them when it is open that day and offer a time inside it. Do not book it.`,
+      };
+    }
+    let free: any;
+    try {
+      free = await this.reservations.phoneAvailability(
+        ctx.locationId,
+        at,
+        party,
+        ctx.reservations.slotMinutes,
+      );
+    } catch (e: any) {
+      this.logger.warn(`Voice availability failed for ${ctx.locationId}: ${e?.message ?? e}`);
+      return { result: 'The diary could not be reached. Offer to take a message so the shop can ring them back.' };
+    }
+    if (!free?.available?.length) {
+      return {
+        result: `Nothing free for ${party} on ${spokenWhen(at, tz)}. Say so and ask whether another time would work — then check that one.`,
+      };
+    }
+    state.booking = {
+      ...(state.booking ?? {}),
+      whenIso: at.toISOString(),
+      partySize: party,
+      checked: `${at.toISOString()}|${party}`,
+    };
+    return {
+      result: `Free: a table for ${party} on ${spokenWhen(at, tz)}. Read that back — the DAY as well as the time — ask for the name, and when they agree call book_table.`,
+    };
+  }
+
+  /**
+   * Write it in the diary.
+   *
+   * Two locks, and neither is a matter of the model's judgement: the slot has
+   * to be the one availability was proved for, and the caller has to have
+   * spoken since the question. A booking nobody agreed to costs a table on a
+   * Friday night and a family standing in a doorway.
+   */
+  private async bookTable(
+    input: any,
+    ctx: VoiceContext,
+    state: VoiceState,
+    callerNumber?: string | null,
+  ): Promise<{ result: string; sayNow?: string; turn?: Partial<VoiceTurn> }> {
+    if (!ctx.reservations) return { result: 'This shop does not take table bookings.' };
+    const tz = ctx.timezone || 'Europe/London';
+    const draft = state.booking;
+    if (!draft?.whenIso || !draft.partySize) {
+      return { result: 'Nothing has been checked yet. Call check_table with the time and how many people first.' };
+    }
+    if (draft.checked !== `${draft.whenIso}|${draft.partySize}`) {
+      return { result: 'That time or party size has changed since it was checked. Call check_table again.' };
+    }
+    if (input?.__spokeAfterQuestion !== true) {
+      return {
+        result: "Not booked — the caller has not spoken since you read it back. Read the day, date, time and number back, and WAIT for them to agree.",
+      };
+    }
+    const name = String(input?.name ?? state.knownName ?? '').trim();
+    if (!name) return { result: 'Ask what name to put the table under, then call book_table again.' };
+
+    try {
+      const saved = await this.reservations.createFromPhone({
+        locationId: ctx.locationId,
+        customerName: name.slice(0, 80),
+        customerPhone: callerNumber ?? null,
+        partySize: draft.partySize,
+        startsAt: new Date(draft.whenIso),
+        durationMins: ctx.reservations.slotMinutes,
+        notes: String(input?.notes ?? draft.notes ?? '').trim().slice(0, 200) || null,
+      });
+      state.booking = {
+        id: saved.id,
+        reference: saved.reference,
+        whenIso: saved.startsAt.toISOString(),
+        partySize: saved.partySize,
+        name: saved.customerName,
+      };
+      this.logger.log(
+        `Voice booking ${saved.reference} — ${saved.partySize} on ${saved.startsAt.toISOString()} at ${ctx.locationId}`,
+      );
+      const when = spokenWhen(saved.startsAt, tz);
+      return {
+        result: `Booked — ${saved.partySize} on ${when}, under ${saved.customerName}, reference ${saved.reference}. The caller is being told. Do not read the reference out unless they ask for it.`,
+        sayNow: `That's booked — a table for ${saved.partySize} on ${when}, under ${saved.customerName}. Anything else?`,
+        turn: { outcome: 'ENQUIRY' },
+      };
+    } catch (e: any) {
+      const why = String(e?.response?.message ?? e?.message ?? 'could not save it');
+      this.logger.warn(`Voice booking failed at ${ctx.locationId}: ${why}`);
+      return {
+        result: `Not booked — ${why}. Say that plainly, and either find another time with check_table or offer to take a message.`,
+      };
+    }
+  }
+
+  /** The booking this caller is ringing about. */
+  private async findBooking(
+    input: any,
+    ctx: VoiceContext,
+    state: VoiceState,
+    callerNumber?: string | null,
+  ): Promise<{ result: string }> {
+    if (!ctx.reservations) return { result: 'This shop does not take table bookings.' };
+    const tz = ctx.timezone || 'Europe/London';
+    let found: any[];
+    try {
+      found = await this.reservations.phoneLookup(ctx.locationId, {
+        phone: callerNumber ?? null,
+        reference: input?.reference ?? null,
+      });
+    } catch (e: any) {
+      this.logger.warn(`Voice booking lookup failed for ${ctx.locationId}: ${e?.message ?? e}`);
+      return { result: 'The diary could not be reached. Offer to take a message.' };
+    }
+    if (!found.length) {
+      return {
+        result:
+          "Nothing in the diary under this number. Ask whether it was booked under a different number or read out the reference — and if they are sure they have one, offer to put them through rather than arguing with them.",
+      };
+    }
+    if (found.length > 1) {
+      return {
+        result: `More than one booking under this number:\n${found
+          .map((r) => `- ${r.partySize} on ${spokenWhen(r.startsAt, tz)}`)
+          .join('\n')}\nAsk which one they mean, then call find_booking again with the reference if they have it.`,
+      };
+    }
+    const r = found[0]!;
+    state.booking = {
+      id: r.id,
+      reference: r.reference,
+      whenIso: r.startsAt.toISOString(),
+      partySize: r.partySize,
+      name: r.customerName,
+    };
+    return {
+      result: `Found it: ${r.partySize} on ${spokenWhen(r.startsAt, tz)}, under ${r.customerName}. Say it back and ask what they would like to change.`,
+    };
+  }
+
+  /** Move it, or change the number coming. */
+  private async changeBooking(
+    input: any,
+    ctx: VoiceContext,
+    state: VoiceState,
+  ): Promise<{ result: string; sayNow?: string }> {
+    if (!ctx.reservations) return { result: 'This shop does not take table bookings.' };
+    const tz = ctx.timezone || 'Europe/London';
+    const id = state.booking?.id;
+    if (!id) return { result: 'No booking has been found yet. Call find_booking first.' };
+
+    let at: Date | undefined;
+    if (input?.when !== undefined) {
+      const parsed = this.bookingTime(input.when, ctx);
+      if (!parsed.at) return { result: parsed.result! };
+      at = parsed.at;
+    }
+    const party =
+      input?.partySize !== undefined ? Math.round(Number(input.partySize)) : undefined;
+    if (party !== undefined && (!Number.isFinite(party) || party < 1)) {
+      return { result: 'Ask how many are coming now, then call change_booking again.' };
+    }
+    if (at === undefined && party === undefined) {
+      return { result: 'Nothing to change — say what is different, the time or the number coming.' };
+    }
+    try {
+      const saved = await this.reservations.updateFromPhone(ctx.locationId, id, {
+        ...(at ? { startsAt: at } : {}),
+        ...(party !== undefined ? { partySize: party } : {}),
+      });
+      state.booking = {
+        ...(state.booking ?? {}),
+        id: saved.id,
+        reference: saved.reference,
+        whenIso: saved.startsAt.toISOString(),
+        partySize: saved.partySize,
+      };
+      const when = spokenWhen(saved.startsAt, tz);
+      this.logger.log(`Voice booking ${saved.reference} moved to ${saved.startsAt.toISOString()}`);
+      return {
+        result: `Changed — ${saved.partySize} on ${when}. The caller is being told.`,
+        sayNow: `Done — that's now a table for ${saved.partySize} on ${when}. Anything else?`,
+      };
+    } catch (e: any) {
+      const why = String(e?.response?.message ?? e?.message ?? 'could not change it');
+      return {
+        result: `Not changed — ${why}. Say that plainly and offer another time, or offer to take a message.`,
+      };
+    }
+  }
+
+  /** Take it out of the diary. */
+  private async cancelBooking(
+    ctx: VoiceContext,
+    state: VoiceState,
+  ): Promise<{ result: string; sayNow?: string }> {
+    if (!ctx.reservations) return { result: 'This shop does not take table bookings.' };
+    const tz = ctx.timezone || 'Europe/London';
+    const id = state.booking?.id;
+    if (!id) return { result: 'No booking has been found yet. Call find_booking first.' };
+    try {
+      const saved = await this.reservations.cancelFromPhone(ctx.locationId, id);
+      this.logger.log(`Voice booking ${saved.reference} cancelled`);
+      const when = spokenWhen(saved.startsAt, tz);
+      state.booking = undefined;
+      return {
+        result: `Cancelled — the table on ${when} is back in the diary. The caller is being told.`,
+        sayNow: `That's cancelled — the table on ${when} is gone from the book. Anything else?`,
+      };
+    } catch (e: any) {
+      const why = String(e?.response?.message ?? e?.message ?? 'could not cancel it');
+      return { result: `Not cancelled — ${why}. Offer to put them through or take a message.` };
+    }
   }
 
   private async amendOrder(

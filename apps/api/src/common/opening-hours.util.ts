@@ -3,10 +3,22 @@
 // exact same opening-hours rules as the online storefront. Supports both the
 // legacy array shape and the Phase AN/AW map shape, including overnight slots.
 
-export function isCurrentlyOpen(openingHours: any, timezone: string): boolean {
+/**
+ * Is the shop open — now, or at any instant you name.
+ *
+ * `at` defaults to now, so every existing caller is unchanged. It exists
+ * because a table booked for Friday at seven has to be checked against
+ * Friday's hours, not against whether the shop happens to be open while the
+ * caller is on the phone.
+ */
+export function isCurrentlyOpen(
+  openingHours: any,
+  timezone: string,
+  at: Date = new Date(),
+): boolean {
   if (!openingHours) return true; // No hours configured = always open
 
-  const now = new Date(new Date().toLocaleString("en-US", { timeZone: timezone }));
+  const now = new Date(at.toLocaleString("en-US", { timeZone: timezone }));
   const dayOfWeek = now.getDay(); // 0 = Sunday
   const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 

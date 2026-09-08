@@ -319,9 +319,28 @@ export class ReservationsService {
       { onlineOnly: true },
     );
 
-    // Nobody is watching the diary at 9pm on a Friday. Push the booking to
-    // every till at this location so it can chime and print, the same way a
-    // new online ORDER already announces itself.
+    this.announce(created);
+    // Never leak the internal table assignment to the guest.
+    return {
+      reference: created.reference,
+      customerName: created.customerName,
+      partySize: created.partySize,
+      startsAt: created.startsAt,
+      durationMins: created.durationMins,
+      status: created.status,
+    };
+  }
+
+  /**
+   * Tell the shop a booking just arrived on its own.
+   *
+   * Nobody is watching the diary at 9pm on a Friday. Push it to every till at
+   * this location so it can chime and print, the same way a new online ORDER
+   * already announces itself — and the same bell for a booking the phone line
+   * took, because "the AI answered it" is not a reason for the floor to find
+   * out later.
+   */
+  private announce(created: any) {
     this.socket.emitToLocation(created.locationId, "reservation:new" as any, {
       id: created.id,
       reference: created.reference,
@@ -335,15 +354,197 @@ export class ReservationsService {
       notes: created.notes,
       source: created.source,
     } as any);
-    // Never leak the internal table assignment to the guest.
-    return {
-      reference: created.reference,
-      customerName: created.customerName,
-      partySize: created.partySize,
-      startsAt: created.startsAt,
-      durationMins: created.durationMins,
-      status: created.status,
+  }
+
+  // ── The phone ───────────────────────────────────────────────────────
+  //
+  // The third door, and the only one where nobody is in the room: an AI
+  // answers the line and speaks for the shop. Everything here is gated on
+  // THIS location having table service switched on, so a takeaway's phone
+  // line can never take a booking for tables it does not have — checked in
+  // the service and not in a prompt, because a prompt is a request.
+  //
+  // Treated as the internet, not as staff: a table held back from online
+  // booking is held back from the phone line too. A shop keeping a table for
+  // walk-ins wants a person deciding it, and the AI is not a person.
+
+  /** What this location allows on the phone, or null if it takes no bookings. */
+  async phoneSettings(locationId: string): Promise<
+    | (ReturnType<ReservationsService["readSettings"]> & { tenantId: string })
+    | null
+  > {
+    const loc = await this.prisma.location.findUnique({
+      where: { id: locationId },
+      select: { id: true, settings: true, brand: { select: { tenantId: true } } },
+    });
+    if (!loc?.brand?.tenantId) return null;
+    const settings = this.readSettings(loc.settings);
+    if (!settings.tableServiceEnabled) return null;
+    // A shop can shut the phone line out of the diary on its own, without
+    // giving up table service or online booking.
+    const phone = (loc.settings as any)?.tableService?.reservations?.phoneEnabled;
+    if (phone === false) return null;
+    return { ...settings, tenantId: loc.brand.tenantId };
+  }
+
+  /** Is that slot free, and if not, what is? */
+  async phoneAvailability(
+    locationId: string,
+    startsAt: Date,
+    partySize: number,
+    durationMins: number,
+    ignoreReservationId?: string,
+  ) {
+    return this.availability(locationId, startsAt, partySize, durationMins, {
+      onlineOnly: true,
+      ...(ignoreReservationId ? { ignoreReservationId } : {}),
+    });
+  }
+
+  /**
+   * Take a booking over the phone.
+   *
+   * Every limit the storefront obeys, with one difference: a party too big
+   * for the online form is told to ring the shop, and this caller already
+   * has. So an oversized party is refused in a way the line can act on — a
+   * person takes it — rather than being told to do what it is doing.
+   */
+  async createFromPhone(input: CreateReservationInput) {
+    const settings = await this.phoneSettings(input.locationId);
+    if (!settings) {
+      throw new BadRequestException("This location does not take table bookings.");
+    }
+    const partySize = Math.round(Number(input.partySize));
+    if (Number.isFinite(partySize) && partySize > settings.maxPartySize) {
+      throw new BadRequestException(
+        `A party of ${partySize} is bigger than this line can book — the shop takes those itself.`,
+      );
+    }
+    const created = await this.createInternal(
+      settings.tenantId,
+      { ...input, source: "PHONE" },
+      settings,
+      { onlineOnly: true },
+    );
+    this.announce(created);
+    return created;
+  }
+
+  /**
+   * The bookings this caller can talk about.
+   *
+   * Their own number, live bookings, still to come — the same shape of
+   * question the order line already answers for "where's my order". A
+   * reference is accepted too, because a caller who has the confirmation in
+   * front of them may read it out, but nobody is asked for one.
+   */
+  async phoneLookup(
+    locationId: string,
+    opts: { phone?: string | null; reference?: string | null },
+  ) {
+    const settings = await this.phoneSettings(locationId);
+    if (!settings) return [];
+    const ref = String(opts.reference ?? "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+    const digits = String(opts.phone ?? "").replace(/\D/g, "");
+    const upcoming = {
+      locationId,
+      status: { in: LIVE_STATUSES },
+      startsAt: { gte: new Date(Date.now() - 60 * 60_000) },
     };
+    if (ref) {
+      const all = await this.prisma.tableReservation.findMany({
+        where: upcoming,
+        orderBy: { startsAt: "asc" },
+        include: { table: { select: { id: true, name: true } } },
+      });
+      // Said down a phone, "R-7QK4M2" arrives as "r seven q k four m two"
+      // with the punctuation gone, so it is compared with everything but the
+      // letters and digits stripped out.
+      const hit = all.filter(
+        (r) => r.reference.toUpperCase().replace(/[^A-Z0-9]/g, "") === ref,
+      );
+      if (hit.length) return hit;
+    }
+    if (!digits) return [];
+    const all = await this.prisma.tableReservation.findMany({
+      where: upcoming,
+      orderBy: { startsAt: "asc" },
+      include: { table: { select: { id: true, name: true } } },
+    });
+    // Numbers are stored as they arrived — +44, 0044, or plain — so they are
+    // compared by their last nine digits, which is what identifies a UK
+    // subscriber whichever way the front of it was written.
+    const tail = digits.slice(-9);
+    return all.filter((r) => {
+      const theirs = String(r.customerPhone ?? "").replace(/\D/g, "");
+      return theirs.length >= 9 && theirs.slice(-9) === tail;
+    });
+  }
+
+  /** Move a booking, or change its size, over the phone. */
+  async updateFromPhone(
+    locationId: string,
+    id: string,
+    input: { startsAt?: Date; partySize?: number; notes?: string | null },
+  ) {
+    const settings = await this.phoneSettings(locationId);
+    if (!settings) {
+      throw new BadRequestException("This location does not take table bookings.");
+    }
+    const existing = await this.prisma.tableReservation.findFirst({
+      where: { id, locationId, status: { in: LIVE_STATUSES } },
+    });
+    if (!existing) throw new NotFoundException("Reservation not found");
+    const startsAt = input.startsAt ?? existing.startsAt;
+    const partySize = input.partySize ?? existing.partySize;
+    if (partySize > settings.maxPartySize) {
+      throw new BadRequestException(
+        `A party of ${partySize} is bigger than this line can book — the shop takes those itself.`,
+      );
+    }
+    if (input.startsAt) {
+      const earliest = new Date(Date.now() + settings.leadTimeMins * 60_000);
+      if (startsAt < earliest) {
+        throw new BadRequestException(
+          `Bookings need at least ${settings.leadTimeMins} minutes' notice.`,
+        );
+      }
+    }
+    // The new slot has to be free without counting this booking against
+    // itself, or moving a table by half an hour would collide with the very
+    // booking being moved.
+    const avail = await this.phoneAvailability(
+      locationId,
+      startsAt,
+      partySize,
+      existing.durationMins,
+      existing.id,
+    );
+    if (!avail.available.length) {
+      throw new BadRequestException("There is nothing free at that time.");
+    }
+    return this.update(existing.tenantId, id, {
+      ...(input.startsAt ? { startsAt } : {}),
+      ...(input.partySize !== undefined ? { partySize } : {}),
+      ...(input.notes !== undefined ? { notes: input.notes } : {}),
+      // A table chosen for the old time may be taken at the new one.
+      ...(input.startsAt && !avail.available.some((t: any) => t.id === existing.tableId)
+        ? { tableId: avail.available[0]!.id }
+        : {}),
+    });
+  }
+
+  /** Cancel a booking over the phone. */
+  async cancelFromPhone(locationId: string, id: string) {
+    const settings = await this.phoneSettings(locationId);
+    if (!settings) {
+      throw new BadRequestException("This location does not take table bookings.");
+    }
+    const existing = await this.prisma.tableReservation.findFirst({
+      where: { id, locationId, status: { in: LIVE_STATUSES } },
+    });
+    if (!existing) throw new NotFoundException("Reservation not found");
+    return this.setStatus(existing.tenantId, id, "CANCELLED");
   }
 
   // ── Lifecycle ───────────────────────────────────────────────────────

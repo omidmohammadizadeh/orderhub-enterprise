@@ -55,6 +55,24 @@ export interface VoiceContext extends WaMenuContext {
     fee: number;
     minOrderValue: number | null;
   }>;
+  /**
+   * Table bookings, or null when this shop does not do them.
+   *
+   * Null is the gate. A takeaway's line is offered no booking tools, is told
+   * nothing about tables in its prompt, and pays not one token for a feature
+   * it does not have — which matters on a line already close to its
+   * per-minute limit.
+   */
+  reservations: {
+    /** Longest sitting the diary books by default. */
+    slotMinutes: number;
+    /** Bigger than this and a person takes it, not the phone line. */
+    maxPartySize: number;
+    /** Nothing can be booked closer to now than this. */
+    leadTimeMins: number;
+    /** Nor further ahead than this. */
+    maxDaysAhead: number;
+  } | null;
   acceptsCash: boolean;
   acceptsCard: boolean;
   deliveryPrepMinutes: number;
@@ -225,6 +243,22 @@ export class VoiceContextService {
         fee: Number(z.fee ?? 0),
         minOrderValue: z.minOrderValue != null ? Number(z.minOrderValue) : null,
       })),
+      // Table bookings, only for a shop that actually has tables. Read from
+      // the same Location.settings the diary and the storefront booking form
+      // read, so one switch governs all three and the phone line can never
+      // book for a takeaway.
+      reservations: (() => {
+        const ts = (settings as any)?.tableService ?? {};
+        const res = ts?.reservations ?? {};
+        if (ts.enabled !== true) return null;
+        if (res.phoneEnabled === false) return null;
+        return {
+          slotMinutes: Number(res.slotMinutes) > 0 ? Number(res.slotMinutes) : 90,
+          maxPartySize: Number(res.maxPartySize) > 0 ? Number(res.maxPartySize) : 12,
+          leadTimeMins: Number(res.leadTimeMins) >= 0 ? Number(res.leadTimeMins) : 60,
+          maxDaysAhead: Number(res.maxDaysAhead) > 0 ? Number(res.maxDaysAhead) : 60,
+        };
+      })(),
       acceptsCash: direct.acceptsCash !== false,
       acceptsCard: direct.acceptsCard !== false,
       deliveryPrepMinutes: Number(direct.deliveryPrepMinutes ?? 45),
