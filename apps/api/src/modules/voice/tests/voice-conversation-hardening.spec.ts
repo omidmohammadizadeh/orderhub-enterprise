@@ -666,7 +666,7 @@ describe("two pizzas in one sentence each keep their own words", () => {
     const a = ai(); const st: any = { cart: { items: [] }, turns: [] };
     const out = await a.runToolForConversation("parse_order", { said: "chips and a pepperoni" }, ctx(), st, null);
     expect(st.cart.items.map((l: any) => l.itemId)).toEqual(["chips"]);
-    expect(out.result).toMatch(/^Added 1 × Chips\.\nStill to ask: Pepperoni comes in more than one size/);
+    expect(out.result).toMatch(/^Added 1 × Chips — £2\.90\.\nStill to ask: Pepperoni comes in more than one size/);
   });
 });
 
@@ -1393,5 +1393,150 @@ describe("a call ends without asking the model for one more reply", () => {
     expect(sim.log.join('\n')).toMatch(/closing — the goodbye was refused \(rate_limit_exceeded\); hanging up without it/);
     expect(sim.log.join('\n')).not.toMatch(/retry 1\/2/);
     expect(sim.gateway.telnyx.hangup).toHaveBeenCalled();
+  });
+});
+
+// ── call r4tWUGIg: "we've got the pizza and drink" — and add_item had kept neither ──
+describe("a deal is chosen across turns, and what is chosen is kept", () => {
+  const { VoiceAiService, coerceState } = require("../voice-ai.service");
+  const { matchOption } = require("../voice-menu-match");
+  const G = (id: string, name: string, opts: string[], over: any = {}) => ({ id, name, required: true, min: 1, max: 1, selectionType: "VARIANT", options: opts.map((o, i) => ({ id: `${id}${i + 1}`, name: o, price: 0 })), ...over });
+  const MENU: any[] = [
+    { id: "deal2", name: "MEAL DEAL 2", price: 25, categoryName: "Deals", modifierGroups: [
+      G("dp", "Pizza", ["Margherita", "Pepperoni"]),
+      G("dk", "Kebab", ["Donner Kebab", "Chicken Kebab"]),
+      G("dd", "Drink", ["CAN CKOE", "CAN SPRITE", "CAN FANTA", "CAN DIET COKE"]),
+      G("ds", "Sauce", ["Garlic", "Chilli", "No Sauce"], { required: false, min: 0 }),
+      G("dc", "CHIPS OR SALAD", ["Chips", "Salad"], { required: false, min: 1 }),
+    ] },
+    { id: "two", name: "TWO PIZZA DEAL", price: 18, categoryName: "Deals", modifierGroups: [G("tp", "Pizzas", ["Margherita", "Pepperoni"], { min: 2, max: 2, selectionType: "ADDON" })] },
+    { id: "coke", name: "CAN COKE", price: 1.2, categoryName: "Drinks", modifierGroups: [] },
+    { id: "gb", name: "Garlic Bread", price: 3.5, categoryName: "Sides", modifierGroups: [] },
+  ];
+  const c = () => { const x: any = { currency: "GBP", items: MENU, deliveryZones: [] }; x.itemIndex = new Map(MENU.map((i) => [i.id, i])); x.optionIndex = new Map(MENU.flatMap((i: any) => i.modifierGroups.flatMap((g: any) => g.options.map((o: any) => [o.id, { groupId: g.id, itemId: i.id, option: o }])))); return x; };
+  const ai = () => { const a: any = Object.create(VoiceAiService.prototype); a.logger = { log() {}, warn() {}, error() {} }; return a; };
+  const fresh = () => ({ cart: { items: [], fulfillmentType: "PICKUP", fulfillmentChosen: true }, turns: [] }) as any;
+  const mods = (st: any) => st.cart.items[0].modifiers.map((m: any) => m.name);
+
+  it("all the choices in one sentence: added once, at the deal's price, nothing standalone", () => {
+    const a = ai(); const st = fresh();
+    const out = a.addItemConversational({ said: "meal deal 2", modifierNames: ["pepperoni", "donner", "coke", "chips"] }, c(), st);
+    expect(out.result).toMatch(/^Added 1 × MEAL DEAL 2 with Pepperoni, Donner Kebab, CAN CKOE, Chips — £25\.00\./);
+    expect(st.cart.items).toHaveLength(1);
+    expect(st.cart.items[0].itemId).toBe("deal2");
+    expect(mods(st)).toEqual(["Pepperoni", "Donner Kebab", "CAN CKOE", "Chips"]);
+    expect(st.draft).toBeUndefined();
+  });
+
+  it("choices across several turns are kept, each reply says what is still missing, and 'coke' is the deal's drink", () => {
+    const a = ai(); const st = fresh(); const ctx = c();
+    const one = a.addItemConversational({ said: "meal deal 2", modifierNames: ["pepperoni"] }, ctx, st);
+    expect(one.result).toMatch(/^NOT added yet\. The MEAL DEAL 2 \(so far: pizza: Pepperoni\) still needs a choice of: kebab \(Donner Kebab, Chicken Kebab\); drink \(CAN CKOE, CAN SPRITE, CAN FANTA, CAN DIET COKE\); chips or salad \(Chips, Salad\)\./);
+    expect(one.result).toMatch(/what is chosen is kept/);
+    expect(st.draft).toMatchObject({ itemId: "deal2", picks: [{ g: "dp", o: "dp2" }] });
+    // "donner" — no modifierNames, just the caller's word, while a deal is open
+    const two = a.addItemConversational({ said: "donner" }, ctx, st);
+    expect(two.result).toMatch(/so far: pizza: Pepperoni; kebab: Donner Kebab\) still needs a choice of: drink/);
+    expect(two.result).not.toMatch(/kebab \(/);
+    // "coke" is on the menu as a can of its own; here it is the deal's drink
+    const three = a.addItemConversational({ said: "coke" }, ctx, st);
+    expect(three.result).toMatch(/drink: CAN CKOE\) still needs a choice of: chips or salad/);
+    expect(st.cart.items).toHaveLength(0);
+    const four = a.addItemConversational({ said: "chips" }, ctx, st);
+    expect(four.result).toMatch(/^Added 1 × MEAL DEAL 2 with Pepperoni, Donner Kebab, CAN CKOE, Chips/);
+    expect(st.cart.items).toHaveLength(1);
+    expect(st.cart.items.map((l: any) => l.itemId)).toEqual(["deal2"]);
+    expect(st.draft).toBeUndefined();
+  });
+
+  it("changing only the drink replaces that one choice and keeps the rest", () => {
+    const a = ai(); const st = fresh(); const ctx = c();
+    a.addItemConversational({ said: "meal deal 2", modifierNames: ["pepperoni", "donner", "coke"] }, ctx, st);
+    const out = a.addItemConversational({ said: "actually make it fanta", modifierNames: ["fanta"] }, ctx, st);
+    expect(out.result).toMatch(/drink: CAN FANTA/);
+    expect(out.result).toMatch(/Replaced: CAN CKOE/);
+    expect(st.draft.picks.map((p: any) => p.o)).toEqual(["dp2", "dk1", "dd3"]);
+  });
+
+  it("two of the same where the group allows it", () => {
+    const a = ai(); const st = fresh();
+    const out = a.addItemConversational({ said: "two pizza deal", modifierNames: ["two pepperoni"] }, c(), st);
+    expect(out.result).toMatch(/^Added 1 × TWO PIZZA DEAL with Pepperoni, Pepperoni/);
+    expect(mods(st)).toEqual(["Pepperoni", "Pepperoni"]);
+    const b = ai(); const st2 = fresh();
+    const half = b.addItemConversational({ said: "two pizza deal", modifierNames: ["pepperoni"] }, c(), st2);
+    expect(half.result).toMatch(/still needs a choice of: pizzas \(Margherita, Pepperoni\) — 1 more/);
+    b.addItemConversational({ said: "margherita" }, c(), st2);
+    expect(st2.cart.items[0].modifiers.map((m: any) => m.name)).toEqual(["Pepperoni", "Margherita"]);
+  });
+
+  it("a menu question midway leaves the draft where it was", async () => {
+    const a = ai(); const st = fresh(); const ctx = c();
+    a.addItemConversational({ said: "meal deal 2", modifierNames: ["pepperoni", "donner"] }, ctx, st);
+    await a.runTool("find_item", { said: "garlic bread" }, ctx, st, null);
+    expect(st.draft).toMatchObject({ itemId: "deal2" });
+    expect(st.draft.picks).toHaveLength(2);
+    expect(a.cartForModel(st, ctx)).toMatch(/\(still choosing, not on the order\) 1× MEAL DEAL 2 — pizza: Pepperoni; kebab: Donner Kebab — still needs: drink, chips or salad/);
+  });
+
+  it("'that's it' with a required choice missing does not finish; with everything required it does", () => {
+    const a = ai(); const st = fresh(); const ctx = c();
+    a.addItemConversational({ said: "meal deal 2", modifierNames: ["pepperoni", "donner", "chips"] }, ctx, st);
+    const early = a.addItemConversational({ done: true }, ctx, st);
+    expect(early.result).toMatch(/^NOT added yet\..*still needs a choice of: drink/);
+    expect(early.result).toMatch(/They said that's it, but this is required, so it is not finished/);
+    expect(st.cart.items).toHaveLength(0);
+    expect(st.draft.picks).toHaveLength(3);
+    const done = a.addItemConversational({ said: "sprite", done: true }, ctx, st);
+    expect(done.result).toMatch(/^Added 1 × MEAL DEAL 2 with Pepperoni, Donner Kebab, Chips, CAN SPRITE/);
+    expect(st.cart.items).toHaveLength(1);
+  });
+
+  it("says only what it actually kept, and what it could not place", () => {
+    const a = ai(); const st = fresh();
+    const out = a.addItemConversational({ said: "meal deal 2", modifierNames: ["pepperoni", "thingamajig"] }, c(), st);
+    expect(out.result).toMatch(/so far: pizza: Pepperoni/);
+    expect(out.result).toMatch(/Could not place: "thingamajig"/);
+  });
+
+  it("CAN CKOE: the caller's 'coke' finds it, 'diet coke' finds the diet one", () => {
+    const drinks = MENU[0].modifierGroups[2].options;
+    expect(matchOption("coke", drinks, "Drink")?.item.name).toBe("CAN CKOE");
+    expect(matchOption("diet coke", drinks, "Drink")?.item.name).toBe("CAN DIET COKE");
+    expect(matchOption("a can of coke", drinks, "Drink")?.item.name).toBe("CAN CKOE");
+    expect(matchOption("fanta", drinks, "Drink")?.item.name).toBe("CAN FANTA");
+  });
+
+  it("a second dish while a deal is open is added on its own, and the deal stays open", () => {
+    const a = ai(); const st = fresh(); const ctx = c();
+    a.addItemConversational({ said: "meal deal 2", modifierNames: ["pepperoni"] }, ctx, st);
+    const out = a.addItemConversational({ said: "garlic bread" }, ctx, st);
+    expect(out.result).toMatch(/^Added 1 × Garlic Bread/);
+    expect(out.result).toMatch(/still choosing, not on the order\) 1× MEAL DEAL 2/);
+    expect(st.draft).toMatchObject({ itemId: "deal2" });
+  });
+
+  it("forgetting the deal, clearing the order, and surviving a reload", async () => {
+    const a = ai(); const st = fresh(); const ctx = c();
+    a.addItemConversational({ said: "meal deal 2", modifierNames: ["pepperoni"] }, ctx, st);
+    const saved = coerceState(JSON.parse(JSON.stringify(st)));
+    expect(saved.draft).toMatchObject({ itemId: "deal2", picks: [{ g: "dp", o: "dp2" }] });
+    const dropped = a.removeItemConversational({ said: "the meal deal" }, ctx, st);
+    expect(dropped.result).toMatch(/Dropped the MEAL DEAL 2 that was being chosen/);
+    expect(st.draft).toBeUndefined();
+    a.addItemConversational({ said: "meal deal 2", modifierNames: ["pepperoni"] }, ctx, st);
+    await a.runToolForConversation("clear_order", {}, ctx, st, null);
+    expect(st.draft).toBeUndefined();
+  });
+
+  it("the prompt and the tool say how it works", () => {
+    const a = ai();
+    const p = a.promptForConversation(c(), fresh(), null);
+    expect(p).toMatch(/add_item keeps what is chosen so far/);
+    expect(p).toMatch(/call add_item with done: true/);
+    expect(p).toMatch(/Never add a deal's drink, side or sauce as a separate item/);
+    const add = a.toolsForConversation(c()).find((t: any) => t.name === "add_item");
+    expect(add.parameters.properties.done).toBeDefined();
+    expect(add.description).toMatch(/KEEPS what has been chosen so far/);
   });
 });

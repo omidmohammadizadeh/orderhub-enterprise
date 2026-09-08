@@ -57,24 +57,50 @@ export function soundFold(word: string): string {
   return digits + first + w.slice(1).replace(/[aeiou]/g, "");
 }
 
-/** Levenshtein, capped — we only care about near misses. */
+/**
+ * Edit distance, with a swap of two neighbouring letters counting as ONE.
+ *
+ * Menus are typed by people: "CAN CKOE" is on a live one. Plain Levenshtein
+ * puts that two edits from "coke", which is further than the matcher allows
+ * for a four-letter word, so the caller's "coke" found nothing — or worse,
+ * found "CAN DIET COKE". A transposition is the commonest typo there is.
+ */
 function distance(a: string, b: string): number {
   if (a === b) return 0;
   if (!a.length || !b.length) return Math.max(a.length, b.length);
-  let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
-  for (let i = 1; i <= a.length; i++) {
-    const row = [i];
+  const rows: number[][] = [];
+  for (let i = 0; i <= a.length; i++) {
+    rows[i] = [i];
     for (let j = 1; j <= b.length; j++) {
-      row[j] = Math.min(
-        (prev[j] ?? 0) + 1,
-        (row[j - 1] ?? 0) + 1,
-        (prev[j - 1] ?? 0) + (a[i - 1] === b[j - 1] ? 0 : 1),
+      if (i === 0) {
+        rows[0]![j] = j;
+        continue;
+      }
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      let d = Math.min(
+        (rows[i - 1]![j] ?? 0) + 1,
+        (rows[i]![j - 1] ?? 0) + 1,
+        (rows[i - 1]![j - 1] ?? 0) + cost,
       );
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+        d = Math.min(d, (rows[i - 2]![j - 2] ?? 0) + 1);
+      }
+      rows[i]![j] = d;
     }
-    prev = row;
   }
-  return prev[b.length] ?? 0;
+  return rows[a.length]![b.length] ?? 0;
 }
+
+/**
+ * Words an option is served in, not what it is. "CAN COKE" and "CAN DIET
+ * COKE" both scored one hit in two for a caller who said "coke"; with the
+ * can out of the way it is one in one against one in two, and the plain
+ * coke wins as it should.
+ */
+const CONTAINER = new Set([
+  "can", "cans", "bottle", "bottles", "btl", "cup", "glass", "pint", "portion",
+  "portions", "piece", "pieces", "pcs", "pot", "tub", "bag",
+]);
 
 const near = (a: string, b: string): boolean => {
   if (!a || !b) return false;
@@ -636,7 +662,7 @@ export function matchOption<T extends { name: string }>(
       // caller who did say "gyros wrap", so neither reading is imposed.
       const stripped = plain(item.name)
         .split(" ")
-        .filter((t) => t && !groupWords.has(t))
+        .filter((t) => t && !groupWords.has(t) && !CONTAINER.has(t))
         .join(" ");
       const score = Math.max(
         scoreItem(said, item.name),

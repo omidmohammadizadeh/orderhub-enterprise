@@ -58,6 +58,7 @@ import {
   splitQuantity,
   matchOption,
   matchWithQuantity,
+  scoreItem,
   segmentItems,
   explains,
   mustChoose,
@@ -210,6 +211,21 @@ export interface VoiceState {
    *  number they gave BEFORE we could name the street, so it isn't asked for
    *  twice — "five signing their drive" is a five we already have. */
   addr?: { postcode?: string; street?: string; city?: string; house?: string };
+  /**
+   * The conversation engine's dish-in-progress: chosen, not yet in the
+   * basket, because it still needs choices. Every choice the caller has made
+   * so far is kept here and the next answer is merged in — on call r4tWUGIg
+   * the pizza and the drink were said, then asked for again, five times,
+   * because each add_item started from nothing.
+   */
+  draft?: {
+    itemId: string;
+    quantity: number;
+    /** Option picks in the order made; a group with room for two may hold the same option twice. */
+    picks: Array<{ g: string; o: string }>;
+    notes?: string;
+    startedAt: number;
+  };
   /** A dish chosen but not yet added, because it still needs a choice made
    *  about it. Most of a real takeaway menu has one. */
   pendingItem?: {
@@ -340,6 +356,20 @@ export function coerceState(raw: unknown): VoiceState {
           }
         : undefined,
     knownName: r.knownName ? String(r.knownName) : undefined,
+    draft:
+      r.draft && typeof r.draft === 'object' && r.draft.itemId
+        ? {
+            itemId: String(r.draft.itemId),
+            quantity: Math.max(1, Math.round(Number(r.draft.quantity) || 1)),
+            picks: Array.isArray(r.draft.picks)
+              ? r.draft.picks
+                  .filter((x: any) => x && x.g && x.o)
+                  .map((x: any) => ({ g: String(x.g), o: String(x.o) }))
+              : [],
+            notes: r.draft.notes ? String(r.draft.notes) : undefined,
+            startedAt: Number(r.draft.startedAt) || Date.now(),
+          }
+        : undefined,
     pendingItem:
       r.pendingItem &&
       typeof r.pendingItem === 'object' &&
@@ -3269,7 +3299,7 @@ HOW YOU TALK
 TAKING THE ORDER
 - Start by asking what they'd like. Once the first item is in — or when they say that's everything — ask whether it's collection or delivery and call set_fulfillment. Never assume either. read_back_order refuses until you have asked.
 - When they list food, call parse_order with their exact words. It adds what it can and tells you what still needs a choice. For one item, add_item works the same way.
-- Some things need a choice — size, crust, sauce. The tool tells you which; ask in your own words, then call add_item again with modifierNames.
+- Some things need choices — size, crust, sauce; a deal needs several. add_item keeps what is chosen so far and tells you exactly what is still missing. Say briefly what it comes with, invite all the choices in one go in any order, then call add_item again with everything they said in modifierNames. "Make it Fanta" replaces that one choice. "That's it" while choosing means the choices are done, not the order: call add_item with done: true. Never add a deal's drink, side or sauce as a separate item, and never say a choice is saved unless the tool says it kept it.
 - Only the menu below and what the tools return are real. Never invent a dish, a size or a price. If it isn't on the menu, say so and offer the closest thing that is.
 - Quantities and notes ("no onions") go on the item. Allergies go in the notes AND you say you've noted it.
 
@@ -3300,7 +3330,7 @@ ${this.compactMenu(ctx)}
         return {
           ...t,
           description:
-            "Add one item to the order. Pass `said` with the caller's own words for that item (quantity included). If the item needs a choice you haven't got yet — size, crust, sauce — this does NOT add it: it tells you exactly what is missing and the options, so you can ask. Then call it again with modifierNames. Notes like 'no onions' go in notes.",
+            "Add one item to the order. Pass `said` with the caller's own words for that item (quantity included). If the item needs choices — size, crust, sauce; a deal needs several — this does NOT add it yet: it KEEPS what has been chosen so far and tells you exactly what is still missing, with the options. Call it again with the next answers in modifierNames (several at once, any order); a new choice for the same thing replaces the old one. When the caller says that's it / I'm done, call it with done: true. Notes like 'no onions' go in notes.",
           parameters: {
             ...(t.parameters as any),
             properties: {
@@ -3309,7 +3339,12 @@ ${this.compactMenu(ctx)}
                 type: 'array',
                 items: { type: 'string' },
                 description:
-                  "Choices by name, as the caller said them — e.g. ['12 inch', 'deep pan', 'garlic']. Matched against the item's option groups.",
+                  "Choices by name, as the caller said them — e.g. ['12 inch', 'deep pan', 'garlic', 'two pepperoni']. Matched against the item's option groups; merged with what was chosen before.",
+              },
+              done: {
+                type: 'boolean',
+                description:
+                  "The caller said that's it / I'm done choosing. Finishes the item with what is chosen if nothing required is missing; otherwise says what is.",
               },
             },
           },
@@ -3418,6 +3453,7 @@ ${this.compactMenu(ctx)}
         return this.changeItemConversational(input, ctx, state);
       case 'clear_order':
         state.cart.items = [];
+        state.draft = undefined;
         this.forgetConfirmation(state);
         return { result: 'The order is empty. Ask what they would like.' };
       case 'use_saved_address':
@@ -3450,46 +3486,123 @@ ${this.compactMenu(ctx)}
    * own words. Shared by add_item and change_item so "make it deep pan" is
    * resolved exactly the way "deep pan" was when the pizza went on.
    */
+  /** The old shape, for change_item: a set of option ids, from a set. */
   private chooseOptions(item: any, input: any, chosen: Set<string>): Set<string> {
     const groups: any[] = item.modifierGroups ?? [];
-    const has = (g: any) => g.options.filter((o: any) => chosen.has(o.id)).length;
+    const picks: Array<{ g: string; o: string }> = [];
+    for (const id of chosen) {
+      const g = groups.find((x) => x.options.some((o: any) => o.id === id));
+      if (g) picks.push({ g: g.id, o: id });
+    }
+    this.mergeChoices(item, input, picks);
+    return new Set(picks.map((p) => p.o));
+  }
+
+  /**
+   * Fold what the caller said into a dish's choices.
+   *
+   * Three sources, in order of how sure they are: option ids, option names
+   * ("deep pan", "two pepperoni"), and — for REQUIRED groups only — their own
+   * words, taken literally. Each pick lands in its group by that group's
+   * rule: a pick-one group replaces what was there ("make it Fanta"); a group
+   * with room for more fills up and then lets the oldest go. Says what it
+   * kept, what it replaced, and what it could not place, so the reply can
+   * acknowledge exactly that and nothing more.
+   */
+  private mergeChoices(
+    item: any,
+    input: any,
+    picks: Array<{ g: string; o: string }>,
+  ): { saved: string[]; replaced: string[]; unmatched: string[] } {
+    const groups: any[] = item.modifierGroups ?? [];
+    const saved: string[] = [];
+    const replaced: string[] = [];
+    const unmatched: string[] = [];
+    const room = (g: any) => Math.max(1, Number(g.max ?? 0) || 0, needed(g));
+    const inGroup = (g: any) => picks.filter((p) => p.g === g.id);
+    const put = (g: any, o: any) => {
+      if (room(g) === 1) {
+        for (const p of inGroup(g)) {
+          if (p.o !== o.id) replaced.push(String(item.modifierGroups.find((x: any) => x.id === g.id)?.options.find((x: any) => x.id === p.o)?.name ?? ''));
+        }
+        const kept = picks.filter((p) => p.g !== g.id);
+        picks.length = 0;
+        picks.push(...kept, { g: g.id, o: o.id });
+      } else {
+        while (inGroup(g).length >= room(g)) {
+          const oldest = inGroup(g)[0]!;
+          replaced.push(String(g.options.find((x: any) => x.id === oldest.o)?.name ?? ''));
+          picks.splice(picks.indexOf(oldest), 1);
+        }
+        picks.push({ g: g.id, o: o.id });
+      }
+      saved.push(String(o.name));
+    };
     for (const id of Array.isArray(input?.modifierOptionIds) ? input.modifierOptionIds : []) {
-      if (groups.some((g) => g.options.some((o: any) => o.id === String(id))))
-        chosen.add(String(id));
+      for (const g of groups) {
+        const o = g.options.find((x: any) => x.id === String(id));
+        if (o) put(g, o);
+      }
     }
     for (const raw of Array.isArray(input?.modifierNames) ? input.modifierNames : []) {
       const name = String(raw ?? '').trim();
       if (!name) continue;
+      // "two pepperoni" in a group that takes two is two picks of it.
+      const { quantity, rest } = splitQuantity(name);
+      const want = rest || name;
+      // The best-fitting group, not the first one to bite: "chips" belongs
+      // to "Chips or Salad", however early "Sauce" comes in the list.
+      let best: { g: any; o: any; score: number } | null = null;
       for (const g of groups) {
-        const hit = matchOption<any>(name, g.options, g.name);
-        if (!hit) continue;
-        // A new choice in a single-choice group replaces the old one:
-        // "make it deep pan" is not "deep pan as well as thin".
-        if (needed(g) <= 1) for (const o of g.options) chosen.delete(o.id);
-        chosen.add(hit.item.id);
-        break;
+        const hit = matchOption<any>(want, g.options, g.name);
+        if (hit && (!best || hit.score > best.score)) best = { g, o: hit.item, score: hit.score };
       }
+      if (!best) {
+        unmatched.push(name);
+        continue;
+      }
+      const times = room(best.g) > 1 ? Math.min(Math.max(1, quantity), room(best.g)) : 1;
+      for (let i = 0; i < times; i++) put(best.g, best.o);
     }
-    // Their own words, for required groups only — "12 inch pepperoni, deep
-    // pan" settles the crust without the model restating it. Never for an
-    // optional group: "pepperoni" must not add a paid pepperoni topping.
-    // "Twelve inch pepperoni, deep pan, chips and garlic sauce": the crust
-    // belongs to the pizza even though the segmenter filed it three words
-    // away. choicesFrom is the whole sentence; said is only the words that
-    // named the dish.
-    // Word for word, not by sound: fuzzily, "ten inch" chose Thin. Of the
-    // options they named, the most specific one — "deep pan" over "pan".
+    // Their own words, for required groups still open — word for word, never
+    // by sound (fuzzily, "ten inch" chose Thin). Never for an optional group:
+    // "pepperoni" must not add a paid pepperoni topping.
     const said = String(input?.choicesFrom ?? input?.said ?? '');
     if (said) {
       for (const g of groups) {
-        if (!mustChoose(g) || has(g) >= needed(g)) continue;
+        if (!mustChoose(g) || inGroup(g).length >= needed(g)) continue;
         const named = g.options
           .filter((o: any) => saysOption(said, String(o.name)))
           .sort((a: any, b: any) => String(b.name).length - String(a.name).length);
-        if (named.length) chosen.add(named[0]!.id);
+        if (named.length) put(g, named[0]);
       }
     }
-    return chosen;
+    return { saved, replaced, unmatched };
+  }
+
+  /** Do these words name this dish (rather than one of its choices)? */
+  private namesTheDish(said: string, item: any): boolean {
+    const m = matchItemGroups(said, [item], { limit: 1 });
+    return m.length > 0 && m[0]!.score >= 0.75;
+  }
+
+  /**
+   * Do these words name a choice on this dish — "coke" while a deal wants a
+   * drink? Every word they said has to belong to the option: "garlic bread"
+   * is a dish, however well "garlic" fits the deal's sauce.
+   */
+  private readsAsChoices(said: string, item: any): boolean {
+    const stop = new Set(['a', 'an', 'the', 'of', 'and', 'with', 'please', 'some', 'can', 'one', 'just']);
+    const words = String(said)
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .filter((w) => w && !stop.has(w));
+    if (!words.length) return false;
+    for (const g of item.modifierGroups ?? []) {
+      const hit = matchOption<any>(said, g.options, g.name);
+      if (hit && words.every((w) => scoreItem(w, `${hit.item.name} ${g.name}`) > 0)) return true;
+    }
+    return false;
   }
 
   /** The order as the model should see it: with the ids it needs to change it. */
@@ -3507,9 +3620,33 @@ ${this.compactMenu(ctx)}
         (l.modifiers ?? []).reduce((x: number, m: any) => x + Number(m.price ?? 0), 0);
       return a + unit * l.quantity;
     }, 0);
+    const draft = this.draftForModel(state, ctx);
     return lines.length
-      ? `${lines.join('\n')}\nSubtotal: ${money(subtotal, ctx.currency)}`
-      : '(empty)';
+      ? `${lines.join('\n')}\nSubtotal: ${money(subtotal, ctx.currency)}${draft}`
+      : `(empty)${draft}`;
+  }
+
+  /** The dish still being chosen, as the model should see it. */
+  private draftForModel(state: VoiceState, ctx: VoiceContext): string {
+    const d = state.draft;
+    const item = d ? ctx.itemIndex.get(d.itemId) : undefined;
+    if (!d || !item) return '';
+    const groups: any[] = item.modifierGroups ?? [];
+    const chosen = groups
+      .filter((g) => d.picks.some((p) => p.g === g.id))
+      .map(
+        (g) =>
+          `${this.groupLabel(g.name)}: ${d.picks
+            .filter((p) => p.g === g.id)
+            .map((p) => ctx.optionIndex.get(p.o)?.option.name ?? '?')
+            .join(' + ')}`,
+      );
+    const missing = groups
+      .filter((g) => mustChoose(g) && d.picks.filter((p) => p.g === g.id).length < needed(g))
+      .map((g) => this.groupLabel(g.name));
+    return `\n- (still choosing, not on the order) ${d.quantity}× ${item.name}${
+      chosen.length ? ` — ${chosen.join('; ')}` : ''
+    }${missing.length ? ` — still needs: ${missing.join(', ')}` : ''}`;
   }
 
   /** Which line they mean: by id, or by the words they used for it. */
@@ -3578,7 +3715,18 @@ ${this.compactMenu(ctx)}
     state: VoiceState,
   ): { result: string } {
     const { line, result } = this.findLine(input, state);
-    if (!line) return { result: result! };
+    if (!line) {
+      // "Forget the meal deal" — the one still being chosen.
+      const d = state.draft;
+      const draftItem = d ? ctx.itemIndex.get(d.itemId) : undefined;
+      if (d && draftItem && (!input?.said || this.namesTheDish(String(input.said), draftItem))) {
+        state.draft = undefined;
+        return {
+          result: `Dropped the ${draftItem.name} that was being chosen — nothing had been added.\nOrder so far:\n${this.cartForModel(state, ctx)}`,
+        };
+      }
+      return { result: result! };
+    }
     const n = Number(input?.quantity);
     if (Number.isInteger(n) && n > 0 && n < line.quantity) {
       line.quantity -= n;
@@ -3651,14 +3799,15 @@ ${this.compactMenu(ctx)}
   ): { item?: any; quantity: number; result?: string } {
     const explicit = ctx.itemIndex.get(String(input?.itemId ?? ''));
     const said = String(input?.said ?? '').trim();
-    const { quantity: spokenQty, rest } = said
-      ? splitQuantity(said)
-      : { quantity: undefined, rest: '' };
+    // "Two Pizza Deal" is a dish, "two chips" is two of one: both readings of
+    // a leading number are tried against the menu and the better one wins.
+    const { quantity: spokenQty, matches } = said
+      ? matchWithQuantity(said, ctx.items, { limit: 3 })
+      : { quantity: undefined, matches: [] as ReturnType<typeof matchItemGroups<any>> };
     const quantity = Math.max(1, Math.round(Number(input?.quantity) || spokenQty || 1));
     if (explicit) return { item: explicit, quantity };
     if (!said) return { quantity, result: "Say which item — pass `said` with the caller's words." };
 
-    const matches = matchItemGroups(rest || said, ctx.items, { limit: 3 });
     if (!matches.length) {
       return {
         quantity,
@@ -3690,42 +3839,108 @@ ${this.compactMenu(ctx)}
    * model is told exactly what to ask. If it is all there, it goes in.
    */
   addItemConversational(input: any, ctx: VoiceContext, state: VoiceState): { result: string } {
-    const { item, quantity, result } = this.resolveDish(input, ctx);
-    if (!item) return { result: result ?? "That item isn't on the menu." };
+    // A dish still being chosen takes the caller's next words first: "coke"
+    // while a meal deal wants a drink is that drink, not a separately priced
+    // can — and "pepperoni" is the deal's pizza, not a second pizza.
+    const draft = state.draft;
+    const draftItem = draft ? ctx.itemIndex.get(draft.itemId) : undefined;
+    const said = String(input?.said ?? '').trim();
+    const explicit = ctx.itemIndex.get(String(input?.itemId ?? ''));
+    let item: any;
+    let quantity = 1;
+    if (draft && draftItem) {
+      const hasChoices = Array.isArray(input?.modifierNames) && input.modifierNames.length > 0;
+      const aboutDraft = explicit
+        ? explicit.id === draftItem.id
+        : !said ||
+          input?.done === true ||
+          this.namesTheDish(said, draftItem) ||
+          this.readsAsChoices(said, draftItem) ||
+          (hasChoices && !this.resolveDish(input, ctx).item);
+      if (aboutDraft) {
+        item = draftItem;
+        quantity = draft.quantity;
+      }
+    }
+    if (!item) {
+      const r = this.resolveDish(input, ctx);
+      if (!r.item) return { result: r.result ?? "That item isn't on the menu." };
+      item = r.item;
+      quantity = r.quantity;
+    }
+    const continuing = !!draft && draft.itemId === item.id;
+    const picks = continuing ? [...draft!.picks] : [];
+    // "Donner." — one word, no modifierNames, while the deal wants a kebab:
+    // that word IS the choice.
+    const asChoice =
+      continuing &&
+      said &&
+      !explicit &&
+      !(Array.isArray(input?.modifierNames) && input.modifierNames.length) &&
+      !this.namesTheDish(said, item) &&
+      this.readsAsChoices(said, item);
+    const merged = this.mergeChoices(item, asChoice ? { ...input, modifierNames: [said] } : input, picks);
 
     const groups: any[] = item.modifierGroups ?? [];
-    const chosen = this.chooseOptions(item, input, new Set<string>());
-    const has = (g: any) => g.options.filter((o: any) => chosen.has(o.id)).length;
-    const missing = groups.filter((g) => mustChoose(g) && has(g) < needed(g));
+    const count = (g: any) => picks.filter((p) => p.g === g.id).length;
+    const missing = groups.filter((g) => mustChoose(g) && count(g) < needed(g));
+    const notes = String(input?.notes ?? draft?.notes ?? '')
+      .trim()
+      .slice(0, 200);
+    const nameOf = (p: { o: string }) => ctx.optionIndex.get(p.o)?.option.name ?? '?';
+    const { base } = splitSize(item.name);
+
     if (missing.length) {
-      const { base } = splitSize(item.name);
+      // Kept, not lost: the next answer merges into this.
+      state.draft = {
+        itemId: item.id,
+        quantity,
+        picks,
+        ...(notes ? { notes } : {}),
+        startedAt: continuing ? draft!.startedAt : Date.now(),
+      };
+      const chosen = groups
+        .filter((g) => count(g) > 0)
+        .map((g) => `${this.groupLabel(g.name)}: ${picks.filter((p) => p.g === g.id).map(nameOf).join(' + ')}`);
       const asks = missing.map((g) => {
         const opts = g.options.slice(0, 8).map((o: any) => this.spokenSize(o.name));
-        return `${this.groupLabel(g.name)} (${opts.join(', ')}${g.options.length > 8 ? ', …' : ''})`;
+        const more = needed(g) - count(g);
+        return `${this.groupLabel(g.name)} (${opts.join(', ')}${g.options.length > 8 ? ', …' : ''})${
+          needed(g) > 1 ? ` — ${more} more` : ''
+        }`;
       });
+      const unplaced = merged.unmatched.length
+        ? ` Could not place: ${merged.unmatched.map((u) => `"${u}"`).join(', ')}.`
+        : '';
+      const swapped = merged.replaced.filter(Boolean).length
+        ? ` Replaced: ${merged.replaced.filter(Boolean).join(', ')}.`
+        : '';
+      const done = input?.done === true ? " They said that's it, but this is required, so it is not finished." : '';
       return {
-        result: `NOT added yet. The ${base} still needs a choice of: ${asks.join('; ')}. Ask the caller in your own words — one question — then call add_item again with modifierNames.`,
+        result:
+          `NOT added yet. The ${base}${chosen.length ? ` (so far: ${chosen.join('; ')})` : ''} still needs a choice of: ${asks.join('; ')}.` +
+          `${swapped}${unplaced}${done} Ask for what's missing in one question — they can answer several at once, in any order — then call add_item again with what they say; what is chosen is kept.`,
       };
     }
 
-    const modifiers = [...chosen]
-      .map((id) => ctx.optionIndex.get(id))
+    const modifiers = picks
+      .map((p) => ctx.optionIndex.get(p.o))
       .filter(Boolean)
       .map((m: any) => ({ optionId: m.option.id, name: m.option.name, price: m.option.price }));
-    const notes = String(input?.notes ?? '')
-      .trim()
-      .slice(0, 200);
     // The same line, seconds apart, from two different tool calls is one
     // order, not two: parse_order took 2.7s, the caller spoke again, and
     // the model — prompted by the new turn — added the pizza a second time.
     const recent = (state as any).__lastAdd as { key: string; at: number } | undefined;
-    const key = `${item.id}|${[...chosen].sort().join(',')}|${notes}`;
-    if (recent && recent.key === key && Date.now() - recent.at < 8000) {
+    const key = `${item.id}|${picks.map((p) => p.o).sort().join(',')}|${notes}`;
+    if (!continuing && recent && recent.key === key && Date.now() - recent.at < 8000) {
       return {
         result: `Already on the order — that ${item.name} was added a moment ago. Not adding it again.\nOrder so far:\n${this.cartForModel(state, ctx)}`,
       };
     }
     (state as any).__lastAdd = { key, at: Date.now() };
+    // Only the dish that was being chosen closes its draft: chips added while
+    // a deal is still open leave the deal open.
+    if (continuing) state.draft = undefined;
     state.cart.items.push({
       lineId: Math.random().toString(36).slice(2, 9),
       itemId: item.id,
@@ -3740,8 +3955,15 @@ ${this.compactMenu(ctx)}
     state.orderConfirmedOf = undefined;
 
     const withOpts = modifiers.length ? ` with ${modifiers.map((m) => m.name).join(', ')}` : '';
+    const unplaced = merged.unmatched.length
+      ? ` (could not place: ${merged.unmatched.map((u) => `"${u}"`).join(', ')})`
+      : '';
+    const line = state.cart.items[state.cart.items.length - 1]!;
     return {
-      result: `Added ${quantity} × ${item.name}${withOpts}${notes ? ` (note: ${notes})` : ''}.\nOrder so far:\n${this.cartForModel(state, ctx)}`,
+      result: `Added ${quantity} × ${item.name}${withOpts}${notes ? ` (note: ${notes})` : ''} — ${money(
+        lineTotal(line as any),
+        ctx.currency,
+      )}.${unplaced}\nOrder so far:\n${this.cartForModel(state, ctx)}`,
     };
   }
 
