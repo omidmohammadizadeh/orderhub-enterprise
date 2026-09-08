@@ -663,12 +663,106 @@ export function spokenNumbers(said: string): string {
     .join("");
 }
 
+/**
+ * What a closed list can say back: the answer, a real tie, or nothing.
+ *
+ * "We don't sell that" and "which of these two did you mean" are different
+ * sentences, and a matcher that returns null for both makes the line say the
+ * first when it means the second. On call DPD-n9tw the caller asked for extra
+ * pepperoni on a Margheritha, the tie between "+pepperoni" and "+peppers"
+ * came back as null, and he was told the pizza cannot have pepperoni — while
+ * looking at it on the website.
+ */
+export type OptionMatch<T> =
+  | { kind: "matched"; item: T; score: number }
+  | { kind: "ambiguous"; items: T[] }
+  | { kind: "none" };
+
+/** Words that ask for a thing rather than name it. */
+const ADDITIVE = /^(?:extra|extras|add|added|plus|with|more|additional|another|double|triple|twice)\s+/i;
+
+/**
+ * The option the caller named outright, if exactly one did.
+ *
+ * scoreItem caps at 1, so an option whose name IS what they said scores no
+ * better than one the phonetic fold merely reached: "pepperoni" scores 1.00
+ * against "+pepperoni" and 1.00 against "+peppers", the tie-break refuses
+ * both, and the answer the caller actually said is thrown away with the one
+ * they didn't. Identity is not a kind of similarity — it is checked first,
+ * and only what it cannot settle goes to the scorer.
+ *
+ * The written name is tried before the shortened one, so an option really
+ * called "EXTRA CHEESE" wins over "cheese" in a group called "extra
+ * toppings", and the additive words a caller wraps around a topping — extra,
+ * add, plus — are only stripped once the full phrase has failed.
+ */
+function namedOutright<T extends { name: string }>(
+  said: string,
+  options: T[],
+  groupWords: Set<string>,
+): OptionMatch<T> | null {
+  const words = (t: string) => plain(t).split(" ").filter(Boolean);
+  const shorten = (t: string) =>
+    words(t).filter((w) => !groupWords.has(w) && !CONTAINER.has(w)).join(" ");
+  const singularly = (t: string) => words(t).map(singular).join(" ");
+
+  const full = plain(said);
+  const bare = ADDITIVE.test(said) ? plain(String(said).replace(ADDITIVE, "")) : "";
+  const heard = [full, bare].filter(Boolean);
+
+  for (const phrase of heard) {
+    for (const shape of [(o: T) => plain(o.name), (o: T) => shorten(o.name)]) {
+      for (const fold of [(t: string) => t, singularly]) {
+        const key = fold(phrase);
+        if (!key) continue;
+        const hits = options.filter((o) => {
+          const name = shape(o);
+          return name && fold(name) === key;
+        });
+        if (hits.length === 1) return { kind: "matched", item: hits[0]!, score: 1 };
+        // Two options with the same name is the shop's ambiguity, not the
+        // caller's mistake, and it has to be asked about.
+        if (hits.length > 1) return { kind: "ambiguous", items: hits };
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * The same question, answered in full: what matched, or what it lies between.
+ *
+ * matchOption is this with the middle case flattened back to null, kept
+ * because most callers only need to know whether they got an answer.
+ */
+export function matchOptionResult<T extends { name: string }>(
+  said: string,
+  options: T[],
+  groupName: string,
+): OptionMatch<T> {
+  const groupWords = new Set(plain(groupName).split(" ").filter(Boolean));
+  const outright = namedOutright(spokenNumbers(said), options, groupWords);
+  if (outright) return outright;
+  const fuzzy = matchOption(said, options, groupName, { skipExact: true });
+  if (fuzzy) return { kind: "matched", item: fuzzy.item, score: fuzzy.score };
+  return tiedOptions(said, options, groupWords);
+}
+
 export function matchOption<T extends { name: string }>(
   said: string,
   options: T[],
   groupName: string,
+  opts: { skipExact?: boolean } = {},
 ): { item: T; score: number } | null {
   const groupWords = new Set(plain(groupName).split(" ").filter(Boolean));
+  if (!opts.skipExact) {
+    // An option the caller named outright is the answer, whatever else the
+    // phonetic fold reached. Call DPD-n9tw: "+peppers" tied with the
+    // "+pepperoni" he asked for, and a tie reads as "we don't have it".
+    const outright = namedOutright(spokenNumbers(said), options, groupWords);
+    if (outright?.kind === "matched") return { item: outright.item, score: outright.score };
+    if (outright?.kind === "ambiguous") return null;
+  }
   // Spoken numbers become digits, for the CALLER's words only.
   //
   // A menu writes 12" and a caller says "twelve inch" — one of the two has to
@@ -676,10 +770,24 @@ export function matchOption<T extends { name: string }>(
   // would rewrite half a pizzeria. Confined to a closed list, where a number
   // is nearly always a size or a count and almost never part of a dish name.
   said = spokenNumbers(said);
-  const heard = plain(said).split(" ").filter(Boolean);
-  if (!heard.length || !options.length) return null;
+  const scored = rankOptions(said, options, groupWords);
+  const [best, second] = scored;
+  if (!best || best.score < 0.5) return null;
+  if (second && best.score - second.score < 0.2 && best.covered - second.covered < 0.3) {
+    return null;
+  }
+  return { item: best.item, score: best.score };
+}
 
-  const scored = options
+/** How every option in the list scores, best first. */
+function rankOptions<T extends { name: string }>(
+  said: string,
+  options: T[],
+  groupWords: Set<string>,
+): Array<{ item: T; score: number; covered: number }> {
+  const heard = plain(said).split(" ").filter(Boolean);
+  if (!heard.length || !options.length) return [];
+  return options
     .map((item) => {
       // Scored both ways round: stripping helps "gyros" and would hurt a
       // caller who did say "gyros wrap", so neither reading is imposed.
@@ -698,13 +806,27 @@ export function matchOption<T extends { name: string }>(
       return { item, score, covered };
     })
     .sort((a, b) => b.score - a.score || b.covered - a.covered);
+}
 
-  const [best, second] = scored;
-  if (!best || best.score < 0.5) return null;
-  if (second && best.score - second.score < 0.2 && best.covered - second.covered < 0.3) {
-    return null;
-  }
-  return { item: best.item, score: best.score };
+/**
+ * Which options the refusal was actually between.
+ *
+ * Only reached once nothing has won: if two plausible options are level, the
+ * caller gets asked which; if the list has nothing near what they said, that
+ * is the honest "we don't have it".
+ */
+function tiedOptions<T extends { name: string }>(
+  said: string,
+  options: T[],
+  groupWords: Set<string>,
+): OptionMatch<T> {
+  const scored = rankOptions(said, options, groupWords);
+  const best = scored[0];
+  if (!best || best.score < 0.5) return { kind: "none" };
+  const tied = scored.filter(
+    (x) => best.score - x.score < 0.2 && Math.abs(best.covered - x.covered) < 0.3,
+  );
+  return tied.length > 1 ? { kind: "ambiguous", items: tied.map((x) => x.item) } : { kind: "none" };
 }
 
 /**

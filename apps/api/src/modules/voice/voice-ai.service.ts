@@ -58,6 +58,7 @@ import {
   splitSize,
   splitQuantity,
   matchOption,
+  matchOptionResult,
   matchWithQuantity,
   scoreItem,
   segmentItems,
@@ -3332,6 +3333,7 @@ TAKING THE ORDER
 - When they list food, call parse_order with their exact words. It adds what it can and tells you what still needs a choice. For one item, add_item works the same way.
 - Some things need choices — size, crust, sauce; a deal needs several. add_item keeps what is chosen so far and tells you exactly what is still missing. Say briefly what it comes with, invite all the choices in one go in any order, then call add_item again with everything they said in modifierNames. "Make it Fanta" replaces that one choice. "That's it" while choosing means the choices are done, not the order: call add_item with done: true. Never add a deal's drink, side or sauce as a separate item, and never say a choice is saved unless the tool says it kept it.
 - Only the menu below and what the tools return are real. Never invent a dish, a size or a price. If it isn't on the menu, say so and offer the closest thing that is.
+- You cannot see which toppings a dish takes — the menu above is dishes and prices. So NEVER tell a caller a topping or option is unavailable from memory. Put it through add_item or change_item, or check with find_item, and say what the tool tells you. If they say they can see it on the website, they are right and you are guessing.
 - Quantities go on the item. An EXTRA — "extra pepperoni", "add mushrooms", "double cheese" — is a paid topping: put it in modifierNames, never in notes, and tell them the price the tool gives back. Notes are only for how it's made: "well done", "no onions", "cut in half". Allergies go in the notes AND you say you've noted it.
 
 CHANGING THEIR MIND
@@ -3619,11 +3621,26 @@ ${this.compactMenu(ctx)}
     item: any,
     input: any,
     picks: Array<{ g: string; o: string }>,
-  ): { saved: string[]; replaced: string[]; unmatched: string[]; charged: string[]; noteLeft?: string } {
+  ): {
+    saved: string[];
+    replaced: string[];
+    unmatched: string[];
+    ambiguous: Array<{ said: string; options: string[] }>;
+    already: string[];
+    charged: string[];
+    noteLeft?: string;
+  } {
     const groups: any[] = item.modifierGroups ?? [];
     const saved: string[] = [];
     const replaced: string[] = [];
     const unmatched: string[] = [];
+    // Two options level with each other is a question for the caller, not a
+    // "we don't have it" — see the comment on OptionMatch. And a choice
+    // already on the line is not a second helping: the model repeats itself
+    // whenever a caller queries something, and each repeat used to charge
+    // again.
+    const ambiguous: Array<{ said: string; options: string[] }> = [];
+    const already: string[] = [];
     // How many picks a group holds. A pick-many group with no maximum
     // written down holds as many as they ask for — the POS reads a blank
     // maximum as "any". Read as one, every topping named replaced the one
@@ -3652,6 +3669,23 @@ ${this.compactMenu(ctx)}
         picks.push({ g: g.id, o: o.id });
       }
       saved.push(String(o.name));
+    };
+    /**
+     * One named choice, however many times they asked for it.
+     *
+     * Without a count, an option already on the line stays as it is — asking
+     * for "extra pepperoni" twice while the line is being sorted out is one
+     * pepperoni, not two. With a count, the line is made to match the count:
+     * "double pepperoni" on a pizza that already has one is two, not three.
+     */
+    const applyPick = (g: any, o: any, quantity: number) => {
+      const copies = () => inGroup(g).filter((p) => p.o === o.id).length;
+      const want = quantity > 1 ? Math.min(quantity, room(g)) : 1;
+      if (copies() >= want) {
+        already.push(String(o.name));
+        return;
+      }
+      while (copies() < want) put(g, o);
     };
     for (const id of Array.isArray(input?.modifierOptionIds) ? input.modifierOptionIds : []) {
       for (const g of groups) {
@@ -3692,9 +3726,15 @@ ${this.compactMenu(ctx)}
         .filter((w) => w && !['a', 'an', 'the', 'of', 'and', 'with', 'please', 'can', 'some'].includes(w));
       type Fit = { g: any; o: any; score: number; covered: boolean; open: boolean; named: boolean };
       const fits: Fit[] = [];
+      const tied: string[] = [];
       for (const g of groups) {
-        const hit = matchOption<any>(want, g.options, g.name);
-        if (!hit) continue;
+        const found = matchOptionResult<any>(want, g.options, g.name);
+        if (found.kind === 'ambiguous') {
+          tied.push(...found.items.map((o: any) => String(o.name)));
+          continue;
+        }
+        if (found.kind !== 'matched') continue;
+        const hit = found;
         const inOption = (w: string) => scoreItem(w, `${hit.item.name} ${g.name}`) > 0;
         fits.push({
           g,
@@ -3714,11 +3754,14 @@ ${this.compactMenu(ctx)}
       );
       const best = fits[0] ?? null;
       if (!best) {
-        unmatched.push(name);
+        // Level between two real options, or nothing like it on the item —
+        // and the difference is the difference between asking the caller and
+        // telling them they cannot have it.
+        if (tied.length > 1) ambiguous.push({ said: name, options: [...new Set(tied)] });
+        else unmatched.push(name);
         continue;
       }
-      const times = room(best.g) > 1 ? Math.min(Math.max(1, quantity), room(best.g)) : 1;
-      for (let i = 0; i < times; i++) put(best.g, best.o);
+      applyPick(best.g, best.o, Math.max(1, quantity));
     }
     // Their own words, for required groups still open — word for word, never
     // by sound (fuzzily, "ten inch" chose Thin). Never for an optional group:
@@ -3766,8 +3809,8 @@ ${this.compactMenu(ctx)}
         let hit: { g: any; o: any } | null = null;
         for (const g of groups) {
           if (mustChoose(g)) continue; // a required choice is asked for, not read out of a note
-          const m = matchOption<any>(want, g.options, g.name);
-          if (m && words.length && words.every((w) => scoreItem(w, `${m.item.name} ${g.name}`) > 0)) {
+          const m = matchOptionResult<any>(want, g.options, g.name);
+          if (m.kind === 'matched' && words.length && words.every((w) => scoreItem(w, `${m.item.name} ${g.name}`) > 0)) {
             hit = { g, o: m.item };
             break;
           }
@@ -3776,13 +3819,15 @@ ${this.compactMenu(ctx)}
           kept.push(part);
           continue;
         }
-        const times = room(hit.g) > 1 ? Math.min(qty, room(hit.g)) : 1;
-        for (let i = 0; i < times; i++) put(hit.g, hit.o);
+        const before = inGroup(hit.g).filter((p) => p.o === hit!.o.id).length;
+        applyPick(hit.g, hit.o, qty);
+        const times = inGroup(hit.g).filter((p) => p.o === hit!.o.id).length - before;
+        if (times < 1) continue; // already on it — charged once, not twice
         charged.push(`${times > 1 ? `${times}× ` : ''}${hit.o.name}${Number(hit.o.price) ? ` (+${Number(hit.o.price).toFixed(2)})` : ''}`);
       }
       noteLeft = kept.join(', ');
     }
-    return { saved, replaced, unmatched, charged, noteLeft };
+    return { saved, replaced, unmatched, ambiguous, already, charged, noteLeft };
   }
 
   /** Do these words name this dish (rather than one of its choices)? */
@@ -3994,6 +4039,16 @@ ${this.compactMenu(ctx)}
         changed.push(`choices ${line.modifiers.map((m: any) => m.name).join(', ')}`);
       }
       if (merged.replaced.length) changed.push(`${merged.replaced.join(', ')} taken off`);
+      if (merged.already.length) changed.push(`${merged.already.join(', ')} already on it — not added twice`);
+      // Two options level with each other is a question, not a refusal.
+      if (merged.ambiguous.length) {
+        const ask = merged.ambiguous
+          .map((a) => `"${a.said}" could be ${a.options.join(' or ')}`)
+          .join('; ');
+        return {
+          result: `Not changed yet — ${ask}. Ask the caller which one they meant and call change_item again with that exact name. Do NOT tell them it is unavailable: both are on this item.`,
+        };
+      }
       unresolved.push(...merged.unmatched);
       if (merged.charged.length)
         changed.push(`charged as toppings, not notes: ${merged.charged.join(', ')} — say the price`);
@@ -4023,7 +4078,7 @@ ${this.compactMenu(ctx)}
       const missed = unresolved.map((u) => `"${u}"`).join(', ');
       const did = changed.length ? ` (${changed.join('; ')} did go on)` : '';
       return {
-        result: `Could NOT put ${missed} on the ${line.name} — nothing on this item's menu matches it${did}. Do not write it in the note: a note charges nothing. Tell the caller it is not available and offer what is, or offer to pass it to staff.\nOrder so far:\n${this.cartForModel(state, ctx)}`,
+        result: `Could NOT put ${missed} on the ${line.name} — nothing on this item's menu matches it${did}. This is the whole choice list for it:\n${this.optionsForModel(item)}\nDo not write it in the note: a note charges nothing. If it really is not there, tell the caller and offer what is, or offer to pass it to staff.\nOrder so far:\n${this.cartForModel(state, ctx)}`,
       };
     }
     return {
@@ -4230,6 +4285,11 @@ ${this.compactMenu(ctx)}
       const unplaced = merged.unmatched.length
         ? ` Could not place: ${merged.unmatched.map((u) => `"${u}"`).join(', ')}.`
         : '';
+      const between = merged.ambiguous.length
+        ? ` ${merged.ambiguous
+            .map((a) => `"${a.said}" could be ${a.options.join(' or ')} — ask which, do not say it is unavailable`)
+            .join('; ')}.`
+        : '';
       const swapped = merged.replaced.filter(Boolean).length
         ? ` Replaced: ${merged.replaced.filter(Boolean).join(', ')}.`
         : '';
@@ -4255,7 +4315,7 @@ ${this.compactMenu(ctx)}
       return {
         result:
           `NOT added yet. The ${base}${chosen.length ? ` (so far: ${chosen.join('; ')})` : ''} still needs a choice of: ${asks.join('; ')}.` +
-          `${swapped}${unplaced}${chargedLine}${done}${stuck}` +
+          `${swapped}${unplaced}${between}${chargedLine}${done}${stuck}` +
           (sayNow ? ' (That question is being asked for you — wait for the answer.)' : ''),
         ...(sayNow ? { sayNow } : {}),
       };
@@ -4294,14 +4354,19 @@ ${this.compactMenu(ctx)}
 
     const withOpts = modifiers.length ? ` with ${modifiers.map((m) => m.name).join(', ')}` : '';
     const unplaced = merged.unmatched.length
-      ? ` (could not place: ${merged.unmatched.map((u) => `"${u}"`).join(', ')})`
+      ? ` (could not place: ${merged.unmatched.map((u) => `"${u}"`).join(', ')} — this item's choices are: ${this.optionsForModel(item)})`
+      : '';
+    const between = merged.ambiguous.length
+      ? ` ${merged.ambiguous
+          .map((a) => `"${a.said}" could be ${a.options.join(' or ')} — ask which, do not say it is unavailable`)
+          .join('; ')}.`
       : '';
     const line = state.cart.items[state.cart.items.length - 1]!;
     return {
       result: `Added ${quantity} × ${item.name}${withOpts}${notes ? ` (note: ${notes})` : ''} — ${money(
         lineTotal(line as any),
         ctx.currency,
-      )}.${unplaced}${chargedLine}\nOrder so far:\n${this.cartForModel(state, ctx)}`,
+      )}.${unplaced}${between}${chargedLine}\nOrder so far:\n${this.cartForModel(state, ctx)}`,
     };
   }
 
@@ -4551,6 +4616,33 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
   }
 
   /** What could the caller have meant? Offered to the model before it commits. */
+  /**
+   * Every choice a dish really has, priced.
+   *
+   * The menu in the prompt is dishes and prices only — a hundred items with
+   * their options would not fit, and marking which need a choice was enough
+   * while the only question was "what do you sell". It is not enough for
+   * "can I have extra pepperoni on that": on call DPD-n9tw the model answered
+   * that one from an empty pocket and told a caller the pizza could not have
+   * pepperoni while he was looking at it on the website. So the answer is
+   * handed back wherever the question can arise — when a choice will not
+   * place, and whenever find_item lands on one dish.
+   */
+  private optionsForModel(item: any): string {
+    const groups: any[] = item?.modifierGroups ?? [];
+    if (!groups.length) return `${item?.name ?? 'It'} has no choices — nothing can be added to it.`;
+    return groups
+      .map((g) => {
+        const names = g.options
+          .slice(0, 40)
+          .map((o: any) => `${o.name}${Number(o.price) ? ` +${Number(o.price).toFixed(2)}` : ''}`)
+          .join(', ');
+        const rule = mustChoose(g) ? `pick ${needed(g)}, REQUIRED` : 'optional';
+        return `- ${g.name} (${rule}): ${names}${g.options.length > 40 ? ', …' : ''}`;
+      })
+      .join('\n');
+  }
+
   private findItem(said: string, ctx: VoiceContext): string {
     const { rest } = splitQuantity(said);
     const matches = matchItemGroups(rest || said, ctx.items, { limit: 4 });
@@ -4562,7 +4654,8 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
       const chosen =
         pickVariant(said, group.variants) ??
         (group.variants.length === 1 ? group.variants[0]! : null);
-      if (chosen) return `That's ${chosen.name} [${chosen.id}]. Add it with add_item.`;
+      if (chosen)
+        return `That's ${chosen.name} [${chosen.id}]. Add it with add_item.\nEverything that can go on it:\n${this.optionsForModel(chosen)}`;
       // The dish is certain and only the size is open. Asking "which one" and
       // reading three near-identical names is the wrong question.
       return `That's ${group.base}, but it comes in more than one size. Ask: "What size ${group.base} — ${sizesAloud(group.variants)}?"`;

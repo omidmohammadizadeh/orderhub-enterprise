@@ -1997,3 +1997,126 @@ describe("toppings added to a pizza already on the order", () => {
     expect(a.promptForConversation(c(), { cart: { items: [] }, turns: [] }, null)).toMatch(/"extra pepperoni on the pizza" is change_item on that line with modifierNames, and it keeps the toppings already there/);
   });
 });
+
+// ── call DPD-n9tw: "we don't have pepperoni for a margheritha" — we do ──
+//
+// The caller had a MARGHERITHA on order and rang back for mushroom and
+// pepperoni. He was told the pizza does not take pepperoni, argued ("I can see
+// on your menu there is an extra pepperoni we can add… it's called a plus
+// pepperoni"), and was told again to order a different pizza. The POS and the
+// website both offer +pepperoni on it at £1.50.
+//
+// scoreItem caps at 1, so "+pepperoni" — the option he named exactly — scored
+// no better than "+peppers", which the phonetic fold merely reached. Level, so
+// the tie-break refused both, and a refusal reads as "we don't sell it".
+describe("an option the caller names outright", () => {
+  const { VoiceAiService } = require("../voice-ai.service");
+  const { matchOption, matchOptionResult } = require("../voice-menu-match");
+  // This shop's real topping list, from the screenshot.
+  const TOPPINGS = ["+pepperoni", "+salami", "+onion", "+peppers", "+chilli", "+jalapeno", "+donner", "+bacon", "+ham", "+meatballs", "+mushroom"]
+    .map((name, i) => ({ id: `t${i}`, name, price: 1.5 }));
+  const GROUP = "select your extra toppings";
+  const MENU: any[] = [
+    { id: "marg", name: "MARGHERITHA", price: 7.5, categoryName: "PIZZA", modifierGroups: [
+      { id: "crust", name: "select your pizza crust", required: true, min: 1, max: 1, selectionType: "VARIANT", options: [{ id: "c1", name: "THIN BASE", price: 0 }, { id: "c2", name: "DEEP PAN", price: 0 }] },
+      { id: "tp", name: GROUP, required: false, min: 0, max: null, selectionType: "ADDON", options: TOPPINGS },
+    ] },
+  ];
+  const c = () => { const x: any = { currency: "GBP", items: MENU, deliveryZones: [] }; x.itemIndex = new Map(MENU.map((i) => [i.id, i])); x.optionIndex = new Map(MENU.flatMap((i: any) => i.modifierGroups.flatMap((g: any) => g.options.map((o: any) => [o.id, { groupId: g.id, itemId: i.id, option: o }])))); return x; };
+  const ai = () => { const a: any = Object.create(VoiceAiService.prototype); a.logger = { log() {}, warn() {}, error() {} }; return a; };
+  const placed = () => { const a = ai(); const st: any = { cart: { items: [] }, turns: [] }; a.addItemConversational({ said: "margheritha", modifierNames: ["thin base"] }, c(), st); return { a, st }; };
+  const names = (st: any) => st.cart.items[0].modifiers.map((m: any) => m.name);
+
+  it("finds the pepperoni that was refused, however he asked for it", () => {
+    for (const said of ["pepperoni", "extra pepperoni", "plus pepperoni", "pepperonis"]) {
+      const hit = matchOption(said, TOPPINGS, GROUP);
+      expect(hit).not.toBeNull();
+      expect(hit.item.name).toBe("+pepperoni");
+    }
+  });
+
+  it("and does not swallow the peppers next to it", () => {
+    expect(matchOption("peppers", TOPPINGS, GROUP).item.name).toBe("+peppers");
+    expect(matchOption("extra peppers", TOPPINGS, GROUP).item.name).toBe("+peppers");
+    expect(matchOption("onions", TOPPINGS, GROUP).item.name).toBe("+onion");
+    expect(matchOption("jalapeno", TOPPINGS, GROUP).item.name).toBe("+jalapeno");
+  });
+
+  it("still refuses to guess between two options that really are level", () => {
+    const twins = [{ id: "a", name: "CHICKEN STRIPS", price: 1 }, { id: "b", name: "CHICKEN WINGS", price: 1 }];
+    expect(matchOption("chicken", twins, "sides")).toBeNull();
+    const r = matchOptionResult("chicken", twins, "sides");
+    expect(r.kind).toBe("ambiguous");
+    expect(r.items.map((o: any) => o.name).sort()).toEqual(["CHICKEN STRIPS", "CHICKEN WINGS"]);
+  });
+
+  it("something the item genuinely does not have is still nothing", () => {
+    expect(matchOptionResult("anchovies", TOPPINGS, GROUP).kind).toBe("none");
+  });
+
+  it("the whole call, end to end: mushroom AND pepperoni, both charged", async () => {
+    const { a, st } = placed();
+    const out = await a.runToolForConversation("change_item", { said: "the margheritha", modifierNames: ["mushroom", "extra pepperoni"] }, c(), st, null);
+    expect(names(st)).toEqual(["THIN BASE", "+mushroom", "+pepperoni"]);
+    expect(out.result).toMatch(/^Changed MARGHERITHA: choices THIN BASE, \+mushroom, \+pepperoni\./);
+    // 7.50 + 1.50 + 1.50
+    expect(out.result).toMatch(/£10\.50/);
+  });
+
+  it("asking again does not add it twice or charge twice", async () => {
+    const { a, st } = placed();
+    await a.runToolForConversation("change_item", { said: "the margheritha", modifierNames: ["extra pepperoni"] }, c(), st, null);
+    const again = await a.runToolForConversation("change_item", { said: "the margheritha", modifierNames: ["pepperoni"] }, c(), st, null);
+    expect(names(st)).toEqual(["THIN BASE", "+pepperoni"]);
+    expect(again.result).toMatch(/\+pepperoni already on it — not added twice/);
+    expect(again.result).toMatch(/£9\.00/);
+    // A count, though, is a count: "double pepperoni" on one is two, not three.
+    await a.runToolForConversation("change_item", { said: "the margheritha", modifierNames: ["double pepperoni"] }, c(), st, null);
+    expect(names(st)).toEqual(["THIN BASE", "+pepperoni", "+pepperoni"]);
+  });
+
+  it("a note naming the same topping twice is charged once", () => {
+    const a = ai(); const st: any = { cart: { items: [] }, turns: [] };
+    const out = a.addItemConversational({ said: "margheritha", modifierNames: ["thin base", "extra pepperoni"], notes: "extra pepperoni, well done" }, c(), st);
+    expect(names(st)).toEqual(["THIN BASE", "+pepperoni"]);
+    expect(st.cart.items[0].notes).toBe("well done");
+    expect(out.result).toMatch(/£9\.00/);
+  });
+
+  it("a real tie asks which, and never says unavailable", async () => {
+    const twinMenu: any[] = [{ id: "sides", name: "SIDES BOX", price: 5, categoryName: "SIDES", modifierGroups: [
+      { id: "g", name: "pick your bits", required: false, min: 0, max: 3, selectionType: "ADDON", options: [{ id: "a", name: "CHICKEN STRIPS", price: 1 }, { id: "b", name: "CHICKEN WINGS", price: 1 }] },
+    ] }];
+    const cx: any = { currency: "GBP", items: twinMenu, deliveryZones: [] };
+    cx.itemIndex = new Map(twinMenu.map((i) => [i.id, i]));
+    cx.optionIndex = new Map(twinMenu.flatMap((i: any) => i.modifierGroups.flatMap((g: any) => g.options.map((o: any) => [o.id, { groupId: g.id, itemId: i.id, option: o }]))));
+    const a = ai(); const st: any = { cart: { items: [] }, turns: [] };
+    a.addItemConversational({ said: "sides box" }, cx, st);
+    const out = await a.runToolForConversation("change_item", { said: "the sides box", modifierNames: ["chicken"] }, cx, st, null);
+    expect(out.result).toMatch(/"chicken" could be CHICKEN STRIPS or CHICKEN WINGS/);
+    expect(out.result).toMatch(/Do NOT tell them it is unavailable/);
+    expect(st.cart.items[0].modifiers).toEqual([]);
+  });
+
+  it("when a choice will not place, the model is handed the real list instead of guessing", async () => {
+    const { a, st } = placed();
+    const out = await a.runToolForConversation("change_item", { said: "the margheritha", modifierNames: ["anchovies"] }, c(), st, null);
+    expect(out.result).toMatch(/Could NOT put "anchovies" on the MARGHERITHA/);
+    expect(out.result).toMatch(/select your extra toppings \(optional\): \+pepperoni \+1\.50/);
+  });
+
+  it("find_item hands back everything that can go on the dish", () => {
+    const a = ai();
+    const said = a.findItem("margheritha", c());
+    expect(said).toMatch(/That's MARGHERITHA \[marg\]/);
+    expect(said).toMatch(/select your pizza crust \(pick 1, REQUIRED\): THIN BASE, DEEP PAN/);
+    expect(said).toMatch(/\+pepperoni \+1\.50/);
+  });
+
+  it("the prompt forbids refusing a topping from memory", () => {
+    const a = ai();
+    expect(a.promptForConversation(c(), { cart: { items: [] }, turns: [] }, null)).toMatch(
+      /NEVER tell a caller a topping or option is unavailable from memory/,
+    );
+  });
+});
