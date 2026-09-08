@@ -80,7 +80,8 @@ const ctx = () => {
   );
   return c;
 };
-const fresh = () => ({ cart: { items: [] }, turns: [] }) as any;
+const fresh = () =>
+  ({ cart: { items: [], fulfillmentType: 'PICKUP', fulfillmentChosen: true }, turns: [] }) as any;
 
 describe('what the caller hears first', () => {
   it('is a person, not a menu', () => {

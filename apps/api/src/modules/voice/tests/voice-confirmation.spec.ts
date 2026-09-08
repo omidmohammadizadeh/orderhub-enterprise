@@ -223,6 +223,7 @@ describe("read-backs speak themselves", () => {
   it("returns the order read-back as bare speech", async () => {
     const state = withItem();
     state.cart.fulfillmentType = "PICKUP";
+    state.cart.fulfillmentChosen = true;
     const out = await svc().runTool("read_back_order", {}, ctx(), state, null);
     expect(out.sayNow).toContain("2 Large Pepperoni");
     expect(out.sayNow).toContain("Is that all correct?");

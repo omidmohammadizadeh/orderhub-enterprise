@@ -143,6 +143,8 @@ describe('5. a yes needs a caller turn behind it', () => {
     ({
       cart: {
         items: [{ lineId: 'a', name: 'CHIPS', quantity: 1, unitBasePrice: 2, modifiers: [] }],
+        fulfillmentType: 'PICKUP',
+        fulfillmentChosen: true,
       },
       turns: [],
     }) as any;
@@ -752,5 +754,114 @@ describe("a delivery is priced or it is not read back", () => {
     const out = await a.runTool("read_back_order", {}, gb(), st, null);
     expect(out.result).toMatch(/Not read back — the delivery address has no postcode/);
     expect(out.sayNow).toBeUndefined();
+  });
+});
+
+// ── call R0y7AFEQ: "for delivery to ." — nobody asked, and nobody was remembered ──
+describe("nothing is read back until collection or delivery has been asked", () => {
+  const { VoiceAiService } = require("../voice-ai.service");
+  const MENU: any[] = [{ id: "chips", name: "Chips", price: 2.9, modifierGroups: [] }];
+  const ctx = () => { const c: any = { currency: "GBP", items: MENU, deliveryZones: [], itemIndex: new Map(MENU.map((i) => [i.id, i])), optionIndex: new Map() }; return c; };
+  const ai = () => { const a: any = Object.create(VoiceAiService.prototype); a.logger = { log() {}, warn() {}, error() {} }; return a; };
+  const chips = () => ({ lineId: "a", name: "CHIPS", quantity: 1, unitBasePrice: 2.9, modifiers: [] });
+
+  it("refuses a cart that was never asked — the default is not an answer", async () => {
+    const a = ai(); const st: any = { cart: { items: [chips()], fulfillmentType: "DELIVERY" }, turns: [] };
+    const out = await a.runTool("read_back_order", {}, ctx(), st, null);
+    expect(out.result).toMatch(/^Not read back — you have not asked whether this is collection or delivery/);
+    expect(out.sayNow).toBeUndefined();
+    expect(st.readBackOf).toBeUndefined();
+  });
+
+  it("refuses a delivery with no address, and points at the one on file when there is one", async () => {
+    const a = ai();
+    const st: any = { cart: { items: [chips()], fulfillmentType: "DELIVERY", fulfillmentChosen: true }, turns: [] };
+    expect((await a.runTool("read_back_order", {}, ctx(), st, null)).result).toMatch(/no address on the order\. Take the address first/);
+    st.savedAddress = { line1: "11 Sunningdale Drive", city: "Washington", postcode: "NE37 2LL" };
+    expect((await a.runTool("read_back_order", {}, ctx(), st, null)).result).toMatch(/Ask "still at 11 Sunningdale Drive\?"/);
+  });
+
+  it("reads back once the choice has been made — collection, or delivery with an address", async () => {
+    const a = ai();
+    const st: any = { cart: { items: [chips()], fulfillmentType: "DELIVERY" }, turns: [] };
+    await a.runTool("set_fulfillment", { type: "PICKUP" }, ctx(), st, null);
+    const out = await a.runTool("read_back_order", {}, ctx(), st, null);
+    expect(out.sayNow).toMatch(/for collection\. That comes to £2\.90/);
+    expect(out.sayNow).not.toMatch(/delivery to \./);
+  });
+
+  it("tells the model to ask, and never to assume", () => {
+    const p = ai().promptForConversation(ctx(), { cart: { items: [] }, turns: [] }, null);
+    expect(p).toMatch(/ask whether it's collection or delivery and call set_fulfillment\. Never assume either/);
+    expect(p).toMatch(/read_back_order refuses until you have asked/);
+  });
+});
+
+describe("the caller is remembered by name, whichever way they ordered", () => {
+  const { VoiceAiService } = require("../voice-ai.service");
+  const ai = (db: any) => { const a: any = Object.create(VoiceAiService.prototype); a.logger = { log() {}, warn() {}, error() {} }; a.db = () => db; return a; };
+  const dbWith = (existing: { id: string; firstName: string | null } | null) => {
+    const calls: any[] = [];
+    return {
+      calls,
+      customer: {
+        upsert: async (args: any) => { calls.push(["upsert", args]); return existing ?? { id: "new", firstName: args.create.firstName }; },
+        update: async (args: any) => { calls.push(["update", args]); return {}; },
+      },
+    };
+  };
+  const ctx = () => ({ tenantId: "t1" }) as any;
+
+  it("creates the customer with their first name on a collection order", async () => {
+    const db = dbWith(null); const st: any = { cart: { items: [] }, turns: [] };
+    await ai(db).rememberCaller(ctx(), "07700900123", st, "Omid Zadeh");
+    expect(db.calls.map((c) => c[0])).toEqual(["upsert"]);
+    expect(db.calls[0][1].create).toMatchObject({ tenantId: "t1", phone: "+447700900123", firstName: "Omid" });
+    expect(st.knownName).toBe("Omid");
+  });
+
+  it("fills in a name the record lacks, and never overwrites one it has", async () => {
+    const blank = dbWith({ id: "c1", firstName: null }); const st: any = { cart: { items: [] }, turns: [] };
+    await ai(blank).rememberCaller(ctx(), "+447700900123", st, "Omid");
+    expect(blank.calls.map((c) => c[0])).toEqual(["upsert", "update"]);
+    expect(blank.calls[1][1]).toMatchObject({ where: { id: "c1" }, data: { firstName: "Omid" } });
+    const named = dbWith({ id: "c1", firstName: "Sara" });
+    await ai(named).rememberCaller(ctx(), "+447700900123", { cart: { items: [] }, turns: [], knownName: "Sara" }, "Omid");
+    expect(named.calls.map((c) => c[0])).toEqual(["upsert"]);
+  });
+
+  it("writes nothing for the placeholder name, or with no number, and survives the database", async () => {
+    const db = dbWith(null);
+    await ai(db).rememberCaller(ctx(), "+447700900123", { cart: { items: [] }, turns: [] }, "Phone order");
+    await ai(db).rememberCaller(ctx(), null, { cart: { items: [] }, turns: [] }, "Omid");
+    expect(db.calls).toEqual([]);
+    const broken = { customer: { upsert: async () => { throw new Error("db down"); } } };
+    await expect(ai(broken).rememberCaller(ctx(), "+447700900123", { cart: { items: [] }, turns: [] }, "Omid")).resolves.toBeUndefined();
+  });
+
+  it("place_order remembers the name on every order, and the address only on a delivery", async () => {
+    const a = ai({});
+    a.orders = { create: async () => ({ id: "o1", orderNumber: 1201, status: "NEW" }) };
+    a.textReceipt = async () => "";
+    const remembered: string[] = [];
+    a.rememberCaller = async (_c: any, _n: any, _s: any, name: string) => { remembered.push(`name:${name}`); };
+    a.rememberAddress = async () => { remembered.push("address"); };
+    const c: any = { currency: "GBP", items: [], itemIndex: new Map(), optionIndex: new Map(), deliveryZones: [], collectionPrepMinutes: 15, tenantId: "t1", locationId: "l1" };
+    const st: any = { cart: { items: [{ lineId: "a", name: "CHIPS", quantity: 1, unitBasePrice: 2.9, modifiers: [] }], fulfillmentType: "PICKUP", fulfillmentChosen: true }, turns: [] };
+    await a.runTool("read_back_order", {}, c, st, null);
+    await a.runToolForConversation("order_confirmed", { __spokeAfterQuestion: true }, c, st, null);
+    const out = await a.runToolForConversation("place_order", { customerName: "Omid", paymentMethod: "CASH", __spokeAfterQuestion: true }, c, st, "+447700900123");
+    expect(out.result).toMatch(/^Order placed/);
+    expect(remembered).toEqual(["name:Omid"]);
+  });
+});
+
+describe("a known caller with no address on file is still known", () => {
+  const { VoiceAiService } = require("../voice-ai.service");
+  const ai = () => { const a: any = Object.create(VoiceAiService.prototype); a.logger = { log() {}, warn() {}, error() {} }; return a; };
+  it("is named in the prompt, and the model is told not to ask their name", () => {
+    const p = ai().promptForConversation({ currency: "GBP", items: [], deliveryZones: [] } as any, { cart: { items: [] }, turns: [], knownName: "Omid" }, null);
+    expect(p).toMatch(/You know this caller — Omid\. Don't ask their name/);
+    expect(p).toMatch(/otherwise ask for a first name, once, before you place it\. Never make one up/);
   });
 });

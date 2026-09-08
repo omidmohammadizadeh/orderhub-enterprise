@@ -2193,6 +2193,23 @@ ${menu || '(no items available — apologise and transfer)'}`;
         if (state.cart.items.length === 0) {
           return { result: 'Nothing on the order yet — there is nothing to read back.' };
         }
+        // The cart is born saying "delivery" — it was borrowed from WhatsApp,
+        // where that is the default. On call R0y7AFEQ nobody asked, and the
+        // caller heard "for delivery to ." with nowhere after the "to". The
+        // choice has to have been made by someone before it is read out.
+        if (!state.cart.fulfillmentChosen) {
+          return {
+            result:
+              'Not read back — you have not asked whether this is collection or delivery. Ask, call set_fulfillment with the answer, then read it back.',
+          };
+        }
+        if (state.cart.fulfillmentType === 'DELIVERY' && !state.cart.deliveryAddress?.line1) {
+          return {
+            result: state.savedAddress?.line1
+              ? `Not read back — it is delivery and there is no address on the order. Ask "still at ${state.savedAddress.line1}?" — a yes means use_saved_address.`
+              : 'Not read back — it is delivery and there is no address on the order. Take the address first.',
+          };
+        }
         if (
           state.cart.fulfillmentType === 'DELIVERY' &&
           zoneMode(ctx.deliveryZones as any) === 'POSTCODE' &&
@@ -3172,7 +3189,10 @@ ${menu || '(no items available — apologise and transfer)'}`;
     const returning = saved?.line1
       ? `
 - You know this caller${state?.knownName ? ` — ${state.knownName}` : ''}. Their last delivery went to ${[saved.line1, saved.city, saved.postcode].filter(Boolean).join(', ')}. For delivery, don't take the address from scratch: ask "still at ${saved.line1}?" — a yes means use_saved_address, anything else means take a new one. Use their name at most twice.`
-      : '';
+      : state?.knownName
+        ? `
+- You know this caller — ${state.knownName}. Don't ask their name; use it at most twice. There is no address on file, so a delivery needs the address taken the normal way.`
+        : '';
     const open = ctx.openingHours
       ? isCurrentlyOpen(ctx.openingHours, ctx.timezone || 'Europe/London')
       : true;
@@ -3200,7 +3220,7 @@ HOW YOU TALK
 - Say prices as words in ${currency} ("eight ${currency} fifty"), never as symbols.
 
 TAKING THE ORDER
-- Start by asking what they'd like. Whether it's collection or delivery, and the address, can come whenever it fits — before the read-back, not before the first item.
+- Start by asking what they'd like. Once the first item is in — or when they say that's everything — ask whether it's collection or delivery and call set_fulfillment. Never assume either. read_back_order refuses until you have asked.
 - When they list food, call parse_order with their exact words. It adds what it can and tells you what still needs a choice. For one item, add_item works the same way.
 - Some things need a choice — size, crust, sauce. The tool tells you which; ask in your own words, then call add_item again with modifierNames.
 - Only the menu below and what the tools return are real. Never invent a dish, a size or a price. If it isn't on the menu, say so and offer the closest thing that is.
@@ -3212,6 +3232,7 @@ CHANGING THEIR MIND
 BEFORE IT'S PLACED
 - Call read_back_order and say the script it gives you word for word, then stop and wait.
 - Only when the caller clearly agrees: call order_confirmed, ask cash or card, then place_order. If they change anything after the read-back, read it back again — a yes only counts for what they heard.
+- place_order needs a name for the order. A caller you know needs no asking; otherwise ask for a first name, once, before you place it. Never make one up.
 ${delivery}
 - Read a new address back once, then confirm_delivery_address. Only use an address on file after they've said yes to it.${returning}
 - If they want a person, or press 0, transfer_to_staff. If something has gone wrong with an existing order, get_order_status or take_message.${theUsual}${closed}
@@ -4353,6 +4374,10 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
       };
     }
     const isCard = method === 'CARD';
+    // "cash" reached a receipt as the customer's name: the model answered its
+    // own payment question into the name field. A name is not a payment
+    // method, a yes, a no, or nothing.
+    const customerName = this.customerNameFrom(input?.customerName, state);
 
     try {
       const order: any = await this.orders.create(
@@ -4366,10 +4391,7 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
           orderSource: 'VOICE',
           fulfillmentType: isDelivery ? 'DELIVERY' : 'PICKUP',
           customerInfo: {
-            // "cash" reached a receipt as the customer's name: the model
-            // answered its own payment question into the name field. A name
-            // is not a payment method, a yes, a no, or nothing.
-            name: this.customerNameFrom(input?.customerName, state),
+            name: customerName,
             phone: callerNumber ?? undefined,
           },
           ...(isDelivery ? { deliveryAddress: state.cart.deliveryAddress } : {}),
@@ -4406,9 +4428,11 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
           `location ${ctx.locationId}${ctx.brandId ? `, brand ${ctx.brandId}` : ''}`,
       );
 
-      // Remember where they live, so the next call is one yes instead of a
-      // recited address. After the order exists, deliberately: an abandoned
-      // call should not leave address rows behind.
+      // Remember who they are, so the next call opens with their name, and
+      // where they live, so it is one yes instead of a recited address. After
+      // the order exists, deliberately: an abandoned call should not leave
+      // customer rows behind.
+      await this.rememberCaller(ctx, callerNumber, state, customerName);
       if (isDelivery) {
         await this.rememberAddress(ctx, callerNumber, state);
       }
@@ -4571,6 +4595,47 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
       postcode: address?.postcode,
       area: address?.area,
     }).fee;
+  }
+
+  /**
+   * Keep the caller's name against their number, so the next call opens with
+   * "Hi Omid, welcome back".
+   *
+   * Only the address used to be kept, and only on a delivery — a caller who
+   * collected three times and gave their name three times was greeted as a
+   * stranger on the fourth. A name already on the record is never
+   * overwritten: it was typed by the shop or said on an earlier call, and a
+   * misheard one from today should not replace it. Never throws into the
+   * call.
+   */
+  private async rememberCaller(
+    ctx: VoiceContext,
+    callerNumber: string | null | undefined,
+    state: VoiceState,
+    name: string,
+  ): Promise<void> {
+    const phone = normaliseNumber(callerNumber);
+    const first = String(name ?? '')
+      .trim()
+      .split(/\s+/)[0];
+    if (!phone || !first || name === 'Phone order') return;
+    state.knownName = state.knownName ?? first;
+    try {
+      const customer = await this.db().customer.upsert({
+        where: { tenantId_phone: { tenantId: ctx.tenantId, phone: `+${phone}` } },
+        update: {},
+        create: { tenantId: ctx.tenantId, phone: `+${phone}`, firstName: first },
+        select: { id: true, firstName: true },
+      });
+      if (!String(customer.firstName ?? '').trim()) {
+        await this.db().customer.update({
+          where: { id: customer.id },
+          data: { firstName: first },
+        });
+      }
+    } catch (e: any) {
+      this.logger.warn(`Voice could not save caller name: ${e?.message ?? e}`);
+    }
   }
 
   /**

@@ -327,7 +327,11 @@ describe("5. versioned confirmations", () => {
     deliveryZones: [{ id: "z", postcodePrefix: "NE10", fee: 1 }], locationName: "Test",
   }) as any;
   const withChips = () => ({
-    cart: { items: [{ lineId: "a", name: "CHIPS", quantity: 1, unitBasePrice: 2, modifiers: [] }] },
+    cart: {
+      items: [{ lineId: "a", name: "CHIPS", quantity: 1, unitBasePrice: 2, modifiers: [] }],
+      fulfillmentType: "PICKUP",
+      fulfillmentChosen: true,
+    },
     turns: [],
   }) as any;
   const YES = { __heard: "yes", __heardFresh: true, __heardReadable: true };
