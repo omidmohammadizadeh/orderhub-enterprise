@@ -1871,3 +1871,51 @@ describe("questions with a known wording are spoken as scripts, not composed", (
     expect(calls).toEqual([['resolve_address', false], ['confirm_delivery_address', true], ['order_confirmed', true]]);
   });
 });
+
+// ── order S6TJG: "extra pepperoni" went to the kitchen as a note, and nobody paid for it ──
+describe("an extra topping in a note is charged as a topping", () => {
+  const { VoiceAiService } = require("../voice-ai.service");
+  const MENU: any[] = [
+    { id: "marg12", name: 'MARGHERITA (12")', price: 8.6, categoryName: "Pizzas", modifierGroups: [
+      { id: "cr", name: "Select Your Pizza Crust", required: true, min: 1, max: 1, selectionType: "VARIANT", options: [{ id: "cr1", name: "thin base", price: 0 }, { id: "cr2", name: "deep pan", price: 0 }] },
+      { id: "tp", name: "Extra Toppings", required: false, min: 0, max: 5, selectionType: "ADDON", options: [{ id: "tp1", name: "Pepperoni", price: 1.5 }, { id: "tp2", name: "Mushrooms", price: 1 }, { id: "tp3", name: "Onions", price: 0.8 }] },
+    ] },
+  ];
+  const c = () => { const x: any = { currency: "GBP", items: MENU, deliveryZones: [] }; x.itemIndex = new Map(MENU.map((i) => [i.id, i])); x.optionIndex = new Map(MENU.flatMap((i: any) => i.modifierGroups.flatMap((g: any) => g.options.map((o: any) => [o.id, { groupId: g.id, itemId: i.id, option: o }])))); return x; };
+  const ai = () => { const a: any = Object.create(VoiceAiService.prototype); a.logger = { log() {}, warn() {}, error() {} }; return a; };
+  const fresh = () => ({ cart: { items: [] }, turns: [] }) as any;
+
+  it("'extra pepperoni' becomes the Pepperoni topping, priced, and leaves no note", () => {
+    const a = ai(); const st = fresh();
+    const out = a.addItemConversational({ said: "12 inch margherita", modifierNames: ["thin base"], notes: "extra pepperoni" }, c(), st);
+    expect(out.result).toMatch(/^Added 1 × MARGHERITA \(12"\) with thin base, Pepperoni — £10\.10\./);
+    expect(out.result).toMatch(/Charged as toppings, not notes: Pepperoni \(\+1\.50\) — say the price/);
+    expect(st.cart.items[0].modifiers.map((m: any) => [m.name, m.price])).toEqual([["thin base", 0], ["Pepperoni", 1.5]]);
+    expect(st.cart.items[0].notes).toBeUndefined();
+  });
+
+  it("cooking notes stay notes; 'no onion' never adds onions; 'double pepperoni' is two", () => {
+    const a = ai(); const st = fresh();
+    const out = a.addItemConversational({ said: "12 inch margherita", modifierNames: ["deep pan"], notes: "well done, no onion, extra mushrooms and double pepperoni" }, c(), st);
+    expect(st.cart.items[0].modifiers.map((m: any) => m.name)).toEqual(["deep pan", "Mushrooms", "Pepperoni", "Pepperoni"]);
+    expect(st.cart.items[0].notes).toBe("well done, no onion");
+    expect(out.result).toMatch(/Charged as toppings, not notes: Mushrooms \(\+1\.00\), 2× Pepperoni \(\+1\.50\)/);
+    expect(out.result).toMatch(/— £12\.60\./); // 8.60 + 1.00 + 1.50 + 1.50
+  });
+
+  it("an extra that is not on the menu stays a note, and a required choice is never read out of a note", () => {
+    const a = ai(); const st = fresh();
+    const out = a.addItemConversational({ said: "12 inch margherita", notes: "extra anchovies, thin base" }, c(), st);
+    expect(out.result).toMatch(/^NOT added yet\..*still needs a choice of: pizza crust/);
+    expect(st.draft.picks).toEqual([]);
+    const done = a.addItemConversational({ modifierNames: ["thin base"] }, c(), st);
+    expect(done.result).toMatch(/^Added 1 × MARGHERITA \(12"\) with thin base \(note: extra anchovies, thin base\)/);
+  });
+
+  it("the prompt and the tool say extras are toppings, not notes", () => {
+    const a = ai();
+    expect(a.promptForConversation(c(), fresh(), null)).toMatch(/An EXTRA — "extra pepperoni", "add mushrooms", "double cheese" — is a paid topping: put it in modifierNames, never in notes/);
+    const add = a.toolsForConversation(c()).find((t: any) => t.name === "add_item");
+    expect(add.description).toMatch(/Extras like 'extra pepperoni' are paid toppings — modifierNames, not notes/);
+  });
+});

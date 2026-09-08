@@ -3332,7 +3332,7 @@ TAKING THE ORDER
 - When they list food, call parse_order with their exact words. It adds what it can and tells you what still needs a choice. For one item, add_item works the same way.
 - Some things need choices — size, crust, sauce; a deal needs several. add_item keeps what is chosen so far and tells you exactly what is still missing. Say briefly what it comes with, invite all the choices in one go in any order, then call add_item again with everything they said in modifierNames. "Make it Fanta" replaces that one choice. "That's it" while choosing means the choices are done, not the order: call add_item with done: true. Never add a deal's drink, side or sauce as a separate item, and never say a choice is saved unless the tool says it kept it.
 - Only the menu below and what the tools return are real. Never invent a dish, a size or a price. If it isn't on the menu, say so and offer the closest thing that is.
-- Quantities and notes ("no onions") go on the item. Allergies go in the notes AND you say you've noted it.
+- Quantities go on the item. An EXTRA — "extra pepperoni", "add mushrooms", "double cheese" — is a paid topping: put it in modifierNames, never in notes, and tell them the price the tool gives back. Notes are only for how it's made: "well done", "no onions", "cut in half". Allergies go in the notes AND you say you've noted it.
 
 CHANGING THEIR MIND
 - "I wanted one", "make it deep pan", "take the chips off", "start again" — use change_item, remove_item or clear_order, by the item's name or its line id from "Order so far". Never fix an order by adding to it, and never say you've started fresh unless you called clear_order.
@@ -3449,7 +3449,7 @@ ${this.compactMenu(ctx)}
         return {
           ...t,
           description:
-            "Add one item to the order. Pass `said` with the caller's own words for that item (quantity included). If the item needs choices — size, crust, sauce; a deal needs several — this does NOT add it yet: it KEEPS what has been chosen so far and tells you exactly what is still missing, with the options. Call it again with the next answers in modifierNames (several at once, any order); a new choice for the same thing replaces the old one. When the caller says that's it / I'm done, call it with done: true. Notes like 'no onions' go in notes.",
+            "Add one item to the order. Pass `said` with the caller's own words for that item (quantity included). If the item needs choices — size, crust, sauce; a deal needs several — this does NOT add it yet: it KEEPS what has been chosen so far and tells you exactly what is still missing, with the options. Call it again with the next answers in modifierNames (several at once, any order); a new choice for the same thing replaces the old one. When the caller says that's it / I'm done, call it with done: true. Extras like 'extra pepperoni' are paid toppings — modifierNames, not notes. Notes are for how it's made: 'no onions', 'well done'.",
           parameters: {
             ...(t.parameters as any),
             properties: {
@@ -3642,7 +3642,7 @@ ${this.compactMenu(ctx)}
     item: any,
     input: any,
     picks: Array<{ g: string; o: string }>,
-  ): { saved: string[]; replaced: string[]; unmatched: string[] } {
+  ): { saved: string[]; replaced: string[]; unmatched: string[]; charged: string[]; noteLeft?: string } {
     const groups: any[] = item.modifierGroups ?? [];
     const saved: string[] = [];
     const replaced: string[] = [];
@@ -3741,7 +3741,49 @@ ${this.compactMenu(ctx)}
       if (!mustChoose(g) || g.options.length !== 1) continue;
       while (inGroup(g).length < needed(g)) put(g, g.options[0]);
     }
-    return { saved, replaced, unmatched };
+    // A paid topping written into the note is food the kitchen makes and
+    // nobody pays for. "Extra pepperoni" on order S6TJG went through as
+    // "Note: extra pepperoni" on a Margherita that sells pepperoni as a
+    // topping. Anything in the note that names an option of an OPTIONAL
+    // group — a topping, an extra — becomes that choice and is charged;
+    // "no onion", "well done", "cut in half" stay notes. Never guessed: the
+    // words have to cover the option's name.
+    const charged: string[] = [];
+    let noteLeft: string | undefined;
+    if (input?.notes !== undefined) {
+      const kept: string[] = [];
+      const parts = String(input.notes ?? '')
+        .split(/\s*(?:,|;|\band\b|\bplus\b)\s*/i)
+        .map((x) => x.trim())
+        .filter(Boolean);
+      for (const part of parts) {
+        if (/^(no|without|hold|less|light|easy|skip|not|only|just)\b/i.test(part)) {
+          kept.push(part);
+          continue;
+        }
+        const qty = /^(double|twice|2|two)\b/i.test(part) ? 2 : /^(triple|3|three)\b/i.test(part) ? 3 : 1;
+        const want = part.replace(/^(extra|add|added|more|double|triple|twice|plus|with|additional|2|3|two|three)\s+/i, '').trim();
+        const words = want.toLowerCase().split(/[^a-z0-9]+/).filter((w) => w && !['a', 'an', 'the', 'of', 'some', 'please'].includes(w));
+        let hit: { g: any; o: any } | null = null;
+        for (const g of groups) {
+          if (mustChoose(g)) continue; // a required choice is asked for, not read out of a note
+          const m = matchOption<any>(want, g.options, g.name);
+          if (m && words.length && words.every((w) => scoreItem(w, `${m.item.name} ${g.name}`) > 0)) {
+            hit = { g, o: m.item };
+            break;
+          }
+        }
+        if (!hit) {
+          kept.push(part);
+          continue;
+        }
+        const times = room(hit.g) > 1 ? Math.min(qty, room(hit.g)) : 1;
+        for (let i = 0; i < times; i++) put(hit.g, hit.o);
+        charged.push(`${times > 1 ? `${times}× ` : ''}${hit.o.name}${Number(hit.o.price) ? ` (+${Number(hit.o.price).toFixed(2)})` : ''}`);
+      }
+      noteLeft = kept.join(', ');
+    }
+    return { saved, replaced, unmatched, charged, noteLeft };
   }
 
   /** Do these words name this dish (rather than one of its choices)? */
@@ -4130,17 +4172,22 @@ ${this.compactMenu(ctx)}
         .map((g) => this.groupLabel(g.name))
         .join(', ')}]`,
     );
-    const notes = String(input?.notes ?? draft?.notes ?? '')
+    const notes = String(merged.noteLeft ?? draft?.notes ?? '')
       .trim()
       .slice(0, 200);
-    // Same rule as change_item: a paid topping is never a note. Caught here
-    // too so it cannot arrive free on the way IN either.
+    // What the note named as a paid topping has already been lifted out of
+    // it and charged (merged.charged). This is the backstop behind that: if
+    // a priced option is still in what is left, it is refused rather than
+    // saved free — a paid topping is never a note, on the way in either.
     const paidInNote = notes ? chargeableInNote(item, notes) : null;
     if (paidInNote) {
       return {
         result: `"${paidInNote}" is a paid option on the ${item.name}, not a note — a note charges nothing and does not print as an option. Call add_item again with it in modifierNames and leave it out of notes. Tell the caller it adds to the price.`,
       };
     }
+    const chargedLine = merged.charged.length
+      ? ` Charged as toppings, not notes: ${merged.charged.join(', ')} — say the price.`
+      : '';
     const nameOf = (p: { o: string }) => ctx.optionIndex.get(p.o)?.option.name ?? '?';
     const { base } = splitSize(item.name);
 
@@ -4194,7 +4241,7 @@ ${this.compactMenu(ctx)}
       return {
         result:
           `NOT added yet. The ${base}${chosen.length ? ` (so far: ${chosen.join('; ')})` : ''} still needs a choice of: ${asks.join('; ')}.` +
-          `${swapped}${unplaced}${done}${stuck}` +
+          `${swapped}${unplaced}${chargedLine}${done}${stuck}` +
           (sayNow ? ' (That question is being asked for you — wait for the answer.)' : ''),
         ...(sayNow ? { sayNow } : {}),
       };
@@ -4240,7 +4287,7 @@ ${this.compactMenu(ctx)}
       result: `Added ${quantity} × ${item.name}${withOpts}${notes ? ` (note: ${notes})` : ''} — ${money(
         lineTotal(line as any),
         ctx.currency,
-      )}.${unplaced}\nOrder so far:\n${this.cartForModel(state, ctx)}`,
+      )}.${unplaced}${chargedLine}\nOrder so far:\n${this.cartForModel(state, ctx)}`,
     };
   }
 
