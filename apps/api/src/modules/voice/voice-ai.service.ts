@@ -3347,7 +3347,7 @@ ${delivery}
 
 AN ORDER ALREADY PLACED
 - "Where's my order?" — get_order_status. If they read a number, pass it exactly as said, letters included; otherwise leave it out and it uses their phone number. Say what it tells you to say.
-- "Can I add…" / "change…" to an order already placed, this call or earlier — find_order_to_change (with the number if they read one). It loads the whole order into the basket; add or change items as usual, then read_back_order once. When they agree — yes, okay, fine, that's it — call amend_order: it records the yes and saves. Do not read it back again unless something changed. No payment question for a change. Never place_order for a change.${theUsual}${closed}
+- "Can I add…" / "change…" to an order already placed, this call or earlier — find_order_to_change (with the number if they read one). It loads the whole order into the basket; add or change items as usual — "extra pepperoni on the pizza" is change_item on that line with modifierNames, and it keeps the toppings already there — then read_back_order once. When they agree — yes, okay, fine, that's it — call amend_order: it records the yes and saves. Do not read it back again unless something changed. No payment question for a change. Never place_order for a change.${theUsual}${closed}
 
 MENU
 ${this.compactMenu(ctx)}
@@ -3494,7 +3494,7 @@ ${this.compactMenu(ctx)}
       type: 'function',
       name: 'change_item',
       description:
-        "Change something already on the order: how many ('I wanted one'), a choice ('make it deep pan'), or a note. Say which item as the caller did, or pass its line id. Use this instead of removing and re-adding.",
+        "Change something already on the order: how many ('I wanted one'), a choice ('make it deep pan'), a topping ('add extra pepperoni'), or a note. A topping named here is ADDED to the ones already on it; a pick-one choice like the crust is switched. Say which item as the caller did, or pass its line id. Use this instead of removing and re-adding.",
       parameters: {
         type: 'object',
         properties: {
@@ -3504,7 +3504,7 @@ ${this.compactMenu(ctx)}
           modifierNames: {
             type: 'array',
             items: { type: 'string' },
-            description: 'New choices by name, e.g. ["deep pan"]',
+            description: 'Choices to add or switch, by name, e.g. ["deep pan"] or ["extra pepperoni", "mushrooms"]. Extras are paid toppings — here, never in notes.',
           },
           notes: { type: 'string' },
         },
@@ -3604,29 +3604,6 @@ ${this.compactMenu(ctx)}
    * own words. Shared by add_item and change_item so "make it deep pan" is
    * resolved exactly the way "deep pan" was when the pizza went on.
    */
-  /** The old shape, for change_item: a set of option ids, from a set. */
-  private chooseOptions(
-    item: any,
-    input: any,
-    chosen: Set<string>,
-  ): { chosen: Set<string>; unmatched: string[] } {
-    const groups: any[] = item.modifierGroups ?? [];
-    const picks: Array<{ g: string; o: string }> = [];
-    for (const id of chosen) {
-      const g = groups.find((x) => x.options.some((o: any) => o.id === id));
-      if (g) picks.push({ g: g.id, o: id });
-    }
-    // mergeChoices has always reported what it could not place; this threw
-    // that away and returned the ids alone. add_item passes the report on
-    // ("could not place: …") but change_item went through here, so a topping
-    // the menu could not match vanished and the model was told the change had
-    // worked. On call DCjjeFGw it then wrote the caller's "extra green
-    // pepper" into the note field, where nothing charges for it and no
-    // kitchen line prints it as an option.
-    const merged = this.mergeChoices(item, input, picks);
-    return { chosen: new Set(picks.map((p) => p.o)), unmatched: merged.unmatched };
-  }
-
   /**
    * Fold what the caller said into a dish's choices.
    *
@@ -3647,7 +3624,16 @@ ${this.compactMenu(ctx)}
     const saved: string[] = [];
     const replaced: string[] = [];
     const unmatched: string[] = [];
-    const room = (g: any) => Math.max(1, Number(g.max ?? 0) || 0, needed(g));
+    // How many picks a group holds. A pick-many group with no maximum
+    // written down holds as many as they ask for — the POS reads a blank
+    // maximum as "any". Read as one, every topping named replaced the one
+    // before it, and the pizza on call vMxlYKAQ went out without the extra
+    // pepperoni that was asked for first.
+    const room = (g: any) => {
+      const max = Number(g.max ?? 0) || 0;
+      if (max > 0) return Math.max(max, needed(g));
+      return String(g.selectionType ?? '').toUpperCase() === 'ADDON' ? Math.max(20, needed(g)) : Math.max(1, needed(g));
+    };
     const inGroup = (g: any) => picks.filter((p) => p.g === g.id);
     const put = (g: any, o: any) => {
       if (room(g) === 1) {
@@ -3677,7 +3663,20 @@ ${this.compactMenu(ctx)}
       const name = String(raw ?? '').trim();
       if (!name) continue;
       // "two pepperoni" in a group that takes two is two picks of it.
-      const { quantity, rest } = splitQuantity(name);
+      const split = splitQuantity(name);
+      // "Double pepperoni" is two of it — unless the menu sells a "DOUBLE
+      // CHEESE" by that name, which is tried first below.
+      const multiple = /^(double|twice)\s+(.+)$/i.exec(name)
+        ? { quantity: 2, rest: name.replace(/^(double|twice)\s+/i, '') }
+        : /^triple\s+(.+)$/i.exec(name)
+          ? { quantity: 3, rest: name.replace(/^triple\s+/i, '') }
+          : null;
+      const literal = multiple
+        ? groups.some((g: any) =>
+            g.options.some((o: any) => /\b(double|triple|twice)\b/i.test(String(o.name)) && saysOption(name, String(o.name))),
+          )
+        : false;
+      const { quantity, rest } = multiple && !literal ? multiple : split;
       const want = rest || name;
       // The group this answer belongs to, judged before anything is touched.
       // On call HPHR9SFQ "donner kebab" tied between the Kebab group's
@@ -3856,7 +3855,7 @@ ${this.compactMenu(ctx)}
   }
 
   /** Which line they mean: by id, or by the words they used for it. */
-  private findLine(input: any, state: VoiceState): { line?: any; result?: string } {
+  private findLine(input: any, state: VoiceState, ctx?: VoiceContext): { line?: any; result?: string } {
     const items: any[] = state.cart.items;
     if (!items.length) return { result: 'There is nothing on the order yet.' };
     const byId = items.find((l) => l.lineId === String(input?.lineId ?? ''));
@@ -3874,13 +3873,14 @@ ${this.compactMenu(ctx)}
       };
     const words = said
       .split(' ')
-      .filter(
-        (w) =>
-          w.length > 2 && !['the', 'one', 'two', 'that', 'those', 'pizza', 'pizzas'].includes(w),
-      );
+      .filter((w) => w.length > 2 && !['the', 'one', 'two', 'that', 'those'].includes(w));
+    // "The pizza" names the line by what it is. The category is part of what
+    // a line is called, so "the pizza" finds the one pizza on the order, and
+    // two pizzas are the question they should be.
     const scored = items
       .map((l) => {
-        const hay = norm(`${l.name} ${(l.modifiers ?? []).map((m: any) => m.name).join(' ')}`);
+        const category = String(ctx?.itemIndex?.get(l.itemId)?.categoryName ?? '');
+        const hay = norm(`${l.name} ${(l.modifiers ?? []).map((m: any) => m.name).join(' ')} ${category}`);
         // "the pepperonis" is the pepperoni; "chips" is not "chip" + s only
         // in a menu. Singular and plural both count.
         const score = words.filter(
@@ -3920,7 +3920,7 @@ ${this.compactMenu(ctx)}
     ctx: VoiceContext,
     state: VoiceState,
   ): { result: string } {
-    const { line, result } = this.findLine(input, state);
+    const { line, result } = this.findLine(input, state, ctx);
     if (!line) {
       // "Forget the meal deal" — the one still being chosen.
       const d = state.draft;
@@ -3954,7 +3954,7 @@ ${this.compactMenu(ctx)}
     ctx: VoiceContext,
     state: VoiceState,
   ): { result: string } {
-    const { line, result } = this.findLine(input, state);
+    const { line, result } = this.findLine(input, state, ctx);
     if (!line) return { result: result! };
     const changed: string[] = [];
     const q = Number(input?.quantity);
@@ -3963,40 +3963,54 @@ ${this.compactMenu(ctx)}
       changed.push(`quantity ${q}`);
     }
     const unresolved: string[] = [];
-    if (Array.isArray(input?.modifierNames) && input.modifierNames.length) {
-      const item = ctx.itemIndex.get(line.itemId);
-      if (item) {
-        const picked = this.chooseOptions(
-          item,
-          { modifierNames: input.modifierNames },
-          new Set((line.modifiers ?? []).map((m: any) => m.optionId)),
-        );
-        const chosen = picked.chosen;
-        unresolved.push(...picked.unmatched);
-        const groups: any[] = item.modifierGroups ?? [];
-        const missing = groups.filter(
-          (g) => mustChoose(g) && g.options.filter((o: any) => chosen.has(o.id)).length < needed(g),
-        );
-        if (missing.length) {
-          return {
-            result: `That change would leave the ${line.name} without a ${this.groupLabel(missing[0].name)}. Ask which they want.`,
-          };
-        }
-        line.modifiers = [...chosen]
-          .map((id) => ctx.optionIndex.get(id))
+    const names: string[] = Array.isArray(input?.modifierNames) ? input.modifierNames.filter(Boolean) : [];
+    const noteGiven = typeof input?.notes === 'string';
+    const item = ctx.itemIndex.get(line.itemId);
+    // The same merge add_item uses, started from what the line already has:
+    // a topping named here joins the ones there, a pick-one choice switches,
+    // and a paid topping written into the note is charged, not noted.
+    if (item && (names.length || noteGiven)) {
+      const groups: any[] = item.modifierGroups ?? [];
+      const picks: Array<{ g: string; o: string }> = [];
+      for (const m of line.modifiers ?? []) {
+        const g = groups.find((x) => x.options.some((o: any) => o.id === m.optionId));
+        if (g) picks.push({ g: g.id, o: m.optionId });
+      }
+      const before = picks.map((p) => p.o).join(',');
+      const merged = this.mergeChoices(item, { modifierNames: names, ...(noteGiven ? { notes: input.notes } : {}) }, picks);
+      const missing = groups.filter(
+        (g) => mustChoose(g) && picks.filter((p) => p.g === g.id).length < needed(g),
+      );
+      if (missing.length) {
+        return {
+          result: `That change would leave the ${line.name} without a ${this.groupLabel(missing[0].name)}. Ask which they want.`,
+        };
+      }
+      if (picks.map((p) => p.o).join(',') !== before) {
+        line.modifiers = picks
+          .map((p) => ctx.optionIndex.get(p.o))
           .filter(Boolean)
           .map((m: any) => ({ optionId: m.option.id, name: m.option.name, price: m.option.price }));
         changed.push(`choices ${line.modifiers.map((m: any) => m.name).join(', ')}`);
       }
-    }
-    if (typeof input?.notes === 'string') {
-      const item = ctx.itemIndex.get(line.itemId);
-      const paid = item ? chargeableInNote(item, input.notes) : null;
-      if (paid) {
-        return {
-          result: `"${paid}" is a paid option on the ${line.name}, not a note — a note charges nothing and does not print as an option. Call change_item again with modifierNames: ["${paid}"]. Tell the caller it adds to the price.`,
-        };
+      if (merged.replaced.length) changed.push(`${merged.replaced.join(', ')} taken off`);
+      unresolved.push(...merged.unmatched);
+      if (merged.charged.length)
+        changed.push(`charged as toppings, not notes: ${merged.charged.join(', ')} — say the price`);
+      if (noteGiven) {
+        // What the note named as a paid topping is already charged above.
+        // Backstop: a priced option still in what is left is refused, not
+        // saved free — a paid topping is never a note.
+        const paid = chargeableInNote(item, String(merged.noteLeft ?? ''));
+        if (paid) {
+          return {
+            result: `"${paid}" is a paid option on the ${line.name}, not a note — a note charges nothing and does not print as an option. Call change_item again with modifierNames: ["${paid}"]. Tell the caller it adds to the price.`,
+          };
+        }
+        line.notes = String(merged.noteLeft ?? '').trim().slice(0, 200) || undefined;
+        if (line.notes || !merged.charged.length) changed.push(line.notes ? `note "${line.notes}"` : 'note removed');
       }
+    } else if (noteGiven) {
       line.notes = input.notes.trim().slice(0, 200) || undefined;
       changed.push(line.notes ? `note "${line.notes}"` : 'note removed');
     }

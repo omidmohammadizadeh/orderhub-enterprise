@@ -1919,3 +1919,81 @@ describe("an extra topping in a note is charged as a topping", () => {
     expect(add.description).toMatch(/Extras like 'extra pepperoni' are paid toppings — modifierNames, not notes/);
   });
 });
+
+// ── call vMxlYKAQ: "add extra toppings on that pizza" lost the extra pepperoni ──
+describe("toppings added to a pizza already on the order", () => {
+  const { VoiceAiService } = require("../voice-ai.service");
+  // The live topping group: pick-many, no maximum written down.
+  const MENU: any[] = [
+    { id: "marg12", name: 'MARGHERITHA (12")', price: 8.6, categoryName: "Pizzas", modifierGroups: [
+      { id: "cr", name: "select your pizza crust", required: true, min: 1, max: 1, selectionType: "VARIANT", options: [{ id: "cr1", name: "THIN BASE", price: 0 }, { id: "cr2", name: "DEEP PAN", price: 0 }] },
+      { id: "tp", name: "select your extra toppings", required: false, min: 0, max: null, selectionType: "ADDON", options: [{ id: "tp1", name: "PEPPERONI", price: 1.5 }, { id: "tp2", name: "MUSHROOMS", price: 1 }, { id: "tp3", name: "ONIONS", price: 0.8 }, { id: "tp4", name: "EXTRA CHEESE", price: 1.2 }] },
+    ] },
+    { id: "chips", name: "CHIPS", price: 2.5, categoryName: "Sides", modifierGroups: [] },
+  ];
+  const c = () => { const x: any = { currency: "GBP", items: MENU, deliveryZones: [] }; x.itemIndex = new Map(MENU.map((i) => [i.id, i])); x.optionIndex = new Map(MENU.flatMap((i: any) => i.modifierGroups.flatMap((g: any) => g.options.map((o: any) => [o.id, { groupId: g.id, itemId: i.id, option: o }])))); return x; };
+  const ai = () => { const a: any = Object.create(VoiceAiService.prototype); a.logger = { log() {}, warn() {}, error() {} }; return a; };
+  const placed = () => {
+    const a = ai(); const st: any = { cart: { items: [] }, turns: [] };
+    a.addItemConversational({ said: "12 inch margheritha", modifierNames: ["thin base"] }, c(), st);
+    return { a, st };
+  };
+  const names = (st: any) => st.cart.items[0].modifiers.map((m: any) => m.name);
+
+  it("a pick-many group with no maximum keeps every topping named, in one call or several", async () => {
+    const { a, st } = placed();
+    let out = await a.runToolForConversation("change_item", { said: "the margheritha", modifierNames: ["extra pepperoni", "mushrooms"] }, c(), st, null);
+    expect(names(st)).toEqual(["THIN BASE", "PEPPERONI", "MUSHROOMS"]);
+    expect(out.result).toMatch(/^Changed MARGHERITHA \(12"\): choices THIN BASE, PEPPERONI, MUSHROOMS\./);
+    out = await a.runToolForConversation("change_item", { said: "the pizza", modifierNames: ["onions"] }, c(), st, null);
+    expect(names(st)).toEqual(["THIN BASE", "PEPPERONI", "MUSHROOMS", "ONIONS"]);
+    expect(out.result).not.toMatch(/taken off/);
+  });
+
+  it("the crust still switches, and the toppings stay", async () => {
+    const { a, st } = placed();
+    await a.runToolForConversation("change_item", { said: "the margheritha", modifierNames: ["pepperoni"] }, c(), st, null);
+    const out = await a.runToolForConversation("change_item", { said: "the margheritha", modifierNames: ["deep pan"] }, c(), st, null);
+    expect(names(st)).toEqual(["PEPPERONI", "DEEP PAN"]);
+    expect(out.result).toMatch(/THIN BASE taken off/);
+  });
+
+  it("a topping written into the note of an existing line is charged, and the cooking note stays", async () => {
+    const { a, st } = placed();
+    const out = await a.runToolForConversation("change_item", { said: "the pizza", notes: "extra pepperoni, well done" }, c(), st, null);
+    expect(names(st)).toEqual(["THIN BASE", "PEPPERONI"]);
+    expect(st.cart.items[0].notes).toBe("well done");
+    expect(out.result).toMatch(/charged as toppings, not notes: PEPPERONI \(\+1\.50\) — say the price/);
+    expect(out.result).toMatch(/note "well done"/);
+  });
+
+  it("'double pepperoni' is two, 'extra cheese' is the option of that name, and an unknown extra is said so", async () => {
+    const { a, st } = placed();
+    const out = await a.runToolForConversation("change_item", { said: "the pizza", modifierNames: ["double pepperoni", "extra cheese", "anchovies"] }, c(), st, null);
+    expect(names(st)).toEqual(["THIN BASE", "PEPPERONI", "PEPPERONI", "EXTRA CHEESE"]);
+    expect(out.result).toMatch(/^Could NOT put "anchovies" on the MARGHERITHA \(12"\) — nothing on this item's menu matches it \(choices THIN BASE, PEPPERONI, PEPPERONI, EXTRA CHEESE did go on\)/);
+  });
+
+  it("'the pizza' finds the one pizza on the order, and two pizzas are a question", async () => {
+    const { a, st } = placed();
+    a.addItemConversational({ said: "chips" }, c(), st);
+    let out = await a.runToolForConversation("change_item", { said: "the pizza", modifierNames: ["onions"] }, c(), st, null);
+    expect(names(st)).toEqual(["THIN BASE", "ONIONS"]);
+    a.addItemConversational({ said: "12 inch margheritha", modifierNames: ["deep pan"] }, c(), st);
+    out = await a.runToolForConversation("change_item", { said: "the pizza", modifierNames: ["mushrooms"] }, c(), st, null);
+    expect(out.result).toMatch(/^Could be more than one line/);
+  });
+
+  it("add_item keeps every topping too when the group has no maximum", () => {
+    const a = ai(); const st: any = { cart: { items: [] }, turns: [] };
+    a.addItemConversational({ said: "12 inch margheritha", modifierNames: ["thin base", "extra pepperoni", "mushrooms", "onions"] }, c(), st);
+    expect(names(st)).toEqual(["THIN BASE", "PEPPERONI", "MUSHROOMS", "ONIONS"]);
+  });
+
+  it("the tool and the amend prompt say toppings are added on the line, not replaced", () => {
+    const a = ai();
+    const t = a.toolsForConversation(c()).find((x: any) => x.name === "change_item");
+    expect(t.description).toMatch(/A topping named here is ADDED to the ones already on it/);
+    expect(a.promptForConversation(c(), { cart: { items: [] }, turns: [] }, null)).toMatch(/"extra pepperoni on the pizza" is change_item on that line with modifierNames, and it keeps the toppings already there/);
+  });
+});
