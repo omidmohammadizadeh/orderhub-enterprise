@@ -138,6 +138,7 @@ interface Ask {
  */
 const ANSWERS: Record<string, string> = {
   order_confirmed: 'read_back_order',
+  amend_order: 'read_back_order',
   confirm_delivery_address: 'propose_delivery_address',
 };
 
@@ -1933,7 +1934,9 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         if (event.transcript) {
           (brain as any).__lastSaid = String(event.transcript);
           this.logger.log(
-            `realtime ${ccid.slice(-8)} said ${JSON.stringify(String(event.transcript).trim().slice(0, 200))}`,
+            // The whole read-back, with its length: a line that ends at 200
+            // characters is the log's doing, not the audio's.
+            `realtime ${ccid.slice(-8)} said ${JSON.stringify(String(event.transcript).trim().slice(0, 600))} (${String(event.transcript).trim().length} chars)`,
           );
         }
         return;
@@ -2258,6 +2261,9 @@ export class VoiceRealtimeGateway implements OnModuleInit {
                 ...args,
                 __conversation: true,
                 __spokeAfterQuestion: spokeAfterQuestion,
+                // The words of that turn, when the transcriber has them —
+                // never the proof of a yes, but enough to refuse a plain no.
+                __heard: spokeAfterQuestion ? (lastTurn?.text ?? null) : null,
               })
             : this.voice.realtimeTool(ccid, name, {
                 ...args,
@@ -2279,7 +2285,10 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         const said = typeof out?.result === 'string' && out.result ? out.result : 'Done.';
         this.logger.log(`realtime ${ccid.slice(-8)} tool ${name} → ${said.slice(0, 120)}`);
         // Spent. The same "yes" cannot confirm two different things.
-        if (NEEDS_CONSENT.has(name) || (conversation && name === 'place_order')) {
+        if (
+          NEEDS_CONSENT.has(name) ||
+          (conversation && (name === 'place_order' || name === 'amend_order'))
+        ) {
           const spent = conversation ? lastTurnId : latest?.itemId;
           if (spent) t.consumed.add(spent);
         }

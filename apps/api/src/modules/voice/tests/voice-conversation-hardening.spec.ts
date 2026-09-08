@@ -1290,7 +1290,7 @@ describe("changing an order that is already in — on this call or a later one",
 
     a.addItemConversational({ said: "chips" }, c(), st);
     const rb = await a.runTool("read_back_order", {}, c(), st, null);
-    expect(rb.sayNow).toMatch(/Pepperoni \(12"\) with Deep Pan, no onions, then Chips, for delivery to 11 Follingsby Drive.*plus £1\.00 delivery less £2\.00 discount That comes to £10\.80/);
+    expect(rb.sayNow).toMatch(/Pepperoni \(12 inch\) with Deep Pan, no onions, then Chips, for delivery to 11 Follingsby Drive.*plus £1\.00 delivery less £2\.00 discount That comes to £10\.80/);
     await a.runToolForConversation("order_confirmed", { __spokeAfterQuestion: true }, c(), st, null);
     const saved = await a.runToolForConversation("amend_order", {}, c(), st, "+447700900123");
     expect(saved.result).toMatch(/^Order 4J79Y updated — the kitchen has the new ticket.*£10\.80/);
@@ -1344,7 +1344,7 @@ describe("changing an order that is already in — on this call or a later one",
     await a.runToolForConversation("order_confirmed", { __spokeAfterQuestion: true }, c(), st, null);
     a.addItemConversational({ said: "chips" }, c(), st);
     // Adding a line wipes the confirmation; either way, nothing is saved.
-    expect((await a.runToolForConversation("amend_order", {}, c(), st, null)).result).toMatch(/read the whole order back|CHANGED since it was confirmed/);
+    expect((await a.runToolForConversation("amend_order", {}, c(), st, null)).result).toMatch(/CHANGED since it was read back/);
     expect(a.orders.editOrder).not.toHaveBeenCalled();
     expect((await a.runToolForConversation("place_order", { paymentMethod: "CASH", __spokeAfterQuestion: true }, c(), st, null)).result).toMatch(/Use amend_order, not place_order/);
   });
@@ -1538,5 +1538,130 @@ describe("a deal is chosen across turns, and what is chosen is kept", () => {
     const add = a.toolsForConversation(c()).find((t: any) => t.name === "add_item");
     expect(add.parameters.properties.done).toBeDefined();
     expect(add.description).toMatch(/KEEPS what has been chosen so far/);
+  });
+});
+
+// ── call F88Nz_EQ: "that's fine", "okay", "yes, that's fine" — and the order read back three times ──
+describe("the caller's yes to an amended read-back saves it", () => {
+  const { VoiceAiService } = require("../voice-ai.service");
+  const G = (id: string, name: string, opts: string[]) => ({ id, name, required: true, min: 1, max: 1, selectionType: "VARIANT", options: opts.map((o, i) => ({ id: `${id}${i + 1}`, name: o, price: 0 })) });
+  const MENU: any[] = [
+    { id: "kp12", name: 'KEBAB PIZZA (12")', price: 8.9, categoryName: "Pizzas", modifierGroups: [G("cr", "Select Your Pizza Crust", ["thin base", "deep pan"])] },
+    { id: "chips", name: "Chips", price: 2.9, categoryName: "Sides", modifierGroups: [] },
+  ];
+  const c = () => { const x: any = { tenantId: "t1", locationId: "l1", currency: "GBP", country: "GB", items: MENU, deliveryZones: [], transferNumber: "+441912312345", collectionPrepMinutes: 15 }; x.itemIndex = new Map(MENU.map((i) => [i.id, i])); x.optionIndex = new Map(MENU.flatMap((i: any) => i.modifierGroups.flatMap((g: any) => g.options.map((o: any) => [o.id, { groupId: g.id, itemId: i.id, option: o }])))); return x; };
+  const PLACED = (over: any = {}) => ({
+    id: "o58", displayId: "58EAU", collectionCode: null, orderNumber: 1210, orderSource: "VOICE", status: "ACCEPTED",
+    fulfillmentType: "PICKUP", paymentMethod: "CASH", paymentStatus: "PENDING", customerPhone: "+447700900123",
+    deliveryAddress: null, deliveryFee: 0, discount: 0, taxAmount: 0, tipAmount: 0, serviceCharge: 0, updatedAt: new Date(), createdAt: new Date(),
+    items: [{ name: "MEAL DEAL 2", quantity: 1, unitPrice: 25, notes: null, modifiers: [
+      { name: "DONNER KEBAB", price: 0 }, { name: "+CHIPS", price: 0 }, { name: '10"KEBAB PIZZA ', price: 0 }, { name: "+GARLIC", price: 0 }, { name: "CAN CKOE", price: 0 }, { name: "CAN CKOE", price: 0 },
+    ] }],
+    ...over,
+  });
+  const ai = (order: any = PLACED()) => {
+    const a: any = Object.create(VoiceAiService.prototype);
+    a.logger = { log() {}, warn() {}, error() {} };
+    a.db = () => ({ order: { findFirst: async () => order, findMany: async () => [order] } });
+    a.orders = { editOrder: jest.fn(async () => ({})) };
+    return a;
+  };
+  const readBack = async (a: any) => {
+    const st: any = { cart: { items: [] }, turns: [], orderId: "o58" };
+    await a.runToolForConversation("find_order_to_change", {}, c(), st, "+447700900123");
+    a.addItemConversational({ said: "chips" }, c(), st);
+    const rb = await a.runTool("read_back_order", {}, c(), st, null);
+    return { st, rb };
+  };
+  const yes = (heard: string) => ({ __conversation: true, __spokeAfterQuestion: true, __heard: heard });
+
+  it("reads the loaded order back cleanly — no plus signs, no quote marks, identical choices counted", async () => {
+    const { rb } = await readBack(ai());
+    expect(rb.sayNow).toBe("So that's MEAL DEAL 2 with DONNER KEBAB, CHIPS, 10 inch KEBAB PIZZA, GARLIC and 2 CAN CKOE, then Chips, for collection. That comes to £27.90. Is that all correct?");
+  });
+
+  it("'that's fine' after the read-back saves the change once, with no second read-back", async () => {
+    const a = ai(); const { st } = await readBack(a);
+    const out = await a.runToolForConversation("amend_order", yes("That's fine."), c(), st, "+447700900123");
+    expect(out.result).toMatch(/^Order 58EAU updated — the kitchen has the new ticket.*£27\.90/);
+    expect(a.orders.editOrder).toHaveBeenCalledTimes(1);
+    expect(a.orders.editOrder.mock.calls[0][2].items.map((i: any) => i.name)).toEqual(["MEAL DEAL 2", "Chips"]);
+    const again = await a.runToolForConversation("amend_order", yes("Okay."), c(), st, "+447700900123");
+    expect(again.result).toMatch(/no existing order being changed/);
+    expect(a.orders.editOrder).toHaveBeenCalledTimes(1);
+  });
+
+  it("'okay' does too, and so does a turn the transcriber could not read", async () => {
+    const a = ai(); const { st } = await readBack(a);
+    expect((await a.runToolForConversation("amend_order", yes("Okay."), c(), st, null)).result).toMatch(/^Order 58EAU updated/);
+    const b = ai(); const two = await readBack(b);
+    expect((await b.runToolForConversation("amend_order", { __conversation: true, __spokeAfterQuestion: true, __heard: null }, c(), two.st, null)).result).toMatch(/^Order 58EAU updated/);
+  });
+
+  it("a no, or a yes-but, is not a yes", async () => {
+    const a = ai(); const { st } = await readBack(a);
+    const no = await a.runToolForConversation("amend_order", yes("No, change the drink."), c(), st, null);
+    expect(no.result).toMatch(/^Not saved — they did not simply agree, they said "No, change the drink\."/);
+    const but = await a.runToolForConversation("amend_order", yes("Yes, but change the drink to Fanta"), c(), st, null);
+    expect(but.result).toMatch(/^Not saved — they did not simply agree/);
+    expect(a.orders.editOrder).not.toHaveBeenCalled();
+    expect(st.amendOrderId).toBe("o58");
+  });
+
+  it("silence after the read-back waits, and says not to read it again", async () => {
+    const a = ai(); const { st } = await readBack(a);
+    const out = await a.runToolForConversation("amend_order", { __conversation: true, __spokeAfterQuestion: false }, c(), st, null);
+    expect(out.result).toMatch(/hasn't answered since\. Wait for them — do not read it back again/);
+    expect(a.orders.editOrder).not.toHaveBeenCalled();
+  });
+
+  it("a change after the read-back needs a fresh read-back — and says so, not 'not read back yet'", async () => {
+    const a = ai(); const { st } = await readBack(a);
+    a.addItemConversational({ said: "kebab pizza 12 inch", modifierNames: ["thin base"] }, c(), st);
+    expect(st.cart.items).toHaveLength(3);
+    const out = await a.runToolForConversation("amend_order", yes("Yes"), c(), st, null);
+    expect(out.result).toMatch(/^The order has CHANGED since it was read back/);
+    expect(a.orders.editOrder).not.toHaveBeenCalled();
+  });
+
+  it("order_confirmed while changing an order points at amend_order, not at payment", async () => {
+    const a = ai(); const { st } = await readBack(a);
+    const out = await a.runToolForConversation("order_confirmed", { __spokeAfterQuestion: true }, c(), st, null);
+    expect(out.result).toMatch(/Confirmed\. Call amend_order now to save the change to order 58EAU/);
+    expect(out.result).not.toMatch(/cash/);
+    expect((await a.runToolForConversation("amend_order", yes("yes"), c(), st, null)).result).toMatch(/^Order 58EAU updated/);
+  });
+
+  it("'that's it' with nothing being chosen is pointed at the read-back or the save", async () => {
+    const a = ai(); const { st } = await readBack(a);
+    const out = a.addItemConversational({ done: true }, c(), st);
+    expect(out.result).toMatch(/Nothing is being chosen right now\. If they are agreeing to the read-back, call amend_order/);
+    expect(st.cart.items).toHaveLength(2);
+  });
+
+  it("the gateway hands amend_order the caller's answer to the read-back, and its words", async () => {
+    const sim = conversationSim();
+    (sim.gateway.voice.conversationTool as jest.Mock).mockImplementation(async (_c: string, name: string) =>
+      name === 'read_back_order' ? { result: 'read back', sayNow: 'So that is chips. Is that all correct?' } : { result: 'ok' },
+    );
+    await sim.answer();
+    sim.brain.deliver({ type: 'response.created', response: { id: 'r1' } });
+    sim.brain.deliver({ type: 'response.function_call_arguments.done', response_id: 'r1', name: 'read_back_order', call_id: 'c1', arguments: '{}' });
+    await settle(30);
+    sim.brain.deliver({ type: 'response.done', response: { id: 'r1', status: 'completed' } });
+    await settle(10);
+    sim.brain.deliver({ type: 'response.created', response: { id: 's1', metadata: { origin: 'script' } } });
+    sim.brain.deliver({ type: 'response.output_audio_transcript.done', response_id: 's1', transcript: 'So that is chips. Is that all correct?' });
+    sim.brain.deliver({ type: 'response.done', response: { id: 's1', status: 'completed' } });
+    sim.brain.deliver({ type: 'input_audio_buffer.committed', item_id: 'u-fine' });
+    sim.brain.deliver({ type: 'conversation.item.input_audio_transcription.completed', item_id: 'u-fine', transcript: "That's fine." });
+    await settle(10);
+    sim.brain.deliver({ type: 'response.created', response: { id: 'r2' } });
+    sim.brain.deliver({ type: 'response.function_call_arguments.done', response_id: 'r2', name: 'amend_order', call_id: 'c2', arguments: '{}' });
+    await settle(30);
+    const call = (sim.gateway.voice.conversationTool as jest.Mock).mock.calls.find((k) => k[1] === 'amend_order')!;
+    expect(call[2].__spokeAfterQuestion).toBe(true);
+    expect(call[2].__heard).toBe("That's fine.");
+    expect(sim.log.join('\n')).toMatch(/said "So that is chips\. Is that all correct\?" \(38 chars\)/);
   });
 });

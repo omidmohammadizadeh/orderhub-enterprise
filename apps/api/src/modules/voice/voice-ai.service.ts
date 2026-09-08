@@ -2352,6 +2352,11 @@ ${menu || '(no items available — apologise and transfer)'}`;
         state.pendingConfirm = undefined;
         state.orderConfirmed = true;
         state.orderConfirmedOf = now;
+        if (state.amendOrderId) {
+          return {
+            result: `Confirmed. Call amend_order now to save the change to order ${state.amendReference ?? state.amendOrderId}. No payment question — that was settled when the order was placed.`,
+          };
+        }
         return {
           result:
             'Confirmed. Now ask how they would like to pay — cash, or card — and then place it.',
@@ -2368,7 +2373,7 @@ ${menu || '(no items available — apologise and transfer)'}`;
       case 'find_order_to_change':
         return this.findOrderToChange(ctx, state, callerNumber, input?.orderNumber);
       case 'amend_order':
-        return this.amendOrder(ctx, state);
+        return this.amendOrder(ctx, state, input);
       case 'place_order':
         // An amendment is not a new order. Placing one here would leave the
         // caller with two — the one they rang about and a duplicate of it
@@ -3316,7 +3321,7 @@ ${delivery}
 
 AN ORDER ALREADY PLACED
 - "Where's my order?" — get_order_status. If they read a number, pass it exactly as said, letters included; otherwise leave it out and it uses their phone number. Say what it tells you to say.
-- "Can I add…" / "change…" to an order already placed, this call or earlier — find_order_to_change (with the number if they read one). It loads the whole order into the basket; add or change items as usual, then read_back_order, get a yes, and amend_order. Never place_order for a change.${theUsual}${closed}
+- "Can I add…" / "change…" to an order already placed, this call or earlier — find_order_to_change (with the number if they read one). It loads the whole order into the basket; add or change items as usual, then read_back_order once. When they agree — yes, okay, fine, that's it — call amend_order: it records the yes and saves. Do not read it back again unless something changed. No payment question for a change. Never place_order for a change.${theUsual}${closed}
 
 MENU
 ${this.compactMenu(ctx)}
@@ -3846,6 +3851,14 @@ ${this.compactMenu(ctx)}
     const draftItem = draft ? ctx.itemIndex.get(draft.itemId) : undefined;
     const said = String(input?.said ?? '').trim();
     const explicit = ctx.itemIndex.get(String(input?.itemId ?? ''));
+    // "That's it" with nothing being chosen is not about a dish at all.
+    if (input?.done === true && !draftItem && !said && !explicit) {
+      return {
+        result: state.amendOrderId
+          ? 'Nothing is being chosen right now. If they are agreeing to the read-back, call amend_order; if they are finished changing things, call read_back_order.'
+          : 'Nothing is being chosen right now. If they are agreeing to the read-back, call order_confirmed; if they are finished ordering, call read_back_order.',
+      };
+    }
     let item: any;
     let quantity = 1;
     if (draft && draftItem) {
@@ -4465,14 +4478,35 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
     return { say: this.readBackScript(ctx, state), next: 'ORDER_CONFIRM' };
   }
 
+  /**
+   * A name as it should be SAID: a till's "+CHIPS" and '10"KEBAB PIZZA '
+   * arrive on a loaded order exactly like that, and the line read them out
+   * plus-signs, quote-marks and all.
+   */
+  private spokenName(raw: unknown): string {
+    return String(raw ?? '')
+      .replace(/^\s*\+\s*/, '')
+      .replace(/"/g, ' inch ')
+      .replace(/\s+/g, ' ')
+      .replace(/\(\s+/g, '(')
+      .replace(/\s+\)/g, ')')
+      .trim();
+  }
+
   private readBackScript(ctx: VoiceContext, state: VoiceState): string {
     const lines = state.cart.items
       .map((l) => {
-        const mods = l.modifiers.length
-          ? ` with ${l.modifiers.map((m) => m.name).join(' and ')}`
-          : '';
+        // Identical choices are said once with a count — "2 CAN COKE", not
+        // "CAN COKE and CAN COKE" — and the rest in a list a person would say.
+        const counts = new Map<string, number>();
+        for (const m of l.modifiers) {
+          const n = this.spokenName(m.name);
+          if (n) counts.set(n, (counts.get(n) ?? 0) + 1);
+        }
+        const named = [...counts].map(([n, c]) => (c > 1 ? `${c} ${n}` : n));
+        const mods = named.length ? ` with ${this.spokenList(named, 'and')}` : '';
         const qty = l.quantity > 1 ? `${l.quantity} ` : '';
-        return `${qty}${l.name}${mods}${l.notes ? `, ${l.notes}` : ''}`;
+        return `${qty}${this.spokenName(l.name)}${mods}${l.notes ? `, ${l.notes}` : ''}`;
       })
       .join(', then ');
 
@@ -5057,17 +5091,51 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
   private async amendOrder(
     ctx: VoiceContext,
     state: VoiceState,
+    input: any = {},
   ): Promise<{ result: string; turn?: Partial<VoiceTurn> }> {
     const amendId = state.amendOrderId;
     if (!amendId) {
       return { result: 'There is no existing order being changed here. Call find_order_to_change first.' };
     }
     if (!this.orderStillConfirmed(state)) {
-      return {
-        result: state.orderConfirmed
-          ? 'The order has CHANGED since it was confirmed. Call read_back_order again and get a fresh yes before saving.'
-          : 'You have not read the whole order back yet. Call read_back_order, say it, and get a yes — the same as before placing one.',
-      };
+      // Three different situations wore one message — "you have not read
+      // the whole order back yet" — and on call F88Nz_EQ the model believed
+      // it: read the unchanged £26.80 order back three times to a caller who
+      // had said "that's fine", "okay" and "yes, that's fine" to it.
+      const readBack = !!state.readBackOf && state.readBackOf === this.orderFingerprint(state);
+      if (!readBack) {
+        return {
+          result: state.readBackOf
+            ? 'The order has CHANGED since it was read back. Call read_back_order again, say it, and get a fresh yes before saving.'
+            : 'You have not read the whole order back yet. Call read_back_order, say it, and get a yes — the same as before placing one.',
+        };
+      }
+      // Read back, unchanged, and now saved on the caller's answer: this
+      // call IS the yes, the same way order_confirmed takes it — a turn
+      // after the read-back, and not a plain no or a correction.
+      if (input?.__conversation !== true) {
+        return {
+          result: 'Read back, but the yes has not been recorded. Call order_confirmed with their answer, then amend_order.',
+        };
+      }
+      if (input.__spokeAfterQuestion !== true) {
+        return {
+          result: "Read back, but the caller hasn't answered since. Wait for them — do not read it back again. When they agree, call amend_order.",
+        };
+      }
+      const heard = String(input.__heard ?? '').trim();
+      if (
+        heard &&
+        (parseYesNo(heard) === 'NO' ||
+          /\b(but|except|actually|instead|change|wrong|not right|hold on|wait)\b/i.test(heard))
+      ) {
+        return {
+          result: `Not saved — they did not simply agree, they said "${heard}". Ask what needs changing, change it, read it back again, then call amend_order.`,
+        };
+      }
+      state.orderConfirmed = true;
+      state.orderConfirmedOf = this.orderFingerprint(state);
+      this.logger.log(`Voice amend of ${amendId}: the caller agreed to the read-back — saving`);
     }
 
     // The kitchen may have moved on while the caller was choosing. What was
