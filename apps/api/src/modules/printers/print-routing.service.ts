@@ -25,7 +25,9 @@
 
 import { Injectable, Logger } from "@nestjs/common";
 import { receiptOrderNumber } from './receipt-order-number';
-import { formatMoney } from "@orderhub/shared";
+import { formatMoney,
+  cleanPrintedItemName,
+} from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import {
   computeVisitCountForOrder,
@@ -296,7 +298,7 @@ export class PrintRoutingService {
           ...header,
           stationName: stationRow?.name ?? null,
           items: bucket.items.map((i) => ({
-            name: this.cleanItemName(i.name),
+            name: this.cleanItemName(i.name, i.modifiers),
             quantity: i.quantity,
             modifiers: i.modifiers ?? [],
             notes: i.notes ?? null,
@@ -355,7 +357,7 @@ export class PrintRoutingService {
               ...header,
               stationName: null,
               items: items.map((i) => ({
-                name: this.cleanItemName(i.name),
+                name: this.cleanItemName(i.name, i.modifiers),
                 quantity: i.quantity,
                 modifiers: i.modifiers ?? [],
                 notes: i.notes ?? null,
@@ -636,7 +638,7 @@ export class PrintRoutingService {
       receivedAt: order.receivedAt ?? order.createdAt,
       deliveryAddress: this.formatDeliveryAddress(order),
       items: items.map((i) => ({
-        name: this.cleanItemName(i.name),
+        name: this.cleanItemName(i.name, i.modifiers),
         quantity: i.quantity,
         modifiers: i.modifiers ?? [],
         notes: i.notes ?? null,
@@ -709,47 +711,16 @@ export class PrintRoutingService {
   // suffix in the name causes them to print twice. Strip it here for
   // print only — never touch the stored value, KDS still depends on
   // it.
-  private cleanItemName(raw: string | null | undefined): string {
-    if (!raw) return "";
-    let s = String(raw);
-    // Drop trailing " - Note: ..." (case-sensitive, mirrors buildCartItemName).
-    const noteIdx = s.indexOf(" - Note: ");
-    if (noteIdx >= 0) s = s.slice(0, noteIdx);
-    // Drop the last "(...)" group which holds the modifier list — the
-    // modifiers are printed on their own lines underneath, so leaving them in
-    // the name prints everything twice.
-    //
-    // UNLESS it is the size. Our own names put the size in front ("10 inch
-    // Margherita (Classic Crust, Extra Cheese)"), so this was safe until
-    // marketplace orders arrived through HubRise, which write it the other way
-    // round: 'Best Kebab Calzone (12")'. That went in the bin, and a kitchen
-    // reading "Best Kebab Calzone" off the ticket has no idea which of the
-    // three sizes to make — while the order card on screen showed it plainly.
-    const trailing = s.match(/\s*\(([^()]*)\)\s*$/);
-    if (trailing && !this.looksLikeSize(trailing[1] ?? "")) {
-      s = s.slice(0, trailing.index);
-    }
-    return s.trim();
-  }
-
   /**
-   * Is this bracketed text a size rather than a list of modifiers?
+   * What the ticket prints as the item name.
    *
-   * A comma means a list, whatever it contains. Otherwise a size is either a
-   * measurement — 12", 10 inch, 500ml — or one of the words a menu uses for
-   * one. Anything else is treated as modifiers and dropped, which is the safe
-   * way round: a modifier left in the name is printed twice, while a size
-   * removed from it cannot be recovered by anybody reading the ticket.
+   * One implementation, in @orderhub/shared next to buildCartItemName which
+   * creates the problem — the tablet bridge renderer has its own entry point
+   * and had drifted to a blunter rule, so a burger lost its size on tablets
+   * even after the server learned to keep it.
    */
-  private looksLikeSize(inner: string): boolean {
-    const t = inner.trim();
-    if (!t || t.includes(",")) return false;
-    if (/^\d+(\.\d+)?\s*("|''|in\b|inch(es)?|cm|mm|ml|cl|l\b|ltr|litre|g\b|kg|oz|pt\b|pc|pcs|piece(s)?)/i.test(t)) {
-      return true;
-    }
-    return /^(x?x?-?\s?(small|large)|small|medium|med|large|regular|reg|standard|mini|maxi|jumbo|king|kids?|junior|family|sharing|single|double|triple|half|whole|full|solo|duo)$/i.test(
-      t,
-    );
+  private cleanItemName(raw: string | null | undefined, modifiers?: any): string {
+    return cleanPrintedItemName(raw, modifiers);
   }
 
   // Joins the order's address columns into one printable string. Uses

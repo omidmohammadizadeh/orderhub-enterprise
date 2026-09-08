@@ -1,3 +1,4 @@
+import { cleanPrintedItemName } from "@orderhub/shared";
 // Shared receipt payload builder.
 //
 // Turns a live Order object (as the board / drawer already hold it) into
@@ -84,14 +85,9 @@ function phoneWithAccessCode(order: any): string | null {
 // keeps its brackets.
 export function cleanItemName(
   raw: string | null | undefined,
-  hasModifiers: boolean,
+  modifiers?: ReadonlyArray<{ name?: string | null }> | null,
 ): string {
-  if (!raw) return "";
-  let s = String(raw);
-  const noteIdx = s.indexOf(" - Note: ");
-  if (noteIdx >= 0) s = s.slice(0, noteIdx);
-  if (hasModifiers) s = s.replace(/\s*\([^()]*\)\s*$/, "");
-  return s.trim() || String(raw).trim();
+  return cleanPrintedItemName(raw, modifiers);
 }
 
 // `banner` is an optional reverse-video line printed at the very top —
@@ -202,7 +198,7 @@ export function buildPrintPayload(
     deliveryAddress,
     receivedAt: (order as any).receivedAt ?? (order as any).createdAt ?? null,
     items: (order.items ?? []).map((i: any) => ({
-      name: cleanItemName(i.name, !!(i.modifiers?.length)),
+      name: cleanItemName(i.name, i.modifiers as any),
       // Kitchen-language name, attached to the live-orders feed by
       // attachKitchenNames when the location prints translated tickets. The
       // renderer prints THIS instead of `name` and, on a tablet, draws it as

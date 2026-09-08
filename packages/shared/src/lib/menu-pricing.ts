@@ -285,6 +285,76 @@ export function activeModifierGroupIds(
  * load-bearing — do not change it without updating the KDS parser in
  * `parseItemDisplay` as well.
  */
+/**
+ * The inverse of buildCartItemName, for a printed ticket.
+ *
+ * buildCartItemName packs the modifier list into trailing brackets so the KDS
+ * can parse a single column back apart. A ticket already prints those options
+ * on their own lines underneath, so leaving them on the headline prints the
+ * whole lot twice on a 58mm roll — hence the strip.
+ *
+ * The hard part is telling that list apart from a SIZE, because marketplace
+ * names put the size exactly where we put the modifiers: HubRise sends
+ * 'Best Kebab Calzone (12")' and 'Cheese Burger (1/2lb)'.
+ *
+ * This used to guess from the text — a list of units and words like "large".
+ * That is a vocabulary, and a vocabulary is always missing the next thing a
+ * shop invents: it lost 1/2lb and 1/4lb off every burger after it had already
+ * lost the pizza sizes. So stop guessing. The bracket is dropped ONLY when its
+ * contents are this item's own modifier names, which is precisely what
+ * buildCartItemName put there. Anything else — any size, any format, any
+ * language — is left alone.
+ *
+ * Erring this way is deliberate: a modifier left on the headline is printed
+ * twice and a chef reads it twice, while a size removed from it cannot be
+ * recovered by anybody holding the ticket.
+ */
+export function cleanPrintedItemName(
+  raw: string | null | undefined,
+  modifiers?: ReadonlyArray<{ name?: string | null }> | null,
+): string {
+  if (!raw) return "";
+  let s = String(raw);
+
+  // " - Note: ..." is the operator's note; it prints on its own line too.
+  const noteIdx = s.indexOf(" - Note: ");
+  if (noteIdx >= 0) s = s.slice(0, noteIdx);
+
+  const trailing = s.match(/\s*\(([^()]*)\)\s*$/);
+  if (trailing && echoesModifiers(trailing[1] ?? "", modifiers)) {
+    s = s.slice(0, trailing.index);
+  }
+  return s.trim() || String(raw).trim();
+}
+
+const norm = (v: unknown): string =>
+  typeof v === "string" ? v.trim().toLowerCase().replace(/\s+/g, " ") : "";
+
+/** Is this bracketed text just the item's own options, said again? */
+function echoesModifiers(
+  inner: string,
+  modifiers?: ReadonlyArray<{ name?: string | null }> | null,
+): boolean {
+  const names = (modifiers ?? [])
+    .map((m) => norm(m?.name))
+    .filter((n): n is string => !!n);
+  if (!names.length) return false;
+
+  const text = norm(inner);
+  if (!text) return false;
+
+  // The whole list, exactly as buildCartItemName joined it.
+  if (text === names.join(", ")) return true;
+
+  // Otherwise every part has to be one of them. A modifier name containing a
+  // comma would split wrongly here and the bracket is kept — printing an
+  // option twice, which is the harmless direction.
+  const parts = text.split(",").map((p) => p.trim()).filter(Boolean);
+  if (!parts.length) return false;
+  const set = new Set(names);
+  return parts.every((p) => set.has(p));
+}
+
 export function buildCartItemName(args: {
   productName: string;
   selectedSku?: ProductSku | null;

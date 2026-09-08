@@ -1,68 +1,94 @@
 // The size has to survive onto the ticket.
 //
-// From a live Uber Eats order: the order card on screen showed
-//   Best Kebab Calzone (12")
+// Uber Eats order #F7A7D at Best Kebab, 8 Sep. The order card on screen showed
+//   Cheese Burger (1/2lb)   Chicken Burger (1/4lb)
 // and the printed receipt showed
-//   Best Kebab Calzone
-// A kitchen reading that has no idea which of three sizes to make, and the
-// information was right there on the screen next to them.
+//   Cheese Burger           Chicken Burger
+// A kitchen reading that has no idea which one to make, and the information
+// was right there on the screen next to them. Before the burgers it was pizza
+// sizes: 'Best Kebab Calzone (12")'.
 //
-// The cause is a rule that is correct for our own names and wrong for
-// everybody else's. buildCartItemName puts the size in FRONT and the modifier
-// list in trailing brackets — "10 inch Margherita (Classic Crust, Extra
-// Cheese)" — and the modifiers are printed on their own lines underneath, so
-// the brackets are dropped to stop them printing twice. HubRise writes it the
-// other way round, and the size went in the bin with them.
+// buildCartItemName packs the modifier list into trailing brackets, and the
+// ticket prints those options underneath, so the brackets are stripped to stop
+// them printing twice. Marketplace names put the SIZE in that same position.
+// The first fix guessed from the text with a list of units and size words —
+// which is a vocabulary, and a vocabulary is always missing the next thing a
+// shop invents. 1/2lb was the next thing.
+//
+// The rule now: drop the bracket only when it contains this item's own
+// modifier names, which is exactly what buildCartItemName put there.
 
-import { PrintRoutingService } from "../print-routing.service";
+import { cleanPrintedItemName } from "@orderhub/shared";
 
-const clean = (name: string): string =>
-  (PrintRoutingService.prototype as any).cleanItemName.call(
-    PrintRoutingService.prototype,
-    name,
-  );
+const mods = (...names: string[]) => names.map((name) => ({ name }));
 
 describe("what gets printed as the item name", () => {
-  it("keeps a size written in brackets", () => {
-    expect(clean('Best Kebab Calzone (12")')).toBe('Best Kebab Calzone (12")');
-    expect(clean("Margherita (10 inch)")).toBe("Margherita (10 inch)");
-    expect(clean("Coca-Cola (500ml)")).toBe("Coca-Cola (500ml)");
-    expect(clean("Doner Kebab (Large)")).toBe("Doner Kebab (Large)");
-    expect(clean("Chips (regular)")).toBe("Chips (regular)");
-  });
-
-  it("still drops a modifier list", () => {
-    // These are printed underneath as their own lines. Leaving them in the
-    // name prints the whole lot twice on a 58mm roll.
-    expect(clean("10 inch Margherita (Classic Crust, Extra Cheese)")).toBe(
-      "10 inch Margherita",
+  it("keeps the size that was lost — order #F7A7D", () => {
+    const burger = mods("Lettuce", "Tomatoes", "Ketchup", "Plain Chips");
+    expect(cleanPrintedItemName("Cheese Burger (1/2lb)", burger)).toBe(
+      "Cheese Burger (1/2lb)",
     );
-    expect(clean("Doner Kebab (Chilli Sauce)")).toBe("Doner Kebab");
-    expect(clean("Wrap (Peri Peri Sauce)")).toBe("Wrap");
+    expect(cleanPrintedItemName("Chicken Burger (1/4lb)", burger)).toBe(
+      "Chicken Burger (1/4lb)",
+    );
   });
 
-  it("drops a single-word modifier that is not a size", () => {
-    expect(clean("Burger (Cheese)")).toBe("Burger");
-    expect(clean("Pizza (Mushrooms)")).toBe("Pizza");
-  });
-
-  it("treats anything with a comma as a list, however it reads", () => {
-    // "(Large, Extra Cheese)" is a list that happens to start with a size.
-    // Keeping it would print the cheese twice, and the size is only half the
-    // reason it is there.
-    expect(clean("Pizza (Large, Extra Cheese)")).toBe("Pizza");
-  });
-
-  it("cuts a note off the end, size or not", () => {
-    expect(clean('Best Kebab Calzone (12") - Note: no chilli')).toBe(
+  it("keeps sizes of every shape, without a vocabulary", () => {
+    const m = mods("Chilli Sauce");
+    for (const name of [
       'Best Kebab Calzone (12")',
-    );
-    expect(clean("Margherita (Extra Cheese) - Note: well done")).toBe("Margherita");
+      "Margherita (10 inch)",
+      "Coca-Cola (500ml)",
+      "Doner Kebab (Large)",
+      "Chips (regular)",
+      "Parmo (Half Pounder)",
+      "Burger (Quarter Pounder)",
+      "Shawarma (Wrap or Rice)",
+      "Pizza (Familiengröße)",
+    ]) {
+      expect(cleanPrintedItemName(name, m)).toBe(name);
+    }
   });
 
-  it("leaves an ordinary name alone", () => {
-    expect(clean("Cheesy Garlic Mushrooms")).toBe("Cheesy Garlic Mushrooms");
-    expect(clean("")).toBe("");
-    expect(clean(null as any)).toBe("");
+  it("still drops a modifier list, so nothing prints twice", () => {
+    expect(
+      cleanPrintedItemName(
+        "10 inch Margherita (Classic Crust, Extra Cheese)",
+        mods("Classic Crust", "Extra Cheese"),
+      ),
+    ).toBe("10 inch Margherita");
+    expect(
+      cleanPrintedItemName("Doner Kebab (Chilli Sauce)", mods("Chilli Sauce")),
+    ).toBe("Doner Kebab");
+  });
+
+  it("keeps a bracket the item's options don't explain", () => {
+    // Half the bracket matching is not enough — that is a name, not a list.
+    expect(
+      cleanPrintedItemName(
+        "Meal Deal (Large, Something Else)",
+        mods("Large"),
+      ),
+    ).toBe("Meal Deal (Large, Something Else)");
+  });
+
+  it("keeps brackets on an item with no options at all", () => {
+    expect(cleanPrintedItemName("Pepsi (330ml)", [])).toBe("Pepsi (330ml)");
+    expect(cleanPrintedItemName("Pepsi (330ml)")).toBe("Pepsi (330ml)");
+  });
+
+  it("drops the operator's note either way", () => {
+    expect(
+      cleanPrintedItemName("Cheese Burger (1/2lb) - Note: no salt", mods("Lettuce")),
+    ).toBe("Cheese Burger (1/2lb)");
+    expect(
+      cleanPrintedItemName("Doner (Chilli Sauce) - Note: extra hot", mods("Chilli Sauce")),
+    ).toBe("Doner");
+  });
+
+  it("never returns an empty name", () => {
+    expect(cleanPrintedItemName("(Chilli Sauce)", mods("Chilli Sauce"))).toBe(
+      "(Chilli Sauce)",
+    );
   });
 });
