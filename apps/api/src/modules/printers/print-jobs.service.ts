@@ -464,6 +464,27 @@ export class PrintJobsService {
         },
       });
       created.push(row.id);
+      // Creating the row is not printing. The tablet bridge prints what it is
+      // TOLD about, and a job nobody announces sits QUEUED for ever — which
+      // is exactly what happened on the first live call: the note was taken,
+      // the caller was told it had gone through, and no paper moved.
+      const liteForBridge = (() => {
+        const p = (t.payload ?? {}) as Record<string, any>;
+        const { brandLogoUrl, ...rest } = p; // eslint-disable-line @typescript-eslint/no-unused-vars
+        return rest;
+      })();
+      this.socket.emitToLocation(order.locationId, "printer:job:created" as any, {
+        id: row.id,
+        type: row.type,
+        printerId: row.printerId,
+        stationId: row.stationId,
+        status: row.status,
+        locationId: order.locationId,
+        orderId: args.orderId,
+        trigger: "MANUAL_ONLY",
+        copies: row.copies,
+        payload: liteForBridge,
+      } as any);
     }
     this.logger.log(
       `Customer note printed for order ${args.orderId} on ${created.length} printer(s)`,
