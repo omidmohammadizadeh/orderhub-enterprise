@@ -3430,6 +3430,7 @@ ${delivery}
 - If they want a person, or press 0, transfer_to_staff. If something has gone wrong with an existing order, take_message.
 
 AN ORDER ALREADY PLACED
+- "Cancel my order" — cancel_order, always, whatever they say and however they say it. You cannot cancel an order and must never say you have, or that it is being cancelled, or that you will pass it on to be cancelled. An order from Just Eat, Uber Eats, Deliveroo, Talabat or Careem is cancelled on that app and nowhere else, not even by the shop. Anything of ours — the website, the till, this line — needs a member of staff, so put them through. Say what the tool gives you.
 - An order placed on Just Eat, Uber Eats, Deliveroo or anywhere else cannot be changed here, and you must not pretend otherwise. But you CAN put a sentence in front of the kitchen: "I can't change the order, but I can send a note to the kitchen for you." Then note_for_kitchen with their own words. It adds nothing and costs nothing.
 - "Where's my order?" — get_order_status. If they read a number, pass it exactly as said, letters included; otherwise leave it out and it uses their phone number. Say what it tells you to say.
 - "Can I add…" / "change…" to an order already placed, this call or earlier — find_order_to_change (with the number if they read one). It loads the whole order into the basket; add or change items as usual — "extra pepperoni on the pizza" is change_item on that line with modifierNames, and it keeps the toppings already there — then read_back_order once. When they agree — yes, okay, fine, that's it — call amend_order: it records the yes and saves. Do not read it back again unless something changed. No payment question for a change. Never place_order for a change.${theUsual}${closed}
@@ -3685,6 +3686,18 @@ BOOKING A TABLE
     }
     base.push({
       type: 'function',
+      name: 'cancel_order',
+      description:
+        "The caller wants to CANCEL an order. This never cancels anything — you cannot cancel an order and must never say you have. It works out who can: a marketplace order has to be cancelled on the app it was placed on, and one of ours needs a member of staff. Pass the order number if they read one out. Say exactly what it gives you back.",
+      parameters: {
+        type: 'object',
+        properties: {
+          orderNumber: { type: 'string', description: 'Their order number, exactly as they said it, if they gave one' },
+        },
+      },
+    });
+    base.push({
+      type: 'function',
       name: 'note_for_kitchen',
       description:
         "Pass an instruction to the kitchen for an order that cannot be changed — one placed on Just Eat, Uber Eats, Deliveroo or another platform, or one the kitchen has already started. It does NOT change the order, add anything or cost anything: it prints a note with their order number and details. Use it after find_order_to_change has told you the order cannot be edited. Pass the caller's own words.",
@@ -3759,6 +3772,8 @@ BOOKING A TABLE
         return this.removeItemConversational(input, ctx, state);
       case 'change_item':
         return this.changeItemConversational(input, ctx, state);
+      case 'cancel_order':
+        return this.cancelRequest(ctx, state, input, callerNumber);
       case 'note_for_kitchen':
         return this.noteForKitchen(input, ctx, state);
       case 'check_table':
@@ -5610,6 +5625,104 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
    * kitchen has finished, or one already paid by card, is refused with the
    * reason, before the caller has chosen anything.
    */
+  /**
+   * The order a caller is talking about — theirs, and only theirs.
+   *
+   * One lookup for every question a caller can ask about an existing order:
+   * change it, cancel it, leave a note on it. It lives in one place because
+   * of the rule in the middle of it. A marketplace order carries a SHARED
+   * proxy phone number, so matching a caller to one by phone would read a
+   * stranger their neighbour's dinner — those are only ever found by a
+   * reference the caller reads out, and that must stay true of every path
+   * that reaches an order, not just the first one that needed it.
+   */
+  private async orderForCaller(
+    ctx: VoiceContext,
+    callerNumber: string | null | undefined,
+    reference: string,
+    thisCallOrderId?: string,
+  ): Promise<{ order: any | null; unreadable?: boolean; failed?: boolean }> {
+    const caller = normaliseNumber(callerNumber);
+    const select = {
+      id: true,
+      displayId: true,
+      collectionCode: true,
+      orderNumber: true,
+      orderSource: true,
+      status: true,
+      fulfillmentType: true,
+      paymentMethod: true,
+      paymentStatus: true,
+      customerPhone: true,
+      deliveryAddress: true,
+      deliveryFee: true,
+      discount: true,
+      taxAmount: true,
+      tipAmount: true,
+      serviceCharge: true,
+      updatedAt: true,
+      createdAt: true,
+      items: { select: { name: true, quantity: true, unitPrice: true, notes: true, modifiers: true, menuItemId: true } },
+    };
+    try {
+      if (!reference && thisCallOrderId) {
+        return {
+          order: await this.db().order.findFirst({
+            where: { id: thisCallOrderId, tenantId: ctx.tenantId },
+            select,
+          }),
+        };
+      }
+      if (reference) {
+        const { number, forms } = parseOrderReference(reference);
+        if (!forms.length) return { order: null, unreadable: true };
+        const since = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+        const recent: any[] = await this.db().order.findMany({
+          where: { locationId: ctx.locationId, createdAt: { gte: since } },
+          orderBy: { createdAt: 'desc' },
+          take: 500,
+          select,
+        });
+        const hits = recent.filter((o) =>
+          [
+            o.displayId,
+            o.collectionCode,
+            o.orderNumber != null ? String(o.orderNumber) : null,
+            o.id,
+          ].some((identifier) => referenceMatches(forms, identifier)),
+        );
+        const exact = number ? recent.find((o) => o.orderNumber === Number(number)) : undefined;
+        return {
+          order:
+            exact ?? hits.find((o) => this.phoneMatches(o.customerPhone, caller)) ?? hits[0] ?? null,
+        };
+      }
+      if (caller) {
+        const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const mine: any[] = await this.db().order.findMany({
+          where: {
+            locationId: ctx.locationId,
+            customerPhone: { contains: caller.slice(-9) },
+            createdAt: { gte: since },
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+          select,
+        });
+        return {
+          order:
+            mine.find(
+              (o) => !marketplaceName(o.orderSource) && this.phoneMatches(o.customerPhone, caller),
+            ) ?? null,
+        };
+      }
+      return { order: null };
+    } catch (e: any) {
+      this.logger.warn(`order lookup failed: ${e?.message ?? e}`);
+      return { order: null, failed: true };
+    }
+  }
+
   private async findOrderToChange(
     ctx: VoiceContext,
     state: VoiceState,
@@ -5639,60 +5752,17 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
       createdAt: true,
       items: { select: { name: true, quantity: true, unitPrice: true, notes: true, modifiers: true, menuItemId: true } },
     };
-    let order: any = null;
-    try {
-      if (!reference && state.orderId) {
-        order = await this.db().order.findFirst({
-          where: { id: state.orderId, tenantId: ctx.tenantId },
-          select,
-        });
-      } else if (reference) {
-        const { number, forms } = parseOrderReference(reference);
-        if (!forms.length) {
-          return {
-            result:
-              "That isn't a reference I can look up. Ask them to read it out one character at a time, then call find_order_to_change with it exactly as said.",
-          };
-        }
-        const since = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
-        const recent: any[] = await this.db().order.findMany({
-          where: { locationId: ctx.locationId, createdAt: { gte: since } },
-          orderBy: { createdAt: 'desc' },
-          take: 500,
-          select,
-        });
-        const hits = recent.filter((o) =>
-          [
-            o.displayId,
-            o.collectionCode,
-            o.orderNumber != null ? String(o.orderNumber) : null,
-            o.id,
-          ].some((identifier) => referenceMatches(forms, identifier)),
-        );
-        const exact = number ? recent.find((o) => o.orderNumber === Number(number)) : undefined;
-        order =
-          exact ?? hits.find((o) => this.phoneMatches(o.customerPhone, caller)) ?? hits[0] ?? null;
-      } else if (caller) {
-        const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
-        const mine: any[] = await this.db().order.findMany({
-          where: {
-            locationId: ctx.locationId,
-            customerPhone: { contains: caller.slice(-9) },
-            createdAt: { gte: since },
-          },
-          orderBy: { createdAt: 'desc' },
-          take: 5,
-          select,
-        });
-        order =
-          mine.find(
-            (o) => !marketplaceName(o.orderSource) && this.phoneMatches(o.customerPhone, caller),
-          ) ?? null;
-      }
-    } catch (e: any) {
-      this.logger.warn(`find_order_to_change lookup failed: ${e?.message ?? e}`);
+    const found = await this.orderForCaller(ctx, callerNumber, reference, state.orderId);
+    if (found.unreadable) {
+      return {
+        result:
+          "That isn't a reference I can look up. Ask them to read it out one character at a time, then call find_order_to_change with it exactly as said.",
+      };
+    }
+    if (found.failed) {
       return { result: 'The lookup failed. Ask for the order number and try once more, or offer transfer_to_staff.' };
     }
+    const order: any = found.order;
     if (!order) {
       return {
         result: reference
@@ -5748,6 +5818,73 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
         `Loaded order ${ref} to change (${order.status}${address}). Everything already on it is in the basket below, with its choices and charges. ` +
         `Add or change items as usual, then read_back_order, get a yes, and call amend_order — never place_order.\nOrder so far:\n${this.cartForModel(state, ctx)}`,
     };
+  }
+
+  /**
+   * "I want to cancel my order."
+   *
+   * The phone line does not cancel orders, and this tool does not either —
+   * it exists so the answer comes from the ORDER rather than from whatever
+   * the model believes about it. Two answers, and which one depends entirely
+   * on where the order came from:
+   *
+   *   A marketplace order is Just Eat's, or Uber's, or Deliveroo's. The shop
+   *   cannot cancel it and neither can we; the refund and the customer
+   *   relationship both live there, and a caller told anything else rings
+   *   back angry an hour later.
+   *
+   *   Anything of our own — the website, the till, this line — is cancelled
+   *   by a person. Money has usually moved, the kitchen may have started,
+   *   and none of that is a decision for a machine that has been on the call
+   *   for ninety seconds.
+   *
+   * Either way it never touches the order.
+   */
+  private async cancelRequest(
+    ctx: VoiceContext,
+    state: VoiceState,
+    input: any,
+    callerNumber?: string | null,
+  ): Promise<{ result: string; turn?: Partial<VoiceTurn> }> {
+    const order = (await this.orderForCaller(ctx, callerNumber, String(input?.orderNumber ?? ''), state.orderId)).order;
+    const person = () => {
+      const dialable = toE164(ctx.transferNumber ?? '');
+      if (!dialable) {
+        return {
+          result:
+            'Only a member of staff can cancel that, and there is no number to put them through to. Apologise, say you cannot cancel it yourself, and take a message with take_message so the shop rings them straight back.',
+        };
+      }
+      return {
+        result:
+          'Only a member of staff can cancel that. Say you are putting them through to someone who can, and do NOT say it has been cancelled.',
+        turn: { transferTo: dialable, outcome: 'TRANSFERRED' as const },
+      };
+    };
+
+    if (!order) {
+      // No order in front of us is not a reason to guess. A caller of ours
+      // still gets a person; there is nothing else useful to do with them.
+      return {
+        result:
+          `No order found${callerNumber ? ' under this number' : ''}. Ask for their order number and call cancel_order again with it. If they ordered on Just Eat, Uber Eats, Deliveroo, Talabat or Careem, say plainly it has to be cancelled on that app. Otherwise offer to put them through.`,
+      };
+    }
+    const ref = boardReference(order);
+    const via = marketplaceName(order.orderSource);
+    if (via) {
+      state.noteOrder = { id: order.id, reference: ref, via };
+      return {
+        result:
+          `Order ${ref} came through ${via}, so ONLY ${via} can cancel it — the shop cannot, and neither can you. Say: "${this.cancelElsewhere(via)}" Do not offer to put them through for this; a member of staff cannot cancel it either.`,
+      };
+    }
+    return person();
+  }
+
+  /** What a caller is told about an order only the marketplace can cancel. */
+  cancelElsewhere(via: string): string {
+    return `That order was placed through ${via}, so it has to be cancelled there — the shop can't cancel it from this end. Open the ${via} app or their website, find the order, and cancel it from there. If they've already started making it, ${via} will tell you what they can do.`;
   }
 
   /**
