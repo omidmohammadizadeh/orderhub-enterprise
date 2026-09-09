@@ -60,6 +60,12 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
   const printedItemsRef = useRef<Map<string, Set<string>>>(new Map());
   /** orderId → the instructions already printed for it. */
   const printedNoteRef = useRef<Map<string, string>>(new Map());
+  // orderId → a fingerprint of the lines on the ticket that physically
+  // printed. An amend (phone or POS) rewrites the order in place, and the
+  // kitchen's paper still says what the caller first asked for. Ids alone
+  // are not enough: editOrder KEEPS the row of a line that stayed, so
+  // changing "1 coke" to "2 coke" moves no id at all.
+  const printedLinesRef = useRef<Map<string, string>>(new Map());
   const seededRef = useRef(false);
   const [status, setStatus] = useState<AutoPrintStatus>({
     inApp: false,
@@ -102,6 +108,20 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
 
     if (!inApp || !locationId || !orders) return;
 
+    // What the paper would say: every line, its quantity and its modifiers.
+    // Order-independent, so a re-ordered list is not mistaken for an edit.
+    const lineSig = (o: any) =>
+      ((o?.items ?? []) as any[])
+        .map(
+          (i) =>
+            `${i.id}\u00d7${i.quantity}[${((i.modifiers ?? []) as any[])
+              .map((m: any) => `${m?.name ?? ""}\u00d7${m?.quantity ?? 1}`)
+              .sort()
+              .join("|")}]${i.notes ?? ""}`,
+        )
+        .sort()
+        .join(";");
+
     if (!seededRef.current) {
       for (const o of orders) {
         printedNewRef.current.add(o.id);
@@ -112,6 +132,7 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
         if (CANCELLED_STATUSES.has(String(o.status ?? "").toUpperCase()))
           printedCancelRef.current.add(o.id);
         printedNoteRef.current.set(o.id, String(o.specialInstructions ?? ""));
+        printedLinesRef.current.set(o.id, lineSig(o));
       }
       seededRef.current = true;
       return;
@@ -207,12 +228,14 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
       if (!printedNewRef.current.has(o.id)) {
         if (btPrinters.length === 0) {
           printedNewRef.current.add(o.id);
+          printedLinesRef.current.set(o.id, lineSig(o));
         } else if (hasItems(o)) {
           printedNewRef.current.add(o.id);
           printedItemsRef.current.set(
             o.id,
             new Set(((o as any).items ?? []).map((i: any) => i.id)),
           );
+          printedLinesRef.current.set(o.id, lineSig(o));
           void printToAll(o, "copiesNewOrder");
         }
         // partial order (no items yet): leave unseen, print when full
@@ -224,10 +247,12 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
         const currentIds: string[] = ((o as any).items ?? []).map(
           (i: any) => i.id,
         );
+        const sigNow = lineSig(o);
         if (seen) {
           const freshIds = currentIds.filter((id) => !seen.has(id));
           if (freshIds.length && (o as any).tableId && btPrinters.length) {
             printedItemsRef.current.set(o.id, new Set(currentIds));
+            printedLinesRef.current.set(o.id, sigNow);
             const table = (o as any).tableName;
             void printToAll(
               {
@@ -239,12 +264,32 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
               "copiesNewOrder",
               `*** ${table ? `TABLE ${table} - ` : ""}NEW ITEMS ***`,
             );
-          } else if (freshIds.length) {
-            // Non-tab edits already reprint server-side; just track them.
+          } else if (printedLinesRef.current.get(o.id) !== sigNow) {
+            // The order changed after its ticket printed — the phone line
+            // amended it, or somebody edited it on the POS. This used to
+            // read "non-tab edits already reprint server-side", which is
+            // true only for shops whose printer takes the server's print
+            // jobs. A Bluetooth tablet renders its own tickets from this
+            // feed, so nothing reached the kitchen and the paper still
+            // said what the caller first asked for.
+            //
+            // The WHOLE ticket, not just the added lines: an amend can
+            // remove an item or change a quantity, and a chit listing only
+            // what is new would leave the kitchen making the old order.
             printedItemsRef.current.set(o.id, new Set(currentIds));
+            printedLinesRef.current.set(o.id, sigNow);
+            if (btPrinters.length && !(o as any).tableId) {
+              void printToAll(
+                o,
+                "copiesNewOrder",
+                "*** ORDER UPDATED - REPLACES EARLIER TICKET ***",
+                "updated order",
+              );
+            }
           }
         } else {
           printedItemsRef.current.set(o.id, new Set(currentIds));
+          printedLinesRef.current.set(o.id, sigNow);
         }
       }
 
