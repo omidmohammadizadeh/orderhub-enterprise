@@ -1450,7 +1450,19 @@ export class VoiceRealtimeGateway implements OnModuleInit {
   private transferOrSayWhyNot(brain: WebSocket, ccid: string, to: string): void {
     const t = setTimeout(async () => {
       const done = await this.telnyx.transfer(ccid, to).catch(() => false);
-      if (done) return;
+      if (done) {
+        // Get off the line. The transfer bridges the caller to a person and
+        // leaves our media fork running, so on call sQLUYKlg the model was
+        // still listening to a conversation between two humans and talking
+        // over it: "Passing you over to someone now", "Just a moment, they'll
+        // be with you shortly", and then it offered to take an order. The
+        // relay engine had always ended its side before handing over; this
+        // one never did.
+        this.logger.log(`realtime ${ccid.slice(-8)} put through to a person — leaving the call`);
+        await this.telnyx.stopMediaStream(ccid).catch(() => false);
+        this.stop(ccid);
+        return;
+      }
       this.logger.error(
         `realtime ${ccid.slice(-8)} could not put the caller through to ${to} — telling them and offering a message`,
       );

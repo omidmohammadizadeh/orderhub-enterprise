@@ -438,7 +438,8 @@ describe("a transfer that does not go through", () => {
   const gw = (transfer: any) => {
     const g: any = Object.create(VoiceRealtimeGateway.prototype);
     g.logger = { log() {}, warn() {}, error() {} };
-    g.telnyx = { transfer };
+    g.calls = new Map();
+    g.telnyx = { transfer, stopMediaStream: jest.fn(async () => true) };
     return g;
   };
   const brain = () => {
@@ -466,6 +467,34 @@ describe("a transfer that does not go through", () => {
     expect(transfer).toHaveBeenCalledWith("cc1", "+441912312345");
     // Nothing said: they are talking to a person now.
     expect(b.sent).toHaveLength(0);
+  });
+
+  it("gets off the line once they are through", async () => {
+    // Call sQLUYKlg: the transfer worked, the media fork kept running, and
+    // the model talked over the caller and the member of staff — "Passing
+    // you over to someone now", "Just a moment", and then it offered to
+    // take an order.
+    const g = gw(jest.fn(async () => true));
+    const caller = { closed: false, close() { this.closed = true; } };
+    g.calls.set("cc1", caller);
+    g.transferOrSayWhyNot(brain(), "cc1", "+441912312345");
+    await jest.advanceTimersByTimeAsync(3000);
+
+    expect(g.telnyx.stopMediaStream).toHaveBeenCalledWith("cc1");
+    expect(caller.closed).toBe(true);
+    expect(g.calls.has("cc1")).toBe(false);
+  });
+
+  it("stays on the line when the transfer did not happen", async () => {
+    const g = gw(jest.fn(async () => false));
+    const caller = { closed: false, close() { this.closed = true; } };
+    g.calls.set("cc1", caller);
+    g.transferOrSayWhyNot(brain(), "cc1", "+441912312345");
+    await jest.advanceTimersByTimeAsync(3000);
+
+    // It has to keep talking — it has just promised a message instead.
+    expect(g.telnyx.stopMediaStream).not.toHaveBeenCalled();
+    expect(caller.closed).toBe(false);
   });
 
   it("tells the caller and offers a message when it fails", async () => {

@@ -90,7 +90,14 @@ export class VoiceTelnyxController {
         case "call.answered":
           // Greeting first, then open the caller's mic. Speaking before
           // transcription starts means we never transcribe our own hello.
-          await this.onAnswered(ccid);
+          await this.onAnswered(ccid, p);
+          break;
+        case "call.bridged":
+          // The caller is with a person. Whatever happened to our own stop,
+          // this is the provider saying the two legs are joined, and the
+          // model has no business on either of them.
+          this.realtime.stop(ccid);
+          await this.telnyx.stopMediaStream(ccid).catch(() => false);
           break;
         case "call.transcription":
           // Both transports are live on a relay call, and both would answer.
@@ -214,7 +221,19 @@ export class VoiceTelnyxController {
     await this.telnyx.answer(ccid);
   }
 
-  private async onAnswered(ccid: string): Promise<void> {
+  private async onAnswered(ccid: string, p: any = {}): Promise<void> {
+    // A leg WE dialled is not a caller.
+    //
+    // The transfer to the shop comes back through this webhook exactly like
+    // an inbound call, and without this the shop picked up its own phone and
+    // got the AI: on call sQLUYKlg the outbound leg was answered, a media
+    // stream was started on it, and a second model session began talking to
+    // the member of staff the caller had asked for. onInitiated has always
+    // had this guard; this one never did.
+    if (p?.direction && p.direction !== "incoming") {
+      this.logger.log(`call ${ccid.slice(-8)} is our own outbound leg — not answering it with the AI`);
+      return;
+    }
     // The greeting is turn zero of the stored conversation — written when we
     // decided to answer, so the model knows what the caller already heard.
     const call = await this.db().voiceCall.findUnique({
