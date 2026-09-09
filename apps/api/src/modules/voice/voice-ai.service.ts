@@ -4140,6 +4140,11 @@ BOOKING A TABLE
         .replace(/\s+/g, ' ')
         .trim();
     const said = norm(input?.said ?? '');
+    // One thing on the order is not a question. On call WneqxaQA the caller
+    // said "kebab pizza and a can of coke" about the only line there was, the
+    // model passed no name, and the line asked which item it meant while
+    // reading back the single item it could have meant.
+    if (!said && items.length === 1) return { line: items[0] };
     if (!said)
       return {
         result: `Say which item. The order is:\n${items.map((l) => `- [line ${l.lineId}] ${l.quantity}× ${l.name}`).join('\n')}`,

@@ -2250,6 +2250,18 @@ describe("a meal deal with two pizza slots", () => {
     }
   });
 
+  it("a change with no item named goes to the only line there is", async () => {
+    // "Kebab pizza and a can of coke" — about the one thing on the order.
+    // The line used to ask which item it meant, while listing the single
+    // item it could have meant.
+    const a = ai(); const s = st();
+    a.addItemConversational({ said: "meal deal 4", modifierNames: ["12 inch PEPPERONI", "12 inch KEBAB PIZZA", "CAN COKE"] }, c(), s);
+    expect(s.cart.items).toHaveLength(1);
+    const out = await a.runToolForConversation("change_item", { modifierNames: ["CAN SPRITE"] }, c(), s, null);
+    expect(out.result).not.toMatch(/Say which item/);
+    expect(out.result).toMatch(/^Changed MEAL DEAL 4/);
+  });
+
   it("the log names what it could not settle, instead of hiding it in an empty list", () => {
     const a = ai(); const s = st();
     // Two pizzas whose names genuinely collide, so the matcher cannot choose.
