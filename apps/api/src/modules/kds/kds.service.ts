@@ -402,12 +402,16 @@ export class KdsService {
     }
 
     let created = 0;
+    let channelSkipped = 0;
     for (const screen of screens) {
       const settings = (screen.settings ?? {}) as KdsScreenSettings;
 
       // Channel filter.
       const channels = settings.channels ?? [];
-      if (channels.length && !channels.includes(order.orderSource)) continue;
+      if (channels.length && !channels.includes(order.orderSource)) {
+        channelSkipped++;
+        continue;
+      }
 
       // Item routing (expo + rule-less screens always show everything).
       const isExpo = settings.stationType === "EXPO";
@@ -478,6 +482,16 @@ export class KdsService {
       this.logger.log(
         `KDS: order ${orderId} dispatched to ${created} screen(s) at ${locationId}`,
       );
+    } else if (channelSkipped > 0 && channelSkipped === screens.length) {
+      // Every screen in the kitchen refused this order on its channel list.
+      // Nobody sees the ticket, so nobody makes the food, and the only clue
+      // is silence. Name the source: a channel missing from every screen is
+      // almost always one the settings page never offered.
+      this.logger.warn(
+        `KDS: order ${orderId} (${order.orderSource}) reached NO screen at ${locationId}` +
+          ` — all ${screens.length} screen(s) filter that channel out.` +
+          ` Tick ${order.orderSource} on a screen, or clear its channel list (empty = all).`,
+      );
     }
     return { created };
   }
@@ -543,7 +557,10 @@ export class KdsService {
     });
     if (!order) return { updated: 0 };
 
-    const routingByScreen = await this.computeRouting(order);
+    const routingByScreen = await this.computeRouting(
+      order,
+      new Set(existing.map((t) => t.kdsScreenId)),
+    );
     const now = new Date().toISOString();
     let updated = 0;
     const allItemIds = order.items.map((i) => i.id);
@@ -667,12 +684,22 @@ export class KdsService {
    * route there: [] = whole order, string[] = subset, null = nothing (no
    * ticket). Shared by dispatch + resync. Channel-filtered screens that
    * exclude this order also return null.
+   *
+   * `alreadyTicketed` names screens that are ALREADY showing this order. The
+   * channel filter is skipped for those: an order's source never changes, so
+   * a screen that once accepted this order can only start rejecting it
+   * because somebody edited the screen's channel list — and a settings edit
+   * must not pull food off a kitchen screen mid-service. Item rules still
+   * apply, so a station whose items were all removed still loses its ticket.
    */
-  private async computeRouting(order: {
-    locationId: string;
-    orderSource: string;
-    items: Array<{ id: string; menuItemId: string | null; modifiers: unknown }>;
-  }): Promise<Map<string, string[] | null>> {
+  private async computeRouting(
+    order: {
+      locationId: string;
+      orderSource: string;
+      items: Array<{ id: string; menuItemId: string | null; modifiers: unknown }>;
+    },
+    alreadyTicketed: ReadonlySet<string> = new Set(),
+  ): Promise<Map<string, string[] | null>> {
     const screens = await this.prisma.kdsScreen.findMany({
       where: { locationId: order.locationId, isActive: true },
     });
@@ -696,7 +723,11 @@ export class KdsService {
     for (const screen of screens) {
       const settings = (screen.settings ?? {}) as KdsScreenSettings;
       const channels = settings.channels ?? [];
-      if (channels.length && !channels.includes(order.orderSource)) {
+      if (
+        channels.length &&
+        !channels.includes(order.orderSource) &&
+        !alreadyTicketed.has(screen.id)
+      ) {
         out.set(screen.id, null);
         continue;
       }

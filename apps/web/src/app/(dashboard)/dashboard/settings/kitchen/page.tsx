@@ -51,13 +51,23 @@ interface KdsScreen {
   _count?: { tickets: number };
 }
 
+// Every OrderSource, or a screen silently drops the ones missing here: a
+// channel absent from this list can never be ticked, and a screen with ANY
+// channel ticked shows nothing else. That is how AI Voice orders vanished
+// from the kitchen screens — the source existed, the checkbox did not.
 const CHANNELS = [
   ["ONLINE", "Online"],
   ["POS", "POS"],
+  ["VOICE", "AI Voice"],
+  ["WHATSAPP", "WhatsApp"],
   ["UBER_EATS", "Uber Eats"],
   ["DELIVEROO", "Deliveroo"],
   ["JUST_EAT", "Just Eat"],
-  ["WHATSAPP", "WhatsApp"],
+  ["TALABAT", "Talabat"],
+  ["CAREEM", "Careem"],
+  ["DOORDASH", "DoorDash"],
+  ["GRUBHUB", "Grubhub"],
+  ["DIRECT", "Direct"],
   ["HUBRISE", "Marketplace"],
 ] as const;
 

@@ -129,6 +129,121 @@ describe("KdsService.dispatchOrderToScreens", () => {
   });
 });
 
+// A voice order that reached the kitchen must stay there. The settings page
+// shipped without an "AI Voice" checkbox, so a screen with every OFFERED
+// channel ticked held a list that excluded VOICE — and the next amend read
+// that list and deleted the ticket. The food was on no screen at all.
+describe("KdsService channel filter", () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  const VOICE_ORDER = {
+    id: "o-voice",
+    locationId: "loc1",
+    orderSource: "VOICE",
+    items: [
+      { id: "line-chips", name: "CHIPS", menuItemId: "mi-fries", modifiers: [] },
+    ],
+  };
+
+  it("warns when every screen filters the order's channel out", async () => {
+    const prisma = makePrisma();
+    prisma.kdsScreen.findMany.mockResolvedValue([
+      screen("s-wrap", {
+        channels: ["ONLINE", "POS", "UBER_EATS", "DELIVEROO", "JUST_EAT"],
+      }),
+      screen("s-grill", {
+        channels: ["ONLINE", "POS", "UBER_EATS", "DELIVEROO", "JUST_EAT"],
+      }),
+    ]);
+    prisma.order.findUnique.mockResolvedValue(VOICE_ORDER);
+
+    const svc = new KdsService(prisma, socket);
+    const warn = jest
+      .spyOn((svc as any).logger, "warn")
+      .mockImplementation(() => {});
+    const res = await svc.dispatchOrderToScreens("o-voice", "loc1");
+
+    expect(res.created).toBe(0);
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0][0]).toContain("reached NO screen");
+    expect(warn.mock.calls[0][0]).toContain("VOICE");
+  });
+
+  it("keeps a ticket the screen already holds when its channel list no longer matches", async () => {
+    const prisma = makePrisma({
+      kdsTicket: {
+        upsert: jest.fn(),
+        findMany: jest.fn(async () => [
+          {
+            id: "t-wrap",
+            kdsScreenId: "s-wrap",
+            orderId: "o-voice",
+            metadata: { itemIds: [], itemStates: {}, seenItemIds: ["line-chips"] },
+            screen: {
+              id: "s-wrap",
+              name: "wrapping section",
+              locationId: "loc1",
+              settings: { channels: ["ONLINE", "POS"] },
+            },
+          },
+        ]),
+        update: jest.fn(),
+        updateMany: jest.fn(),
+        deleteMany: jest.fn(),
+        delete: jest.fn(),
+      },
+    });
+    prisma.kdsScreen.findMany.mockResolvedValue([
+      screen("s-wrap", { channels: ["ONLINE", "POS"] }),
+    ]);
+    prisma.order.findUnique.mockResolvedValue(VOICE_ORDER);
+
+    const svc = new KdsService(prisma, socket);
+    await svc.resyncOrderTickets("o-voice", "loc1");
+
+    expect(prisma.kdsTicket.delete).not.toHaveBeenCalled();
+    expect(prisma.kdsTicket.update).toHaveBeenCalled();
+  });
+
+  it("still drops a ticket whose items all left the station", async () => {
+    const prisma = makePrisma({
+      kdsTicket: {
+        upsert: jest.fn(),
+        findMany: jest.fn(async () => [
+          {
+            id: "t-pizza",
+            kdsScreenId: "s-pizza",
+            orderId: "o-voice",
+            metadata: { itemIds: ["gone"], itemStates: {}, seenItemIds: ["gone"] },
+            screen: {
+              id: "s-pizza",
+              name: "pizza",
+              locationId: "loc1",
+              settings: { categoryIds: ["cat-pizza"] },
+            },
+          },
+        ]),
+        update: jest.fn(),
+        updateMany: jest.fn(),
+        deleteMany: jest.fn(),
+        delete: jest.fn(),
+      },
+    });
+    prisma.kdsScreen.findMany.mockResolvedValue([
+      screen("s-pizza", { stationType: "STATION", categoryIds: ["cat-pizza"] }),
+    ]);
+    prisma.order.findUnique.mockResolvedValue(VOICE_ORDER);
+    prisma.menuItemOnCategory.findMany.mockResolvedValue(CATEGORY_LINKS);
+
+    const svc = new KdsService(prisma, socket);
+    await svc.resyncOrderTickets("o-voice", "loc1");
+
+    expect(prisma.kdsTicket.delete).toHaveBeenCalledWith({
+      where: { id: "t-pizza" },
+    });
+  });
+});
+
 describe("KdsService bump progression", () => {
   beforeEach(() => jest.clearAllMocks());
 

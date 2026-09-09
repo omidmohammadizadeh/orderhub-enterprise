@@ -167,13 +167,38 @@ describe("OrdersService outbox transaction contract", () => {
     const mockPromoCodes = {
       incrementUsage: jest.fn().mockResolvedValue(undefined),
     };
+    // Positional construction: every collaborator OrdersService gains has to
+    // be passed IN ORDER, or a later one lands in an earlier one's slot and
+    // the failure surfaces as a TypeError deep inside unrelated code. Any
+    // method on these answers with a resolved promise — none is asserted.
+    const idle = (): any => {
+      const made = new Map<string, jest.Mock>();
+      return new Proxy(
+        {},
+        {
+          get(_t, prop: string) {
+            if (prop === "then") return undefined;
+            if (!made.has(prop))
+              made.set(prop, jest.fn().mockResolvedValue(undefined));
+            return made.get(prop);
+          },
+        },
+      );
+    };
     service = new OrdersService(
       mockPrisma,
       mockSocket,
       mockAudit,
       outbox,
       mockPrintQueue,
+      idle(), // printJobs
       mockPromoCodes,
+      idle(), // payments
+      idle(), // tap
+      idle(), // hubriseSync
+      idle(), // hubriseDelivery
+      idle(), // events
+      idle(), // customerPush
     );
   });
 

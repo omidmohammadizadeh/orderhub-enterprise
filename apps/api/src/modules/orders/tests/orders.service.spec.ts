@@ -6,6 +6,13 @@ import { SocketService } from "../../../infrastructure/socket/socket.service";
 import { AuditLogService } from "../../auth/services/audit-log.service";
 import { OutboxService } from "../../outbox/outbox.service";
 import { PrintQueueService } from "../../printers/print-queue.service";
+import { PrintJobsService } from "../../printers/print-jobs.service";
+import { PaymentsService } from "../../payments/payments.service";
+import { TapService } from "../../payments/tap.service";
+import { HubRiseOrderSyncService } from "../../integrations/hubrise/hubrise-order-sync.service";
+import { HubRiseDeliverySyncService } from "../../integrations/hubrise/hubrise-delivery-sync.service";
+import { CustomerPushService } from "../../customer-push/customer-push.service";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { PromoCodesService } from "../../promo-codes/promo-codes.service";
 import type { CanonicalOrder } from "@orderhub/shared";
 
@@ -107,6 +114,25 @@ function makeOrder(overrides?: object) {
 
 // ── Tests ─────────────────────────────────────────────────
 
+// A stand-in for a collaborator these tests never assert on: any method
+// answers with a resolved promise. Named methods keep appearing on
+// OrdersService's dependencies, and a plain {} turns each new one into a
+// suite-wide TypeError far from the code that changed.
+function idleService(): any {
+  const made = new Map<string, jest.Mock>();
+  return new Proxy(
+    {},
+    {
+      get(_t, prop: string) {
+        if (prop === "then") return undefined;
+        if (!made.has(prop))
+          made.set(prop, jest.fn().mockResolvedValue(undefined));
+        return made.get(prop);
+      },
+    },
+  );
+}
+
 describe("OrdersService", () => {
   let service: OrdersService;
 
@@ -138,6 +164,22 @@ describe("OrdersService", () => {
           provide: PromoCodesService,
           useValue: { incrementUsage: jest.fn().mockResolvedValue(undefined) },
         },
+        // Everything OrdersService has grown since: none of it is exercised
+        // here, but Nest still has to construct it. A missing stub fails the
+        // whole suite at compile(), before a single assertion runs.
+        {
+          provide: PrintJobsService,
+          useValue: {
+            createFromOrder: jest.fn().mockResolvedValue(undefined),
+            createCustomerNoteChit: jest.fn().mockResolvedValue(undefined),
+          },
+        },
+        { provide: PaymentsService, useValue: idleService() },
+        { provide: TapService, useValue: idleService() },
+        { provide: HubRiseOrderSyncService, useValue: idleService() },
+        { provide: HubRiseDeliverySyncService, useValue: idleService() },
+        { provide: CustomerPushService, useValue: idleService() },
+        { provide: EventEmitter2, useValue: { emit: jest.fn() } },
       ],
     }).compile();
 

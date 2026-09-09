@@ -60,15 +60,48 @@ function makeService(opts: {
     forStatusChanged: jest.fn().mockReturnValue({}),
   };
   const printQueue: any = { enqueueForNewOrder, enqueueCancel };
+  const createFromOrder = jest.fn().mockResolvedValue(undefined);
+  const printJobs: any = { createFromOrder };
   const promoCodes: any = { incrementUsage: jest.fn() };
+  // Positional construction: every collaborator OrdersService gains has to be
+  // passed IN ORDER, or a later one silently lands in an earlier one's slot.
+  // Any method on these answers with a resolved promise — none is asserted.
+  const idle = (): any => {
+    const made = new Map<string, jest.Mock>();
+    return new Proxy(
+      {},
+      {
+        get(_t, prop: string) {
+          if (prop === "then") return undefined;
+          if (!made.has(prop))
+            made.set(prop, jest.fn().mockResolvedValue(undefined));
+          return made.get(prop);
+        },
+      },
+    );
+  };
 
-  const svc = new OrdersService(prisma, socket, audit, outbox, printQueue, promoCodes);
-  return { svc, prisma, printQueue, enqueueForNewOrder };
+  const svc = new OrdersService(
+    prisma,
+    socket,
+    audit,
+    outbox,
+    printQueue,
+    printJobs,
+    promoCodes,
+    idle(), // payments
+    idle(), // tap
+    idle(), // hubriseSync
+    idle(), // hubriseDelivery
+    idle(), // events
+    idle(), // customerPush
+  );
+  return { svc, prisma, printQueue, enqueueForNewOrder, createFromOrder };
 }
 
 describe("OrdersService — Phase AM print gating", () => {
   it("ACCEPTED status transition triggers enqueueForNewOrder", async () => {
-    const { svc, enqueueForNewOrder } = makeService();
+    const { svc, createFromOrder } = makeService();
     await svc.updateStatus(
       "ord-1",
       "t1",
@@ -78,7 +111,10 @@ describe("OrdersService — Phase AM print gating", () => {
     );
     // The print call is fire-and-forget; we await a tick to let it run.
     await new Promise((r) => setImmediate(r));
-    expect(enqueueForNewOrder).toHaveBeenCalledWith("ord-1");
+    expect(createFromOrder).toHaveBeenCalledWith({
+      orderId: "ord-1",
+      trigger: "ORDER_ACCEPTED",
+    });
   });
 
   it("startPreparingScheduled clears scheduledAt and accepts the order", async () => {
@@ -98,7 +134,7 @@ describe("OrdersService — Phase AM print gating", () => {
       total: 10,
       createdAt: new Date(),
     };
-    const { svc, prisma, enqueueForNewOrder } = makeService({ initialOrder: scheduled });
+    const { svc, prisma, createFromOrder } = makeService({ initialOrder: scheduled });
 
     await svc.startPreparingScheduled("ord-2", "t1", "user-1");
 
@@ -110,7 +146,10 @@ describe("OrdersService — Phase AM print gating", () => {
     });
 
     await new Promise((r) => setImmediate(r));
-    expect(enqueueForNewOrder).toHaveBeenCalledWith("ord-2");
+    expect(createFromOrder).toHaveBeenCalledWith({
+      orderId: "ord-2",
+      trigger: "ORDER_ACCEPTED",
+    });
   });
 
   it("isFutureScheduled treats <10min ahead as immediate", () => {
