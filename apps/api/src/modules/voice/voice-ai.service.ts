@@ -3877,14 +3877,43 @@ BOOKING A TABLE
      * pepperoni, not two. With a count, the line is made to match the count:
      * "double pepperoni" on a pizza that already has one is two, not three.
      */
-    const applyPick = (g: any, o: any, quantity: number) => {
-      const copies = () => inGroup(g).filter((p) => p.o === o.id).length;
-      const want = quantity > 1 ? Math.min(quantity, room(g)) : 1;
-      if (copies() >= want) {
+    //
+    // Counted across the WHOLE dish, not per group. A meal deal with two
+    // 12" pizza slots has two groups of the same name, and on call WneqxaQA
+    // the caller asked for a kebab pizza and a pepperoni: the kebab failed to
+    // match, the pepperoni matched, and the second slot — open, and looking
+    // for any pizza — took a pepperoni too. One name said once is one pizza,
+    // whichever slot it lands in.
+    const askedFor = new Map<string, number>();
+    // Counted by NAME, not by option id. A deal with two 12" pizza slots
+    // carries two groups, each with its own copy of the whole pizza list, so
+    // "12\" PEPPERONI" is a different id in each — and counting ids found
+    // nothing to deduplicate while the caller's one pepperoni quietly became
+    // two.
+    const nameKey = (n: string) => String(n ?? '').trim().toLowerCase();
+    const pickName = (p: { g: string; o: string }) =>
+      nameKey(groups.find((x) => x.id === p.g)?.options.find((y: any) => y.id === p.o)?.name ?? '');
+    const applyPick = (g: any, o: any, quantity: number, countsAsAnother = true) => {
+      const key = nameKey(o.name);
+      const onDish = () => picks.filter((p) => pickName(p) === key).length;
+      // Said twice in one breath ("pepperoni and pepperoni") is two, and so
+      // is an explicit count. Said once when one is already there is one.
+      //
+      // A note is not a second helping. "Extra pepperoni" in modifierNames
+      // AND in the note is one caller saying one thing two ways, so the note
+      // pass never increases the count.
+      let asked = 1;
+      if (countsAsAnother) {
+        asked = (askedFor.get(key) ?? 0) + 1;
+        askedFor.set(key, asked);
+      }
+      const want = Math.min(Math.max(quantity, asked), room(g) * groups.length);
+      if (onDish() >= want) {
         already.push(String(o.name));
         return;
       }
-      while (copies() < want) put(g, o);
+      while (onDish() < want && inGroup(g).length < room(g)) put(g, o);
+      if (onDish() < want) put(g, o);
     };
     for (const id of Array.isArray(input?.modifierOptionIds) ? input.modifierOptionIds : []) {
       for (const g of groups) {
@@ -4019,7 +4048,7 @@ BOOKING A TABLE
           continue;
         }
         const before = inGroup(hit.g).filter((p) => p.o === hit!.o.id).length;
-        applyPick(hit.g, hit.o, qty);
+        applyPick(hit.g, hit.o, qty, false);
         const times = inGroup(hit.g).filter((p) => p.o === hit!.o.id).length - before;
         if (times < 1) continue; // already on it — charged once, not twice
         charged.push(`${times > 1 ? `${times}× ` : ''}${hit.o.name}${Number(hit.o.price) ? ` (+${Number(hit.o.price).toFixed(2)})` : ''}`);
@@ -4436,7 +4465,9 @@ BOOKING A TABLE
         Array.isArray(input?.modifierNames) ? input.modifierNames : [],
       )}${input?.done ? ' done' : ''} → kept [${merged.saved.join(', ')}] replaced [${merged.replaced
         .filter(Boolean)
-        .join(', ')}] unplaced [${merged.unmatched.join(', ')}] missing [${missing
+        .join(', ')}] unplaced [${merged.unmatched.join(', ')}] ambiguous [${merged.ambiguous
+        .map((a) => `${a.said}?${a.options.join('/')}`)
+        .join(', ')}] missing [${missing
         .map((g) => this.groupLabel(g.name))
         .join(', ')}]`,
     );

@@ -678,6 +678,24 @@ export type OptionMatch<T> =
   | { kind: "ambiguous"; items: T[] }
   | { kind: "none" };
 
+/**
+ * "12 inch" and 12" are one size said two ways.
+ *
+ * The menu writes 12", a caller says "twelve inch", and the model writes it
+ * back as "12 inch KEBAB PIZZA". That leaves one extra token on the caller's
+ * side, so the option named outright never matches exactly and the phrase
+ * falls through to the scorer — where "kebab PIZZA" and "PAZZA" are close
+ * enough to tie. On call WneqxaQA that tie cost the caller their kebab pizza
+ * and gave them a second pepperoni: 12" PEPPERONI matched, 12" KEBAB PIZZA
+ * did not, and the open slot took the pizza that did.
+ *
+ * Only ever a unit that FOLLOWS a number, so a dish with "inch" in its name
+ * is untouched.
+ */
+export function dropSizeUnits(text: string): string {
+  return String(text ?? "").replace(/(\d)\s*(?:inch(?:es)?|in|")\b/gi, "$1");
+}
+
 /** Words that ask for a thing rather than name it. */
 const ADDITIVE = /^(?:extra|extras|add|added|plus|with|more|additional|another|double|triple|twice)\s+/i;
 
@@ -701,13 +719,13 @@ function namedOutright<T extends { name: string }>(
   options: T[],
   groupWords: Set<string>,
 ): OptionMatch<T> | null {
-  const words = (t: string) => plain(t).split(" ").filter(Boolean);
+  const words = (t: string) => plain(dropSizeUnits(t)).split(" ").filter(Boolean);
   const shorten = (t: string) =>
     words(t).filter((w) => !groupWords.has(w) && !CONTAINER.has(w)).join(" ");
   const singularly = (t: string) => words(t).map(singular).join(" ");
 
-  const full = plain(said);
-  const bare = ADDITIVE.test(said) ? plain(String(said).replace(ADDITIVE, "")) : "";
+  const full = plain(dropSizeUnits(said));
+  const bare = ADDITIVE.test(said) ? plain(dropSizeUnits(String(said).replace(ADDITIVE, ""))) : "";
   const heard = [full, bare].filter(Boolean);
 
   for (const phrase of heard) {
@@ -716,7 +734,7 @@ function namedOutright<T extends { name: string }>(
         const key = fold(phrase);
         if (!key) continue;
         const hits = options.filter((o) => {
-          const name = shape(o);
+          const name = plain(dropSizeUnits(shape(o)));
           return name && fold(name) === key;
         });
         if (hits.length === 1) return { kind: "matched", item: hits[0]!, score: 1 };
@@ -785,24 +803,27 @@ function rankOptions<T extends { name: string }>(
   options: T[],
   groupWords: Set<string>,
 ): Array<{ item: T; score: number; covered: number }> {
+  said = dropSizeUnits(said);
   const heard = plain(said).split(" ").filter(Boolean);
   if (!heard.length || !options.length) return [];
   return options
-    .map((item) => {
+    .map((raw) => {
+      const item = raw;
+      const itemName = dropSizeUnits(raw.name);
       // Scored both ways round: stripping helps "gyros" and would hurt a
       // caller who did say "gyros wrap", so neither reading is imposed.
-      const stripped = plain(item.name)
+      const stripped = plain(itemName)
         .split(" ")
         .filter((t) => t && !groupWords.has(t) && !CONTAINER.has(t))
         .join(" ");
       const score = Math.max(
-        scoreItem(said, item.name),
+        scoreItem(said, itemName),
         stripped ? scoreItem(said, stripped) : 0,
       );
       // How much of what they SAID this accounts for — the general matcher
       // ignores this on purpose, and inside a closed list it is the tie-break.
       const covered =
-        heard.filter((t) => scoreItem(t, item.name) > 0).length / heard.length;
+        heard.filter((t) => scoreItem(t, itemName) > 0).length / heard.length;
       return { item, score, covered };
     })
     .sort((a, b) => b.score - a.score || b.covered - a.covered);

@@ -1742,7 +1742,7 @@ describe("an answer lands in the group it belongs to, and a deal's fixed parts a
     const a = ai(); const st = fresh(); const ctx = c(["DONNER KEBAB", "CHICKEN KEBAB"]);
     a.addItemConversational({ said: "meal deal 2", modifierNames: ["10 inch pepperoni", "thingamajig"] }, ctx, st);
     const line = (a.logger.log as jest.Mock).mock.calls.map((k) => String(k[0])).find((l) => l.startsWith("add_item MEAL DEAL 2"));
-    expect(line).toMatch(/said="meal deal 2" names=\["10 inch pepperoni","thingamajig"\] → kept \[10" PEPPERONI\] replaced \[\] unplaced \[thingamajig\] missing \[drink, sauce, chips or salad, kebab\]/);
+    expect(line).toMatch(/said="meal deal 2" names=\["10 inch pepperoni","thingamajig"\] → kept \[10" PEPPERONI\] replaced \[\] unplaced \[thingamajig\] ambiguous \[\] missing \[drink, sauce, chips or salad, kebab\]/);
   });
 });
 
@@ -2181,5 +2181,80 @@ describe("asking to speak to a person", () => {
     const out = await a.runToolForConversation("transfer_to_staff", asked, ctx(null), { cart: { items: [] }, turns: [] }, null);
     expect(out.turn).toBeUndefined();
     expect(out.result).toMatch(/no number this call can be put through to/);
+  });
+});
+
+// ── call WneqxaQA: "kebab pizza and pepperoni" became two pepperonis ──
+//
+//   12:43:32  names=["12 inch KEBAB PIZZA","12 inch PEPPERONI"] → kept [12" PEPPERONI]
+//   12:43:43  the same two again, plus drinks → the deal completed with
+//             12" PEPPERONI, 12" PEPPERONI
+//
+// The menu writes 12", the caller says "twelve inch", and the model writes
+// "12 inch KEBAB PIZZA". That one extra token meant the option named outright
+// never matched exactly, so the phrase fell through to the scorer — where
+// "kebab PIZZA" and "PAZZA" are close enough to tie, and a tie is a refusal.
+// The pepperoni matched, the second pizza slot was still open and looking for
+// any pizza, and it took a pepperoni too.
+describe("a meal deal with two pizza slots", () => {
+  const { VoiceAiService } = require("../voice-ai.service");
+  const pizzas = (ids: string) =>
+    ['12" PEPPERONI', '12" KEBAB PIZZA', '12" PAZZA', '12" MARGHERITHA'].map((name, i) => ({ id: `${ids}${i}`, name, price: 0 }));
+  const MENU: any[] = [
+    { id: "md4", name: "MEAL DEAL 4", price: 25, categoryName: "DEALS", modifierGroups: [
+      { id: "pz1", name: '12" pizza', required: true, min: 1, max: 1, selectionType: "VARIANT", options: pizzas("a") },
+      { id: "pz2", name: '12" pizza', required: true, min: 1, max: 1, selectionType: "VARIANT", options: pizzas("b") },
+      { id: "dr1", name: "drink", required: true, min: 1, max: 1, selectionType: "VARIANT", options: [{ id: "d1", name: "CAN Coke", price: 0 }, { id: "d2", name: "CAN SPRITE", price: 0 }] },
+    ] },
+  ];
+  const c = () => { const x: any = { currency: "GBP", items: MENU, deliveryZones: [] }; x.itemIndex = new Map(MENU.map((i) => [i.id, i])); x.optionIndex = new Map(MENU.flatMap((i: any) => i.modifierGroups.flatMap((g: any) => g.options.map((o: any) => [o.id, { groupId: g.id, itemId: i.id, option: o }])))); return x; };
+  const ai = () => { const a: any = Object.create(VoiceAiService.prototype); a.logger = { log: jest.fn(), warn() {}, error() {} }; return a; };
+  const st = () => ({ cart: { items: [] }, turns: [] }) as any;
+  const picks = (s: any) => (s.draft?.picks ?? []).map((p: any) => MENU[0].modifierGroups.flatMap((g: any) => g.options).find((o: any) => o.id === p.o)?.name);
+
+  it("takes the kebab pizza the caller asked for, said the way a caller says it", () => {
+    const a = ai(); const s = st();
+    a.addItemConversational({ said: "meal deal 4", modifierNames: ["12 inch KEBAB PIZZA", "12 inch PEPPERONI"] }, c(), s);
+    expect(picks(s).sort()).toEqual(['12" KEBAB PIZZA', '12" PEPPERONI']);
+  });
+
+  it("and the same two again does not turn into two pepperonis", () => {
+    const a = ai(); const s = st();
+    a.addItemConversational({ said: "meal deal 4", modifierNames: ["12 inch KEBAB PIZZA", "12 inch PEPPERONI"] }, c(), s);
+    const out = a.addItemConversational({ modifierNames: ["12 inch KEBAB PIZZA", "12 inch PEPPERONI", "CAN COKE"] }, c(), s);
+    expect(out.result).toMatch(/^Added 1 × MEAL DEAL 4/);
+    const on = s.cart.items[0].modifiers.map((m: any) => m.name).sort();
+    expect(on).toEqual(['12" KEBAB PIZZA', '12" PEPPERONI', "CAN Coke"]);
+  });
+
+  it("one pizza named once never fills both slots, even when the other name fails", () => {
+    // The exact shape of the bug: one name resolves, the other does not, and
+    // the open slot must NOT be filled with the one that did.
+    const a = ai(); const s = st();
+    a.addItemConversational({ said: "meal deal 4", modifierNames: ["thingamajig", "12 inch PEPPERONI"] }, c(), s);
+    expect(picks(s)).toEqual(['12" PEPPERONI']);
+  });
+
+  it("but two of the same pizza still works when they ask for two", () => {
+    const a = ai(); const s = st();
+    a.addItemConversational({ said: "meal deal 4", modifierNames: ["12 inch PEPPERONI", "12 inch PEPPERONI", "CAN COKE"] }, c(), s);
+    const on = s.cart.items[0].modifiers.map((m: any) => m.name);
+    expect(on.filter((n: string) => n === '12" PEPPERONI')).toHaveLength(2);
+  });
+
+  it("every spelling of the size finds the same pizza", () => {
+    for (const said of ['12 inch KEBAB PIZZA', '12" KEBAB PIZZA', 'twelve inch kebab pizza', 'kebab pizza']) {
+      const a = ai(); const s = st();
+      a.addItemConversational({ said: "meal deal 4", modifierNames: [said] }, c(), s);
+      expect(picks(s)).toEqual(['12" KEBAB PIZZA']);
+    }
+  });
+
+  it("the log names what it could not settle, instead of hiding it in an empty list", () => {
+    const a = ai(); const s = st();
+    // Two pizzas whose names genuinely collide, so the matcher cannot choose.
+    a.addItemConversational({ said: "meal deal 4", modifierNames: ["pizza"] }, c(), s);
+    const line = (a.logger.log as jest.Mock).mock.calls.map((k) => String(k[0])).find((l) => l.startsWith("add_item MEAL DEAL 4"));
+    expect(line).toMatch(/ambiguous \[/);
   });
 });
