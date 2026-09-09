@@ -145,7 +145,12 @@ export class TelnyxCallControlService {
       );
       if (!res.ok) {
         const text = await res.text().catch(() => "");
-        this.logger.error(`Telnyx ${action} failed ${res.status}: ${text.slice(0, 300)}`);
+        // 300 characters cut this provider's errors off in the middle of the
+        // sentence that says how to fix them: a refused transfer on call
+        // JDdtxygQ ended at "To solve it the custome". The body is the
+        // provider's own text about the shop's own numbers, and it is only
+        // ever logged when a call has already gone wrong.
+        this.logger.error(`Telnyx ${action} failed ${res.status}: ${text.slice(0, 900)}`);
         return false;
       }
       return true;
