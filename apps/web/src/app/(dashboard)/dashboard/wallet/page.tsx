@@ -22,8 +22,10 @@ import {
   walletClient,
   formatGbp,
   type WalletTransaction,
+  type WalletSummary,
 } from "@/lib/api/wallet.client";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
+import { useAuthStore } from "@/stores/auth.store";
 import { cn } from "@/lib/utils";
 
 const TOPUP_PRESETS = [1000, 2000, 5000, 10000]; // £10 / £20 / £50 / £100 in pennies
@@ -34,6 +36,7 @@ function WalletInner() {
   const topupStatus = params.get("topup"); // success | cancel
 
   const locationId = useSelectedLocationStore((s) => s.selectedLocationId);
+  const isAdmin = useAuthStore((s) => s.user)?.role === "PLATFORM_ADMIN";
   const [selected, setSelected] = useState<number>(2000);
   const [custom, setCustom] = useState<string>("");
 
@@ -77,7 +80,7 @@ function WalletInner() {
         <div>
           <h1 className="text-xl font-bold text-zinc-900">Wallet</h1>
           <p className="text-sm text-zinc-500">
-            Prepaid balance for payment links & marketing texts
+            Prepaid balance for AI phone calls, payment links &amp; texts
           </p>
         </div>
       </div>
@@ -126,6 +129,15 @@ function WalletInner() {
               >
                 {formatGbp(wallet?.balanceMinor ?? 0)}
               </div>
+              {/* Calls first: an empty wallet stops the phone being answered,
+                  which is the expensive failure. Texts merely queue up. */}
+              {wallet?.callsRemaining != null && (
+                <p className="mt-1 text-sm font-medium text-zinc-700">
+                  ≈ {wallet.callsRemaining.toLocaleString()} AI phone call
+                  {wallet.callsRemaining === 1 ? "" : "s"} left ·{" "}
+                  {wallet.voicePricePerCallMinor}p per answered call
+                </p>
+              )}
               <p className="mt-1 text-sm text-zinc-500">
                 ≈ {approxTexts.toLocaleString()} texts left · {rate}p per message
                 segment
@@ -205,10 +217,14 @@ function WalletInner() {
             </p>
           )}
           <p className="mt-2 text-[11px] text-zinc-400">
-            Secure card payment via Stripe. Funds are added to your SMS balance.
+            Secure card payment via Stripe. Your card is kept on file so automatic
+            top-up can use it later.
           </p>
         </div>
       </div>
+
+      <AutoTopupCard wallet={wallet} locationId={locationId} />
+      {isAdmin && <VoicePriceCard wallet={wallet} locationId={locationId} />}
 
       {/* Statement */}
       <div className="mt-8">
@@ -227,6 +243,234 @@ function WalletInner() {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Automatic top-up.
+ *
+ * An empty wallet means the AI stops answering the phone — silently, at the
+ * busiest hour, and the shop finds out on Monday from a customer. The backend
+ * has had this since the wallet was built; nothing in the dashboard ever
+ * called it, so every shop was one quiet evening away from that.
+ */
+function AutoTopupCard({
+  wallet,
+  locationId,
+}: {
+  wallet?: WalletSummary;
+  locationId?: string | null;
+}) {
+  const qc = useQueryClient();
+  const auto = wallet?.autoTopup;
+  const [threshold, setThreshold] = useState<string>("");
+  const [amount, setAmount] = useState<string>("");
+
+  const save = useMutation({
+    mutationFn: (input: {
+      enabled: boolean;
+      thresholdMinor?: number;
+      amountMinor?: number;
+    }) => walletClient.setAutoTopup(input, locationId),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["wallet"] });
+      setThreshold("");
+      setAmount("");
+    },
+  });
+
+  if (!wallet || !auto) return null;
+
+  const pounds = (v: string) => {
+    const n = parseFloat(v);
+    return Number.isFinite(n) ? Math.round(n * 100) : undefined;
+  };
+  const thresholdMinor = threshold.trim() ? pounds(threshold) : auto.thresholdMinor;
+  const amountMinor = amount.trim() ? pounds(amount) : auto.amountMinor;
+  const dirty = threshold.trim() !== "" || amount.trim() !== "";
+
+  return (
+    <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-5">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-sm font-semibold text-zinc-900">Automatic top-up</h2>
+          <p className="mt-0.5 text-xs text-zinc-500">
+            Refills the balance from your saved card so the phone keeps being
+            answered out of hours.
+          </p>
+        </div>
+        <button
+          onClick={() =>
+            save.mutate({
+              enabled: !auto.enabled,
+              thresholdMinor: auto.thresholdMinor,
+              amountMinor: auto.amountMinor,
+            })
+          }
+          disabled={save.isPending || (!auto.enabled && !auto.cardOnFile)}
+          className={cn(
+            "shrink-0 rounded-lg px-4 py-2 text-sm font-semibold transition disabled:opacity-50",
+            auto.enabled
+              ? "border border-zinc-300 text-zinc-700 hover:bg-zinc-50"
+              : "bg-emerald-600 text-white hover:bg-emerald-700",
+          )}
+        >
+          {save.isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : auto.enabled ? (
+            "Turn off"
+          ) : (
+            "Turn on"
+          )}
+        </button>
+      </div>
+
+      {/* No card, no auto top-up — say so instead of failing on the button. */}
+      {!auto.cardOnFile && (
+        <p className="mt-3 flex items-start gap-1.5 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          No card saved yet. Top up once above and the card is kept on file, then
+          this can be switched on.
+        </p>
+      )}
+
+      {/* A declined card is the quiet killer: everything looks fine until the
+          phone stops being answered. It has to reach the screen. */}
+      {auto.failedAt && (
+        <p className="mt-3 flex items-start gap-1.5 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
+          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          Last automatic top-up failed
+          {auto.failureReason ? ` (${auto.failureReason})` : ""}. Top up by hand
+          to save a working card, or the line stops when this balance runs out.
+        </p>
+      )}
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div>
+          <label className="mb-1 block text-xs font-medium text-zinc-500">
+            Top up when the balance falls below (£)
+          </label>
+          <input
+            type="number"
+            min={0}
+            step={1}
+            value={threshold}
+            onChange={(e) => setThreshold(e.target.value)}
+            placeholder={(auto.thresholdMinor / 100).toFixed(2)}
+            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-medium text-zinc-500">
+            Add this much each time (£)
+          </label>
+          <input
+            type="number"
+            min={5}
+            step={1}
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder={(auto.amountMinor / 100).toFixed(2)}
+            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+          />
+        </div>
+      </div>
+
+      <div className="mt-3 flex items-center gap-3">
+        <button
+          onClick={() =>
+            save.mutate({ enabled: auto.enabled, thresholdMinor, amountMinor })
+          }
+          disabled={save.isPending || !dirty}
+          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-800 disabled:opacity-40"
+        >
+          Save
+        </button>
+        <p className="text-xs text-zinc-500">
+          {auto.enabled
+            ? `On — refills ${formatGbp(auto.amountMinor)} whenever the balance drops below ${formatGbp(auto.thresholdMinor)}.`
+            : "Off — the line stops being answered when the balance runs out."}
+        </p>
+      </div>
+      {save.isError && (
+        <p className="mt-2 text-xs text-red-600">
+          {(save.error as any)?.response?.data?.message ??
+            "Couldn’t save those settings."}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/**
+ * What this shop pays for an answered AI call. Platform admin only — a shop
+ * reading its own price is fine, a shop setting it is not. Until now the
+ * agreed founding rate lived in somebody's memory and a database update.
+ */
+function VoicePriceCard({
+  wallet,
+  locationId,
+}: {
+  wallet?: WalletSummary;
+  locationId?: string | null;
+}) {
+  const qc = useQueryClient();
+  const [price, setPrice] = useState<string>("");
+
+  const save = useMutation({
+    mutationFn: (pence: number | null) =>
+      walletClient.setVoicePrice(pence, locationId),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["wallet"] });
+      setPrice("");
+    },
+  });
+
+  if (!wallet) return null;
+
+  return (
+    <div className="mt-4 rounded-xl border border-dashed border-violet-300 bg-violet-50/50 p-5">
+      <h2 className="text-sm font-semibold text-violet-900">
+        Call price for this shop
+        <span className="ml-2 rounded bg-violet-200 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-violet-800">
+          Admin
+        </span>
+      </h2>
+      <p className="mt-0.5 text-xs text-violet-800">
+        Currently {wallet.voicePricePerCallMinor}p per answered call. In PENCE —
+        100 is £1. Leave blank and save to put them back on the standard rate.
+      </p>
+      <div className="mt-3 flex items-center gap-2">
+        <input
+          type="number"
+          min={0}
+          step={1}
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+          placeholder={String(wallet.voicePricePerCallMinor)}
+          className="w-32 rounded-md border border-violet-300 px-3 py-2 text-sm"
+        />
+        <button
+          onClick={() =>
+            save.mutate(price.trim() === "" ? null : Math.round(Number(price)))
+          }
+          disabled={save.isPending}
+          className="rounded-lg bg-violet-700 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-800 disabled:opacity-50"
+        >
+          {save.isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            "Set price"
+          )}
+        </button>
+      </div>
+      {save.isError && (
+        <p className="mt-2 text-xs text-red-600">
+          {(save.error as any)?.response?.data?.message ??
+            "Couldn’t set that price."}
+        </p>
+      )}
     </div>
   );
 }

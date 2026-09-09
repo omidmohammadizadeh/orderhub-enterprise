@@ -8,9 +8,22 @@ export interface WalletSummary {
   balanceMinor: number;
   currency: string;
   pricePerSegmentMinor: number;
+  /** What an answered AI phone call costs this shop, in pence. */
+  voicePricePerCallMinor: number;
+  /** How many more calls the balance answers. null when calls are free. */
+  callsRemaining: number | null;
   lowBalanceThresholdMinor: number;
   lowBalance: boolean;
   smsConfigured: boolean;
+  autoTopup: {
+    enabled: boolean;
+    thresholdMinor: number;
+    amountMinor: number;
+    cardOnFile: boolean;
+    /** A declined card is the quiet killer — the phone just stops answering. */
+    failedAt: string | null;
+    failureReason: string | null;
+  };
 }
 
 export interface WalletTransaction {
@@ -46,6 +59,33 @@ export const walletClient = {
     apiClient
       .post<{ url: string }>("/v1/wallet/topup", {
         amountMinor,
+        locationId: locationId ?? undefined,
+      })
+      .then((r) => r.data),
+
+  // Keep the line funded without anyone watching the balance. The card is the
+  // one saved on an earlier top-up — Stripe keeps it on file for exactly this.
+  setAutoTopup: (
+    input: {
+      enabled: boolean;
+      thresholdMinor?: number;
+      amountMinor?: number;
+    },
+    locationId?: string | null,
+  ) =>
+    apiClient
+      .post<WalletSummary>("/v1/wallet/auto-topup", {
+        ...input,
+        locationId: locationId ?? undefined,
+      })
+      .then((r) => r.data),
+
+  // Platform admin only: what this shop pays per answered AI call. null puts
+  // them back on the standard rate.
+  setVoicePrice: (pricePerCallMinor: number | null, locationId?: string | null) =>
+    apiClient
+      .post<WalletSummary>("/v1/wallet/voice-price", {
+        pricePerCallMinor,
         locationId: locationId ?? undefined,
       })
       .then((r) => r.data),

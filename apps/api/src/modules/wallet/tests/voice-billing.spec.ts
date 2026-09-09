@@ -402,3 +402,67 @@ describe("reserving a call's price before answering", () => {
     expect(wallet.balanceMinor).toBe(400);
   });
 });
+
+// Per-shop call pricing. Founding shops and franchise groups get a rate we
+// agreed by hand, and until this existed the only record of it was a database
+// update — so the agreed price lived in somebody's memory until it didn't.
+describe("setting a shop's own call price", () => {
+  const world = () => {
+    const wallet: any = {
+      id: "wal_1",
+      tenantId: "ten_1",
+      locationId: "loc_1",
+      balanceMinor: 1000,
+      currency: "GBP",
+      voicePricePerCallMinor: null,
+    };
+    const prisma: any = {
+      wallet: {
+        findFirst: jest.fn(async () => wallet),
+        findUnique: jest.fn(async () => wallet),
+        create: jest.fn(async () => wallet),
+        update: jest.fn(async ({ data }: any) => {
+          Object.assign(wallet, data);
+          return wallet;
+        }),
+      },
+    };
+    const svc = new WalletService(prisma as any, { get: () => undefined } as any);
+    (svc as any).stripe = null;
+    return { svc, wallet };
+  };
+
+  it("records an agreed founding rate", async () => {
+    const { svc, wallet } = world();
+    await svc.setVoicePrice("ten_1", "loc_1", 50);
+    expect(wallet.voicePricePerCallMinor).toBe(50);
+    expect(svc.voicePricePerCallMinor(wallet)).toBe(50);
+  });
+
+  it("clears the override and returns them to the standard rate", async () => {
+    const { svc, wallet } = world();
+    await svc.setVoicePrice("ten_1", "loc_1", 50);
+    await svc.setVoicePrice("ten_1", "loc_1", null);
+    expect(wallet.voicePricePerCallMinor).toBeNull();
+    expect(svc.voicePricePerCallMinor(wallet)).toBe(100);
+  });
+
+  it("allows a free shop", async () => {
+    const { svc, wallet } = world();
+    await svc.setVoicePrice("ten_1", "loc_1", 0);
+    expect(svc.voicePricePerCallMinor(wallet)).toBe(0);
+  });
+
+  it("refuses pounds typed into a pence field", async () => {
+    // Someone entering "50" meaning fifty pounds would bill £50 a call, and
+    // the shop would find out on their statement.
+    const { svc } = world();
+    await expect(svc.setVoicePrice("ten_1", "loc_1", 5000)).rejects.toThrow(/PENCE/);
+  });
+
+  it("refuses a negative or fractional price", async () => {
+    const { svc } = world();
+    await expect(svc.setVoicePrice("ten_1", "loc_1", -1)).rejects.toThrow();
+    await expect(svc.setVoicePrice("ten_1", "loc_1", 12.5)).rejects.toThrow();
+  });
+});

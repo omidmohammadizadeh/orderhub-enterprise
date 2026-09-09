@@ -728,6 +728,39 @@ export class WalletService {
     });
   }
 
+  /**
+   * Set (or clear) this wallet's own price per answered AI call.
+   *
+   * Founding shops and franchise groups get a rate we agreed by hand, and
+   * until now the only way to record it was a database update — which meant
+   * the agreed price lived in somebody's memory until it didn't. null puts
+   * the wallet back on the platform rate.
+   *
+   * Platform-admin only, enforced at the controller: a shop must not be able
+   * to set what it pays.
+   */
+  async setVoicePrice(
+    tenantId: string,
+    locationId: string | null,
+    pricePerCallMinor: number | null,
+  ): Promise<any> {
+    if (pricePerCallMinor !== null) {
+      if (!Number.isInteger(pricePerCallMinor) || pricePerCallMinor < 0) {
+        throw new BadRequestException("Price must be a whole number of pence, or blank for the standard rate.");
+      }
+      // A shop billed £50 a call because someone typed pounds into a pence
+      // field would find out on their statement, not here.
+      if (pricePerCallMinor > 1000) {
+        throw new BadRequestException("That is over £10 a call — enter the price in PENCE (100 = £1).");
+      }
+    }
+    const wallet = await this.getOrCreate(tenantId, locationId);
+    return this.db().wallet.update({
+      where: { id: wallet.id },
+      data: { voicePricePerCallMinor: pricePerCallMinor },
+    });
+  }
+
   // ── Dispatch (courier) fee ──────────────────────────────────────────────
 
   /** Flat OrderHub fee (pennies) charged to the location wallet per courier

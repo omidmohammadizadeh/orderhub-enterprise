@@ -102,4 +102,31 @@ export class WalletController {
     });
     return this.wallet.getSummary(user.tenantId, body?.locationId ?? null);
   }
+
+  // POST /v1/wallet/voice-price — what this shop pays for an answered AI call.
+  //
+  // PLATFORM_ADMIN only, and deliberately not in the list the other wallet
+  // routes share: a shop reading its own price is fine, a shop setting it is
+  // not. Blank clears the override and puts them back on the standard rate.
+  @Post("voice-price")
+  @Roles("PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Set a shop's own price per answered AI call" })
+  async setVoicePrice(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: { pricePerCallMinor?: number | null; locationId?: string },
+  ) {
+    await this.wallet.assertLocationAccess(
+      user.tenantId,
+      body?.locationId ?? null,
+      user.userId,
+      user.role,
+    );
+    const raw = body?.pricePerCallMinor;
+    await this.wallet.setVoicePrice(
+      user.tenantId,
+      body?.locationId ?? null,
+      raw === null || raw === undefined || (raw as any) === "" ? null : Number(raw),
+    );
+    return this.wallet.getSummary(user.tenantId, body?.locationId ?? null);
+  }
 }
