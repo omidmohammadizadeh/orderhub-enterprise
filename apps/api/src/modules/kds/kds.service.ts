@@ -551,8 +551,29 @@ export class KdsService {
       const routed = routingByScreen.get(ticket.kdsScreenId);
       // Station no longer receives anything from this order → void its ticket.
       if (routed === null) {
+        // Say WHY, not just that.
+        //
+        // "No items route here anymore" is true and useless: it does not say
+        // whether the order lost the ids the routing keys off, whether the
+        // screen's rules stopped matching, or whether the channel filter
+        // caught it. An amend that quietly drops an order off the kitchen
+        // screens means food does not get made, and that is the one failure
+        // nobody notices until a customer rings.
+        const rules = (ticket.screen?.settings ?? {}) as KdsScreenSettings;
         this.logger.log(
-          `KDS resync order ${orderId} screen ${ticket.kdsScreenId} (${ticket.screen?.name ?? "?"}): DELETE — no items route here anymore`,
+          `KDS resync order ${orderId} screen ${ticket.kdsScreenId} (${ticket.screen?.name ?? "?"}): DELETE — no items route here anymore.` +
+            ` screen rules: channels=[${(rules.channels ?? []).join(",")}] categories=${(rules.categoryIds ?? []).length}` +
+            ` items=${(rules.itemIds ?? []).length} modifiers=[${(rules.modifierNames ?? []).join(",")}] type=${rules.stationType ?? "-"}.` +
+            ` order source=${order.orderSource}, lines: ${order.items
+              .map(
+                (i) =>
+                  `${i.name}[menuItemId=${i.menuItemId ?? "NONE"}${
+                    Array.isArray(i.modifiers) && (i.modifiers as any[]).length
+                      ? ` mods=${(i.modifiers as any[]).map((m: any) => String(m?.name ?? "?")).join("/")}`
+                      : ""
+                  }]`,
+              )
+              .join(", ")}`,
         );
         await this.prisma.kdsTicket.delete({ where: { id: ticket.id } });
         continue;
