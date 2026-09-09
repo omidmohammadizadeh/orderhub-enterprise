@@ -240,6 +240,23 @@ function GeneralTab({
   const [voiceTestMode, setVoiceTestMode] = useState<boolean>(
     (location as any)?.settings?.voiceTestMode === true,
   );
+  // Test mode expires. A location switched to it during setup and never
+  // switched back answers calls free forever, and nobody notices, because
+  // everything works — the shop is simply never billed. Ticking the box gives
+  // it a fortnight; ticking it again on a lapsed location renews it.
+  const storedTestUntil = String(
+    (location as any)?.settings?.voiceTestModeUntil ?? "",
+  );
+  const testUntilDate = storedTestUntil ? new Date(storedTestUntil) : null;
+  const testStillLive =
+    !!testUntilDate &&
+    !Number.isNaN(testUntilDate.getTime()) &&
+    testUntilDate.getTime() > Date.now();
+  const TEST_MODE_DAYS = 14;
+  const nextTestUntil = () =>
+    testStillLive
+      ? storedTestUntil
+      : new Date(Date.now() + TEST_MODE_DAYS * 86_400_000).toISOString();
   // Confirmation text on a cash phone order. Default OFF because every send
   // spends the shop's prepaid SMS balance — a new per-order cost should never
   // arrive as a surprise. Card orders already get the payment link and are
@@ -390,6 +407,7 @@ function GeneralTab({
           voiceAiEnabled: voiceAiEnabled === true,
           voiceTransferNumber: voiceTransferNumber.trim() || null,
           voiceTestMode: voiceTestMode === true,
+          voiceTestModeUntil: voiceTestMode === true ? nextTestUntil() : null,
           voiceEngine: voiceConversation ? 'CONVERSATION' : 'REALTIME',
           voiceSmsReceipt: voiceSmsReceipt === true,
           voiceBrandId: voiceBrandId || null,
@@ -1019,8 +1037,14 @@ function GeneralTab({
             <strong>Test mode — don&apos;t charge for calls</strong>
             <span className="mt-0.5 block text-[11px] text-amber-800">
               Answers as normal but takes nothing from the wallet, and works even on an empty
-              balance. For our own testing — turn it off before the shop goes live, or their calls
-              are free.
+              balance. For our own testing.
+            </span>
+            <span className="mt-0.5 block text-[11px] text-amber-800">
+              {voiceTestMode
+                ? testStillLive
+                  ? `Lapses on ${testUntilDate!.toLocaleDateString()} — after that calls are charged as normal.`
+                  : `Saving now gives this location ${TEST_MODE_DAYS} more days, then calls are charged as normal.`
+                : `Lasts ${TEST_MODE_DAYS} days, so a location left in test mode starts paying instead of going free forever.`}
             </span>
           </span>
         </label>

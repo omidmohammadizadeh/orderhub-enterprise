@@ -384,6 +384,127 @@ export class WalletService {
   }
 
   /**
+   * Take the money for a call BEFORE answering it.
+   *
+   * Checking the balance at answer time and charging at hangup leaves a
+   * window: two calls arriving together both see the same credit, both are
+   * answered, and both are charged, so a shop holding exactly one call's
+   * credit ends the evening owing us one. Deciding and spending have to be
+   * the same act, so this is a conditional decrement — the database refuses
+   * to take the money if the balance moved underneath us, and whichever call
+   * loses that race is simply not answered.
+   *
+   * The reservation IS the ledger row for the call. If the call turns out not
+   * to be billable (a wrong number, three seconds), settlement gives it back
+   * and removes the row, so a statement never shows a charge that was undone.
+   *
+   * Never blocks the phone on our own failure: if reserving errors for any
+   * reason other than a lack of funds, we answer anyway and settlement falls
+   * back to charging at hangup. A database blip must not send a hungry
+   * customer to a competitor.
+   */
+  async reserveForVoiceCall(args: {
+    tenantId: string;
+    locationId: string | null;
+    voiceCallId: string;
+  }): Promise<{ ok: boolean; reason?: string; balanceMinor: number; priceMinor: number }> {
+    // Affordability, plus the inline top-up that is the whole point of a card
+    // on file. Only once this says yes is there anything to reserve.
+    const verdict = await this.canAnswerVoiceCall(args.tenantId, args.locationId);
+    if (!verdict.ok) return verdict;
+
+    const wallet = await this.getOrCreate(args.tenantId, args.locationId);
+    const price = this.voicePricePerCallMinor(wallet);
+    // A free tariff has nothing to reserve and cannot be raced.
+    if (price <= 0) {
+      return { ok: true, balanceMinor: wallet.balanceMinor, priceMinor: 0 };
+    }
+
+    try {
+      const balanceAfter = await this.prisma.$transaction(async (tx: any) => {
+        // The condition is the whole mechanism: `gte: price` means a wallet
+        // drained by a call we raced simply does not match, and count is 0.
+        const taken = await tx.wallet.updateMany({
+          where: { id: wallet.id, balanceMinor: { gte: price } },
+          data: { balanceMinor: { decrement: price } },
+        });
+        if (taken.count !== 1) return null;
+        const fresh = await tx.wallet.findUnique({ where: { id: wallet.id } });
+        await tx.walletTransaction.create({
+          data: {
+            tenantId: args.tenantId,
+            walletId: wallet.id,
+            type: "DEBIT",
+            amountMinor: -price,
+            balanceAfterMinor: fresh?.balanceMinor ?? 0,
+            currency: wallet.currency,
+            purpose: "VOICE_CALL",
+            voiceCallId: args.voiceCallId,
+            locationId: args.locationId ?? null,
+            description: `AI phone call @ ${price}p`,
+          },
+        });
+        return fresh?.balanceMinor ?? 0;
+      });
+
+      if (balanceAfter === null) {
+        return {
+          ok: false,
+          reason: "NO_FUNDS",
+          balanceMinor: wallet.balanceMinor,
+          priceMinor: price,
+        };
+      }
+      if (balanceAfter < (wallet.autoTopupThresholdMinor ?? 0)) {
+        void this.tryAutoTopup(wallet).catch(() => undefined);
+      }
+      return { ok: true, balanceMinor: balanceAfter, priceMinor: price };
+    } catch (e: any) {
+      // Already reserved — a retried webhook for a call we are mid-answering.
+      // Not a second charge, and not a reason to refuse the caller.
+      if (e?.code === "P2002") {
+        return { ok: true, balanceMinor: wallet.balanceMinor, priceMinor: price };
+      }
+      this.logger.error(
+        `Voice call reserve failed for ${args.voiceCallId}: ${e?.message ?? e} — answering anyway, settlement will charge`,
+      );
+      return { ok: true, balanceMinor: wallet.balanceMinor, priceMinor: price };
+    }
+  }
+
+  /** Give back a reservation for a call that turned out not to be billable. */
+  private async releaseVoiceReservation(args: {
+    voiceCallId: string;
+    walletId: string;
+  }): Promise<number | null> {
+    try {
+      return await this.prisma.$transaction(async (tx: any) => {
+        const held = await tx.walletTransaction.findUnique({
+          where: { voiceCallId: args.voiceCallId },
+        });
+        if (!held) return null;
+        // Delete before crediting: whoever removes the row is the one who
+        // refunds, so a retried hangup webhook cannot credit twice.
+        const gone = await tx.walletTransaction.deleteMany({
+          where: { voiceCallId: args.voiceCallId },
+        });
+        if (gone.count !== 1) return null;
+        const back = await tx.wallet.update({
+          where: { id: args.walletId },
+          // amountMinor is the signed debit (-price), so this gives it back.
+          data: { balanceMinor: { increment: -held.amountMinor } },
+        });
+        return back.balanceMinor;
+      });
+    } catch (e: any) {
+      this.logger.error(
+        `Voice reservation release failed for ${args.voiceCallId}: ${e?.message ?? e}`,
+      );
+      return null;
+    }
+  }
+
+  /**
    * Charge for one completed call. Idempotent at the DATABASE level via the
    * unique index on walletTransaction.voiceCallId — provider webhooks retry,
    * and "one call, one charge" has to be true even when our code runs twice.
@@ -397,12 +518,51 @@ export class WalletService {
     durationSeconds: number;
     status: string;
   }): Promise<{ chargedMinor: number } | null> {
+    // What answering this call already took out of the wallet, if anything.
+    const held = await this.prisma.walletTransaction
+      .findUnique({ where: { voiceCallId: args.voiceCallId } })
+      .catch(() => null);
+
     if (!this.isBillableCall(args)) {
       this.logger.log(
         `Voice call ${args.voiceCallId} not billable (${args.status}, ${args.durationSeconds}s)`,
       );
+      // A wrong number that hung up after three seconds must not keep the
+      // reservation. Give it back and leave no statement line behind.
+      if (held) {
+        const wallet = await this.getOrCreate(args.tenantId, args.locationId);
+        const balance = await this.releaseVoiceReservation({
+          voiceCallId: args.voiceCallId,
+          walletId: wallet.id,
+        });
+        if (balance !== null) {
+          this.logger.log(
+            `Voice call ${args.voiceCallId} refunded ${-held.amountMinor}p — balance ${balance}p`,
+          );
+        }
+      }
       return null;
     }
+
+    // Billable and already paid for at answer time. The money moved when we
+    // decided to pick up; all that is left is to say so on the call record.
+    if (held) {
+      const cost = -held.amountMinor;
+      await this.prisma.voiceCall
+        .update({
+          where: { id: args.voiceCallId },
+          data: { billedMinor: cost, billedAt: new Date() },
+        })
+        .catch((e: any) =>
+          this.logger.error(
+            `Voice call ${args.voiceCallId} stamp failed: ${e?.message ?? e}`,
+          ),
+        );
+      return { chargedMinor: cost };
+    }
+
+    // No reservation: this call was answered by an older build, or reserving
+    // errored and we answered anyway. Charge at hangup, as we always did.
     try {
       const wallet = await this.getOrCreate(args.tenantId, args.locationId);
       const cost = this.voicePricePerCallMinor(wallet);

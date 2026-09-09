@@ -241,3 +241,164 @@ describe("auto top-up settings", () => {
 // creates the ledger row BEFORE moving the balance so a duplicate is rejected
 // before any money moves. That guarantee lives in Postgres, so proving it needs
 // a real database — it belongs in an integration test, not a stub.
+
+// Reserving the price at answer time, rather than checking it then charging at
+// hangup. The old order left a window: two calls landing together both saw the
+// same credit, both were answered, and both were charged, so a shop holding
+// exactly one call's credit finished the evening owing us one.
+describe("reserving a call's price before answering", () => {
+  const makeWalletWorld = (startingBalance: number) => {
+    const wallet: any = {
+      id: "wal_1",
+      tenantId: "ten_1",
+      locationId: "loc_1",
+      balanceMinor: startingBalance,
+      currency: "GBP",
+      voicePricePerCallMinor: null,
+      autoTopupEnabled: false,
+      autoTopupThresholdMinor: 0,
+      autoTopupAmountMinor: 2000,
+      stripeCustomerId: null,
+      stripePaymentMethodId: null,
+      autoTopupLastAt: null,
+    };
+    const ledger = new Map<string, any>();
+    const voiceCalls = new Map<string, any>();
+    const tx: any = {
+      wallet: {
+        findFirst: jest.fn(async () => wallet),
+        findUnique: jest.fn(async () => wallet),
+        create: jest.fn(async () => wallet),
+        update: jest.fn(async ({ data }: any) => {
+          if (data?.balanceMinor?.decrement != null)
+            wallet.balanceMinor -= data.balanceMinor.decrement;
+          else if (data?.balanceMinor?.increment != null)
+            wallet.balanceMinor += data.balanceMinor.increment;
+          else Object.assign(wallet, data);
+          return wallet;
+        }),
+        // The conditional decrement is the whole mechanism: a wallet drained
+        // by a call we raced does not match, and count comes back 0.
+        updateMany: jest.fn(async ({ where, data }: any) => {
+          const floor = where?.balanceMinor?.gte ?? 0;
+          if (wallet.balanceMinor < floor) return { count: 0 };
+          wallet.balanceMinor -= data.balanceMinor.decrement;
+          return { count: 1 };
+        }),
+      },
+      walletTransaction: {
+        create: jest.fn(async ({ data }: any) => {
+          if (data.voiceCallId && ledger.has(data.voiceCallId)) {
+            const err: any = new Error("unique");
+            err.code = "P2002";
+            throw err;
+          }
+          if (data.voiceCallId) ledger.set(data.voiceCallId, data);
+          return data;
+        }),
+        findUnique: jest.fn(async ({ where }: any) =>
+          ledger.get(where.voiceCallId) ?? null,
+        ),
+        deleteMany: jest.fn(async ({ where }: any) =>
+          ledger.delete(where.voiceCallId) ? { count: 1 } : { count: 0 },
+        ),
+        updateMany: jest.fn(async () => ({ count: 1 })),
+      },
+      voiceCall: {
+        update: jest.fn(async ({ where, data }: any) => {
+          voiceCalls.set(where.id, data);
+          return data;
+        }),
+      },
+    };
+    tx.$transaction = jest.fn(async (cb: any) => cb(tx));
+    const svc = new WalletService(tx as any, { get: () => undefined } as any);
+    (svc as any).stripe = null;
+    return { svc, wallet, ledger, voiceCalls };
+  };
+
+  it("takes the price out of the wallet before the call is answered", async () => {
+    const { svc, wallet, ledger } = makeWalletWorld(100);
+    const v = await svc.reserveForVoiceCall({
+      tenantId: "ten_1",
+      locationId: "loc_1",
+      voiceCallId: "call_1",
+    });
+    expect(v.ok).toBe(true);
+    expect(wallet.balanceMinor).toBe(0);
+    expect(ledger.get("call_1").amountMinor).toBe(-100);
+  });
+
+  it("refuses the second of two calls racing for one call's credit", async () => {
+    const { svc, wallet } = makeWalletWorld(100);
+    const first = await svc.reserveForVoiceCall({
+      tenantId: "ten_1",
+      locationId: "loc_1",
+      voiceCallId: "call_1",
+    });
+    const second = await svc.reserveForVoiceCall({
+      tenantId: "ten_1",
+      locationId: "loc_1",
+      voiceCallId: "call_2",
+    });
+    expect(first.ok).toBe(true);
+    expect(second.ok).toBe(false);
+    expect(second.reason).toBe("NO_FUNDS");
+    // Never negative — that was the whole bug.
+    expect(wallet.balanceMinor).toBe(0);
+  });
+
+  it("does not charge a second time when a reserved call is settled", async () => {
+    const { svc, wallet, voiceCalls } = makeWalletWorld(500);
+    await svc.reserveForVoiceCall({
+      tenantId: "ten_1",
+      locationId: "loc_1",
+      voiceCallId: "call_1",
+    });
+    expect(wallet.balanceMinor).toBe(400);
+    const charged = await svc.debitForVoiceCall({
+      tenantId: "ten_1",
+      locationId: "loc_1",
+      voiceCallId: "call_1",
+      durationSeconds: 95,
+      status: "COMPLETED",
+    });
+    expect(charged).toEqual({ chargedMinor: 100 });
+    expect(wallet.balanceMinor).toBe(400);
+    expect(voiceCalls.get("call_1").billedMinor).toBe(100);
+  });
+
+  it("gives the money back when the call turns out not to be billable", async () => {
+    const { svc, wallet, ledger } = makeWalletWorld(500);
+    await svc.reserveForVoiceCall({
+      tenantId: "ten_1",
+      locationId: "loc_1",
+      voiceCallId: "call_1",
+    });
+    expect(wallet.balanceMinor).toBe(400);
+    const charged = await svc.debitForVoiceCall({
+      tenantId: "ten_1",
+      locationId: "loc_1",
+      voiceCallId: "call_1",
+      durationSeconds: 3,
+      status: "COMPLETED",
+    });
+    expect(charged).toBeNull();
+    expect(wallet.balanceMinor).toBe(500);
+    // And no statement line for a charge that was undone.
+    expect(ledger.has("call_1")).toBe(false);
+  });
+
+  it("still charges at hangup for a call answered without a reservation", async () => {
+    const { svc, wallet } = makeWalletWorld(500);
+    const charged = await svc.debitForVoiceCall({
+      tenantId: "ten_1",
+      locationId: "loc_1",
+      voiceCallId: "legacy_call",
+      durationSeconds: 60,
+      status: "COMPLETED",
+    });
+    expect(charged).toEqual({ chargedMinor: 100 });
+    expect(wallet.balanceMinor).toBe(400);
+  });
+});

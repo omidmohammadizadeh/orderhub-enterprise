@@ -29,7 +29,13 @@ export interface VoiceContext extends WaMenuContext {
   enabled: boolean;
   /** Answer without charging. For our own testing: a £1 debit per attempt
    *  makes tuning the conversation cost real money, and an empty wallet
-   *  would stop the phone answering mid-session. */
+   *  would stop the phone answering mid-session.
+   *
+   *  It EXPIRES. A shop switched to test mode during setup and never switched
+   *  back is a shop taking orders on our line for nothing, and nobody ever
+   *  notices, because everything works. `voiceTestModeUntil` carries the date
+   *  it lapses; a test-mode location without one has already lapsed, so the
+   *  fail-safe direction is billing rather than free. */
   testMode: boolean;
   /** Text the customer a confirmation on a cash order. Off unless the shop
    *  asks for it — every send spends their prepaid SMS balance, and a new
@@ -87,6 +93,35 @@ export function normaliseNumber(raw?: string | null): string {
   // UK national → international, so 07700… and +447700… compare equal.
   if (digits.startsWith('0') && digits.length === 11) return `44${digits.slice(1)}`;
   return digits;
+}
+
+/**
+ * Is this location still in unbilled test mode?
+ *
+ * Test mode was a plain boolean, which meant a location switched to it during
+ * setup answered calls free forever. Nobody notices, because everything works
+ * — the shop is simply never charged. So it now carries an expiry, and the
+ * absence of one counts as lapsed: a location we cannot prove is still being
+ * tested gets billed, which is the safe direction to be wrong in.
+ */
+export function testModeActive(
+  settings: { voiceTestMode?: unknown; voiceTestModeUntil?: unknown },
+  logger?: Logger,
+  locationId?: string,
+  now: Date = new Date(),
+): boolean {
+  if (settings?.voiceTestMode !== true) return false;
+  const raw = settings?.voiceTestModeUntil;
+  const until = raw ? new Date(String(raw)) : null;
+  if (until && !Number.isNaN(until.getTime()) && until.getTime() > now.getTime()) {
+    return true;
+  }
+  logger?.warn(
+    `Location ${locationId ?? "?"} is flagged test mode but it lapsed${
+      until && !Number.isNaN(until.getTime()) ? ` on ${until.toISOString().slice(0, 10)}` : " (no expiry set)"
+    } — this call will be charged`,
+  );
+  return false;
 }
 
 @Injectable()
@@ -217,7 +252,7 @@ export class VoiceContextService {
           : settings.voiceEngine === 'REALTIME'
             ? 'REALTIME'
             : 'RELAY',
-      testMode: settings.voiceTestMode === true,
+      testMode: testModeActive(settings, this.logger, location.id),
       smsReceipt: settings.voiceSmsReceipt === true,
       timezone: location.timezone ?? null,
       openingHours: location.openingHours ?? null,

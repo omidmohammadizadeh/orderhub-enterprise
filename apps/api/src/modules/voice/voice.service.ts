@@ -136,12 +136,25 @@ export class VoiceService {
     // The money gate. Tries the saved card inline before refusing, so a shop
     // with auto top-up on never notices the balance ran out.
     //
+    // It RESERVES the price rather than merely checking it: two calls landing
+    // together used to both see the same credit and both be answered.
+    //
     // Test mode skips it entirely: while we're tuning the conversation, every
     // attempt would otherwise cost £1 and an empty wallet would stop the phone
-    // answering halfway through a session.
+    // answering halfway through a session. It now expires (see VoiceContext),
+    // because a shop left in test mode is a shop using the line for free.
+    if (ctx.testMode) {
+      this.logger.warn(
+        `Call ${call.id} for location ${ctx.locationId} is in TEST MODE — answering without charging`,
+      );
+    }
     const verdict = ctx.testMode
       ? { ok: true as const, balanceMinor: 0, priceMinor: 0, reason: undefined }
-      : await this.wallet.canAnswerVoiceCall(ctx.tenantId, ctx.locationId);
+      : await this.wallet.reserveForVoiceCall({
+          tenantId: ctx.tenantId,
+          locationId: ctx.locationId,
+          voiceCallId: call.id,
+        });
     if (!verdict.ok) {
       await this.markNotAnswered(call.id, verdict.reason ?? 'NO_FUNDS');
       this.logger.warn(
