@@ -289,6 +289,8 @@ export interface VoiceState {
    * kitchen before the food goes out.
    */
   noteOrder?: { id: string; reference: string; via?: string };
+  /** A transfer has been held back once already. It never happens twice. */
+  offeredTransfer?: boolean;
   /**
    * The booking on the table, so to speak.
    *
@@ -430,6 +432,7 @@ export function coerceState(raw: unknown): VoiceState {
       r.pendingPayment === 'CASH' || r.pendingPayment === 'CARD' ? r.pendingPayment : undefined,
     amendOrderId: r.amendOrderId ? String(r.amendOrderId) : undefined,
     amendReference: r.amendReference ? String(r.amendReference) : undefined,
+    offeredTransfer: r.offeredTransfer === true,
     noteOrder:
       r.noteOrder && typeof r.noteOrder === 'object' && r.noteOrder.id
         ? {
@@ -2094,10 +2097,26 @@ ${menu || '(no items available — apologise and transfer)'}`;
       {
         name: 'transfer_to_staff',
         description:
-          'Hand the call to a human. Use freely — for complaints, anything you cannot do, or a second misunderstanding.',
+          "Hand the call to a human. ASK WHAT IT IS ABOUT FIRST, unless they are complaining or upset — most reasons for wanting a person are things you can do yourself in seconds, and a transfer makes the caller wait for someone who will only ask them the same question. Pass `about` with what they actually want.",
         input_schema: {
           type: 'object',
-          properties: { reason: { type: 'string' } },
+          properties: {
+            reason: { type: 'string', description: "In the caller's own words" },
+            about: {
+              type: 'string',
+              enum: [
+                'complaint',
+                'add_to_order',
+                'order_update',
+                'note_for_order',
+                'cancel',
+                'insisted',
+                'other',
+              ],
+              description:
+                "What they want. 'complaint' = something is wrong with an order or the service. 'insisted' = you offered to help and they still want a person. 'other' = anything genuinely for a human. The middle three you can do yourself.",
+            },
+          },
           required: ['reason'],
         },
       },
@@ -2488,6 +2507,42 @@ ${menu || '(no items available — apologise and transfer)'}`;
           return {
             result:
               'Not yet. Mishearing is not a reason to hand over — ask again, in DIFFERENT words, and ask for a smaller piece of it than last time. Take a postcode on its own, or ask them to spell it. If you still cannot get there after a few goes, ASK them whether they would like to be put through rather than doing it to them.',
+          };
+        }
+        // Ask what it is about before handing anybody over.
+        //
+        // Most callers who ask for "someone" want one of three things this
+        // line already does — add to an order, hear where it is, leave the
+        // kitchen a note — and a transfer makes them wait for a person who
+        // will only ask them the same question. A complaint is different, and
+        // so is anybody who has been offered help and still wants a human.
+        //
+        // The escape hatch matters more than the gate: this refuses ONCE.
+        // Ask twice and it goes through, whatever the reason, because a
+        // caller trapped in a loop by a machine is the failure that gets an
+        // AI phone line switched off.
+        const about = String(input?.about ?? '').toLowerCase();
+        const canDoItHere: Record<string, string> = {
+          add_to_order:
+            'They want to add to an order. Do it: find_order_to_change with their number if they read one, add the items, read it back, then amend_order.',
+          order_update:
+            'They want to know where their order is. Do it: get_order_status, and say what it tells you.',
+          note_for_order:
+            'They want the kitchen told something. Do it: find_order_to_change to pull the order up, then note_for_kitchen with their words.',
+          cancel: 'A cancellation goes through cancel_order, not a transfer. Call that instead.',
+        };
+        const escalating = (state.confusion ?? 0) >= 3 || state.askedForHuman === true;
+        if (canDoItHere[about] && !state.offeredTransfer && !escalating) {
+          state.offeredTransfer = true;
+          return {
+            result: `Don't put them through — you can do this yourself and they will be on hold for nothing. ${canDoItHere[about]} If they say again that they want a person, call transfer_to_staff with about: "insisted" and it will go through.`,
+          };
+        }
+        if (!about && !state.offeredTransfer && !escalating) {
+          state.offeredTransfer = true;
+          return {
+            result:
+              "Ask what it is about first, in your own words — most things people want a person for you can do right now: adding to an order, telling them where it is, or getting a message to the kitchen. If it is a complaint, or they just want a person, call transfer_to_staff again with `about` and it goes straight through.",
           };
         }
         // Configured is not the same as dialable. On call DXSoOJaQ the shop
@@ -3427,6 +3482,7 @@ BEFORE IT'S PLACED
 - place_order needs a name for the order. A caller you know needs no asking; otherwise ask for a first name, once, before you place it. Never make one up.
 ${delivery}
 - Read a new address back once, then confirm_delivery_address. Only use an address on file after they've said yes to it.${returning}
+- "Can I speak to someone?" — ask what it is about BEFORE transferring, unless they are complaining or upset, in which case put them straight through. Adding to an order, where an order is, a message for the kitchen: all yours, and a transfer only makes them wait for someone who asks them the same thing. If they ask a second time, put them through without arguing.
 - If they want a person, or press 0, transfer_to_staff. If something has gone wrong with an existing order, take_message.
 
 AN ORDER ALREADY PLACED

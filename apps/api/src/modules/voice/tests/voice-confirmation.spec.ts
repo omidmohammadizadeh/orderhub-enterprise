@@ -274,10 +274,13 @@ describe("never giving up", () => {
     expect(out.turn?.transferTo).toBe("+441912312345");
   });
 
-  it("hands over immediately for a reason that is not mishearing", async () => {
+  it("hands over immediately for a complaint", async () => {
+    // A complaint is never held back to ask what it is about — the caller
+    // has already said, and being triaged by a machine is the last thing an
+    // unhappy customer needs.
     const out = await svc().runTool(
       "transfer_to_staff",
-      { reason: "caller is complaining about a previous order" },
+      { about: "complaint", reason: "caller is complaining about a previous order" },
       ctx({ transferNumber: "+441912312345" }),
       withItem(),
       null,

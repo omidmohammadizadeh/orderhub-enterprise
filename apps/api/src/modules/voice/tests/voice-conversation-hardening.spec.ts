@@ -2149,7 +2149,10 @@ describe("asking to speak to a person", () => {
     deliveryZones: [],
     transferNumber,
   });
-  const asked = { reason: "The caller asked for a person." };
+  // `about` is required now: a transfer is held back once to ask what it is
+  // for, unless it is a complaint or they have already insisted. These tests
+  // are about the NUMBER, so they say what it is about and go straight through.
+  const asked = { about: "complaint", reason: "The caller asked for a person." };
 
   it("puts them through when the shop's number can actually be rung", async () => {
     const a = ai();
