@@ -35,6 +35,15 @@ import { isAwaitingOurPayment } from "../lib/orders/awaiting-payment";
 
 const CANCELLED_STATUSES = new Set(["CANCELLED", "REJECTED", "CANCELED"]);
 
+// A note the phone line took AFTER the order was placed, written onto the
+// order by the voice AI as "PHONE NOTE 14:32: ...".
+//
+// The tablet is the only renderer for shops printing over Bluetooth, and it
+// builds its own tickets from the live-orders feed — it never sees the
+// server's print jobs. So a note that reached the print queue perfectly still
+// produced no paper here, which is what happened on the first two live calls.
+const PHONE_NOTE = /PHONE NOTE \d{1,2}:\d{2}:/;
+
 export interface AutoPrintStatus {
   inApp: boolean;
   armedPrinters: number;
@@ -49,6 +58,8 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
   // printed an order exactly once (on first sight) and every subsequent
   // round silently never reached the paper kitchen.
   const printedItemsRef = useRef<Map<string, Set<string>>>(new Map());
+  /** orderId → the instructions already printed for it. */
+  const printedNoteRef = useRef<Map<string, string>>(new Map());
   const seededRef = useRef(false);
   const [status, setStatus] = useState<AutoPrintStatus>({
     inApp: false,
@@ -100,6 +111,7 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
         );
         if (CANCELLED_STATUSES.has(String(o.status ?? "").toUpperCase()))
           printedCancelRef.current.add(o.id);
+        printedNoteRef.current.set(o.id, String(o.specialInstructions ?? ""));
       }
       seededRef.current = true;
       return;
@@ -111,6 +123,7 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
       order: any,
       copiesField: "copiesNewOrder" | "copiesCancelled",
       banner?: string,
+      label = banner ? "cancellation" : "order",
     ) => {
       const payload = buildPrintPayload(order, banner ? { banner } : undefined);
       // Receipt logo (all tickets) + marketplace "scan to order online"
@@ -152,7 +165,7 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
             joinReceiptAndQr(receipt, receiptWithQr, copies, detached),
           );
           printedAny = true;
-          const msg = `Printed ${copies}× ${banner ? "cancellation" : "order"} #${
+          const msg = `Printed ${copies}× ${label} #${
             order.displayId ?? order.orderNumber ?? order.id?.slice(-4)
           } @ ${new Date().toLocaleTimeString()}`;
           console.log(`[auto-print] ${msg}`);
@@ -240,10 +253,51 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
         if (btPrinters.length && hasItems(o))
           void printToAll(o, "copiesCancelled", "*** ORDER CANCELLED ***");
       }
+
+      // A caller rang after the order was placed and left the kitchen a
+      // sentence. Printed as its own slip carrying that sentence and nothing
+      // else — the order it belongs to may already be in the oven, and a slip
+      // that looks like a ticket is a slip that gets cooked twice.
+      const instructions = String((o as any).specialInstructions ?? "");
+      const seenNote = printedNoteRef.current.get(o.id);
+      if (seenNote === undefined) {
+        printedNoteRef.current.set(o.id, instructions);
+      } else if (instructions !== seenNote && PHONE_NOTE.test(instructions)) {
+        printedNoteRef.current.set(o.id, instructions);
+        // Only the newest note, not every one ever left on this order.
+        const latest =
+          instructions
+            .split(" | ")
+            .filter((part) => PHONE_NOTE.test(part))
+            .pop() ?? instructions;
+        if (btPrinters.length)
+          void printToAll(
+            {
+              ...(o as any),
+              items: [
+                {
+                  id: `note-${o.id}`,
+                  name: "MESSAGE FROM THE CUSTOMER",
+                  quantity: 1,
+                  modifiers: [],
+                  notes: latest,
+                },
+              ],
+            },
+            "copiesNewOrder",
+            "*** CUSTOMER NOTE - DO NOT REMAKE ***",
+            "customer note",
+          );
+      }
     }
 
     // Same bound on the per-order item map (a long shift shouldn't grow it
     // without limit).
+    if (printedNoteRef.current.size > 500) {
+      printedNoteRef.current = new Map(
+        Array.from(printedNoteRef.current.entries()).slice(-500),
+      );
+    }
     if (printedItemsRef.current.size > 500) {
       printedItemsRef.current = new Map(
         Array.from(printedItemsRef.current.entries()).slice(-500),

@@ -486,8 +486,13 @@ export class PrintJobsService {
         payload: liteForBridge,
       } as any);
     }
+    // Named, not counted. "on 1 printer(s)" told us a job existed and
+    // nothing about WHERE it went, which is the only question worth asking
+    // when a shop says no paper came out.
     this.logger.log(
-      `Customer note printed for order ${args.orderId} on ${created.length} printer(s)`,
+      `Customer note queued for order ${args.orderId} at location ${order.locationId}: ${targets
+        .map((t) => `printer ${t.printerId}${t.stationId ? ` station ${t.stationId}` : ""} as ${t.type}`)
+        .join(", ")}`,
     );
     return created;
   }
