@@ -71,6 +71,7 @@ import { chargeableInNote } from './topping-note';
 import { isCurrentlyOpen } from '../../common/opening-hours.util';
 import { toE164 } from '../sms/phone';
 import { ReservationsService } from '../reservations/reservations.service';
+import { PrintJobsService } from '../printers/print-jobs.service';
 import { shopNow, spokenWhen, whenInShop } from './voice-when';
 import {
   coerceCart,
@@ -281,6 +282,13 @@ export interface VoiceState {
   /** What the board calls the order being amended, for reading back. */
   amendReference?: string;
   /**
+   * An order this call found that CANNOT be edited — it came through a
+   * marketplace, or the kitchen has already started it. Kept because there is
+   * still one useful thing to do with it: put a sentence in front of the
+   * kitchen before the food goes out.
+   */
+  noteOrder?: { id: string; reference: string; via?: string };
+  /**
    * The booking on the table, so to speak.
    *
    * `checked` is the slot availability was proved for, and book_table will
@@ -421,6 +429,14 @@ export function coerceState(raw: unknown): VoiceState {
       r.pendingPayment === 'CASH' || r.pendingPayment === 'CARD' ? r.pendingPayment : undefined,
     amendOrderId: r.amendOrderId ? String(r.amendOrderId) : undefined,
     amendReference: r.amendReference ? String(r.amendReference) : undefined,
+    noteOrder:
+      r.noteOrder && typeof r.noteOrder === 'object' && r.noteOrder.id
+        ? {
+            id: String(r.noteOrder.id),
+            reference: String(r.noteOrder.reference ?? ''),
+            ...(r.noteOrder.via ? { via: String(r.noteOrder.via) } : {}),
+          }
+        : undefined,
     booking:
       r.booking && typeof r.booking === 'object'
         ? {
@@ -514,6 +530,7 @@ export class VoiceAiService {
     private readonly payments: PaymentsService,
     private readonly addresses: AddressLookupService,
     private readonly reservations: ReservationsService,
+    private readonly printing: PrintJobsService,
   ) {
     const apiKey = this.config.get<string>('ANTHROPIC_API_KEY');
     this.anthropic = apiKey ? new Anthropic({ apiKey }) : null;
@@ -3411,6 +3428,7 @@ ${delivery}
 - If they want a person, or press 0, transfer_to_staff. If something has gone wrong with an existing order, take_message.
 
 AN ORDER ALREADY PLACED
+- An order placed on Just Eat, Uber Eats, Deliveroo or anywhere else cannot be changed here, and you must not pretend otherwise. But you CAN put a sentence in front of the kitchen: "I can't change the order, but I can send a note to the kitchen for you." Then note_for_kitchen with their own words. It adds nothing and costs nothing.
 - "Where's my order?" — get_order_status. If they read a number, pass it exactly as said, letters included; otherwise leave it out and it uses their phone number. Say what it tells you to say.
 - "Can I add…" / "change…" to an order already placed, this call or earlier — find_order_to_change (with the number if they read one). It loads the whole order into the basket; add or change items as usual — "extra pepperoni on the pizza" is change_item on that line with modifierNames, and it keeps the toppings already there — then read_back_order once. When they agree — yes, okay, fine, that's it — call amend_order: it records the yes and saves. Do not read it back again unless something changed. No payment question for a change. Never place_order for a change.${theUsual}${closed}
 
@@ -3665,6 +3683,22 @@ BOOKING A TABLE
     }
     base.push({
       type: 'function',
+      name: 'note_for_kitchen',
+      description:
+        "Pass an instruction to the kitchen for an order that cannot be changed — one placed on Just Eat, Uber Eats, Deliveroo or another platform, or one the kitchen has already started. It does NOT change the order, add anything or cost anything: it prints a note with their order number and details. Use it after find_order_to_change has told you the order cannot be edited. Pass the caller's own words.",
+      parameters: {
+        type: 'object',
+        properties: {
+          note: {
+            type: 'string',
+            description: "What they want the kitchen to know, in their words — e.g. 'make sure the pizza is thin crust', 'ring the top bell'",
+          },
+        },
+        required: ['note'],
+      },
+    });
+    base.push({
+      type: 'function',
       name: 'clear_order',
       description:
         'The caller wants to start the order again from nothing. Empties it. Only call this when they have said so.',
@@ -3723,6 +3757,8 @@ BOOKING A TABLE
         return this.removeItemConversational(input, ctx, state);
       case 'change_item':
         return this.changeItemConversational(input, ctx, state);
+      case 'note_for_kitchen':
+        return this.noteForKitchen(input, ctx, state);
       case 'check_table':
         return this.checkTable(input, ctx, state);
       case 'book_table':
@@ -5631,17 +5667,26 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
     const own = order.orderSource === 'POS' || order.orderSource === 'VOICE';
     if (!own) {
       const where = via ?? 'our website';
-      return { result: `Not ours to change — order ${ref} came through ${where}. Say: "${this.amendElsewhere(where)}"` };
+      state.noteOrder = { id: order.id, reference: ref, via: where };
+      return {
+        result:
+          `Not ours to change — order ${ref} came through ${where}. Say: "${this.amendElsewhere(where)}"` +
+          ` THEN offer this, in your own words: you cannot change the order, but you CAN pass an instruction to the kitchen — anything about how it is made, or a note for the driver. If they give you one, call note_for_kitchen with their exact words.`,
+      };
     }
     const delivery = order.fulfillmentType === 'DELIVERY';
     if (!VoiceAiService.EDITABLE.has(String(order.status))) {
+      state.noteOrder = { id: order.id, reference: ref, ...(via ? { via } : {}) };
       return {
-        result: `Too late to change order ${ref} — it is ${order.status}. Say: "${this.amendTooLate(String(order.status), delivery)}" Then offer transfer_to_staff, or a new order.`,
+        result:
+          `Too late to change order ${ref} — it is ${order.status}. Say: "${this.amendTooLate(String(order.status), delivery)}"` +
+          ` If it has not gone out yet you can still pass a note to the kitchen with note_for_kitchen. Otherwise offer transfer_to_staff, or a new order.`,
       };
     }
     if (!canAmendOrderPayment({ paymentMethod: order.paymentMethod, paymentStatus: order.paymentStatus })) {
+      state.noteOrder = { id: order.id, reference: ref, ...(via ? { via } : {}) };
       return {
-        result: `Order ${ref} has already been paid by card, so nothing can be added to it from here. Explain that, and offer a separate order for the extras or transfer_to_staff.`,
+        result: `Order ${ref} has already been paid by card, so nothing can be added to it from here. Explain that. You CAN still pass an instruction to the kitchen with note_for_kitchen. For extra food, offer a separate order or transfer_to_staff.`,
       };
     }
     this.loadOrderForAmend(state, {
@@ -5664,6 +5709,92 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
       result:
         `Loaded order ${ref} to change (${order.status}${address}). Everything already on it is in the basket below, with its choices and charges. ` +
         `Add or change items as usual, then read_back_order, get a yes, and call amend_order — never place_order.\nOrder so far:\n${this.cartForModel(state, ctx)}`,
+    };
+  }
+
+  /**
+   * A sentence from the caller, in front of the kitchen, before the food goes.
+   *
+   * The order itself is untouchable — Just Eat owns it, or it is already
+   * being made — and this does not pretend otherwise. It adds nothing, costs
+   * nothing and changes no line. It prints one chit saying who rang and what
+   * they said, and appends the same words to the order so anyone looking at
+   * the screen sees them too.
+   *
+   * The appended text says PHONE NOTE and the time, because an instruction
+   * that appears on a Just Eat order without explanation reads as something
+   * Just Eat sent, and staff will act on it differently if they think the
+   * customer typed it at checkout.
+   */
+  private async noteForKitchen(
+    input: any,
+    ctx: VoiceContext,
+    state: VoiceState,
+  ): Promise<{ result: string; sayNow?: string }> {
+    const target = state.noteOrder;
+    if (!target?.id) {
+      return {
+        result:
+          'No order to attach a note to yet. Call find_order_to_change first (with the number if they read one), then try again.',
+      };
+    }
+    const note = String(input?.note ?? '').trim().slice(0, 300);
+    if (!note) {
+      return { result: 'Ask them what they would like the kitchen to know, then call note_for_kitchen with their words.' };
+    }
+    const tz = ctx.timezone || 'Europe/London';
+    const at = new Intl.DateTimeFormat('en-GB', {
+      timeZone: tz,
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).format(new Date());
+
+    let printed = 0;
+    try {
+      const jobs = await this.printing.createCustomerNoteChit({
+        orderId: target.id,
+        note,
+        takenBy: `phone ${at}`,
+      });
+      printed = jobs.length;
+    } catch (e: any) {
+      this.logger.warn(`Voice kitchen note failed to print for ${target.id}: ${e?.message ?? e}`);
+    }
+
+    // On the order as well as on paper. A chit can be missed; the screen
+    // cannot, and a reprint of the ticket carries it too.
+    try {
+      const existing = await this.prisma.order.findUnique({
+        where: { id: target.id },
+        select: { specialInstructions: true },
+      });
+      const line = `PHONE NOTE ${at}: ${note}`;
+      await this.prisma.order.update({
+        where: { id: target.id },
+        data: {
+          specialInstructions: [existing?.specialInstructions, line].filter(Boolean).join(' | ').slice(0, 1000),
+        },
+      });
+    } catch (e: any) {
+      this.logger.warn(`Voice kitchen note failed to save on ${target.id}: ${e?.message ?? e}`);
+    }
+
+    this.logger.log(
+      `Voice note for order ${target.reference}${target.via ? ` (${target.via})` : ''} — printed on ${printed} printer(s): "${note}"`,
+    );
+
+    if (!printed) {
+      // Nothing came out of a printer. Say so rather than promising the
+      // kitchen has it — the note is on the order, but nobody is standing at
+      // a screen with their hands in a pizza oven.
+      return {
+        result: `The note is saved on order ${target.reference}, but NOTHING PRINTED — this shop has no working kitchen printer. Tell them you have put it on the order and offer to put them through so someone can confirm it, or take a message.`,
+      };
+    }
+    return {
+      result: `Done — printed in the kitchen for order ${target.reference} and saved on the order. The caller is being told. It changes nothing on the order itself.`,
+      sayNow: `That's gone through to the kitchen for order ${spokenReference(target.reference)}. Anything else?`,
     };
   }
 

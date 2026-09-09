@@ -393,6 +393,84 @@ export class PrintJobsService {
     return created;
   }
 
+  // ── A message from the customer, after the order was placed ─────────
+  //
+  // Somebody rings about an order they cannot change: it came through Just
+  // Eat, or the kitchen has already started it. They cannot edit it and
+  // neither can the shop — but "make sure that pizza is thin crust" is not an
+  // edit, it is a sentence the kitchen needs before the food goes out, and
+  // the only thing standing between the caller and the kitchen is a piece of
+  // paper nobody prints.
+  //
+  // Deliberately NOT the order ticket. It carries one line saying what it is,
+  // the note itself, and a banner telling the kitchen not to remake anything
+  // — because a chit that looks like a ticket is a chit that gets cooked
+  // twice, which is exactly the hazard the round chit was built around.
+
+  async createCustomerNoteChit(args: {
+    orderId: string;
+    note: string;
+    /** Where the note came from, printed so the kitchen knows who to blame. */
+    takenBy?: string;
+  }): Promise<string[]> {
+    const note = String(args.note ?? '').trim();
+    if (!note) return [];
+    const order = await this.prisma.order.findUnique({
+      where: { id: args.orderId },
+      select: { id: true, tenantId: true, locationId: true },
+    });
+    if (!order || !order.locationId) {
+      throw new NotFoundException("Order not found");
+    }
+
+    const targets = await this.routing.resolveForOrder(args.orderId, {
+      trigger: "ORDER_ACCEPTED",
+      kitchenOnly: true,
+      itemsOverride: [
+        {
+          name: `MESSAGE FROM THE CUSTOMER${args.takenBy ? ` (${args.takenBy})` : ""}`,
+          quantity: 1,
+          notes: note,
+        },
+      ],
+      chitNote: `CUSTOMER NOTE - DO NOT REMAKE THIS ORDER - ${note}`,
+    });
+    await this.stampRenderOptions(targets);
+    if (!targets.length) {
+      this.logger.warn(
+        `Customer note for order ${args.orderId}: no printer resolved at location ${order.locationId} — the note was NOT printed`,
+      );
+      return [];
+    }
+
+    const created: string[] = [];
+    for (const t of targets) {
+      const row = await (this.prisma as any).printJob.create({
+        data: {
+          tenantId: order.tenantId,
+          locationId: order.locationId,
+          orderId: args.orderId,
+          printerId: t.printerId,
+          stationId: t.stationId,
+          type: t.type,
+          status: "QUEUED",
+          payload: t.payload,
+          copies: t.copies,
+          trigger: "MANUAL_ONLY",
+          routeKey: t.routeKey,
+          // No idempotency key: a caller may ring twice with two different
+          // things to say, and the second one must not be swallowed as a
+          // duplicate of the first.
+        },
+      });
+      created.push(row.id);
+    }
+    this.logger.log(
+      `Customer note printed for order ${args.orderId} on ${created.length} printer(s)`,
+    );
+    return created;
+  }
+
   // ── Table Tabs — print the bill ("the check") ───────────────────────
   //
   // The customer asks to see the bill BEFORE paying. Same receipt layout,
