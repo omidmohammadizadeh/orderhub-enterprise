@@ -72,6 +72,7 @@ import { isCurrentlyOpen } from '../../common/opening-hours.util';
 import { toE164 } from '../sms/phone';
 import { ReservationsService } from '../reservations/reservations.service';
 import { PrintJobsService } from '../printers/print-jobs.service';
+import { SocketService } from '../../infrastructure/socket/socket.service';
 import { shopNow, spokenWhen, whenInShop } from './voice-when';
 import {
   coerceCart,
@@ -531,6 +532,7 @@ export class VoiceAiService {
     private readonly addresses: AddressLookupService,
     private readonly reservations: ReservationsService,
     private readonly printing: PrintJobsService,
+    private readonly socket: SocketService,
   ) {
     const apiKey = this.config.get<string>('ANTHROPIC_API_KEY');
     this.anthropic = apiKey ? new Anthropic({ apiKey }) : null;
@@ -5770,12 +5772,38 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
         select: { specialInstructions: true },
       });
       const line = `PHONE NOTE ${at}: ${note}`;
-      await this.prisma.order.update({
+      const saved = await this.prisma.order.update({
         where: { id: target.id },
         data: {
           specialInstructions: [existing?.specialInstructions, line].filter(Boolean).join(' | ').slice(0, 1000),
         },
+        select: {
+          id: true,
+          tenantId: true,
+          locationId: true,
+          displayId: true,
+          status: true,
+          orderSource: true,
+          customerName: true,
+        },
       });
+      // Tell the boards. Writing the row is not telling anybody: the live
+      // feed is socket-first and only refetches on its own when the socket
+      // has dropped, so a note written in silence sat there until somebody
+      // switched browser tabs and React Query refetched on focus. That is
+      // exactly what was happening — the note appeared, and the tablet
+      // printed it, only when the operator came back to the orders tab.
+      if (saved.locationId) {
+        this.socket.emitOrderUpdated(saved.locationId, {
+          orderId: saved.id,
+          tenantId: saved.tenantId,
+          locationId: saved.locationId,
+          displayId: saved.displayId,
+          status: saved.status,
+          orderSource: saved.orderSource,
+          customerName: saved.customerName ?? '',
+        } as any);
+      }
     } catch (e: any) {
       this.logger.warn(`Voice kitchen note failed to save on ${target.id}: ${e?.message ?? e}`);
     }

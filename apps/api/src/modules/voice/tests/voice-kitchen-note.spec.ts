@@ -42,12 +42,18 @@ const ai = (over: any = {}) => {
   const a: any = Object.create(VoiceAiService.prototype);
   a.logger = { log() {}, warn() {}, error() {} };
   a.printing = { createCustomerNoteChit: jest.fn(async () => ["job1"]), ...over.printing };
+  const emitted: any[] = [];
+  a.socket = { emitOrderUpdated: (...args: any[]) => emitted.push(args) };
+  a.emitted = emitted;
   const updates: any[] = [];
   a.prisma = {
     order: {
       findMany: async () => [over.order ?? ORDER],
       findUnique: async () => ({ specialInstructions: over.existingInstructions ?? null }),
-      update: async (args: any) => { updates.push(args); return {}; },
+      update: async (args: any) => {
+        updates.push(args);
+        return { id: "ord1", tenantId: "t1", locationId: "loc1", displayId: "SIM-A60X", status: "PREPARING", orderSource: "JUST_EAT", customerName: "Omid" };
+      },
     },
   };
   a.updates = updates;
@@ -97,6 +103,22 @@ describe("an order the shop cannot change", () => {
 
     const saved = a.updates[0].data.specialInstructions;
     expect(saved).toMatch(/^Leave at door \| PHONE NOTE \d{2}:\d{2}: thin crust please$/);
+  });
+
+  it("tells the boards, so the note appears without anyone touching the screen", async () => {
+    // The live feed is socket-first. A note written in silence sat there
+    // until an operator switched browser tabs and React Query refetched on
+    // focus — which is exactly when the tablet finally printed it.
+    const a = ai();
+    const st = state();
+    await a.runToolForConversation("find_order_to_change", { orderNumber: "SIM-A60X" }, ctx(), st, null);
+    await a.runToolForConversation("note_for_kitchen", { note: "thin crust" }, ctx(), st, null);
+
+    expect(a.emitted).toHaveLength(1);
+    const [locationId, payload] = a.emitted[0];
+    expect(locationId).toBe("loc1");
+    expect(payload.orderId).toBe("ord1");
+    expect(payload.locationId).toBe("loc1");
   });
 
   it("will not attach a note to nothing", async () => {
