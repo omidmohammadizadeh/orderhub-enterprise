@@ -2120,3 +2120,66 @@ describe("an option the caller names outright", () => {
     );
   });
 });
+
+// ── call DXSoOJaQ: "can you just connect me to the shop?" ──
+//
+//   heard   "Can you just connect me to the shop? I wanna talk to someone."
+//   said    "Hang on, connecting you to the shop."
+//   log     Telnyx transfer failed 403: Destination Number is invalid
+//   then    eight seconds of nothing, and "Sorry, are you still there?"
+//
+// The one caller who has given up on the machine is the one it must not go
+// quiet on. Two faults: the line promised a transfer without knowing the
+// number could be rung, and the gateway threw the failure away — the older
+// engine had always spoken an apology, the engine actually in service did
+// `void this.telnyx.transfer(...)`.
+describe("asking to speak to a person", () => {
+  const { VoiceAiService } = require("../voice-ai.service");
+  const ai = () => {
+    const a: any = Object.create(VoiceAiService.prototype);
+    a.logger = { log() {}, warn() {}, error() {} };
+    return a;
+  };
+  const ctx = (transferNumber: string | null) => ({
+    locationId: "loc1",
+    currency: "GBP",
+    items: [],
+    itemIndex: new Map(),
+    optionIndex: new Map(),
+    deliveryZones: [],
+    transferNumber,
+  });
+  const asked = { reason: "The caller asked for a person." };
+
+  it("puts them through when the shop's number can actually be rung", async () => {
+    const a = ai();
+    const out = await a.runToolForConversation("transfer_to_staff", asked, ctx("0191 231 2345"), { cart: { items: [] }, turns: [] }, null);
+    expect(out.result).toBe("Transferring now.");
+    // Normalised on the way out, so the gateway never dials what was typed.
+    expect(out.turn.transferTo).toBe("+441912312345");
+    expect(out.turn.outcome).toBe("TRANSFERRED");
+  });
+
+  it("cleans the trunk zero a shop leaves in its own number", async () => {
+    const a = ai();
+    const out = await a.runToolForConversation("transfer_to_staff", asked, ctx("+44 (0)191 231 2345"), { cart: { items: [] }, turns: [] }, null);
+    expect(out.turn.transferTo).toBe("+441912312345");
+  });
+
+  it("never promises a transfer it cannot make", async () => {
+    const a = ai();
+    for (const unusable of ["", "  ", "ext 4", "123"]) {
+      const out = await a.runToolForConversation("transfer_to_staff", asked, ctx(unusable), { cart: { items: [] }, turns: [] }, null);
+      expect(out.turn).toBeUndefined();
+      expect(out.result).toMatch(/Do NOT say you are transferring them/);
+      expect(out.result).toMatch(/offer to take a message/);
+    }
+  });
+
+  it("and says the same when no number is configured at all", async () => {
+    const a = ai();
+    const out = await a.runToolForConversation("transfer_to_staff", asked, ctx(null), { cart: { items: [] }, turns: [] }, null);
+    expect(out.turn).toBeUndefined();
+    expect(out.result).toMatch(/no number this call can be put through to/);
+  });
+});

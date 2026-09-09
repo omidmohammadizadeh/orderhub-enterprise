@@ -69,6 +69,7 @@ import {
 } from './voice-menu-match';
 import { chargeableInNote } from './topping-note';
 import { isCurrentlyOpen } from '../../common/opening-hours.util';
+import { toE164 } from '../sms/phone';
 import { ReservationsService } from '../reservations/reservations.service';
 import { shopNow, spokenWhen, whenInShop } from './voice-when';
 import {
@@ -2470,13 +2471,28 @@ ${menu || '(no items available — apologise and transfer)'}`;
               'Not yet. Mishearing is not a reason to hand over — ask again, in DIFFERENT words, and ask for a smaller piece of it than last time. Take a postcode on its own, or ask them to spell it. If you still cannot get there after a few goes, ASK them whether they would like to be put through rather than doing it to them.',
           };
         }
+        // Configured is not the same as dialable. On call DXSoOJaQ the shop
+        // had a number, the caller was told "hang on, connecting you to the
+        // shop", and Telnyx rejected the destination — so the one person who
+        // had asked for a human got eight seconds of silence and then "are
+        // you still there?". A number that cannot be rung is the same as no
+        // number at all, and the caller should be told the truth first time
+        // rather than after the attempt.
+        const dialable = toE164(ctx.transferNumber ?? '');
+        if (!dialable) {
+          if (ctx.transferNumber) {
+            this.logger.error(
+              `Voice transfer number for location ${ctx.locationId} is not dialable: "${ctx.transferNumber}" — callers asking for a person are being offered a message instead. Fix it in the location's settings.`,
+            );
+          }
+          return {
+            result:
+              'There is no number this call can be put through to. Do NOT say you are transferring them. Say you cannot put them through from here, apologise, and offer to take a message so the shop rings them back.',
+          };
+        }
         return {
-          result: ctx.transferNumber
-            ? 'Transferring now.'
-            : 'No transfer number configured — take a message instead.',
-          turn: ctx.transferNumber
-            ? { transferTo: ctx.transferNumber, outcome: 'TRANSFERRED' }
-            : undefined,
+          result: 'Transferring now.',
+          turn: { transferTo: dialable, outcome: 'TRANSFERRED' },
         };
       }
       case 'end_call': {

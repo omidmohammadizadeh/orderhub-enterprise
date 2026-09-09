@@ -17,6 +17,25 @@ function defaultDialCode(): string {
 }
 
 /**
+ * Countries whose national trunk "0" is dropped in the international form.
+ *
+ * The UK and Ireland, and the Gulf states this product trades in. Deliberately
+ * NOT a general rule: Italy (+39) keeps the leading zero on landlines, and
+ * several others do too, so anything not listed here is left exactly as the
+ * operator typed it.
+ */
+const TRUNK_DROPPED = new Set([
+  "44", // United Kingdom
+  "353", // Ireland
+  "971", // United Arab Emirates
+  "966", // Saudi Arabia
+  "965", // Kuwait
+  "973", // Bahrain
+  "974", // Qatar
+  "968", // Oman
+]);
+
+/**
  * Convert an operator-typed phone number to E.164, or null if it can't be.
  *
  * Deliberately NOT a full libphonenumber: we only need to recognise the four
@@ -49,6 +68,29 @@ export function toE164(raw: string | null | undefined): string | null {
   } else {
     // A bare national number with no trunk prefix ("7788187123").
     digits = cc + digits;
+  }
+
+  // "+44 (0)191 231 2345" — the trunk zero left in behind the country code.
+  //
+  // It is how half the businesses in the country write their own number, and
+  // it survived every branch above: the "+" said this was already
+  // international, so nothing dropped the national prefix. The result looks
+  // like a phone number and is not one, which is worse than a rejection —
+  // Telnyx answered a live transfer with "Destination Number is invalid" on
+  // call DXSoOJaQ and the caller who had asked for a person got silence.
+  //
+  // Only for the countries that actually drop the trunk digit. Italy keeps
+  // its leading zero and a Rome landline would be destroyed by this, so the
+  // rule is a list and not a guess.
+  // Read from the number itself, not from the deployment's default country:
+  // a UAE shop's number reaches a UK-defaulted deployment as +971 and still
+  // has to be cleaned. Longest code first, so a longer prefix is never
+  // mistaken for a shorter one.
+  for (const code of [...TRUNK_DROPPED].sort((a, b) => b.length - a.length)) {
+    if (digits.startsWith(`${code}0`)) {
+      digits = code + digits.slice(code.length).replace(/^0+/, "");
+      break;
+    }
   }
 
   // E.164 allows at most 15 digits; anything under 8 is not a real mobile or

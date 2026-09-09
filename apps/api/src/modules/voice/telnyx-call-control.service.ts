@@ -443,17 +443,24 @@ export class TelnyxCallControlService {
    * The transfer failing is the worst possible moment for a formatting bug:
    * it only ever runs when something has already gone wrong.
    */
-  transfer(callControlId: string, to: string, from?: string): Promise<boolean> {
+  async transfer(callControlId: string, to: string, from?: string): Promise<boolean> {
     const dest = toE164(to);
     if (!dest) {
       this.logger.error(`Cannot transfer ${callControlId}: "${to}" is not a dialable number`);
-      return Promise.resolve(false);
+      return false;
     }
     const fromE164 = from ? toE164(from) : null;
-    return this.command(callControlId, "transfer", {
+    const ok = await this.command(callControlId, "transfer", {
       to: dest,
       ...(fromE164 ? { from: fromE164 } : {}),
     });
+    // Which number was refused, not merely that one was. The provider's own
+    // error names neither the destination nor the shop, so a rejected
+    // transfer used to be undiagnosable without the database in front of you.
+    if (!ok) {
+      this.logger.error(`Telnyx refused the transfer of ${callControlId} to ${dest} (typed as "${to}")`);
+    }
+    return ok;
   }
 
   async hangup(callControlId: string): Promise<boolean> {

@@ -881,7 +881,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         .realtimeTool(ccid, 'transfer_to_staff', { reason: 'The caller pressed 0.' })
         .catch(() => null);
       if (out?.turn?.transferTo) {
-        setTimeout(() => void this.telnyx.transfer(ccid, out.turn!.transferTo!), 3000);
+        this.transferOrSayWhyNot(brain, ccid, out.turn.transferTo);
       }
       return;
     }
@@ -1432,6 +1432,38 @@ export class VoiceRealtimeGateway implements OnModuleInit {
    * only, and the hang-up follows it; a goodbye the API refuses is not
    * retried, because the caller is leaving either way.
    */
+  /**
+   * Put them through — and if that fails, say so.
+   *
+   * The result of a transfer used to be thrown away here. On call DXSoOJaQ
+   * the caller asked to speak to the shop, was told "hang on, connecting
+   * you", and Telnyx refused the destination: the failure reached the log and
+   * nothing reached the caller, who sat in silence until the watchdog asked
+   * whether they were still there. The one moment a caller has given up on
+   * the machine is the worst possible moment to go quiet on them.
+   *
+   * The three seconds are the goodbye finishing; Telnyx takes the leg away
+   * mid-word otherwise. On failure the line keeps talking, because the
+   * conversation engine still can — and take_message is a real answer where
+   * silence is not.
+   */
+  private transferOrSayWhyNot(brain: WebSocket, ccid: string, to: string): void {
+    const t = setTimeout(async () => {
+      const done = await this.telnyx.transfer(ccid, to).catch(() => false);
+      if (done) return;
+      this.logger.error(
+        `realtime ${ccid.slice(-8)} could not put the caller through to ${to} — telling them and offering a message`,
+      );
+      if (brain.readyState !== WebSocket.OPEN) return;
+      this.speakExactly(
+        brain,
+        "I'm sorry — I can't put you through from here. I can take a message and have someone ring you back. Would that help?",
+        { origin: 'script', speechOnly: true },
+      );
+    }, 3000);
+    (t as any).unref?.();
+  }
+
   private closeCall(brain: WebSocket, ccid: string, script?: string): void {
     (brain as any).__closing = true;
     this.cancelRetry(brain, 'closing');
@@ -2353,7 +2385,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         // Telephony stays out of VoiceService — that is what lets both engines
         // share it — so the two side effects a tool can have are done here.
         if (out?.turn?.transferTo) {
-          setTimeout(() => void this.telnyx.transfer(ccid, out.turn!.transferTo!), 3000);
+          this.transferOrSayWhyNot(brain, ccid, out.turn.transferTo);
         }
         return;
       }

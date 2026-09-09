@@ -423,3 +423,74 @@ describe("the menu is read once a call, not once a tool", () => {
     expect(resolve).toHaveBeenCalledTimes(2);
   });
 });
+
+// Call DXSoOJaQ. The caller asked to be put through, was told "hang on,
+// connecting you to the shop", and Telnyx refused the destination. The
+// failure reached the log; nothing reached the caller, who sat in silence
+// until the watchdog asked whether they were still there.
+//
+// The older engine had always spoken an apology on a failed transfer. The
+// engine actually answering calls did `void this.telnyx.transfer(...)` and
+// threw the answer away.
+describe("a transfer that does not go through", () => {
+  const { VoiceRealtimeGateway } = require("../voice-realtime.gateway");
+
+  const gw = (transfer: any) => {
+    const g: any = Object.create(VoiceRealtimeGateway.prototype);
+    g.logger = { log() {}, warn() {}, error() {} };
+    g.telnyx = { transfer };
+    return g;
+  };
+  const brain = () => {
+    const sent: any[] = [];
+    return { sent, readyState: 1, send: (raw: string) => sent.push(JSON.parse(raw)) };
+  };
+  const said = (b: any) =>
+    b.sent
+      .filter((m: any) => m.type === "response.create")
+      .map((m: any) => String(m.response?.instructions ?? ""))
+      .join(" ");
+
+  beforeEach(() => jest.useFakeTimers());
+  afterEach(() => jest.useRealTimers());
+
+  it("waits for the goodbye to finish, then hands the caller over", async () => {
+    const transfer = jest.fn(async () => true);
+    const g = gw(transfer);
+    const b = brain();
+    g.transferOrSayWhyNot(b, "cc1", "+441912312345");
+
+    // Not immediately — Telnyx takes the leg away mid-word.
+    expect(transfer).not.toHaveBeenCalled();
+    await jest.advanceTimersByTimeAsync(3000);
+    expect(transfer).toHaveBeenCalledWith("cc1", "+441912312345");
+    // Nothing said: they are talking to a person now.
+    expect(b.sent).toHaveLength(0);
+  });
+
+  it("tells the caller and offers a message when it fails", async () => {
+    const g = gw(jest.fn(async () => false));
+    const b = brain();
+    g.transferOrSayWhyNot(b, "cc1", "+441912312345");
+    await jest.advanceTimersByTimeAsync(3000);
+
+    expect(said(b)).toMatch(/I can't put you through from here/);
+    expect(said(b)).toMatch(/take a message and have someone ring you back/);
+  });
+
+  it("does the same when the transfer throws rather than returning false", async () => {
+    const g = gw(jest.fn(async () => { throw new Error("network"); }));
+    const b = brain();
+    g.transferOrSayWhyNot(b, "cc1", "+441912312345");
+    await jest.advanceTimersByTimeAsync(3000);
+    expect(said(b)).toMatch(/I can't put you through from here/);
+  });
+
+  it("says nothing into a call that has already gone", async () => {
+    const g = gw(jest.fn(async () => false));
+    const b = { ...brain(), readyState: 3 }; // CLOSED
+    g.transferOrSayWhyNot(b, "cc1", "+441912312345");
+    await jest.advanceTimersByTimeAsync(3000);
+    expect(b.sent).toHaveLength(0);
+  });
+});
