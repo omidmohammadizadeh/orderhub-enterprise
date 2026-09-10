@@ -1410,7 +1410,7 @@ describe("a deal is chosen across turns, and what is chosen is kept", () => {
       G("ds", "Sauce", ["Garlic", "Chilli", "No Sauce"], { required: false, min: 0 }),
       G("dc", "CHIPS OR SALAD", ["Chips", "Salad"], { required: false, min: 1 }),
     ] },
-    { id: "two", name: "TWO PIZZA DEAL", price: 18, categoryName: "Deals", modifierGroups: [G("tp", "Pizzas", ["Margherita", "Pepperoni"], { min: 2, max: 2, selectionType: "ADDON" })] },
+    { id: "two", name: "TWO PIZZA DEAL", price: 18, categoryName: "Deals", modifierGroups: [G("tp", "Pizzas", ["Margherita", "Pepperoni"], { min: 2, max: 2, selectionType: "ADDON", repeats: true })] },
     { id: "coke", name: "CAN COKE", price: 1.2, categoryName: "Drinks", modifierGroups: [] },
     { id: "gb", name: "Garlic Bread", price: 3.5, categoryName: "Sides", modifierGroups: [] },
   ];
@@ -1679,7 +1679,7 @@ describe("an answer lands in the group it belongs to, and a deal's fixed parts a
   const G = (id: string, name: string, opts: string[], over: any = {}) => ({ id, name, required: true, min: 1, max: 1, selectionType: "VARIANT", options: opts.map((o, i) => ({ id: `${id}${i + 1}`, name: o, price: 0 })), ...over });
   const deal = (kebabs: string[]) => ({ id: "deal2", name: "MEAL DEAL 2", price: 25, categoryName: "Deals", modifierGroups: [
     G("dp", '10" pizza', ['10" PEPPERONI', '10"KEBAB PIZZA ', "10 inch AMELIO"]),
-    G("dd", "Drink", ["CAN Coke", "CAN Sprite"], { min: 2, max: 2, selectionType: "ADDON" }),
+    G("dd", "Drink", ["CAN Coke", "CAN Sprite"], { min: 2, max: 2, selectionType: "ADDON", repeats: true }),
     G("ds", "Sauce", ["+GARLIC", "+CHILLI"], { required: false, min: 1 }),
     G("dc", "CHIPS OR SALAD", ["Chips", "Salad"], { required: false, min: 1 }),
     G("dk", "Kebab", kebabs),
@@ -1881,7 +1881,7 @@ describe("an extra topping in a note is charged as a topping", () => {
   const MENU: any[] = [
     { id: "marg12", name: 'MARGHERITA (12")', price: 8.6, categoryName: "Pizzas", modifierGroups: [
       { id: "cr", name: "Select Your Pizza Crust", required: true, min: 1, max: 1, selectionType: "VARIANT", options: [{ id: "cr1", name: "thin base", price: 0 }, { id: "cr2", name: "deep pan", price: 0 }] },
-      { id: "tp", name: "Extra Toppings", required: false, min: 0, max: 5, selectionType: "ADDON", options: [{ id: "tp1", name: "Pepperoni", price: 1.5 }, { id: "tp2", name: "Mushrooms", price: 1 }, { id: "tp3", name: "Onions", price: 0.8 }] },
+      { id: "tp", name: "Extra Toppings", required: false, min: 0, max: 5, selectionType: "ADDON", repeats: true, options: [{ id: "tp1", name: "Pepperoni", price: 1.5 }, { id: "tp2", name: "Mushrooms", price: 1 }, { id: "tp3", name: "Onions", price: 0.8 }] },
     ] },
   ];
   const c = () => { const x: any = { currency: "GBP", items: MENU, deliveryZones: [] }; x.itemIndex = new Map(MENU.map((i) => [i.id, i])); x.optionIndex = new Map(MENU.flatMap((i: any) => i.modifierGroups.flatMap((g: any) => g.options.map((o: any) => [o.id, { groupId: g.id, itemId: i.id, option: o }])))); return x; };
@@ -1930,7 +1930,7 @@ describe("toppings added to a pizza already on the order", () => {
   const MENU: any[] = [
     { id: "marg12", name: 'MARGHERITHA (12")', price: 8.6, categoryName: "Pizzas", modifierGroups: [
       { id: "cr", name: "select your pizza crust", required: true, min: 1, max: 1, selectionType: "VARIANT", options: [{ id: "cr1", name: "THIN BASE", price: 0 }, { id: "cr2", name: "DEEP PAN", price: 0 }] },
-      { id: "tp", name: "select your extra toppings", required: false, min: 0, max: null, selectionType: "ADDON", options: [{ id: "tp1", name: "PEPPERONI", price: 1.5 }, { id: "tp2", name: "MUSHROOMS", price: 1 }, { id: "tp3", name: "ONIONS", price: 0.8 }, { id: "tp4", name: "EXTRA CHEESE", price: 1.2 }] },
+      { id: "tp", name: "select your extra toppings", required: false, min: 0, max: null, selectionType: "ADDON", repeats: true, options: [{ id: "tp1", name: "PEPPERONI", price: 1.5 }, { id: "tp2", name: "MUSHROOMS", price: 1 }, { id: "tp3", name: "ONIONS", price: 0.8 }, { id: "tp4", name: "EXTRA CHEESE", price: 1.2 }] },
     ] },
     { id: "chips", name: "CHIPS", price: 2.5, categoryName: "Sides", modifierGroups: [] },
   ];
@@ -2022,7 +2022,7 @@ describe("an option the caller names outright", () => {
   const MENU: any[] = [
     { id: "marg", name: "MARGHERITHA", price: 7.5, categoryName: "PIZZA", modifierGroups: [
       { id: "crust", name: "select your pizza crust", required: true, min: 1, max: 1, selectionType: "VARIANT", options: [{ id: "c1", name: "THIN BASE", price: 0 }, { id: "c2", name: "DEEP PAN", price: 0 }] },
-      { id: "tp", name: GROUP, required: false, min: 0, max: null, selectionType: "ADDON", options: TOPPINGS },
+      { id: "tp", name: GROUP, required: false, min: 0, max: null, selectionType: "ADDON", repeats: true, options: TOPPINGS },
     ] },
   ];
   const c = () => { const x: any = { currency: "GBP", items: MENU, deliveryZones: [] }; x.itemIndex = new Map(MENU.map((i) => [i.id, i])); x.optionIndex = new Map(MENU.flatMap((i: any) => i.modifierGroups.flatMap((g: any) => g.options.map((o: any) => [o.id, { groupId: g.id, itemId: i.id, option: o }])))); return x; };

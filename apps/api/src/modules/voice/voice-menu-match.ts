@@ -803,11 +803,15 @@ export function includedGroup(group: {
   const distinct = uniqueByName(options).length;
   // One name, however many rows: nothing to choose, whatever the rules say.
   if (distinct === 1) return true;
-  // Several names that all fit is only "included" when the group asks for
-  // AT MOST one and the same thing cannot be taken twice. A group that
-  // demands two — "two drinks", "two pizzas" — is a choice of which two,
-  // and two cokes is a perfectly good answer to it.
-  return distinct <= max && needed(group) <= 1 && group?.repeats !== true;
+  // The till's rule decides the rest. Where the same option may be taken
+  // twice ("allow duplicate selections"), a group of two drinks is a real
+  // choice — two cokes is a good answer to it — so it is asked. Where it may
+  // not, each option goes on at most once, and a group whose options all
+  // fit at once has exactly one way to be filled: one of each. That is the
+  // MEGA BOX's burgers (three, choose three, no duplicates), and it is not
+  // a question.
+  if (group?.repeats === true) return false;
+  return distinct <= max;
 }
 
 /**

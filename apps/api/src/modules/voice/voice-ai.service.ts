@@ -3902,6 +3902,8 @@ BOOKING A TABLE
     charged: string[];
     /** What the dish comes with, put on without asking — by group. */
     included: Array<{ group: string; names: string[] }>;
+    /** A second helping refused because the group takes each option once. */
+    capped: Array<{ group: string; name: string }>;
     noteLeft?: string;
   } {
     const groups: any[] = item.modifierGroups ?? [];
@@ -3926,7 +3928,9 @@ BOOKING A TABLE
       return String(g.selectionType ?? '').toUpperCase() === 'ADDON' ? Math.max(20, needed(g)) : Math.max(1, needed(g));
     };
     const inGroup = (g: any) => picks.filter((p) => p.g === g.id);
-    const put = (g: any, o: any) => {
+    const capped: Array<{ group: string; name: string }> = [];
+    /** Places the pick; false when the group refuses a second of the same. */
+    const put = (g: any, o: any): boolean => {
       // The till lists "+garlic dip" twice so it can tick two. A second helping
       // lands on the second row, the way the till would tick it, rather than
       // on the same row twice.
@@ -3937,6 +3941,14 @@ BOOKING A TABLE
             String(x.name ?? '').trim().toLowerCase() === key && !inGroup(g).some((p) => p.o === x.id),
         );
         if (twin) o = twin;
+        // No spare row and no permission to repeat: the till would refuse
+        // this tick, so the phone refuses it too. Order 9WHQ2 went to the
+        // kitchen as three cheese burgers in a group whose duplicate box was
+        // not ticked — one of each was the only fill the till allows.
+        else if (g.repeats !== true) {
+          capped.push({ group: String(g.name), name: String(o.name) });
+          return false;
+        }
       }
       if (room(g) === 1) {
         for (const p of inGroup(g)) {
@@ -3954,6 +3966,7 @@ BOOKING A TABLE
         picks.push({ g: g.id, o: o.id });
       }
       saved.push(String(o.name));
+      return true;
     };
     /**
      * One named choice, however many times they asked for it.
@@ -3998,7 +4011,9 @@ BOOKING A TABLE
         already.push(String(o.name));
         return;
       }
-      while (onDish() < want && inGroup(g).length < room(g)) put(g, o);
+      while (onDish() < want && inGroup(g).length < room(g)) {
+        if (!put(g, o)) return;
+      }
       if (onDish() < want) put(g, o);
     };
     for (const id of Array.isArray(input?.modifierOptionIds) ? input.modifierOptionIds : []) {
@@ -4162,7 +4177,7 @@ BOOKING A TABLE
       }
       noteLeft = kept.join(', ');
     }
-    return { saved, replaced, unmatched, ambiguous, already, charged, included, noteLeft };
+    return { saved, replaced, unmatched, ambiguous, already, charged, included, capped, noteLeft };
   }
 
   /** Do these words name this dish (rather than one of its choices)? */
@@ -4635,7 +4650,7 @@ BOOKING A TABLE
       const swapped = merged.replaced.filter(Boolean).length
         ? ` Replaced: ${merged.replaced.filter(Boolean).join(', ')}.`
         : '';
-      const comesWith = this.comesWithForModel(merged.included);
+      const comesWith = this.comesWithForModel(merged.included) + this.oneOfEachForModel(merged.capped);
       const done = input?.done === true ? " They said that's it, but this is required, so it is not finished." : '';
       // The same answer producing nothing twice is not fixed by asking the
       // same way a third time.
@@ -4713,8 +4728,22 @@ BOOKING A TABLE
       result: `Added ${quantity} × ${item.name}${withOpts}${notes ? ` (note: ${notes})` : ''} — ${money(
         lineTotal(line as any),
         ctx.currency,
-      )}.${this.comesWithForModel(merged.included)}${unplaced}${between}${chargedLine}\nOrder so far:\n${this.cartForModel(state, ctx)}`,
+      )}.${this.comesWithForModel(merged.included)}${this.oneOfEachForModel(merged.capped)}${unplaced}${between}${chargedLine}\nOrder so far:\n${this.cartForModel(state, ctx)}`,
     };
+  }
+
+  /** A repeat the group refused, said so the model explains rather than retries. */
+  private oneOfEachForModel(capped: Array<{ group: string; name: string }>): string {
+    if (!capped?.length) return '';
+    const seen = new Set<string>();
+    const parts: string[] = [];
+    for (const c of capped) {
+      const key = `${c.group}|${c.name}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      parts.push(`${this.groupLabel(c.group)} takes one of each, so ${c.name} is on once`);
+    }
+    return ` ${parts.join('; ')} — tell them it is one of each only, do not try again.`;
   }
 
   /**

@@ -25,6 +25,7 @@ const TWELVE = ["12\" SWEET CHILLI KEBAB", "12\" QUINDICI", "12\" MEAT SUPREME"]
 const BURGERS = ["1/4 CHICKEN BURGER", "1/4 CHEESE BURGER", "1/4 BEEF BURGER"].map((n, i) => opt(`b${i}`, n));
 const DIPS = [opt("d0", "+garlic dip"), opt("d1", "+garlic dip")];
 
+// As the shop actually set it up: burgers choose 3 of 3, duplicates off.
 const MEGA = {
   id: "mega",
   name: "MEGA BOX",
@@ -33,8 +34,8 @@ const MEGA = {
   modifierGroups: [
     G("g10", "SELECT YOUR 10\" PIZZA", TEN),
     G("g12", "SELECT YOUR 12\" PIZZA", TWELVE),
-    G("gb", "SELECT YOUR BURGERS", BURGERS, { max: 3 }),
-    G("gs", "SELECT YOUR SAUCES", DIPS, { max: 2 }),
+    G("gb", "SELECT YOUR BURGERS", BURGERS, { min: 3, max: 3, selectionType: "ADDON", repeats: false }),
+    G("gs", "SELECT YOUR SAUCES", DIPS, { min: 2, max: 2, selectionType: "ADDON", repeats: false }),
   ],
 };
 
@@ -61,6 +62,11 @@ describe("what a dish comes with is not a question", () => {
 
   it("a pick-one among many is a real choice", () => {
     expect(includedGroup(MEGA.modifierGroups[0])).toBe(false);
+  });
+
+  it("a group that may repeat is a real choice even when everything fits — two cokes is an answer", () => {
+    const g = G("d", "Drink", [opt("a", "CAN Coke"), opt("b", "CAN Sprite")], { min: 2, max: 2, selectionType: "ADDON", repeats: true });
+    expect(includedGroup(g)).toBe(false);
   });
 
   it("choose 2 of 3 is a real choice", () => {
@@ -146,6 +152,42 @@ describe("MEGA BOX over the phone", () => {
     expect(out.result).toMatch(/^Added 1 × MEGA BOX/);
     const dips = st.cart.items[0].modifiers.filter((m: any) => m.name === "+garlic dip");
     expect(dips.map((m: any) => m.optionId).sort()).toEqual(["d0", "d1"]);
+  });
+
+  // Order 9WHQ2: three cheese burgers on a ticket, from a group whose
+  // duplicate box was not ticked.
+  it("'three cheese burgers' in a one-of-each group is one cheese burger, and the caller is told", () => {
+    const a = ai();
+    const st = fresh();
+    const out = a.addItemConversational(
+      { said: "mega box", modifierNames: ["pepperoni", "quindici", "3 cheese burger"] },
+      c(),
+      st,
+    );
+    expect(out.result).toMatch(/^Added 1 × MEGA BOX/);
+    expect(out.result).toMatch(/burgers takes one of each, so 1\/4 CHEESE BURGER is on once — tell them it is one of each only, do not try again\./);
+    const burgers = st.cart.items[0].modifiers.filter((m: any) => /BURGER/.test(m.name)).map((m: any) => m.name).sort();
+    expect(burgers).toEqual(["1/4 BEEF BURGER", "1/4 CHEESE BURGER", "1/4 CHICKEN BURGER"]);
+  });
+
+  it("a group with duplicates allowed still takes two of the same", () => {
+    const { VoiceAiService: Svc } = require("../voice-ai.service");
+    const DEAL = {
+      id: "two",
+      name: "TWO PIZZA DEAL",
+      price: 18,
+      categoryName: "Deals",
+      modifierGroups: [G("tp", "Pizzas", [opt("m", "Margherita"), opt("p", "Pepperoni")], { min: 2, max: 2, selectionType: "ADDON", repeats: true })],
+    };
+    const ctx: any = { currency: "GBP", items: [DEAL], deliveryZones: [] };
+    ctx.itemIndex = new Map([[DEAL.id, DEAL]]);
+    ctx.optionIndex = new Map(DEAL.modifierGroups[0].options.map((o: any) => [o.id, { groupId: "tp", itemId: DEAL.id, option: o }]));
+    const a: any = Object.create(Svc.prototype);
+    a.logger = { log() {}, warn() {}, error() {} };
+    const st = fresh();
+    const out = a.addItemConversational({ said: "two pizza deal", modifierNames: ["two pepperoni"] }, ctx, st);
+    expect(out.result).toMatch(/^Added 1 × TWO PIZZA DEAL with Pepperoni, Pepperoni/);
+    expect(out.result).not.toMatch(/one of each/);
   });
 
   it("the ticket carries what was included, so the kitchen makes all of it", () => {
