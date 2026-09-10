@@ -82,6 +82,32 @@ describe("a deploy hands live calls over instead of cutting them off", () => {
     expect(sim.log.join("\n")).toMatch(/could not be handed over on shutdown — hanging up/);
   });
 
+  it("runs in module destroy, while the database is still open, and the later hook does not repeat it", async () => {
+    const sim = new VoiceRealtimeSim();
+    await sim.answer("cc-once");
+    sim.gateway.fallbackToRelay = jest.fn(async () => true);
+    await sim.gateway.onModuleDestroy();
+    await sim.gateway.beforeApplicationShutdown("SIGTERM");
+    await settle();
+    expect(sim.gateway.fallbackToRelay).toHaveBeenCalledTimes(1);
+    expect(sim.log.join("\n")).toMatch(/shutting down \(module destroy\) with 1 live call\(s\)/);
+  });
+
+  it("a call that attaches once draining has begun is handed over at once, no model session", async () => {
+    const sim = new VoiceRealtimeSim();
+    sim.gateway.fallbackToRelay = jest.fn(async () => true);
+    sim.gateway.telnyx.hangup = jest.fn(async () => true);
+    await sim.gateway.onModuleDestroy();
+    sim.gateway.voice.realtimeSession = jest.fn(async () => {
+      throw new Error("must not be called on a draining process");
+    });
+    await sim.gateway.attach(sim.caller, "cc-late");
+    expect(sim.gateway.fallbackToRelay).toHaveBeenCalledWith("cc-late", { alreadySpoke: false });
+    expect(sim.gateway.voice.realtimeSession).not.toHaveBeenCalled();
+    expect(sim.gateway.calls.has("cc-late")).toBe(false);
+    expect(sim.log.join("\n")).toMatch(/arrived while shutting down — handing it to the standard engine at once/);
+  });
+
   it("gives up after its budget rather than holding the process open", async () => {
     const sim = new VoiceRealtimeSim();
     await sim.answer("cc-slow");

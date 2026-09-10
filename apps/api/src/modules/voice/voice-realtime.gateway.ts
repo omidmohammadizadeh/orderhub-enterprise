@@ -8,7 +8,7 @@ const redactAudio = (frame: any): any =>
         media: { ...frame.media, payload: `<${String(frame.media.payload).length} b64 chars>` },
       }
     : frame;
-import { BeforeApplicationShutdown, Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { BeforeApplicationShutdown, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpAdapterHost } from '@nestjs/core';
 import { createHmac, timingSafeEqual } from 'crypto';
@@ -173,7 +173,7 @@ interface AudioItem {
 const NEEDS_CONSENT = new Set(['use_usual', 'use_saved_address', 'order_confirmed']);
 
 @Injectable()
-export class VoiceRealtimeGateway implements OnModuleInit, BeforeApplicationShutdown {
+export class VoiceRealtimeGateway implements OnModuleInit, OnModuleDestroy, BeforeApplicationShutdown {
   private readonly logger = new Logger(VoiceRealtimeGateway.name);
   private wss?: WebSocketServer;
   /** call_control_id → the caller's socket, so a transfer can close it. */
@@ -183,6 +183,10 @@ export class VoiceRealtimeGateway implements OnModuleInit, BeforeApplicationShut
   private handedOver?: Map<string, number>;
   /** The engine stands down until then — an account with no credits refuses every call the same way. */
   private standDown?: { until: number; why: string };
+  /** Set the moment shutdown begins: no new session is started on a process that is leaving. */
+  private draining = false;
+  /** The handover ran once — two lifecycle hooks watch for shutdown, and only one may act. */
+  private drained?: Promise<void>;
 
   constructor(
     private readonly config: ConfigService,
@@ -375,7 +379,28 @@ export class VoiceRealtimeGateway implements OnModuleInit, BeforeApplicationShut
    * rather than a line that has gone quiet. Bounded, because the platform's
    * patience after SIGTERM is not infinite.
    */
+  /**
+   * onModuleDestroy is the phase to do it in. Nest destroys a module before
+   * the modules it depends on, and this one depends on the database module
+   * — so here the database is still open and the handover greeting can name
+   * the caller's order. beforeApplicationShutdown runs a phase later, after
+   * "Database connection closed" (call oLtFwd8w's log shows exactly that
+   * order), and is kept only as a backstop that does nothing the second time.
+   */
+  async onModuleDestroy(): Promise<void> {
+    await this.handOverLiveCalls('module destroy');
+  }
+
   async beforeApplicationShutdown(signal?: string): Promise<void> {
+    await this.handOverLiveCalls(signal ?? 'shutdown');
+  }
+
+  private handOverLiveCalls(signal: string): Promise<void> {
+    this.draining = true;
+    return (this.drained ??= this.handOverLiveCallsOnce(signal));
+  }
+
+  private async handOverLiveCallsOnce(signal: string): Promise<void> {
     const live = [...this.calls.keys()];
     if (!live.length) {
       this.logger.log(`realtime shutting down (${signal ?? 'no signal'}) — no live calls`);
@@ -483,6 +508,22 @@ export class VoiceRealtimeGateway implements OnModuleInit, BeforeApplicationShut
   }
 
   private async attach(caller: WebSocket, ccid: string): Promise<void> {
+    // A process that has been told to stop must not start a model session it
+    // cannot finish. Call oLtFwd8w attached eight seconds before the old
+    // build's SIGTERM and died with it; on a draining process the call goes
+    // straight to the standard engine, whose fresh connection lands on the
+    // build that is staying up.
+    if (this.draining) {
+      this.logger.warn(`realtime ${ccid.slice(-8)} arrived while shutting down — handing it to the standard engine at once`);
+      const moved = await this.fallbackToRelay(ccid, { alreadySpoke: false });
+      if (!moved) await this.telnyx.hangup(ccid).catch(() => false);
+      try {
+        caller.close();
+      } catch {
+        /* already gone */
+      }
+      return;
+    }
     this.calls.set(ccid, caller);
     this.logger.log(`realtime audio open for call ${ccid.slice(-8)}`);
 
