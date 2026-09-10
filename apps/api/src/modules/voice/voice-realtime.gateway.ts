@@ -8,7 +8,7 @@ const redactAudio = (frame: any): any =>
         media: { ...frame.media, payload: `<${String(frame.media.payload).length} b64 chars>` },
       }
     : frame;
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { BeforeApplicationShutdown, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpAdapterHost } from '@nestjs/core';
 import { createHmac, timingSafeEqual } from 'crypto';
@@ -173,7 +173,7 @@ interface AudioItem {
 const NEEDS_CONSENT = new Set(['use_usual', 'use_saved_address', 'order_confirmed']);
 
 @Injectable()
-export class VoiceRealtimeGateway implements OnModuleInit {
+export class VoiceRealtimeGateway implements OnModuleInit, BeforeApplicationShutdown {
   private readonly logger = new Logger(VoiceRealtimeGateway.name);
   private wss?: WebSocketServer;
   /** call_control_id → the caller's socket, so a transfer can close it. */
@@ -320,7 +320,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
   private async fallbackToRelay(
     ccid: string,
     opts: { alreadySpoke?: boolean } = {},
-  ): Promise<void> {
+  ): Promise<boolean> {
     // Once. The model dropping and the readiness timer both watch the same
     // call, and on 7de77pbA both handed it over: the second start was refused
     // by Telnyx as "already in progress" three times and logged as a failure
@@ -330,7 +330,7 @@ export class VoiceRealtimeGateway implements OnModuleInit {
     for (const [id, at] of handed) if (now - at > 10 * 60_000) handed.delete(id);
     if (handed.has(ccid)) {
       this.logger.log(`call ${ccid.slice(-8)} already handed to the standard engine — not again`);
-      return;
+      return true;
     }
     handed.set(ccid, now);
     try {
@@ -348,12 +348,69 @@ export class VoiceRealtimeGateway implements OnModuleInit {
         }))
       ) {
         this.logger.log(`call ${ccid.slice(-8)} moved to the standard engine`);
-        return;
+        return true;
       }
       this.logger.error(`call ${ccid.slice(-8)} could not be moved to the standard engine`);
     } catch (e: any) {
       this.logger.error(`fallback to the standard engine failed: ${e?.message ?? e}`);
     }
+    return false;
+  }
+
+  /**
+   * A deploy must not hang up on anyone, and must not leave anyone in silence.
+   *
+   * Render starts the new build, waits for it to answer on its port, then
+   * sends this process SIGTERM. Until now that simply closed every socket:
+   * the model went, our end of the media stream went, and Telnyx kept the
+   * caller's leg up with nothing on it. Every push this morning was a chance
+   * for a caller to hear dead air — and the first call after a deploy is
+   * exactly when a shop owner is listening.
+   *
+   * Every live call is handed to the standard engine instead. That handover
+   * makes Telnyx open a fresh connection to our URL, and the platform routes
+   * a fresh connection to the instance that is staying up — so the call
+   * carries on there, greeted honestly about the restart. A call that cannot
+   * be handed over is ended, which gives the caller a tone to redial on
+   * rather than a line that has gone quiet. Bounded, because the platform's
+   * patience after SIGTERM is not infinite.
+   */
+  async beforeApplicationShutdown(signal?: string): Promise<void> {
+    const live = [...this.calls.keys()];
+    if (!live.length) {
+      this.logger.log(`realtime shutting down (${signal ?? 'no signal'}) — no live calls`);
+      return;
+    }
+    this.logger.warn(
+      `realtime shutting down (${signal ?? 'no signal'}) with ${live.length} live call(s) — handing each to the standard engine`,
+    );
+    const budgetMs = Number(this.config.get<string>('VOICE_SHUTDOWN_HANDOVER_MS')) || 8000;
+    const one = async (ccid: string) => {
+      const moved = await this.fallbackToRelay(ccid, { alreadySpoke: true });
+      if (!moved) {
+        this.logger.error(`realtime ${ccid.slice(-8)} could not be handed over on shutdown — hanging up rather than going silent`);
+        await this.telnyx.hangup(ccid).catch(() => false);
+      }
+      const caller = this.calls.get(ccid);
+      this.calls.delete(ccid);
+      try {
+        caller?.close();
+      } catch {
+        /* already gone */
+      }
+      return moved;
+    };
+    const deadline = new Promise<'timeout'>((r) => {
+      const t = setTimeout(() => r('timeout'), budgetMs);
+      (t as any).unref?.();
+    });
+    const outcome = await Promise.race([Promise.allSettled(live.map(one)), deadline]);
+    if (outcome === 'timeout') {
+      this.logger.error(`realtime shutdown handover ran past ${budgetMs}ms — ${this.calls.size} call(s) may have been cut off`);
+      return;
+    }
+    const moved = outcome.filter((r) => r.status === 'fulfilled' && r.value === true).length;
+    this.logger.log(`realtime shutdown: ${moved}/${live.length} live call(s) handed to the standard engine`);
   }
 
   /**
@@ -453,8 +510,25 @@ export class VoiceRealtimeGateway implements OnModuleInit {
       return null;
     });
     if (!session) {
-      caller.close();
+      // The call is already answered. Closing our end of the media socket
+      // leaves Telnyx holding a live leg with no audio on it — the caller
+      // hears nothing, nothing hangs up, and the first anyone knows is "it
+      // was silent, so I rang again". Hand it to the engine that works; if
+      // even that fails, end the call so they get a tone and can redial.
+      this.logger.error(
+        `realtime ${ccid.slice(-8)} has no session to answer with — handing the call to the standard engine rather than leaving it silent`,
+      );
       this.calls.delete(ccid);
+      const moved = await this.fallbackToRelay(ccid, { alreadySpoke: false });
+      if (!moved) {
+        this.logger.error(`realtime ${ccid.slice(-8)} could not be handed over either — hanging up so the caller is not left in silence`);
+        await this.telnyx.hangup(ccid).catch(() => false);
+      }
+      try {
+        caller.close();
+      } catch {
+        /* already gone */
+      }
       return;
     }
 
