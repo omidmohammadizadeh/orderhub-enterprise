@@ -28,6 +28,13 @@ export interface WaMenuModifierGroup {
   max: number | null;
   /** VARIANT = pick-one, ADDON = pick-many. */
   selectionType: string;
+  /**
+   * The same option may be taken more than once ("two cokes"). The till
+   * shows a stepper for these and a tick box for everything else, and it is
+   * the difference between a group the caller chooses from and one the dish
+   * simply comes with.
+   */
+  repeats: boolean;
   options: WaMenuModifierOption[];
 }
 
@@ -339,6 +346,8 @@ export class WhatsAppMenuService {
           min: g.minSelections,
           max: g.maxSelections ?? null,
           selectionType: g.selectionType,
+          // The till's own rule: only a pick-many group can repeat.
+          repeats: g.selectionType === "ADDON" && g.allowDuplicateSelections === true,
           options,
         });
       }

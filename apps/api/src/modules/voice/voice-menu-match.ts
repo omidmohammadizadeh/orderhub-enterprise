@@ -738,13 +738,76 @@ function namedOutright<T extends { name: string }>(
           return name && fold(name) === key;
         });
         if (hits.length === 1) return { kind: "matched", item: hits[0]!, score: 1 };
-        // Two options with the same name is the shop's ambiguity, not the
-        // caller's mistake, and it has to be asked about.
+        // Twins have already been folded to one by uniqueByName, so two hits
+        // here are DIFFERENT names that this fold made equal ("pepper" and
+        // "peppers") — a real question for the caller.
         if (hits.length > 1) return { kind: "ambiguous", items: hits };
       }
     }
   }
   return null;
+}
+
+/**
+ * One of each name.
+ *
+ * A menu can list the same option twice — the MEGA BOX carries "+garlic dip"
+ * and "+garlic dip", two rows so the till can tick two. To the caller those
+ * are one thing said twice, so to the matcher they are one option: matching
+ * against both scored a dead heat, the heat was read as ambiguity, and on
+ * call aHD58t7Q the caller was asked which garlic dip they meant five times
+ * over. Which twin a pick lands on is decided when it is placed, not here.
+ */
+export function uniqueByName<T extends { name: string }>(options: T[]): T[] {
+  const seen = new Set<string>();
+  const out: T[] = [];
+  for (const o of options) {
+    const key = plain(String(o?.name ?? ""));
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(o);
+  }
+  return out;
+}
+
+/**
+ * A choice the dish simply comes with.
+ *
+ * When everything in a group fits on the dish at once and none of it costs
+ * anything, there is nothing to choose: the three quarter-burgers in a MEGA
+ * BOX, the two garlic dips. The till shows them as boxes to tick because that
+ * is the only shape it has. On the phone they are not a question — the caller
+ * on aHD58t7Q was asked "which burger" about a box that includes all three —
+ * so they go on automatically and are described as included.
+ *
+ * Genuine choices are untouched: a pick-one among many, a "choose 3 of 15",
+ * anything with a price. And a group of removals ("No onion", "Without
+ * cheese") is never filled in — ticking all of those would strip the dish.
+ */
+export function includedGroup(group: {
+  max?: number | null;
+  min?: number | null;
+  required?: boolean;
+  repeats?: boolean;
+  options?: Array<{ name: string; price?: number | null }>;
+  name?: string;
+}): boolean {
+  const options = group?.options ?? [];
+  if (!options.length) return false;
+  const max = Number(group?.max ?? 0) || 0;
+  if (max <= 0) return false;
+  if (options.some((o) => Number(o?.price ?? 0) > 0)) return false;
+  const removal = /^\s*\+?\s*(no|without|remove|hold|skip)\b/i;
+  if (removal.test(String(group?.name ?? ""))) return false;
+  if (options.some((o) => removal.test(String(o?.name ?? "")))) return false;
+  const distinct = uniqueByName(options).length;
+  // One name, however many rows: nothing to choose, whatever the rules say.
+  if (distinct === 1) return true;
+  // Several names that all fit is only "included" when the group asks for
+  // AT MOST one and the same thing cannot be taken twice. A group that
+  // demands two — "two drinks", "two pizzas" — is a choice of which two,
+  // and two cokes is a perfectly good answer to it.
+  return distinct <= max && needed(group) <= 1 && group?.repeats !== true;
 }
 
 /**
@@ -759,6 +822,7 @@ export function matchOptionResult<T extends { name: string }>(
   groupName: string,
 ): OptionMatch<T> {
   const groupWords = new Set(plain(groupName).split(" ").filter(Boolean));
+  options = uniqueByName(options);
   const outright = namedOutright(spokenNumbers(said), options, groupWords);
   if (outright) return outright;
   const fuzzy = matchOption(said, options, groupName, { skipExact: true });
@@ -773,6 +837,7 @@ export function matchOption<T extends { name: string }>(
   opts: { skipExact?: boolean } = {},
 ): { item: T; score: number } | null {
   const groupWords = new Set(plain(groupName).split(" ").filter(Boolean));
+  options = uniqueByName(options);
   if (!opts.skipExact) {
     // An option the caller named outright is the answer, whatever else the
     // phonetic fold reached. Call DPD-n9tw: "+peppers" tied with the

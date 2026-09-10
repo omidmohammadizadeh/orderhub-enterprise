@@ -65,6 +65,7 @@ import {
   explains,
   mustChoose,
   needed,
+  includedGroup,
   saysOption,
 } from './voice-menu-match';
 import { chargeableInNote } from './topping-note';
@@ -3469,6 +3470,7 @@ TAKING THE ORDER
 - Start by asking what they'd like. Once the first item is in — or when they say that's everything — ask whether it's collection or delivery and call set_fulfillment. Never assume either. read_back_order refuses until you have asked.
 - When they list food, call parse_order with their exact words. It adds what it can and tells you what still needs a choice. For one item, add_item works the same way.
 - Some things need choices — size, crust, sauce; a deal needs several. add_item keeps what is chosen so far and tells you exactly what is still missing. Say briefly what it comes with, invite all the choices in one go in any order, then call add_item again with everything they said in modifierNames. "Make it Fanta" replaces that one choice. "That's it" while choosing means the choices are done, not the order: call add_item with done: true. Never add a deal's drink, side or sauce as a separate item, and never say a choice is saved unless the tool says it kept it.
+- Some choices are not choices. When the tool says a dish "comes with" something, it is already on — tell the caller it's included and move on. Never ask them to pick it, never offer alternatives for it, and never read out how many they may choose. Only ask about what the tool says is still missing.
 - Only the menu below and what the tools return are real. Never invent a dish, a size or a price. If it isn't on the menu, say so and offer the closest thing that is.
 - You cannot see which toppings a dish takes — the menu above is dishes and prices. So NEVER tell a caller a topping or option is unavailable from memory. Put it through add_item or change_item, or check with find_item, and say what the tool tells you. If they say they can see it on the website, they are right and you are guessing.
 - Quantities go on the item. An EXTRA — "extra pepperoni", "add mushrooms", "double cheese" — is a paid topping: put it in modifierNames, never in notes, and tell them the price the tool gives back. Notes are only for how it's made: "well done", "no onions", "cut in half". Allergies go in the notes AND you say you've noted it.
@@ -3898,6 +3900,8 @@ BOOKING A TABLE
     ambiguous: Array<{ said: string; options: string[] }>;
     already: string[];
     charged: string[];
+    /** What the dish comes with, put on without asking — by group. */
+    included: Array<{ group: string; names: string[] }>;
     noteLeft?: string;
   } {
     const groups: any[] = item.modifierGroups ?? [];
@@ -3923,6 +3927,17 @@ BOOKING A TABLE
     };
     const inGroup = (g: any) => picks.filter((p) => p.g === g.id);
     const put = (g: any, o: any) => {
+      // The till lists "+garlic dip" twice so it can tick two. A second helping
+      // lands on the second row, the way the till would tick it, rather than
+      // on the same row twice.
+      if (room(g) > 1 && inGroup(g).some((p) => p.o === o.id)) {
+        const key = String(o.name ?? '').trim().toLowerCase();
+        const twin = g.options.find(
+          (x: any) =>
+            String(x.name ?? '').trim().toLowerCase() === key && !inGroup(g).some((p) => p.o === x.id),
+        );
+        if (twin) o = twin;
+      }
       if (room(g) === 1) {
         for (const p of inGroup(g)) {
           if (p.o !== o.id) replaced.push(String(item.modifierGroups.find((x: any) => x.id === g.id)?.options.find((x: any) => x.id === p.o)?.name ?? ''));
@@ -4075,12 +4090,33 @@ BOOKING A TABLE
         if (named.length) put(g, named[0]);
       }
     }
-    // A required group with one option is not a question. "Kebab: DONNER
-    // KEBAB" is what the deal comes with; the caller was asked to name it
-    // five times on call HPHR9SFQ and could not have said anything else.
+    // What the dish comes with is not a question.
+    //
+    // "Kebab: DONNER KEBAB" is what the deal comes with, and the caller on
+    // call HPHR9SFQ was asked to name it five times. The MEGA BOX comes with
+    // all three quarter-burgers and two garlic dips, and the caller on call
+    // aHD58t7Q was asked which burger, then which garlic dip, then which
+    // garlic dip again. A group whose every option fits at once and costs
+    // nothing is filled in here and reported as included, so the model can
+    // say "it comes with…" instead of asking. A required group with a single
+    // option is the same thing with one row.
+    const included: Array<{ group: string; names: string[] }> = [];
     for (const g of groups) {
-      if (!mustChoose(g) || g.options.length !== 1) continue;
-      while (inGroup(g).length < needed(g)) put(g, g.options[0]);
+      const single = mustChoose(g) && g.options.length === 1;
+      if (!single && !includedGroup(g)) continue;
+      const before = inGroup(g).length;
+      const wasSaved = saved.length;
+      if (single) {
+        while (inGroup(g).length < needed(g)) put(g, g.options[0]);
+      } else {
+        for (const o of g.options) {
+          if (inGroup(g).length >= room(g)) break;
+          if (inGroup(g).some((p) => p.o === o.id)) continue;
+          put(g, o);
+        }
+      }
+      const added = saved.splice(wasSaved);
+      if (inGroup(g).length > before) included.push({ group: String(g.name), names: added });
     }
     // A paid topping written into the note is food the kitchen makes and
     // nobody pays for. "Extra pepperoni" on order S6TJG went through as
@@ -4126,7 +4162,7 @@ BOOKING A TABLE
       }
       noteLeft = kept.join(', ');
     }
-    return { saved, replaced, unmatched, ambiguous, already, charged, noteLeft };
+    return { saved, replaced, unmatched, ambiguous, already, charged, included, noteLeft };
   }
 
   /** Do these words name this dish (rather than one of its choices)? */
@@ -4599,6 +4635,7 @@ BOOKING A TABLE
       const swapped = merged.replaced.filter(Boolean).length
         ? ` Replaced: ${merged.replaced.filter(Boolean).join(', ')}.`
         : '';
+      const comesWith = this.comesWithForModel(merged.included);
       const done = input?.done === true ? " They said that's it, but this is required, so it is not finished." : '';
       // The same answer producing nothing twice is not fixed by asking the
       // same way a third time.
@@ -4621,13 +4658,17 @@ BOOKING A TABLE
       return {
         result:
           `NOT added yet. The ${base}${chosen.length ? ` (so far: ${chosen.join('; ')})` : ''} still needs a choice of: ${asks.join('; ')}.` +
-          `${swapped}${unplaced}${between}${chargedLine}${done}${stuck}` +
+          `${comesWith}${swapped}${unplaced}${between}${chargedLine}${done}${stuck}` +
           (sayNow ? ' (That question is being asked for you — wait for the answer.)' : ''),
         ...(sayNow ? { sayNow } : {}),
       };
     }
 
-    const modifiers = picks
+    // In the menu's order, not the order they were said. A MEGA BOX chosen
+    // across two turns had its second pizza after the dips on the ticket.
+    const order = new Map(groups.map((g: any, i: number) => [g.id, i]));
+    const modifiers = [...picks]
+      .sort((a, b) => (order.get(a.g) ?? 0) - (order.get(b.g) ?? 0))
       .map((p) => ctx.optionIndex.get(p.o))
       .filter(Boolean)
       .map((m: any) => ({ optionId: m.option.id, name: m.option.name, price: m.option.price }));
@@ -4672,8 +4713,24 @@ BOOKING A TABLE
       result: `Added ${quantity} × ${item.name}${withOpts}${notes ? ` (note: ${notes})` : ''} — ${money(
         lineTotal(line as any),
         ctx.currency,
-      )}.${unplaced}${between}${chargedLine}\nOrder so far:\n${this.cartForModel(state, ctx)}`,
+      )}.${this.comesWithForModel(merged.included)}${unplaced}${between}${chargedLine}\nOrder so far:\n${this.cartForModel(state, ctx)}`,
     };
+  }
+
+  /**
+   * What went on the dish without being asked for, said so the model tells
+   * the caller rather than asking them. Twins read as a count: "garlic dip
+   * ×2", not "garlic dip, garlic dip".
+   */
+  private comesWithForModel(included: Array<{ group: string; names: string[] }>): string {
+    if (!included?.length) return '';
+    const parts = included.map(({ group, names }) => {
+      const counts = new Map<string, number>();
+      for (const n of names) counts.set(n, (counts.get(n) ?? 0) + 1);
+      const list = [...counts].map(([n, c]) => (c > 1 ? `${n} ×${c}` : n)).join(' + ');
+      return `${this.groupLabel(group)}: ${list}`;
+    });
+    return ` Comes with (already added, included in the price — say so, do not ask): ${parts.join('; ')}.`;
   }
 
   /**

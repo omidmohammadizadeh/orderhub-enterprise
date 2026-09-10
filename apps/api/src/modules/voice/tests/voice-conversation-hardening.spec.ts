@@ -1489,7 +1489,8 @@ describe("a deal is chosen across turns, and what is chosen is kept", () => {
     expect(st.cart.items).toHaveLength(0);
     expect(st.draft.picks).toHaveLength(3);
     const done = a.addItemConversational({ said: "sprite", done: true }, ctx, st);
-    expect(done.result).toMatch(/^Added 1 × MEAL DEAL 2 with Pepperoni, Donner Kebab, Chips, CAN SPRITE/);
+    // Menu order on the line: pizza, kebab, drink, then chips or salad.
+    expect(done.result).toMatch(/^Added 1 × MEAL DEAL 2 with Pepperoni, Donner Kebab, CAN SPRITE, Chips/);
     expect(st.cart.items).toHaveLength(1);
   });
 
@@ -1691,12 +1692,14 @@ describe("an answer lands in the group it belongs to, and a deal's fixed parts a
   it("the caller's exact order from the call: pepperoni, chips, garlic, two cokes — the kebab fills itself and the deal is added once", async () => {
     const a = ai(); const st = fresh(); const ctx = c();
     const out = a.addItemConversational({ said: "meal deal 2", modifierNames: ["10 inch pepperoni", "chips", "garlic", "two cokes"] }, ctx, st);
-    // In the order they were said; the kebab, which nobody chose, last.
-    expect(out.result).toMatch(/^Added 1 × MEAL DEAL 2 with 10" PEPPERONI, Chips, \+GARLIC, CAN Coke, CAN Coke, DONNER KEBAB — £25\.00\./);
+    // In the MENU's order, not the order they were said: the ticket reads the
+    // same way every time, and a deal chosen across two turns no longer has
+    // its second pizza after the dips.
+    expect(out.result).toMatch(/^Added 1 × MEAL DEAL 2 with 10" PEPPERONI, CAN Coke, CAN Coke, \+GARLIC, Chips, DONNER KEBAB — £25\.00\./);
     expect(st.cart.items).toHaveLength(1);
-    expect(names(st)).toEqual(['10" PEPPERONI', "Chips", "+GARLIC", "CAN Coke", "CAN Coke", "DONNER KEBAB"]);
+    expect(names(st)).toEqual(['10" PEPPERONI', "CAN Coke", "CAN Coke", "+GARLIC", "Chips", "DONNER KEBAB"]);
     const rb = await a.runTool("read_back_order", {}, ctx, st, null);
-    expect(rb.sayNow).toMatch(/MEAL DEAL 2 with 10 inch PEPPERONI, Chips, GARLIC, 2 CAN Coke and DONNER KEBAB, for collection\. That comes to £25\.00/);
+    expect(rb.sayNow).toMatch(/MEAL DEAL 2 with 10 inch PEPPERONI, 2 CAN Coke, GARLIC, Chips and DONNER KEBAB, for collection\. That comes to £25\.00/);
   });
 
   it("with a real kebab choice, 'donner kebab' goes to the kebab group and the pepperoni stays", () => {
