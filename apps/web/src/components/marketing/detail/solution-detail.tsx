@@ -113,6 +113,9 @@ export function SolutionDetail({ slug }: { slug: string }) {
         </div>
       </section>
 
+      {/* A page's own centrepiece, when it has one */}
+      {solution.centerpiece}
+
       {/* Capabilities */}
       <section className="relative py-24">
         <div className="mx-auto max-w-6xl px-4">

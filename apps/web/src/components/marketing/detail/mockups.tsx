@@ -19,6 +19,7 @@ import {
 import { BrowserFrame, PhoneFrame } from "./kit";
 
 const UBER = "#06C167";
+const VOICE = "#7c83ff";
 const ROO = "#00CCBC";
 
 // ── POS orders board ─────────────────────────────────────────────────────────
@@ -579,5 +580,143 @@ export function CallerIdMockup() {
         </div>
       </div>
     </BrowserFrame>
+  );
+}
+
+// ── AI phone ordering ─────────────────────────────────────────────────────────
+
+const CALL_WAVE = [8, 18, 12, 26, 16, 30, 10, 22, 14, 24, 9, 17, 11];
+
+// A live call on the AI line. The conversation is the real shape of one: the
+// order in the caller's words, the read-back with the total, a yes, and a time.
+export function VoiceCallMockup() {
+  return (
+    <PhoneFrame>
+      <div className="flex h-full flex-col bg-[#0b0e1a] px-3.5 pb-5 pt-10">
+        <p className="text-center text-[10px] text-zinc-500">AI phone line</p>
+        <p className="mt-0.5 text-center text-[15px] font-bold text-white">Pizza Uno</p>
+        <p className="text-center text-[10px] tabular-nums" style={{ color: VOICE }}>
+          On call 01:12
+        </p>
+        <div className="mx-auto mt-3 flex h-8 items-center gap-[3px]">
+          {CALL_WAVE.map((h, i) => (
+            <span key={i} className="w-[3px] rounded-full" style={{ height: h, background: VOICE }} />
+          ))}
+        </div>
+        <div className="mt-3 flex-1 space-y-1.5 text-[10px] leading-snug">
+          <p className="ml-auto max-w-[82%] rounded-2xl rounded-br-sm bg-white/10 px-2.5 py-1.5 text-zinc-100">
+            Large pepperoni, extra mushrooms and a garlic bread. Collection.
+          </p>
+          <p
+            className="max-w-[86%] rounded-2xl rounded-bl-sm px-2.5 py-1.5 text-white"
+            style={{ background: `${VOICE}33` }}
+          >
+            That&rsquo;s a large pepperoni with extra mushrooms and a garlic bread, for collection. It comes to £16.60. Is that right?
+          </p>
+          <p className="ml-auto max-w-[82%] rounded-2xl rounded-br-sm bg-white/10 px-2.5 py-1.5 text-zinc-100">
+            Yes, that&rsquo;s right.
+          </p>
+          <p
+            className="max-w-[86%] rounded-2xl rounded-bl-sm px-2.5 py-1.5 text-white"
+            style={{ background: `${VOICE}33` }}
+          >
+            Lovely, that&rsquo;s booked in. It&rsquo;ll be ready in about 20 minutes.
+          </p>
+        </div>
+        <div className="mx-auto mt-3 grid h-10 w-10 place-items-center rounded-full bg-red-500">
+          <Phone aria-hidden className="h-4 w-4 rotate-[135deg] text-white" />
+        </div>
+      </div>
+    </PhoneFrame>
+  );
+}
+
+// The order the call became, as it appears in the order drawer on the board.
+// Mirrors the real drawer: the purple AI VOICE channel badge, pickup pill,
+// order number, customer with their visit count, items, total, the
+// instruction every AI order carries, and the first action.
+export function VoiceBoardMockup() {
+  return (
+    <BrowserFrame>
+      <div className="bg-zinc-50 p-4">
+        <div className="mx-auto max-w-[330px] overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-lg">
+          <div className="flex items-center gap-2 border-b border-zinc-100 px-3.5 py-2.5">
+            <span className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 px-2 py-1">
+              <span className="grid h-4 w-4 place-items-center rounded" style={{ background: "#5b5bd6" }}>
+                <Phone aria-hidden className="h-2.5 w-2.5 text-white" />
+              </span>
+              <span className="text-[10px] font-bold text-zinc-800">AI VOICE</span>
+            </span>
+            <span className="rounded-md bg-sky-50 px-1.5 py-0.5 text-[9px] font-semibold text-sky-700">Pickup</span>
+            <span className="text-[13px] font-bold text-zinc-900">#W45QN</span>
+          </div>
+          <div className="border-b border-zinc-100 px-3.5 py-2.5">
+            <p className="text-[13px] font-bold text-zinc-900">Sarah Whitton</p>
+            <p className="text-[10px] tabular-nums text-zinc-500">0191 498 0321</p>
+            <span className="mt-1 inline-flex rounded bg-violet-50 px-1.5 py-0.5 text-[9px] font-bold text-violet-700">
+              Returning customer, 14 orders
+            </span>
+          </div>
+          <div className="space-y-1.5 border-b border-zinc-100 px-3.5 py-2.5 text-[11px] tabular-nums">
+            <div className="flex justify-between font-semibold text-zinc-900">
+              <span>1× Large Pepperoni</span>
+              <span>£12.70</span>
+            </div>
+            <p className="pl-3 text-[10px] text-zinc-500">+ Extra mushrooms</p>
+            <div className="flex justify-between font-semibold text-zinc-900">
+              <span>1× Garlic Bread</span>
+              <span>£3.90</span>
+            </div>
+          </div>
+          <div className="flex justify-between px-3.5 py-2 text-[12px] font-bold tabular-nums text-zinc-900">
+            <span>Total</span>
+            <span>£16.60</span>
+          </div>
+          <div className="px-3.5 pb-2.5">
+            <p className="text-[9px] text-zinc-400">Instructions</p>
+            <p className="text-[10px] italic text-zinc-700">&ldquo;TAKEN BY AI PHONE LINE&rdquo;</p>
+          </div>
+          <div className="grid grid-cols-2 gap-2 border-t border-zinc-100 p-2.5">
+            <div className="rounded-lg bg-orange-500 py-1.5 text-center text-[10px] font-bold text-white">
+              Start preparing
+            </div>
+            <div className="rounded-lg bg-red-500 py-1.5 text-center text-[10px] font-bold text-white">Cancel</div>
+          </div>
+        </div>
+      </div>
+    </BrowserFrame>
+  );
+}
+
+// A note a caller asked the AI to pass on, as it prints in the kitchen. The
+// banner and line wording are the ones the printer actually uses, so the pass
+// knows it is a note about an order already cooking, not a new order.
+export function KitchenNoteMockup() {
+  return (
+    <div className="relative mx-auto w-full max-w-[300px] py-6">
+      <div className="mx-auto h-3 w-[86%] rounded-t-md bg-zinc-800" />
+      <div className="mx-auto w-[80%] bg-zinc-100 px-4 pb-6 pt-4 font-mono text-zinc-900 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.8)]">
+        <p className="text-center text-[11px] font-bold leading-tight">*** CUSTOMER NOTE ***</p>
+        <p className="text-center text-[11px] font-bold leading-tight">*** DO NOT REMAKE ***</p>
+        <div className="my-2.5 border-t border-dashed border-zinc-400" />
+        <p className="text-[11px] font-bold">ORDER #W45QN</p>
+        <p className="text-[10px]">SARAH WHITTON</p>
+        <p className="text-[10px] tabular-nums">0191 498 0321</p>
+        <div className="my-2.5 border-t border-dashed border-zinc-400" />
+        <p className="text-[10px] font-bold">MESSAGE FROM THE CUSTOMER</p>
+        <p className="text-[10px]">(AI phone line)</p>
+        <p className="mt-1.5 text-[12px] leading-snug">Please cut the pizza into squares.</p>
+        <div className="my-2.5 border-t border-dashed border-zinc-400" />
+        <p className="text-center text-[9px]">PHONE NOTE 19:42</p>
+      </div>
+      <div
+        aria-hidden
+        className="mx-auto h-2 w-[80%]"
+        style={{
+          background:
+            "linear-gradient(135deg, #f4f4f5 25%, transparent 25%) -4px 0/8px 8px, linear-gradient(225deg, #f4f4f5 25%, transparent 25%) -4px 0/8px 8px",
+        }}
+      />
+    </div>
   );
 }

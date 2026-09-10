@@ -20,7 +20,11 @@ export function DetailShell({
   children: ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[#070a12] text-zinc-200 antialiased">
+    // overflow-x-clip, never overflow-x-hidden: the reveal offsets and mockup
+    // glows reach past the screen edge and let a phone scroll sideways, and
+    // "hidden" would fix that by making this a scroll container, which
+    // silently breaks every position: sticky section inside it.
+    <div className="min-h-screen overflow-x-clip bg-[#070a12] text-zinc-200 antialiased">
       <DetailNav />
       <main>{children}</main>
       <DetailFooter accent={accent} />

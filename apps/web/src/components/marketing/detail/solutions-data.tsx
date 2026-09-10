@@ -7,6 +7,14 @@
 
 import type { LucideIcon } from "lucide-react";
 import {
+  ArrowLeftRight,
+  AudioLines,
+  CalendarCheck,
+  ListChecks,
+  PhoneForwarded,
+  Repeat2,
+  StickyNote,
+  UserRound,
   Activity,
   Users,
   PhoneCall,
@@ -49,7 +57,11 @@ import {
   FloorPlanMockup,
   SplitBillMockup,
   CallerIdMockup,
+  VoiceCallMockup,
+  VoiceBoardMockup,
+  KitchenNoteMockup,
 } from "./mockups";
+import { VoiceAssembly } from "./voice-assembly";
 
 export interface Capability {
   icon: LucideIcon;
@@ -85,6 +97,8 @@ export interface Solution {
   capabilities: Capability[];
   flow: FlowStep[];
   showcases: Showcase[];
+  /** A page-specific section shown after the stats, when a page has one. */
+  centerpiece?: ReactNode;
 }
 
 export const SOLUTIONS: Solution[] = [
@@ -347,7 +361,7 @@ export const SOLUTIONS: Solution[] = [
       { icon: CreditCard, title: "Secure Stripe pay link", body: "The assistant sends a hosted Stripe link; the customer pays in the chat and you settle direct." },
       { icon: Layers, title: "Builds the basket", body: "Sizes, modifiers and quantities are confirmed back to the customer before anything is charged." },
       { icon: ShoppingBag, title: "Lands on your board", body: "A paid WhatsApp order drops onto the same POS board and prints in the kitchen like any other channel." },
-      { icon: Radio, title: "Voice ordering next", body: "The same assistant is coming to voice calls — answer the phone with AI when the kitchen is slammed." },
+      { icon: Radio, title: "On the phone too", body: "The same ordering assistant answers your phone line, so the calls you can’t pick up still become orders." },
     ],
     flow: [
       { title: "Customer messages you", body: "They text your shop's WhatsApp number in their own words — no app, no menu link required." },
@@ -469,6 +483,70 @@ export const SOLUTIONS: Solution[] = [
           "Works on every till at once",
         ],
         mockup: <CallerIdMockup />,
+      },
+    ],
+  },
+  // ── AI phone ordering ─────────────────────────────────────────────────────
+  // Copy is limited to what the phone line really does today. It answers only
+  // calls that ring out or arrive while the line is busy, reads every order
+  // back before placing it, never cancels, and sends complaints to a person.
+  {
+    slug: "voice-ai",
+    name: "AI phone ordering",
+    navDescription: "Answers the calls you can’t get to",
+    accent: "#7c83ff",
+    icon: AudioLines,
+    badge: "AI phone line",
+    title: "The calls you can’t pick up, answered",
+    subtitle:
+      "When the counter is too busy to answer, the call comes through to an AI that takes the order in a normal conversation. It knows your menu, reads the whole order back, and puts it on your board and kitchen printer like any other order.",
+    highlights: ["Answers when you can’t", "Reads every order back", "Prints in the kitchen"],
+    heroMockup: <VoiceCallMockup />,
+    centerpiece: <VoiceAssembly accent="#7c83ff" />,
+    stats: [
+      { value: 100, suffix: "%", label: "Of orders read back before they’re placed" },
+      { value: 10, suffix: "s", label: "Calls shorter than this are never charged" },
+      { value: 1, label: "Board for phone, online and app orders" },
+    ],
+    capabilities: [
+      { icon: PhoneForwarded, title: "Only picks up when you can’t", body: "Your shop’s phone rings first. Calls that ring out, or arrive while you’re already on the phone, come through to the AI, so staff still take every call they can." },
+      { icon: ListChecks, title: "Knows your real menu", body: "It works from your POS menu: the same prices, sizes, extras and sold-out items as the till. Paid extras are always charged, and cooking requests stay as notes." },
+      { icon: UserRound, title: "Recognises regulars", body: "Returning callers are greeted by name and offered their usual, with their saved address ready if it’s for delivery." },
+      { icon: MapPin, title: "Checks the delivery area", body: "Addresses are taken postcode first and checked against your delivery zones before the order goes any further." },
+      { icon: Repeat2, title: "Reads every order back", body: "Items, extras, collection or delivery and the total are read back in full. Nothing is placed until the caller says yes." },
+      { icon: Wallet, title: "Cash or card", body: "Cash orders go straight through. Card orders get a secure payment link by text, and the order waits until it’s paid." },
+      { icon: StickyNote, title: "Handles calls about an order", body: "Callers can check on an order, add to one placed by phone or at the till, or pass a note to the kitchen that prints straight away." },
+      { icon: CalendarCheck, title: "Books tables too", body: "If your location takes reservations, callers can book, change or cancel a table over the phone." },
+      { icon: ArrowLeftRight, title: "Hands over when it should", body: "Complaints go to a member of staff. It never cancels an order, and delivery-app customers are told to contact the app they ordered through." },
+    ],
+    flow: [
+      { title: "Get your AI number", body: "We set up a phone number for your shop and connect it to your menu, board and kitchen printer." },
+      { title: "Divert unanswered calls", body: "Your phone provider sends calls that ring out, or arrive while you’re busy, to that number." },
+      { title: "Add a number for staff", body: "Give the AI a separate number to hand calls to, so a complaint always reaches a person." },
+      { title: "Top up and go live", body: "Answered calls are paid from a prepaid balance, with automatic top-up so the line never goes quiet." },
+    ],
+    showcases: [
+      {
+        eyebrow: "On the board",
+        title: "A phone order looks like every other order",
+        body: "No notepad by the phone and no separate screen. Orders the AI takes arrive on the same board as your online and delivery-app orders, marked AI Voice, and print on the same kitchen printer.",
+        bullets: [
+          "Marked AI Voice on the board",
+          "Prints and shows on kitchen screens",
+          "Customer and order history attached",
+        ],
+        mockup: <VoiceBoardMockup />,
+      },
+      {
+        eyebrow: "After the order",
+        title: "Changes and notes, without the phone tag",
+        body: "A customer rings back to add a drink, ask how long their order will be, or have the pizza cut into squares. The AI updates the order, gives them the status, or sends the note to the kitchen, where it prints clearly marked so nothing is cooked twice.",
+        bullets: [
+          "Adds to orders taken by phone or at the till",
+          "Order status on request",
+          "Notes print marked do not remake",
+        ],
+        mockup: <KitchenNoteMockup />,
       },
     ],
   },

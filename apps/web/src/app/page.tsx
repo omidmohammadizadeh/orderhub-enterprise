@@ -383,6 +383,7 @@ function SiteFooter({ brand }: { brand: SiteBrand }) {
               { label: "Driver app", href: "/solutions/driver-app" },
               { label: "Dispatch console", href: "/solutions/dispatch" },
               { label: "WhatsApp AI ordering", href: "/solutions/whatsapp-ordering" },
+              { label: "AI phone ordering", href: "/solutions/voice-ai" },
             ]}
           />
           <FooterCol

@@ -59,6 +59,12 @@ export const SOLUTION_META: RouteMeta[] = [
     description:
       "The landline rings and every till pops the caller's name, address and order history — answer by name and start the order in one tap.",
   },
+  {
+    slug: "voice-ai",
+    name: "AI phone ordering",
+    description:
+      "When nobody can get to the phone, an AI answers, takes the order, reads it back and puts it on your board and kitchen printer.",
+  },
 ];
 
 export const INTEGRATION_META: RouteMeta[] = [

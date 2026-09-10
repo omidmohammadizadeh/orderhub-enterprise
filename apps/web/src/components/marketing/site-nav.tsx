@@ -55,6 +55,11 @@ const SOLUTIONS: MenuItem[] = [
     href: "/solutions/caller-id",
   },
   {
+    label: "AI phone ordering",
+    description: "Answers the calls you can't get to",
+    href: "/solutions/voice-ai",
+  },
+  {
     label: "WhatsApp AI ordering",
     description: "Take orders in the chat customers use",
     href: "/solutions/whatsapp-ordering",
