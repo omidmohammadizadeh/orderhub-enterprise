@@ -336,6 +336,7 @@ describe("JetLifecycleController", () => {
       controller: new JetLifecycleController(prisma, client, lifecycle),
       lifecycle,
       created,
+      client,
     };
   }
 
@@ -366,6 +367,17 @@ describe("JetLifecycleController", () => {
     const { controller, lifecycle } = makeController({ keyOk: false });
     await expect(controller.cancel(cancelBody, "wrong")).rejects.toThrow();
     expect(lifecycle.handleCancellation).not.toHaveBeenCalled();
+  });
+
+  it("authenticates from X-API-Key when Authorization is absent", async () => {
+    const { controller, client, lifecycle } = makeController();
+    client.verifyInboundApiKey.mockImplementation((...presented: any[]) =>
+      presented.includes("good"),
+    );
+    await expect(
+      controller.cancel(cancelBody, undefined as any, "good"),
+    ).resolves.toEqual(cancelBody);
+    expect(lifecycle.handleCancellation).toHaveBeenCalledTimes(1);
   });
 
   it("keys the event so it cannot collide with the order's own record", async () => {

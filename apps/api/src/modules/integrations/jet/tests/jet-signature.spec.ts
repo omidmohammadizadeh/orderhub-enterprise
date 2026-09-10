@@ -191,6 +191,18 @@ describe("JetClientService.verifyInboundApiKey", () => {
     expect(svc.verifyInboundApiKey("")).toBe(false);
   });
 
+  it("accepts the key from X-API-Key — the header our email to JET named", () => {
+    // Our written reply to JET said they would send the secret as X-API-Key;
+    // their spec presents it in Authorization. Either must authenticate.
+    expect(svc.verifyInboundApiKey(undefined, INBOUND_KEY)).toBe(true);
+    expect(svc.verifyInboundApiKey("", INBOUND_KEY)).toBe(true);
+  });
+
+  it("rejects when neither header carries the key", () => {
+    expect(svc.verifyInboundApiKey("nope", "also-nope")).toBe(false);
+    expect(svc.verifyInboundApiKey(undefined, undefined)).toBe(false);
+  });
+
   it("accepts anything when no inbound key is configured, and says so", () => {
     // Deliberate: rejecting every webhook on a fresh deploy would silently
     // drop live orders. The receiver logs the unauthenticated state instead.

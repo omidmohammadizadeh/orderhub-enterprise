@@ -231,3 +231,17 @@ describe("JetWebhookController — final picked order", () => {
     expect(ingestOrder).toHaveBeenCalledWith(payload, { kind: "final" });
   });
 });
+
+describe("JetWebhookController — X-API-Key", () => {
+  it("authenticates an order from X-API-Key when Authorization is absent", async () => {
+    const payload = DELIVERY_BY_PARTNER;
+    const raw = JSON.stringify(payload);
+    const { controller, client, ingestOrder } = makeController();
+    client.verifyInboundApiKey.mockImplementation((...presented: any[]) =>
+      presented.includes("good"),
+    );
+    await controller.receiveOrder(request(payload), signed(raw), undefined as any, "good");
+    await flush();
+    expect(ingestOrder).toHaveBeenCalledTimes(1);
+  });
+});

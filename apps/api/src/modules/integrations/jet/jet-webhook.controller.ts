@@ -23,6 +23,10 @@ import { jetOrderIdFrom } from "./jet-order.mappers";
 //   POST /v1/integrations/jet/orders  → Receive Order (the order arrives)
 //   POST /v1/integrations/jet/final   → Final Picked Order (post-amendment copy)
 //
+// Also served under `integrations/justeat`: that is the base URL we gave JET in
+// writing before the build, and it is what their integration workbook holds.
+// Every inbound URL answers on both — see tests/jet-routes.spec.ts.
+//
 // Both answer **202**, not 200. Answering 200 requires the order to be fully
 // written before we reply, which couples JET's timeout to our database
 // latency; 202 puts the order in a pending state and hands us a 3-minute
@@ -39,7 +43,7 @@ import { jetOrderIdFrom } from "./jet-order.mappers";
 // other integration we have built; the first real order is the verification
 // step, and this is what makes it a five-minute check rather than a redeploy.
 @ApiTags("jet")
-@Controller({ path: "integrations/jet", version: "1" })
+@Controller({ path: ["integrations/jet", "integrations/justeat"], version: "1" })
 export class JetWebhookController {
   private readonly logger = new Logger(JetWebhookController.name);
 
@@ -57,8 +61,9 @@ export class JetWebhookController {
     @Req() req: RawBodyRequest<Request>,
     @Headers("x-jet-connect-hash") hash: string,
     @Headers("authorization") authorization: string,
+    @Headers("x-api-key") apiKey?: string,
   ) {
-    return this.handle(req, hash, authorization, "initial");
+    return this.handle(req, hash, [authorization, apiKey], "initial");
   }
 
   @Public()
@@ -68,14 +73,15 @@ export class JetWebhookController {
     @Req() req: RawBodyRequest<Request>,
     @Headers("x-jet-connect-hash") hash: string,
     @Headers("authorization") authorization: string,
+    @Headers("x-api-key") apiKey?: string,
   ) {
-    return this.handle(req, hash, authorization, "final");
+    return this.handle(req, hash, [authorization, apiKey], "final");
   }
 
   private async handle(
     req: RawBodyRequest<Request>,
     hash: string | undefined,
-    authorization: string | undefined,
+    apiKeyHeaders: Array<string | undefined>,
     kind: "initial" | "final",
   ) {
     const raw: Buffer =
@@ -92,10 +98,10 @@ export class JetWebhookController {
     const jetOrderId = jetOrderIdFrom(payload);
 
     // ── Authenticate ──────────────────────────────────────────────────
-    // Order webhooks carry both: the API key we issued JET (Authorization)
-    // and an HMAC over the raw body (X-JET-Connect-Hash). Either being
-    // configured-and-wrong is a rejection.
-    const keyOk = this.client.verifyInboundApiKey(authorization);
+    // Order webhooks carry both: the API key we issued JET (Authorization, or
+    // X-API-Key) and an HMAC over the raw body (X-JET-Connect-Hash). Either
+    // being configured-and-wrong is a rejection.
+    const keyOk = this.client.verifyInboundApiKey(...apiKeyHeaders);
     const hmacOk = this.client.webhookSecretConfigured
       ? this.client.verifyWebhookSignature(raw, hash)
       : true;
@@ -158,7 +164,7 @@ export class JetWebhookController {
       }
       if (!keyOk) {
         this.logger.error(
-          `JET ${kind} webhook REJECTED: the Authorization header did not match JET_INBOUND_API_KEY.`,
+          `JET ${kind} webhook REJECTED: neither Authorization nor X-API-Key matched JET_INBOUND_API_KEY.`,
         );
       }
       await this.markRejected(jetOrderId, keyOk, hmacOk);

@@ -198,8 +198,11 @@ export class JetClientService {
   }
 
   /**
-   * Verify the `Authorization` header JET presents on inbound calls — the API
-   * key WE issued to them.
+   * Verify the API key JET presents on inbound calls — the key WE issued to
+   * them. Pass every header that may carry it: JET's spec uses `Authorization`,
+   * but our written reply to JET said `X-API-Key`, so either may arrive. Both
+   * are compared against the same single secret, so accepting either widens
+   * nothing.
    *
    * This is the ONLY authentication on the four lifecycle webhooks (cancel,
    * driver status, temp-offline, failed-order): they carry no HMAC. When no
@@ -207,14 +210,16 @@ export class JetClientService {
    * on a fresh deploy would silently drop live orders; the receiver logs the
    * unauthenticated state loudly instead.
    */
-  verifyInboundApiKey(header: string | undefined): boolean {
+  verifyInboundApiKey(...headers: Array<string | undefined>): boolean {
     const expected = this.cfg("inboundApiKey");
     if (!expected) return true;
-    const presented = (header ?? "").replace(/^\s*Bearer\s+/i, "").trim();
-    if (!presented) return false;
     const a = Buffer.from(expected);
-    const b = Buffer.from(presented);
-    return a.length === b.length && crypto.timingSafeEqual(a, b);
+    return headers.some((header) => {
+      const presented = (header ?? "").replace(/^\s*Bearer\s+/i, "").trim();
+      if (!presented) return false;
+      const b = Buffer.from(presented);
+      return a.length === b.length && crypto.timingSafeEqual(a, b);
+    });
   }
 
   /** True when an inbound API key is configured (i.e. we actually check it). */

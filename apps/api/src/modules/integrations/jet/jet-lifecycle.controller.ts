@@ -25,6 +25,10 @@ import { JetOrderModificationService } from "./jet-order-modification.service";
 //   POST /v1/integrations/jet/menu-callback   → asynchronous menu ingest result
 //   POST /v1/integrations/jet/modification-callback → out-of-stock result
 //
+// Every route is also served under `integrations/justeat`, and cancel also as
+// `orders/cancel`: those are the URLs we gave JET in writing before the build
+// and the ones in their integration workbook. See tests/jet-routes.spec.ts.
+//
 // TWO THINGS THESE DO DIFFERENTLY FROM THE ORDER WEBHOOK:
 //
 // 1. THEY MUST ECHO THE PAYLOAD BACK. The spec is explicit for all four:
@@ -32,8 +36,8 @@ import { JetOrderModificationService } from "./jet-order-modification.service";
 //    acknowledgement". A bare {ok:true} is a 400 to them. Every handler here
 //    therefore returns `body` verbatim.
 //
-// 2. THEY CARRY NO HMAC. Only the Authorization header — the API key we issued
-//    JET — authenticates them, so it is checked strictly and a mismatch is a
+// 2. THEY CARRY NO HMAC. Only the API key we issued JET — in Authorization, or
+//    X-API-Key — authenticates them, so it is checked strictly and a mismatch is a
 //    401 rather than a swallowed 200.
 //
 // JET retries 5× on a 5xx, so a handler failure is caught and still answered
@@ -41,7 +45,7 @@ import { JetOrderModificationService } from "./jet-order-modification.service";
 // (updateStatus refuses to regress a terminal order, and courier timestamps
 // are first-value-wins), while a 500 loop against a live shop costs everyone.
 @ApiTags("jet")
-@Controller({ path: "integrations/jet", version: "1" })
+@Controller({ path: ["integrations/jet", "integrations/justeat"], version: "1" })
 export class JetLifecycleController {
   private readonly logger = new Logger(JetLifecycleController.name);
 
@@ -54,10 +58,14 @@ export class JetLifecycleController {
   ) {}
 
   @Public()
-  @Post("cancel")
+  @Post(["cancel", "orders/cancel"])
   @HttpCode(HttpStatus.OK)
-  async cancel(@Body() body: any, @Headers("authorization") auth: string) {
-    return this.handle("cancel", body, auth, (p) =>
+  async cancel(
+    @Body() body: any,
+    @Headers("authorization") auth: string,
+    @Headers("x-api-key") apiKey?: string,
+  ) {
+    return this.handle("cancel", body, [auth, apiKey], (p) =>
       this.lifecycle.handleCancellation(p),
     );
   }
@@ -65,8 +73,12 @@ export class JetLifecycleController {
   @Public()
   @Post("driver-status")
   @HttpCode(HttpStatus.OK)
-  async driverStatus(@Body() body: any, @Headers("authorization") auth: string) {
-    return this.handle("driver-status", body, auth, (p) =>
+  async driverStatus(
+    @Body() body: any,
+    @Headers("authorization") auth: string,
+    @Headers("x-api-key") apiKey?: string,
+  ) {
+    return this.handle("driver-status", body, [auth, apiKey], (p) =>
       this.lifecycle.handleDriverStatus(p),
     );
   }
@@ -74,8 +86,12 @@ export class JetLifecycleController {
   @Public()
   @Post("store-status")
   @HttpCode(HttpStatus.OK)
-  async storeStatus(@Body() body: any, @Headers("authorization") auth: string) {
-    return this.handle("store-status", body, auth, (p) =>
+  async storeStatus(
+    @Body() body: any,
+    @Headers("authorization") auth: string,
+    @Headers("x-api-key") apiKey?: string,
+  ) {
+    return this.handle("store-status", body, [auth, apiKey], (p) =>
       this.lifecycle.handleRestaurantTempOffline(p),
     );
   }
@@ -83,8 +99,12 @@ export class JetLifecycleController {
   @Public()
   @Post("failed-order")
   @HttpCode(HttpStatus.OK)
-  async failedOrder(@Body() body: any, @Headers("authorization") auth: string) {
-    return this.handle("failed-order", body, auth, (p) =>
+  async failedOrder(
+    @Body() body: any,
+    @Headers("authorization") auth: string,
+    @Headers("x-api-key") apiKey?: string,
+  ) {
+    return this.handle("failed-order", body, [auth, apiKey], (p) =>
       this.lifecycle.handleFailedOrder(p),
     );
   }
@@ -104,8 +124,12 @@ export class JetLifecycleController {
   @Public()
   @Post("menu-callback")
   @HttpCode(HttpStatus.OK)
-  async menuCallback(@Body() body: any, @Headers("authorization") auth: string) {
-    await this.handle("menu-callback", body, auth, (p) =>
+  async menuCallback(
+    @Body() body: any,
+    @Headers("authorization") auth: string,
+    @Headers("x-api-key") apiKey?: string,
+  ) {
+    await this.handle("menu-callback", body, [auth, apiKey], (p) =>
       this.menu.handleMenuCallback(p),
     );
     return { ok: true };
@@ -128,8 +152,9 @@ export class JetLifecycleController {
   async modificationCallback(
     @Body() body: any,
     @Headers("authorization") auth: string,
+    @Headers("x-api-key") apiKey?: string,
   ) {
-    await this.handle("modification-callback", body, auth, (p) =>
+    await this.handle("modification-callback", body, [auth, apiKey], (p) =>
       this.modifications.handleModificationCallback(p),
     );
     return { ok: true };
@@ -138,12 +163,12 @@ export class JetLifecycleController {
   private async handle(
     kind: string,
     body: any,
-    auth: string | undefined,
+    apiKeyHeaders: Array<string | undefined>,
     run: (payload: any) => Promise<{ handled: boolean; reason?: string; orderId?: string }>,
   ): Promise<any> {
-    if (!this.client.verifyInboundApiKey(auth)) {
+    if (!this.client.verifyInboundApiKey(...apiKeyHeaders)) {
       this.logger.error(
-        `JET ${kind} webhook REJECTED: the Authorization header did not match ` +
+        `JET ${kind} webhook REJECTED: neither Authorization nor X-API-Key matched ` +
           `JET_INBOUND_API_KEY. These webhooks carry no HMAC, so this is their only check.`,
       );
       throw new UnauthorizedException("Invalid API key");
