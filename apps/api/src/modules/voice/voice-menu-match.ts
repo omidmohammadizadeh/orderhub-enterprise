@@ -860,11 +860,76 @@ export function matchOption<T extends { name: string }>(
   const scored = rankOptions(said, options, groupWords);
   const [best, second] = scored;
   if (!best || best.score < 0.5) return null;
+  if (best.score < STRONG_WITHOUT_A_LITERAL_WORD && !literalHit(said, best.item.name, groupWords)) return null;
   if (second && best.score - second.score < 0.2 && best.covered - second.covered < 0.3) {
     return null;
   }
   return { item: best.item, score: best.score };
 }
+
+/**
+ * Did the caller actually SAY one of this option's words?
+ *
+ * The phonetic fold exists for phone lines that mangle sounds ("karlic bret").
+ * Used alone on HALF a name it invents matches: on call l3fkZXKA "bottle Fanta"
+ * scored 0.5 for 12" LITTLE ITALY — "bottle" folds near "little", "italy"
+ * matched nothing, and half of a two-word name cleared the floor — so a drink
+ * the caller asked for replaced the pizza they had already chosen. A fully
+ * folded name ("karlic bret" → garlic bread) still scores high enough on its
+ * own; a PARTIAL match now also needs one word the caller said literally
+ * (exact, a 4+ letter prefix like "marg", or a listed synonym). Sizes and the
+ * group's own words ("12", "pizza") don't count — every option shares them.
+ */
+function literalHit(said: string, itemName: string, groupWords: Set<string>): boolean {
+  // Menus glue sizes onto names — a real one reads 10"KEBAB PIZZA — and that
+  // must not turn "kebab" into the unmatchable word "10kebab".
+  const words = (t: string) => plain(dropSizeUnits(t)).replace(/(\d)([a-z])/g, "$1 $2").replace(/([a-z])(\d)/g, "$1 $2");
+  const heard = words(said)
+    .split(" ")
+    .filter((t) => t && !NOISE.has(t) && !groupWords.has(t) && !/^\d+$/.test(t));
+  const name = words(itemName)
+    .split(" ")
+    .filter((t) => t && !NOISE.has(t) && !groupWords.has(t) && !CONTAINER.has(t) && !/^\d+$/.test(t));
+  return heard.some((t) =>
+    name.some(
+      (n) =>
+        t === n ||
+        (t.length >= 4 && n.startsWith(t)) ||
+        withSynonyms(t).includes(n) ||
+        // One letter out on a long word is the same word said: "haloumi" is
+        // halloumi. Sound-alikes are not — "bottle" and "little" are two
+        // letters apart and only meet once folded, which is exactly the match
+        // this check exists to refuse.
+        (t.length >= 5 && n.length >= 5 && editDistanceAtMostOne(t, n)),
+    ),
+  );
+}
+
+function editDistanceAtMostOne(a: string, b: string): boolean {
+  if (a === b) return true;
+  if (Math.abs(a.length - b.length) > 1) return false;
+  let i = 0;
+  let j = 0;
+  let edits = 0;
+  while (i < a.length && j < b.length) {
+    if (a[i] === b[j]) {
+      i++;
+      j++;
+      continue;
+    }
+    if (++edits > 1) return false;
+    if (a.length > b.length) i++;
+    else if (b.length > a.length) j++;
+    else {
+      i++;
+      j++;
+    }
+  }
+  return edits + (a.length - i) + (b.length - j) <= 1;
+}
+
+/** Strong enough to act on: nearly the whole name, or part of it said literally. */
+const STRONG_WITHOUT_A_LITERAL_WORD = 0.75;
 
 /** How every option in the list scores, best first. */
 function rankOptions<T extends { name: string }>(
@@ -910,7 +975,9 @@ function tiedOptions<T extends { name: string }>(
   options: T[],
   groupWords: Set<string>,
 ): OptionMatch<T> {
-  const scored = rankOptions(said, options, groupWords);
+  const scored = rankOptions(said, options, groupWords).filter(
+    (x) => x.score >= STRONG_WITHOUT_A_LITERAL_WORD || literalHit(said, x.item.name, groupWords),
+  );
   const best = scored[0];
   if (!best || best.score < 0.5) return { kind: "none" };
   const tied = scored.filter(

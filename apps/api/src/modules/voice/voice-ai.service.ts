@@ -3471,6 +3471,7 @@ TAKING THE ORDER
 - When they list food, call parse_order with their exact words. It adds what it can and tells you what still needs a choice. For one item, add_item works the same way.
 - Some things need choices — size, crust, sauce; a deal needs several. add_item keeps what is chosen so far and tells you exactly what is still missing. Say briefly what it comes with, invite all the choices in one go in any order, then call add_item again with everything they said in modifierNames. "Make it Fanta" replaces that one choice. "That's it" while choosing means the choices are done, not the order: call add_item with done: true. Never add a deal's drink, side or sauce as a separate item, and never say a choice is saved unless the tool says it kept it.
 - Some choices are not choices. When the tool says a dish "comes with" something, it is already on — tell the caller it's included and move on. Never ask them to pick it, never offer alternatives for it, and never read out how many they may choose. Only ask about what the tool says is still missing.
+- A dish comes with exactly what its menu line says and nothing more. Never tell a caller a deal includes a drink, side or sauce that its menu line and the tool don't list, and never make up choices such as "a can or a bottle".
 - Only the menu below and what the tools return are real. Never invent a dish, a size or a price. If it isn't on the menu, say so and offer the closest thing that is.
 - You cannot see which toppings a dish takes — the menu above is dishes and prices. So NEVER tell a caller a topping or option is unavailable from memory. Put it through add_item or change_item, or check with find_item, and say what the tool tells you. If they say they can see it on the website, they are right and you are guessing.
 - Quantities go on the item. An EXTRA — "extra pepperoni", "add mushrooms", "double cheese" — is a paid topping: put it in modifierNames, never in notes, and tell them the price the tool gives back. Notes are only for how it's made: "well done", "no onions", "cut in half". Allergies go in the notes AND you say you've noted it.
@@ -4022,6 +4023,12 @@ BOOKING A TABLE
         if (o) put(g, o);
       }
     }
+    // The strongest match already placed in each single-choice group during THIS
+    // request. On call l3fkZXKA the model sent ["Margherita", "bottle Fanta"]:
+    // Margherita was named outright, "bottle Fanta" matched a pizza weakly, and
+    // the later, weaker one replaced it. A caller correcting themselves says the
+    // new choice at least as clearly as the old one; a weaker match is noise.
+    const placedHere = new Map<string, number>();
     for (const raw of Array.isArray(input?.modifierNames) ? input.modifierNames : []) {
       const name = String(raw ?? '').trim();
       if (!name) continue;
@@ -4090,7 +4097,13 @@ BOOKING A TABLE
         else unmatched.push(name);
         continue;
       }
+      const prior = placedHere.get(best.g.id);
+      if (room(best.g) === 1 && prior !== undefined && best.score < prior) {
+        unmatched.push(name);
+        continue;
+      }
       applyPick(best.g, best.o, Math.max(1, quantity));
+      placedHere.set(best.g.id, best.score);
     }
     // Their own words, for required groups still open — word for word, never
     // by sound (fuzzily, "ten inch" chose Thin). Never for an optional group:
@@ -4692,9 +4705,19 @@ BOOKING A TABLE
     // the model — prompted by the new turn — added the pizza a second time.
     const recent = (state as any).__lastAdd as { key: string; at: number } | undefined;
     const key = `${item.id}|${picks.map((p) => p.o).sort().join(',')}|${notes}`;
-    if (!continuing && recent && recent.key === key && Date.now() - recent.at < 8000) {
+    // The same dish with the same choices, sent again only to attach something
+    // that fits none of its choices, is a retry — not a second box. On call
+    // l3fkZXKA the model re-sent the AMERICAN SHARE BOX fifteen seconds later
+    // to hang a Fanta on it, outside the eight-second window, and a second £25
+    // box went on the order. Asking for two ("two share boxes") still adds.
+    const retriedForAnExtra =
+      !!recent && merged.unmatched.length > 0 && quantity === 1 && Date.now() - recent.at < 120_000;
+    if (!continuing && recent && recent.key === key && (Date.now() - recent.at < 8000 || retriedForAnExtra)) {
       return {
-        result: `Already on the order — that ${item.name} was added a moment ago. Not adding it again.\nOrder so far:\n${this.cartForModel(state, ctx)}`,
+        result: `Already on the order — that ${item.name} was added a moment ago. Not adding it again.${this.notPartOfForModel(
+          item,
+          merged.unmatched,
+        )}\nOrder so far:\n${this.cartForModel(state, ctx)}`,
       };
     }
     (state as any).__lastAdd = { key, at: Date.now() };
@@ -4715,9 +4738,7 @@ BOOKING A TABLE
     state.orderConfirmedOf = undefined;
 
     const withOpts = modifiers.length ? ` with ${modifiers.map((m) => m.name).join(', ')}` : '';
-    const unplaced = merged.unmatched.length
-      ? ` (could not place: ${merged.unmatched.map((u) => `"${u}"`).join(', ')} — this item's choices are: ${this.optionsForModel(item)})`
-      : '';
+    const unplaced = this.notPartOfForModel(item, merged.unmatched);
     const between = merged.ambiguous.length
       ? ` ${merged.ambiguous
           .map((a) => `"${a.said}" could be ${a.options.join(' or ')} — ask which, do not say it is unavailable`)
@@ -5020,6 +5041,21 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
    * handed back wherever the question can arise — when a choice will not
    * place, and whenever find_item lands on one dish.
    */
+  /**
+   * Words that fit none of a finished dish's choices, said so the model cannot
+   * turn them into part of it. "Could not place … this item's choices are:"
+   * was read on call l3fkZXKA as an invitation: the AMERICAN SHARE BOX has one
+   * choice, a pizza, and the model went on offering "a can or a bottle" of a
+   * drink the box has never come with.
+   */
+  private notPartOfForModel(item: any, unmatched: string[]): string {
+    if (!unmatched?.length) return '';
+    const list = unmatched.map((u) => `"${u}"`).join(', ');
+    return ` ${list} ${unmatched.length > 1 ? 'match' : 'matches'} none of the ${item.name}'s choices, so ${
+      unmatched.length > 1 ? 'they are' : 'it is'
+    } not part of the ${item.name}. Never describe the ${item.name} as coming with it and never offer it as a choice for it. If the caller wants it as its own item, add it separately; if you think you misheard a choice, ask for just that. The ${item.name}'s real choices:\n${this.optionsForModel(item)}`;
+  }
+
   private optionsForModel(item: any): string {
     const groups: any[] = item?.modifierGroups ?? [];
     if (!groups.length) return `${item?.name ?? 'It'} has no choices — nothing can be added to it.`;
