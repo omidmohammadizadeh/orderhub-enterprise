@@ -11,9 +11,25 @@
 // say "I am not sure between these two" — which is a far better thing to hand
 // a model than a menu and a mangled string.
 
-/** Letters only, lowercased. */
+/**
+ * Letters only, lowercased.
+ *
+ * A fraction is a word first. Pizza Uno's burgers come in "1/4" and "1/2";
+ * stripped to letters those were "1 4" and "1 2", which no caller says — they
+ * say "a quarter", "half pounder" — so every burger on the menu stalled on its
+ * size. Both sides go through here, so the menu's "1/4 CHEESE BURGER" and the
+ * caller's "quarter cheese burger" meet as the same words.
+ */
 const plain = (s: string): string =>
-  String(s ?? "").toLowerCase().replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+  String(s ?? "")
+    .toLowerCase()
+    .replace(/(^|[^0-9])1\s*\/\s*4(?![0-9])/g, "$1 quarter ")
+    .replace(/(^|[^0-9])1\s*\/\s*2(?![0-9])/g, "$1 half ")
+    .replace(/(^|[^0-9])3\s*\/\s*4(?![0-9])/g, "$1 three quarter ")
+    .replace(/\b(quarter|half)[\s-]*(?:pounders?|pounds?|lbs?)\b/g, "$1")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 
 /**
  * A crude phonetic fold, aimed squarely at how speech engines get food wrong.
@@ -331,7 +347,11 @@ export function splitQuantity(said: string): { quantity: number; rest: string } 
   const fold = soundFold(first);
   for (const [word, n] of Object.entries(QUANTITY_WORDS)) {
     if (unitNext) break;
-    if (first === word || soundFold(word) === fold) {
+    // By sound only for a word long enough to carry one. "Drie" is three;
+    // "Dr" folds to the same two letters and is a Dr Pepper — read as a
+    // quantity, MEAL DEAL 4's drink became three of "pepper", and that was a
+    // pepperoni pizza.
+    if (first === word || (first.length >= 3 && soundFold(word) === fold)) {
       // "a" and "an" are articles as often as they are quantities, so they
       // only count when something follows them.
       if (tokens.length === 1) break;
@@ -693,7 +713,10 @@ export type OptionMatch<T> =
  * is untouched.
  */
 export function dropSizeUnits(text: string): string {
-  return String(text ?? "").replace(/(\d)\s*(?:inch(?:es)?|in|")\b/gi, "$1");
+  // The space keeps a glued name apart: Pizza Uno's '10"KEBAB PIZZA' became
+  // "10KEBAB PIZZA", a word nobody says, and "kebab pizza" in the 10" list
+  // went to PAZZA instead.
+  return String(text ?? "").replace(/(\d)\s*(?:inch(?:es)?|in|")\b/gi, "$1 ");
 }
 
 /** Words that ask for a thing rather than name it. */
@@ -724,9 +747,15 @@ function namedOutright<T extends { name: string }>(
     words(t).filter((w) => !groupWords.has(w) && !CONTAINER.has(w)).join(" ");
   const singularly = (t: string) => words(t).map(singular).join(" ");
 
-  const full = plain(dropSizeUnits(said));
-  const bare = ADDITIVE.test(said) ? plain(dropSizeUnits(String(said).replace(ADDITIVE, ""))) : "";
-  const heard = [full, bare].filter(Boolean);
+  // As said first, then with its number words as digits. "Twelve inch
+  // pepperoni" needs the digits to meet 12"; FOUR MEAT needs the word — turned
+  // into "4 meat" first, it named nothing outright and the caller was asked
+  // to choose between five meat pizzas.
+  const heard: string[] = [];
+  for (const form of new Set([String(said ?? ""), spokenNumbers(said)])) {
+    heard.push(plain(dropSizeUnits(form)));
+    if (ADDITIVE.test(form)) heard.push(plain(dropSizeUnits(form.replace(ADDITIVE, ""))));
+  }
 
   for (const phrase of heard) {
     for (const shape of [(o: T) => plain(o.name), (o: T) => shorten(o.name)]) {
@@ -827,7 +856,7 @@ export function matchOptionResult<T extends { name: string }>(
 ): OptionMatch<T> {
   const groupWords = new Set(plain(groupName).split(" ").filter(Boolean));
   options = uniqueByName(options);
-  const outright = namedOutright(spokenNumbers(said), options, groupWords);
+  const outright = namedOutright(said, options, groupWords);
   if (outright) return outright;
   const fuzzy = matchOption(said, options, groupName, { skipExact: true });
   if (fuzzy) return { kind: "matched", item: fuzzy.item, score: fuzzy.score };
@@ -846,7 +875,7 @@ export function matchOption<T extends { name: string }>(
     // An option the caller named outright is the answer, whatever else the
     // phonetic fold reached. Call DPD-n9tw: "+peppers" tied with the
     // "+pepperoni" he asked for, and a tie reads as "we don't have it".
-    const outright = namedOutright(spokenNumbers(said), options, groupWords);
+    const outright = namedOutright(said, options, groupWords);
     if (outright?.kind === "matched") return { item: outright.item, score: outright.score };
     if (outright?.kind === "ambiguous") return null;
   }
@@ -1122,9 +1151,111 @@ export function segmentItems<T extends { name: string; categoryName?: string }>(
  * be there, plurals aside.
  */
 export function saysOption(said: string, optionName: string): boolean {
-  const have = new Set(plain(said).split(" ").filter(Boolean).map(singular));
+  const have = new Set(plain(sizesAsDigits(said)).split(" ").filter(Boolean).map(singular));
   const want = plain(optionName).split(" ").filter((t) => t && !NOISE.has(t)).map(singular);
   return want.length > 0 && want.every((t) => have.has(t));
+}
+
+/**
+ * "Twelve inch" is 12" — but only with its unit: "ten torino" is ten pizzas,
+ * not a ten-inch one.
+ */
+function sizesAsDigits(said: string): string {
+  return String(said ?? "").replace(/\b([a-z]+)(\s*(?:inch(?:es)?\b|"))/gi, (whole, word: string, unit: string) => {
+    const n = NUMBER_WORDS[word.toLowerCase()];
+    return n === undefined ? whole : `${n}${unit}`;
+  });
+}
+
+/**
+ * The option said, beyond what the dish's own name already says.
+ *
+ * "Chilli burger" names a burger; it does not answer the burger's sauce
+ * question, even though CHILLI is one of the sauces. Read word for word, the
+ * dish's name answered its own choices: the GARLIC BREAD SPECIAL went to the
+ * kitchen with garlic sauce, the CHIPS WRAP with chips, and "chicken nuggets
+ * and chips with salad" came out with chips, because chips was matched first
+ * and filled the group before salad was looked at. A word counts towards an
+ * option only when the caller said it more times than the dish name holds it:
+ * "chilli burger with chilli sauce" is chilli sauce, "donner kebab box" is
+ * still the donner kebab.
+ */
+export function saysOptionBeyond(said: string, optionName: string, dishName: string): boolean {
+  if (!saysOption(said, optionName)) return false;
+  const counts = (text: string) => {
+    const out = new Map<string, number>();
+    for (const t of plain(dropSizeUnits(text)).split(" ")) {
+      if (!t || NOISE.has(t)) continue;
+      const k = singular(t);
+      out.set(k, (out.get(k) ?? 0) + 1);
+    }
+    return out;
+  };
+  const heard = counts(sizesAsDigits(said));
+  const dish = counts(dishName);
+  return plain(dropSizeUnits(optionName))
+    .split(" ")
+    .filter((t) => t && !NOISE.has(t))
+    .map(singular)
+    .some((t) => (heard.get(t) ?? 0) > (dish.get(t) ?? 0));
+}
+
+/**
+ * Every word of the option's own name was said — its size and its container
+ * aside. "dr pepper" says CAN DR PEPPER; it does not say 12" PEPPERONI, however
+ * well "pepper" starts "pepperoni". Across groups that is the difference
+ * between the drink asked for and a pizza nobody wanted: on MEAL DEAL 4 both
+ * scored a perfect 1 and the pizza group, being open, took it.
+ */
+export function namesEveryWordOf(said: string, optionName: string): boolean {
+  const split = (t: string) =>
+    plain(dropSizeUnits(t))
+      .replace(/(\d)([a-z])/g, "$1 $2")
+      .replace(/([a-z])(\d)/g, "$1 $2")
+      .split(" ")
+      .filter((w) => w && !NOISE.has(w) && !CONTAINER.has(w) && !/^\d+$/.test(w))
+      .map(singular);
+  // Number words stay words on both sides: FOUR MEAT is "four meat".
+  const have = new Set(split(said));
+  const want = split(optionName);
+  return want.length > 0 && want.every((w) => have.has(w));
+}
+
+/**
+ * splitQuantity, knowing the names the answer is chosen from.
+ *
+ * A leading word that is part of an option's own name is that name, not a
+ * count. On Pizza Uno's deals "four meat" was four of "meat", "tuna and sweet
+ * corn" was ten of "sweet corn" (tuna folds to ten), and "dr pepper" was three
+ * of "pepper" — each then matched the wrong thing or nothing. "Two pepperoni"
+ * is still two: "two" is not in PEPPERONI.
+ */
+export function splitQuantityAgainst(said: string, names: string[]): { quantity: number; rest: string } {
+  const split = splitQuantity(said);
+  if (split.quantity === 1) return split;
+  const first = plain(said).split(" ").filter(Boolean)[0] ?? "";
+  const own = names.some((n) => plain(dropSizeUnits(n)).split(" ").includes(first) && namesEveryWordOf(said, n));
+  return own ? { quantity: 1, rest: plain(said) } : split;
+}
+
+/** Sizes written with their unit: 12" or "12 inch". A bare number is not a size. */
+function sizesIn(text: string): number[] {
+  return [...String(text ?? "").matchAll(/(\d+)\s*(?:inch(?:es)?\b|in\b|"|”|″|''|cm\b)/gi)].map((m) => Number(m[1]));
+}
+
+/**
+ * The caller named a size and this option is a different one.
+ *
+ * The MEGA BOX has a 10" pizza and a 12" pizza, and the size is the only thing
+ * that tells the two lists apart. "12 inch kebab pizza" scored a perfect 1 in
+ * both — the 12" list by name, the 10" list through "pazza" — and the 10"
+ * group, listed first, took it, leaving the caller asked for a 12" pizza they
+ * had just chosen.
+ */
+export function sizeClash(said: string, optionText: string): boolean {
+  const heard = sizesIn(spokenNumbers(said));
+  const here = sizesIn(optionText);
+  return heard.length > 0 && here.length > 0 && !heard.some((n) => here.includes(n));
 }
 
 /** Do these words, once the noise at the end is ignored, end on a size? */

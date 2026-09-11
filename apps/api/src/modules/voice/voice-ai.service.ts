@@ -67,6 +67,10 @@ import {
   needed,
   includedGroup,
   saysOption,
+  saysOptionBeyond,
+  namesEveryWordOf,
+  sizeClash,
+  splitQuantityAgainst,
 } from './voice-menu-match';
 import { chargeableInNote } from './topping-note';
 import { isCurrentlyOpen } from '../../common/opening-hours.util';
@@ -3284,6 +3288,8 @@ ${menu || '(no items available — apologise and transfer)'}`;
   /** A size reads badly as a symbol: 12" is said "12 inch". */
   private spokenSize(name?: string | null): string {
     return String(name ?? '')
+      .replace(/(^|[^0-9])1\/4(?![0-9])/g, '$1quarter')
+      .replace(/(^|[^0-9])1\/2(?![0-9])/g, '$1half')
       .replace(/"/g, ' inch')
       .replace(/\s+/g, ' ')
       .trim();
@@ -4033,7 +4039,10 @@ BOOKING A TABLE
       const name = String(raw ?? '').trim();
       if (!name) continue;
       // "two pepperoni" in a group that takes two is two picks of it.
-      const split = splitQuantity(name);
+      const split = splitQuantityAgainst(
+        name,
+        groups.flatMap((g: any) => g.options.map((o: any) => String(o.name))),
+      );
       // "Double pepperoni" is two of it — unless the menu sells a "DOUBLE
       // CHEESE" by that name, which is tried first below.
       const multiple = /^(double|twice)\s+(.+)$/i.exec(name)
@@ -4060,7 +4069,7 @@ BOOKING A TABLE
         .toLowerCase()
         .split(/[^a-z0-9]+/)
         .filter((w) => w && !['a', 'an', 'the', 'of', 'and', 'with', 'please', 'can', 'some'].includes(w));
-      type Fit = { g: any; o: any; score: number; covered: boolean; open: boolean; named: boolean };
+      type Fit = { g: any; o: any; score: number; covered: boolean; open: boolean; named: boolean; clash: boolean; exact: boolean };
       const fits: Fit[] = [];
       const tied: string[] = [];
       for (const g of groups) {
@@ -4079,11 +4088,19 @@ BOOKING A TABLE
           covered: words.length > 0 && words.every(inOption),
           open: inGroup(g).length < Math.max(needed(g), mustChoose(g) ? 1 : 0),
           named: words.some((w) => scoreItem(w, g.name) > 0),
+          clash: sizeClash(name, `${hit.item.name} ${g.name}`),
+          exact: namesEveryWordOf(want, String(hit.item.name)),
         });
       }
+      // A size they said that the group is not comes last, whatever else
+      // fits; an option whose every word they said beats one the fuzzy score
+      // merely reached. Both before "open": an empty slot is not a reason to
+      // put a 12" pizza in the 10" list, or a Dr Pepper on a pizza.
       fits.sort(
         (a, b) =>
+          Number(a.clash) - Number(b.clash) ||
           Number(b.covered) - Number(a.covered) ||
+          Number(b.exact) - Number(a.exact) ||
           Number(b.open) - Number(a.open) ||
           b.score - a.score ||
           Number(b.named) - Number(a.named),
@@ -4107,13 +4124,14 @@ BOOKING A TABLE
     }
     // Their own words, for required groups still open — word for word, never
     // by sound (fuzzily, "ten inch" chose Thin). Never for an optional group:
-    // "pepperoni" must not add a paid pepperoni topping.
+    // "pepperoni" must not add a paid pepperoni topping. And never out of the
+    // dish's own name: "chilli burger" is not a chilli sauce.
     const said = String(input?.choicesFrom ?? input?.said ?? '');
     if (said) {
       for (const g of groups) {
         if (!mustChoose(g) || inGroup(g).length >= needed(g)) continue;
         const named = g.options
-          .filter((o: any) => saysOption(said, String(o.name)))
+          .filter((o: any) => saysOptionBeyond(said, String(o.name), String(item.name)))
           .sort((a: any, b: any) => String(b.name).length - String(a.name).length);
         if (named.length) put(g, named[0]);
       }
@@ -5332,6 +5350,8 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
   private spokenName(raw: unknown): string {
     return String(raw ?? '')
       .replace(/^\s*\+\s*/, '')
+      .replace(/(^|[^0-9])1\/4(?![0-9])/g, '$1quarter')
+      .replace(/(^|[^0-9])1\/2(?![0-9])/g, '$1half')
       .replace(/"/g, ' inch ')
       .replace(/\s+/g, ' ')
       .replace(/\(\s+/g, '(')
