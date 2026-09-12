@@ -19,6 +19,43 @@ const TZ = "Europe/London";
 // A Friday evening, comfortably inside every window.
 const FRIDAY_7PM = "2026-09-11T19:00";
 
+// The clock is pinned, because these fixtures name a real day.
+//
+// "Friday 11 September at 7pm" is in the assertions, and the code checks it
+// against the real clock. That was fine until 11 September passed: from the
+// next morning every one of these tests failed with "has already gone" — a
+// whole feature red overnight without a line of it changing. Frozen to the
+// Thursday before, so the Friday booking and the Saturday it gets moved to are
+// both still ahead.
+//
+// Only Date is faked. Two tests here measure from now on purpose — "too soon"
+// is now + 10 minutes, "past the end of the diary" is now + 400 days — and
+// faking the timers themselves would hang the awaits instead.
+beforeAll(() => {
+  jest.useFakeTimers({
+    now: new Date("2026-09-10T09:00:00Z"),
+    doNotFake: [
+      "setTimeout",
+      "clearTimeout",
+      "setInterval",
+      "clearInterval",
+      "setImmediate",
+      "clearImmediate",
+      "nextTick",
+      "queueMicrotask",
+      "hrtime",
+      "performance",
+      "requestAnimationFrame",
+      "cancelAnimationFrame",
+      "requestIdleCallback",
+      "cancelIdleCallback",
+    ],
+  });
+});
+afterAll(() => {
+  jest.useRealTimers();
+});
+
 const ctx = (over: any = {}): any => ({
   tenantId: "t1",
   locationId: "loc1",
