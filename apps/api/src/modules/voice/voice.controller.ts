@@ -162,8 +162,14 @@ export class VoiceController {
       abandoned: answered.filter((c: any) => c.outcome === "ABANDONED").length,
       spendMinor: calls.reduce((s: number, c: any) => s + (c.billedMinor ?? 0), 0),
       // Calls we turned away. Any number here other than zero is something the
-      // operator needs to see and act on.
-      notAnswered: calls.filter((c: any) => c.status === "NOT_ANSWERED").length,
+      // operator needs to see and act on — which is why a shop using the
+      // number for caller ID alone is counted separately: that line never
+      // answers ON PURPOSE, and counting it here would show a wall of turned
+      // away calls on a shop where nothing is wrong.
+      notAnswered: calls.filter(
+        (c: any) => c.status === "NOT_ANSWERED" && c.notAnsweredReason !== "CALLER_ID_ONLY",
+      ).length,
+      callerIdOnly: calls.filter((c: any) => c.notAnsweredReason === "CALLER_ID_ONLY").length,
       notAnsweredNoFunds: calls.filter((c: any) => c.notAnsweredReason === "NO_FUNDS").length,
     };
   }

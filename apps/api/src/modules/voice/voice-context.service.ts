@@ -27,6 +27,9 @@ export interface VoiceContext extends WaMenuContext {
   voiceEngine?: 'RELAY' | 'REALTIME' | 'CONVERSATION';
   /** Operator kill switch — the AI answers only when this is on. */
   enabled: boolean;
+  /** Put the caller on the tills, whether or not the AI picks up. A shop that
+   *  wants nothing but the popup keeps `enabled` off and this on. */
+  callerIdOnly: boolean;
   /** Answer without charging. For our own testing: a £1 debit per attempt
    *  makes tuning the conversation cost real money, and an empty wallet
    *  would stop the phone answering mid-session.
@@ -167,6 +170,27 @@ export class VoiceContextService {
     return this.db().location.findUnique({ where: { id: hit.id } });
   }
 
+  /**
+   * Just enough to show a caller on the tills: whose shop, and is the popup on.
+   *
+   * Deliberately NOT `resolve`. That one needs a published POS menu and
+   * refuses without one, which is right for a line that has to quote prices
+   * and wrong here — a shop using the number for caller ID alone may have no
+   * menu with us at all, and the popup is the only thing they bought.
+   */
+  async callerIdTarget(
+    dialled: string,
+  ): Promise<{ tenantId: string; locationId: string; callerIdOnly: boolean } | null> {
+    const location = await this.locationForNumber(dialled);
+    if (!location) return null;
+    const settings = (location.settings ?? {}) as any;
+    return {
+      tenantId: String(location.tenantId),
+      locationId: String(location.id),
+      callerIdOnly: settings.voiceCallerIdOnly === true,
+    };
+  }
+
   /** Full context for a call: menu, hours, zones, transfer target, kill switch. */
   async resolve(dialled: string): Promise<VoiceContext | null> {
     const location = await this.locationForNumber(dialled);
@@ -235,6 +259,9 @@ export class VoiceContextService {
       // Default OFF. An AI that starts answering a restaurant's phone because
       // a number got assigned is not a feature.
       enabled: settings.voiceAiEnabled === true,
+      // Also default OFF, and independent of the AI: a shop can take the
+      // caller popup without ever letting the line answer.
+      callerIdOnly: settings.voiceCallerIdOnly === true,
       // Which engine answers this shop's phone. RELAY is the chained pipeline
       // that has been in service all along — Telnyx transcribes, our code and
       // Claude decide, Telnyx speaks. REALTIME hands the audio itself to a

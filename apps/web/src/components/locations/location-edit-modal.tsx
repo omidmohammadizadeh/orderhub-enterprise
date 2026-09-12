@@ -273,6 +273,12 @@ function GeneralTab({
   const [voiceBrandId, setVoiceBrandId] = useState<string>(
     (location as any)?.settings?.voiceBrandId ?? '',
   );
+  // Caller ID without the AI. The shop's provider rings this number at the
+  // same time as their own line; we never answer, so nothing is billed, and
+  // the ringing alone carries the caller's number to the tills.
+  const [voiceCallerIdOnly, setVoiceCallerIdOnly] = useState<boolean>(
+    (location as any)?.settings?.voiceCallerIdOnly === true,
+  );
 
   // Kiosk payment options. Default ON: every kiosk before this setting
   // existed took both, and a silent default of false would have switched
@@ -411,6 +417,7 @@ function GeneralTab({
           voiceEngine: voiceConversation ? 'CONVERSATION' : 'REALTIME',
           voiceSmsReceipt: voiceSmsReceipt === true,
           voiceBrandId: voiceBrandId || null,
+          voiceCallerIdOnly: voiceCallerIdOnly === true,
           kiosk: {
             acceptCash: kioskAcceptCash,
             acceptCard: kioskAcceptCard,
@@ -1094,6 +1101,43 @@ function GeneralTab({
             </span>
           </span>
         </label>
+        <label className="flex cursor-pointer items-start gap-2 rounded-md bg-zinc-50 p-2.5">
+          <input
+            type="checkbox"
+            checked={voiceCallerIdOnly}
+            onChange={(e) => setVoiceCallerIdOnly(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-zinc-300"
+          />
+          <span className="text-xs text-zinc-700">
+            <strong>Show callers on the till, without answering</strong>
+            <span className="mt-0.5 block text-[11px] text-zinc-500">
+              Shows who&apos;s ringing on every till in this shop, with their name and last
+              address if they&apos;ve ordered before. The number never picks up, so there&apos;s
+              nothing to pay per call. Works with the AI on or off.
+            </span>
+          </span>
+        </label>
+        {voiceCallerIdOnly ? (
+          <div className="rounded-md border border-sky-200 bg-sky-50 p-2.5 text-[11px] text-sky-900">
+            <strong>What to ask the shop&apos;s phone provider for</strong>
+            <p className="mt-1">
+              &ldquo;When our number rings, please also ring{' '}
+              <strong>{voiceNumber.trim() || 'our AI phone number'}</strong> at the same time
+              (simultaneous ring), and make sure the caller&apos;s own number is passed to it.&rdquo;
+            </p>
+            <p className="mt-1">
+              Staff still answer on the shop&apos;s own phone as usual. Two things to check with the
+              provider first: that they can ring a second, outside number at the same time — many
+              old landlines can&apos;t — and that the customer&apos;s number is what arrives, not
+              the shop&apos;s own. If the till shows the shop&apos;s number on every call, that
+              second setting is the reason.
+            </p>
+            <p className="mt-1">
+              If the provider can send a webhook on an incoming call instead, use that — it&apos;s
+              instant and needs no phone number at all. Ask us for the address to give them.
+            </p>
+          </div>
+        ) : null}
       </div>
 
       <Field label="Status">

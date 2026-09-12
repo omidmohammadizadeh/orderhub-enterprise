@@ -3,6 +3,8 @@ import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { WalletService } from '../wallet/wallet.service';
 import { VoiceContextService, normaliseNumber } from './voice-context.service';
 import { AddressLookupService } from '../address-lookup/address-lookup.service';
+import { CustomersService } from '../customers/customers.service';
+import { SocketService } from '../../infrastructure/socket/socket.service';
 import {
   VoiceAiService,
   coerceState,
@@ -76,6 +78,10 @@ export class VoiceService {
     private readonly contexts: VoiceContextService,
     private readonly ai: VoiceAiService,
     private readonly addresses: AddressLookupService,
+    // The caller popup: same lookup and same event the Comet reader and the
+    // VoIP webhook use, so a till cannot tell which of the three rang it.
+    private readonly customers: CustomersService,
+    private readonly socket: SocketService,
   ) {}
 
   private db(): any {
@@ -104,6 +110,12 @@ export class VoiceService {
     greeting?: string;
     reason?: string;
   }> {
+    // The tills first, and before anything that can refuse. A shop using this
+    // number for caller ID alone may have no menu published, no credit and the
+    // AI switched off — every one of which stops the call below this line, and
+    // none of which should stop the popup.
+    await this.ringTills(args.to, args.from);
+
     const ctx = await this.contexts.resolve(args.to);
     if (!ctx) {
       this.logger.warn(`Inbound call to unmapped number ${args.to} — not answering`);
@@ -129,8 +141,12 @@ export class VoiceService {
     // Operator kill switch. Off by default — an AI that starts answering a
     // restaurant's phone because a number got assigned is not a feature.
     if (!ctx.enabled) {
-      await this.markNotAnswered(call.id, 'DISABLED');
-      return { answer: false, callId: call.id, reason: 'DISABLED' };
+      // Two different silences. A shop that only wanted the popup is working
+      // exactly as bought, and must not appear on the dashboard among the
+      // calls we turned away.
+      const why = ctx.callerIdOnly ? 'CALLER_ID_ONLY' : 'DISABLED';
+      await this.markNotAnswered(call.id, why);
+      return { answer: false, callId: call.id, reason: why };
     }
 
     // The money gate. Tries the saved card inline before refusing, so a shop
@@ -1712,6 +1728,41 @@ export class VoiceService {
       // failure — an over-charge gets noticed and refunded, an under-charge
       // never does.
       return false;
+    }
+  }
+
+  /**
+   * Show the caller on every till in the shop.
+   *
+   * For shops that want the popup without the AI: their provider rings our
+   * number at the same time as their own, we never pick up, and the ringing
+   * alone is what carries the number. The call keeps ringing on their own line
+   * throughout — we answer nothing, so nothing is billed.
+   *
+   * Never allowed to break a call. A popup that throws must not stop the AI
+   * answering, so everything here is inside the catch.
+   */
+  private async ringTills(dialled: string, from?: string | null): Promise<void> {
+    if (!from) return; // withheld number: nothing to show
+    try {
+      const target = await this.contexts.callerIdTarget(dialled);
+      if (!target?.callerIdOnly) return;
+      const match = await this.customers.lookupByPhone(target.tenantId, from);
+      this.socket.emitToLocation(target.locationId, 'callerid:ring', {
+        locationId: target.locationId,
+        phone: from,
+        at: new Date().toISOString(),
+        match,
+      });
+      // Masked: this line is for proving the popup fired, and the whole number
+      // in a log is a customer's number in a log.
+      this.logger.log(
+        `caller ID → location ${target.locationId}: …${String(from).slice(-4)}${
+          match ? ' (known customer)' : ''
+        }`,
+      );
+    } catch (e: any) {
+      this.logger.warn(`caller ID popup failed for ${dialled}: ${e?.message ?? e}`);
     }
   }
 
