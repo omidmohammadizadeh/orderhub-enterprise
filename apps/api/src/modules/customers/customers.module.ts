@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { CustomersController, PromoCodesController } from './customers.controller';
 import { CustomersService } from './customers.service';
+import { CallerIdSetupService } from './caller-id-setup.service';
 import { SocketModule } from '../../infrastructure/socket/socket.module';
 
 @Module({
@@ -8,7 +9,9 @@ import { SocketModule } from '../../infrastructure/socket/socket.module';
   // every POS tablet in the location's room.
   imports: [SocketModule],
   controllers: [CustomersController, PromoCodesController],
-  providers: [CustomersService],
-  exports: [CustomersService],
+  providers: [CustomersService, CallerIdSetupService],
+  // CallerIdSetupService is exported so the voice module can feed the same
+  // "is it arriving?" light when a caller reaches us by simultaneous ring.
+  exports: [CustomersService, CallerIdSetupService],
 })
 export class CustomersModule {}

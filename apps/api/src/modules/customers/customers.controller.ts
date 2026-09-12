@@ -26,7 +26,20 @@ import { Public } from "../../common/decorators/public.decorator";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 import { SocketService } from "../../infrastructure/socket/socket.service";
 import { extractVoipPhone } from "./voip-phone.util";
+import { CallerIdSetupService } from "./caller-id-setup.service";
 import { ForbiddenException, BadRequestException, NotFoundException, Headers } from "@nestjs/common";
+
+// Who may see and mint a shop's caller-ID webhook token: the same people who
+// may change the shop's settings at all. Both naming generations listed —
+// RolesGuard matches exactly, so leaving out OWNER / DARK_KITCHEN_MANAGER
+// would hide the panel from the very roles the Team Roles UI creates.
+const CALLER_ID_SETUP_ROLES = [
+  "PLATFORM_ADMIN",
+  "TENANT_OWNER",
+  "OWNER",
+  "MANAGER",
+  "DARK_KITCHEN_MANAGER",
+] as const;
 
 @ApiTags("customers")
 @ApiBearerAuth()
@@ -37,6 +50,7 @@ export class CustomersController {
   constructor(
     private readonly customers: CustomersService,
     private readonly socket: SocketService,
+    private readonly callerIdSetup: CallerIdSetupService,
   ) {}
 
   // ── Caller-ID ─────────────────────────────────────────────────────────
@@ -50,7 +64,7 @@ export class CustomersController {
   })
   async callerIdRing(
     @CurrentUser() user: AuthenticatedUser,
-    @Body() body: { locationId: string; phone: string },
+    @Body() body: { locationId: string; phone: string; test?: boolean },
   ) {
     const match = await this.customers.lookupByPhone(
       user.tenantId,
@@ -63,6 +77,12 @@ export class CustomersController {
       match,
     };
     this.socket.emitToLocation(body.locationId, "callerid:ring", payload);
+    this.callerIdSetup.record({
+      locationId: body.locationId,
+      phone: body.phone,
+      source: body.test ? "test" : "comet",
+      matched: !!match,
+    });
     return payload;
   }
 
@@ -83,14 +103,36 @@ export class CustomersController {
     @Query("key") key?: string,
     @Headers("x-voip-key") headerKey?: string,
   ) {
-    const expected = process.env.VOIP_WEBHOOK_KEY;
-    if (!expected) throw new ForbiddenException("VoIP caller-ID is not enabled");
-    if (key !== expected && headerKey !== expected) {
+    // Per-shop token first, platform-wide key second. A shop that has minted
+    // its own token can be posted to only by whoever holds THAT token, which
+    // is the point: the shared key is one secret across every shop on the
+    // platform, so anyone holding it could ring another shop's tills.
+    const auth = await this.callerIdSetup.authorise(locationId, headerKey ?? key);
+    if (!auth.ok) {
+      // Worth recording: a provider posting with the wrong key looks exactly
+      // like a provider not posting at all from the shop's side, and this is
+      // the difference between "chase your provider" and "re-copy the key".
+      if (auth.locationExists) {
+        this.callerIdSetup.record({
+          locationId,
+          phone: extractVoipPhone(body) ?? "",
+          source: "webhook",
+          rejected: headerKey || key ? "wrong key" : "no key sent",
+        });
+      }
       throw new ForbiddenException("Bad key");
     }
 
     const phone = extractVoipPhone(body);
-    if (!phone) throw new BadRequestException("No caller number in payload");
+    if (!phone) {
+      this.callerIdSetup.record({
+        locationId,
+        phone: "",
+        source: "webhook",
+        rejected: "no caller number in the payload",
+      });
+      throw new BadRequestException("No caller number in payload");
+    }
 
     const tenantId = await this.customers.tenantForLocation(locationId);
     if (!tenantId) throw new NotFoundException("Unknown location");
@@ -98,6 +140,13 @@ export class CustomersController {
     const match = await this.customers.lookupByPhone(tenantId, phone);
     const payload = { locationId, phone, at: new Date().toISOString(), match };
     this.socket.emitToLocation(locationId, "callerid:ring", payload);
+    this.callerIdSetup.record({
+      locationId,
+      phone,
+      source: "webhook",
+      matched: !!match,
+      ownNumbers: auth.ownNumbers,
+    });
     // What number actually reached the tills, and how long it was.
     //
     // Without this the only way to check a caller-ID complaint was to read the
@@ -112,6 +161,44 @@ export class CustomersController {
         `)${match ? " matched a known customer" : " no match"}`,
     );
     return { ok: true };
+  }
+
+  // ── Handing the shop's phone provider its instructions ──────────────────
+  //
+  // How the secret is exposed, stated once:
+  //
+  //  - The platform-wide VOIP_WEBHOOK_KEY is NEVER returned to any client,
+  //    at any role. It stays an env var on the API and nothing else.
+  //  - Each shop gets its OWN token, returned only over an authenticated
+  //    request, only to the roles that may change that shop's settings, and
+  //    only for a location inside the caller's own tenant. It is fetched by
+  //    the browser at the moment the panel is opened rather than baked into
+  //    the page, so a cashier's dashboard HTML never contains it.
+  //  - A leaked shop token can do exactly one thing: put a caller card on
+  //    that one shop's tills. It reads nothing and writes nothing.
+  @Get("caller-id/setup/:locationId")
+  @Roles(...CALLER_ID_SETUP_ROLES)
+  @ApiOperation({
+    summary: "Webhook address, this shop's token, and whether rings are arriving",
+  })
+  getCallerIdSetup(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("locationId") locationId: string,
+  ) {
+    return this.callerIdSetup.getSetup(user.tenantId, locationId);
+  }
+
+  @Post("caller-id/setup/:locationId/token")
+  @Roles(...CALLER_ID_SETUP_ROLES)
+  @ApiOperation({
+    summary: "Mint this shop's webhook token (or replace one that has leaked)",
+  })
+  async callerIdMintToken(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("locationId") locationId: string,
+  ) {
+    const token = await this.callerIdSetup.rotateToken(user.tenantId, locationId);
+    return { token, url: this.callerIdSetup.webhookUrl(locationId) };
   }
 
   @Get()

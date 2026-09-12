@@ -1134,7 +1134,20 @@ function GeneralTab({
             </p>
             <p className="mt-1">
               If the provider can send a webhook on an incoming call instead, use that — it&apos;s
-              instant and needs no phone number at all. Ask us for the address to give them.
+              instant and needs no phone number at all.{' '}
+              {/* New tab on purpose: this sits inside an open edit modal, and
+                  navigating away would throw away whatever the operator has
+                  typed but not yet saved. */}
+              <a
+                href="/dashboard/caller-id"
+                target="_blank"
+                rel="noreferrer"
+                className="font-semibold underline underline-offset-2"
+              >
+                Caller ID → Phone provider
+              </a>{' '}
+              has this shop&apos;s address and key, and the exact wording to send them, ready to
+              copy.
             </p>
           </div>
         ) : null}
