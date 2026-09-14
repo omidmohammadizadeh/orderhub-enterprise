@@ -183,6 +183,30 @@ services:
         sync: false
       - key: DELIVEROO_CLIENT_SECRET
         sync: false
+      # ── Just Eat (JET Connect, formerly Flyt) ──
+      # Declared here so values set in the dashboard survive a Blueprint sync,
+      # like every other provider secret. All are optional: unset, the JET
+      # routes simply have no credentials and nothing else changes. The worker
+      # does no JET work, so they belong on the API service only.
+      #
+      # Issued BY Just Eat. The order key is needed only because we use the
+      # async 202-then-acknowledge flow, which we do. A brand over 6 locations
+      # gets its own menu key — that one goes on the brand's connection in the
+      # dashboard, not here.
+      - key: JET_MENU_API_KEY
+        sync: false
+      - key: JET_ORDER_API_KEY
+        sync: false
+      # OURS, issued TO Just Eat: the secret they sign inbound order webhooks
+      # with (X-JET-Connect-Hash), and the API key they present back to us.
+      # The lifecycle webhooks carry no HMAC, so the inbound key is their only
+      # authentication — set it before any store goes live.
+      - key: JET_WEBHOOK_SECRET
+        sync: false
+      - key: JET_INBOUND_API_KEY
+        sync: false
+      - key: JET_DEFAULT_COUNTRY
+        value: GB
       # ── JWT config ──
       - key: JWT_ACCESS_TTL
         value: 15m
