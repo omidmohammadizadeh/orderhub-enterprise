@@ -1,3 +1,4 @@
+import * as crypto from "crypto";
 // Phase AW-30 — per-location SaaS subscriptions billed by the platform.
 //
 // Architecture:
@@ -421,6 +422,155 @@ export class SubscriptionsService {
    * a subscription that's still `incomplete` — i.e. card never went
    * through the first time.
    */
+  // ── Shareable subscription link ───────────────────────────────────────────
+  //
+  // "Add card" opens Stripe Checkout in the operator's own browser, which is
+  // no help when the person holding the card is the client. The obvious
+  // shortcut — copy that Stripe URL and email it — fails quietly, because a
+  // Checkout session expires after 24 hours and the client opens it on Monday.
+  //
+  // So the link is ours and stable, and minting the Stripe session happens
+  // when the CLIENT opens it. It carries a signed, expiring token instead of a
+  // location id, so it can neither be guessed nor edited to point at another
+  // shop's subscription.
+
+  /** How long a shared link stays usable. Long enough to sit in an inbox over
+   *  a weekend, short enough that an old email can't be used months later. */
+  private static readonly SHARE_LINK_DAYS = 30;
+
+  private shareSecret(): string {
+    const secret =
+      this.config.get<string>("SUBSCRIPTION_LINK_SECRET") ||
+      this.config.get<string>("JWT_SECRET") ||
+      this.config.get<string>("STRIPE_SECRET_KEY") ||
+      "";
+    if (!secret) {
+      throw new BadRequestException(
+        "Sharing links isn't configured in this environment.",
+      );
+    }
+    return secret;
+  }
+
+  /** `<base64url(locationId.exp)>.<hmac>` — unguessable and self-expiring. */
+  private signShareToken(locationId: string, expiresAtUnix: number): string {
+    const payload = Buffer.from(`${locationId}.${expiresAtUnix}`).toString(
+      "base64url",
+    );
+    const sig = crypto
+      .createHmac("sha256", this.shareSecret())
+      .update(payload)
+      .digest("base64url");
+    return `${payload}.${sig}`;
+  }
+
+  private verifyShareToken(token: string): string {
+    const [payload, sig] = String(token ?? "").split(".");
+    if (!payload || !sig) {
+      throw new BadRequestException("That subscription link isn't valid.");
+    }
+    const expected = crypto
+      .createHmac("sha256", this.shareSecret())
+      .update(payload)
+      .digest("base64url");
+    // Constant-time: a length mismatch is itself an answer, so check it first.
+    const a = Buffer.from(sig);
+    const b = Buffer.from(expected);
+    if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
+      throw new BadRequestException("That subscription link isn't valid.");
+    }
+    const [locationId, exp] = Buffer.from(payload, "base64url")
+      .toString("utf8")
+      .split(".");
+    if (!locationId || !exp) {
+      throw new BadRequestException("That subscription link isn't valid.");
+    }
+    if (Number(exp) * 1000 < Date.now()) {
+      throw new BadRequestException(
+        "That subscription link has expired — ask for a new one.",
+      );
+    }
+    return locationId;
+  }
+
+  /** The link the operator copies and sends to their client. */
+  async subscriptionShareLink(
+    tenantId: string,
+    locationId: string,
+    userId?: string,
+    role?: string,
+  ): Promise<{ url: string; expiresAt: string }> {
+    await this.assertLocationAccess(tenantId, locationId, userId, role);
+    const sub = await (this.prisma as any).merchantSubscription.findFirst({
+      where: { tenantId, locationId },
+      include: { location: { select: { id: true, name: true } } },
+    });
+    if (!sub) throw new NotFoundException("Subscription not found");
+
+    const expiresAtUnix =
+      Math.floor(Date.now() / 1000) +
+      SubscriptionsService.SHARE_LINK_DAYS * 24 * 60 * 60;
+    const token = this.signShareToken(locationId, expiresAtUnix);
+    return {
+      url: `${this.webBase()}/subscribe/${token}`,
+      expiresAt: new Date(expiresAtUnix * 1000).toISOString(),
+    };
+  }
+
+  /**
+   * What the client's click lands on: a brand-new Stripe Checkout session.
+   *
+   * Public — the client has no login, which is the entire point — so the token
+   * is the only authority, and nothing here reveals anything about the shop
+   * beyond the payment page Stripe renders.
+   */
+  async checkoutFromShareToken(token: string): Promise<{ url: string }> {
+    const locationId = this.verifyShareToken(token);
+
+    const sub = await (this.prisma as any).merchantSubscription.findFirst({
+      where: { locationId },
+      include: { location: { select: { id: true, name: true } } },
+    });
+    if (!sub) throw new NotFoundException("Subscription not found");
+    if (sub.status === "active") {
+      throw new BadRequestException(
+        "This subscription is already set up — no card is needed.",
+      );
+    }
+    if (!this.stripe || !sub.stripeCustomerId || !sub.stripePriceId) {
+      throw new BadRequestException(
+        "This subscription isn't ready for payment yet.",
+      );
+    }
+
+    try {
+      const session = await this.stripe.checkout.sessions.create({
+        mode: "subscription",
+        customer: sub.stripeCustomerId,
+        line_items: [{ price: sub.stripePriceId, quantity: 1 }],
+        success_url: `${this.webBase()}/subscribe/done`,
+        cancel_url: `${this.webBase()}/subscribe/${token}`,
+        metadata: { tenantId: sub.tenantId, locationId, via: "share-link" },
+        subscription_data: {
+          metadata: { tenantId: sub.tenantId, locationId },
+        },
+      });
+      await (this.prisma as any).merchantSubscription
+        .update({
+          where: { id: sub.id },
+          data: { stripeCheckoutId: session.id },
+        })
+        .catch(() => undefined);
+      return { url: session.url as string };
+    } catch (err: any) {
+      if (err instanceof BadRequestException) throw err;
+      this.logger.error(
+        `Shared-link checkout failed for ${locationId}: ${err.message}`,
+      );
+      throw new BadRequestException(`Stripe error: ${err.message}`);
+    }
+  }
+
   async restartCheckout(tenantId: string, locationId: string, userId?: string, role?: string) {
     await this.assertLocationAccess(tenantId, locationId, userId, role);
     const sub = await (this.prisma as any).merchantSubscription.findFirst({
