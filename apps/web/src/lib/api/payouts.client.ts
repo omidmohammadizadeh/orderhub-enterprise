@@ -19,6 +19,15 @@ export interface PayoutAccount {
   dashboardType: "express" | "full" | "none" | null;
 }
 
+/** When Stripe pays a shop out. `manual` exists at Stripe but we never set it. */
+export interface PayoutSchedule {
+  interval: "daily" | "weekly" | "monthly" | "manual" | string;
+  /** Only on a weekly schedule — "monday" … "friday". */
+  weeklyAnchor: string | null;
+  /** Only on a monthly schedule — 1–31. */
+  monthlyAnchor: number | null;
+}
+
 export interface PayoutRow {
   id: string;
   stripePayoutId: string;
@@ -115,6 +124,27 @@ export const payoutsClient = {
       .get<PayoutBreakdown>(`/v1/payouts/${payoutId}/breakdown`, {
         params: scoped(accountId, locationId),
       })
+      .then((r) => r.data),
+
+  // When Stripe currently pays this shop out. Null when Stripe isn't
+  // configured, or when the schedule can't be read — the page just hides the
+  // control rather than showing a wrong day.
+  schedule: (accountId?: string, locationId?: string) =>
+    apiClient
+      .get<PayoutSchedule | null>("/v1/payouts/schedule", {
+        params: scoped(accountId, locationId),
+      })
+      .then((r) => r.data),
+
+  updateSchedule: (body: {
+    accountId?: string;
+    locationId?: string;
+    interval: "daily" | "weekly" | "monthly";
+    weeklyAnchor?: string;
+    monthlyAnchor?: number;
+  }) =>
+    apiClient
+      .patch<PayoutSchedule>("/v1/payouts/schedule", body)
       .then((r) => r.data),
 
   // Returns a single-use Stripe URL — open it immediately, never store it.

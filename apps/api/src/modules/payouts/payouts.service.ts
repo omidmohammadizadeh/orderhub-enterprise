@@ -824,6 +824,178 @@ export class PayoutsService {
     }
   }
 
+  // ── Payout schedule ───────────────────────────────────────────────────────
+  //
+  // WHEN the money lands, which owners ask about far more often than they ask
+  // anything else on this page. Stripe calls it the payout schedule; an owner
+  // calls it "can I be paid on a Friday".
+  //
+  // We set `settings.payouts.schedule` on Accounts v1. Stripe's Balance
+  // Settings API covers the same ground for Accounts v2, but it is preview and
+  // would mean pinning a preview API version in production — and their own
+  // guide says "If you're currently using settings.payouts on Accounts v1, you
+  // can continue to do so". Our accounts are Express, where the platform owns
+  // fraud and dispute liability, which is what earns us the right to set this
+  // at all.
+
+  /** Weekdays Stripe will settle on. Banks don't move money at weekends. */
+  private static readonly PAYOUT_WEEKDAYS = [
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+  ];
+
+  /** What Stripe currently pays this shop on. */
+  async payoutSchedule(
+    tenantId: string,
+    userId: string | undefined,
+    role: string | undefined,
+    opts: { accountId?: string; locationId?: string } = {},
+  ): Promise<{
+    interval: string;
+    weeklyAnchor: string | null;
+    monthlyAnchor: number | null;
+  } | null> {
+    const account = await this.resolveOwnAccount(tenantId, userId, role, opts);
+    if (!this.stripe || account.stripeAccountId.startsWith("mock_acct_")) {
+      return null;
+    }
+    try {
+      const fresh = await this.stripe.accounts.retrieve(account.stripeAccountId);
+      const s = (fresh as any)?.settings?.payouts?.schedule ?? {};
+      return {
+        interval: s.interval ?? "daily",
+        weeklyAnchor: s.weekly_anchor ?? null,
+        monthlyAnchor: s.monthly_anchor ?? null,
+      };
+    } catch (e: any) {
+      // Never break the page over this — the payout history matters more.
+      this.logger.warn(
+        `Couldn't read the payout schedule for ${account.stripeAccountId}: ${e?.message}`,
+      );
+      return null;
+    }
+  }
+
+  /**
+   * Change when this shop is paid out.
+   *
+   * `manual` is refused rather than merely left out of the dropdown: it stops
+   * automatic payouts entirely, so the balance would sit at Stripe until
+   * somebody released it by hand. That is not a payout day, and an owner
+   * picking it would quietly stop being paid.
+   */
+  async updatePayoutSchedule(
+    tenantId: string,
+    userId: string | undefined,
+    role: string | undefined,
+    args: {
+      accountId?: string;
+      locationId?: string;
+      interval: "daily" | "weekly" | "monthly";
+      weeklyAnchor?: string;
+      monthlyAnchor?: number;
+    },
+  ): Promise<{
+    interval: string;
+    weeklyAnchor: string | null;
+    monthlyAnchor: number | null;
+  }> {
+    const interval = String(args.interval ?? "").toLowerCase();
+
+    if (interval === "manual") {
+      throw new BadRequestException(
+        "Manual payouts stop your money moving until someone releases it by hand. " +
+          "Choose daily, weekly or monthly.",
+      );
+    }
+    if (!["daily", "weekly", "monthly"].includes(interval)) {
+      throw new BadRequestException("Choose daily, weekly or monthly.");
+    }
+
+    // Validated BEFORE we touch Stripe, so a typo never reaches a live account.
+    let weeklyAnchor: string | null = null;
+    let monthlyAnchor: number | null = null;
+
+    if (interval === "weekly") {
+      weeklyAnchor = String(args.weeklyAnchor ?? "").toLowerCase();
+      if (!PayoutsService.PAYOUT_WEEKDAYS.includes(weeklyAnchor)) {
+        throw new BadRequestException(
+          "Pick the weekday you want to be paid on, Monday to Friday.",
+        );
+      }
+    }
+    if (interval === "monthly") {
+      monthlyAnchor = Number(args.monthlyAnchor);
+      if (
+        !Number.isInteger(monthlyAnchor) ||
+        monthlyAnchor < 1 ||
+        monthlyAnchor > 31
+      ) {
+        throw new BadRequestException(
+          "Pick a day of the month between 1 and 31.",
+        );
+      }
+    }
+
+    const account = await this.resolveOwnAccount(tenantId, userId, role, args);
+    if (!this.stripe || account.stripeAccountId.startsWith("mock_acct_")) {
+      throw new BadRequestException(
+        "Stripe isn't configured in this environment.",
+      );
+    }
+
+    const schedule: Record<string, unknown> = { interval };
+    if (weeklyAnchor) schedule.weekly_anchor = weeklyAnchor;
+    if (monthlyAnchor) schedule.monthly_anchor = monthlyAnchor;
+
+    const updated = await this.stripe.accounts.update(
+      account.stripeAccountId,
+      { settings: { payouts: { schedule } } } as any,
+    );
+
+    const applied = (updated as any)?.settings?.payouts?.schedule ?? {};
+    this.logger.log(
+      `Payout schedule for ${account.stripeAccountId} → ${applied.interval ?? interval}` +
+        (applied.weekly_anchor ? ` (${applied.weekly_anchor})` : "") +
+        (applied.monthly_anchor ? ` (day ${applied.monthly_anchor})` : ""),
+    );
+
+    return {
+      interval: applied.interval ?? interval,
+      weeklyAnchor: applied.weekly_anchor ?? null,
+      monthlyAnchor: applied.monthly_anchor ?? null,
+    };
+  }
+
+  /**
+   * The one account this caller means, refusing anything outside their scope.
+   *
+   * The id comes from the browser, so it is matched against the caller's own
+   * visible accounts rather than looked up directly — otherwise changing when
+   * ANOTHER shop gets paid would be one guessed id away.
+   */
+  private async resolveOwnAccount(
+    tenantId: string,
+    userId: string | undefined,
+    role: string | undefined,
+    opts: { accountId?: string; locationId?: string },
+  ) {
+    const accounts = await this.visibleAccounts(
+      tenantId,
+      userId,
+      role,
+      opts.locationId,
+    );
+    const account = opts.accountId
+      ? accounts.find((a) => a.id === opts.accountId)
+      : accounts[0];
+    if (!account) throw new NotFoundException("Payout account not found");
+    return account;
+  }
+
   /** Where Stripe sends the owner back to when they finish. */
   private payoutsUrl() {
     const base = (
