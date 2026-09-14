@@ -26,9 +26,28 @@ interface Props {
 // for operators who bypass HubRise). `wired` = the direct push is live;
 // otherwise the click only records intent until that channel is built.
 const BRAND_CHANNELS = [
-  { id: "JUST_EAT", title: "Just Eat", wired: false },
-  { id: "UBER_EATS", title: "Uber Eats", wired: true },
-  { id: "DELIVEROO", title: "Deliveroo", wired: true },
+  {
+    id: "JUST_EAT",
+    title: "Just Eat",
+    wired: true,
+    // No prep time: JET Connect has no prep-time endpoint at all, unlike the
+    // other two. Saying otherwise would promise something that cannot happen.
+    // These times only NARROW what Just Eat shows — it trades on the
+    // intersection of service times, menu availability and delivery-pool hours.
+    note: "Pushes opening hours as Delivery + Collection service times. No prep time — Just Eat has no endpoint for it.",
+  },
+  {
+    id: "UBER_EATS",
+    title: "Uber Eats",
+    wired: true,
+    note: "Pushes prep time + opening hours (hours update via a menu republish).",
+  },
+  {
+    id: "DELIVEROO",
+    title: "Deliveroo",
+    wired: true,
+    note: "Pushes this brand's opening hours + prep time to Deliveroo.",
+  },
 ];
 
 export function PublishHoursModal({ open, locationId, onClose }: Props) {
@@ -190,11 +209,7 @@ export function PublishHoursModal({ open, locationId, onClose }: Props) {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-zinc-900">{c.title}</p>
                   {c.wired ? (
-                    <p className="text-[10px] text-emerald-700">
-                      {c.id === "UBER_EATS"
-                        ? "Pushes prep time + opening hours (hours update via a menu republish)."
-                        : "Pushes this brand's opening hours + prep time to Deliveroo."}
-                    </p>
+                    <p className="text-[10px] text-emerald-700">{c.note}</p>
                   ) : (
                     <p className="text-[10px] text-amber-700">
                       Direct push not wired yet — publishing records intent.
