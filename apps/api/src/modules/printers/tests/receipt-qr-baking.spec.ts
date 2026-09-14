@@ -182,6 +182,38 @@ describe("receipt QR url — shared by both print paths", () => {
     expect(storefrontBrandId).toBe("brand-real");
   });
 
+  it("won't send the customer to a brand that belongs to a different shop", () => {
+    // Best Kebab's receipt QR opened another restaurant's menu. The order's
+    // brand had a storefront slug of its own, so it was trusted — but it is
+    // served at a different location entirely, and nothing checked that.
+    const { url, storefrontBrandId } = buildStorefrontQrUrl({
+      brandId: "brand-elsewhere",
+      brand: {
+        onlineOrderingSlug: "someone-elses-shop",
+        directOrderingEnabled: true,
+        primaryLocationId: "loc-999",
+      },
+      loc: LOCATION,
+      base,
+    });
+    expect(storefrontBrandId).toBe("brand-shop");
+    expect(url).toBe(`${base}/order/loc-1?brand=brand-shop`);
+  });
+
+  it("still trusts a brand that IS served at this shop", () => {
+    const { url } = buildStorefrontQrUrl({
+      brandId: "brand-real",
+      brand: {
+        onlineOrderingSlug: "grill-stop",
+        directOrderingEnabled: true,
+        locationIds: ["loc-1"],
+      },
+      loc: LOCATION,
+      base,
+    });
+    expect(url).toBe(`${base}/brand/grill-stop`);
+  });
+
   it("says why when it can't build one", () => {
     const { url, reason } = buildStorefrontQrUrl({
       brandId: "b",

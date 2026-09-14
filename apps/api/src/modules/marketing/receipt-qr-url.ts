@@ -14,6 +14,10 @@
 export interface QrUrlBrand {
   onlineOrderingSlug?: string | null;
   directOrderingEnabled?: boolean | null;
+  /** Which shop this brand belongs to, when it names one. */
+  primaryLocationId?: string | null;
+  /** Every shop this brand is served at. */
+  locationIds?: string[] | null;
 }
 
 export interface QrUrlLocation {
@@ -48,11 +52,32 @@ export function buildStorefrontQrUrl(args: {
   // customer on a storefront wearing the wrong name — worse than printing
   // nothing. When the order's brand has no storefront identity, use the
   // location's own brand: the one whose sign is above the door.
-  const storefrontBrandId = brand?.onlineOrderingSlug
-    ? brandId
-    : (loc?.brandId ?? brandId);
+  // ...and it must be a brand THIS shop actually serves.
+  //
+  // Best Kebab's receipt QR opened another restaurant's menu: the order's
+  // brand had a storefront slug of its own, so it was trusted, but it belongs
+  // to a different location. Having a slug says the brand can be shown; it
+  // says nothing about whose door the customer is standing at.
+  //
+  // Membership is only ENFORCED when we actually know it. A brand that names
+  // no location is treated as trusted, because older rows carry neither field
+  // and refusing them would drop the QR off receipts that print correctly
+  // today. We reject only when the brand positively belongs somewhere else.
+  const membershipKnown =
+    brand?.primaryLocationId != null || (brand?.locationIds?.length ?? 0) > 0;
+  const servesThisShop =
+    !loc?.id ||
+    !membershipKnown ||
+    brandId === loc.brandId ||
+    brand?.primaryLocationId === loc.id ||
+    (brand?.locationIds ?? []).includes(loc.id);
 
-  if (brand?.directOrderingEnabled && brand?.onlineOrderingSlug) {
+  const storefrontBrandId =
+    brand?.onlineOrderingSlug && servesThisShop
+      ? brandId
+      : (loc?.brandId ?? brandId);
+
+  if (brand?.directOrderingEnabled && brand?.onlineOrderingSlug && servesThisShop) {
     return {
       url: `${base}/brand/${brand.onlineOrderingSlug}`,
       storefrontBrandId,

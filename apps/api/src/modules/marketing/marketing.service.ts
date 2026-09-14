@@ -306,6 +306,10 @@ export class MarketingService {
               logoUrl: true,
               onlineOrderingSlug: true,
               directOrderingEnabled: true,
+              // Which shop this brand belongs to — the QR builder refuses to
+              // send a customer to a brand served at a different address.
+              primaryLocationId: true,
+              locations: { select: { id: true } },
             },
           })
         : null,
@@ -331,7 +335,14 @@ export class MarketingService {
     // with nothing anywhere saying why.
     const { url, storefrontBrandId, reason } = buildStorefrontQrUrl({
       brandId: effectiveBrandId,
-      brand,
+      brand: brand
+        ? {
+            ...brand,
+            locationIds: ((brand as any).locations ?? []).map(
+              (l: any) => l.id,
+            ),
+          }
+        : null,
       loc,
       base,
     });
