@@ -73,12 +73,14 @@ export class DeliveryZonesController {
   @Get("public/quote")
   @ApiOperation({ summary: "Delivery fee for a storefront customer (public)" })
   @ApiQuery({ name: "locationId", required: true })
+  @ApiQuery({ name: "brandId", required: false })
   @ApiQuery({ name: "postcode", required: false })
   @ApiQuery({ name: "area", required: false })
   @ApiQuery({ name: "lat", required: false })
   @ApiQuery({ name: "lng", required: false })
   publicQuote(
     @Query("locationId") locationId: string,
+    @Query("brandId") brandId?: string,
     @Query("postcode") postcode?: string,
     @Query("area") area?: string,
     @Query("lat") lat?: string,
@@ -89,6 +91,7 @@ export class DeliveryZonesController {
       return v != null && v !== "" && Number.isFinite(n) ? n : undefined;
     };
     return this.zones.publicQuote(locationId, {
+      brandId,
       postcode,
       area,
       lat: asNum(lat),

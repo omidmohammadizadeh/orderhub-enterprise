@@ -200,6 +200,30 @@ export function radiusBands<T extends { maxDistanceMiles?: unknown }>(
     });
 }
 
+/**
+ * Which DeliveryZone rows belong to a shop.
+ *
+ * A zone can be scoped to a LOCATION or to a BRAND, and a location can serve
+ * several brands, so looking at only one of them misses rows that plainly
+ * apply. Order #JWDBH went out with £0 delivery for exactly that reason.
+ *
+ * Lives here because two services need the identical predicate and importing
+ * one from the other would be a cycle.
+ */
+export function deliveryZoneScope(input: {
+  locationId: string;
+  brandId?: string | null;
+}) {
+  return {
+    isActive: true,
+    OR: [
+      { locationId: input.locationId },
+      ...(input.brandId ? [{ brandId: input.brandId }] : []),
+      { brand: { locations: { some: { id: input.locationId } } } },
+    ],
+  };
+}
+
 const NO_MATCH: ZoneMatch = {
   mode: "NONE",
   matched: false,

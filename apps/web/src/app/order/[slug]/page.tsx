@@ -693,6 +693,9 @@ function OrderPage() {
     const timer = setTimeout(async () => {
       try {
         const params = new URLSearchParams({ locationId: quoteLocationId });
+        // Bands can hang off the brand rather than the location, so the brand
+        // has to travel with the question or the server finds no zones at all.
+        if (brandId) params.set("brandId", brandId);
         if (postcode) params.set("postcode", postcode);
         if (area) params.set("area", area);
         if (lat != null && lng != null) {
@@ -723,6 +726,7 @@ function OrderPage() {
     fulfillmentType,
     mode,
     quoteLocationId,
+    brandId,
     addrPostcode,
     addrArea,
     addrPoint?.lat,

@@ -13,6 +13,7 @@ import {
   usesTap,
   zoneMode,
   type ZoneLike,
+  deliveryZoneScope as sharedDeliveryZoneScope,
 } from "@orderhub/shared";
 import { OrdersService } from "../orders/orders.service";
 import { PromoCodesService } from "../promo-codes/promo-codes.service";
@@ -211,14 +212,9 @@ export function deliveryZoneScope(input: {
   locationId: string;
   brandId?: string | null;
 }) {
-  return {
-    isActive: true,
-    OR: [
-      { locationId: input.locationId },
-      ...(input.brandId ? [{ brandId: input.brandId }] : []),
-      { brand: { locations: { some: { id: input.locationId } } } },
-    ],
-  };
+  // One definition, in @orderhub/shared — the storefront's public quote needs
+  // the identical predicate and cannot import this module without a cycle.
+  return sharedDeliveryZoneScope(input);
 }
 
 /** Which brand an un-pinned order belongs to.

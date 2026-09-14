@@ -256,28 +256,65 @@ describe("DeliveryZonesService — locating the shop", () => {
 // already has and derives the tenant from the location itself — a caller must
 // never be able to name the tenant.
 describe("DeliveryZonesService.publicQuote", () => {
-  const build = (location: any) => {
+  const BANDS = [
+    { id: "b1", maxDistanceMiles: 3, fee: 3, minOrderValue: null, isActive: true,
+      postcodePrefix: null, areaName: null },
+    { id: "b2", maxDistanceMiles: 5, fee: 5, minOrderValue: null, isActive: true,
+      postcodePrefix: null, areaName: null },
+  ];
+
+  const build = (location: any, zones: any[] = BANDS) => {
     const svc: any = Object.create(DeliveryZonesService.prototype);
     svc.logger = { warn: jest.fn(), log: jest.fn(), error: jest.fn() };
     svc.prisma = {
       location: { findFirst: jest.fn().mockResolvedValue(location) },
+      deliveryZone: { findMany: jest.fn().mockResolvedValue(zones) },
     };
-    svc.lookup = jest.fn().mockResolvedValue({ matched: true, fee: 3, mode: "RADIUS" });
+    svc.measureDistance = jest.fn().mockResolvedValue(0.4);
     return svc;
   };
 
+  const LOC = { id: "loc1", brand: { tenantId: "t-real" } };
+
+  it("prices the shop's own doorstep at the nearest band, not the furthest", async () => {
+    // Zero-ish distance must be the 0–3 band. Quoting £5 at the shop's own
+    // address is what showed this was broken.
+    const svc = build(LOC);
+
+    const res = await svc.publicQuote("loc1", { postcode: "G72 7TB" });
+
+    expect(res.matched).toBe(true);
+    expect(Number(res.fee)).toBe(3);
+  });
+
+  it("finds zones scoped to the BRAND, not only the location", async () => {
+    // DE SALT's bands hang off the brand. Reading only location rows found
+    // nothing, answered "no zones", and left the cart showing its maximum.
+    const svc = build(LOC);
+
+    await svc.publicQuote("loc1", { postcode: "G72 7TB", brandId: "brand-1" });
+
+    const where = svc.prisma.deliveryZone.findMany.mock.calls[0][0].where;
+    expect(where.OR).toEqual(
+      expect.arrayContaining([
+        { locationId: "loc1" },
+        { brandId: "brand-1" },
+        { brand: { locations: { some: { id: "loc1" } } } },
+      ]),
+    );
+    expect(where.isActive).toBe(true);
+  });
+
   it("derives the tenant from the location's brand, never from the caller", async () => {
-    const svc = build({ id: "loc1", brand: { tenantId: "t-real" } });
+    const svc = build(LOC);
 
-    const res = await svc.publicQuote("loc1", { postcode: "G72 7DX" });
+    await svc.publicQuote("loc1", { postcode: "G72 7TB" });
 
-    expect(svc.lookup).toHaveBeenCalledWith("t-real", "loc1", {
-      postcode: "G72 7DX",
-      area: undefined,
-      lat: undefined,
-      lng: undefined,
-    });
-    expect(res.fee).toBe(3);
+    expect(svc.measureDistance).toHaveBeenCalledWith(
+      "t-real",
+      { locationId: "loc1" },
+      expect.anything(),
+    );
   });
 
   it("answers 'no match' for an unknown location rather than throwing", async () => {
@@ -286,6 +323,6 @@ describe("DeliveryZonesService.publicQuote", () => {
     const res = await svc.publicQuote("nope", { postcode: "G72 7DX" });
 
     expect(res).toEqual({ matched: false, fee: 0, mode: "NONE" });
-    expect(svc.lookup).not.toHaveBeenCalled();
+    expect(svc.prisma.deliveryZone.findMany).not.toHaveBeenCalled();
   });
 });

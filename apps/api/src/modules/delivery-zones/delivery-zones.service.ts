@@ -8,6 +8,7 @@ import {
   zoneMode,
   type DeliveryZoneMode,
   type ZoneMatch,
+  deliveryZoneScope,
 } from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 
@@ -334,7 +335,13 @@ export class DeliveryZonesService {
    */
   async publicQuote(
     locationId: string,
-    customer: { postcode?: string; area?: string; lat?: number; lng?: number },
+    customer: {
+      postcode?: string;
+      area?: string;
+      lat?: number;
+      lng?: number;
+      brandId?: string;
+    },
   ): Promise<LookupResult> {
     // A location carries no tenant of its own — it hangs off the brand.
     const loc = await this.prisma.location.findFirst({
@@ -342,12 +349,32 @@ export class DeliveryZonesService {
       select: { id: true, brand: { select: { tenantId: true } } },
     });
     if (!loc?.brand?.tenantId) return { matched: false, fee: 0, mode: "NONE" };
-    return this.lookup(loc.brand.tenantId, loc.id, {
-      postcode: customer.postcode,
-      area: customer.area,
-      lat: customer.lat,
-      lng: customer.lng,
+
+    // Gather zones the way the storefront and checkout do — a zone can hang
+    // off the LOCATION or the BRAND. Reading only the location's rows found
+    // nothing for a brand-scoped shop and quoted "no zones", which the cart
+    // then read as "keep showing the maximum". DE SALT's own doorstep was
+    // priced at the 3–5 mile band this way.
+    const zones = await this.prisma.deliveryZone.findMany({
+      where: deliveryZoneScope({
+        locationId: loc.id,
+        brandId: customer.brandId ?? null,
+      }) as any,
     });
+    if (!zones.length) return { matched: false, fee: 0, mode: "NONE" };
+
+    const distanceMiles =
+      zoneMode(zones as any) === "RADIUS"
+        ? await this.measureDistance(loc.brand.tenantId, { locationId: loc.id }, customer)
+        : null;
+
+    return toLookupResult(
+      resolveZone(zones as any, {
+        postcode: customer.postcode,
+        area: customer.area,
+        distanceMiles,
+      }),
+    );
   }
 
   /**
