@@ -243,6 +243,41 @@ export function resolveUnpinnedBrandId(input: {
   return input.locationBrandId;
 }
 
+/**
+ * May this `?brand=` render at this shop?
+ *
+ * `?brand=` does not decorate the storefront — it REPLACES the menu and the
+ * shop's name. Best Kebab's receipt QR opened China Chef's menu under the name
+ * "Order Hub" because the brand was loaded by id alone, with nothing checking
+ * it had any connection to that location, or even to the same tenant.
+ *
+ * Fixing the QR builder fixed one caller. This is the primitive beneath every
+ * caller: a campaign link, an SMS, a printed flyer or a guessed URL could all
+ * point a customer at another shop's menu, prices and Stripe account. So the
+ * answer has to live here, where the override is honoured.
+ *
+ * Allowed only when the brand is genuinely served at the shop: it IS the
+ * location's brand, it names the location as its primary, or it lists the
+ * location. A brand that names no location at all is refused — that is exactly
+ * the tenant-wide placeholder that caused this.
+ */
+export function brandOverrideServesLocation(input: {
+  location: { id: string; brandId?: string | null };
+  brand: {
+    id: string;
+    primaryLocationId?: string | null;
+    locationIds?: string[] | null;
+  } | null;
+}): boolean {
+  const { location, brand } = input;
+  if (!brand) return false;
+  if (brand.id === location.brandId) return true;
+  if (brand.primaryLocationId && brand.primaryLocationId === location.id) {
+    return true;
+  }
+  return (brand.locationIds ?? []).includes(location.id);
+}
+
 /** Money rounding, shared by the line totals and the order totals below. */
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -346,11 +381,15 @@ export class OrderingService {
     // if the override id doesn't belong to this location's brand or
     // can't be resolved, so a malformed URL never strands the customer
     // with no storefront at all.
-    const overrideBrand = brandIdOverride
+    const overrideBrandRow = brandIdOverride
       ? await (this.prisma as any).brand.findUnique({
           where: { id: brandIdOverride },
           select: {
             id: true,
+            // Whose shop this brand actually trades at — checked below before
+            // any of it is allowed to overlay the location.
+            primaryLocationId: true,
+            locations: { select: { id: true } },
             name: true,
             slug: true,
             logoUrl: true,
@@ -376,6 +415,32 @@ export class OrderingService {
           },
         })
       : null;
+
+    // ...and refuse it unless this shop actually serves it.
+    //
+    // The comment above used to promise this and the code never did it: the
+    // brand was loaded by id alone, so ANY brand — another shop's, another
+    // tenant's — would overlay its menu, its name and its Stripe account onto
+    // this location. That is how a Best Kebab QR served China Chef.
+    const overrideServes = brandOverrideServesLocation({
+      location: { id: location.id, brandId: location.brandId },
+      brand: overrideBrandRow
+        ? {
+            id: overrideBrandRow.id,
+            primaryLocationId: overrideBrandRow.primaryLocationId ?? null,
+            locationIds: (overrideBrandRow.locations ?? []).map(
+              (l: any) => l.id,
+            ),
+          }
+        : null,
+    });
+    if (overrideBrandRow && !overrideServes) {
+      this.logger.warn(
+        `Storefront ?brand=${brandIdOverride} is not served at location ${location.id} ` +
+          `— ignoring it and showing the shop's own storefront.`,
+      );
+    }
+    const overrideBrand = overrideServes ? overrideBrandRow : null;
 
     // Phase AP fix #2 — mirror POS's findActiveMenuForLocation exactly.
     // A single OR-then-orderBy(updatedAt) was racing the location-scoped
@@ -437,7 +502,7 @@ export class OrderingService {
     // cascades below are untouched so un-republished locations keep
     // working exactly as before.
     const assignedMenuId = await this.menuAssignments.resolveAssignedMenuId(
-      brandIdOverride
+      overrideBrand
         ? { locationId: location.id, channel: "ONLINE", brandId: menuBrandId }
         : {
             locationId: location.id,
@@ -454,7 +519,7 @@ export class OrderingService {
 
     const menu =
       assignedMenu ??
-      (brandIdOverride
+      (overrideBrand
         ? (await this.prisma.menu.findFirst({
             where: {
               brandId: menuBrandId,
@@ -1208,6 +1273,59 @@ export class OrderingService {
     );
   }
 
+  /**
+   * The checkout half of {@link brandOverrideServesLocation}.
+   *
+   * The brand pinned here decides which Stripe Connect account takes the
+   * money, whose name heads the receipt and which column the order lands in on
+   * the board. The old check was tenant-only, which is no check at all for a
+   * group with ten shops under one tenant — and none at all for the
+   * tenant-wide placeholder brand that had no shop behind it.
+   *
+   * Refusing simply drops the query param: the order is tagged to the shop's
+   * own brand, exactly as an unpinned order always has been.
+   */
+  private async resolvePinnedBrand(
+    location: { id: string; brandId?: string | null; brand?: { tenantId?: string } | null },
+    brandIdOverride?: string,
+  ): Promise<{ brandId: string | null; hours: any }> {
+    if (!brandIdOverride) return { brandId: null, hours: null };
+
+    const brandRow = await (this.prisma as any).brand.findUnique({
+      where: { id: brandIdOverride },
+      select: {
+        id: true,
+        tenantId: true,
+        isSuspended: true,
+        openingHours: true,
+        primaryLocationId: true,
+        locations: { select: { id: true } },
+      },
+    });
+
+    const serves =
+      !!brandRow &&
+      !brandRow.isSuspended &&
+      brandRow.tenantId === location.brand?.tenantId &&
+      brandOverrideServesLocation({
+        location: { id: location.id, brandId: location.brandId },
+        brand: {
+          id: brandRow.id,
+          primaryLocationId: brandRow.primaryLocationId ?? null,
+          locationIds: (brandRow.locations ?? []).map((l: any) => l.id),
+        },
+      });
+
+    if (!serves) {
+      this.logger.warn(
+        `Checkout ?brand=${brandIdOverride} is not served at location ${location.id} ` +
+          `— placing the order under the shop's own brand instead.`,
+      );
+      return { brandId: null, hours: null };
+    }
+    return { brandId: brandRow.id, hours: brandRow.openingHours ?? null };
+  }
+
   async checkout(slug: string, dto: CheckoutDto, brandIdOverride?: string) {
     const location = await this.prisma.location.findFirst({
       where: { OR: [{ onlineOrderingSlug: slug }, { slug }, { id: slug }] },
@@ -1225,27 +1343,8 @@ export class OrderingService {
     // Skip if the override doesn't belong to this location — we'd
     // rather drop a malformed query param than create an order under
     // someone else's brand.
-    let pinnedBrandId: string | null = null;
-    let pinnedBrandHours: any = null;
-    if (brandIdOverride) {
-      const brandRow = await (this.prisma as any).brand.findUnique({
-        where: { id: brandIdOverride },
-        select: {
-          id: true,
-          tenantId: true,
-          isSuspended: true,
-          openingHours: true,
-        },
-      });
-      if (
-        brandRow &&
-        !brandRow.isSuspended &&
-        brandRow.tenantId === location.brand.tenantId
-      ) {
-        pinnedBrandId = brandRow.id;
-        pinnedBrandHours = brandRow.openingHours ?? null;
-      }
-    }
+    const { brandId: pinnedBrandId, hours: pinnedBrandHours } =
+      await this.resolvePinnedBrand(location, brandIdOverride);
 
     // Phase AW-30 — checkout guard uses brand hours when configured,
     // so a customer who got past the storefront banner ("brand says
