@@ -1,4 +1,6 @@
-import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
+import { Injectable, NotFoundException, BadRequestException,
+  Logger,
+} from "@nestjs/common";
 import {
   normalisePostcode,
   resolveRadiusBand,
@@ -120,6 +122,8 @@ function toLookupResult(m: ZoneMatch): LookupResult {
 
 @Injectable()
 export class DeliveryZonesService {
+  private readonly logger = new Logger(DeliveryZonesService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   private async assertLocation(tenantId: string, locationId: string) {
@@ -345,7 +349,14 @@ export class DeliveryZonesService {
     const origin = await this.originFor(tenantId, scope);
     if (!origin) return null;
     const point = await this.customerPoint(tenantId, scope, customer);
-    if (!point) return null;
+    if (!point) {
+      this.logger.warn(
+        `Delivery zones: couldn't place the customer ` +
+          `(postcode=${customer.postcode ?? "-"} area=${customer.area ?? "-"}) — ` +
+          `charging the top band.`,
+      );
+      return null;
+    }
     return milesBetween(origin, point);
   }
 
@@ -381,6 +392,19 @@ export class DeliveryZonesService {
       return { lat: loc.latitude, lng: loc.longitude };
     }
 
+    // The shop's own postcode FIRST, on its own.
+    //
+    // postcodes.io is free and needs no key, but it only recognises a bare
+    // postcode. Handing geocode() the joined address meant that free path
+    // could never match for a UK shop, so every one of them fell through to
+    // Google — and with no GOOGLE_MAPS_API_KEY set, the origin came back null
+    // and the resolver charged EVERY customer the top band. That is how a
+    // two-mile delivery was billed at the 3–5 mile rate.
+    if (loc.postcode) {
+      const viaPostcode = await this.geocodePostcode(loc.postcode);
+      if (viaPostcode) return this.cacheOrigin(loc.id, viaPostcode);
+    }
+
     // Outside the UK there is no postcode to geocode, so fall back to the
     // shop's street address. A Dubai shop whose origin can't be found puts
     // every one of its customers on the top band, which looks like a pricing
@@ -389,12 +413,32 @@ export class DeliveryZonesService {
       [loc.addressLine1, loc.city, loc.postcode].filter(Boolean).join(", "),
       loc.country,
     );
-    if (!geo) return null;
-    // Cache it — the shop doesn't move, and geocoding on every basket change
-    // would be a paid call per keystroke.
+    if (!geo) {
+      // Loudly, because the consequence is invisible at the till: the customer
+      // is simply charged the furthest band and nobody is told why.
+      this.logger.warn(
+        `Delivery zones: can't locate shop ${loc.id} (${[loc.addressLine1, loc.city, loc.postcode]
+          .filter(Boolean)
+          .join(", ")}) — every distance-based delivery will be charged the top ` +
+          `band until it has coordinates. Check the shop's postcode, or set ` +
+          `GOOGLE_MAPS_API_KEY for non-UK addresses.`,
+      );
+      return null;
+    }
+    return this.cacheOrigin(loc.id, geo);
+  }
+
+  /**
+   * Remember where the shop is — it doesn't move, and geocoding on every
+   * basket change would be a paid call per keystroke.
+   */
+  private async cacheOrigin(
+    locationId: string,
+    geo: { lat: number; lng: number },
+  ): Promise<{ lat: number; lng: number }> {
     await this.prisma.location
       .update({
-        where: { id: loc.id },
+        where: { id: locationId },
         data: { latitude: geo.lat, longitude: geo.lng },
       })
       .catch(() => undefined);

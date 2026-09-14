@@ -164,3 +164,82 @@ describe("DeliveryZonesService.lookup", () => {
     expect(result.beyondLastBand).toBe(true);
   });
 });
+
+// Where the SHOP is — the input every distance band depends on.
+//
+// A shop whose coordinates can't be found puts every one of its customers on
+// the top band: the resolver reads "no distance" as "infinitely far" and
+// charges the furthest band, which is the safe direction to fail for the shop
+// but looks exactly like a pricing bug. DE SALT charged £5 for a two-mile
+// delivery this way.
+//
+// Two things must hold: a UK postcode resolves free through postcodes.io
+// without any Google key, and a shop we genuinely can't place says so in the
+// log instead of silently overcharging.
+describe("DeliveryZonesService — locating the shop", () => {
+  const buildOrigin = (loc: any) => {
+    const svc: any = Object.create(DeliveryZonesService.prototype);
+    svc.logger = { warn: jest.fn(), log: jest.fn(), error: jest.fn() };
+    svc.prisma = {
+      location: {
+        findFirst: jest.fn().mockResolvedValue(loc),
+        update: jest.fn().mockResolvedValue({}),
+      },
+    };
+    svc.geocodePostcode = jest.fn().mockResolvedValue(null);
+    svc.geocode = jest.fn().mockResolvedValue(null);
+    return svc;
+  };
+
+  const UK_SHOP = {
+    id: "loc1",
+    latitude: null,
+    longitude: null,
+    postcode: "G72 7SF",
+    addressLine1: "205 Westburn Rd",
+    city: "Cambuslang",
+    country: "GB",
+  };
+
+  it("finds a UK shop from its postcode alone, with no Google key", async () => {
+    const svc = buildOrigin(UK_SHOP);
+    svc.geocodePostcode.mockResolvedValue({ lat: 55.81, lng: -4.16 });
+
+    const origin = await svc.originFor("t1", { locationId: "loc1" });
+
+    expect(svc.geocodePostcode).toHaveBeenCalledWith("G72 7SF");
+    expect(origin).toEqual({ lat: 55.81, lng: -4.16 });
+    // Cached, because the shop doesn't move.
+    expect(svc.prisma.location.update).toHaveBeenCalled();
+  });
+
+  it("falls back to the full address when the postcode doesn't resolve", async () => {
+    const svc = buildOrigin(UK_SHOP);
+    svc.geocode.mockResolvedValue({ lat: 1, lng: 2 });
+
+    const origin = await svc.originFor("t1", { locationId: "loc1" });
+
+    expect(origin).toEqual({ lat: 1, lng: 2 });
+    expect(svc.geocode).toHaveBeenCalled();
+  });
+
+  it("warns rather than silently putting every customer on the top band", async () => {
+    const svc = buildOrigin(UK_SHOP);
+
+    const origin = await svc.originFor("t1", { locationId: "loc1" });
+
+    expect(origin).toBeNull();
+    expect(svc.logger.warn).toHaveBeenCalled();
+    const said = svc.logger.warn.mock.calls.map((c: any[]) => String(c[0])).join(" ");
+    expect(said).toContain("loc1");
+  });
+
+  it("uses stored coordinates when the shop already has them", async () => {
+    const svc = buildOrigin({ ...UK_SHOP, latitude: 51.5, longitude: -0.1 });
+
+    const origin = await svc.originFor("t1", { locationId: "loc1" });
+
+    expect(origin).toEqual({ lat: 51.5, lng: -0.1 });
+    expect(svc.geocodePostcode).not.toHaveBeenCalled();
+  });
+});
