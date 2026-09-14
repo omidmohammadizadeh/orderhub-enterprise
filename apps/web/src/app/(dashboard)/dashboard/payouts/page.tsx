@@ -277,6 +277,9 @@ export default function PayoutsPage() {
         <PayoutScheduleCard
           accountId={balanceAccountId}
           locationId={selectedLocationId ?? undefined}
+          // With several shops in scope and none picked, we can show a day but
+          // must not change one — it would be a shop the owner never named.
+          needsShopChoice={!balanceAccountId}
         />
       )}
 
@@ -363,9 +366,11 @@ function describeSchedule(s: PayoutSchedule | null | undefined): string {
 function PayoutScheduleCard({
   accountId,
   locationId,
+  needsShopChoice,
 }: {
   accountId?: string;
   locationId?: string;
+  needsShopChoice: boolean;
 }) {
   const scheduleQuery = useQuery({
     queryKey: ['payout-schedule', accountId ?? 'default', locationId ?? 'all'],
@@ -425,7 +430,7 @@ function PayoutScheduleCard({
         <CalendarClock className="h-5 w-5 text-purple-500" />
         <h2 className="font-medium text-zinc-900">When you get paid</h2>
         <span className="ml-auto text-xs text-zinc-500">
-          {describeSchedule(current)}
+          {current.accountLabel} · {describeSchedule(current)}
         </span>
       </div>
 
@@ -473,10 +478,15 @@ function PayoutScheduleCard({
 
         <button
           onClick={() => save.mutate()}
-          disabled={unchanged || save.isPending}
+          disabled={unchanged || save.isPending || needsShopChoice}
+          title={
+            needsShopChoice
+              ? 'Choose a shop above — payout days are set per shop.'
+              : undefined
+          }
           className={cn(
             'rounded-lg px-3 py-1.5 text-sm font-medium transition',
-            unchanged || save.isPending
+            unchanged || save.isPending || needsShopChoice
               ? 'bg-zinc-100 text-zinc-400'
               : 'bg-zinc-900 text-white hover:bg-zinc-800',
           )}
@@ -490,9 +500,11 @@ function PayoutScheduleCard({
       </div>
 
       <p className="px-5 pb-4 text-xs text-zinc-400">
-        {cadence === 'monthly' && monthDay > 28
-          ? 'In shorter months this is paid on the last day.'
-          : 'Payouts settle on working days, so a day that falls on a weekend or bank holiday lands the next working day.'}
+        {needsShopChoice
+          ? `Showing ${current.accountLabel}. Choose a shop above to change its payout day — each shop has its own.`
+          : cadence === 'monthly' && monthDay > 28
+            ? 'In shorter months this is paid on the last day.'
+            : 'Payouts settle on working days, so a day that falls on a weekend or bank holiday lands the next working day.'}
       </p>
     </div>
   );

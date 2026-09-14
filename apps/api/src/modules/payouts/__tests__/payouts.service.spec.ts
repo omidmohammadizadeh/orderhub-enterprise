@@ -966,3 +966,62 @@ describe("PayoutsService.updatePayoutSchedule", () => {
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 });
+
+// Which shop's payout day? The page has an "All shops" mode, and a tenant can
+// have several payout accounts. Falling back to the first one silently changes
+// a shop the owner never named — the same trap the bank-details button already
+// avoids by making them choose a shop first.
+describe("PayoutsService.updatePayoutSchedule — which shop", () => {
+  const stripeOk = () => ({
+    accounts: {
+      update: jest.fn().mockResolvedValue({
+        settings: { payouts: { schedule: { interval: "weekly", weekly_anchor: "tuesday" } } },
+      }),
+      retrieve: jest.fn().mockResolvedValue({
+        settings: { payouts: { schedule: { interval: "daily" } } },
+      }),
+    },
+  });
+
+  it("refuses to guess when the caller can see more than one shop's account", async () => {
+    const stripe = stripeOk();
+    const svc = makeService({
+      prisma: prismaWith({ userLocations: [LOC_A, LOC_B] }),
+      stripe,
+    });
+
+    await expect(
+      svc.updatePayoutSchedule(TENANT, "u1", "OWNER", {
+        interval: "weekly",
+        weeklyAnchor: "tuesday",
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(stripe.accounts.update).not.toHaveBeenCalled();
+  });
+
+  it("needs no account id when only one shop is in scope", async () => {
+    const stripe = stripeOk();
+    const svc = makeService({
+      prisma: prismaWith({ userLocations: [LOC_A] }),
+      stripe,
+    });
+
+    await svc.updatePayoutSchedule(TENANT, "u1", "OWNER", {
+      interval: "weekly",
+      weeklyAnchor: "tuesday",
+    });
+    expect(stripe.accounts.update).toHaveBeenCalledWith("acct_A", expect.anything());
+  });
+
+  it("names the account the schedule was read from, so the card can say which shop", async () => {
+    const stripe = stripeOk();
+    const svc = makeService({
+      prisma: prismaWith({ userLocations: [LOC_A] }),
+      stripe,
+    });
+
+    const res = await svc.payoutSchedule(TENANT, "u1", "OWNER", {});
+    expect(res?.accountId).toBe("acc-a");
+    expect(typeof res?.accountLabel).toBe("string");
+  });
+});

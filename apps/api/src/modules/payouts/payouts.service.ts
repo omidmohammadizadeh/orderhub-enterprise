@@ -854,6 +854,8 @@ export class PayoutsService {
     role: string | undefined,
     opts: { accountId?: string; locationId?: string } = {},
   ): Promise<{
+    accountId: string;
+    accountLabel: string;
     interval: string;
     weeklyAnchor: string | null;
     monthlyAnchor: number | null;
@@ -866,6 +868,10 @@ export class PayoutsService {
       const fresh = await this.stripe.accounts.retrieve(account.stripeAccountId);
       const s = (fresh as any)?.settings?.payouts?.schedule ?? {};
       return {
+        // Named, so the card can say WHOSE payout day this is rather than
+        // showing a day with no shop attached to it.
+        accountId: account.id,
+        accountLabel: account.label,
         interval: s.interval ?? "daily",
         weeklyAnchor: s.weekly_anchor ?? null,
         monthlyAnchor: s.monthly_anchor ?? null,
@@ -940,7 +946,12 @@ export class PayoutsService {
       }
     }
 
-    const account = await this.resolveOwnAccount(tenantId, userId, role, args);
+    const account = await this.resolveOwnAccount(tenantId, userId, role, args, {
+      // Changing a payout day is per shop. With several accounts in scope and
+      // none named, picking the first would move money for a shop the owner
+      // never chose — so ask, exactly as the bank-details button does.
+      refuseToGuess: true,
+    });
     if (!this.stripe || account.stripeAccountId.startsWith("mock_acct_")) {
       throw new BadRequestException(
         "Stripe isn't configured in this environment.",
@@ -982,6 +993,7 @@ export class PayoutsService {
     userId: string | undefined,
     role: string | undefined,
     opts: { accountId?: string; locationId?: string },
+    { refuseToGuess = false }: { refuseToGuess?: boolean } = {},
   ) {
     const accounts = await this.visibleAccounts(
       tenantId,
@@ -989,6 +1001,11 @@ export class PayoutsService {
       role,
       opts.locationId,
     );
+    if (!opts.accountId && refuseToGuess && accounts.length > 1) {
+      throw new BadRequestException(
+        "Choose which shop this applies to — payout days are set per shop.",
+      );
+    }
     const account = opts.accountId
       ? accounts.find((a) => a.id === opts.accountId)
       : accounts[0];

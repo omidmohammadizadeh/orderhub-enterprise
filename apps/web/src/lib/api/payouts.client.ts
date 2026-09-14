@@ -21,6 +21,9 @@ export interface PayoutAccount {
 
 /** When Stripe pays a shop out. `manual` exists at Stripe but we never set it. */
 export interface PayoutSchedule {
+  /** Whose payout day this is — a tenant can have several payout accounts. */
+  accountId: string;
+  accountLabel: string;
   interval: "daily" | "weekly" | "monthly" | "manual" | string;
   /** Only on a weekly schedule — "monday" … "friday". */
   weeklyAnchor: string | null;
