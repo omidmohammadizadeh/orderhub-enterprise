@@ -1025,3 +1025,78 @@ describe("PayoutsService.updatePayoutSchedule — which shop", () => {
     expect(typeof res?.accountLabel).toBe("string");
   });
 });
+
+// Changing the bank account, inside our dashboard.
+//
+// Stripe's raw Account API would take an account number in the request body —
+// which would mean sort codes and account numbers passing through our servers
+// and logs. An AccountSession instead hands the browser a short-lived secret
+// for Stripe's own embedded panel, so the numbers go from the merchant to
+// Stripe and never touch us. Same outcome, nothing sensitive to protect.
+//
+// It is scoped exactly like the payout day: per shop, and never guessed.
+describe("PayoutsService.managementSession", () => {
+  const stripeWithSession = () => ({
+    accountSessions: {
+      create: jest.fn().mockResolvedValue({ client_secret: "cs_test_123" }),
+    },
+  });
+
+  it("mints a session with the bank-details panel for the caller's own account", async () => {
+    const stripe = stripeWithSession();
+    const svc = makeService({
+      prisma: prismaWith({ userLocations: [LOC_A] }),
+      stripe,
+    });
+
+    const res = await svc.managementSession(TENANT, "u1", "OWNER", {
+      accountId: "acc-a",
+    });
+
+    expect(stripe.accountSessions.create).toHaveBeenCalledWith({
+      account: "acct_A",
+      components: {
+        account_management: { enabled: true },
+        payouts: { enabled: true },
+        notification_banner: { enabled: true },
+      },
+    });
+    expect(res).toEqual({ stripeAccountId: "acct_A", clientSecret: "cs_test_123" });
+  });
+
+  it("won't open another shop's bank details", async () => {
+    const stripe = stripeWithSession();
+    const svc = makeService({
+      prisma: prismaWith({ userLocations: [LOC_A] }),
+      stripe,
+    });
+
+    await expect(
+      svc.managementSession(TENANT, "u1", "OWNER", { accountId: "acc-b" }),
+    ).rejects.toBeInstanceOf(NotFoundException);
+    expect(stripe.accountSessions.create).not.toHaveBeenCalled();
+  });
+
+  it("refuses to guess which shop's bank details to open", async () => {
+    const stripe = stripeWithSession();
+    const svc = makeService({
+      prisma: prismaWith({ userLocations: [LOC_A, LOC_B] }),
+      stripe,
+    });
+
+    await expect(
+      svc.managementSession(TENANT, "u1", "OWNER", {}),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(stripe.accountSessions.create).not.toHaveBeenCalled();
+  });
+
+  it("says so plainly when Stripe isn't configured", async () => {
+    const svc = makeService({
+      prisma: prismaWith({ userLocations: [LOC_A] }),
+      stripe: null,
+    });
+    await expect(
+      svc.managementSession(TENANT, "u1", "OWNER", { accountId: "acc-a" }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+});

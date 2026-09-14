@@ -982,6 +982,58 @@ export class PayoutsService {
   }
 
   /**
+   * A short-lived secret for Stripe's own embedded panel, where the owner
+   * changes the bank account the money lands in.
+   *
+   * WHY NOT the Account API's `external_account`: that takes a sort code and
+   * account number in the request body, so those digits would pass through our
+   * servers and our logs and become ours to protect. An AccountSession keeps
+   * the whole exchange between the merchant and Stripe — we only ever hold a
+   * secret that expires — and Stripe still owns verification, microdeposits
+   * and every error state we would otherwise have to rebuild.
+   *
+   * Scoped like the payout day: per shop, and never guessed.
+   */
+  async managementSession(
+    tenantId: string,
+    userId: string | undefined,
+    role: string | undefined,
+    opts: { accountId?: string; locationId?: string } = {},
+  ): Promise<{ stripeAccountId: string; clientSecret: string }> {
+    const account = await this.resolveOwnAccount(tenantId, userId, role, opts, {
+      refuseToGuess: true,
+    });
+
+    if (!this.stripe || account.stripeAccountId.startsWith("mock_acct_")) {
+      throw new BadRequestException(
+        "Stripe isn't configured in this environment.",
+      );
+    }
+
+    try {
+      const session = await this.stripe.accountSessions.create({
+        account: account.stripeAccountId,
+        components: {
+          account_management: { enabled: true },
+          payouts: { enabled: true },
+          notification_banner: { enabled: true },
+        },
+      } as any);
+      return {
+        stripeAccountId: account.stripeAccountId,
+        clientSecret: (session as any).client_secret,
+      };
+    } catch (e: any) {
+      this.logger.error(
+        `AccountSession failed for ${account.stripeAccountId}: ${e?.message}`,
+      );
+      throw new BadRequestException(
+        `Couldn't open the bank details panel: ${e?.message}`,
+      );
+    }
+  }
+
+  /**
    * The one account this caller means, refusing anything outside their scope.
    *
    * The id comes from the browser, so it is matched against the caller's own

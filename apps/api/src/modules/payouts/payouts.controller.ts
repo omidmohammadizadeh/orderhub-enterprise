@@ -138,6 +138,25 @@ export class PayoutsController {
   // POST, not GET: this mints a single-use credential into the merchant's
   // Stripe dashboard. It must never be something a browser can prefetch or a
   // proxy can cache.
+  @Post("management-session")
+  @Roles(...FINANCE_ROLES)
+  @ApiOperation({
+    summary: "Secret for Stripe's embedded bank-details panel for this shop",
+  })
+  managementSession(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: { accountId?: string; locationId?: string },
+  ) {
+    // The secret is minted per open and expires on its own, so nothing here
+    // is worth storing — and no bank detail ever reaches this server.
+    return this.payouts.managementSession(
+      user.tenantId,
+      user.userId,
+      user.role,
+      body ?? {},
+    );
+  }
+
   @Post("dashboard-link")
   @Roles(...FINANCE_ROLES)
   @ApiOperation({ summary: "One-time link to the Stripe Express dashboard" })

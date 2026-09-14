@@ -150,6 +150,17 @@ export const payoutsClient = {
       .patch<PayoutSchedule>("/v1/payouts/schedule", body)
       .then((r) => r.data),
 
+  // A short-lived AccountSession secret for Stripe's embedded panel, where the
+  // owner edits their bank account without leaving the dashboard — and without
+  // the account number passing through OrderHub.
+  managementSession: (accountId?: string, locationId?: string) =>
+    apiClient
+      .post<{ stripeAccountId: string; clientSecret: string }>(
+        "/v1/payouts/management-session",
+        { accountId, locationId },
+      )
+      .then((r) => r.data),
+
   // Returns a single-use Stripe URL — open it immediately, never store it.
   // `kind` says which door it opens: the merchant's Express dashboard, the
   // Stripe-hosted update form (for accounts with no dashboard of their own),

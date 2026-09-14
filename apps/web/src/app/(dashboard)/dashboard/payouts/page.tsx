@@ -11,10 +11,11 @@
 // owner is sent to Stripe's own dashboard through a one-time link — no account
 // number ever passes through OrderHub.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
   Banknote,
+  Building2 as BankIcon,
   CalendarClock,
   Building2,
   ExternalLink,
@@ -28,6 +29,12 @@ import {
   type PayoutRow,
   type PayoutSchedule,
 } from '@/lib/api/payouts.client';
+import { loadConnectAndInitialize } from '@stripe/connect-js';
+import {
+  ConnectAccountManagement,
+  ConnectComponentsProvider,
+  ConnectNotificationBanner,
+} from '@stripe/react-connect-js';
 import { cn } from '@/lib/utils';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { useSelectedLocationStore } from '@/stores/selected-location.store';
@@ -283,6 +290,17 @@ export default function PayoutsPage() {
         />
       )}
 
+      {/* Bank account, edited inside Stripe's own panel. Same gates as the
+          payout day: not for a merchant on their own Stripe account, and never
+          for an unnamed shop. */}
+      {!!accounts.length && !ownStripe && (
+        <BankAccountCard
+          accountId={balanceAccountId}
+          locationId={selectedLocationId ?? undefined}
+          needsShopChoice={!balanceAccountId}
+        />
+      )}
+
       {/* History */}
       <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white">
         <div className="flex items-center gap-2 border-b border-zinc-100 px-5 py-4">
@@ -506,6 +524,111 @@ function PayoutScheduleCard({
             ? 'In shorter months this is paid on the last day.'
             : 'Payouts settle on working days, so a day that falls on a weekend or bank holiday lands the next working day.'}
       </p>
+    </div>
+  );
+}
+
+const STRIPE_PUBLISHABLE_KEY =
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '';
+
+/**
+ * Change the bank account, without leaving the dashboard.
+ *
+ * The panel is Stripe's own, rendered through an AccountSession. That is the
+ * whole point: the sort code and account number go from the owner straight to
+ * Stripe, so OrderHub never holds them — the same promise this page has always
+ * made, now kept without sending anyone to another website.
+ */
+function BankAccountCard({
+  accountId,
+  locationId,
+  needsShopChoice,
+}: {
+  accountId?: string;
+  locationId?: string;
+  needsShopChoice: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+
+  // Shares a cache key with the schedule card, so naming the shop here costs
+  // no extra request.
+  const scheduleQuery = useQuery({
+    queryKey: ['payout-schedule', accountId ?? 'default', locationId ?? 'all'],
+    queryFn: () => payoutsClient.schedule(accountId, locationId),
+  });
+
+  // Memoised: Stripe charges a round-trip for every init, and React would
+  // otherwise re-init on each render.
+  const connectInstance = useMemo(() => {
+    if (!open || !STRIPE_PUBLISHABLE_KEY) return null;
+    return loadConnectAndInitialize({
+      publishableKey: STRIPE_PUBLISHABLE_KEY,
+      fetchClientSecret: async () => {
+        const { clientSecret } = await payoutsClient.managementSession(
+          accountId,
+          locationId,
+        );
+        return clientSecret;
+      },
+      appearance: {
+        overlays: 'dialog',
+        variables: {
+          colorPrimary: '#18181b',
+          colorBackground: '#ffffff',
+          fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+          borderRadius: '8px',
+        },
+      },
+    });
+  }, [open, accountId, locationId]);
+
+  if (!STRIPE_PUBLISHABLE_KEY) return null;
+
+  return (
+    <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white">
+      <div className="flex items-center gap-2 border-b border-zinc-100 px-5 py-4">
+        <BankIcon className="h-5 w-5 text-purple-500" />
+        <h2 className="font-medium text-zinc-900">Bank account</h2>
+        {scheduleQuery.data?.accountLabel && (
+          <span className="text-xs text-zinc-500">
+            {scheduleQuery.data.accountLabel}
+          </span>
+        )}
+        <button
+          onClick={() => setOpen((v) => !v)}
+          disabled={needsShopChoice}
+          title={
+            needsShopChoice
+              ? 'Choose a shop above — bank details are held per shop.'
+              : undefined
+          }
+          className={cn(
+            'ml-auto rounded-lg px-3 py-1.5 text-sm font-medium transition',
+            needsShopChoice
+              ? 'bg-zinc-100 text-zinc-400'
+              : 'bg-zinc-900 text-white hover:bg-zinc-800',
+          )}
+        >
+          {open ? 'Close' : 'Change bank details'}
+        </button>
+      </div>
+
+      {open && connectInstance ? (
+        <div className="px-5 py-4">
+          <ConnectComponentsProvider connectInstance={connectInstance}>
+            <div className="space-y-2">
+              <ConnectNotificationBanner />
+              <ConnectAccountManagement />
+            </div>
+          </ConnectComponentsProvider>
+        </div>
+      ) : (
+        <p className="px-5 py-4 text-xs text-zinc-400">
+          Your bank details are held and verified by Stripe. Editing them here
+          opens Stripe&apos;s own secure panel — the account number never passes
+          through OrderHub.
+        </p>
+      )}
     </div>
   );
 }
