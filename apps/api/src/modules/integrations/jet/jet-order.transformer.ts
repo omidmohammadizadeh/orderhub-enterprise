@@ -207,8 +207,23 @@ export function transformJetOrder(payload: any): JetTransformResult | null {
   // them and so their price is traceable against the discount adjustment.
   const rawItems = Array.isArray(payload?.items) ? [...payload.items] : [];
   const promotions = Array.isArray(payload?.promotions) ? payload.promotions : [];
+  //
+  // V2 (current) promotions work the other way round: the discounted item
+  // STAYS in the top-level array and names the offer in its `offers_applied`.
+  // Merging promotions[].items on top of that would send the kitchen two
+  // burgers and charge the customer for two, so an offer any top-level item
+  // already claims is skipped here.
+  const claimedOfferIds = new Set<string>(
+    rawItems.flatMap((i: any) =>
+      (Array.isArray(i?.offers_applied) ? i.offers_applied : [])
+        .map((o: unknown) => String(o ?? "").trim())
+        .filter(Boolean),
+    ),
+  );
   const promoItems: any[] = [];
   for (const promo of promotions) {
+    const offerId = String(promo?.offer_id ?? "").trim();
+    if (offerId && claimedOfferIds.has(offerId)) continue;
     const items = Array.isArray(promo?.items) ? promo.items : [];
     for (const item of items) {
       promoItems.push({
@@ -269,6 +284,26 @@ export function transformJetOrder(payload: any): JetTransformResult | null {
       : undefined;
   const createdAt = jetUnixToDate(payload?.created_at);
 
+  // ASAP vs pre-order.
+  //
+  // collect_at / deliver_at are stamped on EVERY order, ASAP ones included
+  // (≈ now + prep time), so the timestamp alone never says whether somebody
+  // ordered ahead. `extras.asap` does — as the STRING "true", which the spec
+  // notes is for backwards compatibility. Marking an ASAP order Scheduled puts
+  // a pre-order on the board and on the printed ticket in the middle of
+  // service; that is precisely what happened to Uber Eats orders arriving
+  // through HubRise, and the rule here is deliberately the same one.
+  //
+  // `extras` is Just-Eat-only, so Menulog and Skip send nothing at all. For
+  // those the 45-minute threshold is the only remaining signal of an order
+  // placed for later.
+  const asap = String(payload?.extras?.asap ?? "").trim().toLowerCase() === "true";
+  const SCHEDULE_THRESHOLD_MS = 45 * 60_000;
+  const scheduledFor = (() => {
+    if (!dueAt || asap) return undefined;
+    return dueAt.getTime() > Date.now() + SCHEDULE_THRESHOLD_MS ? dueAt : undefined;
+  })();
+
   // ── Notes ────────────────────────────────────────────────────────────
   // Three separate note fields, each of which the kitchen or driver needs.
   // Joined the way the Deliveroo adapter joins its three, so one glance at the
@@ -309,7 +344,7 @@ export function transformJetOrder(payload: any): JetTransformResult | null {
     discount,
     total,
     ...(specialInstructions ? { specialInstructions } : {}),
-    ...(dueAt ? { scheduledFor: dueAt } : {}),
+    ...(scheduledFor ? { scheduledFor } : {}),
     metadata: {
       deliveryType,
       paymentMethod: paymentMethod === "CASH" ? "CASH" : "CARD",
@@ -329,6 +364,14 @@ export function transformJetOrder(payload: any): JetTransformResult | null {
         deposit: jetMoney(payload?.payment?.deposit),
         driverTip,
         createdAt: createdAt ? createdAt.toISOString() : null,
+        // Dropping scheduledFor on an ASAP order must not lose WHEN the food
+        // is due — the kitchen still needs it, it simply isn't a pre-order.
+        dueAt: dueAt ? dueAt.toISOString() : null,
+        asap,
+        preparationTime: payload?.extras?.preparationTime ?? null,
+        justEatCustomerId: payload?.extras?.justEatCustomerId ?? null,
+        justEatOrderReference: payload?.extras?.justEatOrderReference ?? null,
+        menuReference: payload?.menu_reference ?? null,
         justEatOrderApiId: payload?.extras?.just_eat_order_api_id ?? null,
         promotions: promotions.map((p: any) => ({
           type: p?.type ?? null,

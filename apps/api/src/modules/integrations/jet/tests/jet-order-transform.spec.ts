@@ -209,10 +209,12 @@ describe("transformJetOrder — collection by customer", () => {
     expect((c.customerInfo as any).phoneAccessCode).toBe("1234567890");
   });
 
-  it("sets the ready-for time from collect_at", () => {
-    expect(c.scheduledFor?.toISOString()).toBe(
-      new Date(1606780980 * 1000).toISOString(),
-    );
+  it("keeps the ready-for time from collect_at, without calling it a pre-order", () => {
+    // The time itself must survive — the kitchen needs it. What changed is
+    // where it lives: scheduledFor is now reserved for orders genuinely
+    // placed ahead, because JET stamps collect_at on ASAP orders too.
+    expect(c.metadata.jet.dueAt).toBe(new Date(1606780980 * 1000).toISOString());
+    expect(c.scheduledFor).toBeUndefined();
   });
 
   it("joins kitchen and collection notes", () => {
@@ -435,5 +437,154 @@ describe("transformJetOrder — the pickup ETA", () => {
     // The shop's own driver. Nobody is sending us an estimate for them.
     const out = order("delivery-by-merchant") as any;
     expect(out.canonical.courierPickupEtaAt).toBeUndefined();
+  });
+});
+
+// ASAP vs scheduled, and the V2 promotion shape.
+//
+// Both come from the live spec at https://uk.api.just-eat.io/docs (checked
+// 2026-09-14), which carries detail the copy we built from did not:
+//
+//  - `extras.asap` is the STRING "true" when the customer wants the order now.
+//    JET stamps collect_at/deliver_at on EVERY order, ASAP ones included, so
+//    the timestamp alone says nothing about whether somebody ordered ahead.
+//    This is exactly how Uber Eats orders arrived marked Scheduled mid-service
+//    through HubRise (order g2y4b3g) — same bug, same fix, same 45-minute
+//    fallback for channels that omit the flag.
+//  - V2 promotions keep discounted items in the top-level `items` array and
+//    tag them with `offers_applied`; only V1/partner-applied promotions hold
+//    the items in `promotions[].items`. Merging both doubles the item.
+const unixFrom = (ms: number) => String(Math.floor(ms / 1000));
+
+function jetOrder(over: Record<string, any> = {}) {
+  return {
+    id: "o-asap-1",
+    third_party_order_reference: "22721763",
+    type: "delivery-by-delivery-partner",
+    posLocationId: "AKZ12",
+    location: { id: 1296, timezone: "Europe/London" },
+    menu_reference: "",
+    items: [
+      { name: "Cheeseburger", description: "", plu: "M2", price: 1700, notes: "", children: [] },
+    ],
+    created_at: unixFrom(Date.now()),
+    channel: { name: "Just Eat", id: 32 },
+    payment_method: "CARD",
+    tender_type: "Just Eat",
+    payment: {
+      items_in_cart: { inc_tax: 1700, tax: 0 },
+      adjustments: [],
+      final: { inc_tax: 1700, tax: 0 },
+      deposit: 0,
+    },
+    extras: {},
+    promotions: [],
+    total: 1700,
+    ...over,
+  };
+}
+
+describe("transformJetOrder — ASAP is not a pre-order", () => {
+  it("an ASAP order due in 50 minutes is NOT scheduled", () => {
+    // The shop is busy so JET promises 50 minutes. The customer still asked
+    // for it now, and extras.asap says so outright.
+    const out = transformJetOrder(
+      jetOrder({
+        collect_at: unixFrom(Date.now() + 50 * 60_000),
+        extras: { asap: "true", justEatOrderReference: "snflsetqm0m8" },
+      }),
+    ) as any;
+    expect(out.canonical.scheduledFor).toBeUndefined();
+  });
+
+  it("keeps a genuine pre-order scheduled when no asap flag is sent", () => {
+    // extras is Just-Eat-only, so Menulog and Skip send nothing. A due time
+    // far beyond any prep time is then the only signal of an order ahead.
+    const out = transformJetOrder(
+      jetOrder({ collect_at: unixFrom(Date.now() + 2 * 60 * 60_000), extras: {} }),
+    ) as any;
+    expect(out.canonical.scheduledFor).toBeInstanceOf(Date);
+  });
+
+  it("does not call a 20-minute order a pre-order", () => {
+    const out = transformJetOrder(
+      jetOrder({ collect_at: unixFrom(Date.now() + 20 * 60_000), extras: {} }),
+    ) as any;
+    expect(out.canonical.scheduledFor).toBeUndefined();
+  });
+
+  it("keeps the due time, asap flag and prep time on the order", () => {
+    // Dropping scheduledFor must not lose WHEN the food is due — the kitchen
+    // still needs it, it just isn't a pre-order.
+    const due = Date.now() + 50 * 60_000;
+    const out = transformJetOrder(
+      jetOrder({
+        collect_at: unixFrom(due),
+        extras: { asap: "true", preparationTime: "20", justEatCustomerId: "44346314687" },
+      }),
+    ) as any;
+    const jet = out.canonical.metadata.jet;
+    expect(jet.asap).toBe(true);
+    expect(jet.preparationTime).toBe("20");
+    expect(new Date(jet.dueAt).getTime()).toBe(Math.floor(due / 1000) * 1000);
+    expect(jet.justEatCustomerId).toBe("44346314687");
+  });
+});
+
+describe("transformJetOrder — V2 promotions", () => {
+  it("does not duplicate an item the promotion already left in items[]", () => {
+    // V2: the discounted item STAYS in the top-level array and references the
+    // offer. Merging promotions[].items on top would send the kitchen two
+    // burgers and charge for two.
+    const out = transformJetOrder(
+      jetOrder({
+        items: [
+          {
+            name: "Cheeseburger",
+            description: "",
+            plu: "M2",
+            price: 1700,
+            notes: "",
+            children: [],
+            offers_applied: ["off-1"],
+          },
+        ],
+        promotions: [
+          {
+            type: "PERCENTAGE_OFF_ITEM",
+            offer_id: "off-1",
+            promotion_id: "p-1",
+            discount_value: 170,
+            items: [
+              { name: "Cheeseburger", description: "", plu: "M2", price: 1700, notes: "", children: [] },
+            ],
+          },
+        ],
+      }),
+    ) as any;
+    expect(out.canonical.items).toHaveLength(1);
+    expect(out.canonical.items[0].quantity).toBe(1);
+  });
+
+  it("still merges a free item that is NOT in items[] (V1)", () => {
+    // The original behaviour must survive: a free item held only in
+    // promotions[].items never reaches the kitchen if we stop merging.
+    const out = transformJetOrder(
+      jetOrder({
+        promotions: [
+          {
+            type: "FREE_ITEM_MIN_BASKET",
+            offer_id: "off-9",
+            promotion_id: "p-9",
+            discount_value: 419,
+            items: [
+              { name: "Crispy Chicken Twist", description: "", plu: "", price: 419, notes: "", children: [] },
+            ],
+          },
+        ],
+      }),
+    ) as any;
+    expect(out.canonical.items).toHaveLength(2);
+    expect(out.canonical.items.map((i: any) => i.name)).toContain("Crispy Chicken Twist");
   });
 });
