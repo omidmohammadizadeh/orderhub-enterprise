@@ -141,6 +141,19 @@ describe("radius bands", () => {
     ]);
   });
 
+  it("labels bands so they don't overlap — 3 belongs to 0–3, not 3–5", () => {
+    // The stored edge is the band's outer limit and the lower bound is
+    // exclusive, so exactly 2 miles bills at the 0–2 rate (asserted below).
+    // Printing the next band as "2–3.5" told the customer the opposite, which
+    // is how a two-mile delivery looked like it should have been charged at
+    // the higher rate.
+    expect(radiusBands(zones).map((b) => [b.fromLabel, b.to])).toEqual([
+      [0, 2],
+      [2.1, 3.5],
+      [3.6, 5],
+    ]);
+  });
+
   it("picks the smallest band that still covers the distance", () => {
     expect(resolveZone(zones, { distanceMiles: 1 }).zoneId).toBe("near");
     expect(resolveZone(zones, { distanceMiles: 2 }).zoneId).toBe("near");

@@ -176,18 +176,28 @@ export function resolveRadiusBand<T extends { maxDistanceMiles?: unknown }>(
 }
 
 /** Band edges with their lower bound filled in, for labels like "3–4 mi". Only
- *  the outer edge is stored, so ranges are contiguous by construction. */
+ *  the outer edge is stored, so ranges are contiguous by construction.
+ *
+ *  `from` is the true, EXCLUSIVE lower bound — use it for any arithmetic.
+ *  `fromLabel` is what a customer should read: the bound nudged up by 0.1 so
+ *  two bands never both appear to contain the same number. With 0–3 and 3–5
+ *  printed literally, a customer three miles away is told they fall in the
+ *  dearer band when the resolver charges them the cheaper one. */
 export function radiusBands<T extends { maxDistanceMiles?: unknown }>(
   zones: T[],
-): Array<{ zone: T; from: number; to: number }> {
+): Array<{ zone: T; from: number; fromLabel: number; to: number }> {
   return zones
     .filter((z) => z.maxDistanceMiles != null)
     .sort((a, b) => Number(a.maxDistanceMiles) - Number(b.maxDistanceMiles))
-    .map((zone, i, arr) => ({
-      zone,
-      from: i === 0 ? 0 : Number(arr[i - 1]!.maxDistanceMiles),
-      to: Number(zone.maxDistanceMiles),
-    }));
+    .map((zone, i, arr) => {
+      const from = i === 0 ? 0 : Number(arr[i - 1]!.maxDistanceMiles);
+      return {
+        zone,
+        from,
+        fromLabel: i === 0 ? 0 : Math.round((from + 0.1) * 10) / 10,
+        to: Number(zone.maxDistanceMiles),
+      };
+    });
 }
 
 const NO_MATCH: ZoneMatch = {
@@ -260,7 +270,7 @@ export function resolveZone(
     const edge = bands.find((b) => b.zone === band.band);
     return hit(band.band, {
       mode,
-      label: edge ? `${edge.from}–${edge.to} mi` : undefined,
+      label: edge ? `${edge.fromLabel}–${edge.to} mi` : undefined,
       ...(Number.isFinite(distance)
         ? { distanceMiles: Math.round(distance * 100) / 100 }
         : {}),

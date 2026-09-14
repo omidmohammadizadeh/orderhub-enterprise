@@ -321,6 +321,36 @@ export class DeliveryZonesService {
   }
 
   /**
+   * The delivery fee for a storefront customer, priced properly.
+   *
+   * The cart cannot work a distance band out for itself — measuring needs a
+   * geocoder — so without this it could only ever show the FURTHEST band, and
+   * a two-mile customer was quoted the 3–5 mile price before typing anything.
+   *
+   * Public by necessity: the caller is an anonymous customer. It therefore
+   * takes only ids the storefront already has, and reads the tenant off the
+   * location rather than accepting one, so no caller can price against someone
+   * else's shop.
+   */
+  async publicQuote(
+    locationId: string,
+    customer: { postcode?: string; area?: string; lat?: number; lng?: number },
+  ): Promise<LookupResult> {
+    // A location carries no tenant of its own — it hangs off the brand.
+    const loc = await this.prisma.location.findFirst({
+      where: { id: locationId },
+      select: { id: true, brand: { select: { tenantId: true } } },
+    });
+    if (!loc?.brand?.tenantId) return { matched: false, fee: 0, mode: "NONE" };
+    return this.lookup(loc.brand.tenantId, loc.id, {
+      postcode: customer.postcode,
+      area: customer.area,
+      lat: customer.lat,
+      lng: customer.lng,
+    });
+  }
+
+  /**
    * How far the customer is from the shop, in miles — or null when it can't be
    * measured.
    *

@@ -243,3 +243,49 @@ describe("DeliveryZonesService — locating the shop", () => {
     expect(svc.geocodePostcode).not.toHaveBeenCalled();
   });
 });
+
+// The storefront needs a real fee, not the worst case.
+//
+// Until now the cart could only show the FURTHEST band the moment a customer
+// chose delivery, because working out the real one needs a server-side
+// geocode and there was no endpoint an anonymous customer could call. So a
+// two-mile order advertised the 3–5 mile price before an address was even
+// typed.
+//
+// This quote is public by necessity, so it takes only the ids the storefront
+// already has and derives the tenant from the location itself — a caller must
+// never be able to name the tenant.
+describe("DeliveryZonesService.publicQuote", () => {
+  const build = (location: any) => {
+    const svc: any = Object.create(DeliveryZonesService.prototype);
+    svc.logger = { warn: jest.fn(), log: jest.fn(), error: jest.fn() };
+    svc.prisma = {
+      location: { findFirst: jest.fn().mockResolvedValue(location) },
+    };
+    svc.lookup = jest.fn().mockResolvedValue({ matched: true, fee: 3, mode: "RADIUS" });
+    return svc;
+  };
+
+  it("derives the tenant from the location's brand, never from the caller", async () => {
+    const svc = build({ id: "loc1", brand: { tenantId: "t-real" } });
+
+    const res = await svc.publicQuote("loc1", { postcode: "G72 7DX" });
+
+    expect(svc.lookup).toHaveBeenCalledWith("t-real", "loc1", {
+      postcode: "G72 7DX",
+      area: undefined,
+      lat: undefined,
+      lng: undefined,
+    });
+    expect(res.fee).toBe(3);
+  });
+
+  it("answers 'no match' for an unknown location rather than throwing", async () => {
+    const svc = build(null);
+
+    const res = await svc.publicQuote("nope", { postcode: "G72 7DX" });
+
+    expect(res).toEqual({ matched: false, fee: 0, mode: "NONE" });
+    expect(svc.lookup).not.toHaveBeenCalled();
+  });
+});
