@@ -335,6 +335,8 @@ export class MarketingService {
     // with nothing anywhere saying why.
     const { url, storefrontBrandId, reason } = buildStorefrontQrUrl({
       brandId: effectiveBrandId,
+      // What the ORDER named, before the location's own brand filled the gap.
+      orderBrandId: brandId || null,
       brand: brand
         ? {
             ...brand,

@@ -1266,6 +1266,7 @@ export class PrintJobsService {
         .replace(/\/+$/, "");
       const { url, reason } = buildStorefrontQrUrl({
         brandId: order.brandId ?? loc?.brandId ?? "",
+        orderBrandId: order.brandId ?? null,
         brand: brand
           ? {
               ...brand,
