@@ -50,10 +50,15 @@ export class JetItemAvailabilityService {
   }): string[] {
     const refs = [String(item.plu ?? "").trim() || item.id];
     if (item.hasMultipleSkus && Array.isArray(item.productSkus)) {
-      (item.productSkus as any[]).forEach((sku, i) => {
-        if (!sku || typeof sku.name !== "string") return;
-        refs.push(String(sku.plu ?? "").trim() || `${item.id}__s${i}`);
-      });
+      // Filter BEFORE numbering, exactly as jet-menu-publish.readSkus does.
+      // Walking the raw array and skipping invalid entries left the counter
+      // running, so one null or unnamed size renumbered every size after it:
+      // published as __s0, 86'd as __s1, and JET answers 202 either way.
+      (item.productSkus as any[])
+        .filter((sku) => sku && typeof sku.name === "string")
+        .forEach((sku, i) => {
+          refs.push(String(sku.plu ?? "").trim() || `${item.id}__s${i}`);
+        });
     }
     // A product and one of its sizes can share a PLU; sending it twice is
     // harmless but noisy in the logs.
