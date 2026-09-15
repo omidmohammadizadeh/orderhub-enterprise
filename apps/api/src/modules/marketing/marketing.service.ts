@@ -591,13 +591,17 @@ export class MarketingService {
     customerAccountId?: string | null;
   }): Promise<CampaignAudienceValue> {
     if (!args.customerAccountId) return "NEW";
-    const account = await (this.prisma as any).customerAccount.findFirst({
-      where: { id: args.customerAccountId, tenantId: args.tenantId },
-      select: { totalOrders: true },
-    });
-    if (!account || account.totalOrders === 0) return "NEW";
 
-    // Last completed order timestamp.
+    // The customer's own record is deliberately NOT consulted. CustomerAccount
+    // has no tenantId and no totalOrders — an account is global, and its only
+    // link to a tenant is through its orders. Asking for either threw on every
+    // signed-in checkout ("Unknown argument `tenantId`"), and because the
+    // caller swallows the error to protect checkout, every returning customer
+    // was silently resolved as whatever the client had already applied and no
+    // campaign was attributed.
+    //
+    // The order lookup below answers the whole question anyway: no order at
+    // this tenant IS a new customer here, whatever they have done elsewhere.
     const lastOrder = await (this.prisma as any).order.findFirst({
       where: { customerAccountId: args.customerAccountId, tenantId: args.tenantId },
       orderBy: { createdAt: "desc" },
