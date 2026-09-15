@@ -26,6 +26,8 @@ export interface StorefrontSeo {
   city: string | null;
   postcode: string | null;
   image: string | null;
+  /** The shop HAS a banner, but stored as bytes only we can serve. */
+  hasStoredImage?: boolean;
   customDomain: string | null;
   directOrderingEnabled: boolean;
   hasMenu: boolean;
@@ -109,15 +111,27 @@ function clamp(text: string, max: number): string {
 }
 
 /**
- * Only an image a link-preview crawler can actually fetch.
+ * A preview image URL a crawler can actually fetch.
  *
- * Operator logos land in Postgres as base64 data URIs. WhatsApp and Facebook
- * fetch og:image over HTTP by URL, so a data URI is not a preview image — it
- * is 300KB of nothing, inlined into the <head> of every page load.
+ * WhatsApp and Facebook fetch og:image over HTTP by URL, and most shops'
+ * banners are base64 data URIs in Postgres rather than URLs — Pizza Uno's is
+ * 703KB of one. Those get served as real bytes by the API's preview-image
+ * route, addressed here on the CANONICAL origin so the image lives on the
+ * same domain as the page sharing it (the /api proxy answers on every host,
+ * custom domains included).
  */
-function previewImage(raw: string | null | undefined): string | null {
-  const value = (raw ?? "").trim();
-  return /^https?:\/\//i.test(value) ? value : null;
+function previewImage(
+  seo: StorefrontSeo | null,
+  canonical: string | null,
+  slug: string,
+  brandId?: string,
+): string | null {
+  const direct = (seo?.image ?? "").trim();
+  if (/^https?:\/\//i.test(direct)) return direct;
+  if (!seo?.hasStoredImage || !canonical) return null;
+  const query = brandId ? `?brand=${encodeURIComponent(brandId)}` : "";
+  const origin = new URL(canonical).origin;
+  return `${origin}/api/v1/ordering/store/${encodeURIComponent(slug)}/preview-image${query}`;
 }
 
 /**
@@ -199,7 +213,7 @@ export async function storefrontMetadata(
       : "Order food online for delivery or collection.";
 
   const canonical = canonicalFor(seo, host, slug, brandId);
-  const image = previewImage(seo?.image);
+  const image = previewImage(seo, canonical, slug, brandId);
 
   return {
     // `absolute` escapes the root layout's "%s · Order Hub" template. Without

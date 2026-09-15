@@ -1163,26 +1163,61 @@ export class OrderingService {
       ? menu.categories
       : [];
 
+    // Most shops' banners are base64 data URIs in Postgres, not URLs. Pizza
+    // Uno's is 703KB of one — which would have been 703KB of this response,
+    // on every revalidation, for a string no link-preview crawler can use.
+    // So the blob never leaves through here: it is served as an actual image
+    // by getStorefrontPreviewImage, and this only says whether there is one.
+    const image = pickStorefrontImage(store);
+    const isUrl = /^https?:\/\//i.test(image ?? "");
+
     return {
       name: store?.location?.name ?? null,
       about: store?.location?.about ?? store?.brand?.about ?? null,
       cuisine: store?.brand?.cuisine ?? null,
       city: store?.location?.city ?? null,
       postcode: store?.location?.postcode ?? null,
-      // Same order of preference the storefront's own hero uses, so the
-      // link preview shows the picture the customer is about to see, with
-      // the logo as a last resort.
-      image:
-        menu?.bannerImage ??
-        menu?.heroImage ??
-        store?.directConfig?.heroImageUrl ??
-        store?.brand?.logoUrl ??
-        store?.location?.logoUrl ??
-        null,
+      image: isUrl ? image : null,
+      /** True when there IS an image but only we can serve it. */
+      hasStoredImage: !!image && !isUrl,
       customDomain: store?.seo?.customDomain ?? null,
       directOrderingEnabled: store?.seo?.directOrderingEnabled ?? true,
       hasMenu: categories.some((c) => (c?.items?.length ?? 0) > 0),
     };
+  }
+
+  /**
+   * The shop's preview image, as bytes a crawler can actually fetch.
+   *
+   * WhatsApp, Facebook and the rest fetch og:image over HTTP by URL. A shop
+   * whose banner is a data URI therefore had no preview picture at all — the
+   * grey card — which is most of the value of a link preview gone. This gives
+   * that blob a URL.
+   *
+   * Returns null rather than throwing when there is no image or it is stored
+   * somewhere we can already link to directly.
+   */
+  async getStorefrontPreviewImage(
+    slug: string,
+    brandIdOverride?: string,
+  ): Promise<{ buffer: Buffer; contentType: string } | null> {
+    const store: any = await this.getStorefrontBySlug(slug, brandIdOverride);
+    const image = pickStorefrontImage(store);
+    if (!image) return null;
+
+    const match = /^data:(image\/[a-z0-9.+-]+);base64,(.+)$/i.exec(image.trim());
+    const [, mime, base64] = match ?? [];
+    if (!mime || !base64) return null;
+
+    try {
+      const buffer = Buffer.from(base64, "base64");
+      // An empty decode means the column held something that only looked like
+      // a data URI; serving 0 bytes as an image is worse than serving nothing.
+      if (buffer.length === 0) return null;
+      return { buffer, contentType: mime.toLowerCase() };
+    } catch {
+      return null;
+    }
   }
 
   /**
@@ -2383,4 +2418,24 @@ export function verifiedCustomDomain(brand: any, location: any): string | null {
     if (host && row?.customDomainStatus === "verified") return host;
   }
   return null;
+}
+
+/**
+ * Which picture represents this shop.
+ *
+ * Same order of preference the storefront's own hero uses, so the link
+ * preview shows the image the customer is about to see, with the logo as a
+ * last resort. Returns whatever is stored — a URL or a data URI; callers
+ * decide which of those they can use.
+ */
+export function pickStorefrontImage(store: any): string | null {
+  const candidate =
+    store?.menu?.bannerImage ??
+    store?.menu?.heroImage ??
+    store?.directConfig?.heroImageUrl ??
+    store?.brand?.logoUrl ??
+    store?.location?.logoUrl ??
+    null;
+  const value = String(candidate ?? "").trim();
+  return value || null;
 }

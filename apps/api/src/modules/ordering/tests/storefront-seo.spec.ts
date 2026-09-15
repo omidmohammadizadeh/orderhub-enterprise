@@ -1,4 +1,8 @@
-import { OrderingService, verifiedCustomDomain } from "../ordering.service";
+import {
+  OrderingService,
+  verifiedCustomDomain,
+  pickStorefrontImage,
+} from "../ordering.service";
 
 // Every shop's storefront used to serve the site-wide B2B metadata — our
 // pitch, our name — as its <title> and as the preview card for every link the
@@ -90,6 +94,24 @@ describe("getStorefrontSeo", () => {
   it("previews the banner the customer is about to see", async () => {
     await expect(seoOf(LIVE_SHOP)).resolves.toMatchObject({
       image: "https://cdn.example.com/banner.jpg",
+      hasStoredImage: false,
+    });
+  });
+
+  // Pizza Uno's real banner is 703KB of base64 in a Postgres column. Shipping
+  // it here put 703KB into a response fetched on every metadata revalidation,
+  // for a string no crawler can fetch anyway.
+  it("never ships a data URI — it reports one instead", async () => {
+    const stored = {
+      ...LIVE_SHOP,
+      menu: {
+        ...LIVE_SHOP.menu,
+        bannerImage: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ==",
+      },
+    };
+    await expect(seoOf(stored)).resolves.toMatchObject({
+      image: null,
+      hasStoredImage: true,
     });
   });
 
@@ -101,6 +123,20 @@ describe("getStorefrontSeo", () => {
     };
     await expect(seoOf(noBanner)).resolves.toMatchObject({
       image: "https://cdn.example.com/logo.png",
+    });
+  });
+
+  it("reports no image at all when the shop has none", async () => {
+    const bare = {
+      ...LIVE_SHOP,
+      menu: { categories: LIVE_SHOP.menu.categories },
+      directConfig: {},
+      brand: { cuisine: "Pizza", logoUrl: null },
+      location: { ...LIVE_SHOP.location, logoUrl: null },
+    };
+    await expect(seoOf(bare)).resolves.toMatchObject({
+      image: null,
+      hasStoredImage: false,
     });
   });
 
@@ -144,9 +180,90 @@ describe("getStorefrontSeo", () => {
       "customDomain",
       "directOrderingEnabled",
       "hasMenu",
+      "hasStoredImage",
       "image",
       "name",
       "postcode",
     ]);
+  });
+});
+
+describe("pickStorefrontImage", () => {
+  it("prefers the banner, then the hero, then config, then the logos", () => {
+    const store: any = {
+      menu: { bannerImage: "banner", heroImage: "hero" },
+      directConfig: { heroImageUrl: "config" },
+      brand: { logoUrl: "brand-logo" },
+      location: { logoUrl: "location-logo" },
+    };
+    expect(pickStorefrontImage(store)).toBe("banner");
+    delete store.menu.bannerImage;
+    expect(pickStorefrontImage(store)).toBe("hero");
+    delete store.menu.heroImage;
+    expect(pickStorefrontImage(store)).toBe("config");
+    delete store.directConfig.heroImageUrl;
+    expect(pickStorefrontImage(store)).toBe("brand-logo");
+    delete store.brand.logoUrl;
+    expect(pickStorefrontImage(store)).toBe("location-logo");
+  });
+
+  it("treats blank and missing columns alike", () => {
+    expect(pickStorefrontImage({ menu: { bannerImage: "   " } })).toBeNull();
+    expect(pickStorefrontImage({})).toBeNull();
+    expect(pickStorefrontImage(null)).toBeNull();
+  });
+});
+
+describe("getStorefrontPreviewImage", () => {
+  function imageOf(store: any) {
+    const service = Object.create(OrderingService.prototype) as OrderingService;
+    (service as any).getStorefrontBySlug = jest.fn().mockResolvedValue(store);
+    return service.getStorefrontPreviewImage("pizza-uno-pelton");
+  }
+
+  // One black JPEG-ish byte run is enough — this decodes base64, it does not
+  // parse images.
+  const PIXEL = "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAA==";
+
+  it("decodes the stored banner into bytes a crawler can fetch", async () => {
+    const result = await imageOf({
+      menu: { bannerImage: `data:image/jpeg;base64,${PIXEL}` },
+    });
+    expect(result?.contentType).toBe("image/jpeg");
+    expect(result?.buffer.length).toBeGreaterThan(0);
+    expect(result?.buffer).toEqual(Buffer.from(PIXEL, "base64"));
+  });
+
+  it("keeps the stored mime type rather than guessing one", async () => {
+    const result = await imageOf({
+      menu: { bannerImage: `data:image/PNG;base64,${PIXEL}` },
+    });
+    expect(result?.contentType).toBe("image/png");
+  });
+
+  // A shop whose banner is already a URL needs nothing from this route — the
+  // metadata points og:image straight at it.
+  it("returns nothing for an image that already has a URL", async () => {
+    await expect(
+      imageOf({ menu: { bannerImage: "https://cdn.example.com/banner.jpg" } }),
+    ).resolves.toBeNull();
+  });
+
+  it("returns nothing when the shop has no image", async () => {
+    await expect(imageOf({})).resolves.toBeNull();
+  });
+
+  // Serving zero bytes as an image is worse than serving nothing: the crawler
+  // renders a broken card instead of falling back to a text-only one.
+  it("refuses a data URI that decodes to nothing", async () => {
+    await expect(
+      imageOf({ menu: { bannerImage: "data:image/jpeg;base64," } }),
+    ).resolves.toBeNull();
+  });
+
+  it("refuses a non-image data URI", async () => {
+    await expect(
+      imageOf({ menu: { bannerImage: "data:text/html;base64,PHNjcmlwdD4=" } }),
+    ).resolves.toBeNull();
   });
 });

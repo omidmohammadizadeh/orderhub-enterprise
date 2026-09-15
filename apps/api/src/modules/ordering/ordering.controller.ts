@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Param, Query, HttpCode, HttpStatus } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Query,
+  Res,
+  HttpCode,
+  HttpStatus,
+} from "@nestjs/common";
+import type { Response } from "express";
 import { ApiTags, ApiOperation } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
 import { OrderingService, CheckoutDto } from "./ordering.service";
@@ -32,6 +43,34 @@ export class OrderingController {
   @ApiOperation({ summary: "Public storefront identity for page metadata" })
   getStorefrontSeo(@Param("slug") slug: string, @Query("brand") brandId?: string) {
     return this.ordering.getStorefrontSeo(slug, brandId);
+  }
+
+  // The shop's preview image as actual bytes. Link-preview crawlers fetch
+  // og:image over HTTP, so a banner stored as a base64 data URI — which is
+  // most of them — had no preview picture at all until it had a URL.
+  //
+  // Cached hard and immutably-ish: the bytes behind one storefront change
+  // only when the operator uploads a new banner, and every crawler that
+  // scrapes a shared link hits this.
+  @Public()
+  @Get("store/:slug/preview-image")
+  @ApiOperation({ summary: "Storefront preview image for link previews" })
+  async getStorefrontPreviewImage(
+    @Param("slug") slug: string,
+    @Res() res: Response,
+    @Query("brand") brandId?: string,
+  ) {
+    const image = await this.ordering.getStorefrontPreviewImage(slug, brandId);
+    if (!image) {
+      // 404 so a crawler drops the image and renders the rest of the card,
+      // rather than retrying or showing a broken one.
+      res.status(HttpStatus.NOT_FOUND).json({ message: "No preview image" });
+      return;
+    }
+    res.setHeader("Content-Type", image.contentType);
+    res.setHeader("Content-Length", image.buffer.length);
+    res.setHeader("Cache-Control", "public, max-age=86400, s-maxage=86400");
+    res.send(image.buffer);
   }
 
   @Public()
