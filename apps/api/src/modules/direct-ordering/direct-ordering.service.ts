@@ -1,5 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { SupabaseStorageService } from "../uploads/supabase-storage.service";
+import { rehostImageIfInline } from "../uploads/rehost-image";
 
 // Phase AP — direct online ordering settings.
 //
@@ -23,7 +25,33 @@ export interface UpdateDirectOrderingConfigDto {
 
 @Injectable()
 export class DirectOrderingService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly storage: SupabaseStorageService,
+  ) {}
+
+  /**
+   * Push an inline hero image into storage before it reaches the column.
+   *
+   * The dashboard uploader already uploads to Supabase and only falls back to
+   * a data URI when that fails — so this is the net under the fallback, not
+   * the usual path. Without it a single failed upload puts a whole JPEG into
+   * a Postgres column, from where it is re-sent inside the JSON on every
+   * storefront load, and no link-preview crawler can fetch it.
+   */
+  private async rehostHero(
+    dto: UpdateDirectOrderingConfigDto,
+  ): Promise<UpdateDirectOrderingConfigDto> {
+    if (dto.heroImageUrl === undefined) return dto;
+    return {
+      ...dto,
+      heroImageUrl: (await rehostImageIfInline(
+        this.storage,
+        dto.heroImageUrl,
+        "storefront",
+      )) as string | null | undefined,
+    };
+  }
 
   /** Get-or-create with defaults — the storefront always wants a row,
    *  even on a brand-new location that never visited the admin tab. */
@@ -71,14 +99,15 @@ export class DirectOrderingService {
     dto: UpdateDirectOrderingConfigDto,
   ) {
     await this.assertLocation(tenantId, locationId);
+    const clean = this.cleanWriteDto(await this.rehostHero(dto));
     return this.prisma.directOrderingConfig.upsert({
       where: { locationId },
       create: {
         tenantId,
         locationId,
-        ...this.cleanWriteDto(dto),
+        ...clean,
       },
-      update: this.cleanWriteDto(dto),
+      update: clean,
     });
   }
 
@@ -169,14 +198,15 @@ export class DirectOrderingService {
     dto: UpdateDirectOrderingConfigDto,
   ) {
     await this.assertBrand(tenantId, brandId);
+    const clean = this.cleanWriteDto(await this.rehostHero(dto));
     return (this.prisma as any).directOrderingConfig.upsert({
       where: { brandId },
       create: {
         tenantId,
         brandId,
-        ...this.cleanWriteDto(dto),
+        ...clean,
       },
-      update: this.cleanWriteDto(dto),
+      update: clean,
     });
   }
 

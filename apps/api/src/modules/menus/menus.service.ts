@@ -14,6 +14,8 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 import { PluService, randomPlu } from "./plu.service";
 import { MenuAssignmentsService } from "./menu-assignments.service";
+import { SupabaseStorageService } from "../uploads/supabase-storage.service";
+import { rehostImageIfInline } from "../uploads/rehost-image";
 import { MenuAvailabilityService } from "../inventory/menu-availability.service";
 import { resolveNestedModifierGroups } from "./nested-modifier-groups";
 import {
@@ -98,7 +100,40 @@ export class MenusService {
     private readonly menuAvailability: MenuAvailabilityService,
     // Phase BA — serving-assignment resolver (assignment-first resolution).
     private readonly menuAssignments: MenuAssignmentsService,
+    // Inline images get pushed into storage on write — see rehostInline below.
+    private readonly storage: SupabaseStorageService,
   ) {}
+
+  /**
+   * Replace any inline `data:` image on a DTO with a hosted URL.
+   *
+   * The dashboard uploader already uploads to Supabase and only falls back to
+   * a data URI when that upload fails, so this is the net under the fallback
+   * rather than the usual path. It matters because a banner that lands in the
+   * column is re-sent inside the JSON on every storefront load AND cannot be
+   * used as a link preview image — one live shop was carrying a 703KB banner
+   * exactly this way, 18% of its 3.8MB storefront payload.
+   *
+   * `undefined` fields are left alone so a PATCH that doesn't mention an
+   * image still doesn't touch it. Never throws: a logo that won't upload must
+   * not stop the operator saving the rest of the form.
+   */
+  private async rehostInline<T extends Record<string, any>>(
+    dto: T,
+    fields: Array<keyof T>,
+    folder: string,
+  ): Promise<T> {
+    const out: T = { ...dto };
+    for (const field of fields) {
+      if (out[field] === undefined) continue;
+      out[field] = (await rehostImageIfInline(
+        this.storage,
+        out[field] as string | null | undefined,
+        folder,
+      )) as T[keyof T];
+    }
+    return out;
+  }
 
   // ── Menu CRUD ─────────────────────────────────────────────────────────────
 
@@ -231,6 +266,11 @@ export class MenusService {
 
   async create(brandId: string, tenantId: string, dto: CreateMenuDto) {
     await this.assertBrandAccess(brandId, tenantId);
+    dto = await this.rehostInline(
+      dto,
+      ["bannerImage", "logoImage", "heroImage"],
+      "menus",
+    );
     return this.prisma.menu.create({
       data: {
         brandId,
@@ -289,6 +329,11 @@ export class MenusService {
     });
     const assignmentBrandId = dto.brandId ?? menuRow?.brandId ?? null;
 
+    dto = await this.rehostInline(
+      dto,
+      ["bannerImage", "logoImage", "heroImage"],
+      "menus",
+    );
     const menuUpdate = this.prisma.menu.update({
       where: { id: menuId },
       data: {
@@ -1516,6 +1561,7 @@ export class MenusService {
   }
 
   async createItem(brandId: string, tenantId: string, dto: CreateMenuItemDto) {
+    dto = await this.rehostInline(dto, ["imageUrl"], "products");
     await this.assertBrandAccess(brandId, tenantId);
     // Phase AK: auto-generate PLU if the caller didn't supply one. This
     // mirrors Base44's `prod_${Date.now()}` default but uses our
@@ -1571,6 +1617,7 @@ export class MenusService {
   }
 
   async updateItem(itemId: string, tenantId: string, dto: UpdateMenuItemDto) {
+    dto = await this.rehostInline(dto, ["imageUrl"], "products");
     await this.assertItemAccess(itemId, tenantId);
     return this.prisma.menuItem.update({
       where: { id: itemId },
@@ -2430,6 +2477,7 @@ export class MenusService {
       menuIds?: string[];
     },
   ) {
+    dto = await this.rehostInline(dto, ["imageUrl"], "modifiers");
     await this.assertModifierGroupAccess(groupId, tenantId);
     const maxOrder = await this.prisma.modifierOption.aggregate({
       where: { groupId },
@@ -2490,6 +2538,7 @@ export class MenusService {
       nestedGroupIds?: string[];
     },
   ) {
+    dto = await this.rehostInline(dto, ["imageUrl"], "modifiers");
     const option = await this.prisma.modifierOption.findFirst({
       where: { id: optionId, group: { brand: { tenantId } } },
     });

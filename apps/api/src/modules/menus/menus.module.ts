@@ -28,6 +28,7 @@ import { MenuTranslationService } from "./menu-translation.service";
   // POS menu strip-on-snooze in findActiveMenuForLocation resolves.
   // forwardRef breaks the InventoryModule → HubRise → Menus cycle.
   imports: [
+    // Rehost inline images on write instead of storing them in a column.
     UploadsModule,
     BullModule.registerQueue({ name: QUEUES.MENU_SYNC }),
     HubRiseModule,
