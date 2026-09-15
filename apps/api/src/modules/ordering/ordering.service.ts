@@ -367,6 +367,15 @@ export class OrderingService {
             prepTime: true,
             busyExtraPrepTime: true,
             topSellerItemIds: true,
+            // Phase BS — public SEO facts. The storefront's <head> is
+            // rendered on the server now, and it needs to know the shop's
+            // own domain (the canonical host) and whether this brand is
+            // actually selling online (whether to let Google index it).
+            // Both are already public: the domain IS the shop's URL.
+            cuisine: true,
+            customDomain: true,
+            customDomainStatus: true,
+            directOrderingEnabled: true,
           },
         },
       },
@@ -403,6 +412,9 @@ export class OrderingService {
             cuisine: true,
             onlineOrderingSlug: true,
             customDomain: true,
+            // Only a VERIFIED domain may be named as canonical — see the
+            // `seo` block at the end of this method.
+            customDomainStatus: true,
             stripeConnectedAccountId: true,
             applicationFeeMode: true,
             applicationFeeFixedAmount: true,
@@ -1087,6 +1099,28 @@ export class OrderingService {
       whatsapp,
       location: dedupeLogo(locationView, brandView),
       brand: brandView,
+      // Phase BS — facts the storefront's server-rendered <head> needs, and
+      // nothing more: the web app decides the SEO policy, we just answer
+      // "which host is really this shop's" and "is it selling online".
+      //
+      // The same storefront is reachable at the brand's own domain, at our
+      // fallback domain, and at /order/<slug> on any host. Google treats
+      // those as three pages unless every one of them names the same
+      // canonical, which it can only do if it knows the domain exists —
+      // the request Host alone can't tell you.
+      //
+      // An UNVERIFIED domain must never be named: Cloudflare hasn't issued
+      // its certificate yet, so pointing the canonical there would point
+      // Google at a URL that doesn't serve.
+      seo: {
+        customDomain: verifiedCustomDomain(
+          overrideBrand ?? (location as any).brand,
+          location,
+        ),
+        directOrderingEnabled:
+          (overrideBrand ?? (location as any).brand)?.directOrderingEnabled ??
+          true,
+      },
       menu,
       isOpen: this.isCurrentlyOpen(effectiveHours as any, location.timezone),
       // Phase AW-15 — null when accepting orders; populated when the
@@ -1105,6 +1139,49 @@ export class OrderingService {
               extraPrepTime: pauseSnapshot.extraPrepTime,
             }
           : null,
+    };
+  }
+
+  /**
+   * Phase BS — the storefront's identity, and nothing else.
+   *
+   * Deliberately a projection of getStorefrontBySlug rather than its own
+   * query: `?brand=` is a trust boundary (a brand may only overlay a shop it
+   * actually trades at), and a second resolver would be a second place for
+   * that check to drift out of. The cost is the full storefront read; the
+   * win is a response small enough for the web app to cache, so that read
+   * happens once every few minutes per shop instead of once per visitor.
+   *
+   * `hasMenu` is the "is this shop actually live" signal — a storefront with
+   * nothing orderable on it is a page Google should not be offering anyone.
+   * Being closed for the night is NOT that signal and is not reported here.
+   */
+  async getStorefrontSeo(slug: string, brandIdOverride?: string) {
+    const store: any = await this.getStorefrontBySlug(slug, brandIdOverride);
+    const menu = store?.menu;
+    const categories: any[] = Array.isArray(menu?.categories)
+      ? menu.categories
+      : [];
+
+    return {
+      name: store?.location?.name ?? null,
+      about: store?.location?.about ?? store?.brand?.about ?? null,
+      cuisine: store?.brand?.cuisine ?? null,
+      city: store?.location?.city ?? null,
+      postcode: store?.location?.postcode ?? null,
+      // Same order of preference the storefront's own hero uses, so the
+      // link preview shows the picture the customer is about to see, with
+      // the logo as a last resort.
+      image:
+        menu?.bannerImage ??
+        menu?.heroImage ??
+        store?.directConfig?.heroImageUrl ??
+        store?.brand?.logoUrl ??
+        store?.location?.logoUrl ??
+        null,
+      customDomain: store?.seo?.customDomain ?? null,
+      directOrderingEnabled: store?.seo?.directOrderingEnabled ?? true,
+      hasMenu: categories.some((c) => (c?.items?.length ?? 0) > 0),
     };
   }
 
@@ -2289,4 +2366,21 @@ function dedupeLogo(locationView: any, brandView: any) {
   if (!locationView?.logoUrl || !brandView?.logoUrl) return locationView;
   if (locationView.logoUrl !== brandView.logoUrl) return locationView;
   return { ...locationView, logoUrl: null };
+}
+
+/**
+ * The shop's own domain, if it really has one.
+ *
+ * Brand first (custom domains are sold per brand), then the location, which
+ * still carries the older per-location column. Either only counts when
+ * Cloudflare has actually issued the certificate: `customDomainStatus` is
+ * "pending" for as long as the operator's DNS is wrong, and a canonical
+ * pointing at a host that doesn't serve is worse than no canonical at all.
+ */
+export function verifiedCustomDomain(brand: any, location: any): string | null {
+  for (const row of [brand, location]) {
+    const host = String(row?.customDomain ?? "").trim().toLowerCase();
+    if (host && row?.customDomainStatus === "verified") return host;
+  }
+  return null;
 }

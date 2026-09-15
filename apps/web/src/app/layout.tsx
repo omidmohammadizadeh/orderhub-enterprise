@@ -24,9 +24,14 @@ export const metadata: Metadata = {
   },
   description:
     "Omnichannel restaurant integration platform. Unify Uber Eats, Deliveroo, Just Eat, and direct orders in one place.",
-  // Marketing landing at / wants to be indexed; private routes
-  // (/dashboard, /kds, /order/*) opt out via their own segment
-  // metadata. Pages override this default per-route as needed.
+  // Marketing landing at / wants to be indexed. The private routes opt out
+  // via their own segment metadata: /dashboard, /kds, /signage/* and
+  // /t/<token> all set robots index:false.
+  //
+  // /order/* is NOT one of them and never was — customer storefronts are
+  // meant to be findable. They set their own per-shop title, description and
+  // canonical in app/order/[slug]/page.tsx, and turn indexing off there only
+  // when a shop isn't actually selling online.
   robots: { index: true, follow: true },
 };
 

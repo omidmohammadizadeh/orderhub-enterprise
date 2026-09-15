@@ -22,6 +22,18 @@ export class OrderingController {
     return this.ordering.getStorefrontBySlug(slug, brandId);
   }
 
+  // Phase BS — just enough of the storefront to render its <head> on the
+  // server: name, description, preview image, canonical host. Separate from
+  // the full storefront read because that one carries the entire menu (a
+  // couple of MB on a real shop) and the web app would have to fetch it on
+  // every cold page render just to write a <title>.
+  @Public()
+  @Get("store/:slug/seo")
+  @ApiOperation({ summary: "Public storefront identity for page metadata" })
+  getStorefrontSeo(@Param("slug") slug: string, @Query("brand") brandId?: string) {
+    return this.ordering.getStorefrontSeo(slug, brandId);
+  }
+
   @Public()
   @Post("store/:slug/checkout")
   @Throttle({ short: { limit: 3, ttl: 10000 }, medium: { limit: 20, ttl: 60000 } })
