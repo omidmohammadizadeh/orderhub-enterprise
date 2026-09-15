@@ -111,6 +111,9 @@ export const appConfig = registerAs("app", () => ({
       // backup flow. We force an explicit ack well before that.
       ackDeadlineSeconds: Number(process.env.JET_ACK_DEADLINE_SECONDS ?? 90),
       ackWatchdogEnabled: process.env.JET_ACK_WATCHDOG_ENABLED !== "false",
+      // Past this age an acknowledgement cannot change anything: JET closed
+      // the order at 3 minutes and every later ack 400s. Stop retrying.
+      ackGiveUpSeconds: Number(process.env.JET_ACK_GIVE_UP_SECONDS ?? 300),
     },
     hubrise: {
       // Phase AU — HubRise OAuth client. HubRise's dashboard calls

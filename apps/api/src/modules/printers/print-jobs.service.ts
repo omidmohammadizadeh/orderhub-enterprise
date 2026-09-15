@@ -1249,7 +1249,15 @@ export class PrintJobsService {
         order.brandId
           ? (this.prisma as any).brand.findUnique({
               where: { id: order.brandId },
-              select: { onlineOrderingSlug: true, directOrderingEnabled: true },
+              // primaryLocationId + locations are what let the QR builder tell
+              // "this shop's brand" from "another shop's brand that happens to
+              // have a storefront" — without them it can only trust and hope.
+              select: {
+                onlineOrderingSlug: true,
+                directOrderingEnabled: true,
+                primaryLocationId: true,
+                locations: { select: { id: true } },
+              },
             })
           : null,
       ]);
@@ -1258,7 +1266,13 @@ export class PrintJobsService {
         .replace(/\/+$/, "");
       const { url, reason } = buildStorefrontQrUrl({
         brandId: order.brandId ?? loc?.brandId ?? "",
-        brand,
+        orderBrandId: order.brandId ?? null,
+        brand: brand
+          ? {
+              ...brand,
+              locationIds: (brand.locations ?? []).map((l: any) => l.id),
+            }
+          : null,
         loc,
         base,
       });

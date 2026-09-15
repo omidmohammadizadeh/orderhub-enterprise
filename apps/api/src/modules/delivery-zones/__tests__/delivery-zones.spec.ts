@@ -164,3 +164,165 @@ describe("DeliveryZonesService.lookup", () => {
     expect(result.beyondLastBand).toBe(true);
   });
 });
+
+// Where the SHOP is — the input every distance band depends on.
+//
+// A shop whose coordinates can't be found puts every one of its customers on
+// the top band: the resolver reads "no distance" as "infinitely far" and
+// charges the furthest band, which is the safe direction to fail for the shop
+// but looks exactly like a pricing bug. DE SALT charged £5 for a two-mile
+// delivery this way.
+//
+// Two things must hold: a UK postcode resolves free through postcodes.io
+// without any Google key, and a shop we genuinely can't place says so in the
+// log instead of silently overcharging.
+describe("DeliveryZonesService — locating the shop", () => {
+  const buildOrigin = (loc: any) => {
+    const svc: any = Object.create(DeliveryZonesService.prototype);
+    svc.logger = { warn: jest.fn(), log: jest.fn(), error: jest.fn() };
+    svc.prisma = {
+      location: {
+        findFirst: jest.fn().mockResolvedValue(loc),
+        update: jest.fn().mockResolvedValue({}),
+      },
+    };
+    svc.geocodePostcode = jest.fn().mockResolvedValue(null);
+    svc.geocode = jest.fn().mockResolvedValue(null);
+    return svc;
+  };
+
+  const UK_SHOP = {
+    id: "loc1",
+    latitude: null,
+    longitude: null,
+    postcode: "G72 7SF",
+    addressLine1: "205 Westburn Rd",
+    city: "Cambuslang",
+    country: "GB",
+  };
+
+  it("finds a UK shop from its postcode alone, with no Google key", async () => {
+    const svc = buildOrigin(UK_SHOP);
+    svc.geocodePostcode.mockResolvedValue({ lat: 55.81, lng: -4.16 });
+
+    const origin = await svc.originFor("t1", { locationId: "loc1" });
+
+    expect(svc.geocodePostcode).toHaveBeenCalledWith("G72 7SF");
+    expect(origin).toEqual({ lat: 55.81, lng: -4.16 });
+    // Cached, because the shop doesn't move.
+    expect(svc.prisma.location.update).toHaveBeenCalled();
+  });
+
+  it("falls back to the full address when the postcode doesn't resolve", async () => {
+    const svc = buildOrigin(UK_SHOP);
+    svc.geocode.mockResolvedValue({ lat: 1, lng: 2 });
+
+    const origin = await svc.originFor("t1", { locationId: "loc1" });
+
+    expect(origin).toEqual({ lat: 1, lng: 2 });
+    expect(svc.geocode).toHaveBeenCalled();
+  });
+
+  it("warns rather than silently putting every customer on the top band", async () => {
+    const svc = buildOrigin(UK_SHOP);
+
+    const origin = await svc.originFor("t1", { locationId: "loc1" });
+
+    expect(origin).toBeNull();
+    expect(svc.logger.warn).toHaveBeenCalled();
+    const said = svc.logger.warn.mock.calls.map((c: any[]) => String(c[0])).join(" ");
+    expect(said).toContain("loc1");
+  });
+
+  it("uses stored coordinates when the shop already has them", async () => {
+    const svc = buildOrigin({ ...UK_SHOP, latitude: 51.5, longitude: -0.1 });
+
+    const origin = await svc.originFor("t1", { locationId: "loc1" });
+
+    expect(origin).toEqual({ lat: 51.5, lng: -0.1 });
+    expect(svc.geocodePostcode).not.toHaveBeenCalled();
+  });
+});
+
+// The storefront needs a real fee, not the worst case.
+//
+// Until now the cart could only show the FURTHEST band the moment a customer
+// chose delivery, because working out the real one needs a server-side
+// geocode and there was no endpoint an anonymous customer could call. So a
+// two-mile order advertised the 3–5 mile price before an address was even
+// typed.
+//
+// This quote is public by necessity, so it takes only the ids the storefront
+// already has and derives the tenant from the location itself — a caller must
+// never be able to name the tenant.
+describe("DeliveryZonesService.publicQuote", () => {
+  const BANDS = [
+    { id: "b1", maxDistanceMiles: 3, fee: 3, minOrderValue: null, isActive: true,
+      postcodePrefix: null, areaName: null },
+    { id: "b2", maxDistanceMiles: 5, fee: 5, minOrderValue: null, isActive: true,
+      postcodePrefix: null, areaName: null },
+  ];
+
+  const build = (location: any, zones: any[] = BANDS) => {
+    const svc: any = Object.create(DeliveryZonesService.prototype);
+    svc.logger = { warn: jest.fn(), log: jest.fn(), error: jest.fn() };
+    svc.prisma = {
+      location: { findFirst: jest.fn().mockResolvedValue(location) },
+      deliveryZone: { findMany: jest.fn().mockResolvedValue(zones) },
+    };
+    svc.measureDistance = jest.fn().mockResolvedValue(0.4);
+    return svc;
+  };
+
+  const LOC = { id: "loc1", brand: { tenantId: "t-real" } };
+
+  it("prices the shop's own doorstep at the nearest band, not the furthest", async () => {
+    // Zero-ish distance must be the 0–3 band. Quoting £5 at the shop's own
+    // address is what showed this was broken.
+    const svc = build(LOC);
+
+    const res = await svc.publicQuote("loc1", { postcode: "G72 7TB" });
+
+    expect(res.matched).toBe(true);
+    expect(Number(res.fee)).toBe(3);
+  });
+
+  it("finds zones scoped to the BRAND, not only the location", async () => {
+    // DE SALT's bands hang off the brand. Reading only location rows found
+    // nothing, answered "no zones", and left the cart showing its maximum.
+    const svc = build(LOC);
+
+    await svc.publicQuote("loc1", { postcode: "G72 7TB", brandId: "brand-1" });
+
+    const where = svc.prisma.deliveryZone.findMany.mock.calls[0][0].where;
+    expect(where.OR).toEqual(
+      expect.arrayContaining([
+        { locationId: "loc1" },
+        { brandId: "brand-1" },
+        { brand: { locations: { some: { id: "loc1" } } } },
+      ]),
+    );
+    expect(where.isActive).toBe(true);
+  });
+
+  it("derives the tenant from the location's brand, never from the caller", async () => {
+    const svc = build(LOC);
+
+    await svc.publicQuote("loc1", { postcode: "G72 7TB" });
+
+    expect(svc.measureDistance).toHaveBeenCalledWith(
+      "t-real",
+      { locationId: "loc1" },
+      expect.anything(),
+    );
+  });
+
+  it("answers 'no match' for an unknown location rather than throwing", async () => {
+    const svc = build(null);
+
+    const res = await svc.publicQuote("nope", { postcode: "G72 7DX" });
+
+    expect(res).toEqual({ matched: false, fee: 0, mode: "NONE" });
+    expect(svc.prisma.deliveryZone.findMany).not.toHaveBeenCalled();
+  });
+});

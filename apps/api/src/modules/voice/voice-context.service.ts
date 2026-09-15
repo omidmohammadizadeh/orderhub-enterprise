@@ -178,9 +178,14 @@ export class VoiceContextService {
    * and wrong here — a shop using the number for caller ID alone may have no
    * menu with us at all, and the popup is the only thing they bought.
    */
-  async callerIdTarget(
-    dialled: string,
-  ): Promise<{ tenantId: string; locationId: string; callerIdOnly: boolean } | null> {
+  async callerIdTarget(dialled: string): Promise<{
+    tenantId: string;
+    locationId: string;
+    callerIdOnly: boolean;
+    /** The shop's own line, so a ring carrying it instead of the caller's can be spotted. */
+    locationPhone: string | null;
+    settings: unknown;
+  } | null> {
     const location = await this.locationForNumber(dialled);
     if (!location) return null;
     const settings = (location.settings ?? {}) as any;
@@ -188,6 +193,8 @@ export class VoiceContextService {
       tenantId: String(location.tenantId),
       locationId: String(location.id),
       callerIdOnly: settings.voiceCallerIdOnly === true,
+      locationPhone: (location as any).phone ?? null,
+      settings,
     };
   }
 

@@ -509,6 +509,12 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
                   <span>Delivery</span><span>{money(order.deliveryFee)}</span>
                 </div>
               )}
+              {Number((order as any).serviceCharge ?? 0) > 0 && (
+                <div className="flex justify-between text-sm text-zinc-600">
+                  <span>Service charge</span>
+                  <span>{money(Number((order as any).serviceCharge))}</span>
+                </div>
+              )}
               {Number((order as any).tipAmount ?? 0) > 0 && (
                 <div className="flex justify-between text-sm text-zinc-600">
                   <span>Tip</span>

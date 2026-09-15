@@ -11,6 +11,7 @@ import { ApiTags, ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
 import { SubscriptionsService } from "./subscriptions.service";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
+import { Public } from "../../common/decorators/public.decorator";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
 // Who may reach billing at all. Membership here is NOT tenant-wide access —
@@ -80,6 +81,36 @@ export class SubscriptionsController {
     @Param("locationId") locationId: string,
   ) {
     return this.subs.createPortalSession(user.tenantId, locationId, user.userId, user.role);
+  }
+
+  @Post("locations/:locationId/share-link")
+  @Roles(...BILLING_ROLES)
+  @ApiOperation({
+    summary:
+      "A link the operator can send the client so they add their own card",
+  })
+  shareLink(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("locationId") locationId: string,
+  ) {
+    return this.subs.subscriptionShareLink(
+      user.tenantId,
+      locationId,
+      user.userId,
+      user.role,
+    );
+  }
+
+  // Public: the client has no login — that is the whole point of the link.
+  // The signed token is the only authority, and it carries nothing but a
+  // location id and an expiry.
+  @Public()
+  @Get("public/checkout/:token")
+  @ApiOperation({
+    summary: "Open a fresh Stripe Checkout from a shared subscription link",
+  })
+  checkoutFromLink(@Param("token") token: string) {
+    return this.subs.checkoutFromShareToken(token);
   }
 
   @Post("locations/:locationId/restart-checkout")

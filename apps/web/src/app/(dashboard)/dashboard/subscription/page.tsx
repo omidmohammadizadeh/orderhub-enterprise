@@ -22,6 +22,8 @@ import { useSearchParams } from "next/navigation";
 import {
   CreditCard,
   CheckCircle2,
+  Link2,
+  Check,
   AlertTriangle,
   XCircle,
   Loader2,
@@ -272,6 +274,31 @@ function SubscriptionRow({
       if (data.url) window.location.href = data.url;
     },
   });
+  // A link the operator sends the client so THEY put the card in.
+  //
+  // Copying the Stripe URL behind "Add card" would look equivalent and quietly
+  // fail: Checkout sessions expire after 24 hours. This link is ours, lasts a
+  // month, and mints a fresh Stripe session whenever the client opens it.
+  const [copied, setCopied] = useState(false);
+  const shareMutation = useMutation({
+    mutationFn: () =>
+      apiClient
+        .post(`/v1/subscriptions/locations/${sub.locationId}/share-link`)
+        .then((r) => r.data as { url: string; expiresAt: string }),
+    onSuccess: async (data) => {
+      try {
+        await navigator.clipboard.writeText(data.url);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2500);
+      } catch {
+        // Clipboard blocked (Safari without a user gesture, an insecure
+        // origin). Showing the link beats failing silently — they can still
+        // select it by hand.
+        window.prompt("Copy this link and send it to your client:", data.url);
+      }
+    },
+  });
+
   const cancelMutation = useMutation({
     mutationFn: () =>
       apiClient.delete(`/v1/subscriptions/locations/${sub.locationId}`),
@@ -350,6 +377,26 @@ function SubscriptionRow({
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : (
                 "Add card"
+              )}
+            </button>
+          ) : null}
+          {(sub.status === "incomplete" || sub.status === "past_due") ? (
+            <button
+              onClick={() => shareMutation.mutate()}
+              disabled={shareMutation.isPending}
+              title="Copy a link your client can open to add their own card"
+              className="inline-flex items-center gap-1 rounded-md border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
+            >
+              {shareMutation.isPending ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : copied ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-emerald-600" /> Copied
+                </>
+              ) : (
+                <>
+                  <Link2 className="w-3.5 h-3.5" /> Copy payment link
+                </>
               )}
             </button>
           ) : (

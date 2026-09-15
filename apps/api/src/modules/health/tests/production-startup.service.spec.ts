@@ -164,7 +164,12 @@ describe("ProductionStartupService", () => {
 
   // ── Redis check ───────────────────────────────────────────────────────────
 
-  it("exits when Redis connection fails", async () => {
+  it("does NOT exit when the Redis ping fails — it warns and carries on", async () => {
+    // d9bb4175 made this deliberately non-fatal. Bull's ioredis client
+    // reconnects on its own, and a cold Upstash instance can be slow to
+    // negotiate TLS at module-init time. Exiting here meant the whole API
+    // refused to boot — every storefront and till down — over a slow ping.
+    // The database check above stays fatal; Redis does not.
     process.env.NODE_ENV = "production";
     process.env.CREDENTIAL_ENCRYPTION_KEY = makeValidKey();
     process.env.JWT_SECRET = crypto.randomBytes(32).toString("hex");
@@ -173,9 +178,15 @@ describe("ProductionStartupService", () => {
     queueMock.client.ping.mockRejectedValue(new Error("Redis ECONNREFUSED"));
 
     const service = await buildService(prismaMock, queueMock);
+    const warn = jest
+      .spyOn((service as any).logger, "warn")
+      .mockImplementation(() => {});
     await service.onModuleInit();
 
-    expect(exitSpy).toHaveBeenCalledWith(1);
+    expect(exitSpy).not.toHaveBeenCalled();
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining("Redis/queue ping check did not succeed"),
+    );
   });
 
   // ── All checks pass ───────────────────────────────────────────────────────

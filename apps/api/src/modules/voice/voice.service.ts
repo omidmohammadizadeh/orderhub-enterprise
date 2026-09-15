@@ -4,6 +4,7 @@ import { WalletService } from '../wallet/wallet.service';
 import { VoiceContextService, normaliseNumber } from './voice-context.service';
 import { AddressLookupService } from '../address-lookup/address-lookup.service';
 import { CustomersService } from '../customers/customers.service';
+import { CallerIdSetupService, ownNumbersOf } from '../customers/caller-id-setup.service';
 import { SocketService } from '../../infrastructure/socket/socket.service';
 import {
   VoiceAiService,
@@ -81,6 +82,7 @@ export class VoiceService {
     // The caller popup: same lookup and same event the Comet reader and the
     // VoIP webhook use, so a till cannot tell which of the three rang it.
     private readonly customers: CustomersService,
+    private readonly callerIdSetup: CallerIdSetupService,
     private readonly socket: SocketService,
   ) {}
 
@@ -1753,6 +1755,17 @@ export class VoiceService {
         phone: from,
         at: new Date().toISOString(),
         match,
+      });
+      // Same "did it arrive?" light the webhook route feeds, so the setup
+      // panel answers the question for whichever route a shop is on —
+      // including the one that matters most here: whether the number that
+      // reached us was the caller's or the shop's own.
+      this.callerIdSetup.record({
+        locationId: target.locationId,
+        phone: from,
+        source: 'voice',
+        matched: !!match,
+        ownNumbers: ownNumbersOf(target.locationPhone, target.settings),
       });
       // Masked: this line is for proving the popup fired, and the whole number
       // in a log is a customer's number in a log.

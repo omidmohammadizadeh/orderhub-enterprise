@@ -1,10 +1,15 @@
 import { LocationsService } from "../locations.service";
 
-// The location switcher (findAll) must list only the locations a scoped
-// user can access: explicit UserLocation rows ∪ the locations their
-// assigned brands (UserBrand) operate at. Tenant-wide roles pass no
-// userId and see everything. A scoped user with zero assignments sees
-// nothing (no tenant-wide fallback). findOne enforces the same scope.
+// The location switcher (findAll) must list only the locations a scoped user
+// can access. Tenant-wide roles pass no userId and see everything. A scoped
+// user with zero assignments sees nothing (no tenant-wide fallback). findOne
+// enforces the same scope.
+//
+// The accessible set is NOT a union. Explicit UserLocation rows are
+// authoritative: brand→location expansion applies only to an account with no
+// location scope at all. a1c9119a narrowed it for a reason — an OWNER assigned
+// to one shop plus "all its brands" could see every location those brands
+// trade at.
 
 function makeService(data: {
   userLocations?: string[];
@@ -71,13 +76,16 @@ describe("LocationsService.findAll scoping (location switcher)", () => {
     expect(ids(await svc.findAll("t1", undefined, "u1"))).toEqual(["l2"]);
   });
 
-  it("unions UserLocation and brand-derived locations", async () => {
+  it("does NOT widen an explicit location scope with brand locations", async () => {
+    // The leak a1c9119a closed: this user is assigned to shop l1 and to a
+    // brand that also trades at l2. They manage l1, not l2. Their explicit
+    // assignment wins and l2 stays hidden.
     const svc = makeService({
       userLocations: ["l1"],
       userBrands: ["brandA"],
       brandLocations: { brandA: ["l2"] },
     });
-    expect(ids(await svc.findAll("t1", undefined, "u1"))).toEqual(["l1", "l2"]);
+    expect(ids(await svc.findAll("t1", undefined, "u1"))).toEqual(["l1"]);
   });
 
   it("scoped user with zero assignments sees nothing (no tenant leak)", async () => {

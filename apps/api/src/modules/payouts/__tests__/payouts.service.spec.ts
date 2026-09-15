@@ -809,3 +809,294 @@ describe("PayoutsService — breakdown", () => {
     );
   });
 });
+
+// ── Payout schedule ────────────────────────────────────────────────────────
+//
+// The owner asking "can I be paid on a Friday instead?" is the whole point of
+// this. Two things matter beyond the happy path:
+//
+//  1. SCOPE. The account id arrives from the browser, so changing when another
+//     shop gets paid must be impossible, exactly as for the dashboard link.
+//  2. NEVER STRAND THE MONEY. Stripe's `manual` interval stops automatic
+//     payouts entirely and the balance then sits until someone calls the
+//     Payouts API. That is not a "payout day", and an owner picking it from a
+//     dropdown would simply stop being paid — so it is refused here rather
+//     than merely left out of the UI.
+//
+// We set `settings.payouts.schedule` on Accounts v1, which Stripe's own guide
+// says remains supported ("If you're currently using settings.payouts on
+// Accounts v1, you can continue to do so") — rather than the Balance Settings
+// API, which is Accounts v2 and preview.
+describe("PayoutsService.updatePayoutSchedule", () => {
+  const scheduled = (schedule: any) => ({
+    accounts: {
+      update: jest.fn().mockResolvedValue({
+        settings: { payouts: { schedule } },
+      }),
+    },
+  });
+
+  it("sets a weekly payout day on the right Stripe account", async () => {
+    const stripe = scheduled({ interval: "weekly", weekly_anchor: "friday" });
+    const svc = makeService({ prisma: prismaWith({ userLocations: [LOC_A] }), stripe });
+
+    const res = await svc.updatePayoutSchedule(TENANT, "u1", "OWNER", {
+      accountId: "acc-a",
+      interval: "weekly",
+      weeklyAnchor: "friday",
+    });
+
+    expect(stripe.accounts.update).toHaveBeenCalledWith("acct_A", {
+      settings: { payouts: { schedule: { interval: "weekly", weekly_anchor: "friday" } } },
+    });
+    expect(res).toEqual({ interval: "weekly", weeklyAnchor: "friday", monthlyAnchor: null });
+  });
+
+  it("sets a monthly payout day", async () => {
+    const stripe = scheduled({ interval: "monthly", monthly_anchor: 28 });
+    const svc = makeService({ prisma: prismaWith({ userLocations: [LOC_A] }), stripe });
+
+    const res = await svc.updatePayoutSchedule(TENANT, "u1", "OWNER", {
+      accountId: "acc-a",
+      interval: "monthly",
+      monthlyAnchor: 28,
+    });
+
+    expect(stripe.accounts.update).toHaveBeenCalledWith("acct_A", {
+      settings: { payouts: { schedule: { interval: "monthly", monthly_anchor: 28 } } },
+    });
+    expect(res.monthlyAnchor).toBe(28);
+  });
+
+  it("sends no anchor on a daily schedule", async () => {
+    const stripe = scheduled({ interval: "daily" });
+    const svc = makeService({ prisma: prismaWith({ userLocations: [LOC_A] }), stripe });
+
+    await svc.updatePayoutSchedule(TENANT, "u1", "OWNER", {
+      accountId: "acc-a",
+      interval: "daily",
+      weeklyAnchor: "friday",
+    });
+
+    expect(stripe.accounts.update).toHaveBeenCalledWith("acct_A", {
+      settings: { payouts: { schedule: { interval: "daily" } } },
+    });
+  });
+
+  it("refuses to change another shop's payout day", async () => {
+    const stripe = scheduled({ interval: "weekly" });
+    const svc = makeService({
+      prisma: prismaWith({ userLocations: [LOC_A] }),
+      stripe,
+    });
+
+    await expect(
+      svc.updatePayoutSchedule(TENANT, "u1", "OWNER", {
+        accountId: "acc-b",
+        interval: "weekly",
+        weeklyAnchor: "friday",
+      }),
+    ).rejects.toBeInstanceOf(NotFoundException);
+    expect(stripe.accounts.update).not.toHaveBeenCalled();
+  });
+
+  it("refuses `manual`, which would stop the money instead of moving the day", async () => {
+    const stripe = scheduled({ interval: "manual" });
+    const svc = makeService({ prisma: prismaWith({ userLocations: [LOC_A] }), stripe });
+
+    await expect(
+      svc.updatePayoutSchedule(TENANT, "u1", "OWNER", {
+        accountId: "acc-a",
+        interval: "manual" as any,
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(stripe.accounts.update).not.toHaveBeenCalled();
+  });
+
+  it("rejects a weekday that isn't one, and a month day outside 1–31", async () => {
+    const stripe = scheduled({ interval: "weekly" });
+    const svc = makeService({ prisma: prismaWith({ userLocations: [LOC_A] }), stripe });
+
+    await expect(
+      svc.updatePayoutSchedule(TENANT, "u1", "OWNER", {
+        accountId: "acc-a",
+        interval: "weekly",
+        weeklyAnchor: "caturday",
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    for (const monthlyAnchor of [0, 32]) {
+      await expect(
+        svc.updatePayoutSchedule(TENANT, "u1", "OWNER", {
+          accountId: "acc-a",
+          interval: "monthly",
+          monthlyAnchor,
+        }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    }
+    expect(stripe.accounts.update).not.toHaveBeenCalled();
+  });
+
+  it("requires an anchor for weekly and monthly", async () => {
+    const stripe = scheduled({ interval: "weekly" });
+    const svc = makeService({ prisma: prismaWith({ userLocations: [LOC_A] }), stripe });
+
+    await expect(
+      svc.updatePayoutSchedule(TENANT, "u1", "OWNER", {
+        accountId: "acc-a",
+        interval: "weekly",
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    await expect(
+      svc.updatePayoutSchedule(TENANT, "u1", "OWNER", {
+        accountId: "acc-a",
+        interval: "monthly",
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(stripe.accounts.update).not.toHaveBeenCalled();
+  });
+
+  it("says so plainly when Stripe isn't configured", async () => {
+    const svc = makeService({ prisma: prismaWith({ userLocations: [LOC_A] }), stripe: null });
+    await expect(
+      svc.updatePayoutSchedule(TENANT, "u1", "OWNER", {
+        accountId: "acc-a",
+        interval: "daily",
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+});
+
+// Which shop's payout day? The page has an "All shops" mode, and a tenant can
+// have several payout accounts. Falling back to the first one silently changes
+// a shop the owner never named — the same trap the bank-details button already
+// avoids by making them choose a shop first.
+describe("PayoutsService.updatePayoutSchedule — which shop", () => {
+  const stripeOk = () => ({
+    accounts: {
+      update: jest.fn().mockResolvedValue({
+        settings: { payouts: { schedule: { interval: "weekly", weekly_anchor: "tuesday" } } },
+      }),
+      retrieve: jest.fn().mockResolvedValue({
+        settings: { payouts: { schedule: { interval: "daily" } } },
+      }),
+    },
+  });
+
+  it("refuses to guess when the caller can see more than one shop's account", async () => {
+    const stripe = stripeOk();
+    const svc = makeService({
+      prisma: prismaWith({ userLocations: [LOC_A, LOC_B] }),
+      stripe,
+    });
+
+    await expect(
+      svc.updatePayoutSchedule(TENANT, "u1", "OWNER", {
+        interval: "weekly",
+        weeklyAnchor: "tuesday",
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(stripe.accounts.update).not.toHaveBeenCalled();
+  });
+
+  it("needs no account id when only one shop is in scope", async () => {
+    const stripe = stripeOk();
+    const svc = makeService({
+      prisma: prismaWith({ userLocations: [LOC_A] }),
+      stripe,
+    });
+
+    await svc.updatePayoutSchedule(TENANT, "u1", "OWNER", {
+      interval: "weekly",
+      weeklyAnchor: "tuesday",
+    });
+    expect(stripe.accounts.update).toHaveBeenCalledWith("acct_A", expect.anything());
+  });
+
+  it("names the account the schedule was read from, so the card can say which shop", async () => {
+    const stripe = stripeOk();
+    const svc = makeService({
+      prisma: prismaWith({ userLocations: [LOC_A] }),
+      stripe,
+    });
+
+    const res = await svc.payoutSchedule(TENANT, "u1", "OWNER", {});
+    expect(res?.accountId).toBe("acc-a");
+    expect(typeof res?.accountLabel).toBe("string");
+  });
+});
+
+// Changing the bank account, inside our dashboard.
+//
+// Stripe's raw Account API would take an account number in the request body —
+// which would mean sort codes and account numbers passing through our servers
+// and logs. An AccountSession instead hands the browser a short-lived secret
+// for Stripe's own embedded panel, so the numbers go from the merchant to
+// Stripe and never touch us. Same outcome, nothing sensitive to protect.
+//
+// It is scoped exactly like the payout day: per shop, and never guessed.
+describe("PayoutsService.managementSession", () => {
+  const stripeWithSession = () => ({
+    accountSessions: {
+      create: jest.fn().mockResolvedValue({ client_secret: "cs_test_123" }),
+    },
+  });
+
+  it("mints a session with the bank-details panel for the caller's own account", async () => {
+    const stripe = stripeWithSession();
+    const svc = makeService({
+      prisma: prismaWith({ userLocations: [LOC_A] }),
+      stripe,
+    });
+
+    const res = await svc.managementSession(TENANT, "u1", "OWNER", {
+      accountId: "acc-a",
+    });
+
+    expect(stripe.accountSessions.create).toHaveBeenCalledWith({
+      account: "acct_A",
+      components: {
+        account_management: { enabled: true },
+        payouts: { enabled: true },
+        notification_banner: { enabled: true },
+      },
+    });
+    expect(res).toEqual({ stripeAccountId: "acct_A", clientSecret: "cs_test_123" });
+  });
+
+  it("won't open another shop's bank details", async () => {
+    const stripe = stripeWithSession();
+    const svc = makeService({
+      prisma: prismaWith({ userLocations: [LOC_A] }),
+      stripe,
+    });
+
+    await expect(
+      svc.managementSession(TENANT, "u1", "OWNER", { accountId: "acc-b" }),
+    ).rejects.toBeInstanceOf(NotFoundException);
+    expect(stripe.accountSessions.create).not.toHaveBeenCalled();
+  });
+
+  it("refuses to guess which shop's bank details to open", async () => {
+    const stripe = stripeWithSession();
+    const svc = makeService({
+      prisma: prismaWith({ userLocations: [LOC_A, LOC_B] }),
+      stripe,
+    });
+
+    await expect(
+      svc.managementSession(TENANT, "u1", "OWNER", {}),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(stripe.accountSessions.create).not.toHaveBeenCalled();
+  });
+
+  it("says so plainly when Stripe isn't configured", async () => {
+    const svc = makeService({
+      prisma: prismaWith({ userLocations: [LOC_A] }),
+      stripe: null,
+    });
+    await expect(
+      svc.managementSession(TENANT, "u1", "OWNER", { accountId: "acc-a" }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+});

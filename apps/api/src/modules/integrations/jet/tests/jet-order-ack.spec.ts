@@ -233,3 +233,72 @@ describe("JetOrderAckService watchdog", () => {
     await expect(service.sweepPendingAcks()).resolves.toBeUndefined();
   });
 });
+
+// ── Giving up ────────────────────────────────────────────────────────────────
+//
+// The watchdog keeps a failed ack in "pending" so a transient error gets
+// another go. With no upper bound that became a permanent loop: JET closes the
+// order after 3 minutes, every later ack 400s, and the sweep re-tried one dead
+// order every 30 seconds — five HTTP attempts a time — indefinitely. Observed
+// in production on 15 Sep 2026 against order zqntoroazeuci4iwnxg5cq.
+//
+// Past the point where an ack can still change anything, stop.
+
+describe("JetOrderAckService — abandoning an ack that can never land", () => {
+  const minutesAgo = (n: number) => new Date(Date.now() - n * 60_000);
+
+  it("marks an ack abandoned once JET's window has closed", async () => {
+    const { service, updates } = makeAck({
+      request: jest.fn().mockRejectedValue(new Error("400: Bad Request")),
+      rows: [
+        {
+          externalEventId: "dead-order",
+          receivedAt: minutesAgo(30),
+          metadata: { jetAck: { state: "pending" } },
+        },
+      ],
+    });
+
+    await service.sweepPendingAcks();
+
+    const written = updates.at(-1)?.metadata?.jetAck;
+    expect(written?.state).toBe("abandoned");
+  });
+
+  it("keeps a recent failure pending, so a blip still gets retried", async () => {
+    const { service, updates } = makeAck({
+      request: jest.fn().mockRejectedValue(new Error("503: upstream")),
+      rows: [
+        {
+          externalEventId: "fresh-order",
+          receivedAt: minutesAgo(2),
+          metadata: { jetAck: { state: "pending" } },
+        },
+      ],
+    });
+
+    await service.sweepPendingAcks();
+
+    expect(updates.at(-1)?.metadata?.jetAck?.state).toBe("pending");
+  });
+
+  it("spends no requests on an order that is beyond help", async () => {
+    // The loop that was burning ~10 calls a minute at Just Eat. Abandoning is
+    // a bookkeeping write; it must cost JET nothing.
+    const request = jest.fn().mockRejectedValue(new Error("400: Bad Request"));
+    const { service } = makeAck({
+      request,
+      rows: [
+        {
+          externalEventId: "dead-order",
+          receivedAt: minutesAgo(30),
+          metadata: { jetAck: { state: "pending" } },
+        },
+      ],
+    });
+
+    await service.sweepPendingAcks();
+
+    expect(request).not.toHaveBeenCalled();
+  });
+});

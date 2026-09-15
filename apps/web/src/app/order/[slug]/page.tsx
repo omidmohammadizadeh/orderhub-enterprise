@@ -658,6 +658,81 @@ function OrderPage() {
    *  there is no mistyped-postcode case to be generous about. */
   const areaUnserviceable = match?.unserviceable === true;
 
+  // Distance bands: ask the server for the REAL band.
+  //
+  // The browser can't measure distance, so resolveZone above falls back to the
+  // furthest band — which meant choosing "Delivery" quoted the top price
+  // before an address was even typed, and a two-mile customer saw the 3–5 mile
+  // fee. The server can geocode, so once there is something to price, ask it.
+  //
+  // Until it answers the maximum stands: quoting low and charging more at
+  // checkout is the one direction that surprises a customer.
+  const [radiusQuote, setRadiusQuote] = useState<
+    { fee: number; label: string | null; distanceMiles: number | null } | null
+  >(null);
+  const quoteLocationId = storefront?.location?.id;
+
+  useEffect(() => {
+    if (fulfillmentType !== "DELIVERY" || mode !== "RADIUS" || !quoteLocationId) {
+      setRadiusQuote(null);
+      return;
+    }
+    const postcode = addrPostcode.trim();
+    const area = addrArea.trim();
+    const lat = addrPoint?.lat;
+    const lng = addrPoint?.lng;
+    // Nothing to price on yet — leave the maximum showing.
+    if (!postcode && !area && lat == null) {
+      setRadiusQuote(null);
+      return;
+    }
+
+    let cancelled = false;
+    // Debounced: this geocodes, and firing per keystroke would be both slow
+    // and, outside the UK, a paid call per character.
+    const timer = setTimeout(async () => {
+      try {
+        const params = new URLSearchParams({ locationId: quoteLocationId });
+        // Bands can hang off the brand rather than the location, so the brand
+        // has to travel with the question or the server finds no zones at all.
+        if (brandId) params.set("brandId", brandId);
+        if (postcode) params.set("postcode", postcode);
+        if (area) params.set("area", area);
+        if (lat != null && lng != null) {
+          params.set("lat", String(lat));
+          params.set("lng", String(lng));
+        }
+        const res = await fetch(
+          `${API_BASE}/v1/delivery-zones/public/quote?${params.toString()}`,
+        );
+        if (!res.ok) return;
+        const body = await res.json();
+        if (cancelled || !body?.matched) return;
+        setRadiusQuote({
+          fee: Number(body.fee) || 0,
+          label: body.zoneLabel ?? body.label ?? null,
+          distanceMiles:
+            typeof body.distanceMiles === "number" ? body.distanceMiles : null,
+        });
+      } catch {
+        // Keep the safe maximum rather than showing nothing.
+      }
+    }, 500);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [
+    fulfillmentType,
+    mode,
+    quoteLocationId,
+    brandId,
+    addrPostcode,
+    addrArea,
+    addrPoint?.lat,
+    addrPoint?.lng,
+  ]);
+
   // unitPrice ALREADY includes the modifiers — calculateCartItem() returns
   // basePrice + sum(modifiers), and that is what the modal shows as its
   // total. Adding them again here charged every option twice: a 12"
@@ -699,7 +774,9 @@ function OrderPage() {
     !matchedZone &&
     addrPostcode.replace(/\s+/g, "").length >= 3 &&
     highestZoneFee > 0;
-  const rawDeliveryFee = matchedZone?.fee ?? (noZoneMatched ? highestZoneFee : 0);
+  // The server's answer wins over the browser's worst case.
+  const rawDeliveryFee =
+    radiusQuote?.fee ?? matchedZone?.fee ?? (noZoneMatched ? highestZoneFee : 0);
   const deliveryFee = freeDelivery ? 0 : rawDeliveryFee;
 
   // Phase AW-19 — auto-apply the storefront's matched marketing
@@ -2447,6 +2524,7 @@ function OrderPage() {
           notes={notes}
           setNotes={setNotes}
           matchedZone={matchedZone}
+          quotedFee={radiusQuote?.fee ?? null}
           noZoneMatched={noZoneMatched}
           highestZoneFee={highestZoneFee}
           scheduledFor={scheduledFor}
@@ -3228,6 +3306,8 @@ interface CartPanelProps {
   notes: string;
   setNotes: (v: string) => void;
   matchedZone: { prefix: string; fee: number; minOrder: number | null } | null;
+  /** The server's real distance-band fee, once it has answered. */
+  quotedFee: number | null;
   noZoneMatched: boolean;
   highestZoneFee: number;
   scheduledFor: string | null;
@@ -3340,6 +3420,7 @@ function CartPanel(props: CartPanelProps) {
     notes,
     setNotes,
     matchedZone,
+    quotedFee,
     noZoneMatched,
     highestZoneFee,
     scheduledFor,
@@ -3735,8 +3816,17 @@ function CartPanel(props: CartPanelProps) {
                   the only direction that can't surprise anyone. */}
               {mode === "RADIUS" && matchedZone && (
                 <p className="text-[11px] text-zinc-600">
-                  Delivery up to <strong>{money(matchedZone.fee)}</strong> — the
-                  final fee is worked out from how far you are when you order.
+                  {quotedFee != null ? (
+                    <>
+                      Delivery <strong>{money(quotedFee)}</strong> for this
+                      address.
+                    </>
+                  ) : (
+                    <>
+                      Delivery up to <strong>{money(matchedZone.fee)}</strong> —
+                      the exact fee is worked out from your address.
+                    </>
+                  )}
                 </p>
               )}
               {areaUnserviceable && (

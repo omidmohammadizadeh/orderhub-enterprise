@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Query, Body, Param } from "@nestjs/common";
+import { Controller, Get, Post, Patch, Query, Body, Param } from "@nestjs/common";
 import { ApiTags, ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
 import { PayoutsService } from "./payouts.service";
 import { Roles } from "../../common/decorators/roles.decorator";
@@ -39,6 +39,47 @@ export class PayoutsController {
       user.userId,
       user.role,
       locationId,
+    );
+  }
+
+  // Declared above the bare @Get() and the :payoutId route so "schedule" is
+  // never mistaken for a payout id — Nest matches in declaration order.
+  @Get("schedule")
+  @Roles(...FINANCE_ROLES)
+  @ApiOperation({ summary: "When Stripe currently pays this shop out" })
+  schedule(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("accountId") accountId?: string,
+    @Query("locationId") locationId?: string,
+  ) {
+    return this.payouts.payoutSchedule(user.tenantId, user.userId, user.role, {
+      accountId,
+      locationId,
+    });
+  }
+
+  @Patch("schedule")
+  @Roles(...FINANCE_ROLES)
+  @ApiOperation({ summary: "Change the day this shop is paid out on" })
+  updateSchedule(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body()
+    body: {
+      accountId?: string;
+      locationId?: string;
+      interval: "daily" | "weekly" | "monthly";
+      weeklyAnchor?: string;
+      monthlyAnchor?: number;
+    },
+  ) {
+    // Which account, and whether the interval is even legal, are both decided
+    // in the service against the caller's own accounts — the body is a request,
+    // not an instruction.
+    return this.payouts.updatePayoutSchedule(
+      user.tenantId,
+      user.userId,
+      user.role,
+      body,
     );
   }
 
@@ -97,6 +138,25 @@ export class PayoutsController {
   // POST, not GET: this mints a single-use credential into the merchant's
   // Stripe dashboard. It must never be something a browser can prefetch or a
   // proxy can cache.
+  @Post("management-session")
+  @Roles(...FINANCE_ROLES)
+  @ApiOperation({
+    summary: "Secret for Stripe's embedded bank-details panel for this shop",
+  })
+  managementSession(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: { accountId?: string; locationId?: string },
+  ) {
+    // The secret is minted per open and expires on its own, so nothing here
+    // is worth storing — and no bank detail ever reaches this server.
+    return this.payouts.managementSession(
+      user.tenantId,
+      user.userId,
+      user.role,
+      body ?? {},
+    );
+  }
+
   @Post("dashboard-link")
   @Roles(...FINANCE_ROLES)
   @ApiOperation({ summary: "One-time link to the Stripe Express dashboard" })

@@ -14,6 +14,7 @@ import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from "@nestjs/swagger"
 import { DeliveryZonesService } from "./delivery-zones.service";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles, DELIVERY_PRICING_ROLES } from "../../common/decorators/roles.decorator";
+import { Public } from "../../common/decorators/public.decorator";
 import { BillingExempt } from "../../common/guards/billing.guard";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
@@ -58,6 +59,39 @@ export class DeliveryZonesController {
       return v != null && v !== "" && Number.isFinite(n) ? n : undefined;
     };
     return this.zones.lookup(user.tenantId, locationId, {
+      postcode,
+      area,
+      lat: asNum(lat),
+      lng: asNum(lng),
+    });
+  }
+
+  // Public: the storefront asks on behalf of a customer who has no login. It
+  // exposes one shop's own delivery pricing — which that shop's menu page
+  // already shows — and nothing else.
+  @Public()
+  @Get("public/quote")
+  @ApiOperation({ summary: "Delivery fee for a storefront customer (public)" })
+  @ApiQuery({ name: "locationId", required: true })
+  @ApiQuery({ name: "brandId", required: false })
+  @ApiQuery({ name: "postcode", required: false })
+  @ApiQuery({ name: "area", required: false })
+  @ApiQuery({ name: "lat", required: false })
+  @ApiQuery({ name: "lng", required: false })
+  publicQuote(
+    @Query("locationId") locationId: string,
+    @Query("brandId") brandId?: string,
+    @Query("postcode") postcode?: string,
+    @Query("area") area?: string,
+    @Query("lat") lat?: string,
+    @Query("lng") lng?: string,
+  ) {
+    const asNum = (v?: string) => {
+      const n = Number(v);
+      return v != null && v !== "" && Number.isFinite(n) ? n : undefined;
+    };
+    return this.zones.publicQuote(locationId, {
+      brandId,
       postcode,
       area,
       lat: asNum(lat),

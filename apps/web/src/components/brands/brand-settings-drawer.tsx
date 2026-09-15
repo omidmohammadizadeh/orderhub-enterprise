@@ -1218,10 +1218,16 @@ function DeliveryZonesEditor({
   const bands = radiusBands(zones as any).map((b) => ({
     zone: b.zone as DeliveryZone,
     from: inUnit(b.from),
+    // The lower bound is exclusive, so printing "3–5" beside "0–3" claims
+    // three miles sits in both. fromLabel nudges it to 3.1 for display only.
+    fromLabel: inUnit(b.fromLabel),
     to: inUnit(b.to),
   }));
   /** Where the next band starts — shown beside the input so it's not a guess. */
   const nextFrom = bands.length ? bands[bands.length - 1]!.to : 0;
+  const nextFromLabel = bands.length
+    ? Math.round((nextFrom + 0.1) * 10) / 10
+    : 0;
 
   return (
     <div className="space-y-2">
@@ -1303,7 +1309,7 @@ function DeliveryZonesEditor({
                   ? (() => {
                       const b = bands.find((x) => x.zone.id === z.id);
                       return b
-                        ? `${b.from}–${b.to} ${unit}`
+                        ? `${b.fromLabel}–${b.to} ${unit}`
                         : `${inUnit(Number(z.maxDistanceMiles))} ${unit}`;
                     })()
                   : (z.areaName ?? z.postcodePrefix)}
@@ -1342,7 +1348,7 @@ function DeliveryZonesEditor({
 
       <div className="grid grid-cols-[1fr_1fr_1fr_auto] items-end gap-2 pt-1">
         {mode === "RADIUS" ? (
-          <Field label={`From ${nextFrom} ${unit} — up to`}>
+          <Field label={`From ${nextFromLabel} ${unit} — up to`}>
             <div className="flex items-center gap-1.5">
               <input
                 value={newMiles}

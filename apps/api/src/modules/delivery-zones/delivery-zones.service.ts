@@ -1,4 +1,6 @@
-import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
+import { Injectable, NotFoundException, BadRequestException,
+  Logger,
+} from "@nestjs/common";
 import {
   normalisePostcode,
   resolveRadiusBand,
@@ -6,6 +8,7 @@ import {
   zoneMode,
   type DeliveryZoneMode,
   type ZoneMatch,
+  deliveryZoneScope,
 } from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 
@@ -120,6 +123,8 @@ function toLookupResult(m: ZoneMatch): LookupResult {
 
 @Injectable()
 export class DeliveryZonesService {
+  private readonly logger = new Logger(DeliveryZonesService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   private async assertLocation(tenantId: string, locationId: string) {
@@ -317,6 +322,62 @@ export class DeliveryZonesService {
   }
 
   /**
+   * The delivery fee for a storefront customer, priced properly.
+   *
+   * The cart cannot work a distance band out for itself — measuring needs a
+   * geocoder — so without this it could only ever show the FURTHEST band, and
+   * a two-mile customer was quoted the 3–5 mile price before typing anything.
+   *
+   * Public by necessity: the caller is an anonymous customer. It therefore
+   * takes only ids the storefront already has, and reads the tenant off the
+   * location rather than accepting one, so no caller can price against someone
+   * else's shop.
+   */
+  async publicQuote(
+    locationId: string,
+    customer: {
+      postcode?: string;
+      area?: string;
+      lat?: number;
+      lng?: number;
+      brandId?: string;
+    },
+  ): Promise<LookupResult> {
+    // A location carries no tenant of its own — it hangs off the brand.
+    const loc = await this.prisma.location.findFirst({
+      where: { id: locationId },
+      select: { id: true, brand: { select: { tenantId: true } } },
+    });
+    if (!loc?.brand?.tenantId) return { matched: false, fee: 0, mode: "NONE" };
+
+    // Gather zones the way the storefront and checkout do — a zone can hang
+    // off the LOCATION or the BRAND. Reading only the location's rows found
+    // nothing for a brand-scoped shop and quoted "no zones", which the cart
+    // then read as "keep showing the maximum". DE SALT's own doorstep was
+    // priced at the 3–5 mile band this way.
+    const zones = await this.prisma.deliveryZone.findMany({
+      where: deliveryZoneScope({
+        locationId: loc.id,
+        brandId: customer.brandId ?? null,
+      }) as any,
+    });
+    if (!zones.length) return { matched: false, fee: 0, mode: "NONE" };
+
+    const distanceMiles =
+      zoneMode(zones as any) === "RADIUS"
+        ? await this.measureDistance(loc.brand.tenantId, { locationId: loc.id }, customer)
+        : null;
+
+    return toLookupResult(
+      resolveZone(zones as any, {
+        postcode: customer.postcode,
+        area: customer.area,
+        distanceMiles,
+      }),
+    );
+  }
+
+  /**
    * How far the customer is from the shop, in miles — or null when it can't be
    * measured.
    *
@@ -345,7 +406,14 @@ export class DeliveryZonesService {
     const origin = await this.originFor(tenantId, scope);
     if (!origin) return null;
     const point = await this.customerPoint(tenantId, scope, customer);
-    if (!point) return null;
+    if (!point) {
+      this.logger.warn(
+        `Delivery zones: couldn't place the customer ` +
+          `(postcode=${customer.postcode ?? "-"} area=${customer.area ?? "-"}) — ` +
+          `charging the top band.`,
+      );
+      return null;
+    }
     return milesBetween(origin, point);
   }
 
@@ -381,6 +449,19 @@ export class DeliveryZonesService {
       return { lat: loc.latitude, lng: loc.longitude };
     }
 
+    // The shop's own postcode FIRST, on its own.
+    //
+    // postcodes.io is free and needs no key, but it only recognises a bare
+    // postcode. Handing geocode() the joined address meant that free path
+    // could never match for a UK shop, so every one of them fell through to
+    // Google — and with no GOOGLE_MAPS_API_KEY set, the origin came back null
+    // and the resolver charged EVERY customer the top band. That is how a
+    // two-mile delivery was billed at the 3–5 mile rate.
+    if (loc.postcode) {
+      const viaPostcode = await this.geocodePostcode(loc.postcode);
+      if (viaPostcode) return this.cacheOrigin(loc.id, viaPostcode);
+    }
+
     // Outside the UK there is no postcode to geocode, so fall back to the
     // shop's street address. A Dubai shop whose origin can't be found puts
     // every one of its customers on the top band, which looks like a pricing
@@ -389,12 +470,32 @@ export class DeliveryZonesService {
       [loc.addressLine1, loc.city, loc.postcode].filter(Boolean).join(", "),
       loc.country,
     );
-    if (!geo) return null;
-    // Cache it — the shop doesn't move, and geocoding on every basket change
-    // would be a paid call per keystroke.
+    if (!geo) {
+      // Loudly, because the consequence is invisible at the till: the customer
+      // is simply charged the furthest band and nobody is told why.
+      this.logger.warn(
+        `Delivery zones: can't locate shop ${loc.id} (${[loc.addressLine1, loc.city, loc.postcode]
+          .filter(Boolean)
+          .join(", ")}) — every distance-based delivery will be charged the top ` +
+          `band until it has coordinates. Check the shop's postcode, or set ` +
+          `GOOGLE_MAPS_API_KEY for non-UK addresses.`,
+      );
+      return null;
+    }
+    return this.cacheOrigin(loc.id, geo);
+  }
+
+  /**
+   * Remember where the shop is — it doesn't move, and geocoding on every
+   * basket change would be a paid call per keystroke.
+   */
+  private async cacheOrigin(
+    locationId: string,
+    geo: { lat: number; lng: number },
+  ): Promise<{ lat: number; lng: number }> {
     await this.prisma.location
       .update({
-        where: { id: loc.id },
+        where: { id: locationId },
         data: { latitude: geo.lat, longitude: geo.lng },
       })
       .catch(() => undefined);

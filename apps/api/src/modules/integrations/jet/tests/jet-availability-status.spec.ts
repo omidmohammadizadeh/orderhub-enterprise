@@ -452,3 +452,51 @@ describe("toJetLocalTimestamp", () => {
     ).toBe("2026-01-20T00:00:00");
   });
 });
+
+// ── PLU index drift ──────────────────────────────────────────────────────────
+//
+// referencesFor MUST produce the same size references the publish path wrote,
+// or JET answers 202 and changes nothing — the failure mode this whole file
+// exists to prevent.
+//
+// The two disagreed on how to count. jet-menu-publish.readSkus FILTERS the raw
+// productSkus array before indexing, so a size's number is its position among
+// VALID sizes. referencesFor walked the raw array and skipped invalid entries
+// without adjusting, so its number was the position in the RAW array. One null
+// or unnamed entry and every size after it is published as __s0 while the 86
+// calls it __s1.
+
+describe("JetItemAvailabilityService.referencesFor — size numbering", () => {
+  const { JetItemAvailabilityService } = require("../jet-item-availability.service");
+
+  it("numbers sizes the way publish does when the array is clean", () => {
+    const refs = JetItemAvailabilityService.referencesFor({
+      id: "item1",
+      plu: null,
+      hasMultipleSkus: true,
+      productSkus: [{ name: '10"' }, { name: '12"' }],
+    });
+    expect(refs).toEqual(["item1", "item1__s0", "item1__s1"]);
+  });
+
+  it("skips an unusable size WITHOUT shifting the ones after it", () => {
+    // publish drops the junk entry, so '10"' is its size 0 and '12"' size 1.
+    const refs = JetItemAvailabilityService.referencesFor({
+      id: "item1",
+      plu: null,
+      hasMultipleSkus: true,
+      productSkus: [null, { name: '10"' }, { notAName: true }, { name: '12"' }],
+    });
+    expect(refs).toEqual(["item1", "item1__s0", "item1__s1"]);
+  });
+
+  it("still prefers a size's own PLU when it has one", () => {
+    const refs = JetItemAvailabilityService.referencesFor({
+      id: "item1",
+      plu: "PROD-1",
+      hasMultipleSkus: true,
+      productSkus: [null, { name: '10"', plu: "SKU-10" }, { name: '12"' }],
+    });
+    expect(refs).toEqual(["PROD-1", "SKU-10", "item1__s1"]);
+  });
+});

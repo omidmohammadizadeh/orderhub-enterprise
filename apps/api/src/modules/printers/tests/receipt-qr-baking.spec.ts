@@ -148,17 +148,21 @@ describe("receipt QR baking — what must NOT get one", () => {
 describe("receipt QR url — shared by both print paths", () => {
   const base = "https://www.orderhubsolutions.com";
 
-  it("sends a HubRise-relayed order to the LOCATION's brand", async () => {
-    // The order's brand is the plumbing brand HubRise mapped it to. Pointing
-    // the QR there lands the customer on a storefront wearing the wrong name.
+  it("doesn't pin the plumbing brand a HubRise order was mapped to", async () => {
+    // The order's brand is the plumbing brand HubRise mapped it to. Pinning it
+    // would land the customer on a storefront wearing the wrong name — and so
+    // would pinning the location's own brand, which is the tenant placeholder.
+    // Pin nothing: the bare location URL renders the shop correctly.
     const { url, storefrontBrandId } = buildStorefrontQrUrl({
       brandId: "brand-plumbing",
+      orderBrandId: "brand-plumbing",
       brand: PLUMBING_BRAND,
       loc: LOCATION,
       base,
     });
     expect(storefrontBrandId).toBe("brand-shop");
-    expect(url).toContain("brand=brand-shop");
+    expect(url).toBe(`${base}/order/loc-1`);
+    expect(url).not.toContain("brand=");
   });
 
   it("falls back to the location id when no slug was ever set", () => {
@@ -168,7 +172,7 @@ describe("receipt QR url — shared by both print paths", () => {
       loc: LOCATION,
       base,
     });
-    expect(url).toBe(`${base}/order/loc-1?brand=brand-shop`);
+    expect(url).toBe(`${base}/order/loc-1`);
   });
 
   it("prefers the brand's own storefront when it has one", () => {
@@ -180,6 +184,63 @@ describe("receipt QR url — shared by both print paths", () => {
     });
     expect(url).toBe(`${base}/brand/grill-stop`);
     expect(storefrontBrandId).toBe("brand-real");
+  });
+
+  it("won't send the customer to a brand that belongs to a different shop", () => {
+    // Best Kebab's receipt QR opened another restaurant's menu. The order's
+    // brand had a storefront slug of its own, so it was trusted — but it is
+    // served at a different location entirely, and nothing checked that.
+    const { url, storefrontBrandId } = buildStorefrontQrUrl({
+      brandId: "brand-elsewhere",
+      // Even though the ORDER named it, it isn't served here — so it is
+      // neither opened as a storefront nor pinned onto this shop.
+      orderBrandId: "brand-elsewhere",
+      brand: {
+        onlineOrderingSlug: "someone-elses-shop",
+        directOrderingEnabled: true,
+        primaryLocationId: "loc-999",
+      },
+      loc: LOCATION,
+      base,
+    });
+    expect(storefrontBrandId).toBe("brand-shop");
+    expect(url).toBe(`${base}/order/loc-1`);
+  });
+
+  it("still trusts a brand that IS served at this shop", () => {
+    const { url } = buildStorefrontQrUrl({
+      brandId: "brand-real",
+      brand: {
+        onlineOrderingSlug: "grill-stop",
+        directOrderingEnabled: true,
+        locationIds: ["loc-1"],
+      },
+      loc: LOCATION,
+      base,
+    });
+    expect(url).toBe(`${base}/brand/grill-stop`);
+  });
+
+  it("pins NO brand when the order didn't name one", () => {
+    // Best Kebab's QR opened China Chef's menu under the name "Order Hub".
+    // The order carried no brand, so the builder fell back to
+    // Location.brandId — which on these shops is the tenant's placeholder
+    // "Order Hub" brand, and ?brand= makes the storefront render THAT brand's
+    // menu and name instead of the shop's.
+    //
+    // Verified against production: /order/<loc> alone returns the Best Kebab
+    // menu and the BEST KEBAB name, while /order/<loc>?brand=<placeholder>
+    // returns China Chef and "Order Hub". So when the order names no brand,
+    // the right move is to pin nothing and let the storefront resolve the
+    // shop the way an ordinary visitor would.
+    const { url } = buildStorefrontQrUrl({
+      brandId: "brand-shop",
+      orderBrandId: null,
+      brand: null,
+      loc: LOCATION,
+      base,
+    });
+    expect(url).toBe(`${base}/order/loc-1`);
   });
 
   it("says why when it can't build one", () => {

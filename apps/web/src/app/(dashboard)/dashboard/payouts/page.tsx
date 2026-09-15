@@ -11,10 +11,12 @@
 // owner is sent to Stripe's own dashboard through a one-time link — no account
 // number ever passes through OrderHub.
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
   Banknote,
+  Building2 as BankIcon,
+  CalendarClock,
   Building2,
   ExternalLink,
   Loader2,
@@ -22,7 +24,17 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { payoutsClient, type PayoutRow } from '@/lib/api/payouts.client';
+import {
+  payoutsClient,
+  type PayoutRow,
+  type PayoutSchedule,
+} from '@/lib/api/payouts.client';
+import { loadConnectAndInitialize } from '@stripe/connect-js';
+import {
+  ConnectAccountManagement,
+  ConnectComponentsProvider,
+  ConnectNotificationBanner,
+} from '@stripe/react-connect-js';
 import { cn } from '@/lib/utils';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { useSelectedLocationStore } from '@/stores/selected-location.store';
@@ -265,6 +277,30 @@ export default function PayoutsPage() {
           </div>
         ))}
 
+      {/* When the money lands. Hidden for a merchant on their own Stripe
+          account: we don't control that account's schedule, so offering to
+          change it would be a button that always fails. */}
+      {!!accounts.length && !ownStripe && (
+        <PayoutScheduleCard
+          accountId={balanceAccountId}
+          locationId={selectedLocationId ?? undefined}
+          // With several shops in scope and none picked, we can show a day but
+          // must not change one — it would be a shop the owner never named.
+          needsShopChoice={!balanceAccountId}
+        />
+      )}
+
+      {/* Bank account, edited inside Stripe's own panel. Same gates as the
+          payout day: not for a merchant on their own Stripe account, and never
+          for an unnamed shop. */}
+      {!!accounts.length && !ownStripe && (
+        <BankAccountCard
+          accountId={balanceAccountId}
+          locationId={selectedLocationId ?? undefined}
+          needsShopChoice={!balanceAccountId}
+        />
+      )}
+
       {/* History */}
       <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white">
         <div className="flex items-center gap-2 border-b border-zinc-100 px-5 py-4">
@@ -309,6 +345,290 @@ export default function PayoutsPage() {
           ? 'This location uses its own Stripe account — sign in there to change its bank details.'
           : 'Bank details are held and verified by Stripe, not by OrderHub.'}
       </p>
+    </div>
+  );
+}
+
+const WEEKDAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] as const;
+
+/** "friday" → "Friday". */
+const titleCase = (w: string) => w.charAt(0).toUpperCase() + w.slice(1);
+
+const ordinal = (n: number) => {
+  const suffix =
+    n % 100 >= 11 && n % 100 <= 13
+      ? 'th'
+      : ['th', 'st', 'nd', 'rd'][n % 10] ?? 'th';
+  return `${n}${suffix}`;
+};
+
+/** The current schedule in the words an owner would use. */
+function describeSchedule(s: PayoutSchedule | null | undefined): string {
+  if (!s) return '';
+  if (s.interval === 'daily') return 'Every working day';
+  if (s.interval === 'weekly' && s.weeklyAnchor)
+    return `Every ${titleCase(s.weeklyAnchor)}`;
+  if (s.interval === 'monthly' && s.monthlyAnchor)
+    return `Monthly, on the ${ordinal(s.monthlyAnchor)}`;
+  if (s.interval === 'manual') return 'Held at Stripe until released by hand';
+  return s.interval;
+}
+
+/**
+ * "Can I be paid on a Friday instead?" — the question this page gets asked
+ * most, and the one it could not answer until now.
+ *
+ * Only the DAY is editable. The bank account itself still lives behind the
+ * Stripe button above, so no account number passes through OrderHub.
+ */
+function PayoutScheduleCard({
+  accountId,
+  locationId,
+  needsShopChoice,
+}: {
+  accountId?: string;
+  locationId?: string;
+  needsShopChoice: boolean;
+}) {
+  const scheduleQuery = useQuery({
+    queryKey: ['payout-schedule', accountId ?? 'default', locationId ?? 'all'],
+    queryFn: () => payoutsClient.schedule(accountId, locationId),
+  });
+  const current = scheduleQuery.data;
+
+  const [cadence, setCadence] = useState<'daily' | 'weekly' | 'monthly'>('daily');
+  const [weekday, setWeekday] = useState<string>('friday');
+  const [monthDay, setMonthDay] = useState<number>(1);
+
+  // Start from what Stripe actually has, so the form never proposes a change
+  // the owner didn't ask for.
+  useEffect(() => {
+    if (!current) return;
+    if (current.interval === 'weekly' || current.interval === 'monthly' || current.interval === 'daily') {
+      setCadence(current.interval);
+    }
+    if (current.weeklyAnchor) setWeekday(current.weeklyAnchor);
+    if (current.monthlyAnchor) setMonthDay(current.monthlyAnchor);
+  }, [current]);
+
+  const save = useMutation({
+    mutationFn: () =>
+      payoutsClient.updateSchedule({
+        accountId,
+        locationId,
+        interval: cadence,
+        weeklyAnchor: cadence === 'weekly' ? weekday : undefined,
+        monthlyAnchor: cadence === 'monthly' ? monthDay : undefined,
+      }),
+    onSuccess: (s) => {
+      toast.success(`Payouts: ${describeSchedule(s).toLowerCase()}`);
+      scheduleQuery.refetch();
+    },
+    onError: (e: any) =>
+      toast.error(
+        e?.response?.data?.message ?? "Stripe wouldn't accept that payout day.",
+      ),
+  });
+
+  // Nothing to show when Stripe can't tell us the current schedule — better a
+  // missing card than a control that claims a day we haven't verified.
+  if (scheduleQuery.isLoading || current == null) return null;
+
+  const unchanged =
+    cadence === current.interval &&
+    (cadence !== 'weekly' || weekday === current.weeklyAnchor) &&
+    (cadence !== 'monthly' || monthDay === current.monthlyAnchor);
+
+  const selectClass =
+    'rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-800 focus:border-zinc-400 focus:outline-none';
+
+  return (
+    <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white">
+      <div className="flex items-center gap-2 border-b border-zinc-100 px-5 py-4">
+        <CalendarClock className="h-5 w-5 text-purple-500" />
+        <h2 className="font-medium text-zinc-900">When you get paid</h2>
+        <span className="ml-auto text-xs text-zinc-500">
+          {current.accountLabel} · {describeSchedule(current)}
+        </span>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 px-5 py-4">
+        <select
+          value={cadence}
+          onChange={(e) => setCadence(e.target.value as typeof cadence)}
+          className={selectClass}
+          aria-label="How often you are paid"
+        >
+          <option value="daily">Every working day</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+        </select>
+
+        {cadence === 'weekly' && (
+          <select
+            value={weekday}
+            onChange={(e) => setWeekday(e.target.value)}
+            className={selectClass}
+            aria-label="Day of the week"
+          >
+            {WEEKDAYS.map((d) => (
+              <option key={d} value={d}>
+                {titleCase(d)}
+              </option>
+            ))}
+          </select>
+        )}
+
+        {cadence === 'monthly' && (
+          <select
+            value={monthDay}
+            onChange={(e) => setMonthDay(Number(e.target.value))}
+            className={selectClass}
+            aria-label="Day of the month"
+          >
+            {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+              <option key={d} value={d}>
+                {ordinal(d)}
+              </option>
+            ))}
+          </select>
+        )}
+
+        <button
+          onClick={() => save.mutate()}
+          disabled={unchanged || save.isPending || needsShopChoice}
+          title={
+            needsShopChoice
+              ? 'Choose a shop above — payout days are set per shop.'
+              : undefined
+          }
+          className={cn(
+            'rounded-lg px-3 py-1.5 text-sm font-medium transition',
+            unchanged || save.isPending || needsShopChoice
+              ? 'bg-zinc-100 text-zinc-400'
+              : 'bg-zinc-900 text-white hover:bg-zinc-800',
+          )}
+        >
+          {save.isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            'Save'
+          )}
+        </button>
+      </div>
+
+      <p className="px-5 pb-4 text-xs text-zinc-400">
+        {needsShopChoice
+          ? `Showing ${current.accountLabel}. Choose a shop above to change its payout day — each shop has its own.`
+          : cadence === 'monthly' && monthDay > 28
+            ? 'In shorter months this is paid on the last day.'
+            : 'Payouts settle on working days, so a day that falls on a weekend or bank holiday lands the next working day.'}
+      </p>
+    </div>
+  );
+}
+
+const STRIPE_PUBLISHABLE_KEY =
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '';
+
+/**
+ * Change the bank account, without leaving the dashboard.
+ *
+ * The panel is Stripe's own, rendered through an AccountSession. That is the
+ * whole point: the sort code and account number go from the owner straight to
+ * Stripe, so OrderHub never holds them — the same promise this page has always
+ * made, now kept without sending anyone to another website.
+ */
+function BankAccountCard({
+  accountId,
+  locationId,
+  needsShopChoice,
+}: {
+  accountId?: string;
+  locationId?: string;
+  needsShopChoice: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+
+  // Shares a cache key with the schedule card, so naming the shop here costs
+  // no extra request.
+  const scheduleQuery = useQuery({
+    queryKey: ['payout-schedule', accountId ?? 'default', locationId ?? 'all'],
+    queryFn: () => payoutsClient.schedule(accountId, locationId),
+  });
+
+  // Memoised: Stripe charges a round-trip for every init, and React would
+  // otherwise re-init on each render.
+  const connectInstance = useMemo(() => {
+    if (!open || !STRIPE_PUBLISHABLE_KEY) return null;
+    return loadConnectAndInitialize({
+      publishableKey: STRIPE_PUBLISHABLE_KEY,
+      fetchClientSecret: async () => {
+        const { clientSecret } = await payoutsClient.managementSession(
+          accountId,
+          locationId,
+        );
+        return clientSecret;
+      },
+      appearance: {
+        overlays: 'dialog',
+        variables: {
+          colorPrimary: '#18181b',
+          colorBackground: '#ffffff',
+          fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+          borderRadius: '8px',
+        },
+      },
+    });
+  }, [open, accountId, locationId]);
+
+  if (!STRIPE_PUBLISHABLE_KEY) return null;
+
+  return (
+    <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white">
+      <div className="flex items-center gap-2 border-b border-zinc-100 px-5 py-4">
+        <BankIcon className="h-5 w-5 text-purple-500" />
+        <h2 className="font-medium text-zinc-900">Bank account</h2>
+        {scheduleQuery.data?.accountLabel && (
+          <span className="text-xs text-zinc-500">
+            {scheduleQuery.data.accountLabel}
+          </span>
+        )}
+        <button
+          onClick={() => setOpen((v) => !v)}
+          disabled={needsShopChoice}
+          title={
+            needsShopChoice
+              ? 'Choose a shop above — bank details are held per shop.'
+              : undefined
+          }
+          className={cn(
+            'ml-auto rounded-lg px-3 py-1.5 text-sm font-medium transition',
+            needsShopChoice
+              ? 'bg-zinc-100 text-zinc-400'
+              : 'bg-zinc-900 text-white hover:bg-zinc-800',
+          )}
+        >
+          {open ? 'Close' : 'Change bank details'}
+        </button>
+      </div>
+
+      {open && connectInstance ? (
+        <div className="px-5 py-4">
+          <ConnectComponentsProvider connectInstance={connectInstance}>
+            <div className="space-y-2">
+              <ConnectNotificationBanner />
+              <ConnectAccountManagement />
+            </div>
+          </ConnectComponentsProvider>
+        </div>
+      ) : (
+        <p className="px-5 py-4 text-xs text-zinc-400">
+          Your bank details are held and verified by Stripe. Editing them here
+          opens Stripe&apos;s own secure panel — the account number never passes
+          through OrderHub.
+        </p>
+      )}
     </div>
   );
 }

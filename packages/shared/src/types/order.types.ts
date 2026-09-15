@@ -162,6 +162,12 @@ export const CanonicalOrderSchema = z.object({
   subtotal: z.number().nonnegative(),
   taxAmount: z.number().nonnegative().default(0),
   deliveryFee: z.number().nonnegative().default(0),
+  // A charge the SHOP levies, itemised on the receipt next to the delivery
+  // fee. It has had an Order column all along; what it lacked was a way in,
+  // so every marketplace adapter parsed it and then dropped it, and tickets
+  // printed a total their own lines could not account for. Not a tip: that is
+  // the driver's money and has no column yet.
+  serviceCharge: z.number().nonnegative().optional(),
   discount: z.number().nonnegative().default(0),
   total: z.number().nonnegative(),
   specialInstructions: z.string().optional(),

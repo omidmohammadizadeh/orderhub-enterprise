@@ -11,6 +11,13 @@
 // It shows what the reader is doing right now, including the raw serial lines,
 // so an unfamiliar Comet firmware can be diagnosed from a photo of this screen
 // rather than a debugging session.
+//
+// The Comet box is only one of three ways a caller reaches the till, and the
+// other two are set up by sending a shop's phone provider some wording — so
+// the page now has a second tab that writes that wording, with this shop's own
+// address and key already in it. Two tabs rather than one long page because
+// the audiences differ: the reader log is read standing at the hub tablet with
+// a screwdriver, the provider wording is sent from an office.
 
 import { useEffect, useState } from "react";
 import { Phone, Trash2, RefreshCw, AlertTriangle } from "lucide-react";
@@ -22,6 +29,7 @@ import {
   type HubLogEntry,
 } from "@/lib/callerid/hub-log";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
+import { VoipSetupPanel } from "@/components/callerid/voip-setup-panel";
 
 const LEVEL_STYLES: Record<HubLogEntry["level"], string> = {
   info: "bg-zinc-100 text-zinc-600",
@@ -31,7 +39,10 @@ const LEVEL_STYLES: Record<HubLogEntry["level"], string> = {
   dropped: "bg-amber-100 text-amber-800",
 };
 
+type Tab = "hardware" | "provider";
+
 export default function CallerIdPage() {
+  const [tab, setTab] = useState<Tab>("hardware");
   const [entries, setEntries] = useState<HubLogEntry[]>([]);
   const selectedLocationId = useSelectedLocationStore((s) => s.selectedLocationId);
 
@@ -78,11 +89,15 @@ export default function CallerIdPage() {
         <div>
           <h1 className="text-base font-semibold text-zinc-900">Caller ID</h1>
           <p className="mt-0.5 text-xs text-zinc-500">
-            Live status of the Comet box on this tablet. Open this page on the
-            hub tablet — the one with the USB box plugged in.
+            {tab === "hardware"
+              ? "Live status of the Comet box on this tablet. Open this page on the hub tablet — the one with the USB box plugged in."
+              : "Everything to send this shop's phone provider, with the address and key already filled in."}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        {/* Marking and clearing the reader log means nothing on the provider
+            tab, and a button that does nothing where you are standing is worse
+            than no button. */}
+        <div className={`items-center gap-2 ${tab === "hardware" ? "flex" : "hidden"}`}>
           <button
             type="button"
             onClick={() => hubRecord("info", "— marker —")}
@@ -99,6 +114,20 @@ export default function CallerIdPage() {
           </button>
         </div>
       </header>
+
+      <nav className="flex gap-1 border-b border-zinc-200">
+        <TabButton active={tab === "hardware"} onClick={() => setTab("hardware")}>
+          Comet box on this tablet
+        </TabButton>
+        <TabButton active={tab === "provider"} onClick={() => setTab("provider")}>
+          Phone provider (no hardware)
+        </TabButton>
+      </nav>
+
+      {tab === "provider" ? (
+        <VoipSetupPanel locationId={selectedLocationId} />
+      ) : (
+      <>
 
       {/* The checks, in the order they have to pass. */}
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
@@ -196,7 +225,33 @@ export default function CallerIdPage() {
           </ul>
         )}
       </section>
+      </>
+      )}
     </div>
+  );
+}
+
+function TabButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`-mb-px border-b-2 px-3 py-1.5 text-xs font-medium ${
+        active
+          ? "border-zinc-900 text-zinc-900"
+          : "border-transparent text-zinc-500 hover:text-zinc-800"
+      }`}
+    >
+      {children}
+    </button>
   );
 }
 
