@@ -238,6 +238,23 @@ export class HubRiseAdapter extends BaseWebhookAdapter {
       .filter(isDeliveryCharge)
       .reduce((acc, c) => acc + parseMoney(c?.price ?? c?.amount ?? c?.value), 0);
 
+    // The same treatment for a service charge, and for the same reason the
+    // delivery fee got it: order 4jjdb97 carried £3.00 delivery and £1.49
+    // service against a £51.20 total, and the ticket printed 46.71 + 3.00 with
+    // £1.49 unnamed. Matched by NAME as well as type because the wording comes
+    // from whichever marketplace filled it in.
+    //
+    // Deliberately narrow. A tip is not a service charge — it is the driver's
+    // money, and filing it here would print it as the shop's charge. It has no
+    // column on Order yet, so it stays unclaimed rather than mislabelled.
+    const isServiceCharge = (c: any) =>
+      !isDeliveryCharge(c) &&
+      (/service/i.test(String(c?.type ?? "")) ||
+        /service/i.test(String(c?.name ?? "")));
+    const chargedService = chargeList
+      .filter(isServiceCharge)
+      .reduce((acc, c) => acc + parseMoney(c?.price ?? c?.amount ?? c?.value), 0);
+
     // What the line items, discount and known charges don't account for.
     // Positive means money in the total we can't name.
     const knownCharges = chargeList.reduce(
@@ -266,7 +283,7 @@ export class HubRiseAdapter extends BaseWebhookAdapter {
             chargeList.map((c) => ({ name: c?.name, type: c?.type, price: c?.price })),
           )} ` +
           `→ deliveryFee=${deliveryFee}${!chargedDelivery && deliveryFee ? " (inferred)" : ""} ` +
-          `unexplained=${unexplained}`,
+          `serviceCharge=${chargedService} unexplained=${unexplained}`,
       );
     }
 
@@ -373,6 +390,8 @@ export class HubRiseAdapter extends BaseWebhookAdapter {
       subtotal,
       taxAmount: 0,
       deliveryFee,
+      // Top level, where ingestCanonical reads the column from.
+      serviceCharge: chargedService,
       discount,
       total: total || subtotal,
       // The delivery note — "press the black doorbell", "we're at the rear of
