@@ -18,7 +18,11 @@
 import { VoiceTelnyxController } from "../voice-telnyx.controller";
 
 describe("the leg we dialled is not a caller", () => {
-  const ctl = () => {
+  // `row` is the VoiceCall record. onIncomingCall writes it BEFORE we answer,
+  // so a genuine caller always has one by the time call.answered arrives and a
+  // leg we dialled never does — which is the check that holds when the
+  // provider tells us nothing about direction (see call tdyKDXHw below).
+  const ctl = (opts: { row?: any } = {}) => {
     const started: string[] = [];
     const stopped: string[] = [];
     const c: any = Object.create(VoiceTelnyxController.prototype);
@@ -39,7 +43,11 @@ describe("the leg we dialled is not a caller", () => {
       stopMediaStream: jest.fn(async () => true),
     };
     c.voice = { engineFor: async () => "REALTIME" };
-    c.db = () => ({ voiceCall: { findUnique: async () => null } });
+    c.db = () => ({
+      voiceCall: {
+        findUnique: async () => ("row" in opts ? opts.row : { transcript: null }),
+      },
+    });
     return { c, started, stopped };
   };
 
@@ -61,6 +69,19 @@ describe("the leg we dialled is not a caller", () => {
     const { c, started } = ctl();
     await c.onAnswered("sQLUYKlg", {});
     expect(started).toEqual(["sQLUYKlg"]);
+  });
+
+  it("leaves our own leg alone when the provider says nothing about direction EITHER", async () => {
+    // Call tdyKDXHw, 15 Sep. The caller asked for a person, the transfer was
+    // made and bridged — and then call.answered for the leg we dialled arrived
+    // with no direction on it. The guard above could not fire, so we started a
+    // media stream on the SHOP's leg, found no model session, tried to hand it
+    // to the relay engine, and the caller lost the call a second after being
+    // put through. The leg had no VoiceCall row, because we never decided to
+    // answer it; that is what settles it.
+    const { c, started } = ctl({ row: null });
+    await c.onAnswered("tdyKDXHw", {});
+    expect(started).toEqual([]);
   });
 
   it("takes the model off the call the moment the two legs are joined", async () => {

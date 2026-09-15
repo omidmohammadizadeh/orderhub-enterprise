@@ -234,12 +234,30 @@ export class VoiceTelnyxController {
       this.logger.log(`call ${ccid.slice(-8)} is our own outbound leg — not answering it with the AI`);
       return;
     }
-    // The greeting is turn zero of the stored conversation — written when we
-    // decided to answer, so the model knows what the caller already heard.
+    // A call we never decided to answer is not ours to answer.
+    //
+    // The direction guard above is the provider telling us whose leg this is,
+    // and on call tdyKDXHw the provider did not say: call.answered for the leg
+    // WE dialled arrived with no direction on it, so it fell through as if it
+    // were a caller. We started a media stream on the shop's leg, found no
+    // model session for it, tried to hand it to the relay engine — and the
+    // caller who had just been put through lost the call a second later.
+    //
+    // This is the fact that cannot be missing: onIncomingCall writes the
+    // VoiceCall row BEFORE we pick up, so every genuine caller has one by the
+    // time this event arrives, and a leg we dialled never does.
     const call = await this.db().voiceCall.findUnique({
       where: { providerCallId: ccid },
       select: { transcript: true },
     });
+    if (!call) {
+      this.logger.log(
+        `call ${ccid.slice(-8)} has no inbound record — it is not a caller, leaving it alone`,
+      );
+      return;
+    }
+    // The greeting is turn zero of the stored conversation — written when we
+    // decided to answer, so the model knows what the caller already heard.
     const first = (call?.transcript as any)?.turns?.[0];
     const greeting =
       typeof first?.text === "string" && first.text
