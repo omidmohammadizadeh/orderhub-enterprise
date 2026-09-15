@@ -342,6 +342,11 @@ export function transformJetOrder(payload: any): JetTransformResult | null {
     taxAmount,
     deliveryFee,
     discount,
+    // Top level, alongside deliveryFee and discount, because that is where
+    // ingestCanonical reads the column from. Left in metadata alone it parsed
+    // correctly and then vanished: the first real order printed "subtotal
+    // 7.80 … total 8.55" with nothing on the ticket explaining the 75p.
+    serviceCharge,
     total,
     ...(specialInstructions ? { specialInstructions } : {}),
     ...(scheduledFor ? { scheduledFor } : {}),

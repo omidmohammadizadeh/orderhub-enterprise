@@ -33,7 +33,7 @@ import type { JetFailureCode } from "./jet-order.mappers";
 // already exists for idempotency and raw-payload capture.
 
 /** Ack lifecycle recorded on WebhookEvent.metadata.jetAck.state. */
-export type JetAckState = "pending" | "success" | "failed";
+export type JetAckState = "pending" | "success" | "failed" | "abandoned";
 
 /** How many times to retry an ack before giving up. Failing to ack is the
  *  worst outcome available, so this is deliberately generous. */
@@ -279,8 +279,18 @@ export class JetOrderAckService {
 
     const deadlineSeconds = Number(this.cfg("ackDeadlineSeconds")) || 90;
     const cutoff = new Date(Date.now() - deadlineSeconds * 1000);
+    // The point past which an ack is pointless. JET closes the order at three
+    // minutes; after that sent-to-pos-failed answers 400 for ever, so a row
+    // left pending would be re-tried every tick until the heat death of the
+    // universe — five HTTP attempts each time, at a partner who rate-limits.
+    const giveUpSeconds = Number(this.cfg("ackGiveUpSeconds")) || 300;
+    const giveUpCutoff = new Date(Date.now() - giveUpSeconds * 1000);
 
-    let rows: Array<{ externalEventId: string; metadata: any }> = [];
+    let rows: Array<{
+      externalEventId: string;
+      metadata: any;
+      receivedAt?: Date | null;
+    }> = [];
     try {
       rows = await this.prisma.webhookEvent.findMany({
         where: {
@@ -289,7 +299,7 @@ export class JetOrderAckService {
           // Only orders we answered 202 to and have not resolved.
           metadata: { path: ["jetAck", "state"], equals: "pending" },
         },
-        select: { externalEventId: true, metadata: true },
+        select: { externalEventId: true, metadata: true, receivedAt: true },
         // A burst of stuck orders is itself a symptom; cap the batch so one
         // sweep can't spend minutes inside a 30-second tick.
         take: 25,
@@ -308,6 +318,24 @@ export class JetOrderAckService {
 
     for (const row of rows) {
       const ack = ((row.metadata as any) ?? {}).jetAck ?? {};
+
+      // Beyond help: record it and spend no requests on it. "abandoned" is a
+      // terminal state, so the row stops matching this query and the loop
+      // ends — and it stays distinguishable from an ack JET actually accepted.
+      if (row.receivedAt && row.receivedAt < giveUpCutoff) {
+        this.logger.error(
+          `JET order ${row.externalEventId} was never acknowledged and is now ` +
+            `past JET's window — abandoning it. JET has already marked it ` +
+            `failed-to-inject; no further ack will be attempted.`,
+        );
+        await this.patchAck(row.externalEventId, (existing) => ({
+          ...(existing ?? {}),
+          state: "abandoned",
+          abandonedAt: new Date().toISOString(),
+        }));
+        continue;
+      }
+
       await this.ackFailure({
         jetOrderId: row.externalEventId,
         code: "TIMEOUT",
