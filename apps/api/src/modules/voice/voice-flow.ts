@@ -16,6 +16,7 @@
 // that, please press 1 or 2" — which is the single thing people hate most
 // about phone menus, and the reason most of them get abandoned.
 
+import { serviceModeFor } from "@orderhub/shared";
 import { soundFold } from "./voice-menu-match";
 
 /** Where a call is. Stored on the transcript blob, so it survives the fact
@@ -390,8 +391,34 @@ export function spokenOrderStatus(args: {
   /** Nobody has paid for it yet, and it is waiting on them to. */
   awaitingPayment?: boolean;
 }): { say: string; transfer?: boolean } {
-  const delivery = args.fulfillmentType === "DELIVERY";
+  // A delivery is a delivery whoever is driving.
+  //
+  // Read as the bare string "DELIVERY", this missed MERCHANT_DELIVERY and
+  // PLATFORM_COURIER — which is what a marketplace order the SHOP delivers
+  // arrives as. On call QZkzFTOw a cancelled Just Eat order was
+  // MERCHANT_DELIVERY, so none of the marketplace wording below was reached
+  // and the caller was told "there's a problem with that order" about an
+  // order Just Eat had cancelled. The shared resolver already buckets these.
+  const delivery = serviceModeFor(args.fulfillmentType) === "DELIVERY";
   const via = marketplaceName(args.source);
+  // Whose driver is it? On MERCHANT_DELIVERY the shop drives its own
+  // marketplace order, so "their driver is collecting it" is simply untrue —
+  // and it points the caller at the platform when the shop is the one who
+  // knows where the food is.
+  const theirDriver =
+    delivery && String(args.fulfillmentType ?? "").toUpperCase() !== "MERCHANT_DELIVERY";
+
+  // A cancelled marketplace order, however it was being fulfilled.
+  //
+  // Decided before anything about driving: a collection order is cancelled
+  // exactly the same way a delivery is, and the thing that matters — the
+  // platform refunds it, not the shop — is true of both.
+  if (via && ["CANCELLED", "REJECTED", "FAILED"].includes(String(args.status))) {
+    return {
+      say: `That ${via} order has been cancelled. ${via} handle the refund on those, so you'll need to go through the app — but let me put you through to the shop if you'd like a word.`,
+      transfer: true,
+    };
+  }
 
   // A marketplace order is out of the shop's hands the moment it leaves, and
   // saying "we're getting a driver to it" when Uber Eats owns the driver is
@@ -409,23 +436,27 @@ export function spokenOrderStatus(args: {
       case "DISPATCHED":
         return { say: `That's your ${via} order, and it's with the driver now.${driver}${eta}` };
       case "RIDER_ARRIVED":
-        return { say: `The ${via} driver is at the shop collecting it right now.` };
+        return {
+          say: theirDriver
+            ? `The ${via} driver is at the shop collecting it right now.`
+            : `The driver is at the shop picking it up right now.`,
+        };
       case "PENDING_DISPATCH":
       case "ASSIGNED_DRIVER":
       case "ACCEPTED_BY_DRIVER":
-        return { say: `That's your ${via} order. It's ready and a driver is on the way to collect it.${eta}` };
+        return {
+          say: theirDriver
+            ? `That's your ${via} order. It's ready and a driver is on the way to collect it.${eta}`
+            : `That's your ${via} order. It's ready and we're getting a driver to it now.${eta}`,
+        };
       case "READY":
-        return { say: `That's your ${via} order and it's ready — it's waiting for their driver.` };
+        return {
+          say: theirDriver
+            ? `That's your ${via} order and it's ready — it's waiting for their driver.`
+            : `That's your ${via} order and it's ready — we're getting a driver to it.`,
+        };
       case "COMPLETED":
         return { say: `${via} have that one down as delivered.` };
-      case "CANCELLED":
-      case "REJECTED":
-      case "FAILED":
-        // The shop cannot refund or reinstate a marketplace order.
-        return {
-          say: `That ${via} order has been cancelled. ${via} handle the refund on those, so you'll need to go through the app — but let me put you through to the shop if you'd like a word.`,
-          transfer: true,
-        };
       default:
         return { say: `That's your ${via} order and the kitchen is on it.${eta}` };
     }
@@ -479,10 +510,16 @@ export function spokenOrderStatus(args: {
     case "CANCELLED":
     case "REJECTED":
     case "FAILED":
-      // Never try to explain a cancellation. Whatever happened, the caller
-      // needs a person, and they need one immediately.
+      // Say the one fact they rang to find out.
+      //
+      // The old wording — "there's a problem with that order" — was written to
+      // stop the line inventing a reason for the cancellation, which is still
+      // right: the reason is never guessed at. But it also hid the only thing
+      // the caller needed to hear, so they arrived at the shop not knowing
+      // their order was cancelled, and a member of staff had to break it to
+      // them cold.
       return {
-        say: "It looks like there's a problem with that order. Let me put you through to the shop.",
+        say: "That order has been cancelled. Let me put you through to the shop so they can tell you what happened.",
         transfer: true,
       };
     default:
