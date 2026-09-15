@@ -145,9 +145,14 @@ export function ModifierSelectionModal({
   // Active modifier groups, normalised to the modifierGroupLinks shape
   // the modal consumes ({ group: {…options[]} }):
   //
-  //   - Flat product:   pulled from item.modifierGroupLinks (the
-  //                     ModifierGroupOnItem FK join, already
-  //                     populated by the API include).
+  //   - Flat product:   from item.modifierGroupLinks. The link carries the
+  //                     whole group on the POS/dashboard endpoints, but the
+  //                     storefront now sends `groupId` only and one copy of
+  //                     each group in allModifierGroups — 24 groups were
+  //                     being shipped 257 times, 1.7MB of a 3.2MB payload.
+  //                     Both shapes are accepted: a link that already has
+  //                     its group is used as-is, so nothing else had to
+  //                     change when the storefront slimmed down.
   //   - Multi-SKU:      pulled from allModifierGroups (the brand
   //                     catalog) by SKU.modifierGroups[] id, because
   //                     SKU groups are NOT FK-attached — they live
@@ -165,7 +170,19 @@ export function ModifierSelectionModal({
         // group field (id, name, selectionType, options[]).
         .map((g) => ({ group: g as any }));
     }
-    return item.modifierGroupLinks ?? [];
+    const links = item.modifierGroupLinks ?? [];
+    if (links.every((l: any) => l?.group)) return links;
+    // A link with no group came from the slimmed storefront payload: resolve
+    // it against the catalogue by id. A group that resolves to nothing is
+    // DROPPED rather than rendered empty — a product that opens with no
+    // options is still orderable, so it would take the customer's money for
+    // a pizza with no size and send the kitchen a ticket it can't make.
+    const byId = new Map(allModifierGroups.map((g) => [g.id, g]));
+    return links
+      .map((l: any) =>
+        l?.group ? l : { ...l, group: byId.get(l?.groupId) as any },
+      )
+      .filter((l: any) => !!l.group);
   }, [
     item.modifierGroupLinks,
     isMultiSku,

@@ -832,6 +832,29 @@ export class OrderingService {
       }
     }
 
+    // Phase BT — send each modifier group ONCE.
+    //
+    // Every item carried a full copy of every group it links, so on one live
+    // shop 24 distinct groups shipped 257 times: 1.7MB of a 3.2MB payload,
+    // re-sent to every customer, for data already sitting in
+    // brandModifierGroups. Links keep their groupId and the client resolves
+    // against that catalogue — which is exactly what multi-SKU products have
+    // always done, so this extends an existing path rather than inventing one.
+    //
+    // The merge below is load-bearing, not tidying. brandModifierGroups is
+    // brand-scoped, but an item may link a group owned by ANOTHER brand of
+    // the same tenant, and those were only ever reachable through the
+    // embedded copy. Dropping the copies without merging them in first would
+    // make that product open with NO options — still orderable, at the base
+    // price, with a ticket the kitchen cannot make. Merge first, then strip.
+    hoistModifierGroups(menu, brandModifierGroups);
+
+    // Publish-pipeline bookkeeping the browser never reads. Applied to the
+    // menu and the group catalogue only — the shapes this response is heavy
+    // with — rather than blanket over everything.
+    stripInternalFields(menu);
+    stripInternalFields(brandModifierGroups);
+
     // Phase AW-30 — brand-level opening hours win when configured.
     // Brand.openingHours default is `{}` which we treat as "not set"
     // (legacy single-brand kitchens keep using their location hours).
@@ -2438,4 +2461,71 @@ export function pickStorefrontImage(store: any): string | null {
     null;
   const value = String(candidate ?? "").trim();
   return value || null;
+}
+
+/**
+ * Columns the storefront never reads, dropped on the way out.
+ *
+ * Sync bookkeeping and join arrays that exist for the publish pipeline, not
+ * for a customer's browser. On a 52-option group they were most of its weight.
+ * Verified unread across the storefront, the table-ordering page and the
+ * shared modifier modal before being removed; the dashboard and POS read some
+ * of them but come through different endpoints, which this does not touch.
+ *
+ * Deliberately NOT stripped: nestedGroupId (the client follows it to build
+ * "Make It a Meal"), plu, pricesBySize, platformPricingOverrides and the tax
+ * fields — all of those reach the price the customer pays.
+ */
+const INTERNAL_FIELDS = new Set([
+  "syncHash",
+  "syncStatus",
+  "lastSyncedAt",
+  "createdAt",
+  "updatedAt",
+  "deletedAt",
+  "menuIds",
+  "modifierGroupIds",
+  "rawModifierIds",
+  "rawModifierGroupIds",
+]);
+
+/** Strip INTERNAL_FIELDS in place, depth-first. */
+export function stripInternalFields(node: any): void {
+  if (Array.isArray(node)) {
+    for (const child of node) stripInternalFields(child);
+    return;
+  }
+  if (!node || typeof node !== "object") return;
+  for (const key of Object.keys(node)) {
+    if (INTERNAL_FIELDS.has(key)) delete node[key];
+    else stripInternalFields(node[key]);
+  }
+}
+
+/**
+ * Lift every group embedded in an item link up into the shared catalogue,
+ * then drop the embedded copies. Mutates both, in place.
+ *
+ * The merge is the load-bearing half. `groups` is brand-scoped, but an item
+ * may link a group owned by another brand of the same tenant, and that group
+ * was only ever reachable through the embedded copy. Strip without merging
+ * and the product opens with NO options — still orderable, at the base price,
+ * with a ticket the kitchen cannot make.
+ */
+export function hoistModifierGroups(menu: any, groups: any[]): void {
+  const catalogue = new Set(groups.map((g) => g.id));
+  for (const cat of menu?.categories ?? []) {
+    for (const link of cat.items ?? []) {
+      for (const gl of link?.item?.modifierGroupLinks ?? []) {
+        const group = gl?.group;
+        if (!group) continue;
+        if (!catalogue.has(group.id)) {
+          catalogue.add(group.id);
+          groups.push(group);
+        }
+        // The link keeps groupId; the group itself now travels once.
+        delete gl.group;
+      }
+    }
+  }
 }
