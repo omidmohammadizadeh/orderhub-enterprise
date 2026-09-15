@@ -6,8 +6,20 @@ import {
   ServiceUnavailableException,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation } from "@nestjs/swagger";
-import { IsOptional, IsString, MaxLength } from "class-validator";
+import {
+  IsBoolean,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  MaxLength,
+  Min,
+} from "class-validator";
 import { SupabaseStorageService } from "./supabase-storage.service";
+import {
+  InlineImageRehostService,
+  type RehostSummary,
+} from "./inline-image-rehost.service";
 import { Roles } from "../../common/decorators/roles.decorator";
 
 class UploadContractFileDto {
@@ -18,6 +30,20 @@ class UploadContractFileDto {
   @IsOptional()
   @IsString()
   fileName?: string;
+}
+
+class RehostInlineImagesDto {
+  /** Absent or false = dry run. Nothing is written unless this is true. */
+  @IsOptional()
+  @IsBoolean()
+  apply?: boolean;
+
+  /** How many images to move in this pass. */
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(200)
+  limit?: number;
 }
 
 class UploadImageDto {
@@ -36,7 +62,10 @@ class UploadImageDto {
 @ApiTags("uploads")
 @Controller({ path: "uploads", version: "1" })
 export class UploadsController {
-  constructor(private readonly storage: SupabaseStorageService) {}
+  constructor(
+    private readonly storage: SupabaseStorageService,
+    private readonly rehost: InlineImageRehostService,
+  ) {}
 
   @Post("product-image")
   @ApiOperation({ summary: "Upload a menu/product image, returns its public URL" })
@@ -60,6 +89,27 @@ export class UploadsController {
    * personal data through this route until the bucket has signed URLs.
    * A blank template is fine; that is what this is for.
    */
+  /**
+   * Move images still stored as base64 in Postgres into storage.
+   *
+   * Exists as an endpoint, not just a CLI script, because running the script
+   * means holding the Supabase service_role key — the one credential that
+   * bypasses every row-level rule in the project — in a terminal. The API
+   * already has it, so nobody else needs to.
+   *
+   * Dry run unless `apply` is true, and bounded per call: it reports what is
+   * still waiting so the caller can run it again rather than hold an HTTP
+   * request open through hundreds of uploads.
+   */
+  @Post("rehost-inline-images")
+  @Roles("PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Move base64 images out of the database into storage" })
+  async rehostInlineImages(
+    @Body() dto: RehostInlineImagesDto,
+  ): Promise<RehostSummary> {
+    return this.rehost.run({ apply: dto.apply === true, limit: dto.limit });
+  }
+
   @Post("contract-file")
   @Roles("PLATFORM_ADMIN")
   @ApiOperation({ summary: "Upload a contract template PDF, returns its URL" })

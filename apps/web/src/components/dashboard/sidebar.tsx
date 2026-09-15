@@ -9,6 +9,7 @@ import {
   BarChart3,
   Plug2,
   MapPin,
+  Database,
   Settings,
   HelpCircle,
   ChevronDown,
@@ -241,6 +242,9 @@ const secondaryNav: NavItem[] = [
   { href: "/dashboard/integrations/careem", label: "Careem", icon: Plug, roles: ["PLATFORM_ADMIN"] },
   { href: "/dashboard/settings/security", label: "Security", icon: Shield, roles: ["PLATFORM_ADMIN"] },
   { href: "/dashboard/settings/branding", label: "Branding", icon: Palette, roles: ["PLATFORM_ADMIN"] },
+  // Maintenance: move base64 images out of Postgres into storage. Admin-only
+  // because it rewrites rows across every tenant.
+  { href: "/dashboard/settings/image-storage", label: "Image storage", icon: Database, roles: ["PLATFORM_ADMIN"] },
   { href: "/dashboard/sandbox", label: "Sandbox", icon: FlaskConical, roles: ["PLATFORM_ADMIN"] },
 ];
 
