@@ -5,9 +5,11 @@ import { MenusService } from "../menus.service";
 //   • upsert one assignment per (location × channel) — the unique
 //     (locationId, channel, brandId) key REPLACES whatever menu held the
 //     slot, and never touches locations that weren't selected;
-//   • delete THIS menu's own rows at the selected locations for channels
-//     no longer selected;
-//   • do neither when locationIds is absent (legacy PATCH callers).
+//   • leave this menu's OTHER channels alone. Publish is additive (per the
+//     operator): publishing a menu to Online must not pull it off POS.
+//     Taking a menu off one channel is the explicit unpublishFromChannel
+//     call, never a side effect of publishing somewhere else;
+//   • write nothing at all when locationIds is absent (legacy PATCH callers).
 
 function makeService() {
   const upserts: any[] = [];
@@ -38,7 +40,7 @@ function makeService() {
       }),
       deleteMany: jest.fn((args: any) => {
         deleteManys.push(args);
-        return { __op: "deleteMany" };
+        return { __op: "deleteMany", count: 1 };
       }),
     },
     // $transaction receives the built prisma "promises"; execute order is
@@ -57,7 +59,7 @@ function makeService() {
 }
 
 describe("MenusService.update — Phase BA assignment writes", () => {
-  it("upserts one assignment per (location × channel) and prunes deselected channels", async () => {
+  it("upserts one assignment per (location × channel) and deletes nothing", async () => {
     const { svc, upserts, deleteManys } = makeService();
 
     await svc.update(
@@ -83,13 +85,25 @@ describe("MenusService.update — Phase BA assignment writes", () => {
       expect(u.create.tenantId).toBe("T1");
     }
 
-    // Channel pruning is scoped to THIS menu at the SELECTED locations
-    // only — other menus' rows and other locations are untouched.
+    // Publishing deletes NOTHING. An earlier version pruned this menu's rows
+    // for every channel missing from the current publish, which meant
+    // republishing to Online silently took the menu off the till.
+    expect(deleteManys).toHaveLength(0);
+  });
+
+  it("removes a menu from one channel only via unpublishFromChannel", async () => {
+    const { svc, deleteManys } = makeService();
+
+    const res = await svc.unpublishFromChannel("M1", "T1", "L1", "POS");
+
+    expect(res).toEqual({ removed: 1 });
     expect(deleteManys).toHaveLength(1);
+    // Exactly one slot: this menu, this shop, this channel. Other channels,
+    // other shops and other menus are untouched.
     expect(deleteManys[0].where).toEqual({
       menuId: "M1",
-      locationId: { in: ["L1", "L2"] },
-      channel: { notIn: ["ONLINE", "POS"] },
+      locationId: "L1",
+      channel: "POS",
     });
   });
 

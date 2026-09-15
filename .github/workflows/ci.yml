@@ -174,7 +174,7 @@ jobs:
           JWT_SECRET: test-jwt-secret-that-is-at-least-32-characters-long
           JWT_REFRESH_SECRET: test-jwt-refresh-secret-that-is-at-least-32-char
           ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000001"
-        run: pnpm --filter @orderhub/api test --passWithNoTests
+        run: pnpm --filter @orderhub/api test -- --passWithNoTests
 
       - name: Run Worker unit tests
         env:
@@ -182,7 +182,7 @@ jobs:
           DATABASE_URL: postgresql://orderhub_test:orderhub_test_secret@localhost:5432/orderhub_test
           DIRECT_URL: postgresql://orderhub_test:orderhub_test_secret@localhost:5432/orderhub_test
           QUEUE_REDIS_URL: redis://localhost:6379
-        run: pnpm --filter @orderhub/worker test --passWithNoTests
+        run: pnpm --filter @orderhub/worker test -- --passWithNoTests
 
   # ── Docker Build Validation ──────────────────────────────
   docker-build:
