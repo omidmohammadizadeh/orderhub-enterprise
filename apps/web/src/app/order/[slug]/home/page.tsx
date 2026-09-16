@@ -27,6 +27,7 @@ import Link from "next/link";
 import { ArrowRight, Clock, MapPin, Phone } from "lucide-react";
 import { formatMoney } from "@orderhub/shared";
 import { StorefrontTabBar } from "@/components/storefront/tab-bar";
+import { PoweredByOrderHub } from "@/components/storefront/powered-by";
 import { ReferAFriend } from "@/components/storefront/refer-a-friend";
 import { useCustomerAuth } from "@/hooks/use-customer-auth";
 
@@ -281,16 +282,7 @@ export default function StorefrontHomePage() {
       </Section>
 
 
-      <footer className="px-4 pb-8 pt-6 text-center">
-        <a
-          href="https://www.orderhubsolutions.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[11px] font-medium tracking-wide text-zinc-400 transition hover:text-zinc-600"
-        >
-          Powered by <span className="font-bold text-zinc-500">Order Hub</span>
-        </a>
-      </footer>
+      <PoweredByOrderHub />
 
       <StorefrontTabBar slug={slug} brandId={brandId} />
     </main>

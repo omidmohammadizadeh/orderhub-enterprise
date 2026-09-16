@@ -39,6 +39,7 @@ import axios from "axios";
 import { LoginModal } from "@/components/storefront/login-modal";
 import { FoodPlaceholder } from "@/components/storefront/food-placeholder";
 import { StorefrontTabBar } from "@/components/storefront/tab-bar";
+import { PoweredByOrderHub } from "@/components/storefront/powered-by";
 import { ReferralClaim } from "@/components/storefront/referral-claim";
 import { ReferAFriend } from "@/components/storefront/refer-a-friend";
 import { PlacingOrderSheet } from "@/components/storefront/placing-order-sheet";
@@ -2745,6 +2746,8 @@ function OrderPage() {
           earned — and a footer is the only navigation a thumb can reach while
           scrolling a long menu. Desktop keeps its header and never renders
           this. */}
+      <PoweredByOrderHub />
+
       <StorefrontTabBar slug={String(slug)} brandId={brandId} />
     </div>
   );

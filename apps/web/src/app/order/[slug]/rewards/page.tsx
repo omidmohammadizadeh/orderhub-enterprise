@@ -22,6 +22,7 @@ import { Heart, Lock, Sparkles, Ticket } from "lucide-react";
 import { formatMoney } from "@orderhub/shared";
 import { useCustomerAuth } from "@/hooks/use-customer-auth";
 import { StorefrontTabBar } from "@/components/storefront/tab-bar";
+import { PoweredByOrderHub } from "@/components/storefront/powered-by";
 import { ReferAFriend } from "@/components/storefront/refer-a-friend";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "/api";
@@ -313,6 +314,8 @@ export default function StorefrontRewardsPage() {
           token={token}
         />
       </section>
+
+      <PoweredByOrderHub />
 
       <StorefrontTabBar
         slug={slug}
