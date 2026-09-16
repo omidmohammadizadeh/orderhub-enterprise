@@ -83,7 +83,9 @@ const SAAS_AGREEMENT = `
 <p>3.1 <strong>Subscription.</strong> You will pay {{amount}} per month{{#locationWord}} for {{locationWord}}{{/locationWord}}, in advance, by continuous card authority. The first payment is taken when you activate your subscription and monthly thereafter on the same date.</p>
 
 {{#commission}}
-<p>3.2 <strong>Order commission.</strong> In addition to the subscription, we charge commission of {{commission}} of the value of each order processed through the Platform. Commission on card orders is deducted automatically from settlement before payout. Commission on cash orders accrues in the same way and is collected in arrears. Commission is calculated on the order value excluding delivery charges, tips and VAT.</p>
+<p>3.2 <strong>Order commission.</strong> In addition to the subscription, we charge commission of {{commission}} of the value of each order taken through your own ordering channels on the Platform &mdash; the online ordering website we design, build and host for you, and orders you take yourself through the Platform, such as the till, kiosk, phone line or your own app. Commission on card orders is deducted automatically from settlement before payout. Commission on cash orders accrues in the same way and is collected in arrears. Commission is calculated on the order value excluding delivery charges, tips and VAT.</p>
+
+<p>For the avoidance of doubt, we charge no commission on orders placed through a third-party marketplace you contract with directly, including Just Eat, Uber Eats, Deliveroo and any other aggregator or delivery platform. Those orders, and the revenue from them, are entirely yours. Where we connect such a marketplace to the Platform we do so as an integration so that its orders reach your kitchen and your reports; we take no share of their value, and whatever that marketplace charges you remains a matter between you and them.</p>
 {{/commission}}
 
 {{#serviceCharge}}
