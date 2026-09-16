@@ -135,8 +135,8 @@ export default function TableQrPage() {
   const table = tableQuery.data;
 
   const storeQuery = useQuery({
-    queryKey: ["table-qr-store", table?.locationId, table?.brandId],
-    queryFn: () => tableQrClient.storefront(table!.locationId, table?.brandId),
+    queryKey: ["table-qr-store", table?.locationId],
+    queryFn: () => tableQrClient.storefront(table!.locationId),
     enabled: !!table?.locationId,
   });
   const store = storeQuery.data;

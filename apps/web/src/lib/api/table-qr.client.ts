@@ -156,12 +156,22 @@ export const tableQrClient = {
   /**
    * The menu, fetched through the storefront endpoint. `:slug` there also
    * resolves a raw location id (`OR: [{ onlineOrderingSlug }, { slug }, { id }]`),
-   * which is what the QR resolve gives us — no extra lookup needed. The
-   * ?brand pin makes a multi-brand kitchen serve the right brand's menu.
+   * which is what the QR resolve gives us — no extra lookup needed.
+   *
+   * `channel=POS` and NO brand pin, deliberately, and both halves matter:
+   *
+   *   - POS, because the guest is sitting in the restaurant. The operator
+   *     sets one menu up for the shop and expects the table to match the
+   *     till, and a shop's POS menu is often a different menu at different
+   *     prices from the one it publishes to the web.
+   *   - No brand, because this used to pin `Location.brandId` — the same
+   *     placeholder field that once put another shop's menu on a Best Kebab
+   *     receipt. Unpinned, the resolution keys off the location exactly as
+   *     MenusService.findActiveMenuForLocation does for the till, which is
+   *     the definition of "the same menu as the POS".
    */
-  storefront: (locationId: string, brandId?: string | null) =>
+  storefront: (locationId: string) =>
     getJson<TableStorefront>(
-      `${API_BASE}/v1/ordering/store/${encodeURIComponent(locationId)}` +
-        (brandId ? `?brand=${encodeURIComponent(brandId)}` : ""),
+      `${API_BASE}/v1/ordering/store/${encodeURIComponent(locationId)}?channel=POS`,
     ),
 };

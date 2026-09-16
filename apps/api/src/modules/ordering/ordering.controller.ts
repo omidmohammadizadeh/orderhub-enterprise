@@ -26,11 +26,20 @@ export class OrderingController {
   // Phase AW — optional `?brand=<id>` from /brand/<slug> redirects so
   // the storefront renders the brand's identity (name, logo, address,
   // about) instead of the underlying physical location's.
+  // `?channel=POS` serves the till's menu instead of the web one. A table
+  // QR asks for it: a guest at table 4 must see what the till sees. Anything
+  // other than POS resolves ONLINE, so a mistyped value can only ever give
+  // the customer today's storefront.
   getStorefront(
     @Param("slug") slug: string,
     @Query("brand") brandId?: string,
+    @Query("channel") channel?: string,
   ) {
-    return this.ordering.getStorefrontBySlug(slug, brandId);
+    return this.ordering.getStorefrontBySlug(
+      slug,
+      brandId,
+      channel === "POS" ? "POS" : "ONLINE",
+    );
   }
 
   // Phase BS — just enough of the storefront to render its <head> on the

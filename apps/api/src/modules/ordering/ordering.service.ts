@@ -336,7 +336,21 @@ export class OrderingService {
     });
   }
 
-  async getStorefrontBySlug(slug: string, brandIdOverride?: string) {
+  /**
+   * @param channel Which menu to serve. ONLINE is the storefront a customer
+   *   opens on the web and the default for every existing caller. A table QR
+   *   passes POS, because a guest at table 4 must see what the till sees —
+   *   the operator sets one menu up for the shop and expects both to agree,
+   *   and the POS menu is frequently a different menu at different prices.
+   *   It governs the whole resolution, not just the menu lookup: the legacy
+   *   fallback, the 86s and the pause banner all follow it, or the table
+   *   would be offered an item the kitchen turned off at the till.
+   */
+  async getStorefrontBySlug(
+    slug: string,
+    brandIdOverride?: string,
+    channel: "ONLINE" | "POS" = "ONLINE",
+  ) {
     // Phase AN — `onlineOrderingSlug` is the new operator-facing slug;
     // older locations may still only have the legacy `slug`. Resolve
     // either so old printed flyers and QR codes keep working.
@@ -515,10 +529,10 @@ export class OrderingService {
     // working exactly as before.
     const assignedMenuId = await this.menuAssignments.resolveAssignedMenuId(
       overrideBrand
-        ? { locationId: location.id, channel: "ONLINE", brandId: menuBrandId }
+        ? { locationId: location.id, channel, brandId: menuBrandId }
         : {
             locationId: location.id,
-            channel: "ONLINE",
+            channel,
             preferBrandId: location.brandId,
           },
     );
@@ -547,7 +561,14 @@ export class OrderingService {
             include: menuInclude,
           }))
         : (await this.prisma.menu.findFirst({
-            where: { locationId: location.id, isActive: true, deletedAt: null },
+            where: {
+              locationId: location.id,
+              isActive: true,
+              deletedAt: null,
+              // Mirrors POS's own legacy fallback. Left off, a shop with no
+              // assignments would serve its ONLINE menu to the table.
+              ...(channel === "POS" ? { publishedTo: { has: "POS" } } : {}),
+            },
             orderBy: { updatedAt: "desc" },
             include: menuInclude,
           })) ??
@@ -570,7 +591,7 @@ export class OrderingService {
     if (menu) {
       const variantMap = await this.variantResolver.forBrandChannel({
         brandId: menuBrandId,
-        channel: "ONLINE",
+        channel,
       });
       if (variantMap) this.applyVariantPriceOverrides(menu, variantMap);
     }
@@ -716,7 +737,7 @@ export class OrderingService {
         }
       }
       const snoozed = await this.menuAvailability.getSnoozedItemIdsForChannel(
-        "ONLINE",
+        channel,
         itemIds,
         // Phase BA — this location's own 86s apply on top of global ones.
         location.id,
@@ -948,7 +969,7 @@ export class OrderingService {
     const pauseSnapshot = await this.pauses.isPaused({
       locationId: location.id,
       brandId: overrideBrand?.id ?? null,
-      channel: "ONLINE",
+      channel,
     });
     const brandView = b
       ? {
