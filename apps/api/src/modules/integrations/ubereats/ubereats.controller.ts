@@ -128,6 +128,31 @@ export class UberEatsController {
     };
   }
 
+  @Get("reusable")
+  @ApiBearerAuth()
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({
+    summary: "Uber Eats authorisations in this tenant that can be reused",
+  })
+  reusable(@CurrentUser() user: AuthenticatedUser) {
+    return this.connections.listReusable(user.tenantId);
+  }
+
+  @Post("reuse")
+  @ApiBearerAuth()
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Reuse an existing Uber Eats authorisation for another brand",
+  })
+  reuse(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body()
+    body: { fromConnectionId: string; brandId: string; locationId: string },
+  ) {
+    return this.connections.reuse(user.tenantId, body);
+  }
+
   // ── Owner connection links ───────────────────────────────────────────
 
   @Post("invite")

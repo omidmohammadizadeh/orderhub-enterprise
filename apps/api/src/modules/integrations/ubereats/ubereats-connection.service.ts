@@ -497,6 +497,113 @@ export class UberEatsConnectionService {
     return { ok: true, httpStatus: meta.status ?? 204, storeId: c.externalStoreId };
   }
 
+  // ── Reusing an authorisation ─────────────────────────────────────────
+  //
+  // GET /v1/delivery/stores returns EVERY store the authorising user owns, so
+  // a five-shop client's first sign-in already covered all five. The only
+  // reason they were sent back to Uber for each one is that the merchant
+  // token lives on the per-location row.
+  //
+  // Reuse copies that token to the new brand+location and leaves it in the
+  // same "pending" state the OAuth callback produces, so the existing store
+  // picker takes over and the owner is never asked to consent twice.
+
+  /** Connections in this tenant whose stored token can be borrowed. */
+  async listReusable(tenantId: string) {
+    const rows = await this.prisma.brandPlatformConnection.findMany({
+      where: { tenantId, platform: "UBER_EATS" },
+      include: {
+        brand: { select: { name: true } },
+        location: { select: { name: true } },
+      },
+      orderBy: { updatedAt: "desc" },
+    });
+    return rows
+      // A reset row has status not_connected and empty metadata. Offering it
+      // would hand the operator a pending connection with no credentials — a
+      // dead end they could only escape by resetting again.
+      .filter((r: any) => !!r.metadata?.credentials)
+      .map((r: any) => ({
+        connectionId: r.id,
+        brandName: r.brand?.name ?? null,
+        locationName: r.location?.name ?? null,
+        storeId: r.externalStoreId ?? null,
+        status: r.status,
+      }));
+  }
+
+  /** Borrow a stored authorisation for another brand+location. */
+  async reuse(
+    tenantId: string,
+    args: { fromConnectionId: string; brandId: string; locationId: string },
+  ) {
+    const source = await this.prisma.brandPlatformConnection.findFirst({
+      where: {
+        id: args.fromConnectionId,
+        tenantId,
+        platform: "UBER_EATS",
+      },
+    });
+    if (!source) throw new NotFoundException("Uber Eats connection not found");
+
+    if (
+      source.brandId === args.brandId &&
+      source.locationId === args.locationId
+    ) {
+      throw new BadRequestException(
+        "That is the same brand and shop the authorisation already belongs to.",
+      );
+    }
+
+    const credentials = (source.metadata as any)?.credentials;
+    if (!credentials) {
+      throw new BadRequestException(
+        "That connection has no stored Uber Eats authorisation to reuse. " +
+          "Connect it again, or send the owner a link.",
+      );
+    }
+
+    await this.prisma.brandPlatformConnection.upsert({
+      where: {
+        brandId_locationId_platform: {
+          brandId: args.brandId,
+          locationId: args.locationId,
+          platform: "UBER_EATS",
+        },
+      },
+      create: {
+        tenantId,
+        brandId: args.brandId,
+        locationId: args.locationId,
+        platform: "UBER_EATS",
+        status: "pending",
+        metadata: { credentials } as any,
+      },
+      update: {
+        status: "pending",
+        // Never carried across: the point of reuse is to pick a DIFFERENT
+        // store from the same account, and copying it would quietly point two
+        // shops at one store.
+        externalStoreId: null,
+        lastError: null,
+        metadata: { credentials } as any,
+      },
+    });
+
+    this.activity?.record({
+      tenantId,
+      brandId: args.brandId,
+      locationId: args.locationId,
+      category: "CONNECTION",
+      channel: "UBER_EATS",
+      action: "store.authorisation_reused",
+      status: "INFO",
+      message: "Reused an existing Uber Eats authorisation",
+      details: { fromConnectionId: args.fromConnectionId },
+    });
+    return { ok: true };
+  }
+
   async disconnect(tenantId: string, connectionId: string) {
     const row = await this.prisma.brandPlatformConnection.findFirst({
       where: { id: connectionId, tenantId, platform: "UBER_EATS" },

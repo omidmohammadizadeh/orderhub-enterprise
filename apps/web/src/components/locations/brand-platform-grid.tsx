@@ -858,6 +858,45 @@ function UberEatsRow({
     onError: err,
   });
 
+  // Borrow an authorisation this tenant already holds.
+  //
+  // One Uber sign-in already covers every store that owner has — the store
+  // list comes back whole. So a multi-site client should authorise once, not
+  // once per shop. This copies the stored token onto this brand and drops
+  // straight into the store picker.
+  const [reusableOpen, setReusableOpen] = useState(false);
+  const reusable = useQuery({
+    queryKey: ["ubereats-reusable"],
+    queryFn: () =>
+      apiClient
+        .get(`/v1/integrations/ubereats/reusable`)
+        .then(
+          (r) =>
+            r.data as Array<{
+              connectionId: string;
+              brandName: string | null;
+              locationName: string | null;
+              storeId: string | null;
+            }>,
+        ),
+    enabled: reusableOpen,
+  });
+
+  const reuse = useMutation({
+    mutationFn: (fromConnectionId: string) =>
+      apiClient.post(`/v1/integrations/ubereats/reuse`, {
+        fromConnectionId,
+        brandId,
+        locationId,
+      }),
+    onSuccess: () => {
+      toast.success("Authorisation reused — now choose this shop's store");
+      setReusableOpen(false);
+      onChanged();
+    },
+    onError: err,
+  });
+
   // Hand the consent step to the person who owns the Uber account.
   //
   // Connecting from here means being signed in to Uber AS the client, which
@@ -987,6 +1026,63 @@ function UberEatsRow({
           )}
         </div>
 
+        {reusableOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+            onClick={() => setReusableOpen(false)}
+          >
+            <div
+              className="w-full max-w-md rounded-xl bg-white p-4 shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-sm font-semibold text-zinc-900">
+                Reuse an Uber Eats authorisation
+              </h3>
+              <p className="mt-1 text-[11px] text-zinc-500">
+                One sign-in covers every store that owner has. Pick a shop
+                already connected to the same Uber Eats account, and you&apos;ll
+                choose this shop&apos;s store next — the owner isn&apos;t asked
+                to approve anything again.
+              </p>
+
+              <div className="mt-3 max-h-64 space-y-1 overflow-y-auto">
+                {reusable.isLoading ? (
+                  <p className="text-[11px] text-zinc-500">Loading…</p>
+                ) : !reusable.data?.length ? (
+                  <p className="text-[11px] text-zinc-500">
+                    No existing Uber Eats authorisations to reuse yet. Connect
+                    one shop first, or send the owner a link.
+                  </p>
+                ) : (
+                  reusable.data.map((r) => (
+                    <button
+                      key={r.connectionId}
+                      onClick={() => reuse.mutate(r.connectionId)}
+                      disabled={reuse.isPending}
+                      className="block w-full rounded-lg border border-zinc-200 px-3 py-2 text-left hover:bg-zinc-50 disabled:opacity-50"
+                    >
+                      <span className="block text-[11px] font-semibold text-zinc-900">
+                        {r.brandName ?? "Brand"}
+                      </span>
+                      <span className="block text-[10px] text-zinc-500">
+                        {r.locationName ?? "Shop"}
+                        {r.storeId ? ` · store ${r.storeId}` : ""}
+                      </span>
+                    </button>
+                  ))
+                )}
+              </div>
+
+              <button
+                onClick={() => setReusableOpen(false)}
+                className="mt-3 w-full rounded-lg border border-zinc-300 px-3 py-1.5 text-[11px] font-medium text-zinc-700 hover:bg-zinc-50"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="flex flex-shrink-0 flex-wrap items-center justify-end gap-1">
           {connected ? (
             <button
@@ -1025,6 +1121,13 @@ function UberEatsRow({
           ) : (
             !picking && (
               <>
+              <button
+                onClick={() => setReusableOpen(true)}
+                className="rounded-md border border-zinc-300 px-3 py-1.5 text-[10px] font-medium text-zinc-700 hover:bg-zinc-50"
+                title="Use an Uber Eats account this tenant has already authorised"
+              >
+                Reuse connection
+              </button>
               <button
                 onClick={() => invite.mutate()}
                 disabled={invite.isPending}
