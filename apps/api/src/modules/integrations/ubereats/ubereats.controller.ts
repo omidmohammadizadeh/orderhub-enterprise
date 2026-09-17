@@ -400,8 +400,13 @@ export class UberEatsController {
   disconnect(
     @Param("connectionId") connectionId: string,
     @CurrentUser() user: AuthenticatedUser,
+    // `keepAuthorisation` clears the store but keeps the merchant token, so
+    // the operator can re-pick without sending anyone back to Uber.
+    @Body() body?: { keepAuthorisation?: boolean },
   ) {
-    return this.connections.disconnect(user.tenantId, connectionId);
+    return this.connections.disconnect(user.tenantId, connectionId, {
+      keepAuthorisation: !!body?.keepAuthorisation,
+    });
   }
 
   @Get(":connectionId/orders")

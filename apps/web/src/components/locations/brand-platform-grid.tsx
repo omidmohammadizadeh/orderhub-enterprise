@@ -931,12 +931,17 @@ function UberEatsRow({
   // no way back. disconnect() clears the status, the store and the token, so
   // Connect is offered again and the next person authorises cleanly.
   const reset = useMutation({
-    mutationFn: () =>
+    mutationFn: (keepAuthorisation: boolean) =>
       apiClient.post(
         `/v1/integrations/ubereats/${connection?.id}/disconnect`,
+        { keepAuthorisation },
       ),
-    onSuccess: () => {
-      toast.success("Uber Eats connection reset — you can connect again");
+    onSuccess: (_d, keepAuthorisation) => {
+      toast.success(
+        keepAuthorisation
+          ? "Store cleared — choose another from the same account"
+          : "Uber Eats account forgotten — you can connect a different one",
+      );
       setStores([]);
       setPicking(false);
       onChanged();
@@ -1100,22 +1105,30 @@ function UberEatsRow({
               >
                 Choose store
               </button>
+              {/* Destructive, and named so. The earlier version of this
+                  button said "nothing is lost" — it was wrong, and an operator
+                  lost a live authorisation they could not replace because
+                  Uber's consent screen was unreachable that day. The wording
+                  now says exactly what it costs. */}
               <button
                 onClick={() => {
                   if (
                     window.confirm(
-                      "Start again? This clears the Uber Eats authorisation on " +
-                        "this brand so a different account can connect. No " +
-                        "store is linked yet, so nothing is lost.",
+                      "Forget this Uber Eats account?\n\n" +
+                        "The stored authorisation is deleted, and whoever owns " +
+                        "the account will have to sign in to Uber again before " +
+                        "any store can be connected here.\n\n" +
+                        "If you only want a different STORE from the same " +
+                        "account, cancel this and use Choose store instead.",
                     )
                   ) {
-                    reset.mutate();
+                    reset.mutate(false);
                   }
                 }}
                 disabled={reset.isPending}
-                className="rounded-md border border-zinc-300 px-3 py-1.5 text-[10px] font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
+                className="rounded-md border border-red-200 px-3 py-1.5 text-[10px] font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
               >
-                {reset.isPending ? "Resetting…" : "Start again"}
+                {reset.isPending ? "Working…" : "Use a different account"}
               </button>
             </>
           ) : (

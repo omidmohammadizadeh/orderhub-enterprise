@@ -81,4 +81,49 @@ describe("Uber Eats — resetting a pending connection", () => {
       /not found/i,
     );
   });
+
+  // ── Clearing a store vs forgetting the account ─────────────────────────
+  //
+  // These are two different intentions and only one of them is destructive.
+  //
+  // "I picked the wrong store" — keep the authorisation, go back to the
+  // picker. "The wrong person authorised" — forget the account entirely.
+  //
+  // Shipping only the destructive one cost a live authorisation: the operator
+  // reset a pending connection expecting to re-pick a store, and instead lost
+  // the merchant token at a moment when Uber's consent screen was unreachable.
+  // There was then no way back to the store list at all.
+
+  it("keeps the authorisation when only the store is being changed", async () => {
+    const { svc, updates } = harness({
+      ...PENDING_ROW,
+      status: "connected",
+      externalStoreId: "store-abc",
+    } as any);
+    await (svc as any).disconnect("t1", "conn1", { keepAuthorisation: true });
+
+    expect(updates[0].data.externalStoreId).toBeNull();
+    // Still holds the token, so the picker works without a trip to Uber.
+    expect(updates[0].data.metadata).toBeUndefined();
+  });
+
+  it("returns it to pending, not not_connected, when the account is kept", async () => {
+    // pending is "authorised, no store" — exactly the state the picker needs.
+    const { svc, updates } = harness({
+      ...PENDING_ROW,
+      status: "connected",
+      externalStoreId: "store-abc",
+    } as any);
+    await (svc as any).disconnect("t1", "conn1", { keepAuthorisation: true });
+
+    expect(updates[0].data.status).toBe("pending");
+  });
+
+  it("still forgets everything when that is what was asked", async () => {
+    const { svc, updates } = harness(PENDING_ROW);
+    await (svc as any).disconnect("t1", "conn1");
+
+    expect(updates[0].data.status).toBe("not_connected");
+    expect(updates[0].data.metadata).toEqual({});
+  });
 });

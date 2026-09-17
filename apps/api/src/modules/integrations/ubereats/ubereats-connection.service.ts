@@ -604,7 +604,25 @@ export class UberEatsConnectionService {
     return { ok: true };
   }
 
-  async disconnect(tenantId: string, connectionId: string) {
+  /**
+   * Two different intentions, and only one of them is destructive.
+   *
+   * `keepAuthorisation` — "I picked the wrong store." Clears the store and
+   * returns the row to pending, which is exactly the state the picker needs,
+   * so the operator re-picks without anyone signing in to Uber again.
+   *
+   * Default — "the wrong person authorised." Forgets the merchant token too.
+   *
+   * Shipping only the second cost a live authorisation: an operator reset a
+   * pending connection expecting to re-pick a store, lost the token, and could
+   * not obtain another because Uber's consent screen was unreachable at the
+   * time. There was then no way back to the store list at all.
+   */
+  async disconnect(
+    tenantId: string,
+    connectionId: string,
+    opts: { keepAuthorisation?: boolean } = {},
+  ) {
     const row = await this.prisma.brandPlatformConnection.findFirst({
       where: { id: connectionId, tenantId, platform: "UBER_EATS" },
     });
@@ -614,12 +632,20 @@ export class UberEatsConnectionService {
     // to fully sever it.
     await this.prisma.brandPlatformConnection.update({
       where: { id: connectionId },
-      data: {
-        status: "not_connected",
-        externalStoreId: null,
-        lastError: null,
-        metadata: {},
-      },
+      data: opts.keepAuthorisation
+        ? {
+            // metadata deliberately untouched — the merchant token lives
+            // there and is the whole point of keeping it.
+            status: "pending",
+            externalStoreId: null,
+            lastError: null,
+          }
+        : {
+            status: "not_connected",
+            externalStoreId: null,
+            lastError: null,
+            metadata: {},
+          },
     });
     this.activity?.record({
       tenantId,
@@ -627,9 +653,13 @@ export class UberEatsConnectionService {
       locationId: row.locationId,
       category: "CONNECTION",
       channel: "UBER_EATS",
-      action: "store.disconnected",
+      action: opts.keepAuthorisation
+        ? "store.unlinked"
+        : "store.disconnected",
       status: "INFO",
-      message: "Uber Eats store disconnected",
+      message: opts.keepAuthorisation
+        ? "Uber Eats store unlinked — authorisation kept"
+        : "Uber Eats store disconnected",
       details: { storeId: row.externalStoreId },
     });
     return { ok: true };
