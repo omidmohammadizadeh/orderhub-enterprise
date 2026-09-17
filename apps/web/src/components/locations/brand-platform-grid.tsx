@@ -858,6 +858,31 @@ function UberEatsRow({
     onError: err,
   });
 
+  // Hand the consent step to the person who owns the Uber account.
+  //
+  // Connecting from here means being signed in to Uber AS the client, which
+  // is both awkward on a phone call and the reason wrong accounts get
+  // attached. A link lets the owner do it themselves, at their own desk, in
+  // their own account — the callback afterwards is identical.
+  const invite = useMutation({
+    mutationFn: () =>
+      apiClient
+        .post(`/v1/integrations/ubereats/invite`, { brandId, locationId })
+        .then((r) => r.data as { url: string; expiresAt: string }),
+    onSuccess: async (d) => {
+      try {
+        await navigator.clipboard.writeText(d.url);
+        toast.success("Link copied — send it to the shop owner (valid 72 hours)");
+      } catch {
+        // Clipboard is blocked in some embedded browsers; show it instead so
+        // the operator can still copy it by hand rather than hitting a dead
+        // end.
+        window.prompt("Send this link to the shop owner:", d.url);
+      }
+    },
+    onError: err,
+  });
+
   // Back out of a half-finished connection.
   //
   // Whoever is signed in to Uber when "Connect" is clicked is whose stores
@@ -999,6 +1024,15 @@ function UberEatsRow({
             </>
           ) : (
             !picking && (
+              <>
+              <button
+                onClick={() => invite.mutate()}
+                disabled={invite.isPending}
+                className="rounded-md border border-zinc-300 px-3 py-1.5 text-[10px] font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
+                title="Generate a link the shop owner can open to authorise their own Uber Eats account"
+              >
+                {invite.isPending ? "Generating…" : "Send owner a link"}
+              </button>
               <button
                 onClick={() => connect.mutate()}
                 disabled={connect.isPending}
@@ -1006,6 +1040,7 @@ function UberEatsRow({
               >
                 {connect.isPending ? "Opening…" : "Connect"}
               </button>
+              </>
             )
           )}
         </div>

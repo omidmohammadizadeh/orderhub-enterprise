@@ -22,6 +22,21 @@ interface StatePayload {
   purpose: "ubereats_oauth";
 }
 
+/**
+ * An invite link's payload. Same signing key as the OAuth state above, so the
+ * purpose field is load-bearing: without it a 15-minute state could be
+ * replayed as a three-day invite, and vice versa.
+ */
+interface InvitePayload {
+  t: string; // tenantId
+  b: string; // brandId
+  l: string; // locationId
+  purpose: "ubereats_invite";
+}
+
+/** How long an owner has to open the link before it stops working. */
+const INVITE_TTL_HOURS = 72;
+
 @Injectable()
 export class UberEatsOauthService {
   private readonly logger = new Logger(UberEatsOauthService.name);
@@ -81,6 +96,129 @@ export class UberEatsOauthService {
     u.searchParams.set("scope", "eats.pos_provisioning");
     u.searchParams.set("state", state);
     return u.toString();
+  }
+
+  // ── Owner connection links ───────────────────────────────────────────
+  //
+  // The operator cannot authorise a store they do not own. Doing it from the
+  // dashboard means being signed in to Uber as the client — which is how the
+  // wrong account gets attached, since whoever is signed in at that moment is
+  // whose stores come back. An invite moves the consent step to the person who
+  // actually holds the Uber account: we mint a signed link for one brand at
+  // one shop, they open it, they sign in as themselves, and the existing
+  // callback does the rest unchanged.
+  //
+  // The link is a bearer credential. It is signed, it expires, and it refuses
+  // to run once the brand is connected — which makes it single-use in
+  // practice, so a forwarded copy cannot attach a second Uber account.
+
+  /** Mint a link for the shop owner. Operator-facing. */
+  async createInvite(args: {
+    tenantId: string;
+    brandId: string;
+    locationId: string;
+  }): Promise<{ url: string; expiresAt: string }> {
+    const token = this.jwt.sign(
+      {
+        t: args.tenantId,
+        b: args.brandId,
+        l: args.locationId,
+        purpose: "ubereats_invite",
+      } satisfies InvitePayload,
+      { expiresIn: `${INVITE_TTL_HOURS}h` },
+    );
+    let base = (this.config.get<string>("app.appUrl") ?? "").trim();
+    if (base && !/^https?:\/\//i.test(base)) base = `https://${base}`;
+    return {
+      url: `${base.replace(/\/$/, "")}/connect/uber-eats/${encodeURIComponent(token)}`,
+      expiresAt: new Date(
+        Date.now() + INVITE_TTL_HOURS * 3600_000,
+      ).toISOString(),
+    };
+  }
+
+  private readInvite(token: string): InvitePayload {
+    let decoded: InvitePayload;
+    try {
+      decoded = this.jwt.verify<InvitePayload>(token);
+    } catch {
+      throw new BadRequestException(
+        "This link has expired or is no longer valid. Please ask for a new one.",
+      );
+    }
+    if (decoded?.purpose !== "ubereats_invite") {
+      throw new BadRequestException(
+        "This link has expired or is no longer valid. Please ask for a new one.",
+      );
+    }
+    return decoded;
+  }
+
+  /**
+   * What the owner sees before they commit: whose shop this is, so nobody
+   * signs into Uber without knowing what they are attaching it to.
+   */
+  async describeInvite(token: string): Promise<{
+    brandName: string | null;
+    locationName: string | null;
+    alreadyConnected: boolean;
+  }> {
+    const invite = this.readInvite(token);
+    const [brand, location, connection] = await Promise.all([
+      (this.prisma as any).brand.findFirst({
+        where: { id: invite.b },
+        select: { name: true },
+      }),
+      (this.prisma as any).location.findFirst({
+        where: { id: invite.l },
+        select: { name: true },
+      }),
+      this.prisma.brandPlatformConnection.findFirst({
+        where: {
+          brandId: invite.b,
+          locationId: invite.l,
+          platform: "UBER_EATS",
+        },
+        select: { status: true },
+      }),
+    ]);
+    return {
+      brandName: brand?.name ?? null,
+      locationName: location?.name ?? null,
+      alreadyConnected: connection?.status === "connected",
+    };
+  }
+
+  /**
+   * The owner has pressed the button. Hand back an ordinary authorize URL —
+   * the state it carries is the same shape the dashboard flow mints, so the
+   * callback needs no knowledge that an invite was involved.
+   */
+  async startInvite(token: string): Promise<{ authorizeUrl: string }> {
+    const invite = this.readInvite(token);
+    const connection = await this.prisma.brandPlatformConnection.findFirst({
+      where: {
+        brandId: invite.b,
+        locationId: invite.l,
+        platform: "UBER_EATS",
+      },
+      select: { status: true },
+    });
+    if (connection?.status === "connected") {
+      throw new BadRequestException(
+        "This shop is already connected to Uber Eats. If you need to change " +
+          "the account, please ask for a new link.",
+      );
+    }
+    return {
+      authorizeUrl: this.buildAuthorizeUrl({
+        tenantId: invite.t,
+        // No dashboard user behind an owner-initiated connect.
+        userId: "invite",
+        brandId: invite.b,
+        locationId: invite.l,
+      }),
+    };
   }
 
   /**

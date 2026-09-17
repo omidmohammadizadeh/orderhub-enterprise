@@ -128,6 +128,43 @@ export class UberEatsController {
     };
   }
 
+  // ── Owner connection links ───────────────────────────────────────────
+
+  @Post("invite")
+  @ApiBearerAuth()
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Mint a link the shop owner can open to authorise Uber Eats",
+  })
+  createInvite(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: { brandId: string; locationId: string },
+  ) {
+    return this.oauth.createInvite({
+      tenantId: user.tenantId,
+      brandId: body.brandId,
+      locationId: body.locationId,
+    });
+  }
+
+  // Public: the owner opening this has no Order Hub account. The link itself
+  // is the credential — signed, expiring, and scoped to one brand at one shop.
+  @Public()
+  @Get("invite/:token")
+  @ApiOperation({ summary: "What an owner connection link points at" })
+  describeInvite(@Param("token") token: string) {
+    return this.oauth.describeInvite(token);
+  }
+
+  @Public()
+  @Post("invite/:token/start")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Begin Uber Eats consent from an owner link" })
+  startInvite(@Param("token") token: string) {
+    return this.oauth.startInvite(token);
+  }
+
   @Public()
   @Get("oauth/callback")
   @ApiOperation({ summary: "Uber Eats OAuth redirect lands here" })
