@@ -62,8 +62,32 @@ export class UberEatsController {
     const configured = this.client.configured;
     const redirectUriSet = !!this.oauth.redirectUri;
     const build = (process.env.RENDER_GIT_COMMIT ?? "dev").slice(0, 7);
+    // WHICH Uber app are we pointed at?
+    //
+    // Uber decides where to send the merchant's consent screen from the
+    // client_id: a sandbox app routes to sandbox-login.uber.com, where a real
+    // merchant account does not exist, so the owner signs in and the page just
+    // reloads. From here that is invisible — the token mint succeeds and every
+    // scope reads granted. These two fields are enough to compare against the
+    // developer dashboard and to quote in a support ticket, and not enough to
+    // be a credential.
+    const cid = String(this.client.clientId ?? "");
+    const clientIdEndsWith = cid.slice(-4);
+    let authorizeHost: string | null = null;
+    try {
+      authorizeHost = new URL(this.client.authBase).hostname;
+    } catch {
+      authorizeHost = null;
+    }
     if (!configured) {
-      return { configured, redirectUriSet, build, tokenMint: "skipped (no credentials)" };
+      return {
+        configured,
+        redirectUriSet,
+        build,
+        clientIdEndsWith,
+        authorizeHost,
+        tokenMint: "skipped (no credentials)",
+      };
     }
     try {
       await this.client.getToken(["eats.store"]);
@@ -98,12 +122,22 @@ export class UberEatsController {
         // merchant self-delivers through Uber's BYOC flow.
         "eats.byoc.fulfillment.config",
       ]);
-      return { configured, redirectUriSet, build, tokenMint: "ok", scopes };
+      return {
+        configured,
+        redirectUriSet,
+        build,
+        clientIdEndsWith,
+        authorizeHost,
+        tokenMint: "ok",
+        scopes,
+      };
     } catch (err: any) {
       return {
         configured,
         redirectUriSet,
         build,
+        clientIdEndsWith,
+        authorizeHost,
         tokenMint: `failed: ${String(err?.message ?? err).slice(0, 200)}`,
       };
     }
