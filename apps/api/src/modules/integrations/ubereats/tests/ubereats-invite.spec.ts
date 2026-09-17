@@ -199,3 +199,55 @@ describe("Uber Eats — owner connection link", () => {
     expect(url).toContain("https://www.orderhubsolutions.com/connect/uber-eats/");
   });
 });
+
+// ── Where the owner lands afterwards ─────────────────────────────────────
+//
+// The dashboard flow sends the operator back to /dashboard/locations, which is
+// right for them and wrong for an owner: the owner has no Order Hub account,
+// so they would approve access in Uber and be dropped on our login screen with
+// no idea whether it worked.
+//
+// handleCallback reports who started it so the controller can land each one
+// somewhere that makes sense.
+
+describe("Uber Eats — who started the connect", () => {
+  it("reports an owner-initiated connect as such", async () => {
+    const { svc } = harness();
+    svc.credentials = { encrypt: jest.fn().mockReturnValue({}) };
+    svc.client.exchangeAuthorizationCode = jest
+      .fn()
+      .mockResolvedValue({ access_token: "tok", expires_in: 100 });
+    svc.prisma.brandPlatformConnection.upsert = jest.fn().mockResolvedValue({});
+
+    const state = `signed:${JSON.stringify({
+      t: "t1",
+      u: "invite",
+      b: "b1",
+      l: "l1",
+      purpose: "ubereats_oauth",
+    })}`;
+    const out = await svc.handleCallback({ code: "c", state });
+
+    expect(out.viaInvite).toBe(true);
+  });
+
+  it("reports a dashboard connect as not an invite", async () => {
+    const { svc } = harness();
+    svc.credentials = { encrypt: jest.fn().mockReturnValue({}) };
+    svc.client.exchangeAuthorizationCode = jest
+      .fn()
+      .mockResolvedValue({ access_token: "tok", expires_in: 100 });
+    svc.prisma.brandPlatformConnection.upsert = jest.fn().mockResolvedValue({});
+
+    const state = `signed:${JSON.stringify({
+      t: "t1",
+      u: "user-123",
+      b: "b1",
+      l: "l1",
+      purpose: "ubereats_oauth",
+    })}`;
+    const out = await svc.handleCallback({ code: "c", state });
+
+    expect(out.viaInvite).toBe(false);
+  });
+});

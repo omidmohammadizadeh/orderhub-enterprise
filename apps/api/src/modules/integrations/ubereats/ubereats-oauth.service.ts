@@ -305,7 +305,15 @@ export class UberEatsOauthService {
     this.logger.log(
       `Uber Eats merchant token stored for brand=${decoded.b} location=${decoded.l} (expires_in=${token.expires_in ?? "?"}s)`,
     );
-    return { tenantId: decoded.t, brandId: decoded.b, locationId: decoded.l };
+    return {
+      tenantId: decoded.t,
+      brandId: decoded.b,
+      locationId: decoded.l,
+      // Owner-initiated connects carry no dashboard user. They must not be
+      // dropped on our login screen after approving access in Uber — they
+      // have no Order Hub account and would have no idea it had worked.
+      viaInvite: decoded.u === "invite",
+    };
   }
 
   /** Decrypted merchant access token for a connection (throws if absent). */

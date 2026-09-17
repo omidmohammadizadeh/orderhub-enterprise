@@ -211,7 +211,8 @@ export class UberEatsController {
       return res.redirect(back.toString());
     }
     try {
-      const { tenantId, brandId, locationId } = await this.oauth.handleCallback({
+      const { tenantId, brandId, locationId, viaInvite } =
+        await this.oauth.handleCallback({
         code,
         state,
       });
@@ -222,6 +223,15 @@ export class UberEatsController {
         brandId,
         locationId,
       );
+      // An owner who came from a link has no Order Hub account. Sending them
+      // to /dashboard/locations lands them on our login screen with no idea
+      // whether it worked — so they get a public confirmation page instead,
+      // and the operator finishes the store selection from the dashboard.
+      if (viaInvite) {
+        const done = this.oauth.publicWebUrl("/connect/uber-eats/done");
+        done.searchParams.set("status", result.connected ? "connected" : "pick");
+        return res.redirect(done.toString());
+      }
       back.searchParams.set(
         "ubereats_connected",
         result.connected ? "1" : "pick",
