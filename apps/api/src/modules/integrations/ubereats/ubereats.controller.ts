@@ -245,18 +245,11 @@ export class UberEatsController {
    * into a 500 (same latent bug existed in the HubRise callback). Normalise
    * the scheme and fall back to the public site if it's still unparseable.
    */
+  // One definition of "our public web address", shared with the invite links
+  // — a second copy is how the invite shipped without this guard and handed
+  // an owner a link to a Render-internal hostname.
   private dashboardUrl(path: string): URL {
-    let base = (this.config.get<string>("app.appUrl") ?? "").trim();
-    if (base && !/^https?:\/\//i.test(base)) base = `https://${base}`;
-    try {
-      const u = new URL(`${base.replace(/\/$/, "")}${path}`);
-      // "orderhub-web" (a bare Render service name) parses but isn't a real
-      // public host — no dot means the operator would land on a dead URL.
-      if (!u.hostname.includes(".")) throw new Error("not a public host");
-      return u;
-    } catch {
-      return new URL(`https://www.orderhubsolutions.com${path}`);
-    }
+    return this.oauth.publicWebUrl(path);
   }
 
   @Post("stores")

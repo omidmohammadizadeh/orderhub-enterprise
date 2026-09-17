@@ -127,14 +127,35 @@ export class UberEatsOauthService {
       } satisfies InvitePayload,
       { expiresIn: `${INVITE_TTL_HOURS}h` },
     );
-    let base = (this.config.get<string>("app.appUrl") ?? "").trim();
-    if (base && !/^https?:\/\//i.test(base)) base = `https://${base}`;
     return {
-      url: `${base.replace(/\/$/, "")}/connect/uber-eats/${encodeURIComponent(token)}`,
+      url: this.publicWebUrl(
+        `/connect/uber-eats/${encodeURIComponent(token)}`,
+      ).toString(),
       expiresAt: new Date(
         Date.now() + INVITE_TTL_HOURS * 3600_000,
       ).toISOString(),
     };
+  }
+
+  /**
+   * A URL on the PUBLIC web app, for a link we are about to hand a stranger.
+   *
+   * APP_URL on the API service is Render's internal service name in at least
+   * one environment. "orderhub-web" parses perfectly as a URL and resolves to
+   * nothing from the outside, so an owner would receive a link that dies on
+   * DNS before it reaches us — which is exactly what happened the first time
+   * this shipped. No dot in the hostname means it is not a public domain.
+   */
+  publicWebUrl(path: string): URL {
+    let base = (this.config.get<string>("app.appUrl") ?? "").trim();
+    if (base && !/^https?:\/\//i.test(base)) base = `https://${base}`;
+    try {
+      const u = new URL(`${base.replace(/\/$/, "")}${path}`);
+      if (!u.hostname.includes(".")) throw new Error("not a public host");
+      return u;
+    } catch {
+      return new URL(`https://www.orderhubsolutions.com${path}`);
+    }
   }
 
   private readInvite(token: string): InvitePayload {

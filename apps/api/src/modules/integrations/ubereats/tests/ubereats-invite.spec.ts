@@ -12,7 +12,9 @@ import { UberEatsOauthService } from "../ubereats-oauth.service";
 // The link is a bearer credential for one brand at one shop, so it is signed,
 // short-lived, and refuses to run once that brand is already connected.
 
-function harness(opts: { connection?: any; brand?: any; location?: any } = {}) {
+function harness(
+  opts: { connection?: any; brand?: any; location?: any; appUrl?: string } = {},
+) {
   const signed: any[] = [];
   const svc = Object.create(UberEatsOauthService.prototype) as any;
 
@@ -26,7 +28,12 @@ function harness(opts: { connection?: any; brand?: any; location?: any } = {}) {
       throw new Error("bad token");
     }),
   };
-  svc.config = { get: (k: string) => (k === "app.appUrl" ? "https://www.orderhubsolutions.com" : "") };
+  svc.config = {
+    get: (k: string) =>
+      k === "app.appUrl"
+        ? opts.appUrl ?? "https://www.orderhubsolutions.com"
+        : "",
+  };
   svc.prisma = {
     brandPlatformConnection: {
       findFirst: jest.fn().mockResolvedValue(opts.connection ?? null),
@@ -148,5 +155,47 @@ describe("Uber Eats — owner connection link", () => {
     const { authorizeUrl } = await svc.startInvite(decodeURIComponent(token));
     expect(authorizeUrl).toContain("auth.uber.com");
     expect(authorizeUrl).toContain("scope=eats.pos_provisioning");
+  });
+
+  // ── The host the link is built on ──────────────────────────────────────
+  //
+  // APP_URL on the API service is Render's INTERNAL service name in at least
+  // one environment. "orderhub-web" parses as a URL and resolves to nothing
+  // from the outside, so the owner receives a link that dies on DNS. The OAuth
+  // callback already guards against this; the invite has to use the same rule
+  // rather than its own.
+
+  it("never builds a link on a bare Render service name", async () => {
+    const { svc } = harness({ appUrl: "orderhub-web" });
+    const { url } = await svc.createInvite({
+      tenantId: "t1",
+      brandId: "b1",
+      locationId: "l1",
+    });
+
+    expect(url).not.toContain("orderhub-web");
+    expect(url).toContain("https://www.orderhubsolutions.com/connect/uber-eats/");
+  });
+
+  it("accepts a real domain with no scheme", async () => {
+    const { svc } = harness({ appUrl: "www.orderhubsolutions.com" });
+    const { url } = await svc.createInvite({
+      tenantId: "t1",
+      brandId: "b1",
+      locationId: "l1",
+    });
+
+    expect(url).toContain("https://www.orderhubsolutions.com/connect/uber-eats/");
+  });
+
+  it("falls back when APP_URL is missing entirely", async () => {
+    const { svc } = harness({ appUrl: "" });
+    const { url } = await svc.createInvite({
+      tenantId: "t1",
+      brandId: "b1",
+      locationId: "l1",
+    });
+
+    expect(url).toContain("https://www.orderhubsolutions.com/connect/uber-eats/");
   });
 });
