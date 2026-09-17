@@ -858,6 +858,28 @@ function UberEatsRow({
     onError: err,
   });
 
+  // Back out of a half-finished connection.
+  //
+  // Whoever is signed in to Uber when "Connect" is clicked is whose stores
+  // come back, and the row goes to pending carrying THEIR merchant token.
+  // Click it with your own account signed in and the client's account can
+  // never be authorised — the card only offered "Choose store" and there was
+  // no way back. disconnect() clears the status, the store and the token, so
+  // Connect is offered again and the next person authorises cleanly.
+  const reset = useMutation({
+    mutationFn: () =>
+      apiClient.post(
+        `/v1/integrations/ubereats/${connection?.id}/disconnect`,
+      ),
+    onSuccess: () => {
+      toast.success("Uber Eats connection reset — you can connect again");
+      setStores([]);
+      setPicking(false);
+      onChanged();
+    },
+    onError: err,
+  });
+
   const link = useMutation({
     mutationFn: (storeId: string) =>
       apiClient.post(`/v1/integrations/ubereats/link-store`, {
@@ -930,7 +952,8 @@ function UberEatsRow({
             </p>
           ) : authorisedNoStore ? (
             <p className="text-[10px] text-zinc-500">
-              Authorised — choose your store to finish.
+              Authorised — choose your store to finish, or start again to use a
+              different Uber Eats account.
             </p>
           ) : (
             <p className="text-[10px] text-zinc-500">
@@ -948,13 +971,32 @@ function UberEatsRow({
               Manage
             </button>
           ) : authorisedNoStore && !picking ? (
-            <button
-              onClick={() => listStores.mutate()}
-              disabled={listStores.isPending}
-              className="rounded-md bg-zinc-900 px-3 py-1.5 text-[10px] font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
-            >
-              Choose store
-            </button>
+            <>
+              <button
+                onClick={() => listStores.mutate()}
+                disabled={listStores.isPending}
+                className="rounded-md bg-zinc-900 px-3 py-1.5 text-[10px] font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+              >
+                Choose store
+              </button>
+              <button
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      "Start again? This clears the Uber Eats authorisation on " +
+                        "this brand so a different account can connect. No " +
+                        "store is linked yet, so nothing is lost.",
+                    )
+                  ) {
+                    reset.mutate();
+                  }
+                }}
+                disabled={reset.isPending}
+                className="rounded-md border border-zinc-300 px-3 py-1.5 text-[10px] font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
+              >
+                {reset.isPending ? "Resetting…" : "Start again"}
+              </button>
+            </>
           ) : (
             !picking && (
               <button
