@@ -5,6 +5,7 @@ import { ActivityLogService } from "../../logs/activity-log.service";
 import {
   describeJetCancellation,
   mapJetCancellationStatus,
+  describeJetDriverStatus,
   mapJetDriverStatus,
 } from "./jet-order.mappers";
 
@@ -177,6 +178,33 @@ export class JetLifecycleService {
       `JET driver ${jetOrderId}: code=${code || "?"} ` +
         `order_status=${mapped ?? "(unchanged)"} fields=${Object.keys(updates).length}`,
     );
+
+    // Put it on the Logs page, where the operator can actually see it.
+    //
+    // Every other JET event writes one — cancellations, acks, menu pushes,
+    // stock changes — and driver events did not. So when a courier failed to
+    // appear there was nothing in the dashboard to look at, and the only
+    // record was a server log no operator can reach. That is exactly the case
+    // this is for: Just Eat dispatched a driver AFTER the test order had been
+    // deleted, and neither fact showed up anywhere an operator could see.
+    this.activity?.record({
+      tenantId: order.tenantId,
+      locationId: order.locationId,
+      brandId: order.brandId,
+      category: "ORDERS",
+      channel: "JUST_EAT",
+      action: "order.driver_status",
+      // An unrecognised code leaves the order sitting still with no
+      // explanation, so it is a warning rather than a quiet note.
+      status: mapped ? "INFO" : "WARNING",
+      message: `Just Eat order ${order.displayId ?? jetOrderId}: ${describeJetDriverStatus(code)}`,
+      details: {
+        jetOrderId,
+        code,
+        orderStatus: mapped ?? null,
+        happenedAt: happenedAt.toISOString(),
+      },
+    });
     return {
       handled: Object.keys(updates).length > 0 || statusChanged,
       orderId: order.id,

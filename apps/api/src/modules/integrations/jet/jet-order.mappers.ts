@@ -61,6 +61,29 @@ export function mapJetDriverStatus(code?: string): string | null {
 }
 
 /**
+ * A driver status code in words, for the operator's activity log.
+ *
+ * The Logs page is read by shop staff, not engineers: "onItsWay" means
+ * nothing to someone wondering where their food is. An unknown code is echoed
+ * rather than swallowed, because the useful thing then is knowing exactly what
+ * word Just Eat sent.
+ */
+export function describeJetDriverStatus(code?: string): string {
+  switch ((code ?? "").trim()) {
+    case "driverArrivingAtRestaurant":
+      return "driver on the way to the restaurant";
+    case "driverAtRestaurant":
+      return "driver arrived at the restaurant";
+    case "onItsWay":
+      return "driver collected the order and is on the way";
+    case "delivered":
+      return "driver delivered the order";
+    default:
+      return `driver status "${(code ?? "").trim() || "unknown"}" — not one we recognise`;
+  }
+}
+
+/**
  * JET's cancellation reason codes → our terminal status.
  *
  * The enum has 27 values in three families and they do NOT all mean the same
