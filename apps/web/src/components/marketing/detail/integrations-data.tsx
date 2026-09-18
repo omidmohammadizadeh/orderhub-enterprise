@@ -214,26 +214,88 @@ export const INTEGRATIONS: Integration[] = [
     slug: "justeat",
     name: "Just Eat",
     brand: "justeat",
-    navDescription: "Coming soon",
+    navDescription: "Direct orders, menu and hours sync",
     category: "Marketplace",
     accent: "#FF8000",
-    status: "soon",
-    badge: "Marketplace · Coming soon",
-    title: "Just Eat is on the way",
+    status: "live",
+    badge: "Marketplace · Direct integration",
+    title: "Just Eat, wired in direct",
     subtitle:
-      "A direct Just Eat integration is next on the roadmap — orders and menu sync on the same board as every other channel. Want it for your shop? Tell us and we'll line you up.",
-    highlights: ["Order sync — planned", "Menu publishing — planned", "Same unified board"],
+      "A direct Just Eat Connect integration — orders arrive on your board in seconds, your menu publishes straight across, and opening hours and stock stay in step without touching the Just Eat tablet.",
+    highlights: ["Direct order sync", "Menu publishing", "Hours & stock sync"],
     heroMockup: <PosBoardMockup />,
     capabilities: [
-      { icon: Activity, title: "Order sync (planned)", body: "Just Eat orders will land on the same board as your POS, storefront and other marketplaces." },
-      { icon: UtensilsCrossed, title: "Menu publishing (planned)", body: "Publish your Order Hub menu to Just Eat with sizes, modifiers and per-channel pricing." },
-      { icon: Store, title: "One printer queue (planned)", body: "Just Eat tickets will print from the same kitchen printer as everything else." },
+      { icon: Activity, title: "Direct order sync", body: "Just Eat orders land on the same board as your POS, storefront and other marketplaces — accepted automatically and confirmed back to Just Eat in under a second." },
+      { icon: UtensilsCrossed, title: "Menu publishing", body: "Publish your Order Hub menu to Just Eat with sizes, modifiers and per-channel pricing." },
+      { icon: Clock, title: "Opening hours", body: "Push delivery and collection hours from Order Hub, and take the restaurant offline or back online in one click." },
+      { icon: RefreshCw, title: "Stock updates", body: "Mark an item out of stock once and it comes off Just Eat too — back on when you restock." },
+      { icon: Store, title: "One printer queue", body: "Just Eat tickets print from the same kitchen printer as everything else, with service charges and fees itemised." },
     ],
     flow: [
-      { title: "On the roadmap", body: "The Just Eat integration is in planning, following the Uber Eats and Deliveroo model." },
-      { title: "Register interest", body: "Let us know you want it and we'll prioritise and keep you posted." },
-      { title: "Connect at launch", body: "When it ships, you'll link your Just Eat store in a few clicks." },
+      { title: "Connect Just Eat", body: "Link your Just Eat restaurant to Order Hub." },
+      { title: "Publish your menu", body: "Send your catalog across so both menus always match." },
+      { title: "Orders arrive", body: "New Just Eat orders land on your board and print automatically." },
       { title: "One board", body: "Just Eat joins your unified orders board alongside every channel." },
+    ],
+  },
+
+  // ── Careem ────────────────────────────────────────────────────────────────
+  {
+    slug: "careem",
+    name: "Careem",
+    brand: "careem",
+    navDescription: "Direct orders and menu sync in the Gulf",
+    category: "Marketplace",
+    accent: "#3ddc97",
+    status: "beta",
+    badge: "Marketplace · UAE, KSA & Jordan",
+    title: "Careem, wired in direct",
+    subtitle:
+      "A direct Careem integration for restaurants in the UAE, Saudi Arabia and Jordan — orders land on your board, your menu publishes in English and Arabic, and branch hours and availability stay in sync.",
+    highlights: ["Direct order sync", "Bilingual menu publishing", "Branch hours & availability"],
+    heroMockup: <PosBoardMockup />,
+    capabilities: [
+      { icon: Activity, title: "Direct order sync", body: "Careem orders drop onto the same board as every other channel — accept, reject and update status without a separate tablet." },
+      { icon: UtensilsCrossed, title: "Bilingual menu publishing", body: "Publish your menu in English and Arabic with categories, sizes, modifier groups and nested options." },
+      { icon: Banknote, title: "Local currency & VAT", body: "Prices publish in AED, SAR or JOD with VAT included at the local rate, exactly as Careem displays them." },
+      { icon: Clock, title: "Branch hours", body: "Push opening hours per branch, including late-night trading that runs past midnight." },
+      { icon: RefreshCw, title: "Item availability", body: "Mark items out of stock in Order Hub and they come off Careem straight away." },
+      { icon: Store, title: "Branch visibility", body: "Open or close a branch to customers from Order Hub when the kitchen needs a break." },
+    ],
+    flow: [
+      { title: "Onboard the branch", body: "Your brand and branch are registered with Careem from Order Hub." },
+      { title: "Publish your menu", body: "Send your catalog across in English and Arabic." },
+      { title: "Orders arrive", body: "Careem orders land on your board and print in the kitchen." },
+      { title: "Statuses sync back", body: "Accept and preparation updates return to Careem and the customer." },
+    ],
+  },
+
+  // ── talabat ───────────────────────────────────────────────────────────────
+  {
+    slug: "talabat",
+    name: "talabat",
+    brand: "talabat",
+    navDescription: "Direct orders and menu sync in the Gulf",
+    category: "Marketplace",
+    accent: "#FF5A00",
+    status: "soon",
+    badge: "Marketplace · Gulf region",
+    title: "talabat, on the same board",
+    subtitle:
+      "A direct talabat integration for restaurants across the Gulf — orders on your board and your menu published straight across, alongside every other channel. Register your interest and we'll bring your shop on first.",
+    highlights: ["Direct order sync", "Menu publishing", "Same unified board"],
+    heroMockup: <PosBoardMockup />,
+    capabilities: [
+      { icon: Activity, title: "Direct order sync", body: "talabat orders land on the same board as your POS, storefront and other marketplaces." },
+      { icon: UtensilsCrossed, title: "Menu publishing", body: "Publish your Order Hub menu to talabat with sizes, modifiers and local pricing." },
+      { icon: RefreshCw, title: "Availability sync", body: "Out-of-stock items and opening hours kept in step from one place." },
+      { icon: Store, title: "One printer queue", body: "talabat tickets print from the same kitchen printer as everything else." },
+    ],
+    flow: [
+      { title: "Register interest", body: "Tell us about your restaurant and we'll line you up for onboarding." },
+      { title: "Connect talabat", body: "Link your talabat store to Order Hub." },
+      { title: "Publish your menu", body: "Send your catalog across so both menus always match." },
+      { title: "One board", body: "talabat joins your unified orders board alongside every channel." },
     ],
   },
 
@@ -330,32 +392,9 @@ export const INTEGRATIONS_BY_SLUG: Record<string, Integration> = Object.fromEntr
 );
 
 // menumanager.uk presents a different launch story than orderhubsolutions.com:
-// Uber Eats + Uber Direct show as "coming soon" and Just Eat as live. These
-// overrides apply ONLY for the Menu Manager brand; orderhubsolutions.com keeps
-// the accurate live/soon statuses from the base catalog above.
+// Uber Eats + Uber Direct show as "coming soon". These overrides apply ONLY
+// for the Menu Manager brand; orderhubsolutions.com uses the base catalog.
 const MENUMANAGER_SOON = new Set(["ubereats", "uberdirect"]);
-
-const JUSTEAT_LIVE: Integration = {
-  ...INTEGRATIONS_BY_SLUG.justeat!,
-  status: "live",
-  navDescription: "Direct orders and menu sync",
-  badge: "Marketplace · Direct integration",
-  title: "Just Eat, wired in direct",
-  subtitle:
-    "A direct Just Eat integration — orders arrive on your board and your menu publishes straight across, on the same board as every other channel.",
-  highlights: ["Direct order sync", "Menu publishing", "Same unified board"],
-  capabilities: [
-    { icon: Activity, title: "Order sync", body: "Just Eat orders land on the same board as your POS, storefront and other marketplaces." },
-    { icon: UtensilsCrossed, title: "Menu publishing", body: "Publish your Order Hub menu to Just Eat with sizes, modifiers and per-channel pricing." },
-    { icon: Store, title: "One printer queue", body: "Just Eat tickets print from the same kitchen printer as everything else." },
-  ],
-  flow: [
-    { title: "Connect Just Eat", body: "Link your Just Eat store to Order Hub." },
-    { title: "Publish your menu", body: "Send your catalog across so both menus always match." },
-    { title: "Orders arrive", body: "New Just Eat orders land on your board and print automatically." },
-    { title: "One board", body: "Just Eat joins your unified orders board alongside every channel." },
-  ],
-};
 
 function forMenuManager(i: Integration): Integration {
   if (MENUMANAGER_SOON.has(i.slug)) {
@@ -366,7 +405,6 @@ function forMenuManager(i: Integration): Integration {
       badge: `${i.category} · Coming soon`,
     };
   }
-  if (i.slug === "justeat") return JUSTEAT_LIVE;
   return i;
 }
 

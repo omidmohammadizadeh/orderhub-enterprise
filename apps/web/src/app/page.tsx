@@ -395,6 +395,8 @@ function SiteFooter({ brand }: { brand: SiteBrand }) {
                     { label: "Uber Direct (coming soon)", href: "/integrations/uberdirect" },
                     { label: "Deliveroo", href: "/integrations/deliveroo" },
                     { label: "Just Eat", href: "/integrations/justeat" },
+                    { label: "Careem", href: "/integrations/careem" },
+                    { label: "talabat", href: "/integrations/talabat" },
                     { label: "WhatsApp", href: "/integrations/whatsapp" },
                     { label: "Stripe", href: "/integrations/stripe" },
                   ]
@@ -402,7 +404,10 @@ function SiteFooter({ brand }: { brand: SiteBrand }) {
                     { label: "Uber Eats", href: "/integrations/ubereats" },
                     { label: "Deliveroo", href: "/integrations/deliveroo" },
                     { label: "HubRise", href: "/integrations/hubrise" },
-                    { label: "Just Eat (coming soon)", href: "/integrations/justeat" },
+                    { label: "Just Eat", href: "/integrations/justeat" },
+                    { label: "Careem", href: "/integrations/careem" },
+                    { label: "talabat", href: "/integrations/talabat" },
+                    { label: "WhatsApp", href: "/integrations/whatsapp" },
                     { label: "Stripe", href: "/integrations/stripe" },
                   ]
             }

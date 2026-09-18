@@ -102,7 +102,19 @@ export const INTEGRATION_META: RouteMeta[] = [
     slug: "justeat",
     name: "Just Eat",
     description:
-      "A direct Just Eat integration is on the roadmap — orders and menu sync on the same board as every other channel.",
+      "A direct Just Eat integration — orders, menu publishing, opening hours and stock updates on the same board as every other channel.",
+  },
+  {
+    slug: "careem",
+    name: "Careem",
+    description:
+      "A direct Careem integration for the Gulf — orders, bilingual menu publishing, branch hours and item availability, straight into Order Hub.",
+  },
+  {
+    slug: "talabat",
+    name: "talabat",
+    description:
+      "A direct talabat integration for the Gulf — orders and menu sync on the same board as every other channel.",
   },
   {
     slug: "stripe",

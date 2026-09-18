@@ -2,9 +2,8 @@
 //
 // Marks come from BrandLogo (simpleicons CDN + brand-coloured tiles +
 // hand-rolled Uber Eats wordmark), so what you see on screen matches
-// each platform's actual press-kit mark. Just Eat is included but
-// flagged with an orange "SOON" pill because the channel isn't live
-// yet.
+// each platform's actual press-kit mark. A channel that isn't live yet
+// can be flagged with an orange "SOON" pill.
 //
 // Pure CSS infinite scroll — no JS. Hover anywhere to pause. Edges
 // fade so logos drift in and out of view smoothly.
@@ -17,7 +16,9 @@ type LogoItem = { brand: BrandKey; name: string; soon?: boolean };
 const BASE_LOGOS: LogoItem[] = [
   { brand: "ubereats", name: "Uber Eats" },
   { brand: "deliveroo", name: "Deliveroo" },
-  { brand: "justeat", name: "Just Eat", soon: true },
+  { brand: "justeat", name: "Just Eat" },
+  { brand: "careem", name: "Careem" },
+  { brand: "talabat", name: "talabat" },
   { brand: "uberdirect", name: "Uber Direct" },
   { brand: "stuart", name: "Stuart" },
   { brand: "hubrise", name: "HubRise" },
@@ -27,13 +28,11 @@ const BASE_LOGOS: LogoItem[] = [
 ];
 
 // menumanager.uk shows a different launch story: Uber Eats + Uber Direct as
-// "Soon" and Just Eat as live. orderhubsolutions.com keeps the accurate state
-// (Just Eat "Soon", Uber Eats live).
+// "Soon". orderhubsolutions.com shows every channel as live.
 function logosForBrand(key: SiteBrandKey): LogoItem[] {
   if (key !== "menumanager") return BASE_LOGOS;
   return BASE_LOGOS.map((l) => {
     if (l.brand === "ubereats" || l.brand === "uberdirect") return { ...l, soon: true };
-    if (l.brand === "justeat") return { ...l, soon: false };
     return l;
   });
 }

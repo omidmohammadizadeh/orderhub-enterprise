@@ -26,7 +26,9 @@ export type BrandKey =
   | "hubrise"
   | "orderhub"
   | "stripe"
-  | "whatsapp";
+  | "whatsapp"
+  | "careem"
+  | "talabat";
 
 interface Props {
   brand: BrandKey;
@@ -58,6 +60,8 @@ const BRAND_META: Record<BrandKey, BrandMeta> = {
   orderhub:   { name: "Order Hub POS", bg: "#FFFFFF", slug: "orderhub" },
   stripe:     { name: "Stripe",        bg: "#635BFF", slug: "stripe",     iconSlug: "stripe" },
   whatsapp:   { name: "WhatsApp",      bg: "#25D366", slug: "whatsapp",   iconSlug: "whatsapp" },
+  careem:     { name: "Careem",        bg: "#FFFFFF", slug: "careem" },
+  talabat:    { name: "talabat",       bg: "#FF5A00", slug: "talabat" },
 };
 
 export function BrandLogo({ brand, size = 56, rounded = true, label }: Props) {
@@ -95,14 +99,19 @@ export function BrandLogo({ brand, size = 56, rounded = true, label }: Props) {
           display: "grid",
           placeItems: "center",
           overflow: "hidden",
-          border: brand === "orderhub" ? "1px solid #e4e4e7" : undefined,
+          border:
+            brand === "orderhub" || brand === "careem"
+              ? "1px solid #e4e4e7"
+              : undefined,
         }}
       >
         <img
           src={primarySrc}
           alt={`${meta.name} logo`}
-          width={size * 0.88}
-          height={size * 0.88}
+          // talabat's file is a full-bleed app icon with white corners —
+          // fill the tile so its rounded edge clips them.
+          width={brand === "talabat" ? size : size * 0.88}
+          height={brand === "talabat" ? size : size * 0.88}
           loading="eager"
           onError={() => setPrimaryFailed(true)}
           style={{ display: "block", objectFit: "contain" }}
