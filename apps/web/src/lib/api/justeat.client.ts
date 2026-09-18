@@ -86,7 +86,13 @@ export const justEatClient = {
 
   publishHours: (connectionId: string) =>
     apiClient
-      .post<{ ok: boolean; days: string[]; timezone: string; note?: string }>(
+      .post<{
+        ok: boolean;
+        days: string[];
+        timezone: string;
+        menuRepublished?: boolean;
+        note?: string;
+      }>(
         `/v1/integrations/jet/${connectionId}/publish-hours`,
         {},
       )

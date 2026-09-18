@@ -32,9 +32,10 @@ const BRAND_CHANNELS = [
     wired: true,
     // No prep time: JET Connect has no prep-time endpoint at all, unlike the
     // other two. Saying otherwise would promise something that cannot happen.
-    // These times only NARROW what Just Eat shows — it trades on the
-    // intersection of service times, menu availability and delivery-pool hours.
-    note: "Pushes opening hours as Delivery + Collection service times. No prep time — Just Eat has no endpoint for it.",
+    // Service times alone only NARROW what Just Eat shows — it trades on the
+    // intersection of service times, menu availability and delivery-pool
+    // hours — so the API re-publishes the live menu alongside them.
+    note: "Pushes opening hours as Delivery + Collection service times and re-publishes the live menu so new hours take effect. No prep time — Just Eat has no endpoint for it.",
   },
   {
     id: "UBER_EATS",
@@ -89,6 +90,7 @@ export function PublishHoursModal({ open, locationId, onClose }: Props) {
         toast(`Recorded for ${label} — direct push wires up later`, { icon: "ℹ️" });
       } else {
         toast.success(`Published ${brand?.name} hours to ${label}`);
+        if (res.note) toast(res.note, { icon: "ℹ️", duration: 8000 });
       }
     },
     onError: (err: any) =>

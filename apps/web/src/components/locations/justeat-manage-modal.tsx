@@ -110,8 +110,8 @@ export function JustEatManageModal({
       toast.success(
         `Service times pushed to Just Eat (${res.days?.length ?? 0} open days)`,
       );
-      // The intersection rule catches everyone out once: widening the hours
-      // here does nothing until the menu's availability is widened too.
+      // Says whether the live menu was re-published with the new hours — the
+      // service times alone cannot widen what Just Eat shows.
       if (res.note) toast(res.note, { icon: "ℹ️", duration: 8000 });
     },
     onError: err,

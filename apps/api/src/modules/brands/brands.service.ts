@@ -1096,8 +1096,8 @@ export class BrandsService {
         //
         // Worth knowing when this appears not to work: Just Eat trades on the
         // INTERSECTION of these service times, the menu's availability, and
-        // the delivery-pool hours. Widening the hours here beyond what the
-        // published menu allows changes nothing until the menu is republished.
+        // the delivery-pool hours, so publishServiceTimes also re-publishes
+        // the live menu — otherwise widened hours would change nothing.
         const conn = await this.prisma.brandPlatformConnection.findFirst({
           where: {
             brandId,

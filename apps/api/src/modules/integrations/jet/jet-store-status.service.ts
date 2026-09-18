@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, Logger, NotFoundException, Optional } 
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { ActivityLogService } from "../../logs/activity-log.service";
 import { JetClientService } from "./jet-client.service";
+import { JetMenuPublishService } from "./jet-menu-publish.service";
 
 // Phase JE-5 — restaurant availability on Just Eat.
 //
@@ -20,9 +21,10 @@ import { JetClientService } from "./jet-client.service";
 // 2. SERVICE TIMES CANNOT WIDEN THE MENU. The real trading hours are the
 //    intersection of the service times, the menu availability, and the
 //    delivery-pool hours. Setting service times 07:00–12:00 against a menu
-//    available 08:00–12:00 gets you 08:00–12:00, not 07:00. That is why the
-//    menu publish falls back to ALL-DAY availability: all-day can be narrowed
-//    here, but nothing can widen a too-narrow menu.
+//    available 08:00–12:00 gets you 08:00–12:00, not 07:00. The menu publish
+//    writes the shop's REAL opening hours into the availability (all-day only
+//    when no hours are set), so once a menu is live nothing here can widen
+//    it. That is why publishServiceTimes re-publishes the live menu as well.
 
 /** JET's two service types. Their casing is significant. */
 const SERVICE_TYPES = ["Delivery", "Collection"] as const;
@@ -116,6 +118,7 @@ export class JetStoreStatusService {
     private readonly prisma: PrismaService,
     private readonly client: JetClientService,
     @Optional() private readonly activity?: ActivityLogService,
+    @Optional() private readonly menuPublish?: JetMenuPublishService,
   ) {}
 
   /**
@@ -260,16 +263,70 @@ export class JetStoreStatusService {
     this.logger.log(
       `JET servicetimes ${target.restaurantReference}: [${days.join(",")}] tz=${target.timezone}`,
     );
-    // The narrowing rule is worth surfacing: an operator who widens their
-    // hours here and sees no change is looking at a menu-availability limit.
+    const menu = await this.republishLiveMenu(tenantId, target);
     return {
       ok: true,
       days,
       timezone: target.timezone,
-      note:
-        "Just Eat trades on the intersection of these service times, the menu availability " +
-        "and the delivery-pool hours — widening beyond the menu's hours needs a menu re-publish.",
+      menuRepublished: menu.republished,
+      note: menu.note,
     };
+  }
+
+  /**
+   * Re-publish the menu that is live on this restaurant, so its availability
+   * carries the new hours. Without this, widened hours never show on Just Eat.
+   *
+   * Only the menu last published to THIS connection is used — guessing one
+   * could put another brand's items on the restaurant. A failure here never
+   * undoes the service-times push; it is reported instead.
+   */
+  private async republishLiveMenu(
+    tenantId: string,
+    target: { brandId: string; locationId: string; lastMenuId: string | null },
+  ): Promise<{ republished: boolean; note: string }> {
+    if (!target.lastMenuId || !this.menuPublish) {
+      return {
+        republished: false,
+        note:
+          "Just Eat trades on the intersection of these service times and the menu's hours. " +
+          "No menu has been published to this restaurant yet — publish the menu to Just Eat once " +
+          "and future hour changes will go with it.",
+      };
+    }
+    try {
+      await this.menuPublish.publishMenu({
+        tenantId,
+        menuId: target.lastMenuId,
+        locationId: target.locationId,
+      });
+      return {
+        republished: true,
+        note:
+          "The menu was re-published with the new hours too — Just Eat applies them once it " +
+          "accepts the menu (the result appears in Logs).",
+      };
+    } catch (e: any) {
+      const reason = String(e?.response?.message ?? e?.message ?? e);
+      this.logger.warn(`JET hours: menu re-publish failed — ${reason}`);
+      this.activity?.record({
+        tenantId,
+        brandId: target.brandId,
+        locationId: target.locationId,
+        category: "MENU",
+        channel: "JUST_EAT",
+        action: "store.publish_hours_menu",
+        status: "ERROR",
+        message: `Hours were pushed, but re-publishing the Just Eat menu failed: ${reason}`,
+        details: { menuId: target.lastMenuId },
+      });
+      return {
+        republished: false,
+        note:
+          `Service times were pushed, but re-publishing the menu failed (${reason}). ` +
+          "Just Eat will keep the old hours until the menu is published.",
+      };
+    }
   }
 
   /**
@@ -338,6 +395,7 @@ export class JetStoreStatusService {
       restaurantReference,
       country: metadata.country ?? null,
       timezone: (conn.location as any)?.timezone || "Europe/London",
+      lastMenuId: (metadata.jetMenuPublish?.menuId as string | undefined) ?? null,
     };
   }
 }

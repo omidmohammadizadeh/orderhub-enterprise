@@ -259,7 +259,7 @@ export const brandsClient = {
   // read time); marketplace channels return pending_integration.
   publishHours: (id: string, channel: string) =>
     apiClient
-      .post<{ channel: string; status: string; pushed: boolean }>(
+      .post<{ channel: string; status: string; pushed: boolean; note?: string }>(
         `/v1/brands/${id}/publish-hours`,
         { channel },
       )
