@@ -319,10 +319,22 @@ export function transformJetOrder(payload: any): JetTransformResult | null {
   // collected at the door, so they are still outstanding when the order lands.
   const paymentStatus = paymentMethod === "CARD" ? "PAID" : "PENDING";
 
+  // Just Eat fills `driver` before a courier is assigned: first_name "Order",
+  // last_name = the order id, phone "00000000000" (real envelope, order
+  // wgx7eqbm4kqgxkgisfxt6g). Copying that put "Order wgx7eqbm…" in the Rider
+  // column as though a driver had been assigned.
   const driver = payload?.driver;
-  const driverName = driver
-    ? `${String(driver.first_name ?? "").trim()} ${String(driver.last_name ?? "").trim()}`.trim()
-    : "";
+  const orderIdForDriver = String(payload?.id ?? "").trim();
+  const driverLast = String(driver?.last_name ?? "").trim();
+  const placeholderDriver =
+    !!orderIdForDriver && driverLast === orderIdForDriver;
+  const driverName =
+    driver && !placeholderDriver
+      ? `${String(driver.first_name ?? "").trim()} ${driverLast}`.trim()
+      : "";
+  const rawDriverPhone = String(driver?.phone_number ?? "").trim();
+  const driverPhone =
+    placeholderDriver || !/[1-9]/.test(rawDriverPhone) ? "" : rawDriverPhone;
 
   const canonical: CanonicalOrder = {
     externalId,
@@ -394,11 +406,11 @@ export function transformJetOrder(payload: any): JetTransformResult | null {
             preference: i.substitution.preference,
           })),
       },
-      ...(driverName || driver?.phone_number
+      ...(driverName || driverPhone
         ? {
             courier: {
               name: driverName || null,
-              phone: String(driver?.phone_number ?? "").trim() || null,
+              phone: driverPhone || null,
               phoneAccessCode:
                 String(driver?.phone_masking_code ?? "").trim() || null,
             },
