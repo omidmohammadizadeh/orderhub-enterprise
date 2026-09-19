@@ -28,7 +28,8 @@ export type BrandKey =
   | "stripe"
   | "whatsapp"
   | "careem"
-  | "talabat";
+  | "talabat"
+  | "glovo";
 
 interface Props {
   brand: BrandKey;
@@ -62,6 +63,7 @@ const BRAND_META: Record<BrandKey, BrandMeta> = {
   whatsapp:   { name: "WhatsApp",      bg: "#25D366", slug: "whatsapp",   iconSlug: "whatsapp" },
   careem:     { name: "Careem",        bg: "#FFFFFF", slug: "careem" },
   talabat:    { name: "talabat",       bg: "#FF5A00", slug: "talabat" },
+  glovo:      { name: "Glovo",         bg: "#FFC244", slug: "glovo" },
 };
 
 export function BrandLogo({ brand, size = 56, rounded = true, label }: Props) {
@@ -108,10 +110,10 @@ export function BrandLogo({ brand, size = 56, rounded = true, label }: Props) {
         <img
           src={primarySrc}
           alt={`${meta.name} logo`}
-          // talabat's file is a full-bleed app icon with white corners —
-          // fill the tile so its rounded edge clips them.
-          width={brand === "talabat" ? size : size * 0.88}
-          height={brand === "talabat" ? size : size * 0.88}
+          // talabat's and Glovo's files are full-bleed app icons — fill the
+          // tile so its rounded edge clips their square corners.
+          width={brand === "talabat" || brand === "glovo" ? size : size * 0.88}
+          height={brand === "talabat" || brand === "glovo" ? size : size * 0.88}
           loading="eager"
           onError={() => setPrimaryFailed(true)}
           style={{ display: "block", objectFit: "contain" }}

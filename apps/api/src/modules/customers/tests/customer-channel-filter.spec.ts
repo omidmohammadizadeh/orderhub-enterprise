@@ -24,6 +24,7 @@ describe("Customers directory — channel filter", () => {
     ["CAREEM", ["CAREEM"]],
     ["TALABAT", ["TALABAT"]],
     ["VOICE", ["VOICE"]],
+    ["GLOVO", ["GLOVO"]],
   ])("filters %s to its own orders", async (channel, sources) => {
     expect((await whereFor(channel)).orderSource).toEqual({ in: sources });
   });

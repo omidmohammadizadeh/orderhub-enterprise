@@ -299,6 +299,36 @@ export const INTEGRATIONS: Integration[] = [
     ],
   },
 
+  // ── Glovo ─────────────────────────────────────────────────────────────────
+  {
+    slug: "glovo",
+    name: "Glovo",
+    brand: "glovo",
+    navDescription: "Coming soon",
+    category: "Marketplace",
+    accent: "#FFC244",
+    status: "soon",
+    badge: "Marketplace · Coming soon",
+    title: "Glovo, on the same board",
+    subtitle:
+      "A direct Glovo integration for restaurants across Southern and Eastern Europe, Central Asia and Africa — orders on your board, statuses synced back and your menu published straight across. Register your interest and we'll bring your shop on first.",
+    highlights: ["Direct order sync", "Status sync back to Glovo", "Menu & stock updates"],
+    heroMockup: <PosBoardMockup />,
+    capabilities: [
+      { icon: Activity, title: "Direct order sync", body: "Glovo orders land on the same board as your POS, storefront and other marketplaces — modifiers and combos included." },
+      { icon: RefreshCw, title: "Status sync", body: "Accepted, ready for pickup, out for delivery and collected — each update goes back to Glovo from your board." },
+      { icon: UtensilsCrossed, title: "Menu publishing", body: "Publish your Order Hub menu to Glovo with sizes, modifiers and local pricing." },
+      { icon: Tag, title: "Out-of-stock items", body: "Mark an item out of stock once and it comes off Glovo too — restored automatically when it's back." },
+      { icon: Store, title: "Pause the store", body: "Close your Glovo store from Order Hub when the kitchen needs a break, and reopen it just as quickly." },
+    ],
+    flow: [
+      { title: "Register interest", body: "Tell us about your restaurant and we'll line you up for onboarding." },
+      { title: "Connect Glovo", body: "Link your Glovo store to Order Hub." },
+      { title: "Publish your menu", body: "Send your catalog across so both menus always match." },
+      { title: "One board", body: "Glovo joins your unified orders board alongside every channel." },
+    ],
+  },
+
   // ── Stripe ────────────────────────────────────────────────────────────────
   {
     slug: "stripe",

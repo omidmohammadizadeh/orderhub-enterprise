@@ -65,6 +65,7 @@ const CHANNELS = [
   ["JUST_EAT", "Just Eat"],
   ["TALABAT", "Talabat"],
   ["CAREEM", "Careem"],
+  ["GLOVO", "Glovo"],
   ["DOORDASH", "DoorDash"],
   ["GRUBHUB", "Grubhub"],
   ["DIRECT", "Direct"],

@@ -19,6 +19,7 @@ const BASE_LOGOS: LogoItem[] = [
   { brand: "justeat", name: "Just Eat" },
   { brand: "careem", name: "Careem" },
   { brand: "talabat", name: "talabat" },
+  { brand: "glovo", name: "Glovo", soon: true },
   { brand: "uberdirect", name: "Uber Direct" },
   { brand: "stuart", name: "Stuart" },
   { brand: "hubrise", name: "HubRise" },
@@ -28,7 +29,7 @@ const BASE_LOGOS: LogoItem[] = [
 ];
 
 // menumanager.uk shows a different launch story: Uber Eats + Uber Direct as
-// "Soon". orderhubsolutions.com shows every channel as live.
+// "Soon". Glovo carries its "Soon" pill on both sites until it's certified.
 function logosForBrand(key: SiteBrandKey): LogoItem[] {
   if (key !== "menumanager") return BASE_LOGOS;
   return BASE_LOGOS.map((l) => {

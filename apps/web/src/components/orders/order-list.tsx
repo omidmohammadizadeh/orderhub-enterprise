@@ -113,6 +113,13 @@ const CHANNELS: Channel[] = [
     enabled: true,
   },
   {
+    // Direct integration (restaurant Partners API) — orders really arrive.
+    key: "GLOVO",
+    label: "Glovo",
+    match: (p) => p === "GLOVO",
+    enabled: true,
+  },
+  {
     key: "CAREEM",
     label: "Careem",
     match: () => false,

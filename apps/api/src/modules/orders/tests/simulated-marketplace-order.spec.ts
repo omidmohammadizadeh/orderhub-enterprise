@@ -85,7 +85,7 @@ describe("createTest — simulated marketplace orders", () => {
 // the voice line VOICE/VOICE, Careem CAREEM/CAREEM. A simulation has to wear
 // the same pair or the board shows the wrong badge.
 describe("createTest — every simulated channel", () => {
-  it.each(["CAREEM", "TALABAT", "ONLINE", "WHATSAPP", "VOICE"] as const)(
+  it.each(["CAREEM", "TALABAT", "GLOVO", "ONLINE", "WHATSAPP", "VOICE"] as const)(
     "dresses a %s order as that channel",
     async (platform) => {
       const svc = makeService();
@@ -110,7 +110,7 @@ describe("POST /orders/test — who may simulate what", () => {
   const admin = { tenantId: "t1", userId: "u1", role: "PLATFORM_ADMIN" } as any;
   const manager = { tenantId: "t1", userId: "u2", role: "MANAGER" } as any;
 
-  it.each(["CAREEM", "TALABAT", "ONLINE", "WHATSAPP", "VOICE"])(
+  it.each(["CAREEM", "TALABAT", "GLOVO", "ONLINE", "WHATSAPP", "VOICE"])(
     "lets a platform admin simulate %s",
     async (platform) => {
       const { c, orders } = controller();

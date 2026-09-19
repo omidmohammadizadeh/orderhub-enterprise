@@ -397,6 +397,7 @@ function SiteFooter({ brand }: { brand: SiteBrand }) {
                     { label: "Just Eat", href: "/integrations/justeat" },
                     { label: "Careem", href: "/integrations/careem" },
                     { label: "talabat", href: "/integrations/talabat" },
+                    { label: "Glovo (coming soon)", href: "/integrations/glovo" },
                     { label: "WhatsApp", href: "/integrations/whatsapp" },
                     { label: "Stripe", href: "/integrations/stripe" },
                   ]
@@ -407,6 +408,7 @@ function SiteFooter({ brand }: { brand: SiteBrand }) {
                     { label: "Just Eat", href: "/integrations/justeat" },
                     { label: "Careem", href: "/integrations/careem" },
                     { label: "talabat", href: "/integrations/talabat" },
+                    { label: "Glovo (coming soon)", href: "/integrations/glovo" },
                     { label: "WhatsApp", href: "/integrations/whatsapp" },
                     { label: "Stripe", href: "/integrations/stripe" },
                   ]

@@ -117,6 +117,12 @@ export const INTEGRATION_META: RouteMeta[] = [
       "A direct talabat integration for the Gulf — orders and menu sync on the same board as every other channel.",
   },
   {
+    slug: "glovo",
+    name: "Glovo",
+    description:
+      "A direct Glovo integration, coming soon — orders, status updates, menu publishing and out-of-stock items on the same board as every other channel.",
+  },
+  {
     slug: "stripe",
     name: "Stripe",
     description:

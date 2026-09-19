@@ -534,6 +534,7 @@ describe("marketplaceName", () => {
     expect(marketplaceName("UBER_EATS")).toBe("Uber Eats");
     expect(marketplaceName("JUST_EAT")).toBe("Just Eat");
     expect(marketplaceName("DELIVEROO")).toBe("Deliveroo");
+    expect(marketplaceName("GLOVO")).toBe("Glovo");
   });
 
   it("treats the shop's own channels as its own", () => {

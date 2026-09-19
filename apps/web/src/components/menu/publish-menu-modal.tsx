@@ -15,10 +15,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { channelsForCountry } from "@orderhub/shared";
 import { X, Check, ChevronLeft, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { menusClient } from "@/lib/api/menus.client";
+import { glovoClient } from "@/lib/api/glovo.client";
 import {
   brandsClient,
   locationsClient,
@@ -98,6 +100,13 @@ const TARGETS: Target[] = [
       "Direct Deliveroo push — uploads this menu to the brand's connected Deliveroo store.",
     wired: true,
   },
+  {
+    id: "GLOVO",
+    title: "Glovo",
+    description:
+      "Direct Glovo push — Glovo fetches this menu for the brand's connected store. Glovo allows 5 full uploads a day per store.",
+    wired: true,
+  },
 ];
 
 type Step = "channels" | "location" | "brand";
@@ -138,8 +147,23 @@ export function PublishMenuModal({
   const locationsQuery = useQuery({
     queryKey: ["locations", "list"],
     queryFn: () => locationsClient.list(),
-    enabled: open && step === "location",
+    // Also on the channels step: whether Glovo is offered depends on where
+    // the shop is (see visibleTargets below).
+    enabled: open && (step === "location" || step === "channels"),
   });
+
+  // Glovo only trades in its own markets (none of which is the UK or the
+  // Gulf), so it is offered for a shop in one of them — or when this menu is
+  // already published there, so it can still be un-ticked.
+  const shopCountry = (locationsQuery.data ?? []).find(
+    (l: any) => l.id === locationId,
+  )?.country as string | undefined;
+  const visibleTargets = TARGETS.filter(
+    (t) =>
+      t.id !== "GLOVO" ||
+      initiallyPublishedTo.includes("GLOVO") ||
+      channelsForCountry(shopCountry).some((c) => c.id === "GLOVO"),
+  );
 
   // Brand picker: only the brands that operate AT the picked location(s) —
   // brands homed there via primaryLocationId (the marketplace/virtual brands for
@@ -226,6 +250,18 @@ export function PublishMenuModal({
             .catch((e: any) =>
               pushErrors.push(
                 `Uber Eats: ${e?.response?.data?.message ?? e?.message ?? "failed"}`,
+              ),
+            );
+        }
+        if (next.includes("GLOVO")) {
+          await glovoClient
+            .publishMenu(menuId, { locationId: loc || undefined })
+            .then((r) => {
+              for (const w of r?.warnings ?? []) pushWarnings.push(`Glovo: ${w}`);
+            })
+            .catch((e: any) =>
+              pushErrors.push(
+                `Glovo: ${e?.response?.data?.message ?? e?.message ?? "failed"}`,
               ),
             );
         }
@@ -338,7 +374,7 @@ export function PublishMenuModal({
 
         <div className="flex-1 overflow-y-auto p-5 space-y-2.5">
           {step === "channels" ? (
-            TARGETS.map((t) => {
+            visibleTargets.map((t) => {
               const isOn = selected.has(t.id);
               return (
                 <button
@@ -604,6 +640,7 @@ function describeSelection(s: Set<string>): string {
     JUST_EAT: "Just Eat",
     UBER_EATS: "Uber Eats",
     DELIVEROO: "Deliveroo",
+    GLOVO: "Glovo",
   };
   const names = Array.from(s).map((id) => labels[id] ?? id);
   if (names.length === 0) return "no channels";

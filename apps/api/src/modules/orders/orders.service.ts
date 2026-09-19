@@ -148,6 +148,7 @@ export const SIMULATABLE_PLATFORMS = [
   "JUST_EAT",
   "CAREEM",
   "TALABAT",
+  "GLOVO",
   "ONLINE",
   "WHATSAPP",
   "VOICE",
@@ -173,6 +174,18 @@ const TEST_ADDRESSES: Record<
   OM: { line1: "Way 3021, Al Khuwair", city: "Muscat", postcode: "" },
   JO: { line1: "23 Rainbow Street, Jabal Amman", city: "Amman", postcode: "11181" },
   EG: { line1: "15 Road 9, Maadi", city: "Cairo", postcode: "11728" },
+  // Glovo markets — enough to simulate an order where a shop really trades.
+  ES: { line1: "Carrer de Balmes 120", city: "Barcelona", postcode: "08008" },
+  IT: { line1: "Via Torino 45", city: "Milano", postcode: "20123" },
+  PT: { line1: "Rua Augusta 150", city: "Lisboa", postcode: "1100-053" },
+  PL: { line1: "ul. Marszałkowska 84", city: "Warszawa", postcode: "00-514" },
+  RO: { line1: "Calea Victoriei 25", city: "București", postcode: "010063" },
+  UA: { line1: "vul. Khreshchatyk 22", city: "Kyiv", postcode: "01001" },
+  GE: { line1: "12 Rustaveli Avenue", city: "Tbilisi", postcode: "0108" },
+  KZ: { line1: "Abay Avenue 52", city: "Almaty", postcode: "050000" },
+  MA: { line1: "12 Rue Tarik Ibn Ziad", city: "Casablanca", postcode: "20250" },
+  KE: { line1: "Kimathi Street, CBD", city: "Nairobi", postcode: "00100" },
+  NG: { line1: "15 Admiralty Way, Lekki", city: "Lagos", postcode: "" },
 };
 
 /** Falls back to the UK address for a shop whose country is unset. */

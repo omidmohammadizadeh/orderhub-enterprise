@@ -324,7 +324,9 @@ export type PlatformId =
   // UAE / GCC. The backend `platform` column is a free-form String, so these
   // needed no migration.
   | "CAREEM"
-  | "TALABAT";
+  | "TALABAT"
+  // Southern & Eastern Europe, Central Asia, Africa. Free-form string too.
+  | "GLOVO";
 
 export type ConnectionStatus =
   | "not_connected"

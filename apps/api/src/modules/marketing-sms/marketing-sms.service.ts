@@ -50,6 +50,7 @@ export class MarketingSmsService {
     "DOORDASH",
     "GRUBHUB",
     "CAREEM",
+    "GLOVO",
     "DIRECT",
   ];
 

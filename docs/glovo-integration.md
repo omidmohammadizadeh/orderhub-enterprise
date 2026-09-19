@@ -110,3 +110,97 @@ explicitly for the **restaurant (food) Partners API**.
 9. Customer phone/address for Glovo-courier orders — what DPA/NDA is needed?
 10. Is `order_id` numeric (the v0 endpoints type it `long`) or an opaque string?
 11. Certification: is there a test script, and who signs off?
+
+## What's built (2026-09-19)
+
+All eight phases are built. Code: `apps/api/src/modules/integrations/glovo/`. UI: `GlovoRow` in
+`brand-platform-grid.tsx`, `glovo-manage-modal.tsx`, `glovo.client.ts`, and a Glovo target in
+`publish-menu-modal.tsx`. The target is shown only for shops in a Glovo country. Marketing:
+`/integrations/glovo`, "Coming soon".
+
+### Webhook URLs to register with Glovo (stage and production are the same host)
+
+```
+https://orderhub-api-0re6.onrender.com/api/v1/integrations/glovo/orders/dispatched   (mandatory)
+https://orderhub-api-0re6.onrender.com/api/v1/integrations/glovo/orders/picked-up
+https://orderhub-api-0re6.onrender.com/api/v1/integrations/glovo/orders/cancelled
+```
+
+Never rename these. `tests/glovo-store-availability.spec.ts` pins them. `picked_up` (underscore) is
+also accepted.
+
+### Render env
+
+| Var | Value |
+|---|---|
+| `GLOVO_API_TOKEN` | The shared token from Glovo, via 1Password. It is also the value expected on inbound webhooks. |
+| `GLOVO_ENV` | `stage` until certified, then `production` together with the production token |
+| `GLOVO_WEBHOOK_TOKEN` | Only if Glovo issues a different inbound token (unset = same as the API token) |
+| `GLOVO_API_BASE` | Optional host override |
+
+Check with `GET /api/v1/integrations/glovo/health`. It is public and reports presence only.
+
+### Before any store goes live
+
+1. Diff the first real `dispatched` envelope (logged in full, and stored in `webhook_events.rawPayload`
+   with `externalEventId = dispatched:<order_id>`) against `tests/glovo-order.fixtures.ts`. Pay
+   particular attention to attribute `quantity` semantics: the intake logs a warning when line totals
+   disagree with `estimated_total_price`.
+2. Confirm which `Authorization` value Glovo sends when fetching the menu feed. The feed logs "Bearer" /
+   "no Bearer" / "none".
+3. A TND or zero-decimal currency (UGX, XOF): confirm Glovo's "cents" is still ÷100.
+
+## Onboarding email (draft to send)
+
+To: partner.integrationseu@glovoapp.com
+Subject: POS integration request — Order Hub (restaurant Partners API)
+
+Hello Glovo Integrations team,
+
+Order Hub is a restaurant POS and ordering platform: an in-store POS, a kitchen display, branded online
+ordering and direct marketplace integrations, all on one order board. Restaurants already run Just Eat,
+Deliveroo, Uber Eats, Careem and talabat through Order Hub with direct integrations, and several of our
+restaurant groups have asked us to add Glovo on the same terms.
+
+We would like to integrate as a POS partner through your restaurant Partners API (api.glovoapp.com):
+order notifications, order status updates, menu upload, product and attribute availability, and
+temporary store closing. The integration is already built against your published specification and
+ready for testing on stage.
+
+To start, could you please:
+
+1. Grant us access to the Partners API for restaurants in the markets our customers trade in (we can
+   start with Spain and add countries as merchants onboard).
+2. Register our stage webhook endpoints:
+   - Order dispatched: https://orderhub-api-0re6.onrender.com/api/v1/integrations/glovo/orders/dispatched
+   - Order picked up: https://orderhub-api-0re6.onrender.com/api/v1/integrations/glovo/orders/picked-up
+   - Order cancelled: https://orderhub-api-0re6.onrender.com/api/v1/integrations/glovo/orders/cancelled
+3. Share the stage shared token through your standard encrypted process (please not by plain email).
+4. Set up a stage test store address mapped to our store ID, and give us access to testglovo.com and your
+   Jira support desk.
+5. Send your certification checklist or test script, and tell us who signs off go-live.
+
+We also have a few questions so our implementation matches your platform exactly:
+
+1. Order status: should we use `PUT /webhook/stores/{storeId}/orders/{orderId}/status` or the
+   `/api/v0/integrations/orders/{orderId}/accept | ready_for_pickup | out_for_delivery |
+   customer_picked_up` endpoints? Is either being deprecated?
+2. Is an attribute's `quantity` per unit of the product, or for the whole order line?
+3. Can manual acceptance be enabled for our stores (auto-accept off)? If so, how long do we have to
+   accept?
+4. The menu JSON schema requires `image_url` and `description` on every product and rejects a price of 0.
+   Is `null` accepted for a product without a photo, and how should a free item be sent?
+5. Is there any API for regular opening hours, or can the schedule-catalogue feature be enabled for our
+   stores?
+6. When Glovo fetches our `menuUrl`, which token is sent as `Authorization: Bearer`?
+7. Is `order_id` always numeric, or should we treat it as an opaque string?
+8. For currencies with three decimals (TND) or none (UGX, XOF), are order amounts still in hundredths?
+9. Could you send a real sample `order dispatched` payload from stage, ideally one with a combo and one
+   marketplace (store-delivered) order?
+10. What agreements (DPA/NDA) are needed to receive customer contact details for Glovo-courier orders?
+
+We're happy to arrange a call to go through the integration and plan the rollout.
+
+Kind regards,
+[Name]
+Order Hub Solutions

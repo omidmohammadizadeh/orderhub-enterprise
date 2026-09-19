@@ -30,8 +30,10 @@ import { BrandSettingsDrawer } from "@/components/brands/brand-settings-drawer";
 import { UberEatsManageModal } from "@/components/locations/ubereats-manage-modal";
 import { DeliverooManageModal } from "@/components/locations/deliveroo-manage-modal";
 import { JustEatManageModal } from "@/components/locations/justeat-manage-modal";
+import { GlovoManageModal } from "@/components/locations/glovo-manage-modal";
 import { deliverooClient } from "@/lib/api/deliveroo.client";
 import { justEatClient } from "@/lib/api/justeat.client";
+import { glovoClient } from "@/lib/api/glovo.client";
 import { apiClient } from "@/lib/api/client";
 import { StorePickerModal } from "@/components/locations/store-picker-modal";
 import toast from "react-hot-toast";
@@ -174,6 +176,21 @@ export function BrandPlatformGrid({ brand, locationId, country }: Props) {
           if (platform === "JUST_EAT") {
             return (
               <JustEatRow
+                key={platform}
+                brandId={brandId}
+                locationId={locationId}
+                connection={conn ?? null}
+                onChanged={() =>
+                  qc.invalidateQueries({ queryKey: ["brand-connections", brandId] })
+                }
+              />
+            );
+          }
+          // Glovo: WE choose the Store ID and hand it to Glovo, so connecting
+          // needs nothing from the operator — the server derives one.
+          if (platform === "GLOVO") {
+            return (
+              <GlovoRow
                 key={platform}
                 brandId={brandId}
                 locationId={locationId}
@@ -786,6 +803,102 @@ function JustEatRow({
             details.refetch();
             onChanged();
           }}
+        />
+      )}
+    </li>
+  );
+}
+
+function GlovoRow({
+  brandId,
+  locationId,
+  connection,
+  onChanged,
+}: {
+  brandId: string;
+  locationId: string;
+  connection: BrandPlatformConnection | null;
+  onChanged: () => void;
+}) {
+  const connected =
+    connection?.status === "connected" || connection?.status === "suspended";
+  const [manageOpen, setManageOpen] = useState(false);
+  const [storeId, setStoreId] = useState("");
+
+  const connect = useMutation({
+    mutationFn: () =>
+      glovoClient.connect({ brandId, locationId, storeId: storeId.trim() || undefined }),
+    onSuccess: (res) => {
+      toast.success(`Glovo connected — send Store ID ${res.storeId} to Glovo`, {
+        duration: 8000,
+      });
+      setStoreId("");
+      onChanged();
+    },
+    onError: (e: any) =>
+      toast.error(e?.response?.data?.message ?? e?.message ?? "Glovo request failed"),
+  });
+
+  return (
+    <li className="rounded-md border border-zinc-200 px-3 py-2">
+      <div className="flex items-start gap-3">
+        <PlatformLogo platform="GLOVO" size={44} />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-zinc-900">Glovo</span>
+            <StatusChip status={connection?.status ?? "not_connected"} />
+          </div>
+
+          {!connected ? (
+            <div className="mt-1.5 space-y-1.5">
+              <input
+                value={storeId}
+                onChange={(e) => setStoreId(e.target.value)}
+                placeholder="Store ID (optional — we generate one)"
+                aria-label="Glovo Store ID"
+                spellCheck={false}
+                className="w-full rounded-md border border-zinc-200 px-2 py-1 text-xs focus:border-zinc-900 focus:outline-none"
+              />
+              <div className="flex gap-1.5">
+                <button
+                  onClick={() => connect.mutate()}
+                  disabled={connect.isPending}
+                  className="rounded-md bg-zinc-900 px-2 py-1 text-[10px] font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+                >
+                  {connect.isPending ? "Connecting…" : "Connect"}
+                </button>
+              </div>
+              <p className="text-[10px] text-zinc-400">
+                Glovo asks the POS for a Store ID per store address. Connect,
+                then give the Store ID to your Glovo account manager so orders
+                route here.
+              </p>
+            </div>
+          ) : (
+            <p className="text-[10px] text-zinc-500">
+              Store ID {connection?.externalStoreId ?? "—"}
+            </p>
+          )}
+        </div>
+
+        {connected && (
+          <button
+            onClick={() => setManageOpen(true)}
+            className="flex-shrink-0 rounded-md bg-zinc-900 px-3 py-1.5 text-[10px] font-medium text-white hover:bg-zinc-800"
+          >
+            Manage
+          </button>
+        )}
+      </div>
+      {connected && (
+        <GlovoManageModal
+          connectionId={connection!.id as string}
+          brandId={brandId}
+          locationId={locationId}
+          storeId={(connection?.externalStoreId as string) ?? null}
+          open={manageOpen}
+          onClose={() => setManageOpen(false)}
+          onChanged={onChanged}
         />
       )}
     </li>

@@ -225,6 +225,22 @@ function TalabatLogo({ size, rounded = true }: LogoProps) {
   );
 }
 
+function GlovoLogo({ size, rounded = true }: LogoProps) {
+  // Initial tile in Glovo's yellow and green — the real mark is glovo.png.
+  return (
+    <svg viewBox="0 0 100 100" style={tileStyle(size, rounded)} aria-label="Glovo">
+      <rect width="100" height="100" fill="#FFC244" />
+      <text
+        x="50" y="50" fill="#00A082" fontSize="58" fontWeight="700"
+        textAnchor="middle" dominantBaseline="central"
+        fontFamily="system-ui, sans-serif"
+      >
+        G
+      </text>
+    </svg>
+  );
+}
+
 // Map each canonical platform key to:
 //   slug  — the PNG filename the operator uploads at /brand-logos/{slug}.png
 //   bg    — brand background colour (sits behind the PNG; if the PNG has
@@ -247,6 +263,8 @@ const PLATFORM_META: Record<
   // UAE / GCC marketplaces.
   CAREEM:      { slug: "careem",     bg: "#00493E", svg: (p) => <CareemLogo {...p} /> },
   TALABAT:     { slug: "talabat",    bg: "#FF5A00", svg: (p) => <TalabatLogo {...p} /> },
+  // Southern & Eastern Europe, Central Asia, Africa.
+  GLOVO:       { slug: "glovo",      bg: "#FFC244", svg: (p) => <GlovoLogo {...p} /> },
   // Phase AY — WhatsApp ordering channel.
   WHATSAPP:    { slug: "whatsapp",   bg: "#25D366", svg: (p) => <WhatsAppLogo {...p} /> },
   // The AI phone line. Its own colour rather than the Order Hub wordmark:
@@ -274,6 +292,7 @@ const LABELS: Record<string, string> = {
   DIRECT_ONLINE: "Direct online ordering",
   CAREEM: "Careem",
   TALABAT: "talabat",
+  GLOVO: "Glovo",
 };
 
 interface Props {

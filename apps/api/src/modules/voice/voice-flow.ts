@@ -369,6 +369,7 @@ const MARKETPLACES: Record<string, string> = {
   JUST_EAT: "Just Eat",
   TALABAT: "talabat",
   CAREEM: "Careem",
+  GLOVO: "Glovo",
   DOORDASH: "DoorDash",
   GRUBHUB: "Grubhub",
 };
