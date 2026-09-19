@@ -668,6 +668,8 @@ const CHANNEL_OPTIONS = [
   { id: "DELIVEROO", label: "Deliveroo" },
   { id: "UBER_EATS", label: "Uber Eats" },
   { id: "JUST_EAT", label: "Just Eat" },
+  { id: "CAREEM", label: "Careem" },
+  { id: "TALABAT", label: "talabat" },
   { id: "HUBRISE", label: "HubRise" },
   { id: "WHATSAPP", label: "WhatsApp" },
   { id: "VOICE", label: "AI Voice" },
@@ -682,6 +684,9 @@ const CHANNEL_LABELS: Record<string, string> = {
   JUST_EAT: "Just Eat",
   HUBRISE: "HubRise",
   WHATSAPP: "WhatsApp",
+  VOICE: "AI Voice",
+  CAREEM: "Careem",
+  TALABAT: "talabat",
 };
 
 function CrmListTab() {

@@ -148,6 +148,9 @@ export class CustomersService {
       JUST_EAT: ["JUST_EAT"],
       HUBRISE: ["HUBRISE"],
       WHATSAPP: ["WHATSAPP"],
+      VOICE: ["VOICE"],
+      CAREEM: ["CAREEM"],
+      TALABAT: ["TALABAT"],
     };
 
     // Location scoping: a scoped user only sees customers from their accessible
