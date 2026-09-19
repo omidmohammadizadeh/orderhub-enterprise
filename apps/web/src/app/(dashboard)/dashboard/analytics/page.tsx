@@ -11,6 +11,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useCurrency } from "@/hooks/use-currency";
+import { useAuthStore } from "@/stores/auth.store";
 import { useQuery } from "@tanstack/react-query";
 import {
   Activity,
@@ -181,6 +182,12 @@ export default function AnalyticsPage() {
   const [tab, setTab] = useState<"revenue" | "orders" | "aov" | "breakdown">(
     "revenue",
   );
+  // Test and simulated orders are left out of every figure so a shop's
+  // numbers stay real. A platform admin can count them to check the
+  // report's arithmetic against orders they made themselves. Off on every
+  // visit — never remembered — so nobody reads inflated numbers by accident.
+  const isPlatformAdmin = useAuthStore((s) => s.user?.role) === "PLATFORM_ADMIN";
+  const [includeTest, setIncludeTest] = useState(false);
 
   const range = useMemo(() => {
     if (preset !== "custom") return presetRange(preset);
@@ -194,6 +201,7 @@ export default function AnalyticsPage() {
   }, [preset, customFrom, customTo]);
 
   const filters = {
+    includeTest: isPlatformAdmin && includeTest,
     from: range.from.toISOString(),
     to: range.to.toISOString(),
     locationId: locationId || undefined,
@@ -413,7 +421,40 @@ export default function AnalyticsPage() {
               </div>
             )}
           </div>
+          {isPlatformAdmin && (
+            <button
+              type="button"
+              role="switch"
+              aria-checked={includeTest}
+              onClick={() => setIncludeTest((v) => !v)}
+              title="Count test and simulated orders in every figure — platform admins only"
+              className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                includeTest
+                  ? "border-violet-300 bg-violet-50 text-violet-700"
+                  : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300"
+              }`}
+            >
+              <span
+                className={`relative h-3.5 w-6 rounded-full transition-colors ${
+                  includeTest ? "bg-violet-600" : "bg-zinc-300"
+                }`}
+                aria-hidden="true"
+              >
+                <span
+                  className={`absolute top-0.5 h-2.5 w-2.5 rounded-full bg-white transition-all ${
+                    includeTest ? "left-3" : "left-0.5"
+                  }`}
+                />
+              </span>
+              Include test orders
+            </button>
+          )}
         </div>
+        {isPlatformAdmin && includeTest && (
+          <p className="mt-2 text-[11px] text-violet-700">
+            Showing test and simulated orders as well as real ones — these figures are not the shop&apos;s real sales.
+          </p>
+        )}
       </section>
 
       {loading ? (

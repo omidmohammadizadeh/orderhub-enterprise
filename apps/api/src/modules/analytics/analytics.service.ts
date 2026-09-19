@@ -1115,8 +1115,18 @@ export class AnalyticsService {
       // when "All locations" is selected.
       userId?: string;
       role?: string;
+      /**
+       * Count test and simulated orders (isSandbox) as well as real ones —
+       * how a platform admin checks the report's arithmetic against orders
+       * they made themselves. Honoured for PLATFORM_ADMIN only: anyone else
+       * gets real orders whatever they ask for, so a shop's own figures can
+       * never be inflated by our test traffic.
+       */
+      includeTestOrders?: boolean;
     },
   ) {
+    const includeTest =
+      opts.includeTestOrders === true && opts.role === "PLATFORM_ADMIN";
     const tenantWide =
       opts.role === "PLATFORM_ADMIN" || opts.role === "TENANT_OWNER";
     const scopeIds =
@@ -1135,7 +1145,7 @@ export class AnalyticsService {
 
     const baseWhere: Prisma.OrderWhereInput = {
       tenantId,
-      isSandbox: false,
+      ...(includeTest ? {} : { isSandbox: false }),
       ...locationWhere,
       ...(opts.brandId && { brandId: opts.brandId }),
       ...(opts.channels?.length && {

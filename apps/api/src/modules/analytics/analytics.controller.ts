@@ -49,6 +49,7 @@ export class AnalyticsController {
   @ApiQuery({ name: "brandId", required: false })
   @ApiQuery({ name: "channels", required: false, description: "Comma-separated orderSource values" })
   @ApiQuery({ name: "fulfillmentTypes", required: false, description: "Comma-separated DELIVERY/PICKUP" })
+  @ApiQuery({ name: "includeTest", required: false, description: "\"true\" counts test/simulated orders too (platform admins only)" })
   getOverview(
     @CurrentUser() user: AuthenticatedUser,
     @Query("from") from?: string,
@@ -57,6 +58,7 @@ export class AnalyticsController {
     @Query("brandId") brandId?: string,
     @Query("channels") channels?: string,
     @Query("fulfillmentTypes") fulfillmentTypes?: string,
+    @Query("includeTest") includeTest?: string,
   ) {
     const now = new Date();
     return this.analytics.getOverview(user.tenantId, {
@@ -73,6 +75,8 @@ export class AnalyticsController {
       // access", not the whole system.
       userId: user.userId,
       role: user.role as string,
+      // Platform admins only — enforced in the service, not here.
+      includeTestOrders: includeTest === "true",
     });
   }
 

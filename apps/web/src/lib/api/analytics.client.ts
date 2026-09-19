@@ -66,6 +66,8 @@ export interface AnalyticsOverview {
 }
 
 export interface OverviewFilters {
+  /** Count test + simulated orders too (platform admins only). */
+  includeTest?: boolean;
   from?: string;
   to?: string;
   locationId?: string;
@@ -173,6 +175,8 @@ export const analyticsClient = {
     if (f.channels?.length) params.channels = f.channels.join(",");
     if (f.fulfillmentTypes?.length)
       params.fulfillmentTypes = f.fulfillmentTypes.join(",");
+    // Platform admins only; the API ignores it for everyone else.
+    if (f.includeTest) params.includeTest = "true";
     return apiClient
       .get<AnalyticsOverview>("/v1/analytics/overview", { params })
       .then((r) => r.data);
