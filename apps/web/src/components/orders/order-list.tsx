@@ -28,6 +28,8 @@ import {
   Building2,
   Printer,
   Filter as FilterIcon,
+  ChevronDown,
+  ListFilter,
   X as XIcon,
   Check,
   CalendarClock,
@@ -275,15 +277,40 @@ export function OrderList({ locationId }: Props) {
   const [channelFilter, setChannelFilter] = useState<Set<string>>(new Set());
   const [filterOpen, setFilterOpen] = useState(false);
   const filterRef = useRef<HTMLDivElement>(null);
+  // The status stages used to be thirteen chips wrapping over four rows on a
+  // phone, pushing the orders themselves below the fold. One dropdown beside
+  // Filter says the same thing in one line. It always opens on "All orders" —
+  // deliberately not remembered, so nobody comes back to a board that looks
+  // empty because it is still filtered to yesterday's "Ready".
+  const [statusOpen, setStatusOpen] = useState(false);
+  const statusRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!filterOpen) return;
+    if (!filterOpen && !statusOpen) return;
     const onDocClick = (e: MouseEvent) => {
       if (!filterRef.current?.contains(e.target as Node)) setFilterOpen(false);
+      if (!statusRef.current?.contains(e.target as Node)) setStatusOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setFilterOpen(false);
+        setStatusOpen(false);
+      }
     };
     document.addEventListener("mousedown", onDocClick);
-    return () => document.removeEventListener("mousedown", onDocClick);
-  }, [filterOpen]);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDocClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [filterOpen, statusOpen]);
+
+  const statusOptions = [
+    { key: "ALL", label: "All orders" },
+    ...BUCKETS.map((b) => ({ key: b.key, label: b.label })),
+  ];
+  const activeStatus =
+    statusOptions.find((o) => o.key === bucketFilter) ?? statusOptions[0]!;
 
   // Pre-bucket every order so the filter chip counts stay accurate
   // even when a filter is already applied.
@@ -325,28 +352,91 @@ export function OrderList({ locationId }: Props) {
 
   return (
     <>
-      {/* Status filter chips */}
-      <div className="mb-3 flex flex-wrap items-center gap-1.5">
-        <FilterChip
-          label="All"
-          count={counts.ALL ?? 0}
-          active={bucketFilter === "ALL"}
-          onClick={() => setBucketFilter("ALL")}
-        />
-        {BUCKETS.map((b) => (
-          <FilterChip
-            key={b.key}
-            label={b.label}
-            count={counts[b.key] ?? 0}
-            active={bucketFilter === b.key}
-            onClick={() => setBucketFilter(b.key)}
-          />
-        ))}
+      {/* Status dropdown + channel Filter, one tidy row */}
+      <div className="mb-3 flex items-center gap-2">
+        <div className="relative" ref={statusRef}>
+          <button
+            type="button"
+            onClick={() => {
+              setStatusOpen((o) => !o);
+              setFilterOpen(false);
+            }}
+            aria-haspopup="listbox"
+            aria-expanded={statusOpen}
+            className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${
+              bucketFilter !== "ALL"
+                ? "border-zinc-900 bg-zinc-900 text-white"
+                : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300"
+            }`}
+          >
+            <ListFilter className="h-3.5 w-3.5" aria-hidden="true" />
+            {activeStatus.label}
+            <span
+              className={`rounded-full px-1.5 py-0 text-[10px] tabular-nums ${
+                bucketFilter !== "ALL" ? "bg-white/15" : "bg-zinc-100 text-zinc-500"
+              }`}
+            >
+              {counts[activeStatus.key] ?? 0}
+            </span>
+            <ChevronDown className="h-3.5 w-3.5 opacity-60" aria-hidden="true" />
+          </button>
+
+          {statusOpen && (
+            <div
+              role="listbox"
+              aria-label="Order status"
+              className="absolute left-0 top-full z-40 mt-1 w-60 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-xl"
+            >
+              <div className="border-b border-zinc-100 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                Status
+              </div>
+              <div className="max-h-80 overflow-y-auto py-1">
+                {statusOptions.map((o) => {
+                  const active = bucketFilter === o.key;
+                  const count = counts[o.key] ?? 0;
+                  return (
+                    <button
+                      key={o.key}
+                      type="button"
+                      role="option"
+                      aria-selected={active}
+                      onClick={() => {
+                        setBucketFilter(o.key);
+                        setStatusOpen(false);
+                      }}
+                      className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm transition-colors ${
+                        active ? "bg-zinc-50 font-semibold text-zinc-900" : "text-zinc-800 hover:bg-zinc-50"
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="grid h-4 w-4 place-items-center">
+                          {active && <Check className="h-3.5 w-3.5 text-zinc-900" />}
+                        </span>
+                        {o.label}
+                      </span>
+                      <span
+                        className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums ${
+                          count > 0 ? "bg-zinc-900 text-white" : "bg-zinc-100 text-zinc-400"
+                        }`}
+                      >
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Channel filter — Filter button with popover */}
         <div className="ml-auto relative" ref={filterRef}>
           <button
             type="button"
-            onClick={() => setFilterOpen((o) => !o)}
+            onClick={() => {
+              setFilterOpen((o) => !o);
+              setStatusOpen(false);
+            }}
             className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${
               channelFilter.size > 0
                 ? "border-zinc-900 bg-zinc-900 text-white"
@@ -534,39 +624,6 @@ export function OrderList({ locationId }: Props) {
 // ────────────────────────────────────────────────────────────────────
 // Internals
 // ────────────────────────────────────────────────────────────────────
-
-function FilterChip({
-  label,
-  count,
-  active,
-  onClick,
-}: {
-  label: string;
-  count: number;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${
-        active
-          ? "border-zinc-900 bg-zinc-900 text-white"
-          : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300"
-      }`}
-    >
-      {label}
-      <span
-        className={`rounded-full px-1.5 py-0 text-[10px] tabular-nums ${
-          active ? "bg-white/15 text-white" : "bg-zinc-100 text-zinc-500"
-        }`}
-      >
-        {count}
-      </span>
-    </button>
-  );
-}
 
 function timeAgo(iso: string): string {
   const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);

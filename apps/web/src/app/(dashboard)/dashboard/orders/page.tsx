@@ -1,8 +1,9 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
-import { Beaker, Bike, ShoppingBag, Loader2, PauseCircle, FlaskConical, History } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Beaker, Bike, ShoppingBag, Loader2, PauseCircle, FlaskConical, History, ChevronDown } from "lucide-react";
+import { PlatformLogo } from "@/components/ui/platform-logo";
 import { OrderList } from "@/components/orders/order-list";
 import { StopTakingOrdersModal } from "@/components/orders/stop-taking-orders-modal";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
@@ -81,6 +82,25 @@ export default function OrdersPage() {
   const [historyOpen, setHistoryOpen] = useState(false);
   /** Which platform the driver-simulation chooser is open for. */
   const [simChoice, setSimChoice] = useState<SimPlatform | null>(null);
+  // Eight simulate buttons wrapped over three rows on a phone. One dropdown,
+  // shaped like the orders board's Filter button, keeps the header tidy.
+  const [simMenuOpen, setSimMenuOpen] = useState(false);
+  const simMenuRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!simMenuOpen) return;
+    const onDocClick = (e: MouseEvent) => {
+      if (!simMenuRef.current?.contains(e.target as Node)) setSimMenuOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSimMenuOpen(false);
+    };
+    document.addEventListener("mousedown", onDocClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDocClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [simMenuOpen]);
 
   // Simulate a marketplace order so the marketplace receipt path can be
   // exercised on a real till — the QR especially, which is only ever printed
@@ -216,28 +236,56 @@ export default function OrdersPage() {
           Order history
         </button>
         {canSimulate && (
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-violet-500">
+          <div className="relative" ref={simMenuRef}>
+            <button
+              type="button"
+              onClick={() => setSimMenuOpen((o) => !o)}
+              disabled={disabled}
+              aria-haspopup="menu"
+              aria-expanded={simMenuOpen}
+              title={
+                selectedLocationId
+                  ? "Create a fake marketplace order on this shop's board — visible to platform admins only"
+                  : "Select a specific location to simulate an order"
+              }
+              className="inline-flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-sm font-medium text-violet-700 hover:border-violet-300 hover:bg-violet-100 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {simulateOrder.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <FlaskConical className="h-4 w-4" />
+              )}
               Simulate
-            </span>
-            {SIM_PLATFORMS.map((platform) => (
-              <button
-                key={platform}
-                type="button"
-                onClick={() => setSimChoice(platform)}
-                disabled={disabled}
-                title={`Create a fake ${SIM_LABEL[platform]} order on this shop's board — visible to platform admins only`}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-sm font-medium text-violet-700 hover:border-violet-300 hover:bg-violet-100 disabled:cursor-not-allowed disabled:opacity-50"
+              <ChevronDown className="h-3.5 w-3.5 opacity-60" aria-hidden="true" />
+            </button>
+            {simMenuOpen && (
+              <div
+                role="menu"
+                aria-label="Simulate an order"
+                className="absolute right-0 top-full z-40 mt-1 w-60 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-xl"
               >
-                {simulateOrder.isPending &&
-                simulateOrder.variables?.platform === platform ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <FlaskConical className="h-4 w-4" />
-                )}
-                {SIM_LABEL[platform]}
-              </button>
-            ))}
+                <div className="border-b border-zinc-100 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-violet-500">
+                  Simulate an order
+                </div>
+                <div className="max-h-80 overflow-y-auto py-1">
+                  {SIM_PLATFORMS.map((platform) => (
+                    <button
+                      key={platform}
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setSimMenuOpen(false);
+                        setSimChoice(platform);
+                      }}
+                      className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-zinc-800 hover:bg-violet-50"
+                    >
+                      <PlatformLogo platform={platform} size={22} />
+                      {SIM_LABEL[platform]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
