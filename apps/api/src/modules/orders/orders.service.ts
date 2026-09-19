@@ -132,6 +132,28 @@ export function canAmendOrderPayment(input: {
  * Keyed off Location.country, the same field that already decides currency,
  * timezone and which channels a shop can sell through.
  */
+/**
+ * Channels a platform admin can simulate an order from.
+ *
+ * Each real order from these tags itself with the channel name as BOTH
+ * platform and orderSource (storefront ONLINE/ONLINE, WhatsApp, the AI voice
+ * line VOICE/VOICE, Careem, …), so a simulation wears the same pair. Every
+ * value must exist in OrderPlatform AND OrderSource, or Prisma rejects the
+ * write. POS and HUBRISE are deliberately absent: POS is what the ordinary
+ * test order already is, and HubRise is a relay, not a channel.
+ */
+export const SIMULATABLE_PLATFORMS = [
+  "DELIVEROO",
+  "UBER_EATS",
+  "JUST_EAT",
+  "CAREEM",
+  "TALABAT",
+  "ONLINE",
+  "WHATSAPP",
+  "VOICE",
+] as const;
+export type SimulatablePlatform = (typeof SIMULATABLE_PLATFORMS)[number];
+
 /** The pretend rider's name on a simulated courier run. */
 const SIM_COURIER_NAME = "Test Rider";
 
@@ -1259,7 +1281,7 @@ export class OrdersService {
        * else — so a DIRECT test order can never exercise that path. Passing a
        * platform here is what makes the QR print.
        */
-      platform?: "DELIVEROO" | "UBER_EATS" | "JUST_EAT";
+      platform?: SimulatablePlatform;
       /**
        * Walk the order through the courier stages after it lands:
        * driver assigned → out for delivery → delivered.

@@ -1,3 +1,5 @@
+import { BadRequestException, ForbiddenException } from "@nestjs/common";
+import { OrdersController } from "../orders.controller";
 import { OrdersService } from "../orders.service";
 
 // A simulated marketplace order has to be dressed as the real thing, because
@@ -72,5 +74,73 @@ describe("createTest — simulated marketplace orders", () => {
     expect(c.integrationSource).toBe("DIRECT");
     expect(c.displayId).toMatch(/^TEST-/);
     expect(c.metadata.simulatedPlatform).toBeUndefined();
+  });
+});
+
+// Every channel an admin can rehearse, not just the three marketplaces.
+//
+// Our own channels (storefront, WhatsApp, the AI phone line) and the Gulf
+// marketplaces each tag a real order with their own name as BOTH platform and
+// orderSource — the storefront writes ONLINE/ONLINE, WhatsApp WHATSAPP/WHATSAPP,
+// the voice line VOICE/VOICE, Careem CAREEM/CAREEM. A simulation has to wear
+// the same pair or the board shows the wrong badge.
+describe("createTest — every simulated channel", () => {
+  it.each(["CAREEM", "TALABAT", "ONLINE", "WHATSAPP", "VOICE"] as const)(
+    "dresses a %s order as that channel",
+    async (platform) => {
+      const svc = makeService();
+      await svc.createTest("t1", "loc-1", "u1", { platform });
+      const c = canonicalFrom(svc);
+      expect(c.platform).toBe(platform);
+      expect(c.orderSource).toBe(platform);
+      expect(c.integrationSource).toBe("DIRECT");
+      expect(c.displayId).toMatch(/^SIM-/);
+      expect(c.metadata.simulatedPlatform).toBe(platform);
+    },
+  );
+});
+
+describe("POST /orders/test — who may simulate what", () => {
+  function controller() {
+    const orders = { createTest: jest.fn().mockResolvedValue({ id: "o-1" }) };
+    const c = Object.create(OrdersController.prototype) as any;
+    c.orders = orders;
+    return { c, orders };
+  }
+  const admin = { tenantId: "t1", userId: "u1", role: "PLATFORM_ADMIN" } as any;
+  const manager = { tenantId: "t1", userId: "u2", role: "MANAGER" } as any;
+
+  it.each(["CAREEM", "TALABAT", "ONLINE", "WHATSAPP", "VOICE"])(
+    "lets a platform admin simulate %s",
+    async (platform) => {
+      const { c, orders } = controller();
+      await c.createTest({ locationId: "loc-1", platform } as any, admin);
+      expect(orders.createTest).toHaveBeenCalledWith(
+        "t1",
+        "loc-1",
+        "u1",
+        expect.objectContaining({ platform }),
+      );
+    },
+  );
+
+  it("still refuses a manager, for the new channels too", async () => {
+    const { c, orders } = controller();
+    await expect(
+      c.createTest({ locationId: "loc-1", platform: "WHATSAPP" } as any, manager),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+    expect(orders.createTest).not.toHaveBeenCalled();
+  });
+
+  it("rejects a channel that is not simulatable instead of letting Prisma 500", async () => {
+    // HUBRISE is a real OrderPlatform value but not a channel a customer
+    // orders through; POS is what the ordinary test order already is.
+    const { c, orders } = controller();
+    for (const platform of ["HUBRISE", "POS", "NOT_A_CHANNEL"]) {
+      await expect(
+        c.createTest({ locationId: "loc-1", platform } as any, admin),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    }
+    expect(orders.createTest).not.toHaveBeenCalled();
   });
 });

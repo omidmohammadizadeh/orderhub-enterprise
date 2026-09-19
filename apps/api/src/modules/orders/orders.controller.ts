@@ -7,7 +7,7 @@ import {
   Param,
   Query,
   HttpCode,
-  HttpStatus, ForbiddenException } from "@nestjs/common";
+  HttpStatus, ForbiddenException, BadRequestException } from "@nestjs/common";
 import {
   ApiTags,
   ApiOperation,
@@ -15,7 +15,12 @@ import {
   ApiQuery,
   ApiResponse,
 } from "@nestjs/swagger";
-import { OrdersService, OrderFilters } from "./orders.service";
+import {
+  OrdersService,
+  OrderFilters,
+  SIMULATABLE_PLATFORMS,
+  type SimulatablePlatform,
+} from "./orders.service";
 import { VoidItemsService } from "./void-items.service";
 import { CreateOrderDto } from "./dto/create-order.dto";
 import { EditOrderDto } from "./dto/edit-order.dto";
@@ -137,7 +142,7 @@ export class OrdersController {
       customerName?: string;
       fulfillmentType?: "PICKUP" | "DELIVERY";
       /** Simulate a marketplace order. Platform admins only — see below. */
-      platform?: "DELIVEROO" | "UBER_EATS" | "JUST_EAT";
+      platform?: SimulatablePlatform;
       /** Walk it through assigned → out for delivery → delivered. */
       withDriver?: boolean;
     },
@@ -151,6 +156,16 @@ export class OrdersController {
     if (body.platform && user.role !== "PLATFORM_ADMIN") {
       throw new ForbiddenException(
         "Simulated marketplace orders are restricted to platform admins.",
+      );
+    }
+    // The body is untyped at runtime. An unknown value would reach Prisma as
+    // an invalid enum and 500; say what is allowed instead.
+    if (
+      body.platform &&
+      !(SIMULATABLE_PLATFORMS as readonly string[]).includes(body.platform)
+    ) {
+      throw new BadRequestException(
+        `Cannot simulate "${body.platform}". Choose one of: ${SIMULATABLE_PLATFORMS.join(", ")}.`,
       );
     }
     return this.orders.createTest(user.tenantId, body.locationId, user.userId, {

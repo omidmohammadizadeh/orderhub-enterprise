@@ -16,11 +16,39 @@ import { apiClient } from "@/lib/api/client";
 // operations because triggering one creates a noisy ghost order on
 // the live board.
 /** What each simulated platform is called on screen. */
-const SIM_LABEL: Record<"DELIVEROO" | "UBER_EATS" | "JUST_EAT", string> = {
+// Mirrors SIMULATABLE_PLATFORMS on the API, which rejects anything else.
+type SimPlatform =
+  | "DELIVEROO"
+  | "UBER_EATS"
+  | "JUST_EAT"
+  | "CAREEM"
+  | "TALABAT"
+  | "ONLINE"
+  | "WHATSAPP"
+  | "VOICE";
+
+const SIM_LABEL: Record<SimPlatform, string> = {
   DELIVEROO: "Deliveroo",
   UBER_EATS: "Uber Eats",
   JUST_EAT: "Just Eat",
+  CAREEM: "Careem",
+  TALABAT: "talabat",
+  ONLINE: "Online ordering",
+  WHATSAPP: "WhatsApp",
+  VOICE: "AI Voice",
 };
+
+const SIM_PLATFORMS = Object.keys(SIM_LABEL) as SimPlatform[];
+
+// The receipt QR only prints for marketplace orders, so the success message
+// must not promise one for our own channels.
+const SIM_MARKETPLACES = new Set<SimPlatform>([
+  "DELIVEROO",
+  "UBER_EATS",
+  "JUST_EAT",
+  "CAREEM",
+  "TALABAT",
+]);
 
 const CAN_RUN_TEST_ORDERS = new Set(["PLATFORM_ADMIN", "ONBOARDING_AGENT"]);
 
@@ -49,16 +77,14 @@ export default function OrdersPage() {
   const [pauseModalOpen, setPauseModalOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   /** Which platform the driver-simulation chooser is open for. */
-  const [simChoice, setSimChoice] = useState<
-    "DELIVEROO" | "UBER_EATS" | "JUST_EAT" | null
-  >(null);
+  const [simChoice, setSimChoice] = useState<SimPlatform | null>(null);
 
   // Simulate a marketplace order so the marketplace receipt path can be
   // exercised on a real till — the QR especially, which is only ever printed
   // for marketplace channels and so cannot be tested with a DIRECT order.
   const simulateOrder = useMutation({
     mutationFn: async (v: {
-      platform: "DELIVEROO" | "UBER_EATS" | "JUST_EAT";
+      platform: SimPlatform;
       withDriver: boolean;
     }) => {
       if (!selectedLocationId) {
@@ -77,7 +103,7 @@ export default function OrdersPage() {
       setFeedback(
         v.withDriver
           ? `Simulated ${SIM_LABEL[v.platform]} order created — accept it to print, then watch it go driver assigned (20s), out for delivery (45s), delivered (75s). Only you can see it.`
-          : `Simulated ${SIM_LABEL[v.platform]} order created — accept it to print the ticket and its QR. Only you can see it.`,
+          : `Simulated ${SIM_LABEL[v.platform]} order created — accept it to print the ticket${SIM_MARKETPLACES.has(v.platform) ? " and its QR" : ""}. Only you can see it.`,
       );
       queryClient.invalidateQueries({ queryKey: ["orders", "live"] });
       window.setTimeout(() => setFeedback(null), 6000);
@@ -191,9 +217,7 @@ export default function OrdersPage() {
             <span className="text-[11px] font-semibold uppercase tracking-wide text-violet-500">
               Simulate
             </span>
-            {(
-              ["DELIVEROO", "UBER_EATS", "JUST_EAT"] as const
-            ).map((platform) => (
+            {SIM_PLATFORMS.map((platform) => (
               <button
                 key={platform}
                 type="button"
