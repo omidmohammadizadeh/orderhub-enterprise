@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { terminalClient } from "@/lib/api/terminal.client";
 import { useAuthStore } from "@/stores/auth.store";
 import { resetTapToPaySplash } from "@/components/dashboard/tap-to-pay-splash";
+import { DojoCardMachines } from "@/components/pos/dojo-card-machines";
 
 // Tap to Pay / WisePad 3 only exist inside the native app, where the Stripe
 // Terminal SDK is wired to window.OrderHubTerminal — same bridge the
@@ -249,6 +250,8 @@ export function CardReadersTab({ locationId }: { locationId: string }) {
           </Button>
         )}
       </div>
+
+      <DojoCardMachines locationId={locationId} />
     </div>
   );
 }

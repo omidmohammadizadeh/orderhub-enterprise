@@ -21,8 +21,9 @@ export default function CardReadersPage() {
           <CreditCard className="h-6 w-6" /> Card readers
         </h1>
         <p className="mt-1 text-sm text-zinc-500">
-          Register and connect card readers — Tap to Pay, WisePad 3, or the
-          S700 counter reader — without starting a checkout.
+          Register and connect card readers — Tap to Pay, WisePad 3, the
+          S700 counter reader, or your Dojo card machines — without starting
+          a checkout.
         </p>
       </div>
 

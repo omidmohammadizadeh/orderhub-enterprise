@@ -38,6 +38,7 @@ import {
 } from "./order-access";
 import type { CreateOrderDto } from "./dto/create-order.dto";
 import type { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
+import { activeDojoLock } from "../payments/dojo/dojo-lock";
 import type { CanonicalOrder } from "@orderhub/shared";
 
 // Phase AM — if the operator scheduled this order more than this many seconds
@@ -1928,6 +1929,14 @@ export class OrdersService {
     }
     if (order.paymentStatus === "PAID") {
       throw new BadRequestException("This tab is already settled");
+    }
+    // A Dojo card machine is taking payment for this table right now (Pay
+    // at Table). Adding items mid-payment would leave the bill it's showing
+    // the customer short of the real total.
+    if (activeDojoLock((order as any).metadata)) {
+      throw new BadRequestException(
+        "This table is being paid on a card machine — add the round once that finishes",
+      );
     }
 
     const addedTotal = items.reduce((s, i) => s + Number(i.totalPrice), 0);

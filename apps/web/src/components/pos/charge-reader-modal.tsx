@@ -6,7 +6,9 @@
 //   • inline reader registration (register a code, or a SIMULATED reader in
 //     test mode — so you can test the whole flow with no hardware),
 //   • a "Simulate tap" button in test mode to complete a simulated charge,
-//   • a "Mark paid manually" fallback for shops using a separate terminal.
+//   • a "Mark paid manually" fallback for shops using a separate terminal,
+//   • Dojo card machines, for shops whose location has Dojo connected (see
+//     dojo-card-machines.tsx) — same modal, same split-bill rules.
 
 import { useEffect, useRef, useState } from "react";
 import { useCurrency } from "@/hooks/use-currency";
@@ -15,6 +17,7 @@ import { CreditCard, Loader2, X, CheckCircle2, Plus } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { terminalClient } from "@/lib/api/terminal.client";
+import { dojoClient } from "@/lib/api/dojo.client";
 import { paymentLinkClient } from "@/lib/api/pos.client";
 import {
   getTerminalStatus,
@@ -107,7 +110,12 @@ export function ChargeReaderModal({
   // iPhone. Decided natively (see PosWebView) since the same UI runs on
   // Android, where "on iPhone" would be wrong.
   const tapToPayLabel = ohTerminal?.tapToPayLabel ?? "Tap to Pay";
-  const [method, setMethod] = useState<"server" | "wisepad" | "tapToPay">("server");
+  const [method, setMethod] = useState<"server" | "wisepad" | "tapToPay" | "dojo">("server");
+  // Set once staff pick a method themselves, so the "default to Dojo when
+  // that's the only counter machine" choice below never overrides them.
+  const [methodTouched, setMethodTouched] = useState(false);
+  const [dojoTerminalId, setDojoTerminalId] = useState<string | null>(null);
+  const [dojoNeedsSignature, setDojoNeedsSignature] = useState(false);
   const [connectedLabel, setConnectedLabel] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
   // Simulated reader — verify the flow with no hardware (test mode only).
@@ -143,6 +151,23 @@ export function ChargeReaderModal({
   const testMode = readersQuery.data?.testMode ?? false;
   const activeReader = readers.find((r) => r.id === readerId) ?? readers[0] ?? null;
 
+  const dojoQuery = useQuery({
+    queryKey: ["dojo-status", locationId],
+    queryFn: () => dojoClient.status(locationId),
+    enabled: open,
+    // A shop without Dojo gets a clean "not connected", but a network blip
+    // must never block taking a card on the Stripe reader.
+    retry: false,
+  });
+  const dojo = dojoQuery.data?.connected ? dojoQuery.data : null;
+  const dojoTerminals = dojo?.terminals ?? [];
+  const dojoAvailable = dojoTerminals.length > 0;
+  const activeDojo =
+    dojoTerminals.find((t) => t.id === dojoTerminalId) ??
+    dojoTerminals.find((t) => t.status === "Available") ??
+    dojoTerminals[0] ??
+    null;
+
   useEffect(() => {
     if (open) {
       setPhase("idle");
@@ -155,6 +180,9 @@ export function ChargeReaderModal({
       setMethod(nativeReader && !isPart ? "wisepad" : "server");
       // (Tap to Pay isn't the default even when available — WisePad 3 stays
       // the operator's expected first tab; Tap to Pay is an extra option.)
+      setMethodTouched(false);
+      setDojoTerminalId(null);
+      setDojoNeedsSignature(false);
       setConnectedLabel(null);
       setConnecting(false);
       setSimulate(false);
@@ -175,6 +203,16 @@ export function ChargeReaderModal({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, orderId]);
+
+  // A shop whose only counter machine is Dojo shouldn't land on an empty
+  // "register an S700" screen every time. Once both lists are in, pick Dojo —
+  // unless staff already chose, or the on-device reader is the default.
+  useEffect(() => {
+    if (!open || methodTouched || nativeReader) return;
+    if (!readersQuery.isSuccess || !dojoAvailable) return;
+    if (readers.length === 0) setMethod("dojo");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, methodTouched, nativeReader, readersQuery.isSuccess, dojoAvailable, readers.length]);
 
   // Subscribe for as long as the modal is mounted, seeding from the last
   // known value so opening mid-setup renders the right state immediately.
@@ -232,6 +270,76 @@ export function ChargeReaderModal({
       setPhase("error");
       setError(e?.response?.data?.message ?? e?.message ?? "Charge failed");
     }
+  };
+
+  // ── Dojo card machine ───────────────────────────────────────────────────
+  // Server-driven like the S700: we push the payment to the machine, then
+  // poll. The poll is also what settles the order — the server re-checks
+  // the payment with Dojo before marking anything paid.
+  const startDojoCharge = async () => {
+    if (!activeDojo) {
+      setError("No Dojo card machine found for this location.");
+      return;
+    }
+    setError(null);
+    setDeclineCode(null);
+    setDojoNeedsSignature(false);
+    setPhase("charging");
+    try {
+      const res = await dojoClient.charge(orderId, activeDojo.id, isPart ? partAmount! : undefined);
+      setPaymentIntentId(res.paymentIntentId);
+      setPhase("waiting");
+      pollRef.current = setInterval(async () => {
+        try {
+          const st = await dojoClient.chargeStatus(res.paymentIntentId);
+          setDojoNeedsSignature(st.needsSignature);
+          if (st.paid) {
+            if (pollRef.current) clearInterval(pollRef.current);
+            setPhase("paid");
+            toast.success("Card payment received");
+            onPaid?.();
+            return;
+          }
+          if (st.failed) {
+            if (pollRef.current) clearInterval(pollRef.current);
+            setPhase("error");
+            setError(st.message ?? "Card payment didn't go through. You can try again.");
+          }
+        } catch {
+          /* transient network — keep polling */
+        }
+      }, 2000);
+    } catch (e: any) {
+      setPhase("error");
+      setError(e?.response?.data?.message ?? e?.message ?? "Couldn't start the payment");
+    }
+  };
+
+  const cancelDojoCharge = async () => {
+    if (!paymentIntentId) return;
+    try {
+      await dojoClient.cancel(paymentIntentId);
+      toast("Cancelling on the card machine…");
+      // The poll picks up the Canceled status and moves the screen on.
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message ?? "Couldn't cancel");
+    }
+  };
+
+  const answerDojoSignature = async (accepted: boolean) => {
+    if (!paymentIntentId) return;
+    try {
+      await dojoClient.signature(paymentIntentId, accepted);
+      setDojoNeedsSignature(false);
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message ?? "Couldn't send the answer to the card machine");
+    }
+  };
+
+  const pickMethod = (m: "server" | "wisepad" | "tapToPay" | "dojo") => {
+    setMethodTouched(true);
+    if (m === "wisepad" || m === "tapToPay") selectOnDeviceMethod(m);
+    else setMethod(m);
   };
 
   // ── On-device reader (native app): WisePad 3 (Bluetooth) or Tap to Pay
@@ -367,6 +475,7 @@ export function ChargeReaderModal({
     }
   };
   const switchToCounterReader = () => {
+    setMethodTouched(true);
     setMethod("server");
     setPhase("idle");
     setError(null);
@@ -442,10 +551,11 @@ export function ChargeReaderModal({
             {money(chargeAmount)}
           </p>
 
-          {nativeReader && !isPart && phase !== "paid" && (
+          {phase !== "paid" && ((nativeReader && !isPart) || dojoAvailable) && (
             <div className="flex gap-1 rounded-lg bg-zinc-100 p-1 text-xs font-medium">
+              {nativeReader && !isPart && (
               <button
-                onClick={() => selectOnDeviceMethod("wisepad")}
+                onClick={() => pickMethod("wisepad")}
                 className={`flex-1 rounded-md px-2 py-1.5 ${
                   method === "wisepad"
                     ? "bg-white text-zinc-900 shadow-sm"
@@ -454,9 +564,10 @@ export function ChargeReaderModal({
               >
                 WisePad 3
               </button>
-              {tapToPayAvailable && (
+              )}
+              {nativeReader && !isPart && tapToPayAvailable && (
                 <button
-                  onClick={() => selectOnDeviceMethod("tapToPay")}
+                  onClick={() => pickMethod("tapToPay")}
                   className={`flex-1 rounded-md px-2 py-1.5 ${
                     method === "tapToPay"
                       ? "bg-white text-zinc-900 shadow-sm"
@@ -466,8 +577,9 @@ export function ChargeReaderModal({
                   {tapToPayLabel}
                 </button>
               )}
+              {(readers.length > 0 || !dojoAvailable || nativeReader) && (
               <button
-                onClick={() => setMethod("server")}
+                onClick={() => pickMethod("server")}
                 className={`flex-1 rounded-md px-2 py-1.5 ${
                   method === "server"
                     ? "bg-white text-zinc-900 shadow-sm"
@@ -476,6 +588,19 @@ export function ChargeReaderModal({
               >
                 Counter reader (S700)
               </button>
+              )}
+              {dojoAvailable && (
+                <button
+                  onClick={() => pickMethod("dojo")}
+                  className={`flex-1 rounded-md px-2 py-1.5 ${
+                    method === "dojo"
+                      ? "bg-white text-zinc-900 shadow-sm"
+                      : "text-zinc-500"
+                  }`}
+                >
+                  Dojo
+                </button>
+              )}
             </div>
           )}
 
@@ -495,6 +620,90 @@ export function ChargeReaderModal({
               <Button onClick={onClose} className="w-full bg-zinc-900 py-3 text-white hover:bg-zinc-800">
                 Done
               </Button>
+            </div>
+          ) : method === "dojo" ? (
+            <div className="space-y-3">
+              {dojo?.environment === "sandbox" && (
+                <p className="rounded-md bg-amber-50 px-2.5 py-1.5 text-center text-[11px] font-medium text-amber-800">
+                  Dojo sandbox — no real money moves
+                </p>
+              )}
+              {dojoTerminals.length > 1 && (
+                <select
+                  aria-label="Dojo card machine"
+                  value={activeDojo?.id}
+                  onChange={(e) => setDojoTerminalId(e.target.value)}
+                  disabled={phase === "waiting" || phase === "charging"}
+                  className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm"
+                >
+                  {dojoTerminals.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.label} · {t.status === "InUse" ? "in use" : t.status.toLowerCase()}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {phase === "waiting" ? (
+                dojoNeedsSignature ? (
+                  <div className="space-y-2 rounded-lg border border-amber-200 bg-amber-50 p-3" role="alert">
+                    <p className="text-sm font-medium text-amber-900">
+                      Check the customer&rsquo;s signature against their card.
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => answerDojoSignature(true)}
+                        className="flex-1 bg-emerald-600 text-white hover:bg-emerald-700"
+                      >
+                        Signature matches
+                      </Button>
+                      <Button variant="outline" onClick={() => answerDojoSignature(false)} className="flex-1">
+                        Doesn&rsquo;t match
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2 py-3 text-zinc-600">
+                    <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+                    <p className="text-sm" aria-live="polite">
+                      Follow the prompts on {activeDojo?.label ?? "the Dojo machine"}…
+                    </p>
+                    <Button size="sm" variant="outline" onClick={cancelDojoCharge} className="mt-1">
+                      Cancel on machine
+                    </Button>
+                  </div>
+                )
+              ) : (
+                <Button
+                  onClick={startDojoCharge}
+                  disabled={phase === "charging" || !activeDojo}
+                  className="w-full bg-emerald-600 py-3 text-white hover:bg-emerald-700"
+                >
+                  {phase === "charging" ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : phase === "error" ? (
+                    `Try again — ${money(chargeAmount)}`
+                  ) : (
+                    `Charge ${money(chargeAmount)} on Dojo`
+                  )}
+                </Button>
+              )}
+              {error && (
+                <div className="space-y-2">
+                  <p className="text-center text-sm text-red-600" role="alert">
+                    {error}
+                  </p>
+                  {phase === "error" && (
+                    <FallbackOptions
+                      insertOnly={false}
+                      canUseCounterReader={readers.length > 0}
+                      onCounterReader={switchToCounterReader}
+                      onPaymentLink={createPaymentLink}
+                      makingLink={makingLink}
+                      linkUrl={linkUrl}
+                    />
+                  )}
+                </div>
+              )}
             </div>
           ) : method === "wisepad" || method === "tapToPay" ? (
             <div className="space-y-3">

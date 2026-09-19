@@ -937,7 +937,19 @@ export class PaymentsService {
   async settleTerminalPi(pi: any): Promise<void> {
     const payment = await this.findPaymentForPi(pi);
     if (!payment) return;
+    await this.settleCardPresentPayment(payment, pi?.id);
+  }
+
+  /**
+   * Provider-neutral half of settleTerminalPi: given a Payment row whose
+   * money the CALLER has already verified with its provider (Stripe here,
+   * Dojo in DojoService), bank it and move the order on. Everything after
+   * "the card was taken" — PAID, the staff board, auto-accept, closing a
+   * table — is identical whichever card machine took it, so it lives once.
+   */
+  async settleCardPresentPayment(payment: any, ref?: string): Promise<void> {
     if (payment.status === PaymentRecordStatus.SUCCEEDED) return; // idempotent
+    const pi = { id: ref };
 
     // ── Split bill ────────────────────────────────────────────────────
     // A part-payment settles ITSELF, not the bill. Marking the order PAID
@@ -1806,7 +1818,7 @@ export class PaymentsService {
 
   async captureForOrder(orderId: string): Promise<void> {
     const payment = await (this.prisma as any).payment.findFirst({
-      where: { orderId, method: "CARD" },
+      where: { orderId, method: "CARD", provider: "STRIPE" },
       orderBy: { createdAt: "desc" },
     });
     if (!payment) return;
@@ -1931,7 +1943,7 @@ export class PaymentsService {
    */
   async cancelAuthForOrder(orderId: string, reason?: string): Promise<void> {
     const payment = await (this.prisma as any).payment.findFirst({
-      where: { orderId, method: "CARD" },
+      where: { orderId, method: "CARD", provider: "STRIPE" },
       orderBy: { createdAt: "desc" },
     });
     if (!payment || !payment.stripePaymentIntentId) return;
@@ -1985,7 +1997,7 @@ export class PaymentsService {
    */
   async refundForOrder(orderId: string, reason?: string): Promise<void> {
     const payment = await (this.prisma as any).payment.findFirst({
-      where: { orderId, method: "CARD" },
+      where: { orderId, method: "CARD", provider: "STRIPE" },
       orderBy: { createdAt: "desc" },
     });
     if (!payment || !payment.stripePaymentIntentId) return;
@@ -2107,7 +2119,7 @@ export class PaymentsService {
   async reconcileOrderPayment(orderId: string): Promise<void> {
     if (!this.stripe) return;
     const payment = await (this.prisma as any).payment.findFirst({
-      where: { orderId, method: "CARD" },
+      where: { orderId, method: "CARD", provider: "STRIPE" },
       orderBy: { createdAt: "desc" },
     });
     if (!payment) return;
@@ -2203,7 +2215,7 @@ export class PaymentsService {
     const orderId = pi.metadata?.orderId as string | undefined;
     if (!orderId) return null;
     payment = await (this.prisma as any).payment.findFirst({
-      where: { orderId, method: "CARD" },
+      where: { orderId, method: "CARD", provider: "STRIPE" },
       orderBy: { createdAt: "desc" },
     });
     if (!payment) return null;
