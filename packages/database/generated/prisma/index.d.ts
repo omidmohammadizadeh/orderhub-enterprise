@@ -784,6 +784,7 @@ export const IntegrationPlatform: {
   DOORDASH: 'DOORDASH',
   GRUBHUB: 'GRUBHUB',
   CAREEM: 'CAREEM',
+  GLOVO: 'GLOVO',
   WHATSAPP: 'WHATSAPP'
 };
 
@@ -889,6 +890,7 @@ export const OrderPlatform: {
   DOORDASH: 'DOORDASH',
   GRUBHUB: 'GRUBHUB',
   CAREEM: 'CAREEM',
+  GLOVO: 'GLOVO',
   WHATSAPP: 'WHATSAPP',
   VOICE: 'VOICE'
 };
@@ -908,6 +910,7 @@ export const OrderSource: {
   DOORDASH: 'DOORDASH',
   GRUBHUB: 'GRUBHUB',
   CAREEM: 'CAREEM',
+  GLOVO: 'GLOVO',
   WHATSAPP: 'WHATSAPP',
   VOICE: 'VOICE'
 };
@@ -171946,6 +171949,7 @@ export namespace Prisma {
 
   export type DriverWhereUniqueInput = Prisma.AtLeast<{
     id?: string
+    tenantId_userId?: DriverTenantIdUserIdCompoundUniqueInput
     AND?: DriverWhereInput | DriverWhereInput[]
     OR?: DriverWhereInput[]
     NOT?: DriverWhereInput | DriverWhereInput[]
@@ -171968,7 +171972,7 @@ export namespace Prisma {
     assignments?: DriverAssignmentListRelationFilter
     presence?: XOR<DriverPresenceNullableRelationFilter, DriverPresenceWhereInput> | null
     cashUps?: DriverCashUpListRelationFilter
-  }, "id">
+  }, "id" | "tenantId_userId">
 
   export type DriverOrderByWithAggregationInput = {
     id?: SortOrder
@@ -200777,6 +200781,11 @@ export namespace Prisma {
     fields: DriverOrderByRelevanceFieldEnum | DriverOrderByRelevanceFieldEnum[]
     sort: SortOrder
     search: string
+  }
+
+  export type DriverTenantIdUserIdCompoundUniqueInput = {
+    tenantId: string
+    userId: string
   }
 
   export type DriverCountOrderByAggregateInput = {

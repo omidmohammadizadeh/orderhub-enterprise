@@ -20,6 +20,7 @@ export type ChannelId =
   | "UBER_DIRECT"
   | "CAREEM"
   | "TALABAT"
+  | "GLOVO"
   | "HUBRISE";
 
 export interface ChannelDef {
@@ -58,6 +59,19 @@ const GULF: ChannelDef[] = [
   { id: "DELIVEROO" },
 ];
 
+// Glovo's markets (restaurant Partners API, docs/glovo-integration.md). Only
+// Glovo and direct ordering are listed: nobody has confirmed which other
+// marketplaces we would integrate with there, and the rule above applies —
+// add one with a source. Glovo grants API access per COUNTRY, so being listed
+// here says a shop CAN connect, not that Glovo has enabled that country for us.
+const GLOVO_MARKET: ChannelDef[] = [DIRECT, { id: "GLOVO" }];
+
+/** Where Glovo trades (as of 2026-09; their own docs list no countries). */
+export const GLOVO_COUNTRIES = [
+  "ES", "IT", "PT", "AD", "PL", "RO", "HR", "RS", "BA", "ME", "MD", "UA",
+  "GE", "KZ", "KG", "MA", "TN", "KE", "UG", "NG", "GH", "CI",
+] as const;
+
 // NOTE: SUPPORTED_COUNTRIES (currency.ts) offers US as well, and it is
 // deliberately absent here — nobody has confirmed which US marketplaces we
 // integrate with, and the rule at the top of this file is that a market goes
@@ -75,6 +89,7 @@ export const CHANNELS_BY_COUNTRY: Record<string, ChannelDef[]> = {
   OM: GULF,
   JO: GULF,
   EG: GULF,
+  ...Object.fromEntries(GLOVO_COUNTRIES.map((c) => [c, GLOVO_MARKET])),
 };
 
 /** Channels a shop in this country can actually sell through. */

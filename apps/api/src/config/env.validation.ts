@@ -163,6 +163,13 @@ const envSchema = z.object({
   JET_ACK_DEADLINE_SECONDS: z.coerce.number().optional(),
   JET_ACK_WATCHDOG_ENABLED: z.string().optional(),
 
+  // Phase GL — direct Glovo (restaurant Partners API). All optional so deploys
+  // without Glovo still boot. See app.config.ts `glovo`.
+  GLOVO_API_TOKEN: z.string().optional(),
+  GLOVO_WEBHOOK_TOKEN: z.string().optional(),
+  GLOVO_ENV: z.enum(["stage", "production"]).default("stage"),
+  GLOVO_API_BASE: z.string().url().optional(),
+
   // Phase AU — HubRise OAuth client credentials. Either the legacy
   // HUBRISE_APP_* names or the new HUBRISE_CLIENT_* names work; the
   // app config resolves whichever is set. Optional so deploys without

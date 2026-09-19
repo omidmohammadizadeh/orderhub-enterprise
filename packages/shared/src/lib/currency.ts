@@ -25,6 +25,29 @@ export const CURRENCY_BY_COUNTRY: Record<string, string> = {
   EG: "EGP", // Egypt
   IQ: "IQD", // Iraq
   PK: "PKR", // Pakistan
+  // Glovo markets (docs/glovo-integration.md).
+  ES: "EUR", // Spain
+  IT: "EUR", // Italy
+  PT: "EUR", // Portugal
+  AD: "EUR", // Andorra
+  HR: "EUR", // Croatia (euro since 2023)
+  ME: "EUR", // Montenegro (uses the euro)
+  PL: "PLN", // Poland
+  RO: "RON", // Romania
+  RS: "RSD", // Serbia
+  BA: "BAM", // Bosnia and Herzegovina
+  MD: "MDL", // Moldova
+  UA: "UAH", // Ukraine
+  GE: "GEL", // Georgia
+  KZ: "KZT", // Kazakhstan
+  KG: "KGS", // Kyrgyzstan
+  MA: "MAD", // Morocco
+  TN: "TND", // Tunisia (millimes — three decimals)
+  KE: "KES", // Kenya
+  UG: "UGX", // Uganda (no minor unit)
+  NG: "NGN", // Nigeria
+  GH: "GHS", // Ghana
+  CI: "XOF", // Côte d'Ivoire (CFA franc — no minor unit)
 };
 
 export const DEFAULT_CURRENCY = "GBP";
@@ -47,7 +70,7 @@ export function currencyForCountry(country: string | null | undefined): string {
 export function currencyDecimals(currency: string | null | undefined): number {
   const c = String(currency ?? DEFAULT_CURRENCY).trim().toUpperCase();
   if (["KWD", "BHD", "OMR", "JOD", "TND", "LYD"].includes(c)) return 3;
-  if (["JPY", "KRW", "IQD", "VND", "CLP", "ISK"].includes(c)) return 0;
+  if (["JPY", "KRW", "IQD", "VND", "CLP", "ISK", "UGX", "XOF"].includes(c)) return 0;
   return 2;
 }
 
@@ -150,6 +173,22 @@ const CURRENCY_NAMES: Record<string, { major: string; minor: string }> = {
   EGP: { major: "pounds", minor: "piastres" },
   IQD: { major: "dinars", minor: "fils" },
   PKR: { major: "rupees", minor: "paisa" },
+  PLN: { major: "zloty", minor: "groszy" },
+  RON: { major: "lei", minor: "bani" },
+  RSD: { major: "dinars", minor: "para" },
+  BAM: { major: "convertible marks", minor: "fenings" },
+  MDL: { major: "lei", minor: "bani" },
+  UAH: { major: "hryvnias", minor: "kopiykas" },
+  GEL: { major: "lari", minor: "tetri" },
+  KZT: { major: "tenge", minor: "tiyn" },
+  KGS: { major: "som", minor: "tyiyn" },
+  MAD: { major: "dirhams", minor: "centimes" },
+  TND: { major: "dinars", minor: "millimes" },
+  KES: { major: "shillings", minor: "cents" },
+  UGX: { major: "shillings", minor: "" },
+  NGN: { major: "naira", minor: "kobo" },
+  GHS: { major: "cedis", minor: "pesewas" },
+  XOF: { major: "CFA francs", minor: "" },
 };
 
 /** The spoken name of a currency's main unit, e.g. "dirhams". Falls back to
@@ -216,6 +255,32 @@ export const TIMEZONE_BY_COUNTRY: Record<string, string> = {
   EG: "Africa/Cairo",
   IQ: "Asia/Baghdad",
   PK: "Asia/Karachi",
+  // Glovo markets. Spain, Portugal and Kazakhstan's outlying zones (Canaries,
+  // Azores) are the operator's to pick; these are the capitals' zones.
+  ES: "Europe/Madrid",
+  IT: "Europe/Rome",
+  PT: "Europe/Lisbon",
+  AD: "Europe/Andorra",
+  HR: "Europe/Zagreb",
+  ME: "Europe/Podgorica",
+  PL: "Europe/Warsaw",
+  RO: "Europe/Bucharest",
+  RS: "Europe/Belgrade",
+  BA: "Europe/Sarajevo",
+  MD: "Europe/Chisinau",
+  // "Kiev" not "Kyiv": the old name is a link every tz database carries; the
+  // new one is missing from older ICU builds and would silently fall back.
+  UA: "Europe/Kiev",
+  GE: "Asia/Tbilisi",
+  KZ: "Asia/Almaty",
+  KG: "Asia/Bishkek",
+  MA: "Africa/Casablanca",
+  TN: "Africa/Tunis",
+  KE: "Africa/Nairobi",
+  UG: "Africa/Kampala",
+  NG: "Africa/Lagos",
+  GH: "Africa/Accra",
+  CI: "Africa/Abidjan",
 };
 
 export const DEFAULT_TIMEZONE = "Europe/London";
@@ -251,6 +316,22 @@ export const TENDER_NOTES: Record<string, number[]> = {
   JOD: [1, 5, 10, 20],
   EGP: [10, 20, 50, 100],
   PKR: [50, 100, 500, 1000],
+  PLN: [10, 20, 50, 100],
+  RON: [10, 50, 100, 200],
+  RSD: [500, 1000, 2000, 5000],
+  BAM: [10, 20, 50, 100],
+  MDL: [50, 100, 200, 500],
+  UAH: [50, 100, 200, 500],
+  GEL: [10, 20, 50, 100],
+  KZT: [1000, 2000, 5000, 10000],
+  KGS: [100, 200, 500, 1000],
+  MAD: [20, 50, 100, 200],
+  TND: [10, 20, 50],
+  KES: [100, 200, 500, 1000],
+  UGX: [5000, 10000, 20000, 50000],
+  NGN: [200, 500, 1000],
+  GHS: [10, 20, 50, 100],
+  XOF: [1000, 2000, 5000, 10000],
 };
 
 /** Quick-tender buttons for this currency; falls back to the GBP ladder. */
@@ -287,6 +368,29 @@ export const SUPPORTED_COUNTRIES: CountryOption[] = [
   { code: "JO", name: "Jordan", dialCode: "+962" },
   { code: "EG", name: "Egypt", dialCode: "+20" },
   { code: "US", name: "United States", dialCode: "+1" },
+  // Glovo markets.
+  { code: "ES", name: "Spain", dialCode: "+34" },
+  { code: "IT", name: "Italy", dialCode: "+39" },
+  { code: "PT", name: "Portugal", dialCode: "+351" },
+  { code: "AD", name: "Andorra", dialCode: "+376" },
+  { code: "PL", name: "Poland", dialCode: "+48" },
+  { code: "RO", name: "Romania", dialCode: "+40" },
+  { code: "HR", name: "Croatia", dialCode: "+385" },
+  { code: "RS", name: "Serbia", dialCode: "+381" },
+  { code: "BA", name: "Bosnia and Herzegovina", dialCode: "+387" },
+  { code: "ME", name: "Montenegro", dialCode: "+382" },
+  { code: "MD", name: "Moldova", dialCode: "+373" },
+  { code: "UA", name: "Ukraine", dialCode: "+380" },
+  { code: "GE", name: "Georgia", dialCode: "+995" },
+  { code: "KZ", name: "Kazakhstan", dialCode: "+7" },
+  { code: "KG", name: "Kyrgyzstan", dialCode: "+996" },
+  { code: "MA", name: "Morocco", dialCode: "+212" },
+  { code: "TN", name: "Tunisia", dialCode: "+216" },
+  { code: "KE", name: "Kenya", dialCode: "+254" },
+  { code: "UG", name: "Uganda", dialCode: "+256" },
+  { code: "NG", name: "Nigeria", dialCode: "+234" },
+  { code: "GH", name: "Ghana", dialCode: "+233" },
+  { code: "CI", name: "Côte d'Ivoire", dialCode: "+225" },
 ];
 
 /**

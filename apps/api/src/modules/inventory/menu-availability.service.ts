@@ -20,6 +20,7 @@ import { DeliverooClientService } from "../integrations/deliveroo/deliveroo-clie
 import { UberEatsMenuPublishService } from "../integrations/ubereats/ubereats-menu-publish.service";
 import { JetItemAvailabilityService } from "../integrations/jet/jet-item-availability.service";
 import { CareemItemAvailabilityService } from "../integrations/careem/careem-item-availability.service";
+import { GlovoItemAvailabilityService } from "../integrations/glovo/glovo-item-availability.service";
 import { ActivityLogService } from "../logs/activity-log.service";
 
 // Mirrors the publish-menu modal's TARGETS. Free-form string in the DB, which
@@ -36,6 +37,7 @@ export type SupportedChannel =
   | "WHATSAPP"
   | "HUBRISE"
   | "CAREEM"
+  | "GLOVO"
   | "ALL";
 
 // Operator presets from the spec. Translated to an `expiresAt` Date
@@ -62,6 +64,9 @@ export class MenuAvailabilityService {
     private readonly jetAvailability: JetItemAvailabilityService,
     private readonly careemAvailability: CareemItemAvailabilityService,
     @Optional() private readonly activity?: ActivityLogService,
+    // Last and optional so the specs that build this service by hand keep
+    // their positional arguments.
+    @Optional() private readonly glovoAvailability?: GlovoItemAvailabilityService,
   ) {}
 
   // ─── Reads ─────────────────────────────────────────────────────────
@@ -435,6 +440,23 @@ export class MenuAvailabilityService {
         );
     }
 
+    // Fire-and-forget direct Glovo sync. Glovo has no timed 86 either, so a
+    // TIMED snooze is restored by GlovoItemAvailabilityService.sweepExpired.
+    if ((args.channel === "GLOVO" || args.channel === "ALL") && this.glovoAvailability) {
+      this.glovoAvailability
+        .pushItemAvailability({
+          tenantId: args.tenantId,
+          itemId: args.itemId,
+          available: false,
+          locationId: args.locationId,
+        })
+        .catch((err) =>
+          this.logger.warn(
+            `Glovo availability push failed for item ${args.itemId}: ${err?.message ?? err}`,
+          ),
+        );
+    }
+
     // Fire-and-forget direct Uber Eats sync (sparse Update Menu Item).
     if (args.channel === "UBER_EATS" || args.channel === "ALL") {
       this.syncUberEatsAvailability(item, args.tenantId, expiresAt, args.snoozeReason ?? null, false, args.locationId).catch(
@@ -579,6 +601,24 @@ export class MenuAvailabilityService {
             ),
           );
       }
+    }
+
+    // Restore on Glovo. The push itself re-checks for a GLOVO or ALL snooze
+    // still covering the item at that store, so an "ALL" 86 outliving a
+    // GLOVO unsnooze does not put the item back on sale there.
+    if ((args.channel === "GLOVO" || args.channel === "ALL") && this.glovoAvailability) {
+      this.glovoAvailability
+        .pushItemAvailability({
+          tenantId: args.tenantId,
+          itemId: args.itemId,
+          available: true,
+          locationId: args.locationId,
+        })
+        .catch((err) =>
+          this.logger.warn(
+            `Glovo availability restore failed for item ${args.itemId}: ${err?.message ?? err}`,
+          ),
+        );
     }
 
     // Restore on Uber: suspension null = back on sale. Guard: another row

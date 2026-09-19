@@ -3911,6 +3911,7 @@ enum IntegrationPlatform {
   DOORDASH
   GRUBHUB
   CAREEM
+  GLOVO
   WHATSAPP
 }
 
@@ -3933,6 +3934,7 @@ enum OrderPlatform {
   DOORDASH
   GRUBHUB
   CAREEM
+  GLOVO
   WHATSAPP
   // The AI phone line. The voice module used to write "PHONE" here, which is
   // not a member of this enum — so Prisma rejected every completed call and
@@ -3952,6 +3954,7 @@ enum OrderSource {
   DOORDASH
   GRUBHUB
   CAREEM
+  GLOVO
   WHATSAPP
   // Taken over the phone by the AI voice line. Shown as "AI Voice".
   VOICE

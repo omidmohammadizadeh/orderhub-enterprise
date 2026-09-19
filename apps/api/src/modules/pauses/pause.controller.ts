@@ -38,6 +38,7 @@ const CHANNELS: SupportedChannel[] = [
   "DELIVEROO",
   "WHATSAPP",
   "HUBRISE",
+  "GLOVO",
 ];
 const DURATIONS: DurationPreset[] = [
   "1h",

@@ -2824,6 +2824,12 @@ model Driver {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // One driver record per login. Several requests land at once when the app
+  // signs in and each ran the same find-then-create, so one person ended up
+  // with four rows and dispatch could pick the wrong one. NULL userIds are
+  // distinct in Postgres, so operator-created rows with no login are
+  // unaffected.
+  @@unique([tenantId, userId])
   @@index([tenantId])
   @@index([tenantId, isActive])
   @@index([locationId])
@@ -2995,7 +3001,7 @@ model WhatsAppConversation {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// PHASE F ��� PAYMENT & FINANCIAL SYSTEM
+// PHASE F — PAYMENT & FINANCIAL SYSTEM
 // ══════════════════════════════════════════════════════════════════════════════
 
 // Stripe Connect account per tenant (or per brand/location for multi-entity)
@@ -3819,7 +3825,7 @@ model OutboxEvent {
   @@map("outbox_events")
 }
 
-// ════��═════════════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════════
 // Enums
 // ══════════════════════════════════════════════════════════════════════════════
 
@@ -3905,6 +3911,7 @@ enum IntegrationPlatform {
   DOORDASH
   GRUBHUB
   CAREEM
+  GLOVO
   WHATSAPP
 }
 
@@ -3927,6 +3934,7 @@ enum OrderPlatform {
   DOORDASH
   GRUBHUB
   CAREEM
+  GLOVO
   WHATSAPP
   // The AI phone line. The voice module used to write "PHONE" here, which is
   // not a member of this enum — so Prisma rejected every completed call and
@@ -3946,6 +3954,7 @@ enum OrderSource {
   DOORDASH
   GRUBHUB
   CAREEM
+  GLOVO
   WHATSAPP
   // Taken over the phone by the AI voice line. Shown as "AI Voice".
   VOICE

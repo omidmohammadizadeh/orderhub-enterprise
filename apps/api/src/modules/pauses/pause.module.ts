@@ -5,6 +5,7 @@ import { HubRiseModule } from "../integrations/hubrise/hubrise.module";
 import { DeliverooModule } from "../integrations/deliveroo/deliveroo.module";
 import { UberEatsModule } from "../integrations/ubereats/ubereats.module";
 import { JetModule } from "../integrations/jet/jet.module";
+import { GlovoModule } from "../integrations/glovo/glovo.module";
 
 @Module({
   // Phase BA-2 — DeliverooModule provides DeliverooConnectionService so a
@@ -15,6 +16,7 @@ import { JetModule } from "../integrations/jet/jet.module";
     DeliverooModule,
     UberEatsModule,
     JetModule,
+    GlovoModule,
   ],
   controllers: [PauseController],
   providers: [PauseService],

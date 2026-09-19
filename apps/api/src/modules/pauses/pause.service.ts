@@ -19,6 +19,7 @@ import { HubRiseLocationPauseService } from "../integrations/hubrise/hubrise-loc
 import { DeliverooConnectionService } from "../integrations/deliveroo/deliveroo-connection.service";
 import { UberEatsConnectionService } from "../integrations/ubereats/ubereats-connection.service";
 import { JetStoreStatusService } from "../integrations/jet/jet-store-status.service";
+import { GlovoStoreStatusService } from "../integrations/glovo/glovo-store-status.service";
 import { ActivityLogService } from "../logs/activity-log.service";
 
 export type SupportedChannel =
@@ -28,7 +29,8 @@ export type SupportedChannel =
   | "UBER_EATS"
   | "DELIVEROO"
   | "WHATSAPP"
-  | "HUBRISE";
+  | "HUBRISE"
+  | "GLOVO";
 
 export type DurationPreset =
   | "1h"
@@ -73,6 +75,9 @@ export class PauseService {
     // Phase JE-5 — same mirror for the brand's direct Just Eat restaurant.
     private readonly jet: JetStoreStatusService,
     @Optional() private readonly activity?: ActivityLogService,
+    // Phase GL-5 — Glovo temporary closing. Last and optional so the specs
+    // that construct this service positionally are unaffected.
+    @Optional() private readonly glovo?: GlovoStoreStatusService,
   ) {}
 
   // ─── Reads ─────────────────────────────────────────────────────────
@@ -254,6 +259,8 @@ export class PauseService {
     void this.reconcileUberEats(args.scope, args.tenantId);
     void this.reconcileJustEat(args.scope, args.tenantId);
 
+    void this.reconcileGlovo(args.scope, args.tenantId);
+
     return row;
   }
 
@@ -304,6 +311,11 @@ export class PauseService {
         { locationId: row.locationId, brandId: row.brandId, channel: row.channel },
         args.tenantId,
       );
+
+      void this.reconcileGlovo(
+        { locationId: row.locationId, brandId: row.brandId, channel: row.channel },
+        args.tenantId,
+      );
       this.activity?.record({
         tenantId: args.tenantId,
         locationId: row.locationId,
@@ -328,6 +340,8 @@ export class PauseService {
     void this.reconcileDeliveroo(args.scope, args.tenantId);
     void this.reconcileUberEats(args.scope, args.tenantId);
     void this.reconcileJustEat(args.scope, args.tenantId);
+
+    void this.reconcileGlovo(args.scope, args.tenantId);
     this.activity?.record({
       tenantId: args.tenantId,
       locationId: args.scope.locationId,
@@ -478,6 +492,48 @@ export class PauseService {
       }
     } catch (e: any) {
       this.logger.warn(`Just Eat pause reconcile failed: ${e?.message}`);
+    }
+  }
+
+  /**
+   * Mirror our pause state onto the brand's Glovo store(s).
+   *
+   * Glovo's only lever is a temporary closing WITH an end time — there is no
+   * open-ended close — so a timed pause passes its own resumeAt and restores
+   * itself on Glovo, and an open-ended one closes for a bounded period (see
+   * GlovoStoreStatusService) until resumed.
+   */
+  private async reconcileGlovo(scope: PauseScope, tenantId: string): Promise<void> {
+    try {
+      if (!this.glovo) return;
+      if (scope.channel && scope.channel !== "GLOVO") return;
+      const conns = await this.prisma.brandPlatformConnection.findMany({
+        where: {
+          locationId: scope.locationId,
+          platform: "GLOVO",
+          ...(scope.brandId ? { brandId: scope.brandId } : {}),
+          status: { in: ["connected", "suspended"] },
+        },
+        select: { brandId: true, tenantId: true },
+      });
+      for (const c of conns) {
+        const snap = await this.isPaused({
+          locationId: scope.locationId,
+          brandId: c.brandId,
+          channel: "GLOVO",
+        });
+        await this.glovo
+          .reconcile({
+            tenantId: c.tenantId ?? tenantId,
+            brandId: c.brandId,
+            locationId: scope.locationId,
+            paused: snap.paused,
+            until: snap.paused ? (snap.resumeAt ?? null) : null,
+          })
+          .catch((e: any) => this.logger.warn(`Glovo pause reconcile failed: ${e?.message}`));
+      }
+    } catch (e: any) {
+      this.logger.warn(`Glovo pause reconcile failed: ${e?.message}`);
     }
   }
 

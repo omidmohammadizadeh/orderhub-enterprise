@@ -3861,6 +3861,7 @@ exports.IntegrationPlatform = exports.$Enums.IntegrationPlatform = {
   DOORDASH: 'DOORDASH',
   GRUBHUB: 'GRUBHUB',
   CAREEM: 'CAREEM',
+  GLOVO: 'GLOVO',
   WHATSAPP: 'WHATSAPP'
 };
 
@@ -3936,6 +3937,7 @@ exports.OrderPlatform = exports.$Enums.OrderPlatform = {
   DOORDASH: 'DOORDASH',
   GRUBHUB: 'GRUBHUB',
   CAREEM: 'CAREEM',
+  GLOVO: 'GLOVO',
   WHATSAPP: 'WHATSAPP',
   VOICE: 'VOICE'
 };
@@ -3952,6 +3954,7 @@ exports.OrderSource = exports.$Enums.OrderSource = {
   DOORDASH: 'DOORDASH',
   GRUBHUB: 'GRUBHUB',
   CAREEM: 'CAREEM',
+  GLOVO: 'GLOVO',
   WHATSAPP: 'WHATSAPP',
   VOICE: 'VOICE'
 };

@@ -115,6 +115,26 @@ export const appConfig = registerAs("app", () => ({
       // the order at 3 minutes and every later ack 400s. Stop retrying.
       ackGiveUpSeconds: Number(process.env.JET_ACK_GIVE_UP_SECONDS ?? 300),
     },
+    // Phase GL — direct Glovo (restaurant Partners API, api.glovoapp.com).
+    //
+    // NOT the Delivery Hero "Q-Commerce Partner API" (partner.deliveryhero.io,
+    // OAuth2) — that one is for grocery and has no modifiers. See
+    // docs/glovo-integration.md.
+    //
+    // Glovo issues ONE static shared token per environment for the whole
+    // integration, the same for every store. We send it in `Authorization`
+    // with no Bearer prefix, and Glovo sends it back to us in `Authorization`
+    // on every webhook — that is the webhooks' only authentication (no HMAC).
+    // GLOVO_WEBHOOK_TOKEN exists only in case Glovo ever issues a different
+    // value for the inbound direction; unset, the API token is expected.
+    glovo: {
+      apiToken: process.env.GLOVO_API_TOKEN ?? "",
+      webhookToken: process.env.GLOVO_WEBHOOK_TOKEN ?? "",
+      // "stage" by default so a fresh deploy can never send a real store's
+      // status to production by accident.
+      env: process.env.GLOVO_ENV === "production" ? "production" : "stage",
+      baseUrl: process.env.GLOVO_API_BASE ?? "",
+    },
     hubrise: {
       // Phase AU — HubRise OAuth client. HubRise's dashboard calls
       // these "Application ID" and "Application Secret"; the OAuth
