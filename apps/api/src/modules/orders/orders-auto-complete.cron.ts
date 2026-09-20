@@ -3,6 +3,7 @@ import { Cron } from "@nestjs/schedule";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { LoyaltyService } from "../loyalty/loyalty.service";
 import { ReferralService } from "../loyalty/referral.service";
+import { DispatchSettlementService } from "../dispatch/dispatch-settlement.service";
 
 // Phase AW-27 — Daily auto-complete at the business-day rollover.
 //
@@ -48,6 +49,7 @@ export class OrdersAutoCompleteCron {
     private readonly prisma: PrismaService,
     private readonly loyalty: LoyaltyService,
     private readonly referrals: ReferralService,
+    private readonly dispatchSettlement: DispatchSettlementService,
   ) {}
 
   // 05:00 UTC daily.
@@ -90,6 +92,8 @@ export class OrdersAutoCompleteCron {
 
     if (rows.length === 0) {
       this.logger.log("Auto-complete: no in-flight orders to roll over.");
+      // Still sweep: a stranded assignment can outlive the order that made it.
+      await this.settleDispatch();
       return;
     }
 
@@ -126,6 +130,11 @@ export class OrdersAutoCompleteCron {
       ).join(", ")}).`,
     );
 
+    // The board is clean; now make dispatch agree. Completing the order alone
+    // left the driver's assignment live, so the job stayed on the driver's
+    // screen overnight and the driver stayed ON_JOB and off the available list.
+    await this.settleDispatch();
+
     // Pay out what these orders earned.
     //
     // Called directly rather than by emitting order.status_changed, for two
@@ -158,6 +167,33 @@ export class OrdersAutoCompleteCron {
     if (stamped || referred) {
       this.logger.log(
         `Rollover awarded ${stamped} loyalty stamp(s) and settled ${referred} referral(s).`,
+      );
+    }
+  }
+
+  /**
+   * Close the dispatch layer for every order that is now finished.
+   *
+   * Called explicitly because the UPDATE above is deliberately raw SQL with no
+   * event, so nothing downstream hears it. The sweep goes by order status
+   * rather than by the ids this run just wrote, which also heals assignments
+   * stranded by completions that happened before any of this existed.
+   *
+   * Never allowed to fail the run: the orders are already completed, and the
+   * next night's sweep picks up anything this misses.
+   */
+  private async settleDispatch(): Promise<void> {
+    try {
+      const { assignments, driversFreed } =
+        await this.dispatchSettlement.sweepTerminalOrders();
+      if (assignments > 0) {
+        this.logger.log(
+          `Rollover settled ${assignments} driver assignment(s); ${driversFreed} driver(s) back on the available list.`,
+        );
+      }
+    } catch (err) {
+      this.logger.warn(
+        `Rollover dispatch settlement failed: ${(err as Error).message}`,
       );
     }
   }

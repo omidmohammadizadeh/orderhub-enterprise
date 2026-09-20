@@ -204,7 +204,21 @@ export function JobScreen({
         onBack?.();
       }
     } catch (err) {
-      Alert.alert("Error", (err as Error)?.message ?? "Try again");
+      // The API's own message is on the axios response; (err as Error).message
+      // is only "Request failed with status code 400", which tells a driver
+      // stood on a doorstep nothing. The one that matters here is the closed-
+      // order guard: the operator completed this stop on the board, or the 5am
+      // rollover swept it up overnight.
+      const detail = (err as any)?.response?.data?.message;
+      Alert.alert(
+        "Error",
+        (Array.isArray(detail) ? detail.join("\n") : detail) ||
+          (err as Error)?.message ||
+          "Try again",
+      );
+      // A refused action means our copy of the job is stale — refresh so a card
+      // for an order that has already closed drops off the screen.
+      onChanged();
     } finally {
       if (action === "start" || action === "arrived") setSubmitting(false);
       // For terminal actions keep the spinner until App unmounts this card.

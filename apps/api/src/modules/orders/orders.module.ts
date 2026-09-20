@@ -12,6 +12,7 @@ import { PromoCodesModule } from "../promo-codes/promo-codes.module";
 import { PaymentsModule } from "../payments/payments.module";
 import { HubRiseModule } from "../integrations/hubrise/hubrise.module";
 import { CustomerPushModule } from "../customer-push/customer-push.module";
+import { DispatchSettlementModule } from "../dispatch/dispatch-settlement.module";
 
 @Module({
   imports: [
@@ -36,6 +37,10 @@ import { CustomerPushModule } from "../customer-push/customer-push.module";
     // Phase AX — a status change tells the customer's browser. One-way
     // (orders → push), so no forwardRef needed.
     CustomerPushModule,
+    // An order reaching a terminal status has to close its driver assignment
+    // too, or the job stays live in the driver app and the driver stays ON_JOB.
+    // Imports nothing itself, so no cycle.
+    DispatchSettlementModule,
   ],
   controllers: [OrdersController],
   providers: [OrdersService, OrdersAutoCompleteCron, VoidItemsService],

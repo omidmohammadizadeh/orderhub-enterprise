@@ -22,6 +22,7 @@ import { PrintQueueService } from "../printers/print-queue.service";
 import { PrintJobsService } from "../printers/print-jobs.service";
 import { HubRiseOrderSyncService } from "../integrations/hubrise/hubrise-order-sync.service";
 import { CustomerPushService } from "../customer-push/customer-push.service";
+import { DispatchSettlementService } from "../dispatch/dispatch-settlement.service";
 import { HubRiseDeliverySyncService } from "../integrations/hubrise/hubrise-delivery-sync.service";
 import { PaymentsService } from "../payments/payments.service";
 import { TapService } from "../payments/tap.service";
@@ -224,6 +225,10 @@ export class OrdersService {
     private readonly events: EventEmitter2,
     // Phase AX — order updates to the customer's browser via Web Push.
     private readonly customerPush: CustomerPushService,
+    // An order finishing has to close its driver assignment too, or the job
+    // stays live in the driver app and the driver stays ON_JOB. No forwardRef:
+    // DispatchSettlementModule imports nothing.
+    private readonly dispatchSettlement: DispatchSettlementService,
   ) {}
 
   /**
@@ -2294,6 +2299,25 @@ export class OrdersService {
         createdAt: settled.createdAt.toISOString(),
       } as any);
     }
+
+    // Same reason as updateStatus: this writes COMPLETED straight to the
+    // database, so nothing downstream closes the dispatch side. A dine-in tab
+    // has no driver today, which makes this a no-op — it is here so that
+    // "every order reaching a terminal status settles its assignment" holds
+    // without an exception somebody has to remember.
+    if (settled) {
+      try {
+        await this.dispatchSettlement.settleForOrder(
+          orderId,
+          settled.status,
+          settled.updatedAt,
+        );
+      } catch (err: any) {
+        this.logger.warn(
+          `Dispatch settlement failed for settled tab ${orderId}: ${err.message}`,
+        );
+      }
+    }
   }
 
   // ── Status transitions ────────────────────────────────
@@ -2406,6 +2430,28 @@ export class OrdersService {
 
       return updated;
     });
+
+    // Close the dispatch layer in step with the order. Finishing the order
+    // alone used to leave the DriverAssignment live, so the job stayed on the
+    // driver's screen — actionable, and actioning it pushed the finished order
+    // back to OUT_FOR_DELIVERY — and the driver stayed ON_JOB, which takes them
+    // off dispatch's available list. A no-op for anything without a live
+    // assignment, which is most orders.
+    //
+    // Best-effort, not fatal: the status change has already committed, so
+    // throwing here would report failure for work that happened. The nightly
+    // sweep settles whatever this misses.
+    try {
+      await this.dispatchSettlement.settleForOrder(
+        orderId,
+        newStatus,
+        updated.updatedAt,
+      );
+    } catch (err: any) {
+      this.logger.warn(
+        `Dispatch settlement failed for order ${orderId}: ${err.message}`,
+      );
+    }
 
     // Only STAFF actors carry a real User id. WEBHOOK/SYSTEM changes pass a
     // synthetic label (e.g. "webhook:UBER_EATS", "system") in `changedBy` that

@@ -12,6 +12,7 @@ import { TapService } from "../../payments/tap.service";
 import { HubRiseOrderSyncService } from "../../integrations/hubrise/hubrise-order-sync.service";
 import { HubRiseDeliverySyncService } from "../../integrations/hubrise/hubrise-delivery-sync.service";
 import { CustomerPushService } from "../../customer-push/customer-push.service";
+import { DispatchSettlementService } from "../../dispatch/dispatch-settlement.service";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { PromoCodesService } from "../../promo-codes/promo-codes.service";
 import type { CanonicalOrder } from "@orderhub/shared";
@@ -179,6 +180,17 @@ describe("OrdersService", () => {
         { provide: HubRiseOrderSyncService, useValue: idleService() },
         { provide: HubRiseDeliverySyncService, useValue: idleService() },
         { provide: CustomerPushService, useValue: idleService() },
+        {
+          // Closes the driver's assignment when an order goes terminal. A
+          // no-op for everything this suite touches, but Nest still has to
+          // construct it.
+          provide: DispatchSettlementService,
+          useValue: {
+            settleForOrder: jest
+              .fn()
+              .mockResolvedValue({ assignments: 0, driversFreed: 0 }),
+          },
+        },
         { provide: EventEmitter2, useValue: { emit: jest.fn() } },
       ],
     }).compile();

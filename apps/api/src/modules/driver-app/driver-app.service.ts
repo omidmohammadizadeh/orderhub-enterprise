@@ -14,6 +14,7 @@ import { HubRiseOrderSyncService } from "../integrations/hubrise/hubrise-order-s
 import { SocketService } from "../../infrastructure/socket/socket.service";
 import { ChatService } from "../chat/chat.service";
 import { coercePostcodeFees, matchPostcodeFee } from "../dispatch/driver-earnings.service";
+import { TERMINAL_ORDER_STATUSES } from "../dispatch/dispatch-settlement.service";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
 export interface PingDto {
@@ -469,8 +470,32 @@ export class DriverAppService {
     const driver = await this.resolveDriver(user);
     const assignment = await this.prisma.driverAssignment.findFirst({
       where: { orderId, driverId: driver.id },
+      include: { order: { select: { status: true } } },
     });
     if (!assignment) throw new NotFoundException("No assignment for this order");
+
+    // The order can finish without this driver: the operator completes it on
+    // the board, a marketplace webhook closes it, or the 5am rollover sweeps it
+    // up overnight. A job card can therefore be stale by the time it is
+    // tapped — and before this guard, tapping it dragged the order back to
+    // life: a finished order returned to the live board and the dispatch map,
+    // `outForDeliveryAt` was re-stamped, and the status was pushed to HubRise
+    // and the customer's tracker all over again.
+    //
+    // Forward moves are refused. The closing actions still work, so a driver
+    // can always clear a card off their screen — they settle the assignment
+    // and leave the finished order exactly as it is.
+    const orderIsClosed = TERMINAL_ORDER_STATUSES.includes(
+      assignment.order.status,
+    );
+    if (
+      orderIsClosed &&
+      (action === "accept" || action === "start" || action === "arrived")
+    ) {
+      throw new BadRequestException(
+        "This order has already been closed. Pull down to refresh your jobs.",
+      );
+    }
 
     const now = new Date();
 
@@ -527,10 +552,12 @@ export class DriverAppService {
           where: { id: assignment.id },
           data: { status: DriverAssignmentStatus.DELIVERED, deliveredAt: now },
         });
-        await this.prisma.order.update({
-          where: { id: orderId },
-          data: { status: OrderStatus.COMPLETED, deliveredAt: now },
-        });
+        if (!orderIsClosed) {
+          await this.prisma.order.update({
+            where: { id: orderId },
+            data: { status: OrderStatus.COMPLETED, deliveredAt: now },
+          });
+        }
         await this.upsertPresence(driver, {
           status: DriverPresenceStatus.ONLINE,
           activeAssignmentId: null,
@@ -542,10 +569,12 @@ export class DriverAppService {
           where: { id: assignment.id },
           data: { status: DriverAssignmentStatus.CANCELLED },
         });
-        await this.prisma.order.update({
-          where: { id: orderId },
-          data: { status: OrderStatus.FAILED, failureReason: "Customer did not answer" },
-        });
+        if (!orderIsClosed) {
+          await this.prisma.order.update({
+            where: { id: orderId },
+            data: { status: OrderStatus.FAILED, failureReason: "Customer did not answer" },
+          });
+        }
         await this.upsertPresence(driver, {
           status: DriverPresenceStatus.ONLINE,
           activeAssignmentId: null,
@@ -557,10 +586,12 @@ export class DriverAppService {
           where: { id: assignment.id },
           data: { status: DriverAssignmentStatus.CANCELLED },
         });
-        await this.prisma.order.update({
-          where: { id: orderId },
-          data: { status: OrderStatus.READY },
-        });
+        if (!orderIsClosed) {
+          await this.prisma.order.update({
+            where: { id: orderId },
+            data: { status: OrderStatus.READY },
+          });
+        }
         await this.upsertPresence(driver, {
           status: DriverPresenceStatus.ONLINE,
           activeAssignmentId: null,
@@ -581,8 +612,11 @@ export class DriverAppService {
     // Propagate the transition to HubRise (fire-and-forget; no-ops for
     // non-HubRise orders) so connected channels see the same lifecycle the
     // driver walks. Mirrors the operator-side OrdersService.updateStatus push.
+    // Nothing to propagate when the order was already closed — we left its
+    // status alone, so pushing one would tell HubRise about a transition that
+    // did not happen.
     const pushStatus = DriverAppService.PUSH_STATUS_BY_ACTION[action];
-    if (pushStatus) {
+    if (pushStatus && !orderIsClosed) {
       void this.hubriseSync.pushStatus({ orderId, newStatus: pushStatus });
     }
 

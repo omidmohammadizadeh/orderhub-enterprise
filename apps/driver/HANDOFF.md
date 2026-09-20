@@ -148,6 +148,18 @@ Customer chat deliberately uses `orders/` not `jobs/`, to dodge the
 and stamp `outForDeliveryAt` / `deliveredAt` on the order, which is what drives
 the customer's live tracking page.
 
+**An order can finish without the driver**, and the app has to cope: the
+operator completes it on the board, a marketplace webhook closes it, or the 5am
+rollover sweeps it up overnight. The API now settles the `DriverAssignment`
+whenever the order goes terminal (`DispatchSettlementService`), so `my-day` stops
+returning it and the job card disappears on the next 8s poll — before this, last
+night's stop was still on screen the next morning, locked if it had reached
+PICKED_UP. `jobs/:orderId/:action` also refuses accept/start/arrived on a closed
+order with a **400** (tapping one used to push the finished order back to
+OUT_FOR_DELIVERY). delivered/skip/cancel still succeed so a stale card can always
+be cleared. If you touch `JobScreen`'s action handling, show that 400's message
+rather than a generic "Try again" — it tells the driver to refresh.
+
 ## 6. Landmines — read before changing anything
 
 1. **`eas build` packages your LOCAL working directory, not the pushed
