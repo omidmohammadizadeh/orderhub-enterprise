@@ -45,6 +45,7 @@ import {
   registerForPush,
   setupJobCategory,
 } from "@/services/notifications";
+import { applyDownloadedUpdate, downloadUpdateIfAvailable } from "@/services/updates";
 import { LoginScreen } from "@/screens/LoginScreen";
 import { HomeScreen } from "@/screens/HomeScreen";
 import { JobScreen } from "@/screens/JobScreen";
@@ -360,6 +361,62 @@ export default function App() {
   useEffect(() => {
     if (anyStarted) setMinimized(false);
   }, [anyStarted]);
+
+  // ── OTA updates ─────────────────────────────────────────────────────────────
+  // expo-updates checks at cold launch by itself, but a driver keeps this app
+  // open for a whole shift, so re-check on every foreground too. Download here;
+  // the effect below decides when it is safe to restart into it.
+  const [updateReady, setUpdateReady] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    const check = () => {
+      downloadUpdateIfAvailable().then((ready) => {
+        if (ready && !cancelled) setUpdateReady(true);
+      });
+    };
+    check();
+    const sub = AppState.addEventListener("change", (s) => {
+      if (s === "active") check();
+    });
+    return () => {
+      cancelled = true;
+      sub.remove();
+    };
+  }, []);
+
+  // Restart into a staged update only when nothing is in flight: signed in and
+  // sitting on the home screen, no dispatched stop, nothing open, no request
+  // running. From there a reload is a blink — auth is in SecureStore and
+  // presence is server-side, so the driver stays signed in and stays online —
+  // but doing it mid-delivery, over a half-typed chat message, or through a
+  // sign-in or the location disclosure is not worth the minutes it saves.
+  useEffect(() => {
+    if (!updateReady) return;
+    const idle =
+      !!tokens &&
+      !current &&
+      !manualJob &&
+      !customerChatOrderId &&
+      !overlay &&
+      !ordersTab &&
+      !showDisclosure &&
+      !busy;
+    if (!idle) return;
+    const t = setTimeout(() => {
+      applyDownloadedUpdate();
+    }, 1_500);
+    return () => clearTimeout(t);
+  }, [
+    updateReady,
+    tokens,
+    current,
+    manualJob,
+    customerChatOrderId,
+    overlay,
+    ordersTab,
+    showDisclosure,
+    busy,
+  ]);
 
   if (!hydrated) {
     return (

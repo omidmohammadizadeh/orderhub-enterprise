@@ -6,6 +6,7 @@ ios/
 android/
 *.log
 .env*
+!.env.example
 # google-services.json is committed (client config, not a secret) so EAS Build
 # bundles it — EAS applies .gitignore patterns even to tracked files.
 GoogleService-Info.plist
