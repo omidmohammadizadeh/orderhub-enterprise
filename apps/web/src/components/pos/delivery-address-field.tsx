@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, MapPin } from "lucide-react";
-import { postcodeRequiredFor, zoneMode, areaZoneNames } from "@orderhub/shared";
+import { postcodeFieldRequired, zoneMode, areaZoneNames } from "@orderhub/shared";
 import { useCurrency } from "@/hooks/use-currency";
 import {
   addressLookupClient,
@@ -74,8 +74,11 @@ export function DeliveryAddressField({
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<AddressSuggestion[]>([]);
   const [searching, setSearching] = useState(false);
-  const { country } = useCurrency();
-  const needsPostcode = postcodeRequiredFor(country);
+  // The ORDER's shop, not the one the operator last looked at. The switch
+  // modal acts on an order that may belong to another site, and getting this
+  // wrong hides the postcode box on a UK order because a Gulf shop happened
+  // to be selected.
+  const { country } = useCurrency(locationId);
   const zonesQuery = useQuery<DeliveryZone[]>({
     queryKey: ["delivery-zones", locationId],
     queryFn: () => deliveryZonesClient.list(locationId!),
@@ -83,8 +86,13 @@ export function DeliveryAddressField({
     staleTime: 60_000,
   });
   const zones = zonesQuery.data ?? [];
-  const byArea = zoneMode(zones as any) === "AREA";
+  const mode = zoneMode(zones as any);
+  const byArea = mode === "AREA";
   const areas = areaZoneNames(zones as any);
+  // The country expects a postcode, or this shop prices by one. Shared with
+  // the storefront's rule so the till and the customer never disagree about
+  // whether an address is complete.
+  const showPostcode = postcodeFieldRequired(country, zones as any);
 
   useEffect(() => {
     if (query.trim().length < 3) {
@@ -196,15 +204,15 @@ export function DeliveryAddressField({
         <input
           value={draft.city ?? ""}
           onChange={(e) => set({ city: e.target.value })}
-          placeholder={needsPostcode ? "City" : "City / emirate"}
+          placeholder={showPostcode ? "City" : "City / emirate"}
           aria-label="City"
           className={
-            needsPostcode
+            showPostcode
               ? "col-span-2 rounded-lg border border-zinc-300 px-3 py-2.5 text-sm outline-none focus:border-zinc-900"
               : "col-span-3 rounded-lg border border-zinc-300 px-3 py-2.5 text-sm outline-none focus:border-zinc-900"
           }
         />
-        {needsPostcode && (
+        {showPostcode && (
           <input
             value={draft.postcode ?? ""}
             onChange={(e) => set({ postcode: e.target.value.toUpperCase() })}
@@ -232,7 +240,9 @@ export function DeliveryAddressField({
       <p className="text-[11px] text-zinc-400">
         {byArea
           ? "The area sets the delivery fee on the next step."
-          : "The postcode sets the delivery fee on the next step."}
+          : mode === "RADIUS"
+            ? "The distance from the shop sets the delivery fee on the next step."
+            : "The postcode sets the delivery fee on the next step."}
       </p>
     </Field>
   );

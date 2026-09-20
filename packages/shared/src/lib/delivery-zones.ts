@@ -324,7 +324,29 @@ export function resolveZone(
 const POSTCODE_COUNTRIES = new Set(["GB", "IE", "US"]);
 
 export function postcodeRequiredFor(country: string | null | undefined): boolean {
-  return POSTCODE_COUNTRIES.has(String(country ?? "GB").trim().toUpperCase());
+  // `?? "GB"` alone catches null and undefined but NOT the empty string, and a
+  // shop whose country was never filled in stores "" rather than null. That
+  // fell through to "not a postcode country" and quietly took the postcode box
+  // away from a UK shop, so blank is normalised to the documented default too.
+  const code = String(country ?? "").trim().toUpperCase() || "GB";
+  return POSTCODE_COUNTRIES.has(code);
+}
+
+/**
+ * Should an address form show a postcode box?
+ *
+ * Two independent reasons it must. The country uses postcodes at all — or this
+ * shop prices delivery BY postcode, in which case the fee cannot be worked out
+ * without one whatever the country column happens to say. A shop whose country
+ * is set to one with no postal system, but whose zones still match on
+ * postcode, otherwise loses the field and sends every delivery out with no fee
+ * on it — silently, because nothing on the screen is red.
+ */
+export function postcodeFieldRequired(
+  country: string | null | undefined,
+  zones: ZoneLike[],
+): boolean {
+  return postcodeRequiredFor(country) || zoneMode(zones) === "POSTCODE";
 }
 
 /** Miles for the UK and the US, kilometres everywhere else. Bands are STORED

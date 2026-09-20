@@ -17,6 +17,7 @@ import {
   radiusBands,
   normaliseAreaName,
   postcodeRequiredFor,
+  postcodeFieldRequired,
   distanceUnitForCountry,
   defaultZoneModeForCountry,
   formatDistance,
@@ -225,11 +226,46 @@ describe("country conventions", () => {
     expect(postcodeRequiredFor("SA")).toBe(false);
     expect(postcodeRequiredFor("KW")).toBe(false);
     expect(postcodeRequiredFor(null)).toBe(true); // defaults to the UK
+    // A shop that never had its country filled in stores "", not null — which
+    // took the postcode box away from UK shops until blank defaulted too.
+    expect(postcodeRequiredFor("")).toBe(true);
+    expect(postcodeRequiredFor("   ")).toBe(true);
+    expect(postcodeRequiredFor("gb")).toBe(true); // case and padding tolerated
+    expect(postcodeRequiredFor(" Gb ")).toBe(true);
   });
 
   it("offers areas by default where there are no postcodes", () => {
     expect(defaultZoneModeForCountry("GB")).toBe("POSTCODE");
     expect(defaultZoneModeForCountry("AE")).toBe("AREA");
+  });
+
+  describe("postcodeFieldRequired — whether the address form shows the box", () => {
+    const postcodeZones = [postcode("z1", "NE10", 2.5)];
+    const areaZones = [area("z1", "Dubai Marina", 10)];
+
+    it("shows it wherever the country uses postcodes", () => {
+      expect(postcodeFieldRequired("GB", areaZones)).toBe(true);
+      expect(postcodeFieldRequired("GB", [])).toBe(true);
+      expect(postcodeFieldRequired(null, [])).toBe(true);
+    });
+
+    it("hides it for a Gulf shop pricing by area", () => {
+      expect(postcodeFieldRequired("AE", areaZones)).toBe(false);
+      expect(postcodeFieldRequired("AE", [])).toBe(false);
+    });
+
+    // The bug this exists for: a shop whose country column said AE while its
+    // zones still matched on postcode lost the box, so the till could not
+    // work out a fee and every delivery went out at £0 with nothing on screen
+    // to say why.
+    it("shows it when the SHOP prices by postcode, whatever the country says", () => {
+      expect(postcodeFieldRequired("AE", postcodeZones)).toBe(true);
+      expect(postcodeFieldRequired("SA", postcodeZones)).toBe(true);
+    });
+
+    it("leaves a radius shop alone — distance needs no postcode", () => {
+      expect(postcodeFieldRequired("AE", [band("z1", 3, 2)])).toBe(false);
+    });
   });
 
   it("reads distance in the unit the country uses", () => {
