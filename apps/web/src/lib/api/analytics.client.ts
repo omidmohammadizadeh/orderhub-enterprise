@@ -22,10 +22,30 @@ export interface OverviewSummary {
   prevAvgOrderValue: number;
 }
 
+/** How the takings were settled. Cash vs card, plus what is still owed. */
+export interface PaymentMix {
+  cash: { orders: number; revenue: number };
+  card: { orders: number; revenue: number };
+  /** Collection orders not yet paid for — cash vs card unknown until arrival. */
+  pending: { orders: number; revenue: number };
+  other: { orders: number; revenue: number };
+  paidOrders: number;
+  paidRevenue: number;
+  unpaidOrders: number;
+  unpaidRevenue: number;
+  byMethod: Array<{
+    method: string;
+    group: "CASH" | "CARD" | "PENDING" | "OTHER";
+    orders: number;
+    revenue: number;
+  }>;
+}
+
 export interface AnalyticsOverview {
   generatedAt: string;
   window: { from: string; to: string; prevFrom: string; prevTo: string };
   summary: OverviewSummary;
+  paymentMix: PaymentMix;
   revenueTimeline: Array<{
     date: string;
     revenue: number;
@@ -43,6 +63,12 @@ export interface AnalyticsOverview {
     name: string;
     revenue: number;
     orders: number;
+    cashRevenue: number;
+    cashOrders: number;
+    cardRevenue: number;
+    cardOrders: number;
+    pendingRevenue: number;
+    otherRevenue: number;
   }>;
   byBrand: Array<{
     id: string;

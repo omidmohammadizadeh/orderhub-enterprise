@@ -1309,14 +1309,134 @@ export class AnalyticsService {
       }))
       .sort((a, b) => b.revenue - a.revenue);
 
+    // ── Payment mix (cash vs card) ─────────────────────────────────
+    // Order.paymentMethod is a free-text column written by a dozen
+    // paths — the till DTO, the marketplace adapters, voice, group
+    // orders and the payment-link flow — so we bucket the vocabulary
+    // that is actually written rather than trusting a single label.
+    // Anything unrecognised lands in OTHER and is still shown by its
+    // raw name in byMethod, so a new writer shows up as a visible row
+    // instead of silently vanishing from the totals.
+    const CASH_METHODS = new Set(["CASH"]);
+    const CARD_METHODS = new Set([
+      "CARD",
+      "CARD_TERMINAL",
+      "ONLINE_CARD",
+      "PAYMENT_LINK",
+      "QR_CODE",
+      "APPLE_PAY",
+      "GOOGLE_PAY",
+    ]);
+    type PaymentGroup = "CASH" | "CARD" | "PENDING" | "OTHER";
+    const paymentGroupOf = (m: string | null | undefined): PaymentGroup => {
+      const key = (m ?? "").trim().toUpperCase();
+      if (CASH_METHODS.has(key)) return "CASH";
+      if (CARD_METHODS.has(key)) return "CARD";
+      // A collection order the customer hasn't arrived for: cash vs card
+      // is genuinely unknown until they pay, so it is neither.
+      if (key === "PAY_ON_COLLECTION") return "PENDING";
+      return "OTHER";
+    };
+    const round2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
+
+    const newGroupTotals = () => ({
+      CASH: { orders: 0, revenue: 0 },
+      CARD: { orders: 0, revenue: 0 },
+      PENDING: { orders: 0, revenue: 0 },
+      OTHER: { orders: 0, revenue: 0 },
+    });
+    const paymentTotals = newGroupTotals();
+    const methodMap = new Map<
+      string,
+      { group: PaymentGroup; orders: number; revenue: number }
+    >();
+    const paymentsByLocation = new Map<string, ReturnType<typeof newGroupTotals>>();
+    let paidOrders = 0;
+    let paidRevenue = 0;
+    let successfulRevenue = 0;
+
+    for (const o of successful) {
+      const amount = Number(o.total);
+      const group = paymentGroupOf(o.paymentMethod);
+      const method = (o.paymentMethod ?? "").trim().toUpperCase() || "UNSPECIFIED";
+
+      successfulRevenue += amount;
+      paymentTotals[group].orders += 1;
+      paymentTotals[group].revenue += amount;
+
+      const m = methodMap.get(method) ?? { group, orders: 0, revenue: 0 };
+      m.orders += 1;
+      m.revenue += amount;
+      methodMap.set(method, m);
+
+      // Settled money, read off paymentStatus rather than the method:
+      // a CARD_TERMINAL order still PENDING has not been taken yet.
+      if (o.paymentStatus === "PAID") {
+        paidOrders += 1;
+        paidRevenue += amount;
+      }
+
+      const loc =
+        paymentsByLocation.get(o.locationId) ??
+        (() => {
+          const t = newGroupTotals();
+          paymentsByLocation.set(o.locationId, t);
+          return t;
+        })();
+      loc[group].orders += 1;
+      loc[group].revenue += amount;
+    }
+
+    const paymentMix = {
+      cash: {
+        orders: paymentTotals.CASH.orders,
+        revenue: round2(paymentTotals.CASH.revenue),
+      },
+      card: {
+        orders: paymentTotals.CARD.orders,
+        revenue: round2(paymentTotals.CARD.revenue),
+      },
+      pending: {
+        orders: paymentTotals.PENDING.orders,
+        revenue: round2(paymentTotals.PENDING.revenue),
+      },
+      other: {
+        orders: paymentTotals.OTHER.orders,
+        revenue: round2(paymentTotals.OTHER.revenue),
+      },
+      paidOrders,
+      paidRevenue: round2(paidRevenue),
+      unpaidOrders: successful.length - paidOrders,
+      unpaidRevenue: round2(successfulRevenue - paidRevenue),
+      byMethod: Array.from(methodMap.entries())
+        .map(([method, v]) => ({
+          method,
+          group: v.group,
+          orders: v.orders,
+          revenue: round2(v.revenue),
+        }))
+        .sort((a, b) => b.revenue - a.revenue),
+    };
+
     const byLocationMap = rollup(successful, (o) => o.locationId);
     const byLocation = Array.from(byLocationMap.entries())
-      .map(([id, v]) => ({
-        id,
-        name: locationNameById.get(id) ?? id,
-        revenue: v.revenue,
-        orders: v.orders,
-      }))
+      .map(([id, v]) => {
+        const p = paymentsByLocation.get(id) ?? newGroupTotals();
+        return {
+          id,
+          name: locationNameById.get(id) ?? id,
+          revenue: v.revenue,
+          orders: v.orders,
+          // Same buckets as paymentMix, per site: what an operator
+          // actually wants when they ask "how much cash is in that till".
+          cashRevenue: round2(p.CASH.revenue),
+          cashOrders: p.CASH.orders,
+          cardRevenue: round2(p.CARD.revenue),
+          cardOrders: p.CARD.orders,
+          pendingRevenue: round2(p.PENDING.revenue),
+          otherRevenue: round2(p.OTHER.revenue),
+        };
+      })
       .sort((a, b) => b.revenue - a.revenue);
 
     const byBrandMap = rollup(successful, (o) => o.brandId);
@@ -1432,6 +1552,7 @@ export class AnalyticsService {
         prevSuccessfulOrders: prevSuccessful.length,
         prevAvgOrderValue: prevAov,
       },
+      paymentMix,
       revenueTimeline,
       byChannel,
       byLocation,

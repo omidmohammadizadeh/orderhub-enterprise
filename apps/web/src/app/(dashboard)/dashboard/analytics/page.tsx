@@ -19,9 +19,11 @@ import {
   AlertTriangle,
   ArrowDownRight,
   ArrowUpRight,
+  Banknote,
   Building2,
   Calendar,
   Check,
+  CreditCard,
   Download,
   Filter as FilterIcon,
   Loader2,
@@ -32,6 +34,7 @@ import {
   Tag,
   TrendingDown,
   TrendingUp,
+  Wallet,
 } from "lucide-react";
 import {
   Area,
@@ -149,6 +152,32 @@ const fmtGBP = (n: number) =>
 
 const fmtNum = (n: number) => new Intl.NumberFormat("en-GB").format(n);
 
+// Cash / card / not-settled / other, in the order the donut is fed.
+const PAYMENT_COLORS = ["#16a34a", "#2563eb", "#f59e0b", "#a1a1aa"];
+
+// The raw column values the API buckets. Anything not listed still shows,
+// title-cased, so a payment method added later is visible rather than lost.
+const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  CASH: "Cash",
+  CARD: "Card",
+  CARD_TERMINAL: "Card machine",
+  ONLINE_CARD: "Card online",
+  PAYMENT_LINK: "Payment link",
+  QR_CODE: "QR code",
+  APPLE_PAY: "Apple Pay",
+  GOOGLE_PAY: "Google Pay",
+  EXTERNAL: "Paid on the platform",
+  PAY_ON_COLLECTION: "Pay on collection",
+  UNSPECIFIED: "Not recorded",
+};
+
+const titleCase = (s: string) =>
+  s
+    .toLowerCase()
+    .split("_")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+
 function pctDelta(curr: number, prev: number): number {
   if (prev === 0) return curr > 0 ? 100 : 0;
   return ((curr - prev) / prev) * 100;
@@ -239,6 +268,24 @@ export default function AnalyticsPage() {
     rows.push(`Summary,Successful orders,${s.successfulOrders}`);
     rows.push(`Summary,Cancelled orders,${s.cancelledOrders}`);
     rows.push(`Summary,Avg order value,${s.avgOrderValue.toFixed(2)}`);
+    const p = data.paymentMix;
+    rows.push(`Summary,Cash taken,${p.cash.revenue.toFixed(2)}`);
+    rows.push(`Summary,Card taken,${p.card.revenue.toFixed(2)}`);
+    rows.push(`Summary,Not settled yet,${p.pending.revenue.toFixed(2)}`);
+    rows.push(`Summary,Paid,${p.paidRevenue.toFixed(2)}`);
+    rows.push(`Summary,Outstanding,${p.unpaidRevenue.toFixed(2)}`);
+    rows.push("");
+    rows.push("By payment method,Method,Revenue,Orders");
+    for (const m of p.byMethod)
+      rows.push(
+        `,${PAYMENT_METHOD_LABELS[m.method] ?? titleCase(m.method)},${m.revenue.toFixed(2)},${m.orders}`,
+      );
+    rows.push("");
+    rows.push("By location,Name,Revenue,Cash,Card,Orders");
+    for (const l of data.byLocation)
+      rows.push(
+        `,${l.name.replace(/,/g, " ")},${l.revenue.toFixed(2)},${l.cashRevenue.toFixed(2)},${l.cardRevenue.toFixed(2)},${l.orders}`,
+      );
     rows.push("");
     rows.push("By channel,Name,Revenue,Orders");
     for (const c of data.byChannel)
@@ -517,6 +564,29 @@ export default function AnalyticsPage() {
               tone="danger"
             />
             <KpiCard
+              label="Cash taken"
+              value={fmtGBP(data.paymentMix.cash.revenue)}
+              hint={`${fmtNum(data.paymentMix.cash.orders)} orders`}
+              icon={<Banknote className="h-4 w-4" />}
+            />
+            <KpiCard
+              label="Card taken"
+              value={fmtGBP(data.paymentMix.card.revenue)}
+              hint={`${fmtNum(data.paymentMix.card.orders)} orders`}
+              icon={<CreditCard className="h-4 w-4" />}
+            />
+            <KpiCard
+              label="Paid"
+              value={fmtGBP(data.paymentMix.paidRevenue)}
+              hint={
+                data.paymentMix.unpaidOrders > 0
+                  ? `${fmtGBP(data.paymentMix.unpaidRevenue)} outstanding`
+                  : "All settled"
+              }
+              icon={<Wallet className="h-4 w-4" />}
+              tone={data.paymentMix.unpaidOrders > 0 ? "danger" : undefined}
+            />
+            <KpiCard
               label="Discount given"
               value={fmtGBP(data.summary.discount)}
               icon={<TrendingDown className="h-4 w-4" />}
@@ -664,6 +734,160 @@ export default function AnalyticsPage() {
               )}
             </Card>
           </section>
+
+          {/* How the money was taken */}
+          <section className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+            <Card
+              title="Cash vs card"
+              subtitle={
+                locationId
+                  ? "This location only"
+                  : "Every location you can see"
+              }
+            >
+              {data.paymentMix.byMethod.length === 0 ? (
+                <Empty />
+              ) : (
+                <>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: "Cash", value: data.paymentMix.cash.revenue },
+                          { name: "Card", value: data.paymentMix.card.revenue },
+                          {
+                            name: "Not settled",
+                            value: data.paymentMix.pending.revenue,
+                          },
+                          { name: "Other", value: data.paymentMix.other.revenue },
+                        ].filter((d) => d.value > 0)}
+                        dataKey="value"
+                        nameKey="name"
+                        innerRadius={45}
+                        outerRadius={75}
+                      >
+                        {PAYMENT_COLORS.map((c) => (
+                          <Cell key={c} fill={c} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(v: number) => fmtGBP(v)} />
+                      <Legend wrapperStyle={{ fontSize: 11 }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <SmallTable
+                    rows={[
+                      [
+                        "Cash",
+                        fmtGBP(data.paymentMix.cash.revenue),
+                        fmtNum(data.paymentMix.cash.orders),
+                      ],
+                      [
+                        "Card",
+                        fmtGBP(data.paymentMix.card.revenue),
+                        fmtNum(data.paymentMix.card.orders),
+                      ],
+                      ...(data.paymentMix.pending.orders > 0
+                        ? [
+                            [
+                              "Not settled yet",
+                              fmtGBP(data.paymentMix.pending.revenue),
+                              fmtNum(data.paymentMix.pending.orders),
+                            ],
+                          ]
+                        : []),
+                      ...(data.paymentMix.other.orders > 0
+                        ? [
+                            [
+                              "Other",
+                              fmtGBP(data.paymentMix.other.revenue),
+                              fmtNum(data.paymentMix.other.orders),
+                            ],
+                          ]
+                        : []),
+                    ]}
+                    headers={["Taken as", "Revenue", "Orders"]}
+                  />
+                </>
+              )}
+            </Card>
+            <Card
+              title="Payment methods"
+              subtitle="Exactly how each order settled"
+            >
+              {data.paymentMix.byMethod.length === 0 ? (
+                <Empty />
+              ) : (
+                <SmallTable
+                  rows={data.paymentMix.byMethod.map((m) => [
+                    PAYMENT_METHOD_LABELS[m.method] ?? titleCase(m.method),
+                    fmtGBP(m.revenue),
+                    fmtNum(m.orders),
+                  ])}
+                  headers={["Method", "Revenue", "Orders"]}
+                />
+              )}
+            </Card>
+            <Card title="Settled vs outstanding" subtitle="By payment status">
+              <SmallTable
+                rows={[
+                  [
+                    "Paid",
+                    fmtGBP(data.paymentMix.paidRevenue),
+                    fmtNum(data.paymentMix.paidOrders),
+                  ],
+                  [
+                    "Not paid yet",
+                    fmtGBP(data.paymentMix.unpaidRevenue),
+                    fmtNum(data.paymentMix.unpaidOrders),
+                  ],
+                ]}
+                headers={["Status", "Revenue", "Orders"]}
+              />
+              <p className="mt-2 text-[11px] text-zinc-500">
+                Read from each order&rsquo;s payment status, not its method — a
+                card order that has not been taken yet still counts as
+                outstanding.
+              </p>
+            </Card>
+          </section>
+
+          {/* Per-site split. Pointless when the filter is already one shop,
+              so it only appears once there is more than one site to compare. */}
+          {data.byLocation.length > 1 && (
+            <section className="rounded-lg border border-zinc-200 bg-white p-4">
+              <header className="mb-3">
+                <h2 className="text-sm font-semibold text-zinc-900">
+                  Cash and card by location
+                </h2>
+                <p className="text-[11px] text-zinc-500">
+                  What each site took, and how. Only the locations your account
+                  can see.
+                </p>
+              </header>
+              <SmallTable
+                rows={data.byLocation.map((l) => [
+                  l.name,
+                  fmtGBP(l.revenue),
+                  fmtGBP(l.cashRevenue),
+                  `${fmtNum(l.cashOrders)}`,
+                  fmtGBP(l.cardRevenue),
+                  `${fmtNum(l.cardOrders)}`,
+                  l.revenue > 0
+                    ? `${Math.round((l.cashRevenue / l.revenue) * 100)}%`
+                    : "—",
+                ])}
+                headers={[
+                  "Location",
+                  "Revenue",
+                  "Cash",
+                  "Cash orders",
+                  "Card",
+                  "Card orders",
+                  "Cash share",
+                ]}
+              />
+            </section>
+          )}
 
           {/* Products + postcodes */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-3">
