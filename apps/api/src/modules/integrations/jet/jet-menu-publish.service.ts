@@ -3,6 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { ActivityLogService } from "../../logs/activity-log.service";
 import { JetClientService } from "./jet-client.service";
+import { JetItemAvailabilityService } from "./jet-item-availability.service";
 import {
   buildJetMenus,
   toJetAvailability,
@@ -56,6 +57,7 @@ export class JetMenuPublishService {
     private readonly config: ConfigService,
     private readonly variantResolver: VariantPriceResolverService,
     @Optional() private readonly activity?: ActivityLogService,
+    @Optional() private readonly itemAvailability?: JetItemAvailabilityService,
   ) {}
 
   private apiOrigin(): string {
@@ -298,6 +300,11 @@ export class JetMenuPublishService {
 
     if (succeeded) {
       this.logger.log(`JET menu ingest SUCCEEDED for restaurant ${restaurant}`);
+      await this.reassertSnoozes({
+        tenantId: conn.tenantId,
+        locationId: conn.locationId,
+        menuId: awaiting.menuId ?? null,
+      });
     } else {
       this.logger.error(
         `JET menu ingest FAILED for restaurant ${restaurant}: ` +
@@ -321,6 +328,86 @@ export class JetMenuPublishService {
     });
 
     return { handled: true };
+  }
+
+  /**
+   * Put still-snoozed items back out of stock after a menu ingest.
+   *
+   * JET (Nicole, 21 Sep 2026): a menu push sets every item back in stock and
+   * overrides the stock status. Without this, anything 86'd in Order Hub came
+   * back on Just Eat whenever a menu was published — including every "Push
+   * hours", which re-publishes the menu. Run on the ingest callback, not after
+   * the 202: the ingest is asynchronous and would overwrite an earlier update.
+   *
+   * Best-effort per item — the menu outcome is already recorded.
+   */
+  private async reassertSnoozes(args: {
+    tenantId: string;
+    locationId: string;
+    menuId: string | null;
+  }): Promise<void> {
+    if (!this.itemAvailability || !args.menuId) return;
+    try {
+      const cats = await this.prisma.menuCategory.findMany({
+        where: { menuId: args.menuId },
+        select: { items: { select: { itemId: true } } },
+      });
+      const onMenu = new Set<string>(
+        cats.flatMap((c: any) => (c.items ?? []).map((i: any) => i.itemId)),
+      );
+      if (onMenu.size === 0) return;
+
+      const rows: Array<{ itemId: string; expiresAt: Date | null }> = await (
+        this.prisma as any
+      ).menuItemChannelAvailability.findMany({
+        where: {
+          channel: { in: ["JUST_EAT", "ALL"] },
+          itemId: { in: Array.from(onMenu) },
+          AND: [{ OR: [{ locationId: null }, { locationId: args.locationId }] }],
+        },
+        select: { itemId: true, expiresAt: true, locationId: true, channel: true },
+      });
+
+      // One push per item. An indefinite snooze beats a timed one, and the
+      // later expiry beats the earlier, so nothing comes back early.
+      const now = Date.now();
+      const until = new Map<string, Date | null>();
+      for (const row of rows) {
+        if (!onMenu.has(row.itemId)) continue;
+        const exp = row.expiresAt ? new Date(row.expiresAt) : null;
+        if (exp && exp.getTime() <= now) continue;
+        if (!until.has(row.itemId)) {
+          until.set(row.itemId, exp);
+          continue;
+        }
+        const prev = until.get(row.itemId)!;
+        if (prev === null || exp === null) until.set(row.itemId, null);
+        else if (exp.getTime() > prev.getTime()) until.set(row.itemId, exp);
+      }
+
+      for (const [itemId, exp] of until) {
+        await this.itemAvailability
+          .pushItemAvailability({
+            tenantId: args.tenantId,
+            itemId,
+            available: false,
+            until: exp,
+            locationId: args.locationId,
+          })
+          .catch((err: any) =>
+            this.logger.warn(
+              `JET re-86 after menu ingest failed for item ${itemId}: ${err?.message ?? err}`,
+            ),
+          );
+      }
+      if (until.size > 0) {
+        this.logger.log(
+          `JET menu ingest: re-sent ${until.size} snoozed item(s) as unavailable for location ${args.locationId}`,
+        );
+      }
+    } catch (err: any) {
+      this.logger.warn(`JET snooze re-assert after menu ingest failed: ${err?.message ?? err}`);
+    }
   }
 
   // ── Menu graph → transformer source ──────────────────────────────────
