@@ -54,6 +54,19 @@ export class DispatchController {
     return this.dispatch.getFeed(user, location);
   }
 
+  @Get("orders/:orderId/map")
+  @Roles(...DISPATCH_ROLES)
+  @ApiOperation({
+    summary:
+      "One order's geography for the orders board: the shop, the delivery point, and the rider carrying it (own driver or third-party) if there is one.",
+  })
+  orderMap(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("orderId") orderId: string,
+  ) {
+    return this.dispatch.getOrderMap(user, orderId);
+  }
+
   @Get("operator")
   @Roles(...DISPATCH_ROLES)
   @ApiOperation({

@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { UberEatsOrderActionsPanel } from "./ubereats-order-actions-panel";
 import { useRouter } from "next/navigation";
-import { X, Clock, CheckCircle, ChefHat, Bike, XCircle, Check, AlertCircle, Pencil, Printer, Loader2, QrCode, CreditCard, Banknote, ShoppingBag } from "lucide-react";
+import dynamic from "next/dynamic";
+import { X, Clock, CheckCircle, ChefHat, Bike, XCircle, Check, AlertCircle, Pencil, Printer, Loader2, QrCode, CreditCard, Banknote, ShoppingBag, MapPin } from "lucide-react";
 import { PaymentLinkModal } from "../pos/payment-link-modal";
 import { SwitchFulfillmentModal } from "./switch-fulfillment-modal";
 import { ChargeReaderModal } from "../pos/charge-reader-modal";
@@ -22,6 +23,13 @@ import { unassignOrder } from "../../lib/api/dispatch.client";
 import { printOrderViaBridge } from "../../lib/printing/print-order";
 import type { Order } from "../../lib/api/orders.client";
 import { modifierDepth, formatMoney } from "@orderhub/shared";
+
+// Lazily loaded: it pulls in the Google Maps JS loader, which has no business
+// in the drawer's bundle for the orders nobody opens a map on.
+const OrderMapModal = dynamic(
+  () => import("./order-map-modal").then((m) => m.OrderMapModal),
+  { ssr: false },
+);
 
 const NEXT_ACTIONS: Record<string, Array<{ status: string; label: string; variant: "default" | "outline" | "destructive" }>> = {
   PENDING: [
@@ -83,6 +91,7 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
   const router = useRouter();
   const userRole = useAuthStore((s) => s.user?.role);
   const [showDispatch, setShowDispatch] = useState(false);
+  const [showMap, setShowMap] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [showPayModal, setShowPayModal] = useState(false);
   const [showSwitchModal, setShowSwitchModal] = useState(false);
@@ -336,12 +345,16 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
 
             PLATFORM deliveries (Deliveroo / Uber Eats / marketplace) are driven
             by the platform's OWN riders — the operator never arranges a courier,
-            so the whole chooser is hidden. The platform rider's details show in
-            the courier panel below instead. Only MERCHANT (and legacy/unknown
-            null) delivery orders get the Dispatch button. */}
+            so the chooser is hidden for them. The platform rider's details show
+            in the courier panel below instead. Only MERCHANT (and legacy/unknown
+            null) delivery orders get the Dispatch button.
+
+            Map sits alongside and shows for EVERY delivery: "where is this
+            going" is the same question whoever is carrying it, and on a
+            platform order it is the only spatial answer the board can give. */}
         {order.fulfillmentType === "DELIVERY" &&
-          (order as any).deliveryType !== "PLATFORM" &&
           (() => {
+            const isPlatform = (order as any).deliveryType === "PLATFORM";
             const OWN_FLEET_ASSIGNED = [
               "ASSIGNED_DRIVER",
               "ACCEPTED_BY_DRIVER",
@@ -355,10 +368,17 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
               !!(order as any).courierJobId ||
               (!courierProvider &&
                 OWN_FLEET_ASSIGNED.includes(order.status as string));
+            const hint = isPlatform
+              ? "See the shop, the drop-off and the rider on a map."
+              : !dispatched
+                ? "Choose a courier — see the price before you send."
+                : courierProvider === "STUART"
+                  ? "Cancels the Stuart job and frees the order to dispatch again."
+                  : "Pulls the order back from the driver so you can dispatch again.";
             return (
               <div className="px-5 py-4 border-b border-zinc-100">
-                {!dispatched ? (
-                  <>
+                <div className="flex flex-wrap items-center gap-2">
+                  {isPlatform ? null : !dispatched ? (
                     <button
                       onClick={() => setShowDispatch(true)}
                       className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-3 py-2 text-sm font-semibold text-white hover:bg-violet-700"
@@ -366,12 +386,7 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
                       <Bike className="h-4 w-4" />
                       Dispatch
                     </button>
-                    <p className="mt-1.5 text-[11px] text-zinc-400">
-                      Choose a courier — see the price before you send.
-                    </p>
-                  </>
-                ) : (
-                  <>
+                  ) : (
                     <button
                       onClick={handleCancelDispatch}
                       disabled={cancelling}
@@ -384,13 +399,16 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
                       )}
                       Cancel dispatch
                     </button>
-                    <p className="mt-1.5 text-[11px] text-zinc-400">
-                      {courierProvider === "STUART"
-                        ? "Cancels the Stuart job and frees the order to dispatch again."
-                        : "Pulls the order back from the driver so you can dispatch again."}
-                    </p>
-                  </>
-                )}
+                  )}
+                  <button
+                    onClick={() => setShowMap(true)}
+                    className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-50"
+                  >
+                    <MapPin className="h-4 w-4" />
+                    Map
+                  </button>
+                </div>
+                <p className="mt-1.5 text-[11px] text-zinc-400">{hint}</p>
               </div>
             );
           })()}
@@ -680,6 +698,14 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
           locationId={(order as any).locationId ?? null}
           orderRef={`#${order.displayId ?? (order as any).orderNumber ?? ""}`}
           onClose={() => setShowDispatch(false)}
+        />
+      )}
+
+      {showMap && (
+        <OrderMapModal
+          orderId={order.id}
+          orderRef={`#${order.displayId ?? (order as any).orderNumber ?? ""}`}
+          onClose={() => setShowMap(false)}
         />
       )}
 

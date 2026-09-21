@@ -110,6 +110,48 @@ export async function getDispatchFeed(location?: string): Promise<DispatchFeed> 
   return res.data;
 }
 
+// ── One order's map ───────────────────────────────────────────────────────────
+// The dispatch map narrowed to a single order, for the Map button on the
+// orders board. Coordinates resolve exactly as they do for the map feed, so
+// the two views can never disagree about where an order is.
+
+export interface OrderMapRider {
+  kind: "DRIVER" | "COURIER";
+  name: string | null;
+  lat: number;
+  lng: number;
+  seenAt: string | null;
+  /** How old the position is. Shown, so nobody reads a stale pin as live. */
+  ageMinutes: number | null;
+}
+
+export interface OrderMapView {
+  order: {
+    id: string;
+    ref: string | null;
+    status: string;
+    customerName: string | null;
+    address: string | null;
+    lat: number | null;
+    lng: number | null;
+  };
+  shop: {
+    id: string;
+    name: string;
+    address: string | null;
+    lat: number | null;
+    lng: number | null;
+  };
+  rider: OrderMapRider | null;
+}
+
+export async function getOrderMap(orderId: string): Promise<OrderMapView> {
+  const res = await apiClient.get<OrderMapView>(
+    `/v1/dispatch/orders/${orderId}/map`,
+  );
+  return res.data;
+}
+
 // ── Operator dashboard ────────────────────────────────────────────────────────
 export interface OperatorStats {
   online: number;

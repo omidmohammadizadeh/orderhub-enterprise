@@ -51,6 +51,42 @@ const DELIVERY_FULFILLMENTS: FulfillmentType[] = [
 
 const DEFAULT_PREP_MINUTES = 20;
 
+// A rider who stopped reporting this long ago is not "there". A pin frozen at
+// their last known spot is worse than no pin, because the operator believes it.
+const STALE_COURIER_MIN = 15;
+
+/** Whoever is carrying one order: our own driver, or a third-party rider. */
+export interface OrderMapRider {
+  kind: "DRIVER" | "COURIER";
+  name: string | null;
+  lat: number;
+  lng: number;
+  seenAt: string | null;
+  /** How old the fix is. The UI says so rather than implying it is live. */
+  ageMinutes: number | null;
+}
+
+/** The dispatch map narrowed to a single order — see getOrderMap. */
+export interface OrderMapView {
+  order: {
+    id: string;
+    ref: string | null;
+    status: OrderStatus;
+    customerName: string | null;
+    address: string | null;
+    lat: number | null;
+    lng: number | null;
+  };
+  shop: {
+    id: string;
+    name: string;
+    address: string | null;
+    lat: number | null;
+    lng: number | null;
+  };
+  rider: OrderMapRider | null;
+}
+
 export interface DispatchLocationPin {
   id: string;
   name: string;
@@ -634,12 +670,7 @@ export class DispatchService {
     }));
 
     // Third-party riders, from whatever position their provider last sent.
-    //
-    // Anything older than STALE_COURIER_MIN is dropped rather than drawn: a
-    // rider who stopped reporting twenty minutes ago is not "there", and a
-    // pin frozen at their last known spot is worse than no pin, because the
-    // operator will believe it.
-    const STALE_COURIER_MIN = 15;
+    // Anything older than STALE_COURIER_MIN is dropped rather than drawn.
     const nowMs = Date.now();
     const couriers: DispatchCourierPin[] = orderRows
       .filter(
@@ -663,6 +694,178 @@ export class DispatchService {
       .filter((c: DispatchCourierPin) => c.ageMinutes <= STALE_COURIER_MIN);
 
     return { scope, locations, orders, drivers, couriers };
+  }
+
+  /**
+   * One order's geography, for the Map button on the orders board: the shop it
+   * leaves from, where it is going, and the rider carrying it if there is one.
+   *
+   * This is the dispatch map narrowed to a single order — an operator looking
+   * at an order wants "where is this going, and how far is it" without leaving
+   * the board and hunting for the pin among fifty others.
+   *
+   * Coordinates come from exactly the same resolution the map feed uses
+   * (payload coords → geocode → persisted on the order), so the two views can
+   * never disagree about where an order is, and a lookup paid for here is
+   * cached for the map and vice versa.
+   */
+  async getOrderMap(
+    user: AuthenticatedUser,
+    orderId: string,
+  ): Promise<OrderMapView> {
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, tenantId: user.tenantId },
+      select: {
+        id: true,
+        displayId: true,
+        orderNumber: true,
+        status: true,
+        customerName: true,
+        locationId: true,
+        deliveryLat: true,
+        deliveryLng: true,
+        deliveryAddress: true,
+        addressLine1: true,
+        city: true,
+        postcode: true,
+        courierLat: true,
+        courierLng: true,
+        courierLocationAt: true,
+        courierName: true,
+        location: {
+          select: {
+            id: true,
+            name: true,
+            addressLine1: true,
+            city: true,
+            postcode: true,
+            country: true,
+          },
+        },
+      },
+    });
+    if (!order) throw new NotFoundException("Order not found");
+
+    // Same scoping as every other read here: the tenant match above is not
+    // enough, a manager must only see their own shops' orders.
+    const accessible = await this.resolveAccessibleLocationIds(user);
+    if (!order.locationId || !accessible.includes(order.locationId)) {
+      throw new ForbiddenException("Order is not in one of your locations");
+    }
+
+    const country = order.location?.country ?? "GB";
+    const resolved = await this.geocodeMissing(
+      [order],
+      new Map([[order.locationId, country]]),
+    );
+    const point =
+      order.deliveryLat != null && order.deliveryLng != null
+        ? { lat: order.deliveryLat, lng: order.deliveryLng }
+        : (resolved.get(order.id) ?? null);
+
+    const shop = order.location
+      ? await this.locationPin(order.location)
+      : null;
+
+    return {
+      order: {
+        id: order.id,
+        ref:
+          order.displayId ??
+          (order.orderNumber != null ? `#${order.orderNumber}` : null),
+        status: order.status,
+        customerName: order.customerName,
+        address: this.orderAddressString(order, country),
+        lat: point?.lat ?? null,
+        lng: point?.lng ?? null,
+      },
+      shop: {
+        id: shop?.id ?? order.locationId,
+        name: shop?.name ?? "Shop",
+        address:
+          [order.location?.addressLine1, order.location?.city, order.location?.postcode]
+            .filter(Boolean)
+            .join(", ") || null,
+        lat: shop?.lat ?? null,
+        lng: shop?.lng ?? null,
+      },
+      rider: await this.riderPinFor(order),
+    };
+  }
+
+  /**
+   * Whoever is carrying the order right now, own-fleet or third-party.
+   *
+   * Own drivers are looked up through their live assignment; third-party
+   * riders come from the courier columns the provider webhooks write (this is
+   * what draws the Stuart / Deliveroo rider on the dispatch map). Both carry
+   * how old the fix is, and a third-party position past STALE_COURIER_MIN is
+   * dropped rather than drawn — the same honesty rule the map feed applies,
+   * because a stale pin is worse than none.
+   */
+  private async riderPinFor(order: {
+    id: string;
+    courierLat: number | null;
+    courierLng: number | null;
+    courierLocationAt: Date | null;
+    courierName: string | null;
+  }): Promise<OrderMapRider | null> {
+    const age = (at: Date) => Math.round((Date.now() - at.getTime()) / 60_000);
+
+    const assignment = await this.prisma.driverAssignment.findFirst({
+      where: {
+        orderId: order.id,
+        status: {
+          in: [
+            DriverAssignmentStatus.ASSIGNED,
+            DriverAssignmentStatus.ACCEPTED,
+            DriverAssignmentStatus.PICKED_UP,
+          ],
+        },
+      },
+      select: {
+        driver: {
+          select: {
+            firstName: true,
+            lastName: true,
+            presence: {
+              select: { lat: true, lng: true, lastPingAt: true },
+            },
+          },
+        },
+      },
+    });
+    const presence = assignment?.driver.presence;
+    if (presence?.lat != null && presence.lng != null) {
+      return {
+        kind: "DRIVER",
+        name: `${assignment!.driver.firstName} ${assignment!.driver.lastName}`.trim(),
+        lat: presence.lat,
+        lng: presence.lng,
+        seenAt: presence.lastPingAt ? presence.lastPingAt.toISOString() : null,
+        ageMinutes: presence.lastPingAt ? age(presence.lastPingAt) : null,
+      };
+    }
+
+    if (
+      order.courierLat != null &&
+      order.courierLng != null &&
+      order.courierLocationAt
+    ) {
+      const ageMinutes = age(order.courierLocationAt);
+      if (ageMinutes <= STALE_COURIER_MIN) {
+        return {
+          kind: "COURIER",
+          name: order.courierName ?? null,
+          lat: order.courierLat,
+          lng: order.courierLng,
+          seenAt: order.courierLocationAt.toISOString(),
+          ageMinutes,
+        };
+      }
+    }
+
+    return null;
   }
 
   /**
