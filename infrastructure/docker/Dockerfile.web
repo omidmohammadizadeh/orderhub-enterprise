@@ -68,12 +68,20 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/apps/web/.next/standalone ./
-COPY --from=builder /app/apps/web/.next/static ./apps/web/.next/static
+# Owned by the runtime user, not root. The server writes its prerender/ISR
+# cache under apps/web/.next/cache at runtime, and a root-owned .next made
+# every one of those writes fail with EACCES — so no page was ever cached,
+# each request re-rendered from scratch, and on a 0.5-CPU instance that was
+# CPU spent for nothing during the evening rush.
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
 # Static assets (logo, og-image, robots.txt, etc.) live in apps/web/public and
 # are served at the site root by Next.js. Must be copied into the runtime image
 # explicitly — `next build` does NOT bundle them into .next/standalone.
-COPY --from=builder /app/apps/web/public ./apps/web/public
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
+# The cache directory itself doesn't exist until the first write, so create it
+# now while we are still root, and hand it over.
+RUN mkdir -p apps/web/.next/cache && chown nextjs:nodejs apps/web/.next/cache
 
 USER nextjs
 EXPOSE 3000
