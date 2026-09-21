@@ -1,5 +1,6 @@
 import {
   buildDeliverooMenu,
+  menuNameProblems,
   overlongCategoryNames,
   type SrcCategory,
 } from "../deliveroo-menu.transformer";
@@ -269,5 +270,46 @@ describe("overlongCategoryNames", () => {
 
   it("passes a name of exactly 120 characters", () => {
     expect(overlongCategoryNames(build("x".repeat(120)))).toEqual([]);
+  });
+});
+
+describe("menuNameProblems", () => {
+  const payload = (productName: string, optionName: string) =>
+    buildDeliverooMenu({
+      menuName: "M",
+      siteId: "1",
+      coverImageUrl: "https://x/y.jpg",
+      categories: [
+        {
+          id: "c1",
+          name: "Burgers",
+          products: [
+            {
+              id: "p1",
+              name: productName,
+              price: 5,
+              groups: [
+                { id: "g1", name: "Size", options: [{ id: "o1", name: optionName, price: 0 }] },
+              ],
+            },
+          ],
+        },
+      ],
+    }).payload;
+
+  it("names a one-character option and the group it sits in", () => {
+    expect(menuNameProblems(payload("Cheeseburger", "L"))).toEqual([
+      'Option "L" in group "Size" is too short (1 character, min 2)',
+    ]);
+  });
+
+  it("names a product over 160 characters", () => {
+    const long = "y".repeat(161);
+    const [p] = menuNameProblems(payload(long, "Large"));
+    expect(p).toMatch(/^Product "y{60}…" is 161 characters \(max 160\)$/);
+  });
+
+  it("is empty for a menu Deliveroo accepts", () => {
+    expect(menuNameProblems(payload("Cheeseburger", "Large"))).toEqual([]);
   });
 });

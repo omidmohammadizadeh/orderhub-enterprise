@@ -311,12 +311,17 @@ export function buildDeliverooMenu(input: {
 }
 
 /**
- * Deliveroo caps a category name at 120 characters (verified from a real 400:
- * `{"categories":{"2":{"name":{"en":"should not exceed 120"}}}}`). Its error
- * names the category only by its position in the upload, which means nothing
- * to an operator, so we check first and name the category instead.
+ * Name-length rules Deliveroo enforces on upload, each verified from a real
+ * 400 on our own publishes:
+ *   categories  `{"categories":{"2":{"name":{"en":"should not exceed 120"}}}}`
+ *   items       `{"items":{"181":{"name":{"en":"the length must be between 2 and 160"}}}}`
+ * "items" covers products AND modifier options (Deliveroo models options as
+ * CHOICE items). Its errors name things only by their position in the upload,
+ * which means nothing to an operator, so we check first and name them.
  */
 export const DELIVEROO_CATEGORY_NAME_MAX = 120;
+export const DELIVEROO_ITEM_NAME_MIN = 2;
+export const DELIVEROO_ITEM_NAME_MAX = 160;
 
 export function overlongCategoryNames(
   payload: DeliverooMenuUpload,
@@ -325,4 +330,40 @@ export function overlongCategoryNames(
     .map((c) => c.name.en)
     .filter((n) => n.length > DELIVEROO_CATEGORY_NAME_MAX)
     .map((name) => ({ name, length: name.length }));
+}
+
+/** Every name Deliveroo will reject, described so an operator can find it. */
+export function menuNameProblems(payload: DeliverooMenuUpload): string[] {
+  const clip = (n: string) => (n.length > 60 ? `${n.slice(0, 60)}…` : n);
+  const problems = overlongCategoryNames(payload).map(
+    (c) => `Category "${clip(c.name)}" is ${c.length} characters (max ${DELIVEROO_CATEGORY_NAME_MAX})`,
+  );
+
+  // Options have no category, so say which group(s) they sit in instead.
+  const groupsOfOption = new Map<string, string[]>();
+  for (const m of payload.menu.modifiers) {
+    for (const id of m.item_ids) {
+      const list = groupsOfOption.get(id) ?? [];
+      list.push(m.name.en);
+      groupsOfOption.set(id, list);
+    }
+  }
+
+  for (const it of payload.menu.items) {
+    const name = it.name.en ?? "";
+    const len = name.length;
+    if (len >= DELIVEROO_ITEM_NAME_MIN && len <= DELIVEROO_ITEM_NAME_MAX) continue;
+    const rule =
+      len < DELIVEROO_ITEM_NAME_MIN
+        ? `is too short (${len} character${len === 1 ? "" : "s"}, min ${DELIVEROO_ITEM_NAME_MIN})`
+        : `is ${len} characters (max ${DELIVEROO_ITEM_NAME_MAX})`;
+    if (it.type === "CHOICE") {
+      const groups = groupsOfOption.get(it.id) ?? [];
+      const where = groups.length ? ` in group "${[...new Set(groups)].join('", "')}"` : "";
+      problems.push(`Option "${clip(name)}"${where} ${rule}`);
+    } else {
+      problems.push(`Product "${clip(name)}" ${rule}`);
+    }
+  }
+  return problems;
 }

@@ -18,8 +18,7 @@ import {
 } from "../../menus/variant-price-resolver.service";
 import {
   buildDeliverooMenu,
-  DELIVEROO_CATEGORY_NAME_MAX,
-  overlongCategoryNames,
+  menuNameProblems,
   type SrcCategory,
   type SrcGroup,
   type SrcProduct,
@@ -174,15 +173,16 @@ export class DeliverooMenuPublishService {
     });
     for (const w of warnings) this.logger.warn(`Deliveroo menu publish: ${w}`);
 
-    // Deliveroo only reports this as "categories.2.name should not exceed
-    // 120" — a position the operator can't map back to a category. Refuse
-    // before uploading and name the category instead.
-    const tooLong = overlongCategoryNames(payload);
-    if (tooLong.length) {
+    // Deliveroo reports bad names only by their position in the upload
+    // ("items.181.name the length must be between 2 and 160"), which an
+    // operator can't map back to anything. Refuse before uploading and name
+    // each one — and list them all, since Deliveroo only reveals a few per try.
+    const nameProblems = menuNameProblems(payload);
+    if (nameProblems.length) {
       throw new BadRequestException(
-        `Deliveroo allows category names up to ${DELIVEROO_CATEGORY_NAME_MAX} characters. ` +
-          `Shorten ${tooLong.length === 1 ? "this category" : "these categories"} and publish again: ` +
-          tooLong.map((c) => `"${c.name.slice(0, 60)}…" (${c.length} characters)`).join("; "),
+        `Deliveroo won't accept ${nameProblems.length} name${nameProblems.length === 1 ? "" : "s"} on this menu. ` +
+          `Fix ${nameProblems.length === 1 ? "it" : "them"} and publish again: ` +
+          nameProblems.join("; "),
       );
     }
     if (mispriced.length) {
