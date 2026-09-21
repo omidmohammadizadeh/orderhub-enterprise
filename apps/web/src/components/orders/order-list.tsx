@@ -33,8 +33,11 @@ import {
   X as XIcon,
   Check,
   CalendarClock,
+  ListChecks,
 } from "lucide-react";
 import { useEffect, useRef } from "react";
+import dynamic from "next/dynamic";
+import { canBulkDispatch } from "./bulk-dispatch-eligibility";
 import {
   isScheduledForLater,
   scheduledWhen,
@@ -48,6 +51,13 @@ import { PlatformBadge, FulfillmentBadge } from "./platform-badge";
 import { useLiveOrders } from "../../hooks/use-live-orders";
 import type { Order } from "../../lib/api/orders.client";
 import { isAwaitingOurPayment } from "@/lib/orders/awaiting-payment";
+
+// Only loaded once someone actually opens it — it pulls in three courier
+// clients the board has no use for otherwise.
+const BulkDispatchModal = dynamic(
+  () => import("./bulk-dispatch-modal").then((m) => m.BulkDispatchModal),
+  { ssr: false },
+);
 
 // Bucket → matching predicate + chip tone for the status pill.
 // One-to-one with the columns the old Kanban board surfaced.
@@ -285,6 +295,39 @@ export function OrderList({ locationId }: Props) {
   const [statusOpen, setStatusOpen] = useState(false);
   const statusRef = useRef<HTMLDivElement>(null);
 
+  // Bulk dispatch. `picks` is an ARRAY, not a set: the order they were tapped
+  // in is the stop order for an own-fleet run, so it has to be kept.
+  const [bulkMode, setBulkMode] = useState(false);
+  const [picks, setPicks] = useState<string[]>([]);
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const orderById = useMemo(
+    () => new Map(orders.map((o) => [o.id, o])),
+    [orders],
+  );
+  // Derived, not stored: a pick the live board has since made ineligible —
+  // dispatched from another tablet, cancelled, gone — simply drops out.
+  const pickedOrders = picks
+    .map((id) => orderById.get(id))
+    .filter((o): o is Order => !!o && canBulkDispatch(o));
+  const togglePick = (id: string) =>
+    setPicks((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
+  // Numbered from the live picks, so the stop numbers stay 1..N with no gap
+  // when one drops out.
+  const pickedIds = pickedOrders.map((o) => o.id);
+  const bulkProps = (o: Order): BulkRowProps => {
+    const i = pickedIds.indexOf(o.id);
+    return {
+      pickable: canBulkDispatch(o),
+      pickNumber: i >= 0 ? i + 1 : null,
+      onPick: () => togglePick(o.id),
+    };
+  };
+  const exitBulk = () => {
+    setBulkMode(false);
+    setPicks([]);
+    setBulkOpen(false);
+  };
+
   useEffect(() => {
     if (!filterOpen && !statusOpen) return;
     const onDocClick = (e: MouseEvent) => {
@@ -429,6 +472,25 @@ export function OrderList({ locationId }: Props) {
           )}
         </div>
 
+        {/* Bulk dispatch — pick several deliveries, send them together. */}
+        <button
+          type="button"
+          onClick={() => (bulkMode ? exitBulk() : setBulkMode(true))}
+          aria-pressed={bulkMode}
+          className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${
+            bulkMode
+              ? "border-violet-600 bg-violet-600 text-white hover:bg-violet-700"
+              : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300"
+          }`}
+        >
+          {bulkMode ? (
+            <XIcon className="h-3.5 w-3.5" aria-hidden="true" />
+          ) : (
+            <ListChecks className="h-3.5 w-3.5" aria-hidden="true" />
+          )}
+          {bulkMode ? "Cancel bulk dispatch" : "Bulk dispatch"}
+        </button>
+
         {/* Channel filter — Filter button with popover */}
         <div className="ml-auto relative" ref={filterRef}>
           <button
@@ -551,6 +613,15 @@ export function OrderList({ locationId }: Props) {
         </div>
       )}
 
+      {bulkMode && (
+        <p className="mb-3 text-xs text-zinc-600">
+          Tap the deliveries to send together. For your own driver, they&rsquo;re
+          delivered in the order you tap them.
+          {!filteredOrders.some(canBulkDispatch) &&
+            " None on this board can be dispatched right now — only accepted, preparing or ready deliveries that aren't already with a courier."}
+        </p>
+      )}
+
       {/* The list */}
       {filteredOrders.length === 0 ? (
         <div className="rounded-lg border border-dashed border-zinc-200 bg-white px-6 py-12 text-center text-sm text-zinc-500">
@@ -566,7 +637,12 @@ export function OrderList({ locationId }: Props) {
             So below md the same data is stacked instead. */}
         <div className="flex flex-col gap-2 md:hidden">
           {filteredOrders.map((o) => (
-            <OrderCard key={o.id} order={o} onOpen={() => setSelected(o)} />
+            <OrderCard
+              key={o.id}
+              order={o}
+              onOpen={() => setSelected(o)}
+              bulk={bulkMode ? bulkProps(o) : undefined}
+            />
           ))}
         </div>
 
@@ -577,6 +653,11 @@ export function OrderList({ locationId }: Props) {
           <table className="divide-y divide-zinc-200 text-sm">
             <thead className="bg-zinc-50 text-[11px] uppercase tracking-wider text-zinc-500">
               <tr>
+                {bulkMode && (
+                  <th className="px-1.5 py-2.5 text-left font-semibold whitespace-nowrap">
+                    <span className="sr-only">Pick</span>
+                  </th>
+                )}
                 <Th>Time</Th>
                 <Th>Order #</Th>
                 <Th>Channel</Th>
@@ -597,6 +678,7 @@ export function OrderList({ locationId }: Props) {
                   key={o.id}
                   order={o}
                   onOpen={() => setSelected(o)}
+                  bulk={bulkMode ? bulkProps(o) : undefined}
                 />
               ))}
             </tbody>
@@ -617,7 +699,100 @@ export function OrderList({ locationId }: Props) {
         }
         onClose={() => setSelected(null)}
       />
+
+      {/* The pick, and the one thing to do with it. Pinned to the bottom so it
+          is in reach however far down the board the last pick was. */}
+      {/* Room to scroll the last orders clear of the bar below. */}
+      {bulkMode && <div className="h-24" aria-hidden="true" />}
+      {bulkMode && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <div className="pointer-events-auto flex w-full max-w-lg items-center gap-3 rounded-xl border border-zinc-200 bg-white px-4 py-3 shadow-xl">
+            <p className="min-w-0 flex-1 text-sm text-zinc-700" aria-live="polite">
+              {pickedOrders.length === 0 ? (
+                "Tap deliveries to add them"
+              ) : (
+                <>
+                  <span className="font-semibold tabular-nums text-zinc-900">
+                    {pickedOrders.length}
+                  </span>{" "}
+                  {pickedOrders.length === 1 ? "order" : "orders"} picked
+                </>
+              )}
+            </p>
+            {pickedOrders.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setPicks([])}
+                className="rounded-lg px-2 py-1.5 text-xs font-semibold text-zinc-500 hover:text-zinc-800"
+              >
+                Clear
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setBulkOpen(true)}
+              disabled={pickedOrders.length === 0}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-2 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-40"
+            >
+              <Bike className="h-4 w-4" aria-hidden="true" />
+              Dispatch {pickedOrders.length > 0 ? pickedOrders.length : ""}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {bulkOpen && pickedOrders.length > 0 && (
+        <BulkDispatchModal
+          orders={pickedOrders}
+          onClose={() => setBulkOpen(false)}
+          onDispatched={(sentIds, allSent) => {
+            // Everything went: done with bulk mode. Some didn't (Uber refused
+            // a few): keep picking with only those left.
+            if (allSent) exitBulk();
+            else setPicks((p) => p.filter((id) => !sentIds.includes(id)));
+          }}
+        />
+      )}
     </>
+  );
+}
+
+/** What a row needs to take part in a bulk pick. Absent when not picking. */
+interface BulkRowProps {
+  pickable: boolean;
+  /** 1-based stop number when picked, else null. */
+  pickNumber: number | null;
+  onPick: () => void;
+}
+
+/**
+ * The pick box: a numbered badge when picked (the number is the stop order
+ * for an own-fleet run), an empty box when it can be picked, and nothing to
+ * press when it can't.
+ */
+function PickBox({ bulk, label }: { bulk: BulkRowProps; label: string }) {
+  if (!bulk.pickable) {
+    return <span className="block h-6 w-6" aria-hidden="true" />;
+  }
+  const picked = bulk.pickNumber != null;
+  return (
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={picked}
+      aria-label={picked ? `${label}, stop ${bulk.pickNumber}` : `Pick ${label}`}
+      onClick={(e) => {
+        e.stopPropagation();
+        bulk.onPick();
+      }}
+      className={`grid h-6 w-6 place-items-center rounded-md border text-xs font-bold tabular-nums focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600 ${
+        picked
+          ? "border-violet-600 bg-violet-600 text-white"
+          : "border-zinc-300 bg-white text-transparent hover:border-violet-400"
+      }`}
+    >
+      {picked ? bulk.pickNumber : ""}
+    </button>
   );
 }
 
@@ -645,7 +820,16 @@ function timeAgo(iso: string): string {
  * the table row. Two copies of "which buttons does this status get" is how
  * the phone quietly ends up unable to do something the tablet can.
  */
-function OrderCard({ order, onOpen }: { order: Order; onOpen: () => void }) {
+function OrderCard({
+  order,
+  onOpen,
+  bulk,
+}: {
+  order: Order;
+  onOpen: () => void;
+  /** Present while bulk-picking: the card tap picks instead of opening. */
+  bulk?: BulkRowProps;
+}) {
   const bucket =
     BUCKETS.find((b) => b.match(order)) ?? BUCKETS[BUCKETS.length - 1]!;
   const StatusIcon = bucket.icon;
@@ -653,15 +837,29 @@ function OrderCard({ order, onOpen }: { order: Order; onOpen: () => void }) {
 
   const brandName =
     (order as any).brand?.name ?? (order as any).location?.brand?.name ?? null;
+  const ref = `#${order.displayId ?? (order as any).orderNumber ?? order.id.slice(-6)}`;
 
   return (
     <div
-      onClick={onOpen}
-      className="cursor-pointer rounded-lg border border-zinc-200 bg-white p-3 transition-colors active:bg-zinc-50"
+      onClick={bulk ? (bulk.pickable ? bulk.onPick : undefined) : onOpen}
+      className={`rounded-lg border bg-white p-3 transition-colors ${
+        bulk && !bulk.pickable
+          ? "cursor-default border-zinc-200 opacity-45"
+          : "cursor-pointer active:bg-zinc-50"
+      } ${
+        bulk?.pickNumber != null
+          ? "border-violet-400 bg-violet-50/60"
+          : "border-zinc-200"
+      }`}
     >
       {/* Order # + status — the two things worth seeing from arm's length. */}
       <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
+        {bulk && (
+          <div className="shrink-0 pt-0.5">
+            <PickBox bulk={bulk} label={ref} />
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
           <span className="text-base font-semibold text-zinc-900">
             #{order.displayId ?? (order as any).orderNumber ?? order.id.slice(-6)}
           </span>
@@ -775,21 +973,34 @@ function OrderCard({ order, onOpen }: { order: Order; onOpen: () => void }) {
 function OrderRow({
   order,
   onOpen,
+  bulk,
 }: {
   order: Order;
   onOpen: () => void;
+  /** Present while bulk-picking: the row click picks instead of opening. */
+  bulk?: BulkRowProps;
 }) {
   const bucket =
     BUCKETS.find((b) => b.match(order)) ??
     BUCKETS[BUCKETS.length - 1]!;
   const StatusIcon = bucket.icon;
   const [showDispatch, setShowDispatch] = useState(false);
+  const ref = `#${order.displayId ?? (order as any).orderNumber ?? order.id.slice(-6)}`;
 
   return (
     <tr
-      onClick={onOpen}
-      className="cursor-pointer hover:bg-zinc-50/60 transition-colors"
+      onClick={bulk ? (bulk.pickable ? bulk.onPick : undefined) : onOpen}
+      className={`transition-colors ${
+        bulk && !bulk.pickable
+          ? "cursor-default opacity-45"
+          : "cursor-pointer hover:bg-zinc-50/60"
+      } ${bulk?.pickNumber != null ? "bg-violet-50/70" : ""}`}
     >
+      {bulk && (
+        <Td>
+          <PickBox bulk={bulk} label={ref} />
+        </Td>
+      )}
       <Td>
         <div className="flex flex-col">
           <span className="font-medium text-zinc-900">

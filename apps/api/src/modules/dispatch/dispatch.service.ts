@@ -875,7 +875,8 @@ export class DispatchService {
    * pushes one new-job alert (Accept/Reject).
    */
   async assignToDriver(user: AuthenticatedUser, driverId: string, orderIds: string[]) {
-    if (!orderIds?.length) throw new BadRequestException("No orders selected");
+    const ids = [...new Set((orderIds ?? []).filter(Boolean))];
+    if (!ids.length) throw new BadRequestException("No orders selected");
 
     const driver = await this.prisma.driver.findFirst({
       where: { id: driverId, tenantId: user.tenantId },
@@ -883,40 +884,96 @@ export class DispatchService {
     });
     if (!driver) throw new NotFoundException("Driver not found");
 
+    // Validate the whole run before writing any of it. This used to walk the
+    // list writing as it went and skip anything it couldn't find — so a bad
+    // pick left half a run assigned, and the push still said "N orders".
+    // The orders board now sends it arbitrary selections, which is why the
+    // checks below exist at all: the dispatch map could only ever offer
+    // eligible pins, the board can offer anything.
+    const found = await this.prisma.order.findMany({
+      where: { id: { in: ids }, tenantId: user.tenantId },
+      select: {
+        id: true,
+        displayId: true,
+        orderNumber: true,
+        status: true,
+        locationId: true,
+        fulfillmentType: true,
+        deliveryType: true,
+        courierJobId: true,
+      },
+    });
+    if (found.length !== ids.length) {
+      throw new NotFoundException(
+        "One or more of those orders no longer exists. Refresh and try again.",
+      );
+    }
+    const accessible = await this.resolveAccessibleLocationIds(user);
+    const OWN_FLEET_ASSIGNABLE: OrderStatus[] = [
+      OrderStatus.ACCEPTED,
+      OrderStatus.PREPARING,
+      OrderStatus.READY,
+      OrderStatus.PENDING_DISPATCH,
+    ];
+    for (const o of found) {
+      const ref = o.displayId ?? (o.orderNumber != null ? `#${o.orderNumber}` : o.id);
+      if (!o.locationId || !accessible.includes(o.locationId)) {
+        throw new ForbiddenException(`${ref} isn't in one of your locations.`);
+      }
+      if (o.fulfillmentType !== FulfillmentType.DELIVERY) {
+        throw new BadRequestException(`${ref} isn't a delivery.`);
+      }
+      if (o.courierJobId) {
+        throw new BadRequestException(`${ref} is already on a courier.`);
+      }
+      if (o.deliveryType === "PLATFORM") {
+        throw new BadRequestException(
+          `${ref} is delivered by the marketplace's own rider.`,
+        );
+      }
+      if (!OWN_FLEET_ASSIGNABLE.includes(o.status)) {
+        throw new BadRequestException(
+          `${ref} is ${o.status.toLowerCase().replace(/_/g, " ")} — only accepted, preparing or ready orders can go to a driver.`,
+        );
+      }
+    }
+
     const presence = await this.prisma.driverPresence.findUnique({
       where: { driverId },
       select: { pushToken: true },
     });
 
-    let seq = 1;
-    let firstAssignmentId: string | null = null;
-    for (const orderId of orderIds) {
-      const order = await this.prisma.order.findFirst({
-        where: { id: orderId, tenantId: user.tenantId },
-        select: { id: true },
-      });
-      if (!order) continue;
-      const a = await this.prisma.driverAssignment.upsert({
-        where: { orderId },
-        create: { orderId, driverId, status: DriverAssignmentStatus.ASSIGNED, sequence: seq },
-        update: {
-          driverId,
-          status: DriverAssignmentStatus.ASSIGNED,
-          sequence: seq,
-          assignedAt: new Date(),
-          acceptedAt: null,
-          pickedUpAt: null,
-          arrivedAt: null,
-          deliveredAt: null,
-        },
-      });
-      firstAssignmentId = firstAssignmentId ?? a.id;
-      await this.prisma.order.update({
-        where: { id: orderId },
-        data: { status: OrderStatus.ASSIGNED_DRIVER },
-      });
-      seq += 1;
-    }
+    // All or nothing. ids[] is the operator's stop order → sequence 1..N.
+    const firstAssignmentId = await this.prisma.$transaction(async (tx) => {
+      let first: string | null = null;
+      for (const [i, orderId] of ids.entries()) {
+        const a = await tx.driverAssignment.upsert({
+          where: { orderId },
+          create: {
+            orderId,
+            driverId,
+            status: DriverAssignmentStatus.ASSIGNED,
+            sequence: i + 1,
+          },
+          update: {
+            driverId,
+            status: DriverAssignmentStatus.ASSIGNED,
+            sequence: i + 1,
+            assignedAt: new Date(),
+            acceptedAt: null,
+            pickedUpAt: null,
+            arrivedAt: null,
+            deliveredAt: null,
+          },
+        });
+        first = first ?? a.id;
+        await tx.order.update({
+          where: { id: orderId },
+          data: { status: OrderStatus.ASSIGNED_DRIVER },
+        });
+      }
+      return first;
+    });
 
     await this.prisma.driverPresence
       .update({
@@ -925,9 +982,9 @@ export class DispatchService {
       })
       .catch(() => undefined);
 
-    const n = orderIds.length;
+    const n = ids.length;
     await this.expoPush.sendNewJob(presence?.pushToken, {
-      orderId: orderIds[0] ?? "",
+      orderId: ids[0] ?? "",
       title: "New delivery run",
       body: `${n} ${n === 1 ? "order" : "orders"} assigned to you — Accept or Reject`,
     });

@@ -80,19 +80,27 @@ export function OrderMapModal({ orderId, orderRef, onClose }: Props) {
   // Escape closes. Focus moves into the panel on open and goes back to
   // whatever opened it on close, so a keyboard user is not left tabbing
   // through the drawer behind the dialog.
+  //
+  // Mount-only: the drawer passes an inline onClose and re-renders on every
+  // live board update. Keyed on it, this re-ran while open and recorded the
+  // panel itself as the opener, so closing sent focus nowhere.
   const panelRef = useRef<HTMLDivElement | null>(null);
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
   useEffect(() => {
     const opener = document.activeElement as HTMLElement | null;
     panelRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") onCloseRef.current();
     };
     window.addEventListener("keydown", onKey);
     return () => {
       window.removeEventListener("keydown", onKey);
       opener?.focus?.();
     };
-  }, [onClose]);
+  }, []);
 
   // Draw once both the API and the data are in.
   useEffect(() => {

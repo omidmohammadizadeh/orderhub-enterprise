@@ -2004,6 +2004,11 @@ model Order {
   // provider's delivery/job id — the webhook resolves the order by it.
   courierProvider        String? // STUART (later: UBER_DIRECT, …)
   courierJobId           String?
+  // The provider's id for THIS order's leg of the job. One Stuart job can carry
+  // up to 8 orders (a multi-drop run), so the job id no longer identifies an
+  // order — every order on the run shares it. Webhooks resolve by this first
+  // and fall back to courierJobId only for jobs dispatched before it existed.
+  courierDeliveryId      String?
 
   status          OrderStatus     @default(PENDING)
   fulfillmentType FulfillmentType @default(DELIVERY)
@@ -2121,6 +2126,7 @@ model Order {
   @@index([tenantId, customerPhone])
   @@index([tenantId, customerName])
   @@index([courierJobId])
+  @@index([courierDeliveryId])
   @@index([locationId, status, createdAt(sort: Asc)])
   @@index([scheduledFor])
   @@index([customerId])

@@ -160,4 +160,18 @@ export class StuartClientService {
   async cancelJob(creds: StuartCreds, jobId: string | number): Promise<any> {
     return this.request(creds, "POST", `/v2/jobs/${jobId}/cancel`);
   }
+
+  /**
+   * POST /v2/deliveries/:id/cancel — cancel ONE leg of a job.
+   *
+   * On a multi-drop run this is the difference between taking one order off
+   * the courier and cancelling everyone's delivery. Path confirmed against
+   * Stuart's own PHP and C# clients (both call exactly this).
+   */
+  async cancelDelivery(
+    creds: StuartCreds,
+    deliveryId: string | number,
+  ): Promise<any> {
+    return this.request(creds, "POST", `/v2/deliveries/${deliveryId}/cancel`);
+  }
 }

@@ -3,7 +3,14 @@
 import { Body, Controller, Get, Param, Post, Put } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { ConfigService } from "@nestjs/config";
-import { IsBoolean, IsIn, IsOptional, IsString } from "class-validator";
+import {
+  ArrayMaxSize,
+  IsArray,
+  IsBoolean,
+  IsIn,
+  IsOptional,
+  IsString,
+} from "class-validator";
 import { CurrentUser } from "../../../common/decorators/current-user.decorator";
 import { Roles } from "../../../common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "../../auth/interfaces/jwt-payload.interface";
@@ -17,6 +24,11 @@ class UpsertStuartDto {
 }
 class ToggleStuartDto {
   @IsBoolean() active!: boolean;
+}
+class BulkStuartDto {
+  // The run's real limit (8) is enforced — with a readable message — by the
+  // service; this only stops an absurd payload reaching it.
+  @IsArray() @ArrayMaxSize(50) @IsString({ each: true }) orderIds!: string[];
 }
 
 @ApiTags("stuart")
@@ -108,5 +120,34 @@ export class StuartController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.dispatch.cancel({ orderId, tenantId: user.tenantId });
+  }
+
+  // ── Bulk: several orders on one courier ─────────────────────────────────
+
+  @Post("bulk/quote")
+  @Roles("MANAGER", "OWNER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({
+    summary:
+      "Quote ONE Stuart courier for several orders from the same shop (a multi-drop run, up to 8). No charge.",
+  })
+  quoteBulk(@Body() dto: BulkStuartDto, @CurrentUser() user: AuthenticatedUser) {
+    return this.dispatch.quoteBulk({ orderIds: dto.orderIds, user });
+  }
+
+  @Post("bulk/dispatch")
+  @Roles("MANAGER", "OWNER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({
+    summary:
+      "Dispatch several orders from the same shop to ONE Stuart courier (up to 8). Debits the dispatch fee per order; admin bypasses.",
+  })
+  dispatchBulk(
+    @Body() dto: BulkStuartDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.dispatch.dispatchBulk({
+      orderIds: dto.orderIds,
+      user,
+      isAdmin: user.role === "PLATFORM_ADMIN",
+    });
   }
 }

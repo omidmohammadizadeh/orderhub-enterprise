@@ -23,6 +23,30 @@ export interface StuartDispatchResult {
   adminBypass: boolean;
 }
 
+/** One Stuart courier for several orders — Stuart prices the run as one job. */
+export interface StuartBulkQuote {
+  currency: string;
+  amount: number | string | null;
+  orders: number;
+  dispatchFeeEachMinor: number;
+  dispatchFeeMinor: number;
+}
+
+export interface StuartBulkResult {
+  ok: boolean;
+  jobId: string;
+  orders: Array<{
+    orderId: string;
+    deliveryId: string | null;
+    trackingUrl: string | null;
+  }>;
+  feeChargedMinor: number;
+  adminBypass: boolean;
+}
+
+/** Stuart: "up to 8 deliveries with one courier". */
+export const STUART_MAX_DROPOFFS = 8;
+
 export const stuartClient = {
   getConfig: (locationId: string) =>
     apiClient
@@ -53,5 +77,15 @@ export const stuartClient = {
   cancel: (orderId: string) =>
     apiClient
       .post(`/v1/stuart/orders/${orderId}/cancel`, {})
+      .then((r) => r.data),
+
+  quoteBulk: (orderIds: string[]) =>
+    apiClient
+      .post<StuartBulkQuote>(`/v1/stuart/bulk/quote`, { orderIds })
+      .then((r) => r.data),
+
+  dispatchBulk: (orderIds: string[]) =>
+    apiClient
+      .post<StuartBulkResult>(`/v1/stuart/bulk/dispatch`, { orderIds })
       .then((r) => r.data),
 };
