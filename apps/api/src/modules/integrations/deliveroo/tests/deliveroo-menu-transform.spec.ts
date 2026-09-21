@@ -1,5 +1,6 @@
 import {
   buildDeliverooMenu,
+  overlongCategoryNames,
   type SrcCategory,
 } from "../deliveroo-menu.transformer";
 
@@ -245,5 +246,28 @@ describe("buildDeliverooMenu", () => {
       ],
     });
     expect(payload.menu.items[0]!.price_info.price).toBe(0);
+  });
+});
+
+describe("overlongCategoryNames", () => {
+  const product = { id: "p1", name: "Burger", price: 5, groups: [] };
+  const build = (name: string) =>
+    buildDeliverooMenu({
+      menuName: "M",
+      siteId: "1",
+      coverImageUrl: "https://x/y.jpg",
+      categories: [
+        { id: "c1", name: "Burgers", products: [product] },
+        { id: "c2", name, products: [product] },
+      ],
+    }).payload;
+
+  it("names a category over Deliveroo's 120-character limit", () => {
+    const long = "Burgers served with fries and a drink ".repeat(4); // 152 chars
+    expect(overlongCategoryNames(build(long))).toEqual([{ name: long, length: long.length }]);
+  });
+
+  it("passes a name of exactly 120 characters", () => {
+    expect(overlongCategoryNames(build("x".repeat(120)))).toEqual([]);
   });
 });

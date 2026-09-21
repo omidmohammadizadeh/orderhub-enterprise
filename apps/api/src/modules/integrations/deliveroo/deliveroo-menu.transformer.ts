@@ -309,3 +309,20 @@ export function buildDeliverooMenu(input: {
     warnings,
   };
 }
+
+/**
+ * Deliveroo caps a category name at 120 characters (verified from a real 400:
+ * `{"categories":{"2":{"name":{"en":"should not exceed 120"}}}}`). Its error
+ * names the category only by its position in the upload, which means nothing
+ * to an operator, so we check first and name the category instead.
+ */
+export const DELIVEROO_CATEGORY_NAME_MAX = 120;
+
+export function overlongCategoryNames(
+  payload: DeliverooMenuUpload,
+): Array<{ name: string; length: number }> {
+  return payload.menu.categories
+    .map((c) => c.name.en)
+    .filter((n) => n.length > DELIVEROO_CATEGORY_NAME_MAX)
+    .map((name) => ({ name, length: name.length }));
+}

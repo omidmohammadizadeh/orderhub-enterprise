@@ -18,6 +18,8 @@ import {
 } from "../../menus/variant-price-resolver.service";
 import {
   buildDeliverooMenu,
+  DELIVEROO_CATEGORY_NAME_MAX,
+  overlongCategoryNames,
   type SrcCategory,
   type SrcGroup,
   type SrcProduct,
@@ -171,6 +173,18 @@ export class DeliverooMenuPublishService {
       coverImageUrl,
     });
     for (const w of warnings) this.logger.warn(`Deliveroo menu publish: ${w}`);
+
+    // Deliveroo only reports this as "categories.2.name should not exceed
+    // 120" — a position the operator can't map back to a category. Refuse
+    // before uploading and name the category instead.
+    const tooLong = overlongCategoryNames(payload);
+    if (tooLong.length) {
+      throw new BadRequestException(
+        `Deliveroo allows category names up to ${DELIVEROO_CATEGORY_NAME_MAX} characters. ` +
+          `Shorten ${tooLong.length === 1 ? "this category" : "these categories"} and publish again: ` +
+          tooLong.map((c) => `"${c.name.slice(0, 60)}…" (${c.length} characters)`).join("; "),
+      );
+    }
     if (mispriced.length) {
       warnings.push(
         `${mispriced.length} product(s) have a size priced BELOW the product's base price, so Deliveroo will ` +
