@@ -313,3 +313,33 @@ describe("menuNameProblems", () => {
     expect(menuNameProblems(payload("Cheeseburger", "Large"))).toEqual([]);
   });
 });
+
+// Deliveroo: "Please provide the modifier type for all your modifications,
+// whenever available." Sent only where it's known — never guessed.
+describe("modifier type", () => {
+  const { buildSizeGroup } = require("../../shared/publish-sizes");
+
+  it("marks the size group as a size-modification", () => {
+    const sizes = buildSizeGroup("pizza", [
+      { name: "10 inch", price: 8 },
+      { name: "12 inch", price: 10 },
+    ]);
+    const { payload } = buildDeliverooMenu({
+      menuName: "M",
+      siteId: "s",
+      categories: [{ id: "c", name: "Pizza", products: [{ id: "pizza", name: "Margherita", price: 8, groups: [sizes] }] }],
+      coverImageUrl: "https://x/c.jpg",
+    });
+    expect(payload.menu.modifiers.find((m) => m.id === "pizza__sizes")!.type).toBe("size-modification");
+  });
+
+  it("leaves it off a group whose kind we don't know", () => {
+    const { payload } = buildDeliverooMenu({
+      menuName: "M",
+      siteId: "s",
+      categories: [catWithBurger()],
+      coverImageUrl: "https://x/c.jpg",
+    });
+    for (const m of payload.menu.modifiers) expect(m).not.toHaveProperty("type");
+  });
+});

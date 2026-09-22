@@ -122,6 +122,8 @@ export function buildSizeGroup(
     // Deterministic, so republishing doesn't churn the marketplace's ids.
     id: `${itemId}__sizes`,
     name: SIZE_GROUP_NAME,
+    // Deliveroo's own name for exactly this; the other marketplaces ignore it.
+    modifierType: "size-modification",
     minSelections: 1,
     maxSelections: 1,
     selectionType: "VARIANT",

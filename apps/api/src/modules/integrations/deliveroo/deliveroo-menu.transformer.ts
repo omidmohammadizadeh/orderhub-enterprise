@@ -30,9 +30,28 @@ export interface SrcOption {
    */
   nestedGroups?: SrcGroup[];
 }
+/** Deliveroo's modifier "type" enum (Menu API upload reference). */
+export type DeliverooModifierType =
+  | "up-sell-existing-items"
+  | "remove-ingredient"
+  | "add-ingredient"
+  | "cooking-instruction"
+  | "size-modification"
+  | "product-variation"
+  | "gift-wrap"
+  | "bundle-item"
+  | "add-separate-condiment";
+
 export interface SrcGroup {
   id: string;
   name: string;
+  /**
+   * Deliveroo asks for a modifier type "for all your modifications, whenever
+   * available". Set only where we KNOW it — the size group is certainly a
+   * size-modification; a free-named group like "Extras" could be three
+   * different things, and a wrong type is worse than none.
+   */
+  modifierType?: DeliverooModifierType;
   minSelections?: number | null;
   maxSelections?: number | null;
   selectionType?: "VARIANT" | "ADDON" | string;
@@ -128,8 +147,8 @@ export interface DeliverooMenuUpload {
     items: Array<DeliverooItem>;
     modifiers: Array<{
       id: string;
-      /** Only set on bundle sections; plain modifier groups leave it out. */
-      type?: "bundle-item";
+      /** Set where known: bundle sections, size groups. Omitted otherwise. */
+      type?: DeliverooModifierType;
       name: Loc;
       min_selection: number;
       max_selection: number;
@@ -233,6 +252,7 @@ export function buildDeliverooMenu(input: {
       min = Math.min(Math.max(0, min), max);
       modifiers.push({
         id: g.id,
+        ...(g.modifierType ? { type: g.modifierType } : {}),
         name: { en: g.name },
         min_selection: min,
         max_selection: max,
@@ -285,6 +305,7 @@ export function buildDeliverooMenu(input: {
             min = Math.min(Math.max(0, min), max);
             modifiers.push({
               id: g.id,
+              ...(g.modifierType ? { type: g.modifierType } : {}),
               name: { en: g.name },
               min_selection: min,
               max_selection: max,
