@@ -765,7 +765,7 @@ export function ProductForm({
           <Card className="p-5">
             <h3 className="text-sm font-semibold text-zinc-900 mb-4">Pricing</h3>
             <div className="space-y-4">
-              <Field label="Base price ({symbol.trim()})">
+              <Field label={`Base price (${symbol.trim()})`}>
                 <Input
                   type="number"
                   step="0.01"

@@ -148,6 +148,10 @@ function GeneralTab({
   onSaved: () => void;
 }) {
   const qc = useQueryClient();
+  // The fee labels read in the currency of the shop being EDITED, which need
+  // not be the one selected in the sidebar. A new shop has no id yet, so it
+  // falls back to the selected one.
+  const { symbol } = useCurrency(location?.id ?? undefined);
   // No brand dropdown on the create form anymore — the API picks/creates a
   // default brand for the tenant and the operator adds real brands later
   // from the Brands section.
@@ -816,7 +820,7 @@ function GeneralTab({
               className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
             />
           </Field>
-          <Field label="Fixed fee per order ({symbol.trim()})">
+          <Field label={`Fixed fee per order (${symbol.trim()})`}>
             <input
               type="number"
               min="0"
@@ -859,7 +863,7 @@ function GeneralTab({
               className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
             />
           </Field>
-          <Field label="Fixed fee per order ({symbol.trim()})">
+          <Field label={`Fixed fee per order (${symbol.trim()})`}>
             <input
               type="number"
               min="0"

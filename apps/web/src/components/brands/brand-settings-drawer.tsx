@@ -624,7 +624,7 @@ export function BrandSettingsDrawer({
               </p>
             )}
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Fixed ({symbol.trim()})">
+              <Field label={`Fixed (${symbol.trim()})`}>
                 <input
                   value={appFeeFixed}
                   onChange={(e) => setAppFeeFixed(e.target.value)}
@@ -1024,7 +1024,7 @@ export function BrandSettingsDrawer({
                   className="input"
                 />
               </Field>
-              <Field label="Min delivery ({symbol.trim()})">
+              <Field label={`Min delivery (${symbol.trim()})`}>
                 <input
                   value={minDelivery}
                   onChange={(e) => setMinDelivery(e.target.value)}
@@ -1129,7 +1129,7 @@ function DeliveryZonesEditor({
   // had us hunting for a restriction that was never there.
   canEdit: boolean;
 }) {
-  const { money, country } = useCurrency();
+  const { money, symbol, country } = useCurrency();
   const qc = useQueryClient();
   const zonesQuery = useQuery<DeliveryZone[]>({
     queryKey: ["brand-delivery-zones", brandId],
@@ -1384,7 +1384,7 @@ function DeliveryZonesEditor({
             />
           </Field>
         )}
-        <Field label="Fee ({symbol.trim()})">
+        <Field label={`Fee (${symbol.trim()})`}>
           <input
             value={newFee}
             onChange={(e) => setNewFee(e.target.value)}
@@ -1396,7 +1396,7 @@ function DeliveryZonesEditor({
             className="input"
           />
         </Field>
-        <Field label="Min order ({symbol.trim()})">
+        <Field label={`Min order (${symbol.trim()})`}>
           <input
             value={newMin}
             onChange={(e) => setNewMin(e.target.value)}

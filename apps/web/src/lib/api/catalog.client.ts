@@ -145,6 +145,8 @@ export interface MealDeal {
   visibleToCustomers: boolean;
   locationIds: string[];
   platformPricingOverrides: Record<string, number>;
+  /** Included by the location list — the brand whose menu the deal goes out on. */
+  brand?: { id: string; name: string };
 }
 
 export interface UpsellGroup {

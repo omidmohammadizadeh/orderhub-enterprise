@@ -42,11 +42,24 @@ export class CatalogService {
       select: { id: true, brandId: true },
     });
     if (!location) throw new NotFoundException("Location not found");
+    // Every brand that trades FROM this kitchen (the same rule the brand
+    // list and Menu page use), plus the location's own brand. The own brand
+    // alone — the old rule — hid the deals of every other brand at a
+    // multi-brand shop, and it is where deals were created before the tab
+    // had a brand picker, so it stays in so those can still be edited.
+    const brands = await this.prisma.brand.findMany({
+      where: { tenantId, deletedAt: null, primaryLocationId: locationId },
+      select: { id: true },
+    });
+    const brandIds = Array.from(new Set([location.brandId, ...brands.map((b) => b.id)]));
     return this.prisma.mealDeal.findMany({
       where: {
-        brandId: location.brandId,
+        brandId: { in: brandIds },
         OR: [{ locationIds: { isEmpty: true } }, { locationIds: { has: locationId } }],
       },
+      // The tab shows which brand each deal publishes with — it decides
+      // which Deliveroo menu the deal goes out on.
+      include: { brand: { select: { id: true, name: true } } },
       orderBy: { createdAt: "desc" },
     });
   }

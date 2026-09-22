@@ -7,6 +7,7 @@
 // is editable as a comma-separated list of group IDs.
 
 import { useState, useEffect } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Save, Plus, X } from "lucide-react";
 import { productsClient } from "@/lib/api/catalog.client";
@@ -36,6 +37,7 @@ interface SkuRow {
 
 export function VariantsEditor({ productId, onClose }: Props) {
   const qc = useQueryClient();
+  const { symbol } = useCurrency();
 
   const { data: product } = useQuery({
     queryKey: ["catalog", "product", productId],
@@ -165,7 +167,7 @@ export function VariantsEditor({ productId, onClose }: Props) {
               <Input
                 type="number"
                 step="0.01"
-                placeholder="Price ({symbol.trim()})"
+                placeholder={`Price (${symbol.trim()})`}
                 value={s.price}
                 onChange={(e) =>
                   setSkus(
