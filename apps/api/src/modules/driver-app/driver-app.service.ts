@@ -15,6 +15,10 @@ import { SocketService } from "../../infrastructure/socket/socket.service";
 import { ChatService } from "../chat/chat.service";
 import { coercePostcodeFees, matchPostcodeFee } from "../dispatch/driver-earnings.service";
 import { TERMINAL_ORDER_STATUSES } from "../dispatch/dispatch-settlement.service";
+import {
+  coordsFromDeliveryAddress,
+  resolveDeliveryAddress,
+} from "../orders/delivery-address";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
 export interface PingDto {
@@ -340,10 +344,31 @@ export class DriverAppService {
         customerInfo,
         ...orderRest
       } = a.order as typeof a.order & { customerInfo?: any };
+      // Fill the address columns from the deliveryAddress blob when they are
+      // empty, which is EVERY marketplace and online order: ingestCanonical
+      // writes only the blob. The app reads these columns to show the address
+      // and to hand a destination to Google Maps, so without this a driver on
+      // a real Uber Eats order taps Navigate and is told there is no address —
+      // while the dashboard, which reads the blob, shows it perfectly.
+      //
+      // Done in the response rather than on the row so it reaches the builds
+      // already on drivers' phones the moment this deploys.
+      const address = resolveDeliveryAddress(orderRest as any);
+      const blobPoint = coordsFromDeliveryAddress(
+        (orderRest as any).deliveryAddress,
+      );
       return {
         ...a,
         order: {
           ...orderRest,
+          addressLine1: address.line1,
+          addressLine2: address.line2,
+          city: address.city,
+          postcode: address.postcode,
+          // Coordinates the marketplace already sent put the destination pin
+          // on the driver's map without paying to geocode.
+          deliveryLat: (orderRest as any).deliveryLat ?? blobPoint?.lat ?? null,
+          deliveryLng: (orderRest as any).deliveryLng ?? blobPoint?.lng ?? null,
           // Flatten the masked-number access code out of the JSON blob so
           // the app can dial it after a pause instead of the driver reading
           // it off a ticket and keying it in on a doorstep. Adapters have
