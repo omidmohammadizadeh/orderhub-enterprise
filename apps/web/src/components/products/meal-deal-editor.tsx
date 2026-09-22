@@ -29,10 +29,13 @@ export function MealDealEditor({
   deal,
   onClose,
   invalidateKey,
+  locationId,
 }: {
   deal: MealDeal;
   onClose: () => void;
   invalidateKey: unknown[];
+  /** Stamps a product created from here onto the same shop, like the Products tab. */
+  locationId?: string | null;
 }) {
   const { money, symbol } = useCurrency();
   const qc = useQueryClient();
@@ -52,9 +55,39 @@ export function MealDealEditor({
     })),
   );
 
+  const productsKey = ["catalog", "products", deal.brandId];
   const { data: products = [] } = useQuery({
-    queryKey: ["catalog", "products", deal.brandId],
+    queryKey: productsKey,
     queryFn: () => productsClient.list(deal.brandId),
+  });
+
+  // Making a product without leaving the deal: the section is usually where
+  // an operator notices the drink or side doesn't exist yet. It is created
+  // on the DEAL's brand, so it can be used here at all.
+  const [creatingIn, setCreatingIn] = useState<number | null>(null);
+  const [newName, setNewName] = useState("");
+  const [newPrice, setNewPrice] = useState("");
+  const createProduct = useMutation({
+    mutationFn: async (sectionIndex: number) => {
+      const created = await productsClient.create(deal.brandId, {
+        name: newName.trim(),
+        basePrice: Number(newPrice) || 0,
+        ...(locationId ? { locationId } : {}),
+      });
+      return { created, sectionIndex };
+    },
+    onSuccess: ({ created, sectionIndex }) => {
+      qc.invalidateQueries({ queryKey: productsKey });
+      // Put it straight into the section that asked for it.
+      setSections((all) =>
+        all.map((s, j) =>
+          j === sectionIndex ? { ...s, options: [...s.options, { menuItemId: created.id }] } : s,
+        ),
+      );
+      setCreatingIn(null);
+      setNewName("");
+      setNewPrice("");
+    },
   });
   const productById = useMemo(() => new Map(products.map((p) => [p.id, p])), [products]);
   const priceOf = (id: string) => toPence(productById.get(id)?.basePrice);
@@ -258,16 +291,88 @@ export function MealDealEditor({
                 </ul>
               )}
 
-              <SearchableSelect
-                options={productOptions.filter((p) => !taken.has(p.value))}
-                value={undefined}
-                allowAll={false}
-                placeholder="Add a product…"
-                searchPlaceholder="Search products…"
-                onChange={(id) =>
-                  id && patchSection(i, { options: [...s.options, { menuItemId: id }] })
-                }
-              />
+              <div className="flex flex-wrap items-center gap-2">
+                <SearchableSelect
+                  options={productOptions.filter((p) => !taken.has(p.value))}
+                  value={undefined}
+                  allowAll={false}
+                  placeholder="Add a product…"
+                  searchPlaceholder="Search products…"
+                  onChange={(id) =>
+                    id && patchSection(i, { options: [...s.options, { menuItemId: id }] })
+                  }
+                />
+                {creatingIn !== i && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="h-9 bg-white"
+                    onClick={() => {
+                      setCreatingIn(i);
+                      setNewName("");
+                      setNewPrice("");
+                    }}
+                  >
+                    <Plus className="mr-1.5 h-3.5 w-3.5" />
+                    New product
+                  </Button>
+                )}
+              </div>
+
+              {creatingIn === i && (
+                <div className="rounded-md border border-zinc-200 bg-zinc-50 p-2.5 space-y-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Input
+                      autoFocus
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      placeholder="Product name"
+                      aria-label="New product name"
+                      className="h-8 min-w-40 flex-1 bg-white text-sm"
+                    />
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      step="0.01"
+                      min="0"
+                      value={newPrice}
+                      onChange={(e) => setNewPrice(e.target.value)}
+                      placeholder={`Price (${symbol.trim()})`}
+                      aria-label="New product price"
+                      className="h-8 w-28 bg-white text-sm tabular-nums"
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="h-8 bg-orange-500 text-white hover:bg-orange-600"
+                      disabled={!newName.trim() || createProduct.isPending}
+                      onClick={() => createProduct.mutate(i)}
+                    >
+                      {createProduct.isPending ? "Adding…" : "Add"}
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="h-8 bg-white"
+                      onClick={() => setCreatingIn(null)}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                  <p className="text-[11px] text-zinc-500">
+                    Creates a {deal.brand?.name ?? "brand"} product. Add it to the menu you
+                    publish too, or Deliveroo won&rsquo;t see it and it&rsquo;s dropped from
+                    this section.
+                  </p>
+                  {createProduct.isError && (
+                    <p role="alert" className="text-[11px] text-red-600">
+                      Couldn&rsquo;t create that product. Please try again.
+                    </p>
+                  )}
+                </div>
+              )}
 
               {sectionIssues[i]!.length > 0 && (
                 <ul className="space-y-1">

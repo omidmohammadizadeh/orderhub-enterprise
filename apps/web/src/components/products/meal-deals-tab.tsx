@@ -198,6 +198,7 @@ export function MealDealsTab({ brandId, locationId, search }: Props) {
           deal={editing}
           onClose={() => setEditingId(null)}
           invalidateKey={listKey}
+          locationId={locationId}
         />
       )}
 
