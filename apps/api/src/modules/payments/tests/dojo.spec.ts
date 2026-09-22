@@ -34,6 +34,7 @@ function fakeClient(over: Partial<Record<keyof DojoApiClient, jest.Mock>> = {}) 
       amount: { value: 2450, currencyCode: "GBP" },
     }),
     cancelPaymentIntent: jest.fn().mockResolvedValue({}),
+    refundPaymentIntent: jest.fn().mockResolvedValue({ refundId: "rfnd_1" }),
     registerRestIntegration: jest.fn().mockResolvedValue([]),
     subscribeWebhook: jest.fn().mockResolvedValue({ id: "ws_1" }),
     deleteWebhook: jest.fn().mockResolvedValue({}),
@@ -64,7 +65,10 @@ function makeDojo(opts: { client?: any; order?: any; location?: any; payment?: a
     brand: { tenantId: "t-1" },
   };
   const prisma = {
+    $transaction: jest.fn(async (ops: any[]) => Promise.all(ops)),
+    refund: { create: jest.fn().mockResolvedValue({ id: "r1" }) },
     order: {
+      update: jest.fn().mockResolvedValue({}),
       findFirst: jest.fn().mockResolvedValue(
         opts.order ?? { id: "ord-1", tenantId: "t-1", locationId: "loc-1", displayId: "A12", total: 24.5, paymentStatus: "PENDING" },
       ),
@@ -203,7 +207,7 @@ describe("DojoService.chargeOrder", () => {
     const client = fakeClient({ createSaleSession: jest.fn().mockRejectedValue(new DojoApiError("busy", 409, null)) });
     const { svc, prisma } = makeDojo({ client });
     await expect(svc.chargeOrder({ tenantId: "t-1", orderId: "ord-1", terminalId: "tm_1" })).rejects.toThrow(
-      /offline or already taking a payment/,
+      /busy with another payment, or offline/,
     );
     expect(client.cancelPaymentIntent).toHaveBeenCalledWith("pi_new");
     expect(prisma.payment.create).not.toHaveBeenCalled();
@@ -488,5 +492,130 @@ describe("DojoEposService.recordPayment", () => {
       response: { errorType: "UnexpectedError" },
     });
     expect(created).toHaveLength(0);
+  });
+});
+
+
+// ── Go-live checklist behaviours (docs.dojo.tech … pay-at-counter/go-live-checklist-f2f) ──
+
+describe("Dojo go-live checklist", () => {
+  const processing = {
+    id: "pay-1",
+    tenantId: "t-1",
+    orderId: "ord-1",
+    providerChargeId: "pi_new",
+    amount: 24.5,
+    tipAmount: 0,
+    status: "PROCESSING",
+    metadata: { terminalSessionId: "ts_1", source: "dojo_terminal" },
+    order: { id: "ord-1", locationId: "loc-1" },
+  };
+
+  it("re-uses the payment intent when a declined charge is retried", async () => {
+    const client = fakeClient({
+      getPaymentIntent: jest.fn().mockResolvedValue({ id: "pi_old", status: "Created" }),
+    });
+    const { svc, prisma } = makeDojo({ client });
+    prisma.payment.findMany.mockImplementation(async (q: any) =>
+      q.where.status === "FAILED"
+        ? [{ id: "pay-old", amount: 24.5, providerChargeId: "pi_old", metadata: { source: "dojo_terminal" } }]
+        : [],
+    );
+    const res = await svc.chargeOrder({ tenantId: "t-1", orderId: "ord-1", terminalId: "tm_1" });
+    expect(client.createPaymentIntent).not.toHaveBeenCalled();
+    expect(client.createSaleSession).toHaveBeenCalledWith("tm_1", "pi_old");
+    expect(prisma.payment.update).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: "pay-old" }, data: expect.objectContaining({ status: "PROCESSING" }) }),
+    );
+    expect(prisma.payment.create).not.toHaveBeenCalled();
+    expect(res.paymentIntentId).toBe("pi_old");
+  });
+
+  it("explains a switched-off machine (404) in plain English", async () => {
+    const client = fakeClient({ createSaleSession: jest.fn().mockRejectedValue(new DojoApiError("x", 404, null)) });
+    const { svc } = makeDojo({ client });
+    await expect(svc.chargeOrder({ tenantId: "t-1", orderId: "ord-1", terminalId: "tm_1" })).rejects.toThrow(
+      /switched on and connected/,
+    );
+  });
+
+  it("treats an Expired session as unconfirmed, not declined — and still settles if Dojo captured it", async () => {
+    const expired = fakeClient({
+      getTerminalSession: jest.fn().mockResolvedValue({ id: "ts_1", status: "Expired" }),
+      getPaymentIntent: jest.fn().mockResolvedValue({ id: "pi_new", status: "Created" }),
+    });
+    const a = makeDojo({ client: expired, payment: { ...processing } });
+    const s1 = await a.svc.chargeStatus("t-1", "pi_new");
+    expect(s1).toMatchObject({ paid: false, failed: true, unconfirmed: true, message: expect.stringMatching(/record the payment manually/) });
+
+    const capturedAnyway = fakeClient({
+      getTerminalSession: jest.fn().mockResolvedValue({ id: "ts_1", status: "Expired" }),
+    });
+    const b = makeDojo({ client: capturedAnyway, payment: { ...processing } });
+    expect((await b.svc.chargeStatus("t-1", "pi_new")).paid).toBe(true);
+    expect(b.payments.settleCardPresentPayment).toHaveBeenCalled();
+  });
+
+  it("passes the card machine's current prompt to the till", async () => {
+    const client = fakeClient({
+      getTerminalSession: jest.fn().mockResolvedValue({
+        id: "ts_1",
+        status: "Initiated",
+        notificationEvents: [
+          { notificationType: "PresentCard", createdAt: "a" },
+          { notificationType: "EnterPin", createdAt: "b" },
+        ],
+      }),
+    });
+    const { svc } = makeDojo({ client, payment: { ...processing } });
+    expect((await svc.chargeStatus("t-1", "pi_new")).prompt).toBe("EnterPin");
+  });
+
+  it("records a tip added on the machine before settling", async () => {
+    const client = fakeClient({
+      getPaymentIntent: jest.fn().mockResolvedValue({
+        id: "pi_new",
+        status: "Captured",
+        amount: { value: 2450, currencyCode: "GBP" },
+        tipsAmount: { value: 300, currencyCode: "GBP" },
+      }),
+    });
+    const { svc, prisma } = makeDojo({ client, payment: { ...processing } });
+    await svc.chargeStatus("t-1", "pi_new");
+    expect(prisma.payment.update).toHaveBeenCalledWith({ where: { id: "pay-1" }, data: { tipAmount: 3 } });
+  });
+
+  describe("refunds", () => {
+    const paid = { ...processing, status: "SUCCEEDED" };
+
+    it("refunds in full and marks the payment and order refunded", async () => {
+      const { svc, client, prisma } = makeDojo({ payment: { ...paid } });
+      prisma.payment.findMany.mockResolvedValue([{ amount: 24.5, status: "REFUNDED", metadata: {} }]);
+      const r = await svc.refundPayment({ tenantId: "t-1", paymentIntentId: "pi_new" });
+      expect(client.refundPaymentIntent).toHaveBeenCalledWith(
+        expect.objectContaining({ paymentIntentId: "pi_new", amountMinor: 2450 }),
+      );
+      expect(r).toMatchObject({ full: true, amount: 24.5, leftToRefund: 0 });
+      expect(prisma.order.update).toHaveBeenCalledWith({ where: { id: "ord-1" }, data: { paymentStatus: "REFUNDED" } });
+    });
+
+    it("refunds part and leaves the rest refundable", async () => {
+      const { svc, prisma } = makeDojo({ payment: { ...paid } });
+      prisma.payment.findMany.mockResolvedValue([{ amount: 24.5, status: "SUCCEEDED", metadata: { refundedMinor: 1000 } }]);
+      const r = await svc.refundPayment({ tenantId: "t-1", paymentIntentId: "pi_new", amount: 10 });
+      expect(r).toMatchObject({ full: false, amount: 10, leftToRefund: 14.5 });
+      expect(prisma.order.update).toHaveBeenCalledWith({
+        where: { id: "ord-1" },
+        data: { paymentStatus: "PARTIALLY_REFUNDED" },
+      });
+    });
+
+    it("never refunds more than is left", async () => {
+      const { svc, client } = makeDojo({ payment: { ...paid, metadata: { ...paid.metadata, refundedMinor: 2000 } } });
+      await expect(svc.refundPayment({ tenantId: "t-1", paymentIntentId: "pi_new", amount: 10 })).rejects.toThrow(
+        /Only 4.50 is left/,
+      );
+      expect(client.refundPaymentIntent).not.toHaveBeenCalled();
+    });
   });
 });

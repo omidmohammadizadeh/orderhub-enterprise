@@ -45,6 +45,21 @@ const FAILED_PI_STATUSES = new Set([
 // has to be told to switch method rather than tap again.
 const INSERT_ONLY_DECLINES = new Set(["offline_pin_required", "online_or_offline_pin_required"]);
 
+// Dojo terminal notificationEvents → what the till shows while waiting.
+const DOJO_PROMPTS: Record<string, string> = {
+  PresentCard: "Customer: tap, insert or swipe your card",
+  PresentOnlyOneCard: "Present only one card",
+  InsertCard: "Customer: insert your card",
+  ReEnterCard: "Please present the card again",
+  EnterPin: "Customer is entering their PIN…",
+  RemoveCard: "Customer: remove your card",
+  PleaseWait: "Processing — please wait…",
+  CardUnsupported: "That card isn't supported — try another card",
+  CardError: "Card error — try the card again",
+  Approved: "Approved — confirming…",
+  Declined: "Declined on the machine",
+};
+
 function failureMessage(status: string, declineCode?: string | null): string {
   if (declineCode && INSERT_ONLY_DECLINES.has(declineCode)) {
     return "This card must be inserted — it can't be read by tapping. Use another payment method below.";
@@ -116,6 +131,9 @@ export function ChargeReaderModal({
   const [methodTouched, setMethodTouched] = useState(false);
   const [dojoTerminalId, setDojoTerminalId] = useState<string | null>(null);
   const [dojoNeedsSignature, setDojoNeedsSignature] = useState(false);
+  const [dojoPrompt, setDojoPrompt] = useState<string | null>(null);
+  // Expired session — Dojo never said whether the card went through.
+  const [dojoUnconfirmed, setDojoUnconfirmed] = useState(false);
   const [connectedLabel, setConnectedLabel] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
   // Simulated reader — verify the flow with no hardware (test mode only).
@@ -183,6 +201,8 @@ export function ChargeReaderModal({
       setMethodTouched(false);
       setDojoTerminalId(null);
       setDojoNeedsSignature(false);
+      setDojoPrompt(null);
+      setDojoUnconfirmed(false);
       setConnectedLabel(null);
       setConnecting(false);
       setSimulate(false);
@@ -284,6 +304,8 @@ export function ChargeReaderModal({
     setError(null);
     setDeclineCode(null);
     setDojoNeedsSignature(false);
+    setDojoPrompt(null);
+    setDojoUnconfirmed(false);
     setPhase("charging");
     try {
       const res = await dojoClient.charge(orderId, activeDojo.id, isPart ? partAmount! : undefined);
@@ -293,6 +315,7 @@ export function ChargeReaderModal({
         try {
           const st = await dojoClient.chargeStatus(res.paymentIntentId);
           setDojoNeedsSignature(st.needsSignature);
+          setDojoPrompt(st.prompt ?? null);
           if (st.paid) {
             if (pollRef.current) clearInterval(pollRef.current);
             setPhase("paid");
@@ -303,12 +326,15 @@ export function ChargeReaderModal({
           if (st.failed) {
             if (pollRef.current) clearInterval(pollRef.current);
             setPhase("error");
+            setDojoUnconfirmed(!!st.unconfirmed);
             setError(st.message ?? "Card payment didn't go through. You can try again.");
           }
         } catch {
           /* transient network — keep polling */
         }
-      }, 2000);
+        // Dojo's go-live checklist asks the POS to poll the terminal session
+        // once a second, so the machine's prompts show up without lag.
+      }, 1000);
     } catch (e: any) {
       setPhase("error");
       setError(e?.response?.data?.message ?? e?.message ?? "Couldn't start the payment");
@@ -665,7 +691,9 @@ export function ChargeReaderModal({
                   <div className="flex flex-col items-center gap-2 py-3 text-zinc-600">
                     <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
                     <p className="text-sm" aria-live="polite">
-                      Follow the prompts on {activeDojo?.label ?? "the Dojo machine"}…
+                      {dojoPrompt && DOJO_PROMPTS[dojoPrompt]
+                        ? DOJO_PROMPTS[dojoPrompt]
+                        : `Follow the prompts on ${activeDojo?.label ?? "the Dojo machine"}…`}
                     </p>
                     <Button size="sm" variant="outline" onClick={cancelDojoCharge} className="mt-1">
                       Cancel on machine
@@ -692,6 +720,14 @@ export function ChargeReaderModal({
                   <p className="text-center text-sm text-red-600" role="alert">
                     {error}
                   </p>
+                  {/* Expired: the machine may have taken the card anyway.
+                      Dojo's checklist wants a manual-record option here as
+                      well as retry — the operator checks the machine. */}
+                  {phase === "error" && dojoUnconfirmed && !isPart && (
+                    <Button variant="outline" onClick={markPaidManually} className="w-full">
+                      Machine shows APPROVED — record as paid
+                    </Button>
+                  )}
                   {phase === "error" && (
                     <FallbackOptions
                       insertOnly={false}

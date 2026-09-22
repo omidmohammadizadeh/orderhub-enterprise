@@ -32,6 +32,10 @@ export interface DojoChargeStatus {
   paid: boolean;
   failed: boolean;
   needsSignature: boolean;
+  /** Expired session: Dojo never reported an outcome — check the machine. */
+  unconfirmed?: boolean;
+  /** What the machine is showing: PresentCard, EnterPin, InsertCard… */
+  prompt?: string | null;
   message?: string;
 }
 
@@ -74,6 +78,15 @@ export const dojoClient = {
 
   cancel: (paymentIntentId: string) =>
     apiClient.post(`${base}/charge/cancel`, { paymentIntentId }).then((r) => r.data),
+
+  // Full refund when `amount` is omitted.
+  refund: (paymentIntentId: string, amount?: number, reason?: string) =>
+    apiClient
+      .post<{ refundId: string | null; amount: number; full: boolean; paymentIntentStatus: string | null; leftToRefund: number }>(
+        `${base}/refund`,
+        { paymentIntentId, ...(amount !== undefined ? { amount } : {}), ...(reason ? { reason } : {}) },
+      )
+      .then((r) => r.data),
 
   signature: (paymentIntentId: string, accepted: boolean) =>
     apiClient.post(`${base}/charge/signature`, { paymentIntentId, accepted }).then((r) => r.data),

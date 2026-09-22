@@ -134,6 +134,23 @@ export class DojoController {
     return this.dojo.respondToSignature(user.tenantId, body.paymentIntentId, body.accepted === true);
   }
 
+  // Money going back out — manager tier, like the rest of the Dojo setup.
+  @Post("refund")
+  @Roles(...DOJO_ADMIN_ROLES)
+  @ApiOperation({ summary: "Refund a Dojo card payment (full, or partial with `amount`)" })
+  refund(
+    @Body() body: { paymentIntentId: string; amount?: number; reason?: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.dojo.refundPayment({
+      tenantId: user.tenantId,
+      paymentIntentId: body.paymentIntentId,
+      amount: body.amount,
+      reason: body.reason,
+      userId: user.userId,
+    });
+  }
+
   // ── Webhook ───────────────────────────────────────────────────────────────
 
   /**

@@ -8,6 +8,7 @@ import {
   HttpStatus,
   Inject,
   forwardRef,
+  Optional,
 } from "@nestjs/common";
 import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
 import type { Prisma, Order, OrderStatus, OrderStatusActorType } from "@orderhub/database";
@@ -26,6 +27,7 @@ import { DispatchSettlementService } from "../dispatch/dispatch-settlement.servi
 import { HubRiseDeliverySyncService } from "../integrations/hubrise/hubrise-delivery-sync.service";
 import { PaymentsService } from "../payments/payments.service";
 import { TapService } from "../payments/tap.service";
+import { DojoService } from "../payments/dojo/dojo.service";
 import { PromoCodesService } from "../promo-codes/promo-codes.service";
 import {
   assertTransition,
@@ -229,6 +231,9 @@ export class OrdersService {
     // stays live in the driver app and the driver stays ON_JOB. No forwardRef:
     // DispatchSettlementModule imports nothing.
     private readonly dispatchSettlement: DispatchSettlementService,
+    // Dojo card-machine refunds on cancel. Last and optional so existing
+    // positional test constructions keep lining up.
+    @Optional() private readonly dojo?: DojoService,
   ) {}
 
   /**
@@ -2560,6 +2565,11 @@ export class OrdersService {
           await this.tap.refundOrder(orderId, dto.cancelReason ?? "Order cancelled");
         } else {
           await this.payments.refundForOrder(orderId, dto.cancelReason ?? undefined);
+          // refundForOrder only ever touches Stripe rows. An order paid on
+          // a Dojo card machine would otherwise keep the customer's money
+          // on cancel with nothing saying so. No-op when there's no Dojo
+          // payment on the order.
+          await this.dojo?.refundOrder(orderId, dto.cancelReason ?? "Order cancelled");
         }
       })().catch((err: any) =>
         this.logger.error(`Refund/cancel failed for ${orderId}: ${err.message}`),

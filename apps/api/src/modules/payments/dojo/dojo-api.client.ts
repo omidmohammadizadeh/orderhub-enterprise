@@ -72,6 +72,8 @@ export interface DojoTerminalSession {
   status: DojoTerminalSessionStatus;
   details?: { sale?: { paymentIntentId: string }; sessionType?: string };
   statusEvents?: Array<{ status: string; createdAt: string; debugMessage?: string }>;
+  /** What the machine is showing: InsertCard, EnterPin, PresentCard, Approved… */
+  notificationEvents?: Array<{ notificationType: string; createdAt: string }>;
   [k: string]: unknown;
 }
 
@@ -218,6 +220,22 @@ export class DojoApiClient {
       "GET",
       `/payment-intents/${encodeURIComponent(paymentIntentId)}`,
     );
+  }
+
+  /** Refund a captured intent (full or partial). `amountMinor` in pence. */
+  refundPaymentIntent(args: {
+    paymentIntentId: string;
+    amountMinor: number;
+    reason?: string;
+    idempotencyKey: string;
+  }): Promise<{ refundId?: string | null; paymentIntentId?: string | null }> {
+    return this.request("POST", `/payment-intents/${encodeURIComponent(args.paymentIntentId)}/refunds`, {
+      idempotencyKey: args.idempotencyKey,
+      body: {
+        amount: args.amountMinor,
+        ...(args.reason ? { refundReason: args.reason.slice(0, 1024) } : {}),
+      },
+    });
   }
 
   cancelPaymentIntent(paymentIntentId: string): Promise<unknown> {

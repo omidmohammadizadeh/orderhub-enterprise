@@ -450,57 +450,67 @@ export class DojoService {
     if (amountMinor <= 0) throw new BadRequestException("Order total must be > 0");
 
     const client = this.clientFor(cfg);
-    const ref = order.displayId ? `Order ${order.displayId}` : `Order ${order.id.slice(-8)}`;
-    const pi = await client.createPaymentIntent({
-      amountMinor,
-      currencyCode: currency,
-      reference: ref,
-      description: loc.name,
-      metadata: { orderhubOrderId: order.id, orderhubLocationId: order.locationId },
-    });
+
+    // Dojo's go-live checklist: "POS should re-use Payment Intent if the
+    // transaction is re-attempted" after a decline. A declined or cancelled
+    // session leaves the intent open (still `Created`), so a retry for the
+    // same amount points a NEW session at the SAME intent instead of minting
+    // a fresh one per attempt.
+    const reusable = await this.reusableIntent(order.id, charge, isSplit, client);
+    const pi =
+      reusable?.pi ??
+      (await client.createPaymentIntent({
+        amountMinor,
+        currencyCode: currency,
+        reference: order.displayId ? `Order ${order.displayId}` : `Order ${order.id.slice(-8)}`,
+        description: loc.name,
+        metadata: { orderhubOrderId: order.id, orderhubLocationId: order.locationId },
+      }));
 
     let session;
     try {
       session = await client.createSaleSession(args.terminalId, pi.id);
     } catch (err: any) {
-      // Nothing reached the customer — don't leave a live intent behind.
-      await client.cancelPaymentIntent(pi.id).catch(() => undefined);
-      if (err instanceof DojoApiError && err.status === 409) {
-        throw new BadRequestException("That card machine is offline or already taking a payment.");
-      }
-      if (err instanceof DojoApiError && (err.status === 401 || err.status === 403)) {
-        throw new BadRequestException(
-          "Dojo refused the card machine request. The OrderHub partner ids may be missing — contact support.",
-        );
-      }
-      throw new BadRequestException(`Couldn't start the payment on the card machine: ${err?.message}`);
+      // Nothing reached the customer — don't leave a fresh intent behind.
+      // (A re-used one stays: it's the one the next retry will point at.)
+      if (!reusable) await client.cancelPaymentIntent(pi.id).catch(() => undefined);
+      throw new BadRequestException(this.sessionStartError(err));
     }
 
-    await (this.prisma as any).payment.create({
-      data: {
-        tenantId: order.tenantId,
-        orderId: order.id,
-        provider: "DOJO",
-        providerChargeId: pi.id,
-        amount: charge,
-        currency: currency.toLowerCase(),
-        status: "PROCESSING",
-        method: "CARD",
-        platformFee: 0,
-        netAmount: charge,
-        metadata: {
-          source: "dojo_terminal",
-          terminalId: args.terminalId,
-          terminalSessionId: session.id,
-          ...(isSplit ? { split: true } : {}),
-          ...(cfg.environment === "sandbox" ? { sandbox: true } : {}),
+    const metadata = {
+      source: "dojo_terminal",
+      terminalId: args.terminalId,
+      terminalSessionId: session.id,
+      ...(isSplit ? { split: true } : {}),
+      ...(cfg.environment === "sandbox" ? { sandbox: true } : {}),
+    };
+    if (reusable) {
+      await (this.prisma as any).payment.update({
+        where: { id: reusable.paymentId },
+        data: { status: "PROCESSING", metadata },
+      });
+    } else {
+      await (this.prisma as any).payment.create({
+        data: {
+          tenantId: order.tenantId,
+          orderId: order.id,
+          provider: "DOJO",
+          providerChargeId: pi.id,
+          amount: charge,
+          currency: currency.toLowerCase(),
+          status: "PROCESSING",
+          method: "CARD",
+          platformFee: 0,
+          netAmount: charge,
+          metadata,
         },
-      },
-    });
+      });
+    }
 
     this.logger.log(
       `Dojo charge started: order ${order.id} ${charge.toFixed(2)} ${currency}` +
-        `${isSplit ? ` (split of ${orderTotal.toFixed(2)})` : ""} on ${args.terminalId} (${pi.id}, ${session.id})`,
+        `${isSplit ? ` (split of ${orderTotal.toFixed(2)})` : ""} on ${args.terminalId} ` +
+        `(${pi.id}${reusable ? ", re-used after a failed attempt" : ""}, ${session.id})`,
     );
     return {
       paymentIntentId: pi.id,
@@ -509,6 +519,46 @@ export class DojoService {
       amount: charge,
       sandbox: cfg.environment === "sandbox",
     };
+  }
+
+  /** A failed attempt's intent for this same charge that Dojo still has open. */
+  private async reusableIntent(
+    orderId: string,
+    charge: number,
+    isSplit: boolean,
+    client: DojoApiClient,
+  ): Promise<{ paymentId: string; pi: DojoPaymentIntent } | null> {
+    const failed = await (this.prisma as any).payment.findMany({
+      where: { orderId, provider: "DOJO", status: "FAILED" },
+      orderBy: { createdAt: "desc" },
+      take: 3,
+    });
+    for (const p of failed) {
+      if (Math.round(Number(p.amount) * 100) !== Math.round(charge * 100)) continue;
+      if (!!(p.metadata as any)?.split !== isSplit) continue;
+      if ((p.metadata as any)?.source !== "dojo_terminal") continue;
+      try {
+        const pi = await client.getPaymentIntent(p.providerChargeId);
+        if (pi.status === "Created") return { paymentId: p.id, pi };
+      } catch {
+        /* gone or unreachable — just make a new one */
+      }
+    }
+    return null;
+  }
+
+  /** Plain-English reason a terminal session couldn't be started (checklist error handling). */
+  private sessionStartError(err: any): string {
+    if (err instanceof DojoApiError) {
+      if (err.status === 409) return "That card machine is busy with another payment, or offline. Check it and try again.";
+      if (err.status === 404) {
+        return "That card machine can't be reached. Check it's switched on and connected to the internet.";
+      }
+      if (err.status === 401 || err.status === 403) {
+        return "Dojo refused the request. Check this location's Dojo API key is correct (Card readers page).";
+      }
+    }
+    return `Couldn't start the payment on the card machine: ${err?.message ?? "unknown error"}`;
   }
 
   private async loadDojoPayment(tenantId: string, paymentIntentId: string) {
@@ -521,54 +571,83 @@ export class DojoService {
     return { payment, cfg };
   }
 
-  /** POS poll. Settles on success; reports failure and signature prompts. */
+  /** POS poll. Settles on success; reports failure, prompts and signature checks. */
   async chargeStatus(tenantId: string, paymentIntentId: string) {
     const { payment, cfg } = await this.loadDojoPayment(tenantId, paymentIntentId);
     const base = { paymentIntentId };
     if (payment.status === "SUCCEEDED") {
-      return { ...base, status: "Captured", paid: true, failed: false, needsSignature: false };
+      return { ...base, status: "Captured", paid: true, failed: false, needsSignature: false, unconfirmed: false };
     }
     const client = this.clientFor(cfg);
     const sessionId = (payment.metadata as any)?.terminalSessionId as string | undefined;
     const session = sessionId ? await client.getTerminalSession(sessionId) : null;
     const sessionStatus = session?.status ?? null;
+    // What the machine is showing right now — "Insert card", "Enter PIN" …
+    // The checklist asks the POS to display these, not just a spinner.
+    const events = session?.notificationEvents ?? [];
+    const prompt = events.length ? events[events.length - 1]!.notificationType : null;
 
-    if (sessionStatus === "Captured" || !session) {
+    // Captured — or an Expired session, whose outcome the machine never
+    // reported back: the intent itself is the only source of truth for it.
+    if (sessionStatus === "Captured" || sessionStatus === "Expired" || !session) {
       const settled = await this.verifyAndSettle(payment, client, { allowAuthorized: false });
       if (settled) {
-        return { ...base, status: "Captured", paid: true, failed: false, needsSignature: false };
+        return { ...base, status: "Captured", paid: true, failed: false, needsSignature: false, unconfirmed: false };
       }
     }
-    if (sessionStatus && FAILED_SESSION.has(sessionStatus)) {
-      if (payment.status !== "FAILED") {
-        await (this.prisma as any).payment.update({
-          where: { id: payment.id },
-          data: { status: "FAILED" },
-        });
-      }
+
+    if (sessionStatus === "Expired") {
+      // Checklist: "display dialogue advising the result cannot be confirmed;
+      // offer manual record or retry". Nothing settles here — the operator
+      // looks at the machine and either records it manually or retries.
+      await this.markFailed(payment);
       return {
         ...base,
         status: sessionStatus,
         paid: false,
         failed: true,
+        unconfirmed: true,
+        needsSignature: false,
+        message:
+          "The card machine didn't confirm the result. Check the machine: if it shows APPROVED, " +
+          "record the payment manually; otherwise try again.",
+      };
+    }
+
+    if (sessionStatus && FAILED_SESSION.has(sessionStatus)) {
+      await this.markFailed(payment);
+      return {
+        ...base,
+        status: sessionStatus,
+        paid: false,
+        failed: true,
+        unconfirmed: false,
         needsSignature: false,
         message:
           sessionStatus === "Declined"
             ? "Card declined. You can try again."
-            : sessionStatus === "Expired"
-              ? "The card machine timed out waiting for a card."
-              : sessionStatus === "SignatureVerificationRejected"
-                ? "Signature rejected — nothing was taken."
-                : "Payment cancelled on the card machine.",
+            : sessionStatus === "SignatureVerificationRejected"
+              ? "Signature rejected — nothing was taken."
+              : "Payment cancelled on the card machine.",
       };
     }
     return {
       ...base,
       status: sessionStatus ?? "Unknown",
+      prompt,
       paid: false,
       failed: false,
+      unconfirmed: false,
       needsSignature: sessionStatus === "SignatureVerificationRequired",
     };
+  }
+
+  private async markFailed(payment: any) {
+    if (payment.status === "FAILED") return;
+    await (this.prisma as any).payment.update({
+      where: { id: payment.id },
+      data: { status: "FAILED" },
+    });
   }
 
   async cancelCharge(tenantId: string, paymentIntentId: string) {
@@ -619,9 +698,139 @@ export class DojoService {
     if (!this.intentCovers(pi, Math.round(Number(payment.amount) * 100), opts.allowAuthorized)) {
       return false;
     }
+    // Gratuity added on the card machine rides on the intent, not our row.
+    const tipMinor = pi.tipsAmount?.value ?? 0;
+    if (tipMinor > 0 && Math.round(Number(payment.tipAmount ?? 0) * 100) !== tipMinor) {
+      await (this.prisma as any).payment.update({
+        where: { id: payment.id },
+        data: { tipAmount: tipMinor / 100 },
+      });
+    }
     await this.payments.settleCardPresentPayment(payment, pi.id);
     this.logger.log(`Dojo payment settled: order ${payment.orderId} (${pi.id})`);
     return true;
+  }
+
+  // ── Refunds (checklist: at least one refund method is mandatory) ─────────
+
+  /**
+   * Refund a Dojo card payment through its payment intent — full when
+   * `amount` is omitted, partial otherwise. The Payment row's refunded total
+   * lives in metadata.refundedMinor so repeated partial refunds can never
+   * add up to more than was taken.
+   */
+  async refundPayment(args: {
+    tenantId: string;
+    paymentIntentId: string;
+    amount?: number;
+    reason?: string;
+    userId?: string;
+  }) {
+    const { payment, cfg } = await this.loadDojoPayment(args.tenantId, args.paymentIntentId);
+    return this.refundRow(payment, cfg, args.amount, args.reason, args.userId);
+  }
+
+  /** Cancelled/rejected order: refund every Dojo payment on it in full. */
+  async refundOrder(orderId: string, reason = "Order cancelled"): Promise<void> {
+    const rows = await (this.prisma as any).payment.findMany({
+      where: { orderId, provider: "DOJO", status: "SUCCEEDED" },
+      include: { order: { select: { locationId: true } } },
+    });
+    for (const payment of rows) {
+      const loc = await this.prisma.location.findUnique({
+        where: { id: payment.order.locationId },
+        select: { settings: true },
+      });
+      const cfg = this.configFrom(loc?.settings);
+      if (!cfg) {
+        this.logger.error(`Dojo refund skipped for order ${orderId}: Dojo no longer connected at the location`);
+        continue;
+      }
+      await this.refundRow(payment, cfg, undefined, reason).catch((err: any) =>
+        this.logger.error(`Dojo refund failed for order ${orderId} (${payment.providerChargeId}): ${err?.message}`),
+      );
+    }
+  }
+
+  private async refundRow(payment: any, cfg: DojoLocationConfig, amount?: number, reason?: string, userId?: string) {
+    if (payment.status !== "SUCCEEDED" && payment.status !== "REFUNDED") {
+      throw new BadRequestException("Only a completed card payment can be refunded");
+    }
+    const takenMinor = Math.round(Number(payment.amount) * 100);
+    const refundedMinor = Number((payment.metadata as any)?.refundedMinor ?? 0);
+    const leftMinor = takenMinor - refundedMinor;
+    if (leftMinor <= 0) throw new BadRequestException("This payment has already been refunded in full");
+    const wantMinor = amount === undefined || amount === null ? leftMinor : Math.round(Number(amount) * 100);
+    if (!Number.isFinite(wantMinor) || wantMinor <= 0) throw new BadRequestException("Refund amount must be greater than zero");
+    if (wantMinor > leftMinor) {
+      throw new BadRequestException(`Only ${(leftMinor / 100).toFixed(2)} is left to refund on this payment`);
+    }
+
+    const client = this.clientFor(cfg);
+    // Same key for the same (payment, already-refunded, amount) state, so a
+    // retried request can't refund twice; a later refund gets a new key.
+    const res = await client.refundPaymentIntent({
+      paymentIntentId: payment.providerChargeId,
+      amountMinor: wantMinor,
+      reason,
+      idempotencyKey: `orderhub-refund-${payment.id}-${refundedMinor}-${wantMinor}`,
+    });
+
+    // Checklist: after refunding, GET the intent and show its status —
+    // `Refunded` for a full refund, still `Captured` for a partial one.
+    const pi = await client.getPaymentIntent(payment.providerChargeId).catch(() => null);
+    const nowRefunded = refundedMinor + wantMinor;
+    const full = nowRefunded >= takenMinor;
+
+    await this.prisma.$transaction([
+      (this.prisma as any).payment.update({
+        where: { id: payment.id },
+        data: {
+          status: full ? "REFUNDED" : "SUCCEEDED",
+          metadata: { ...(payment.metadata as any), refundedMinor: nowRefunded },
+        },
+      }),
+      (this.prisma as any).refund.create({
+        data: {
+          tenantId: payment.tenantId,
+          paymentId: payment.id,
+          amount: wantMinor / 100,
+          reason: reason ?? null,
+          status: "SUCCEEDED",
+          isPartial: !full,
+          processedBy: userId ?? null,
+          note: res?.refundId ? `Dojo refund ${res.refundId}` : null,
+        },
+      }),
+    ]);
+
+    // The ORDER is only "refunded" once everything taken on it has gone back.
+    const all = await (this.prisma as any).payment.findMany({
+      where: { orderId: payment.orderId, status: { in: ["SUCCEEDED", "REFUNDED"] } },
+      select: { amount: true, status: true, metadata: true },
+    });
+    const orderTaken = all.reduce((s: number, p: any) => s + Math.round(Number(p.amount) * 100), 0);
+    const orderRefunded = all.reduce(
+      (s: number, p: any) =>
+        s + (p.status === "REFUNDED" ? Math.round(Number(p.amount) * 100) : Number((p.metadata as any)?.refundedMinor ?? 0)),
+      0,
+    );
+    await this.prisma.order.update({
+      where: { id: payment.orderId },
+      data: { paymentStatus: (orderRefunded >= orderTaken ? "REFUNDED" : "PARTIALLY_REFUNDED") as any },
+    });
+
+    this.logger.log(
+      `Dojo refund ${res?.refundId ?? "?"}: ${(wantMinor / 100).toFixed(2)} on ${payment.providerChargeId} ` +
+        `(${full ? "full" : "partial"}; intent now ${pi?.status ?? "unknown"})`,
+    );
+    return {
+      refundId: res?.refundId ?? null,
+      amount: wantMinor / 100,
+      full,
+      paymentIntentStatus: pi?.status ?? null,
+      leftToRefund: (takenMinor - nowRefunded) / 100,
+    };
   }
 
   /** Is this intent real money for (at least) `amountMinor`, excluding tips? */

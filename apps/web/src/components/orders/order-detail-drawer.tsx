@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { UberEatsOrderActionsPanel } from "./ubereats-order-actions-panel";
+import { DojoRefundPanel } from "./dojo-refund-panel";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { X, Clock, CheckCircle, ChefHat, Bike, XCircle, Check, AlertCircle, Pencil, Printer, Loader2, QrCode, CreditCard, Banknote, ShoppingBag, MapPin } from "lucide-react";
@@ -589,6 +590,11 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
                 orderId={order.id}
                 currency={(order as any)?.location?.currency} />
         )}
+        <DojoRefundPanel
+          orderId={order.id}
+          currency={(order as any)?.location?.currency}
+          role={userRole}
+        />
       </div>
 
       {canTakeCardPayment && (
