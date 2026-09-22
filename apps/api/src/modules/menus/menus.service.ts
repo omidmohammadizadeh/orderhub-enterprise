@@ -10,6 +10,7 @@ import {
 import { InjectQueue } from "@nestjs/bull";
 import type { Queue } from "bull";
 import type { Prisma } from "@orderhub/database";
+import { withDeliverooModifierType } from "./deliveroo-modifier-type";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 import { PluService, randomPlu } from "./plu.service";
@@ -2336,6 +2337,8 @@ export class MenusService {
       menuIds?: string[];
       // Phase AP — Products section is location-scoped.
       locationId?: string;
+      /** Deliveroo's modifier type for this group (see @orderhub/shared). */
+      deliverooModifierType?: string | null;
     },
   ) {
     await this.assertBrandAccess(brandId, tenantId);
@@ -2354,6 +2357,9 @@ export class MenusService {
         selectionType: dto.selectionType ?? "VARIANT",
         allowDuplicateSelections: dto.allowDuplicateSelections ?? false,
         menuIds: dto.menuIds ?? [],
+        ...(dto.deliverooModifierType
+          ? { metadata: withDeliverooModifierType({}, dto.deliverooModifierType) }
+          : {}),
       },
       include: { options: true },
     });
@@ -2373,12 +2379,25 @@ export class MenusService {
       plu?: string;
       visibleToCustomers?: boolean;
       menuIds?: string[];
+      /** Deliveroo's modifier type for this group; null clears it. */
+      deliverooModifierType?: string | null;
     },
   ) {
     await this.assertModifierGroupAccess(groupId, tenantId);
+    // Merged into metadata rather than written over it: other keys live
+    // there, and an import that set them must not lose them to this edit.
+    let metadata: Prisma.InputJsonValue | undefined;
+    if (dto.deliverooModifierType !== undefined) {
+      const current = await this.prisma.modifierGroup.findUnique({
+        where: { id: groupId },
+        select: { metadata: true },
+      });
+      metadata = withDeliverooModifierType(current?.metadata, dto.deliverooModifierType);
+    }
     return this.prisma.modifierGroup.update({
       where: { id: groupId },
       data: {
+        ...(metadata !== undefined && { metadata }),
         ...(dto.name && { name: dto.name }),
         ...(dto.description !== undefined && { description: dto.description }),
         ...(dto.minSelections !== undefined && { minSelections: dto.minSelections }),

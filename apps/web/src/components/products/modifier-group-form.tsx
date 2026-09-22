@@ -15,7 +15,11 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { AttachModal } from "./attach-modal";
 import { ModifierForm } from "./modifier-form";
-import { capitaliseFirst } from "@orderhub/shared";
+import {
+  capitaliseFirst,
+  DELIVEROO_MODIFIER_TYPES,
+  deliverooModifierTypeOf,
+} from "@orderhub/shared";
 
 interface Props {
   brandId: string;
@@ -76,6 +80,8 @@ export function ModifierGroupForm({
   const [maxSelections, setMaxSelections] = useState("1");
   const [allowDuplicate, setAllowDuplicate] = useState(false);
   const [visibleToCustomers, setVisibleToCustomers] = useState(true);
+  // "" = not set: Deliveroo gets no type for this group rather than a guess.
+  const [deliverooType, setDeliverooType] = useState<string>("");
 
   // Inline modifier creation buffer — modifiers are created against the
   // group after the group itself is saved (chicken-and-egg).
@@ -104,6 +110,7 @@ export function ModifierGroupForm({
     setMaxSelections(String(existing.maxSelections ?? 1));
     setAllowDuplicate(existing.allowDuplicateSelections);
     setVisibleToCustomers(existing.visibleToCustomers);
+    setDeliverooType(deliverooModifierTypeOf(existing.metadata) ?? "");
     setAttachedModifierIds((existing.options ?? []).map((o) => o.id));
   }, [existing]);
 
@@ -119,6 +126,7 @@ export function ModifierGroupForm({
         allowDuplicateSelections: allowDuplicate,
         isRequired: Number(minSelections) > 0,
         visibleToCustomers,
+        deliverooModifierType: deliverooType || null,
       };
       const saved = isEdit && groupId
         ? await modifierGroupsClient.update(groupId, payload)
@@ -341,6 +349,26 @@ export function ModifierGroupForm({
                 onChange={(e) => setVisibleToCustomers(e.target.checked)}
               />
               Visible to customers
+            </label>
+            <label className="block">
+              <span className="text-xs font-medium text-zinc-700">Deliveroo type</span>
+              <select
+                value={deliverooType}
+                onChange={(e) => setDeliverooType(e.target.value)}
+                aria-describedby="deliveroo-type-help"
+                className="mt-1 block h-9 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-sm text-zinc-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-500"
+              >
+                <option value="">Not set</option>
+                {DELIVEROO_MODIFIER_TYPES.map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label} — e.g. {t.example}
+                  </option>
+                ))}
+              </select>
+              <span id="deliveroo-type-help" className="mt-1 block text-[11px] text-zinc-500">
+                Tells Deliveroo what this group does. Leave it as &ldquo;Not set&rdquo; if
+                none fits &mdash; sizes and meal deals are labelled automatically.
+              </span>
             </label>
           </div>
         </Card>

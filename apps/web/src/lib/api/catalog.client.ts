@@ -82,7 +82,15 @@ export interface CatalogModifierGroup {
   visibleToCustomers: boolean;
   options?: CatalogModifier[];
   _count?: { itemLinks: number };
+  /** Holds the Deliveroo modifier type among other keys — read it with
+   *  deliverooModifierTypeOf(), write it with `deliverooModifierType`. */
+  metadata?: Record<string, unknown> | null;
 }
+
+/** Write-only: Deliveroo's modifier type for the group; null clears it. */
+type ModifierGroupWrite = Partial<CatalogModifierGroup> & {
+  deliverooModifierType?: string | null;
+};
 
 export interface CatalogModifier {
   id: string;
@@ -249,12 +257,12 @@ export const modifierGroupsClient = {
       .then((r) => r.data),
   create: (
     brandId: string,
-    data: Partial<CatalogModifierGroup> & { locationId?: string },
+    data: ModifierGroupWrite & { locationId?: string },
   ) =>
     apiClient
       .post<CatalogModifierGroup>(`/v1/brands/${brandId}/modifier-groups`, data)
       .then((r) => r.data),
-  update: (id: string, data: Partial<CatalogModifierGroup>) =>
+  update: (id: string, data: ModifierGroupWrite) =>
     apiClient
       .patch<CatalogModifierGroup>(`/v1/modifier-groups/${id}`, data)
       .then((r) => r.data),

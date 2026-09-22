@@ -964,6 +964,8 @@ export class MenusController {
       isRequired?: boolean;
       // Phase AP — Products section is location-scoped.
       locationId?: string;
+      /** Deliveroo's modifier type; see DELIVEROO_MODIFIER_TYPES. */
+      deliverooModifierType?: string | null;
     },
     @CurrentUser() user: AuthenticatedUser,
   ) {
@@ -975,7 +977,16 @@ export class MenusController {
   @ApiOperation({ summary: "Update a modifier group" })
   updateModifierGroup(
     @Param("groupId") groupId: string,
-    @Body() dto: { name?: string; description?: string; minSelections?: number; maxSelections?: number | null; isRequired?: boolean },
+    @Body()
+    dto: {
+      name?: string;
+      description?: string;
+      minSelections?: number;
+      maxSelections?: number | null;
+      isRequired?: boolean;
+      /** Deliveroo's modifier type; null clears it. See DELIVEROO_MODIFIER_TYPES. */
+      deliverooModifierType?: string | null;
+    },
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.menus.updateModifierGroup(groupId, user.tenantId, dto);

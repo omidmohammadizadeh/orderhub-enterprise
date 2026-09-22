@@ -26,6 +26,7 @@ import {
   type SrcProduct,
 } from "./deliveroo-menu.transformer";
 import {
+  deliverooModifierTypeOf,
   extractSizeKey,
   getModifierPrice,
   getModifierPlu,
@@ -501,6 +502,8 @@ export class DeliverooMenuPublishService {
             name: g.name,
             minSelections: g.minSelections,
             maxSelections: g.maxSelections,
+            // The operator's choice on the group; omitted when they haven't made one.
+            modifierType: deliverooModifierTypeOf(g.metadata) ?? undefined,
             selectionType: g.selectionType,
             allowDuplicateSelections: g.allowDuplicateSelections,
             options,
@@ -545,6 +548,8 @@ export class DeliverooMenuPublishService {
             name: g.name,
             minSelections: g.minSelections,
             maxSelections: g.maxSelections,
+            // The operator's choice on the group; omitted when they haven't made one.
+            modifierType: deliverooModifierTypeOf(g.metadata) ?? undefined,
             selectionType: g.selectionType,
             allowDuplicateSelections: g.allowDuplicateSelections,
             options,
@@ -671,6 +676,8 @@ export class DeliverooMenuPublishService {
         name: g.name,
         minSelections: g.minSelections,
         maxSelections: g.maxSelections,
+        // The operator's choice on the group; omitted when they haven't made one.
+        modifierType: deliverooModifierTypeOf(g.metadata) ?? undefined,
         selectionType: g.selectionType,
         allowDuplicateSelections: g.allowDuplicateSelections,
         options: (g.options ?? []).map((o) => ({
