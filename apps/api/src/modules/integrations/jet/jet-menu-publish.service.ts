@@ -1,3 +1,4 @@
+import * as crypto from "crypto";
 import { BadRequestException, Injectable, Logger, Optional } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
@@ -80,8 +81,44 @@ export class JetMenuPublishService {
   }
 
   /** Where JET posts the real (asynchronous) ingest result. */
-  private callbackUrl(): string {
-    return `${this.apiOrigin()}/api/v1/integrations/jet/menu-callback`;
+  /**
+   * JET calls this WITHOUT our inbound API key — it is a URL we hand them per
+   * publish, not a registered webhook (401'd every result until 22 Sep 2026).
+   * So each publish carries its own random token, checked by
+   * verifyCallbackToken against the ones issued for that restaurant.
+   */
+  private callbackUrl(token: string): string {
+    return `${this.apiOrigin()}/api/v1/integrations/jet/menu-callback?token=${token}`;
+  }
+
+  /** Tokens kept per connection, so a late callback from an earlier publish still lands. */
+  private static readonly CALLBACK_TOKENS_KEPT = 5;
+
+  /**
+   * True when `token` was issued for a menu publish to `restaurant`.
+   * Constant-time compare; an unknown restaurant or empty token is false.
+   */
+  async verifyCallbackToken(restaurant: string, token: string): Promise<boolean> {
+    const ref = String(restaurant ?? "").trim();
+    const presented = String(token ?? "").trim();
+    if (!ref || !presented) return false;
+    const conn = await this.prisma.brandPlatformConnection.findFirst({
+      where: {
+        platform: "JUST_EAT",
+        OR: [
+          { metadata: { path: ["restaurantReference"], equals: ref } },
+          { externalStoreId: ref },
+        ],
+      },
+      select: { metadata: true },
+    });
+    const issued: unknown = (conn?.metadata as any)?.jetMenuPublish?.callbackTokens;
+    if (!Array.isArray(issued)) return false;
+    const b = Buffer.from(presented);
+    return issued.some((t) => {
+      const a = Buffer.from(String(t ?? ""));
+      return a.length === b.length && a.length > 0 && crypto.timingSafeEqual(a, b);
+    });
   }
 
   async publishMenu(args: {
@@ -168,10 +205,11 @@ export class JetMenuPublishService {
     });
     for (const w of warnings) this.logger.warn(`JET menu publish: ${w}`);
 
+    const callbackToken = crypto.randomBytes(24).toString("hex");
     const payload = {
       restaurants: [restaurantReference],
       menus,
-      callback_url: this.callbackUrl(),
+      callback_url: this.callbackUrl(callbackToken),
     };
 
     this.logger.log(
@@ -225,11 +263,15 @@ export class JetMenuPublishService {
 
     // Record what we are expecting a callback for, so a callback that never
     // arrives is visible rather than merely absent.
-    await this.markAwaitingCallback(conn.id, {
-      menuId,
-      restaurantReference,
-      sentAt: new Date().toISOString(),
-    });
+    await this.markAwaitingCallback(
+      conn.id,
+      {
+        menuId,
+        restaurantReference,
+        sentAt: new Date().toISOString(),
+      },
+      callbackToken,
+    );
 
     await this.prisma.menu
       .update({ where: { id: menuId }, data: { lastPublishedAt: new Date() } })
@@ -692,6 +734,7 @@ export class JetMenuPublishService {
   private async markAwaitingCallback(
     connectionId: string,
     info: Record<string, unknown>,
+    callbackToken?: string,
   ): Promise<void> {
     try {
       const conn = await this.prisma.brandPlatformConnection.findUnique({
@@ -699,9 +742,19 @@ export class JetMenuPublishService {
         select: { metadata: true },
       });
       const metadata = { ...((conn?.metadata as any) ?? {}) };
+      const previous: string[] = Array.isArray(metadata.jetMenuPublish?.callbackTokens)
+        ? metadata.jetMenuPublish.callbackTokens
+        : [];
       metadata.jetMenuPublish = {
         ...(metadata.jetMenuPublish ?? {}),
         ...info,
+        ...(callbackToken
+          ? {
+              callbackTokens: [...previous, callbackToken].slice(
+                -JetMenuPublishService.CALLBACK_TOKENS_KEPT,
+              ),
+            }
+          : {}),
         lastResultAt: null,
         lastResultSucceeded: null,
       };

@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Logger,
   Post,
+  Query,
   UnauthorizedException,
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
@@ -128,9 +129,21 @@ export class JetLifecycleController {
     @Body() body: any,
     @Headers("authorization") auth: string,
     @Headers("x-api-key") apiKey?: string,
+    @Query("token") token?: string,
   ) {
-    await this.handle("menu-callback", body, [auth, apiKey], (p) =>
-      this.menu.handleMenuCallback(p),
+    // JET calls the callback_url we sent with the publish, WITHOUT our API
+    // key — so the per-publish token in that URL is the credential. The key
+    // is still accepted for anything that does send it.
+    const tokenOk =
+      !this.client.verifyInboundApiKey(auth, apiKey) &&
+      !!token &&
+      (await this.menu.verifyCallbackToken(body?.restaurant, token));
+    await this.handle(
+      "menu-callback",
+      body,
+      [auth, apiKey],
+      (p) => this.menu.handleMenuCallback(p),
+      tokenOk,
     );
     return { ok: true };
   }
@@ -165,8 +178,10 @@ export class JetLifecycleController {
     body: any,
     apiKeyHeaders: Array<string | undefined>,
     run: (payload: any) => Promise<{ handled: boolean; reason?: string; orderId?: string }>,
+    /** Authenticated some other way (the menu callback's per-publish token). */
+    preAuthorized = false,
   ): Promise<any> {
-    if (!this.client.verifyInboundApiKey(...apiKeyHeaders)) {
+    if (!preAuthorized && !this.client.verifyInboundApiKey(...apiKeyHeaders)) {
       this.logger.error(
         `JET ${kind} webhook REJECTED: neither Authorization nor X-API-Key matched ` +
           `JET_INBOUND_API_KEY. These webhooks carry no HMAC, so this is their only check.`,
