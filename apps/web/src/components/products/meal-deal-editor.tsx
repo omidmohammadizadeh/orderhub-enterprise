@@ -160,10 +160,12 @@ export function MealDealEditor({
   }
   if (sections.length === 0) dealIssues.push("Add a section, e.g. \"Choose your burger\".");
 
+  // The hint is searchable as well as shown, so a PLU pasted from the menu
+  // editor finds its product — names repeat across menus, PLUs don't.
   const productOptions = products.map((p) => ({
     value: p.id,
     label: p.name,
-    hint: money(Number(p.basePrice)),
+    hint: [money(Number(p.basePrice)), p.plu ?? p.sku].filter(Boolean).join(" · "),
   }));
 
   return (
