@@ -360,6 +360,44 @@ describe("DeliverooAdapter — nested modifiers (#4509)", () => {
     ]);
   });
 
+  // A meal deal arrives the same way: the deal is the line, the picks hang
+  // under it, and each pick's own extras hang under the pick. Without depth
+  // the ticket read "Classic Burger, Cheese, Fries, Coke" — whose cheese?
+  it("carries each selection's depth so the ticket can indent a meal deal", () => {
+    const c = adapter.normalize(
+      liveOrder({
+        items: [
+          {
+            name: "Burger Meal",
+            quantity: 1,
+            unit_price: { fractional: 1200, currency_code: "GBP" },
+            modifiers: [
+              {
+                name: "Classic Burger",
+                quantity: 1,
+                unit_price: { fractional: 0, currency_code: "GBP" },
+                modifiers: [
+                  { name: "Cheese", quantity: 1, unit_price: { fractional: 50, currency_code: "GBP" } },
+                ],
+              },
+              { name: "Fries", quantity: 1, unit_price: { fractional: 0, currency_code: "GBP" } },
+              { name: "Coke", quantity: 1, unit_price: { fractional: 0, currency_code: "GBP" } },
+            ],
+          },
+        ],
+      }),
+      "loc-1",
+    )!;
+
+    expect(c.items[0]!.name).toBe("Burger Meal");
+    expect(c.items[0]!.modifiers!.map((m: any) => [m.name, m.depth])).toEqual([
+      ["Classic Burger", 0],
+      ["Cheese", 1],
+      ["Fries", 0],
+      ["Coke", 0],
+    ]);
+  });
+
   it("reads the older modifier_groups shape at depth too", () => {
     const c = adapter.normalize(
       liveOrder({

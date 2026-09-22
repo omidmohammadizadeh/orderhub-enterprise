@@ -57,10 +57,54 @@ export interface SrcCategory {
   products: SrcProduct[];
 }
 
+/**
+ * A meal deal, published as a Deliveroo BUNDLE. Each section is one pick
+ * step ("Choose your burger"); each option names a product that must already
+ * be on this menu — Deliveroo bundles re-use real menu items rather than
+ * copies, which is how the same burger keeps its own extras inside a deal.
+ */
+export interface SrcBundleOption {
+  productId: string;
+  /** Pounds on top of the deal price when this option is picked; 0 = included. */
+  extraPrice?: number | null;
+}
+export interface SrcBundleSection {
+  name: string;
+  minChoices?: number | null;
+  maxChoices?: number | null;
+  options: SrcBundleOption[];
+}
+export interface SrcBundle {
+  id: string;
+  name: string;
+  description?: string | null;
+  /** Pounds. null = the deal has no price yet, and can't be published. */
+  price: number | null;
+  plu?: string | null;
+  taxRate?: number | null;
+  imageUrl?: string | null;
+  sections: SrcBundleSection[];
+}
+
 // ── Deliveroo upload shape ─────────────────────────────────────────────
 
 interface Loc {
   en: string;
+}
+export interface DeliverooItem {
+  id: string;
+  type: "ITEM" | "CHOICE" | "BUNDLE";
+  name: Loc;
+  description?: Loc;
+  plu: string;
+  tax_rate: string;
+  price_info: {
+    price: number;
+    /** A bundle prices each item per section: {type:MODIFIER, id: section}. */
+    overrides?: Array<{ type: "MODIFIER"; id: string; price: number }>;
+  };
+  image?: { url: string };
+  modifier_ids?: string[];
 }
 export interface DeliverooMenuUpload {
   name: string;
@@ -81,19 +125,11 @@ export interface DeliverooMenuUpload {
       description?: Loc;
       item_ids: string[];
     }>;
-    items: Array<{
-      id: string;
-      type: "ITEM" | "CHOICE";
-      name: Loc;
-      description?: Loc;
-      plu: string;
-      tax_rate: string;
-      price_info: { price: number };
-      image?: { url: string };
-      modifier_ids?: string[];
-    }>;
+    items: Array<DeliverooItem>;
     modifiers: Array<{
       id: string;
+      /** Only set on bundle sections; plain modifier groups leave it out. */
+      type?: "bundle-item";
       name: Loc;
       min_selection: number;
       max_selection: number;
@@ -129,9 +165,18 @@ const ALL_WEEK = Array.from({ length: 7 }, (_, d) => ({
 
 export interface TransformResult {
   payload: DeliverooMenuUpload;
-  stats: { categories: number; products: number; groups: number; options: number };
+  stats: {
+    categories: number;
+    products: number;
+    groups: number;
+    options: number;
+    bundles: number;
+  };
   warnings: string[];
 }
+
+/** Category the published meal deals sit in. Fixed id: one per menu. */
+export const DELIVEROO_BUNDLE_CATEGORY_ID = "meal-deals";
 
 export function buildDeliverooMenu(input: {
   menuName: string;
@@ -140,6 +185,8 @@ export function buildDeliverooMenu(input: {
   // Deliveroo requires a cover photo on the mealtime — an absolute,
   // publicly-fetchable image URL.
   coverImageUrl?: string | null;
+  /** Meal deals to publish as Deliveroo bundles, after the products. */
+  bundles?: SrcBundle[];
 }): TransformResult {
   const warnings: string[] = [];
   const categories: DeliverooMenuUpload["menu"]["categories"] = [];
@@ -274,6 +321,18 @@ export function buildDeliverooMenu(input: {
     });
   }
 
+  // Bundles last: they point at products, so every product must be emitted
+  // (with its final price) before a deal can reference it.
+  const bundleIds = addBundles(input.bundles ?? [], items, modifiers, warnings);
+  if (bundleIds.length) {
+    // First, so deals lead the menu the way operators set them up in-store.
+    categories.unshift({
+      id: DELIVEROO_BUNDLE_CATEGORY_ID,
+      name: { en: "Meal Deals" },
+      item_ids: bundleIds,
+    });
+  }
+
   const categoryIds = categories.map((c) => c.id);
   if (categoryIds.length && !input.coverImageUrl) {
     warnings.push(
@@ -305,9 +364,240 @@ export function buildDeliverooMenu(input: {
       products: emittedProducts.size,
       groups: seenGroups.size,
       options: seenOptions.size,
+      bundles: bundleIds.length,
     },
     warnings,
   };
+}
+
+/**
+ * A stored MealDeal row → bundle source. `sections` is JSON written by the
+ * Meal Deals editor: [{ name, minChoices, maxChoices, options: [{ menuItemId,
+ * priceOverride }] }]. priceOverride is the extra charged for that pick inside
+ * the deal (blank = included). A Deliveroo price override, when the operator
+ * set one, wins over the deal's own price — the same rule as products.
+ */
+export function toSrcBundle(
+  deal: {
+    id: string;
+    name: string;
+    description?: string | null;
+    imageUrl?: string | null;
+    plu?: string | null;
+    price?: unknown;
+    deliveryTax?: unknown;
+    sections?: unknown;
+    platformPricingOverrides?: unknown;
+  },
+  absolutiseImage: (url: string | null | undefined) => string | null | undefined = (u) => u,
+): SrcBundle {
+  const num = (v: unknown): number | null => {
+    if (v == null || v === "") return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  };
+  const overrides = (deal.platformPricingOverrides ?? {}) as Record<string, unknown>;
+  const rawSections = Array.isArray(deal.sections) ? (deal.sections as any[]) : [];
+  return {
+    id: deal.id,
+    name: deal.name,
+    description: deal.description ?? null,
+    price: num(overrides.DELIVEROO) ?? num(deal.price),
+    plu: deal.plu ?? null,
+    taxRate: num(deal.deliveryTax),
+    imageUrl: absolutiseImage(deal.imageUrl) ?? null,
+    sections: rawSections
+      .filter((s) => s && typeof s === "object")
+      .map((s) => ({
+        name: String(s.name ?? "").trim() || "Choose",
+        minChoices: num(s.minChoices),
+        maxChoices: num(s.maxChoices),
+        options: (Array.isArray(s.options) ? s.options : [])
+          .filter((o: any) => o && o.menuItemId)
+          .map((o: any) => ({
+            productId: String(o.menuItemId),
+            extraPrice: num(o.priceOverride) ?? 0,
+          })),
+      })),
+  };
+}
+
+// ── Bundles ─────────────────────────────────────────────────────────────
+//
+// Deliveroo's bundle rules (Menu API guidelines, "Bundles"):
+//   • a bundle is an item of type BUNDLE whose modifiers are all of type
+//     "bundle-item", and whose sections contain only real ITEMs;
+//   • the in-bundle price lives on the ITEM, as a MODIFIER override keyed by
+//     the section — the same item keeps its normal price everywhere else;
+//   • at most 3 layers of nested modifiers, counting the section itself;
+//   • the customer must pick the MAXIMUM of a section's range, and base-price
+//     validation reads the minimum, so min and max are published equal;
+//   • at least one way to build the bundle with no extra cost;
+//   • never dearer than the same items bought separately;
+//   • a premium no more than the item's price over the section's cheapest;
+//   • an item with modifiers must not be pickable more than once.
+// A deal that breaks a rule is left out with a warning naming the rule, so
+// the rest of the menu still publishes and the operator knows what to fix.
+
+const MAX_OVERRIDES_PER_ITEM = 100;
+const MAX_BUNDLE_LAYERS = 3;
+const gbp = (pence: number) => `£${(pence / 100).toFixed(2)}`;
+
+/** How many layers of modifiers hang beneath an item (0 = none). */
+function modifierLayers(
+  item: DeliverooItem,
+  itemsById: Map<string, DeliverooItem>,
+  modsById: Map<string, { item_ids: string[] }>,
+  guard = 0,
+): number {
+  if (!item.modifier_ids?.length || guard > 10) return 0;
+  let deepest = 0;
+  for (const mid of item.modifier_ids) {
+    for (const cid of modsById.get(mid)?.item_ids ?? []) {
+      const child = itemsById.get(cid);
+      if (child) {
+        deepest = Math.max(deepest, modifierLayers(child, itemsById, modsById, guard + 1));
+      }
+    }
+  }
+  return 1 + deepest;
+}
+
+/**
+ * Validate each deal against Deliveroo's rules and emit the valid ones.
+ * Mutates `items` (bundle items + per-section price overrides on the products
+ * they use) and `modifiers` (one bundle-item section each). Returns the
+ * emitted bundle ids, for the Meal Deals category.
+ */
+export function addBundles(
+  bundles: SrcBundle[],
+  items: DeliverooItem[],
+  modifiers: DeliverooMenuUpload["menu"]["modifiers"],
+  warnings: string[],
+): string[] {
+  const itemsById = new Map(items.map((i) => [i.id, i]));
+  const modsById = new Map(modifiers.map((m) => [m.id, m]));
+  const emitted: string[] = [];
+
+  for (const b of bundles) {
+    const problems: string[] = [];
+    const notes: string[] = [];
+    const sections: Array<{
+      id: string;
+      name: string;
+      count: number;
+      options: Array<{ item: DeliverooItem; extra: number }>;
+    }> = [];
+    // Individual price of the cheapest no-extra way to build the deal.
+    let separatePrice = 0;
+
+    b.sections.forEach((s, i) => {
+      const count = Math.max(1, Math.round(Number(s.maxChoices ?? s.minChoices ?? 1) || 1));
+      const options: Array<{ item: DeliverooItem; extra: number }> = [];
+      const seen = new Set<string>();
+      for (const o of s.options) {
+        if (seen.has(o.productId)) continue;
+        seen.add(o.productId);
+        const item = itemsById.get(o.productId);
+        if (!item || item.type !== "ITEM") {
+          notes.push(`an option in "${s.name}" isn't on this menu, so it was left out`);
+          continue;
+        }
+        if (1 + modifierLayers(item, itemsById, modsById) > MAX_BUNDLE_LAYERS) {
+          notes.push(
+            `"${item.name.en}" has too many layers of extras to go inside a deal (Deliveroo allows 2), so it was left out of "${s.name}"`,
+          );
+          continue;
+        }
+        options.push({ item, extra: toPence(Number(o.extraPrice ?? 0)) });
+      }
+
+      if (options.length === 0) {
+        problems.push(`section "${s.name}" has no products that are on this menu`);
+        return;
+      }
+      const included = options
+        .filter((o) => o.extra === 0)
+        .map((o) => o.item.price_info.price)
+        .sort((a, z) => a - z);
+      if (included.length < count) {
+        problems.push(
+          `section "${s.name}" asks for ${count} pick${count === 1 ? "" : "s"} but only ${included.length} option${included.length === 1 ? " is" : "s are"} included at no extra cost`,
+        );
+      } else {
+        separatePrice += included.slice(0, count).reduce((n, p) => n + p, 0);
+      }
+      const cheapest = Math.min(...options.map((o) => o.item.price_info.price));
+      for (const o of options) {
+        const headroom = o.item.price_info.price - cheapest;
+        if (o.extra > headroom) {
+          problems.push(
+            `"${o.item.name.en}" costs ${gbp(o.extra)} extra in "${s.name}", but Deliveroo allows at most ${gbp(headroom)} (its price over the section's cheapest item)`,
+          );
+        }
+      }
+      sections.push({ id: `${b.id}__sec${i}`, name: s.name, count, options });
+    });
+
+    if (b.sections.length === 0) problems.push("it has no sections");
+    const price = b.price == null ? null : toPence(b.price);
+    if (price == null) {
+      problems.push("it has no price");
+    } else if (!problems.length && price > separatePrice) {
+      problems.push(
+        `its price ${gbp(price)} is more than ${gbp(separatePrice)}, the same items bought separately`,
+      );
+    }
+    for (const sec of sections) {
+      for (const o of sec.options) {
+        if ((o.item.price_info.overrides?.length ?? 0) >= MAX_OVERRIDES_PER_ITEM) {
+          problems.push(
+            `"${o.item.name.en}" is already in ${MAX_OVERRIDES_PER_ITEM} deal sections, Deliveroo's limit`,
+          );
+        }
+      }
+    }
+
+    if (problems.length) {
+      warnings.push(`Meal deal "${b.name}" was not published to Deliveroo: ${problems.join("; ")}.`);
+      continue;
+    }
+    for (const n of notes) warnings.push(`Meal deal "${b.name}": ${n}.`);
+
+    for (const sec of sections) {
+      modifiers.push({
+        id: sec.id,
+        type: "bundle-item",
+        name: { en: sec.name },
+        min_selection: sec.count,
+        max_selection: sec.count,
+        // An item with extras must not be pickable twice — and a deal section
+        // is "pick N different things" in every deal we model.
+        repeatable: false,
+        item_ids: sec.options.map((o) => o.item.id),
+      });
+      for (const o of sec.options) {
+        (o.item.price_info.overrides ??= []).push({
+          type: "MODIFIER",
+          id: sec.id,
+          price: o.extra,
+        });
+      }
+    }
+    items.push({
+      id: b.id,
+      type: "BUNDLE",
+      name: { en: b.name },
+      ...(b.description ? { description: { en: b.description } } : {}),
+      plu: String(b.plu || b.id),
+      tax_rate: formatTaxRate(b.taxRate),
+      price_info: { price: price! },
+      ...(b.imageUrl ? { image: { url: b.imageUrl } } : {}),
+      modifier_ids: sections.map((s) => s.id),
+    });
+    emitted.push(b.id);
+  }
+  return emitted;
 }
 
 /**
@@ -362,7 +652,7 @@ export function menuNameProblems(payload: DeliverooMenuUpload): string[] {
       const where = groups.length ? ` in group "${[...new Set(groups)].join('", "')}"` : "";
       problems.push(`Option "${clip(name)}"${where} ${rule}`);
     } else {
-      problems.push(`Product "${clip(name)}" ${rule}`);
+      problems.push(`${it.type === "BUNDLE" ? "Meal deal" : "Product"} "${clip(name)}" ${rule}`);
     }
   }
   return problems;

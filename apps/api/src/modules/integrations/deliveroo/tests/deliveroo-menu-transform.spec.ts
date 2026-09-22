@@ -52,7 +52,7 @@ describe("buildDeliverooMenu", () => {
 
     expect(payload.name).toBe("Main Menu");
     expect(payload.site_ids).toEqual(["site-99"]);
-    expect(stats).toEqual({ categories: 1, products: 1, groups: 1, options: 2 });
+    expect(stats).toEqual({ categories: 1, products: 1, groups: 1, options: 2, bundles: 0 });
 
     // Category references the product id.
     expect(payload.menu.categories).toEqual([

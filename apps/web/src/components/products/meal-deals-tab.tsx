@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { CatalogEmptyState } from "./empty-state";
+import { MealDealEditor } from "./meal-deal-editor";
 
 interface Props {
   brandId: string;
@@ -27,6 +28,7 @@ export function MealDealsTab({ brandId, locationId, search }: Props) {
   const [isCreating, setIsCreating] = useState(false);
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const scopeKey = locationId ? `loc:${locationId}` : `brand:${brandId}`;
   const { data: deals = [], isLoading } = useQuery({
@@ -54,13 +56,18 @@ export function MealDealsTab({ brandId, locationId, search }: Props) {
         name: name.trim(),
         price: price ? Number(price) : null,
       }),
-    onSuccess: () => {
+    onSuccess: (created) => {
       qc.invalidateQueries({ queryKey: ["catalog", "meal-deals", scopeKey] });
       setIsCreating(false);
       setName("");
       setPrice("");
+      // A deal is only a name and a price until it has sections — go
+      // straight to them rather than leaving an empty deal in the list.
+      setEditingId(created.id);
     },
   });
+
+  const editing = deals.find((d) => d.id === editingId) ?? null;
 
   if (isLoading)
     return (
@@ -76,7 +83,7 @@ export function MealDealsTab({ brandId, locationId, search }: Props) {
       <CatalogEmptyState
         icon={UtensilsCrossed}
         title="No meal deals yet"
-        description="A meal deal bundles multiple products at a fixed price (e.g. burger + fries + drink for £8.99). Foundation only for now — full section editor lands in the next iteration."
+        description="A meal deal bundles products at a fixed price (e.g. burger + fries + drink for £8.99). Set out what the customer picks in each section, and it publishes to Deliveroo as a bundle."
         ctaLabel="Create meal deal"
         onCta={() => setIsCreating(true)}
       />
@@ -135,10 +142,18 @@ export function MealDealsTab({ brandId, locationId, search }: Props) {
             </Button>
           </div>
           <p className="mt-2 text-[11px] text-zinc-500">
-            Sections (pick X from Y), per-platform pricing, and product
-            linking come in a follow-up.
+            Next you&rsquo;ll set out the sections — what the customer picks.
           </p>
         </Card>
+      )}
+
+      {editing && (
+        <MealDealEditor
+          key={editing.id}
+          deal={editing}
+          onClose={() => setEditingId(null)}
+          invalidateKey={["catalog", "meal-deals", scopeKey]}
+        />
       )}
 
       <div className="rounded-xl border border-zinc-200 overflow-hidden">
@@ -146,14 +161,29 @@ export function MealDealsTab({ brandId, locationId, search }: Props) {
           <thead className="bg-zinc-50 text-zinc-500">
             <tr>
               <th className="text-left font-medium px-4 py-2.5">Name</th>
+              <th className="text-left font-medium px-4 py-2.5">Sections</th>
               <th className="text-right font-medium px-4 py-2.5">Price</th>
               <th className="text-center font-medium px-4 py-2.5">Available</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-100">
             {filtered.map((d) => (
-              <tr key={d.id} className="hover:bg-zinc-50">
-                <td className="px-4 py-2.5 font-medium text-zinc-900">{d.name}</td>
+              <tr key={d.id} className={d.id === editingId ? "bg-orange-50" : "hover:bg-zinc-50"}>
+                <td className="px-4 py-2.5 font-medium text-zinc-900">
+                  <button
+                    type="button"
+                    onClick={() => setEditingId(d.id)}
+                    className="text-left hover:text-orange-600 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-500 rounded"
+                  >
+                    {d.name}
+                  </button>
+                </td>
+                <td className="px-4 py-2.5 text-zinc-500">
+                  {d.sections?.length
+                    ? d.sections.map((s) => s.name).filter(Boolean).join(" · ") ||
+                      `${d.sections.length} section${d.sections.length === 1 ? "" : "s"}`
+                    : <span className="text-amber-700">No sections yet</span>}
+                </td>
                 <td className="px-4 py-2.5 text-right tabular-nums">
                   {d.price != null ? `${money(Number(d.price))}` : "—"}
                 </td>

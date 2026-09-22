@@ -19,6 +19,8 @@ import {
 import {
   buildDeliverooMenu,
   menuNameProblems,
+  toSrcBundle,
+  type SrcBundle,
   type SrcCategory,
   type SrcGroup,
   type SrcProduct,
@@ -165,11 +167,14 @@ export class DeliverooMenuPublishService {
             ? proxyCoverUrl
             : null);
 
+    const bundles = await this.loadBundles(menu.brandId, targetLocationId ?? null);
+
     const { payload, stats, warnings } = buildDeliverooMenu({
       menuName: menu.name,
       siteId: conn.externalStoreId!,
       categories,
       coverImageUrl,
+      bundles,
     });
     for (const w of warnings) this.logger.warn(`Deliveroo menu publish: ${w}`);
 
@@ -194,7 +199,7 @@ export class DeliverooMenuPublishService {
 
     this.logger.log(
       `Deliveroo menu publish ${menuId} → brand ${conn.externalBrandId} site ${conn.externalStoreId}: ` +
-        `${stats.categories} cats / ${stats.products} items / ${stats.groups} groups / ${stats.options} options`,
+        `${stats.categories} cats / ${stats.products} items / ${stats.groups} groups / ${stats.options} options / ${stats.bundles} meal deals`,
     );
 
     // PUT create-or-update-and-publish. Deliveroo menu id = our menu id
@@ -217,7 +222,12 @@ export class DeliverooMenuPublishService {
         ...logCtx,
         status: "SUCCESS",
         message: `Menu "${menu.name}" published to Deliveroo site ${conn.externalStoreId}`,
-        details: { categories: stats.categories, items: stats.products, warnings },
+        details: {
+          categories: stats.categories,
+          items: stats.products,
+          mealDeals: stats.bundles,
+          warnings,
+        },
       });
     } catch (e: any) {
       // Deliveroo rate-limits menu upload to 1 request per minute per site.
@@ -407,6 +417,29 @@ export class DeliverooMenuPublishService {
       );
     }
     return result;
+  }
+
+  /**
+   * The brand's meal deals that trade at this location, as bundle sources.
+   * Uses the MENU's brand, not the location's: a multi-brand shop's
+   * Location.brandId is the house brand, and would pull the wrong deals.
+   * Empty locationIds = every location of the brand (MealDeal's own rule).
+   * Validation against Deliveroo's bundle rules happens in the transformer,
+   * which can see the products' final prices.
+   */
+  private async loadBundles(brandId: string, locationId: string | null): Promise<SrcBundle[]> {
+    const deals = await this.prisma.mealDeal.findMany({
+      where: {
+        brandId,
+        isAvailable: true,
+        visibleToCustomers: true,
+        ...(locationId
+          ? { OR: [{ locationIds: { isEmpty: true } }, { locationIds: { has: locationId } }] }
+          : {}),
+      },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    });
+    return deals.map((d) => toSrcBundle(d, (url) => this.absolutiseImage(url)));
   }
 
   /** Parse the productSkus JSON into typed rows (only for multi-SKU items). */

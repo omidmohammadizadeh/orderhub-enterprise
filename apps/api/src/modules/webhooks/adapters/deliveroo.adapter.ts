@@ -70,10 +70,14 @@ export class DeliverooAdapter extends BaseWebhookAdapter {
      * hand-edited catalog turning one order into an infinite walk.
      */
     const MAX_MODIFIER_DEPTH = 5;
+    // Each entry carries its `depth` so the ticket can indent it under its
+    // parent (the same flat-with-depth shape Careem and Glovo already use).
+    // It matters most for a meal deal: the chosen burger at depth 0, its
+    // cheese at depth 1 — flat, the kitchen can't tell whose cheese it is.
     const flattenModifiers = (
       node: any,
       depth = 0,
-      out: Array<{ name: string; price: number; quantity: number }> = [],
+      out: Array<{ name: string; price: number; quantity: number; depth: number }> = [],
     ) => {
       if (!node || depth > MAX_MODIFIER_DEPTH) return out;
       const children = [
@@ -88,6 +92,7 @@ export class DeliverooAdapter extends BaseWebhookAdapter {
             m.unit_price ?? m.menu_unit_price ?? m.total_price,
           ),
           quantity: m.quantity ?? m.count ?? 1,
+          depth,
         });
         flattenModifiers(m, depth + 1, out);
       }
