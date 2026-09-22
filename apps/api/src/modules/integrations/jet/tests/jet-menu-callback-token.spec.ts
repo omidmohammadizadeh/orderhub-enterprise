@@ -126,3 +126,49 @@ describe("POST menu-callback authentication", () => {
     expect(menu.handleMenuCallback).not.toHaveBeenCalled();
   });
 });
+
+// The callback body is only { restaurant, ingestion_succeeded } — no
+// timestamp — so the dedupe key was "menu-callback:440823" for EVERY publish
+// to that restaurant, forever. Live, 22 Sep 07:21:56: a genuine success was
+// logged `first=false` and skipped. The per-publish token makes each
+// publish's callback distinct while a true retry still collapses.
+describe("menu-callback dedupe", () => {
+  function makeController() {
+    const seen = new Set<string>();
+    const prisma = {
+      webhookEvent: {
+        create: jest.fn(async ({ data }: any) => {
+          if (seen.has(data.externalEventId)) {
+            const e: any = new Error("dup");
+            e.code = "P2002";
+            throw e;
+          }
+          seen.add(data.externalEventId);
+          return data;
+        }),
+        update: jest.fn(async () => ({})),
+      },
+    } as any;
+    const client = { verifyInboundApiKey: jest.fn(() => false) } as any;
+    const menu = {
+      handleMenuCallback: jest.fn().mockResolvedValue({ handled: true }),
+      verifyCallbackToken: jest.fn().mockResolvedValue(true),
+    } as any;
+    return { controller: new JetLifecycleController(prisma, client, {} as any, menu, {} as any), menu };
+  }
+  const body = { restaurant: "440823", ingestion_succeeded: true };
+
+  it("processes the callback of every separate publish", async () => {
+    const { controller, menu } = makeController();
+    await controller.menuCallback(body, undefined as any, undefined, "a".repeat(48));
+    await controller.menuCallback(body, undefined as any, undefined, "b".repeat(48));
+    expect(menu.handleMenuCallback).toHaveBeenCalledTimes(2);
+  });
+
+  it("still skips a true retry of the same publish's callback", async () => {
+    const { controller, menu } = makeController();
+    await controller.menuCallback(body, undefined as any, undefined, "a".repeat(48));
+    await controller.menuCallback(body, undefined as any, undefined, "a".repeat(48));
+    expect(menu.handleMenuCallback).toHaveBeenCalledTimes(1);
+  });
+});

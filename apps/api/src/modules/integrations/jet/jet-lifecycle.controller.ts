@@ -144,6 +144,10 @@ export class JetLifecycleController {
       [auth, apiKey],
       (p) => this.menu.handleMenuCallback(p),
       tokenOk,
+      // The body has no timestamp, so without this every publish's callback
+      // shared the key "menu-callback:<restaurant>" and all but the first ever
+      // were skipped as retries. The token is per publish.
+      token ? `t${token.slice(0, 16)}` : `u${Date.now()}`,
     );
     return { ok: true };
   }
@@ -180,6 +184,8 @@ export class JetLifecycleController {
     run: (payload: any) => Promise<{ handled: boolean; reason?: string; orderId?: string }>,
     /** Authenticated some other way (the menu callback's per-publish token). */
     preAuthorized = false,
+    /** Distinguishes events whose body alone cannot (see menuCallback). */
+    eventIdSuffix?: string,
   ): Promise<any> {
     if (!preAuthorized && !this.client.verifyInboundApiKey(...apiKeyHeaders)) {
       this.logger.error(
@@ -189,7 +195,9 @@ export class JetLifecycleController {
       throw new UnauthorizedException("Invalid API key");
     }
 
-    const eventId = this.eventId(kind, body);
+    const eventId = [this.eventId(kind, body), eventIdSuffix]
+      .filter(Boolean)
+      .join(":");
     const firstSeen = await this.record(kind, eventId, body);
 
     this.logger.log(
