@@ -7,6 +7,7 @@ import {
 } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { SupabaseStorageService } from "../uploads/supabase-storage.service";
+import { WalletService } from "../wallet/wallet.service";
 import { ReplicateProvider } from "./replicate.provider";
 import { GeminiVideoProvider } from "./gemini-video.provider";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
@@ -112,6 +113,7 @@ export class VideoStudioService {
     private readonly replicate: ReplicateProvider,
     private readonly gemini: GeminiVideoProvider,
     private readonly storage: SupabaseStorageService,
+    private readonly wallet: WalletService,
   ) {}
 
   /**
@@ -226,15 +228,26 @@ export class VideoStudioService {
     return this.db().videoStudioAccount.create({ data: { tenantId } });
   }
 
-  /** Feature status + balance for the dashboard header/upsell. */
-  async getStatus(tenantId: string) {
+  /**
+   * Feature status + the paying wallet, for the dashboard header.
+   *
+   * Scoped to a LOCATION: renders are billed to that location's wallet, so the
+   * balance and prices shown must be that location's too. A user without
+   * access to it gets a 403 here rather than a misleading balance.
+   */
+  async getStatus(tenantId: string, locationId: string | null, user?: AuthenticatedUser) {
     const acc = await this.getOrCreateAccount(tenantId);
+    await this.wallet.assertLocationAccess(tenantId, locationId, user?.userId, user?.role);
+    const styles = this.styles();
+    const w = await this.wallet.aiStudioPrices(tenantId, locationId, styles.map((s) => s.id));
     return {
       addonActive: acc.addonActive,
-      includedMonthly: acc.includedMonthly,
-      includedBalance: acc.includedBalance,
-      topupBalance: acc.topupBalance,
-      balance: acc.includedBalance + acc.topupBalance,
+      // The wallet that pays for a render here — same balance the SMS and
+      // voice features spend, per location.
+      locationId,
+      balanceMinor: w.balanceMinor,
+      currency: w.currency,
+      pricesMinor: w.pricesMinor,
       providerReady: this.replicate.isConfigured() || this.gemini.isConfigured(),
       // WHICH renderer is live, not just "one of them is".
       //
@@ -257,7 +270,9 @@ export class VideoStudioService {
         id: s.id,
         label: s.label,
         kind: s.kind,
-        credits: s.credits,
+        // No price here on purpose: what a style costs depends on the
+        // LOCATION's wallet, so it's quoted once in pricesMinor above rather
+        // than twice in two places that could disagree.
         audio: s.audio,
         needsScript: s.needsScript,
         supportsFormat: !!s.aspectKey,
@@ -310,7 +325,15 @@ export class VideoStudioService {
       throw new BadRequestException("Add a short script for the spokesperson to say.");
     }
     const finalPrompt = this.buildPrompt(style, dto.prompt, dto.script);
-    const cost = style.credits;
+
+    // Which wallet pays — and whether this user may spend from it. A
+    // location-scoped user (OWNER, FINANCIAL_AGENT) can only ever charge a
+    // location assigned to them, and is refused the tenant-wide wallet
+    // outright, so one site can never burn another site's balance.
+    const locationId = dto.locationId ?? null;
+    await this.wallet.assertLocationAccess(user.tenantId, locationId, user.userId, user.role);
+    const walletRow = await this.wallet.getOrCreate(user.tenantId, locationId);
+    const cost = this.wallet.aiStudioPriceMinor(walletRow, style.id);
     // Format → aspect ratio, only when the model supports a format field.
     const extra: Record<string, unknown> = {};
     if (style.aspectKey && dto.format && ASPECT_RATIOS[dto.format]) {
@@ -321,57 +344,42 @@ export class VideoStudioService {
       extra[style.imageArrayKey] = [reference];
     }
 
-    // Atomic debit BEFORE we ever call the provider — take from the monthly
-    // allowance first, then purchased top-ups. The guarded updateMany makes
-    // each decrement race-safe (a concurrent request can't push us negative).
-    const { gen } = await this.prisma.$transaction(async (tx: any) => {
-      let source: string;
-      const inc = await tx.videoStudioAccount.updateMany({
-        where: { tenantId: user.tenantId, includedBalance: { gte: cost } },
-        data: { includedBalance: { decrement: cost } },
-      });
-      if (inc.count > 0) {
-        source = "included";
-      } else {
-        const top = await tx.videoStudioAccount.updateMany({
-          where: { tenantId: user.tenantId, topupBalance: { gte: cost } },
-          data: { topupBalance: { decrement: cost } },
-        });
-        if (top.count === 0) {
-          throw new BadRequestException(
-            "You're out of credits — top up or wait for your monthly reset.",
-          );
-        }
-        source = "topup";
-      }
-      const gen = await tx.videoGeneration.create({
-        data: {
-          tenantId: user.tenantId,
-          userId: user.userId,
-          locationId: dto.locationId ?? null,
-          brandId: dto.brandId ?? null,
-          status: "QUEUED",
-          kind: style.kind === "image" ? "IMAGE" : "VIDEO",
-          model:
-            provider === "gemini"
-              ? this.gemini.model
-              : style.model || this.replicate.model,
-          prompt: finalPrompt,
-          sourceImageUrl: reference,
-          creditsCost: cost,
-        },
-      });
-      await tx.videoCreditTxn.create({
-        data: {
-          tenantId: user.tenantId,
-          delta: -cost,
-          reason: "DEBIT",
-          source,
-          generationId: gen.id,
-        },
-      });
-      return { gen };
+    // The row exists before the money moves so the wallet statement can name
+    // the render it paid for. Nothing has been spent yet at this point.
+    const gen = await this.db().videoGeneration.create({
+      data: {
+        tenantId: user.tenantId,
+        userId: user.userId,
+        locationId,
+        brandId: dto.brandId ?? null,
+        status: "QUEUED",
+        kind: style.kind === "image" ? "IMAGE" : "VIDEO",
+        model:
+          provider === "gemini"
+            ? this.gemini.model
+            : style.model || this.replicate.model,
+        prompt: finalPrompt,
+        sourceImageUrl: reference,
+        chargedMinor: cost,
+      },
     });
+    // Charged BEFORE the provider is called, and given straight back if the
+    // render never starts. debitForAiStudio checks the balance inside the
+    // update's WHERE clause, so two renders begun at once can't both spend the
+    // same money. An insufficient balance throws here and the row is dropped.
+    try {
+      await this.wallet.debitForAiStudio({
+        tenantId: user.tenantId,
+        locationId,
+        generationId: gen.id,
+        styleLabel: style.label,
+        amountMinor: cost,
+        createdBy: user.userId,
+      });
+    } catch (err) {
+      await this.db().videoGeneration.delete({ where: { id: gen.id } }).catch(() => undefined);
+      throw err;
+    }
 
     // Kick off the render. If the provider rejects the request, refund now.
     try {
@@ -411,7 +419,7 @@ export class VideoStudioService {
       this.logger.error(`${provider} create failed for gen ${gen.id}: ${err?.message}`);
       await this.failAndRefund(gen, err?.message ?? "provider rejected the request");
       throw new BadRequestException(
-        "Couldn't start the render — your credit was refunded. Please try again.",
+        "Couldn't start the render — the charge was refunded to your wallet. Please try again.",
       );
     }
   }
@@ -642,27 +650,22 @@ export class VideoStudioService {
 
   /** Mark a generation FAILED and refund its credit exactly once. */
   private async failAndRefund(gen: any, message: string): Promise<void> {
-    await this.prisma.$transaction(async (tx: any) => {
-      // Only refund if the row hasn't already left RENDERING/QUEUED — prevents
-      // a double refund if two reconcile ticks race the same generation.
-      const updated = await tx.videoGeneration.updateMany({
-        where: { id: gen.id, status: { in: ["RENDERING", "QUEUED"] } },
-        data: { status: "FAILED", error: String(message).slice(0, 500) },
-      });
-      if (updated.count === 0) return;
-      await tx.videoStudioAccount.update({
-        where: { tenantId: gen.tenantId },
-        data: { includedBalance: { increment: gen.creditsCost } },
-      });
-      await tx.videoCreditTxn.create({
-        data: {
-          tenantId: gen.tenantId,
-          delta: gen.creditsCost,
-          reason: "REFUND",
-          generationId: gen.id,
-          note: "render failed",
-        },
-      });
+    // Claim the row FIRST. Only the caller that actually moves it out of
+    // RENDERING/QUEUED refunds, so two reconcile ticks racing the same
+    // generation can't hand the money back twice.
+    const updated = await this.db().videoGeneration.updateMany({
+      where: { id: gen.id, status: { in: ["RENDERING", "QUEUED"] } },
+      data: { status: "FAILED", error: String(message).slice(0, 500) },
+    });
+    if (updated.count === 0) return;
+    await this.wallet.refundAiStudio({
+      tenantId: gen.tenantId,
+      locationId: gen.locationId ?? null,
+      generationId: gen.id,
+      // What was taken, not what it would cost today — the price list can
+      // change between the debit and the failure.
+      amountMinor: Number(gen.chargedMinor ?? 0),
+      reason: "render failed",
     });
   }
 
@@ -724,7 +727,6 @@ export class VideoStudioService {
       data: {
         addonActive: true,
         includedMonthly: opts.includedMonthly,
-        includedBalance: opts.includedMonthly, // grant this period's allowance
         lastGrantAt: new Date(),
         ...(opts.stripeSubscriptionId && {
           stripeSubscriptionId: opts.stripeSubscriptionId,
@@ -744,40 +746,19 @@ export class VideoStudioService {
     });
   }
 
-  async topup(tenantId: string, credits: number) {
-    if (credits <= 0) throw new BadRequestException("credits must be positive");
-    await this.getOrCreateAccount(tenantId);
-    const acc = await this.db().videoStudioAccount.update({
-      where: { tenantId },
-      data: { topupBalance: { increment: credits } },
-    });
-    await this.writeTxn(tenantId, credits, "TOPUP", { note: "credit pack" });
-    return acc;
-  }
+  // `topup` is gone on purpose: renders are paid for from the location's
+  // wallet now, so the only way to add funds is the wallet's own Stripe
+  // top-up. A second pot of money that buys nothing is worse than none.
 
-  /** Reset each active account's monthly allowance (top-ups persist). Run daily
-   *  — only grants when the account hasn't been granted this calendar month. */
-  async grantMonthly(now: Date): Promise<number> {
-    const accounts = await this.db().videoStudioAccount.findMany({
-      where: { addonActive: true },
-    });
-    let granted = 0;
-    for (const acc of accounts) {
-      const last: Date | null = acc.lastGrantAt;
-      const sameMonth =
-        last &&
-        last.getUTCFullYear() === now.getUTCFullYear() &&
-        last.getUTCMonth() === now.getUTCMonth();
-      if (sameMonth) continue;
-      await this.db().videoStudioAccount.update({
-        where: { tenantId: acc.tenantId },
-        data: { includedBalance: acc.includedMonthly, lastGrantAt: now },
-      });
-      await this.writeTxn(acc.tenantId, acc.includedMonthly, "GRANT", {
-        note: "monthly reset",
-      });
-      granted++;
-    }
-    return granted;
+  /**
+   * Formerly the monthly credit grant. Renders are billed from the location's
+   * wallet now, so there is no allowance to reset — granting credits nobody
+   * can spend would tell an operator they had free renders they don't.
+   *
+   * Kept as a no-op rather than deleted so the daily cron keeps its shape; if
+   * bundled renders come back, they belong here as a wallet grant.
+   */
+  async grantMonthly(_now: Date): Promise<number> {
+    return 0;
   }
 }

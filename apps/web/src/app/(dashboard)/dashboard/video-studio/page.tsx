@@ -20,6 +20,7 @@ import {
   type VideoGeneration,
 } from "@/lib/api/video-studio.client";
 import { uploadsClient } from "@/lib/api/catalog.client";
+import { useSelectedLocationStore } from "@/stores/selected-location.store";
 
 // Resize a picked image to at most `max` px on its long edge and return a
 // JPEG data URL. Keeps upload/generation payloads small and consistent.
@@ -58,9 +59,13 @@ async function downscaleImage(file: File, max: number): Promise<string> {
 export default function VideoStudioPage() {
   const qc = useQueryClient();
 
+  // Renders are billed to the SELECTED location's wallet, so the balance and
+  // prices shown have to follow it — and the location is part of the cache key
+  // or you'd be quoted one site's prices while another site paid.
+  const locationId = useSelectedLocationStore((st) => st.selectedLocationId);
   const statusQuery = useQuery({
-    queryKey: ["video-studio", "status"],
-    queryFn: videoStudioClient.status,
+    queryKey: ["video-studio", "status", locationId],
+    queryFn: () => videoStudioClient.status(locationId),
   });
   const status = statusQuery.data;
   // Server decides who can use the temporary test-activation hooks (platform
@@ -92,7 +97,13 @@ export default function VideoStudioPage() {
 
   const styles = status?.styles ?? [];
   const style = styles.find((s) => s.id === styleId) ?? styles[0];
-  const cost = style?.credits ?? 1;
+  const priceOf = (id?: string) => (id ? (status?.pricesMinor?.[id] ?? 0) : 0);
+  const cost = priceOf(style?.id);
+  const money = (minor: number) =>
+    new Intl.NumberFormat("en-GB", {
+      style: "currency",
+      currency: status?.currency || "GBP",
+    }).format(minor / 100);
 
   const onPickFile = async (file: File) => {
     setError(null);
@@ -123,6 +134,7 @@ export default function VideoStudioPage() {
   const generate = useMutation({
     mutationFn: () =>
       videoStudioClient.generate({
+        locationId: locationId ?? undefined,
         imageUrl: imageUrl || undefined,
         prompt: prompt.trim(),
         style: styleId,
@@ -144,10 +156,6 @@ export default function VideoStudioPage() {
     mutationFn: () => videoStudioClient.adminActivate(15),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["video-studio"] }),
   });
-  const topup = useMutation({
-    mutationFn: () => videoStudioClient.adminTopup(10),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["video-studio"] }),
-  });
   const cancelGen = useMutation({
     mutationFn: (id: string) => videoStudioClient.cancel(id),
     // Refresh both the card list and the balance — cancelling refunds.
@@ -159,12 +167,13 @@ export default function VideoStudioPage() {
     (!!imageUrl || !!style?.imageOptional) &&
     prompt.trim().length > 3 &&
     (!style?.needsScript || script.trim().length > 3) &&
-    (status?.balance ?? 0) >= cost &&
+    (status?.balanceMinor ?? 0) >= cost &&
     !uploading;
 
   const balanceLabel = useMemo(() => {
     if (!status) return "";
-    return `${status.balance} credit${status.balance === 1 ? "" : "s"} left`;
+    return `${money(status.balanceMinor ?? 0)} wallet balance`;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 
   return (
@@ -195,8 +204,8 @@ export default function VideoStudioPage() {
           </h2>
           <p className="mx-auto mt-1 max-w-md text-sm text-zinc-600">
             Generate scroll-stopping product videos AND photos for your social
-            posts and ads. Add it to your plan to get a monthly batch of
-            credits, plus top-up packs whenever you need more.
+            posts and ads. Pay per video from the same wallet your texts and
+            AI calls already use — no separate credits to keep track of.
           </p>
           {canTest ? (
             <button
@@ -239,7 +248,7 @@ export default function VideoStudioPage() {
                         {s.label}
                       </span>
                       <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600">
-                        {s.credits} credit{s.credits === 1 ? "" : "s"}
+                        {money(priceOf(s.id))}
                       </span>
                     </div>
                     <p className="mt-1 text-xs text-zinc-500">
@@ -374,23 +383,17 @@ export default function VideoStudioPage() {
                 ) : (
                   <Sparkles className="h-4 w-4" />
                 )}
-                Generate {isImage ? "photo" : "video"} ({cost} credit{cost === 1 ? "" : "s"})
+                Generate {isImage ? "photo" : "video"} ({money(cost)})
               </button>
-              {(status.balance ?? 0) < cost && (
+              {(status.balanceMinor ?? 0) < cost && (
                 <p className="mt-2 text-xs text-amber-700">
-                  {(status.balance ?? 0) === 0
-                    ? "You're out of credits — top up or wait for your monthly reset."
-                    : `This style needs ${cost} credits — you have ${status.balance}. Top up or pick the cinematic style.`}
+                  This costs {money(cost)} and this location&apos;s wallet has{" "}
+                  {money(status.balanceMinor ?? 0)}.{" "}
+                  <a href="/dashboard/wallet" className="font-semibold underline">
+                    Top up the wallet
+                  </a>{" "}
+                  — the same balance your texts and AI calls use.
                 </p>
-              )}
-              {canTest && (
-                <button
-                  onClick={() => topup.mutate()}
-                  disabled={topup.isPending}
-                  className="mt-2 text-xs font-medium text-violet-700 hover:underline"
-                >
-                  + Add 10 credits (test)
-                </button>
               )}
             </div>
           </div>
@@ -460,7 +463,7 @@ export default function VideoStudioPage() {
                     ) : g.status === "FAILED" ? (
                       <div className="flex h-full flex-col items-center justify-center gap-1 p-3 text-center text-xs text-red-300">
                         <AlertCircle className="h-5 w-5" />
-                        Failed — credit refunded
+                        Failed — refunded to your wallet
                         {g.error && <span className="text-red-400/80">{g.error}</span>}
                       </div>
                     ) : (
@@ -468,7 +471,7 @@ export default function VideoStudioPage() {
                         <Loader2 className="h-6 w-6 animate-spin" />
                         <span className="text-xs">Rendering…</span>
                         {/* A render that can't finish would otherwise spin
-                            here forever, holding the credit with it. */}
+                            here forever, holding the money with it. */}
                         <button
                           type="button"
                           onClick={() => cancelGen.mutate(g.id)}

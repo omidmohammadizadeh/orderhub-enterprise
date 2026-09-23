@@ -776,6 +776,133 @@ export class WalletService {
   /** Throw (402-style) unless the location wallet can cover a dispatch fee.
    *  Called BEFORE we create the courier job so a broke wallet blocks dispatch
    *  cleanly. PLATFORM_ADMIN bypass lives in the caller, not here. */
+  // ── AI Studio ───────────────────────────────────────────────────────────
+  //
+  // Renders are billed in real money from the LOCATION's wallet, not from a
+  // separate credit pot. Two consequences worth stating: a shop can see what a
+  // video costs before making it, and one location can never spend another's
+  // balance — the caller proves access with assertLocationAccess first, which
+  // also denies a location-scoped user the tenant-wide wallet.
+
+  /** Platform default price for a style, in pennies. */
+  private aiStudioDefaultMinor(styleId: string): number {
+    const env = Number(
+      process.env[`AI_STUDIO_PRICE_${styleId.toUpperCase().replace(/-/g, "_")}_MINOR`],
+    );
+    if (Number.isFinite(env) && env > 0) return Math.round(env);
+    // Costs us ~31p / ~9p / ~3p respectively (Veo 3.1 Lite, Wan 2.2 fast,
+    // nano-banana). Priced for volume rather than maximum margin: a shop that
+    // rations the feature stops using it.
+    if (styleId === "spokesperson") return 150;
+    if (styleId === "product-photo") return 20;
+    return 50;
+  }
+
+  /** What this wallet pays for a style: per-location override → platform default. */
+  aiStudioPriceMinor(wallet: { aiStudioPricesMinor?: unknown } | null, styleId: string): number {
+    const overrides = wallet?.aiStudioPricesMinor as Record<string, unknown> | null | undefined;
+    const override = overrides && typeof overrides === "object" ? Number(overrides[styleId]) : NaN;
+    if (Number.isFinite(override) && override >= 0) return Math.round(override);
+    return this.aiStudioDefaultMinor(styleId);
+  }
+
+  /** Every style's price for this wallet — what the studio shows on the buttons. */
+  async aiStudioPrices(
+    tenantId: string,
+    locationId: string | null,
+    styleIds: string[],
+  ): Promise<{ balanceMinor: number; currency: string; pricesMinor: Record<string, number> }> {
+    const wallet = await this.getOrCreate(tenantId, locationId);
+    const pricesMinor: Record<string, number> = {};
+    for (const id of styleIds) pricesMinor[id] = this.aiStudioPriceMinor(wallet, id);
+    return { balanceMinor: wallet.balanceMinor, currency: wallet.currency, pricesMinor };
+  }
+
+  /**
+   * Take the price of one render. The balance check lives INSIDE the update's
+   * WHERE clause, so two renders started at once can't both pass a check that
+   * only one balance can cover.
+   */
+  async debitForAiStudio(args: {
+    tenantId: string;
+    locationId: string | null;
+    generationId: string;
+    styleLabel: string;
+    amountMinor: number;
+    createdBy?: string | null;
+  }): Promise<{ chargedMinor: number; balanceAfterMinor: number }> {
+    const wallet = await this.getOrCreate(args.tenantId, args.locationId);
+    const cost = args.amountMinor;
+    const result = await this.prisma.$transaction(async (tx: any) => {
+      const guarded = await tx.wallet.updateMany({
+        where: { id: wallet.id, balanceMinor: { gte: cost } },
+        data: { balanceMinor: { decrement: cost } },
+      });
+      if (guarded.count === 0) return null;
+      const after = await tx.wallet.findUnique({ where: { id: wallet.id } });
+      await tx.walletTransaction.create({
+        data: {
+          tenantId: args.tenantId,
+          walletId: wallet.id,
+          type: "DEBIT",
+          amountMinor: -cost,
+          balanceAfterMinor: after.balanceMinor,
+          currency: wallet.currency,
+          purpose: "AI_STUDIO",
+          locationId: args.locationId ?? null,
+          createdBy: args.createdBy ?? null,
+          description: `AI Studio — ${args.styleLabel} (${args.generationId})`,
+        },
+      });
+      return after;
+    });
+    if (!result) {
+      throw new BadRequestException(
+        `Not enough wallet balance for this render (${(cost / 100).toFixed(2)} needed). ` +
+          `Top up this location's wallet and try again.`,
+      );
+    }
+    return { chargedMinor: cost, balanceAfterMinor: result.balanceMinor };
+  }
+
+  /** Give the money back when a render never produced anything. Best-effort:
+   *  logged, never thrown, because the caller is already handling a failure. */
+  async refundAiStudio(args: {
+    tenantId: string;
+    locationId: string | null;
+    generationId: string;
+    amountMinor: number;
+    reason: string;
+  }): Promise<void> {
+    if (!args.amountMinor || args.amountMinor <= 0) return;
+    try {
+      const wallet = await this.getOrCreate(args.tenantId, args.locationId);
+      await this.prisma.$transaction(async (tx: any) => {
+        const u = await tx.wallet.update({
+          where: { id: wallet.id },
+          data: { balanceMinor: { increment: args.amountMinor } },
+        });
+        await tx.walletTransaction.create({
+          data: {
+            tenantId: args.tenantId,
+            walletId: wallet.id,
+            type: "REFUND",
+            amountMinor: args.amountMinor,
+            balanceAfterMinor: u.balanceMinor,
+            currency: wallet.currency,
+            purpose: "AI_STUDIO",
+            locationId: args.locationId ?? null,
+            description: `AI Studio refund — ${args.reason} (${args.generationId})`,
+          },
+        });
+      });
+    } catch (e: any) {
+      this.logger.error(
+        `AI Studio refund failed for generation ${args.generationId}: ${e?.message ?? e}`,
+      );
+    }
+  }
+
   async assertCanAffordDispatch(
     tenantId: string,
     locationId: string | null,

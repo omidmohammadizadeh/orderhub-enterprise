@@ -44,9 +44,14 @@ export class VideoStudioController {
   }
 
   @Get()
-  @ApiOperation({ summary: "Video Studio status + credit balance" })
-  async status(@CurrentUser() user: AuthenticatedUser) {
-    const s = await this.studio.getStatus(user.tenantId);
+  @ApiOperation({ summary: "Video Studio status + the paying location's wallet" })
+  async status(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("locationId") locationId?: string,
+  ) {
+    // Prices and balance belong to the location that will be billed, so the
+    // caller must name it — and must have access to it.
+    const s = await this.studio.getStatus(user.tenantId, locationId?.trim() || null, user);
     return { ...s, canTestActivate: this.testActivationAllowed(user) };
   }
 
@@ -118,21 +123,7 @@ export class VideoStudioController {
     });
   }
 
-  @Post("admin/topup")
-  @Roles("PLATFORM_ADMIN", "TENANT_OWNER")
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Add top-up credits to a tenant" })
-  topup(
-    @CurrentUser() user: AuthenticatedUser,
-    @Body() body: { tenantId?: string; credits?: number },
-  ) {
-    if (!this.testActivationAllowed(user)) {
-      throw new ForbiddenException("Test top-up is not enabled.");
-    }
-    const tenantId =
-      String(user.role) === "PLATFORM_ADMIN"
-        ? body.tenantId ?? user.tenantId
-        : user.tenantId;
-    return this.studio.topup(tenantId, body.credits ?? 10);
-  }
+  // There is no credit top-up any more: a render is paid for from the
+  // location's wallet, which has its own Stripe top-up, auto top-up and
+  // statement. Adding money in two places would let the two disagree.
 }

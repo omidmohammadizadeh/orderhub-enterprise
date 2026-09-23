@@ -1967,6 +1967,7 @@ exports.Prisma.VideoGenerationScalarFieldEnum = {
   resultUrl: 'resultUrl',
   replicatePredictionId: 'replicatePredictionId',
   creditsCost: 'creditsCost',
+  chargedMinor: 'chargedMinor',
   error: 'error',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -2054,6 +2055,7 @@ exports.Prisma.WalletScalarFieldEnum = {
   currency: 'currency',
   smsPricePerSegmentMinor: 'smsPricePerSegmentMinor',
   voicePricePerCallMinor: 'voicePricePerCallMinor',
+  aiStudioPricesMinor: 'aiStudioPricesMinor',
   lowBalanceThresholdMinor: 'lowBalanceThresholdMinor',
   stripeCustomerId: 'stripeCustomerId',
   autoTopupEnabled: 'autoTopupEnabled',

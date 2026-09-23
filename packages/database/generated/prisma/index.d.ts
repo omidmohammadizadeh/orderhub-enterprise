@@ -133437,10 +133437,12 @@ export namespace Prisma {
 
   export type VideoGenerationAvgAggregateOutputType = {
     creditsCost: number | null
+    chargedMinor: number | null
   }
 
   export type VideoGenerationSumAggregateOutputType = {
     creditsCost: number | null
+    chargedMinor: number | null
   }
 
   export type VideoGenerationMinAggregateOutputType = {
@@ -133457,6 +133459,7 @@ export namespace Prisma {
     resultUrl: string | null
     replicatePredictionId: string | null
     creditsCost: number | null
+    chargedMinor: number | null
     error: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -133476,6 +133479,7 @@ export namespace Prisma {
     resultUrl: string | null
     replicatePredictionId: string | null
     creditsCost: number | null
+    chargedMinor: number | null
     error: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -133495,6 +133499,7 @@ export namespace Prisma {
     resultUrl: number
     replicatePredictionId: number
     creditsCost: number
+    chargedMinor: number
     error: number
     createdAt: number
     updatedAt: number
@@ -133504,10 +133509,12 @@ export namespace Prisma {
 
   export type VideoGenerationAvgAggregateInputType = {
     creditsCost?: true
+    chargedMinor?: true
   }
 
   export type VideoGenerationSumAggregateInputType = {
     creditsCost?: true
+    chargedMinor?: true
   }
 
   export type VideoGenerationMinAggregateInputType = {
@@ -133524,6 +133531,7 @@ export namespace Prisma {
     resultUrl?: true
     replicatePredictionId?: true
     creditsCost?: true
+    chargedMinor?: true
     error?: true
     createdAt?: true
     updatedAt?: true
@@ -133543,6 +133551,7 @@ export namespace Prisma {
     resultUrl?: true
     replicatePredictionId?: true
     creditsCost?: true
+    chargedMinor?: true
     error?: true
     createdAt?: true
     updatedAt?: true
@@ -133562,6 +133571,7 @@ export namespace Prisma {
     resultUrl?: true
     replicatePredictionId?: true
     creditsCost?: true
+    chargedMinor?: true
     error?: true
     createdAt?: true
     updatedAt?: true
@@ -133668,6 +133678,7 @@ export namespace Prisma {
     resultUrl: string | null
     replicatePredictionId: string | null
     creditsCost: number
+    chargedMinor: number | null
     error: string | null
     createdAt: Date
     updatedAt: Date
@@ -133706,6 +133717,7 @@ export namespace Prisma {
     resultUrl?: boolean
     replicatePredictionId?: boolean
     creditsCost?: boolean
+    chargedMinor?: boolean
     error?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -133725,6 +133737,7 @@ export namespace Prisma {
     resultUrl?: boolean
     replicatePredictionId?: boolean
     creditsCost?: boolean
+    chargedMinor?: boolean
     error?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -133744,6 +133757,7 @@ export namespace Prisma {
     resultUrl?: boolean
     replicatePredictionId?: boolean
     creditsCost?: boolean
+    chargedMinor?: boolean
     error?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -133767,6 +133781,7 @@ export namespace Prisma {
       resultUrl: string | null
       replicatePredictionId: string | null
       creditsCost: number
+      chargedMinor: number | null
       error: string | null
       createdAt: Date
       updatedAt: Date
@@ -134176,6 +134191,7 @@ export namespace Prisma {
     readonly resultUrl: FieldRef<"VideoGeneration", 'String'>
     readonly replicatePredictionId: FieldRef<"VideoGeneration", 'String'>
     readonly creditsCost: FieldRef<"VideoGeneration", 'Int'>
+    readonly chargedMinor: FieldRef<"VideoGeneration", 'Int'>
     readonly error: FieldRef<"VideoGeneration", 'String'>
     readonly createdAt: FieldRef<"VideoGeneration", 'DateTime'>
     readonly updatedAt: FieldRef<"VideoGeneration", 'DateTime'>
@@ -138802,6 +138818,7 @@ export namespace Prisma {
     currency: number
     smsPricePerSegmentMinor: number
     voicePricePerCallMinor: number
+    aiStudioPricesMinor: number
     lowBalanceThresholdMinor: number
     stripeCustomerId: number
     autoTopupEnabled: number
@@ -138885,6 +138902,7 @@ export namespace Prisma {
     currency?: true
     smsPricePerSegmentMinor?: true
     voicePricePerCallMinor?: true
+    aiStudioPricesMinor?: true
     lowBalanceThresholdMinor?: true
     stripeCustomerId?: true
     autoTopupEnabled?: true
@@ -138993,6 +139011,7 @@ export namespace Prisma {
     currency: string
     smsPricePerSegmentMinor: number | null
     voicePricePerCallMinor: number | null
+    aiStudioPricesMinor: JsonValue | null
     lowBalanceThresholdMinor: number
     stripeCustomerId: string | null
     autoTopupEnabled: boolean
@@ -139033,6 +139052,7 @@ export namespace Prisma {
     currency?: boolean
     smsPricePerSegmentMinor?: boolean
     voicePricePerCallMinor?: boolean
+    aiStudioPricesMinor?: boolean
     lowBalanceThresholdMinor?: boolean
     stripeCustomerId?: boolean
     autoTopupEnabled?: boolean
@@ -139057,6 +139077,7 @@ export namespace Prisma {
     currency?: boolean
     smsPricePerSegmentMinor?: boolean
     voicePricePerCallMinor?: boolean
+    aiStudioPricesMinor?: boolean
     lowBalanceThresholdMinor?: boolean
     stripeCustomerId?: boolean
     autoTopupEnabled?: boolean
@@ -139079,6 +139100,7 @@ export namespace Prisma {
     currency?: boolean
     smsPricePerSegmentMinor?: boolean
     voicePricePerCallMinor?: boolean
+    aiStudioPricesMinor?: boolean
     lowBalanceThresholdMinor?: boolean
     stripeCustomerId?: boolean
     autoTopupEnabled?: boolean
@@ -139115,6 +139137,7 @@ export namespace Prisma {
       currency: string
       smsPricePerSegmentMinor: number | null
       voicePricePerCallMinor: number | null
+      aiStudioPricesMinor: Prisma.JsonValue | null
       lowBalanceThresholdMinor: number
       stripeCustomerId: string | null
       autoTopupEnabled: boolean
@@ -139528,6 +139551,7 @@ export namespace Prisma {
     readonly currency: FieldRef<"Wallet", 'String'>
     readonly smsPricePerSegmentMinor: FieldRef<"Wallet", 'Int'>
     readonly voicePricePerCallMinor: FieldRef<"Wallet", 'Int'>
+    readonly aiStudioPricesMinor: FieldRef<"Wallet", 'Json'>
     readonly lowBalanceThresholdMinor: FieldRef<"Wallet", 'Int'>
     readonly stripeCustomerId: FieldRef<"Wallet", 'String'>
     readonly autoTopupEnabled: FieldRef<"Wallet", 'Boolean'>
@@ -161290,6 +161314,7 @@ export namespace Prisma {
     resultUrl: 'resultUrl',
     replicatePredictionId: 'replicatePredictionId',
     creditsCost: 'creditsCost',
+    chargedMinor: 'chargedMinor',
     error: 'error',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
@@ -161392,6 +161417,7 @@ export namespace Prisma {
     currency: 'currency',
     smsPricePerSegmentMinor: 'smsPricePerSegmentMinor',
     voicePricePerCallMinor: 'voicePricePerCallMinor',
+    aiStudioPricesMinor: 'aiStudioPricesMinor',
     lowBalanceThresholdMinor: 'lowBalanceThresholdMinor',
     stripeCustomerId: 'stripeCustomerId',
     autoTopupEnabled: 'autoTopupEnabled',
@@ -175977,6 +176003,7 @@ export namespace Prisma {
     resultUrl?: StringNullableFilter<"VideoGeneration"> | string | null
     replicatePredictionId?: StringNullableFilter<"VideoGeneration"> | string | null
     creditsCost?: IntFilter<"VideoGeneration"> | number
+    chargedMinor?: IntNullableFilter<"VideoGeneration"> | number | null
     error?: StringNullableFilter<"VideoGeneration"> | string | null
     createdAt?: DateTimeFilter<"VideoGeneration"> | Date | string
     updatedAt?: DateTimeFilter<"VideoGeneration"> | Date | string
@@ -175996,6 +176023,7 @@ export namespace Prisma {
     resultUrl?: SortOrderInput | SortOrder
     replicatePredictionId?: SortOrderInput | SortOrder
     creditsCost?: SortOrder
+    chargedMinor?: SortOrderInput | SortOrder
     error?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -176019,6 +176047,7 @@ export namespace Prisma {
     resultUrl?: StringNullableFilter<"VideoGeneration"> | string | null
     replicatePredictionId?: StringNullableFilter<"VideoGeneration"> | string | null
     creditsCost?: IntFilter<"VideoGeneration"> | number
+    chargedMinor?: IntNullableFilter<"VideoGeneration"> | number | null
     error?: StringNullableFilter<"VideoGeneration"> | string | null
     createdAt?: DateTimeFilter<"VideoGeneration"> | Date | string
     updatedAt?: DateTimeFilter<"VideoGeneration"> | Date | string
@@ -176038,6 +176067,7 @@ export namespace Prisma {
     resultUrl?: SortOrderInput | SortOrder
     replicatePredictionId?: SortOrderInput | SortOrder
     creditsCost?: SortOrder
+    chargedMinor?: SortOrderInput | SortOrder
     error?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -176065,6 +176095,7 @@ export namespace Prisma {
     resultUrl?: StringNullableWithAggregatesFilter<"VideoGeneration"> | string | null
     replicatePredictionId?: StringNullableWithAggregatesFilter<"VideoGeneration"> | string | null
     creditsCost?: IntWithAggregatesFilter<"VideoGeneration"> | number
+    chargedMinor?: IntNullableWithAggregatesFilter<"VideoGeneration"> | number | null
     error?: StringNullableWithAggregatesFilter<"VideoGeneration"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"VideoGeneration"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"VideoGeneration"> | Date | string
@@ -176517,6 +176548,7 @@ export namespace Prisma {
     currency?: StringFilter<"Wallet"> | string
     smsPricePerSegmentMinor?: IntNullableFilter<"Wallet"> | number | null
     voicePricePerCallMinor?: IntNullableFilter<"Wallet"> | number | null
+    aiStudioPricesMinor?: JsonNullableFilter<"Wallet">
     lowBalanceThresholdMinor?: IntFilter<"Wallet"> | number
     stripeCustomerId?: StringNullableFilter<"Wallet"> | string | null
     autoTopupEnabled?: BoolFilter<"Wallet"> | boolean
@@ -176540,6 +176572,7 @@ export namespace Prisma {
     currency?: SortOrder
     smsPricePerSegmentMinor?: SortOrderInput | SortOrder
     voicePricePerCallMinor?: SortOrderInput | SortOrder
+    aiStudioPricesMinor?: SortOrderInput | SortOrder
     lowBalanceThresholdMinor?: SortOrder
     stripeCustomerId?: SortOrderInput | SortOrder
     autoTopupEnabled?: SortOrder
@@ -176568,6 +176601,7 @@ export namespace Prisma {
     currency?: StringFilter<"Wallet"> | string
     smsPricePerSegmentMinor?: IntNullableFilter<"Wallet"> | number | null
     voicePricePerCallMinor?: IntNullableFilter<"Wallet"> | number | null
+    aiStudioPricesMinor?: JsonNullableFilter<"Wallet">
     lowBalanceThresholdMinor?: IntFilter<"Wallet"> | number
     stripeCustomerId?: StringNullableFilter<"Wallet"> | string | null
     autoTopupEnabled?: BoolFilter<"Wallet"> | boolean
@@ -176591,6 +176625,7 @@ export namespace Prisma {
     currency?: SortOrder
     smsPricePerSegmentMinor?: SortOrderInput | SortOrder
     voicePricePerCallMinor?: SortOrderInput | SortOrder
+    aiStudioPricesMinor?: SortOrderInput | SortOrder
     lowBalanceThresholdMinor?: SortOrder
     stripeCustomerId?: SortOrderInput | SortOrder
     autoTopupEnabled?: SortOrder
@@ -176620,6 +176655,7 @@ export namespace Prisma {
     currency?: StringWithAggregatesFilter<"Wallet"> | string
     smsPricePerSegmentMinor?: IntNullableWithAggregatesFilter<"Wallet"> | number | null
     voicePricePerCallMinor?: IntNullableWithAggregatesFilter<"Wallet"> | number | null
+    aiStudioPricesMinor?: JsonNullableWithAggregatesFilter<"Wallet">
     lowBalanceThresholdMinor?: IntWithAggregatesFilter<"Wallet"> | number
     stripeCustomerId?: StringNullableWithAggregatesFilter<"Wallet"> | string | null
     autoTopupEnabled?: BoolWithAggregatesFilter<"Wallet"> | boolean
@@ -191747,6 +191783,7 @@ export namespace Prisma {
     resultUrl?: string | null
     replicatePredictionId?: string | null
     creditsCost?: number
+    chargedMinor?: number | null
     error?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -191766,6 +191803,7 @@ export namespace Prisma {
     resultUrl?: string | null
     replicatePredictionId?: string | null
     creditsCost?: number
+    chargedMinor?: number | null
     error?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -191785,6 +191823,7 @@ export namespace Prisma {
     resultUrl?: NullableStringFieldUpdateOperationsInput | string | null
     replicatePredictionId?: NullableStringFieldUpdateOperationsInput | string | null
     creditsCost?: IntFieldUpdateOperationsInput | number
+    chargedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     error?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -191804,6 +191843,7 @@ export namespace Prisma {
     resultUrl?: NullableStringFieldUpdateOperationsInput | string | null
     replicatePredictionId?: NullableStringFieldUpdateOperationsInput | string | null
     creditsCost?: IntFieldUpdateOperationsInput | number
+    chargedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     error?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -191823,6 +191863,7 @@ export namespace Prisma {
     resultUrl?: string | null
     replicatePredictionId?: string | null
     creditsCost?: number
+    chargedMinor?: number | null
     error?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -191842,6 +191883,7 @@ export namespace Prisma {
     resultUrl?: NullableStringFieldUpdateOperationsInput | string | null
     replicatePredictionId?: NullableStringFieldUpdateOperationsInput | string | null
     creditsCost?: IntFieldUpdateOperationsInput | number
+    chargedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     error?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -191861,6 +191903,7 @@ export namespace Prisma {
     resultUrl?: NullableStringFieldUpdateOperationsInput | string | null
     replicatePredictionId?: NullableStringFieldUpdateOperationsInput | string | null
     creditsCost?: IntFieldUpdateOperationsInput | number
+    chargedMinor?: NullableIntFieldUpdateOperationsInput | number | null
     error?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -192394,6 +192437,7 @@ export namespace Prisma {
     currency?: string
     smsPricePerSegmentMinor?: number | null
     voicePricePerCallMinor?: number | null
+    aiStudioPricesMinor?: NullableJsonNullValueInput | InputJsonValue
     lowBalanceThresholdMinor?: number
     stripeCustomerId?: string | null
     autoTopupEnabled?: boolean
@@ -192417,6 +192461,7 @@ export namespace Prisma {
     currency?: string
     smsPricePerSegmentMinor?: number | null
     voicePricePerCallMinor?: number | null
+    aiStudioPricesMinor?: NullableJsonNullValueInput | InputJsonValue
     lowBalanceThresholdMinor?: number
     stripeCustomerId?: string | null
     autoTopupEnabled?: boolean
@@ -192438,6 +192483,7 @@ export namespace Prisma {
     currency?: StringFieldUpdateOperationsInput | string
     smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
     voicePricePerCallMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    aiStudioPricesMinor?: NullableJsonNullValueInput | InputJsonValue
     lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     autoTopupEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -192461,6 +192507,7 @@ export namespace Prisma {
     currency?: StringFieldUpdateOperationsInput | string
     smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
     voicePricePerCallMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    aiStudioPricesMinor?: NullableJsonNullValueInput | InputJsonValue
     lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     autoTopupEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -192483,6 +192530,7 @@ export namespace Prisma {
     currency?: string
     smsPricePerSegmentMinor?: number | null
     voicePricePerCallMinor?: number | null
+    aiStudioPricesMinor?: NullableJsonNullValueInput | InputJsonValue
     lowBalanceThresholdMinor?: number
     stripeCustomerId?: string | null
     autoTopupEnabled?: boolean
@@ -192503,6 +192551,7 @@ export namespace Prisma {
     currency?: StringFieldUpdateOperationsInput | string
     smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
     voicePricePerCallMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    aiStudioPricesMinor?: NullableJsonNullValueInput | InputJsonValue
     lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     autoTopupEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -192524,6 +192573,7 @@ export namespace Prisma {
     currency?: StringFieldUpdateOperationsInput | string
     smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
     voicePricePerCallMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    aiStudioPricesMinor?: NullableJsonNullValueInput | InputJsonValue
     lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     autoTopupEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -203867,6 +203917,7 @@ export namespace Prisma {
     resultUrl?: SortOrder
     replicatePredictionId?: SortOrder
     creditsCost?: SortOrder
+    chargedMinor?: SortOrder
     error?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -203874,6 +203925,7 @@ export namespace Prisma {
 
   export type VideoGenerationAvgOrderByAggregateInput = {
     creditsCost?: SortOrder
+    chargedMinor?: SortOrder
   }
 
   export type VideoGenerationMaxOrderByAggregateInput = {
@@ -203890,6 +203942,7 @@ export namespace Prisma {
     resultUrl?: SortOrder
     replicatePredictionId?: SortOrder
     creditsCost?: SortOrder
+    chargedMinor?: SortOrder
     error?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -203909,6 +203962,7 @@ export namespace Prisma {
     resultUrl?: SortOrder
     replicatePredictionId?: SortOrder
     creditsCost?: SortOrder
+    chargedMinor?: SortOrder
     error?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -203916,6 +203970,7 @@ export namespace Prisma {
 
   export type VideoGenerationSumOrderByAggregateInput = {
     creditsCost?: SortOrder
+    chargedMinor?: SortOrder
   }
 
   export type EnumVideoGenStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -204259,6 +204314,7 @@ export namespace Prisma {
     currency?: SortOrder
     smsPricePerSegmentMinor?: SortOrder
     voicePricePerCallMinor?: SortOrder
+    aiStudioPricesMinor?: SortOrder
     lowBalanceThresholdMinor?: SortOrder
     stripeCustomerId?: SortOrder
     autoTopupEnabled?: SortOrder
@@ -216895,6 +216951,7 @@ export namespace Prisma {
     currency?: string
     smsPricePerSegmentMinor?: number | null
     voicePricePerCallMinor?: number | null
+    aiStudioPricesMinor?: NullableJsonNullValueInput | InputJsonValue
     lowBalanceThresholdMinor?: number
     stripeCustomerId?: string | null
     autoTopupEnabled?: boolean
@@ -216916,6 +216973,7 @@ export namespace Prisma {
     currency?: string
     smsPricePerSegmentMinor?: number | null
     voicePricePerCallMinor?: number | null
+    aiStudioPricesMinor?: NullableJsonNullValueInput | InputJsonValue
     lowBalanceThresholdMinor?: number
     stripeCustomerId?: string | null
     autoTopupEnabled?: boolean
@@ -217892,6 +217950,7 @@ export namespace Prisma {
     currency?: StringFilter<"Wallet"> | string
     smsPricePerSegmentMinor?: IntNullableFilter<"Wallet"> | number | null
     voicePricePerCallMinor?: IntNullableFilter<"Wallet"> | number | null
+    aiStudioPricesMinor?: JsonNullableFilter<"Wallet">
     lowBalanceThresholdMinor?: IntFilter<"Wallet"> | number
     stripeCustomerId?: StringNullableFilter<"Wallet"> | string | null
     autoTopupEnabled?: BoolFilter<"Wallet"> | boolean
@@ -252643,6 +252702,7 @@ export namespace Prisma {
     currency?: string
     smsPricePerSegmentMinor?: number | null
     voicePricePerCallMinor?: number | null
+    aiStudioPricesMinor?: NullableJsonNullValueInput | InputJsonValue
     lowBalanceThresholdMinor?: number
     stripeCustomerId?: string | null
     autoTopupEnabled?: boolean
@@ -252665,6 +252725,7 @@ export namespace Prisma {
     currency?: string
     smsPricePerSegmentMinor?: number | null
     voicePricePerCallMinor?: number | null
+    aiStudioPricesMinor?: NullableJsonNullValueInput | InputJsonValue
     lowBalanceThresholdMinor?: number
     stripeCustomerId?: string | null
     autoTopupEnabled?: boolean
@@ -252701,6 +252762,7 @@ export namespace Prisma {
     currency?: StringFieldUpdateOperationsInput | string
     smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
     voicePricePerCallMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    aiStudioPricesMinor?: NullableJsonNullValueInput | InputJsonValue
     lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     autoTopupEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -252723,6 +252785,7 @@ export namespace Prisma {
     currency?: StringFieldUpdateOperationsInput | string
     smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
     voicePricePerCallMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    aiStudioPricesMinor?: NullableJsonNullValueInput | InputJsonValue
     lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     autoTopupEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -257980,6 +258043,7 @@ export namespace Prisma {
     currency?: string
     smsPricePerSegmentMinor?: number | null
     voicePricePerCallMinor?: number | null
+    aiStudioPricesMinor?: NullableJsonNullValueInput | InputJsonValue
     lowBalanceThresholdMinor?: number
     stripeCustomerId?: string | null
     autoTopupEnabled?: boolean
@@ -259242,6 +259306,7 @@ export namespace Prisma {
     currency?: StringFieldUpdateOperationsInput | string
     smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
     voicePricePerCallMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    aiStudioPricesMinor?: NullableJsonNullValueInput | InputJsonValue
     lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     autoTopupEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -259263,6 +259328,7 @@ export namespace Prisma {
     currency?: StringFieldUpdateOperationsInput | string
     smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
     voicePricePerCallMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    aiStudioPricesMinor?: NullableJsonNullValueInput | InputJsonValue
     lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     autoTopupEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -259284,6 +259350,7 @@ export namespace Prisma {
     currency?: StringFieldUpdateOperationsInput | string
     smsPricePerSegmentMinor?: NullableIntFieldUpdateOperationsInput | number | null
     voicePricePerCallMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    aiStudioPricesMinor?: NullableJsonNullValueInput | InputJsonValue
     lowBalanceThresholdMinor?: IntFieldUpdateOperationsInput | number
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     autoTopupEnabled?: BoolFieldUpdateOperationsInput | boolean

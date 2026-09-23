@@ -4341,7 +4341,13 @@ model VideoGeneration {
   sourceImageUrl        String
   resultUrl             String?
   replicatePredictionId String?
+  // Legacy credit price. Kept for the rows written before AI Studio billed the
+  // wallet; new rows carry chargedMinor instead and leave this at its default.
   creditsCost           Int            @default(1)
+  // Pennies taken from the location's wallet for this render. A refund gives
+  // back exactly this, so it can never drift from what was charged even if the
+  // price list changes between the debit and the failure.
+  chargedMinor          Int?
   error                 String?
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
@@ -4497,8 +4503,13 @@ model Wallet {
   // minute: our own cost is per-conversation-turn rather than per-second, and a
   // per-minute price would bill the shop for our agent being slow.
   voicePricePerCallMinor   Int?
+  // Per-location AI Studio prices (pennies), keyed by style id — e.g.
+  // {"spokesperson":150,"cinematic":50,"product-photo":20}. null / missing key
+  // → the platform default. One column rather than one per style, because the
+  // styles are env-configurable and a new one shouldn't need a migration.
+  aiStudioPricesMinor      Json?
   // Warn the operator when balance drops below this (pennies). Default £2.
-  lowBalanceThresholdMinor Int  @default(200)
+  lowBalanceThresholdMinor Int   @default(200)
 
   // Platform-account Stripe customer, reused across top-ups (created lazily).
   stripeCustomerId String?

@@ -4,7 +4,6 @@ export interface VideoStyle {
   id: string;
   label: string;
   kind: "video" | "image";
-  credits: number;
   audio: boolean;
   needsScript: boolean;
   supportsFormat?: boolean;
@@ -13,10 +12,13 @@ export interface VideoStyle {
 
 export interface VideoStatus {
   addonActive: boolean;
-  includedMonthly: number;
-  includedBalance: number;
-  topupBalance: number;
-  balance: number;
+  /** The location whose wallet pays for renders here. */
+  locationId: string | null;
+  /** That wallet's balance, in pennies. */
+  balanceMinor: number;
+  currency: string;
+  /** Price of each style for THIS location, in pennies. */
+  pricesMinor: Record<string, number>;
   providerReady: boolean;
   providers?: { gemini: boolean; replicate: boolean };
   /** False when file storage is off — finished videos then keep a provider
@@ -37,7 +39,8 @@ export interface VideoGeneration {
   sourceImageUrl: string;
   resultUrl: string | null;
   error: string | null;
-  creditsCost: number;
+  /** Pennies taken from the wallet. Older rows (credit era) have null. */
+  chargedMinor?: number | null;
   createdAt: string;
 }
 
@@ -54,7 +57,15 @@ export const videoStudioClient = {
       .get<StorageCheck>("/v1/video-studio/admin/storage-check")
       .then((r) => r.data),
 
-  status: () => apiClient.get<VideoStatus>("/v1/video-studio").then((r) => r.data),
+  // locationId decides WHICH wallet is quoted and billed — the balance and
+  // prices returned belong to that location, and the API refuses one the user
+  // has no access to.
+  status: (locationId?: string | null) =>
+    apiClient
+      .get<VideoStatus>("/v1/video-studio", {
+        params: locationId ? { locationId } : {},
+      })
+      .then((r) => r.data),
   generate: (body: {
     imageUrl?: string;
     prompt: string;
@@ -83,9 +94,5 @@ export const videoStudioClient = {
   adminActivate: (includedMonthly = 15) =>
     apiClient
       .post("/v1/video-studio/admin/activate", { includedMonthly })
-      .then((r) => r.data),
-  adminTopup: (credits = 10) =>
-    apiClient
-      .post("/v1/video-studio/admin/topup", { credits })
       .then((r) => r.data),
 };
