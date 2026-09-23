@@ -31,8 +31,8 @@ export function paymentLabelFor(
   // the counter at a glance rather than parsed.
   if (method === "CARD") {
     if (status === "PAID" || status === "AUTHORIZED") return "CARD PAID";
-    if (status === "REFUNDED" || status === "PARTIALLY_REFUNDED")
-      return "REFUNDED";
+    if (status === "REFUNDED") return "REFUNDED";
+    if (status === "PARTIALLY_REFUNDED") return "PART REFUNDED";
     return "CARD NOT PAID";
   }
   if (method === "CASH") {

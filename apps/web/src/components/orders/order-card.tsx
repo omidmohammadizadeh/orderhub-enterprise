@@ -163,7 +163,7 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
  *   • CASH unpaid     → amber "Cash" (collect at handover)
  *   • CARD PAID       → green "Card paid"
  *   • CARD AUTHORIZED → blue "Card held" (auth captured at Accept)
- *   • CARD REFUNDED   → amber "Refunded"
+ *   • CARD REFUNDED   → amber "Refunded" ("Part refunded" if some is left)
  *   • CARD PENDING/   → amber "Card unpaid" (shouldn't reach the
  *     FAILED            board — live query filters PENDING out — but
  *                       safety net in case it ever does)
@@ -206,9 +206,11 @@ export function PaymentBadge({
       );
     }
     if (status === "REFUNDED" || status === "PARTIALLY_REFUNDED") {
+      // "Refunded" on a PART refund reads as "all of it went back", and the
+      // shop still holds the rest — say which one it is.
       return (
         <Chip tone="amber">
-          <Undo2 className="h-3 w-3" /> Refunded
+          <Undo2 className="h-3 w-3" /> {status === "REFUNDED" ? "Refunded" : "Part refunded"}
         </Chip>
       );
     }
@@ -237,9 +239,11 @@ export function PaymentBadge({
       );
     }
     if (status === "REFUNDED" || status === "PARTIALLY_REFUNDED") {
+      // "Refunded" on a PART refund reads as "all of it went back", and the
+      // shop still holds the rest — say which one it is.
       return (
         <Chip tone="amber">
-          <Undo2 className="h-3 w-3" /> Refunded
+          <Undo2 className="h-3 w-3" /> {status === "REFUNDED" ? "Refunded" : "Part refunded"}
         </Chip>
       );
     }
