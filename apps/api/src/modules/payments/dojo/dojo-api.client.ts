@@ -110,7 +110,7 @@ export class DojoApiClient {
   private async request<T>(
     method: string,
     path: string,
-    opts: { body?: unknown; terminalHeaders?: boolean; idempotencyKey?: string } = {},
+    opts: { body?: unknown; idempotencyKey?: string } = {},
   ): Promise<T> {
     const headers: Record<string, string> = {
       Authorization: `Basic ${this.apiKey}`,
@@ -119,14 +119,15 @@ export class DojoApiClient {
     };
     if (opts.body !== undefined) headers["Content-Type"] = "application/json";
     if (opts.idempotencyKey) headers.idempotencyKey = opts.idempotencyKey;
-    if (opts.terminalHeaders) {
-      // Only sent when we HAVE them. Missing ids make Dojo refuse the call
-      // with a clear 4xx, which is a better failure than a made-up value.
-      if (this.partner.softwareHouseId) {
-        headers["software-house-id"] = this.partner.softwareHouseId;
-      }
-      if (this.partner.resellerId) headers["reseller-id"] = this.partner.resellerId;
+    // Dojo's spec only demands these on Terminals/Terminal Sessions, but our
+    // partner manager asked for them on "all posts to us, payment intents and
+    // terminal sessions" (Philip Wells, 2026-09-23) — so every call carries
+    // them. Only sent when we HAVE them: a missing id makes Dojo refuse with a
+    // clear 4xx, which is a better failure than a made-up value.
+    if (this.partner.softwareHouseId) {
+      headers["software-house-id"] = this.partner.softwareHouseId;
     }
+    if (this.partner.resellerId) headers["reseller-id"] = this.partner.resellerId;
 
     const res = await this.fetchImpl(`${DOJO_API_BASE}${path}`, {
       method,
@@ -155,12 +156,11 @@ export class DojoApiClient {
   // ── Terminals ────────────────────────────────────────────────────────────
 
   listTerminals(): Promise<DojoTerminal[]> {
-    return this.request<DojoTerminal[]>("GET", "/terminals", { terminalHeaders: true });
+    return this.request<DojoTerminal[]>("GET", "/terminals");
   }
 
   createSaleSession(terminalId: string, paymentIntentId: string): Promise<DojoTerminalSession> {
     return this.request<DojoTerminalSession>("POST", "/terminal-sessions", {
-      terminalHeaders: true,
       body: {
         terminalId,
         details: { sale: { paymentIntentId }, sessionType: "Sale" },
@@ -172,7 +172,6 @@ export class DojoApiClient {
     return this.request<DojoTerminalSession>(
       "GET",
       `/terminal-sessions/${encodeURIComponent(sessionId)}`,
-      { terminalHeaders: true },
     );
   }
 
@@ -180,7 +179,6 @@ export class DojoApiClient {
     return this.request<DojoTerminalSession>(
       "PUT",
       `/terminal-sessions/${encodeURIComponent(sessionId)}/cancel`,
-      { terminalHeaders: true },
     );
   }
 
@@ -188,7 +186,7 @@ export class DojoApiClient {
     return this.request<DojoTerminalSession>(
       "PUT",
       `/terminal-sessions/${encodeURIComponent(sessionId)}/signature`,
-      { terminalHeaders: true, body: { accepted } },
+      { body: { accepted } },
     );
   }
 

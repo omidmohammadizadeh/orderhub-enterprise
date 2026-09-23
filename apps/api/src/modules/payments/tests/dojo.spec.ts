@@ -108,19 +108,22 @@ describe("DojoApiClient", () => {
     return { calls, fetchImpl };
   }
 
-  it("sends the raw key as Basic auth, the version, and partner ids only on terminal calls", async () => {
+  it("sends the raw key as Basic auth, the version, and the partner ids on EVERY call", async () => {
     const { calls, fetchImpl } = recorder(200, { id: "pi_1" });
     const c = new DojoApiClient("sk_prod_x", { softwareHouseId: "sh", resellerId: "rs" }, fetchImpl as any);
     await c.listTerminals();
     await c.getPaymentIntent("pi_1");
     expect(calls[0].url).toBe("https://api.dojo.tech/terminals");
-    expect(calls[0].init.headers).toMatchObject({
-      Authorization: "Basic sk_prod_x",
-      version: "2026-02-27",
-      "software-house-id": "sh",
-      "reseller-id": "rs",
-    });
-    expect(calls[1].init.headers["software-house-id"]).toBeUndefined();
+    // Dojo's spec asks for the partner ids on terminal calls; our partner
+    // manager asked for them on payment intents too, so both carry them.
+    for (const call of calls) {
+      expect(call.init.headers).toMatchObject({
+        Authorization: "Basic sk_prod_x",
+        version: "2026-02-27",
+        "software-house-id": "sh",
+        "reseller-id": "rs",
+      });
+    }
   });
 
   it("surfaces Dojo's problem-details message on failure", async () => {
