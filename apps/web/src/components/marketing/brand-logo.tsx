@@ -29,7 +29,8 @@ export type BrandKey =
   | "whatsapp"
   | "careem"
   | "talabat"
-  | "glovo";
+  | "glovo"
+  | "dojo";
 
 interface Props {
   brand: BrandKey;
@@ -64,6 +65,7 @@ const BRAND_META: Record<BrandKey, BrandMeta> = {
   careem:     { name: "Careem",        bg: "#FFFFFF", slug: "careem" },
   talabat:    { name: "talabat",       bg: "#FF5A00", slug: "talabat" },
   glovo:      { name: "Glovo",         bg: "#FFC244", slug: "glovo" },
+  dojo:       { name: "Dojo",          bg: "#FFFFFF", slug: "dojo" },
 };
 
 export function BrandLogo({ brand, size = 56, rounded = true, label }: Props) {

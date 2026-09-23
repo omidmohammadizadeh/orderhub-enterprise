@@ -358,6 +358,51 @@ export const INTEGRATIONS: Integration[] = [
     ],
   },
 
+  // ── Dojo ──────────────────────────────────────────────────────────────────
+  {
+    slug: "dojo",
+    name: "Dojo",
+    brand: "dojo",
+    navDescription: "Card machines, refunds & Pay at Table",
+    category: "Payments",
+    accent: "#e2d5c7",
+    status: "soon",
+    badge: "Payments · Card machines",
+    title: "Your Dojo card machine, driven from the till",
+    subtitle:
+      "Already have Dojo? Connect it and take payments on the machine straight from the orders board — no keying the total in twice, no wondering whether it went through. The money settles to your own Dojo account and Order Hub takes nothing on top.",
+    highlights: ["Charge from the board", "Refunds at the machine", "Settles to your Dojo account"],
+    heroMockup: <CardMachineMockup />,
+    capabilities: [
+      {
+        icon: CreditCard,
+        title: "One tap to charge",
+        body: "Send the total to the machine from the order itself. The till follows the prompts — present card, PIN, approved — so staff never re-key an amount.",
+      },
+      {
+        icon: RefreshCw,
+        title: "Refunds on the machine",
+        body: "Give back the whole amount or part of it with the customer's card present. The order and the day's takings update themselves.",
+      },
+      {
+        icon: UtensilsCrossed,
+        title: "Pay at Table",
+        body: "Waiters pick the table on the machine, show the bill and take the card where the customer is sitting. The tab closes when it's paid.",
+      },
+      {
+        icon: Banknote,
+        title: "Straight to your account",
+        body: "Payments land in your own Dojo account on your own Dojo rates. Order Hub adds no fee of its own.",
+      },
+    ],
+    flow: [
+      { title: "Connect Dojo", body: "Add your Dojo key on the Card readers page — your machines appear straight away." },
+      { title: "Charge from the board", body: "Pick the machine, send the amount, and watch the prompts on screen." },
+      { title: "Customer pays", body: "Card, phone or watch at the machine. Nothing is marked paid until Dojo confirms the money moved." },
+      { title: "Reconciled", body: "The order flips to paid and prints, with the payment tied to it for end-of-day." },
+    ],
+  },
+
   // ── WhatsApp ──────────────────────────────────────────────────────────────
   {
     slug: "whatsapp",
@@ -456,6 +501,43 @@ export function integrationForBrand(
 }
 
 // Small inline payment mockup, kept here so Stripe has a bespoke hero visual.
+// Dojo is card-present, so its hero is the machine mid-transaction rather than
+// the hosted checkout card — which also said "Secured by Stripe" on a page
+// about somebody else's reader.
+function CardMachineMockup() {
+  return (
+    <div className="relative mx-auto w-full max-w-[230px]">
+      <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-b from-[#26211f] to-[#0c0a09] p-3 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.9)]">
+        {/* Screen */}
+        <div className="rounded-[18px] bg-[#f7f4f1] p-4 text-center">
+          <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
+            Amount due
+          </p>
+          <p className="mt-1 text-3xl font-bold tracking-tight text-zinc-900">£16.50</p>
+          <div className="mx-auto mt-3 h-px w-10 bg-zinc-300" />
+          <p className="mt-3 text-[11px] font-semibold text-zinc-700">
+            Present card
+          </p>
+          <div className="mt-3 flex items-center justify-center gap-1.5 text-zinc-400">
+            <CreditCard className="h-3.5 w-3.5" />
+            <Radio className="h-3.5 w-3.5" />
+            <Wallet className="h-3.5 w-3.5" />
+          </div>
+        </div>
+        {/* Keypad hint + contactless lamp */}
+        <div className="mt-3 grid grid-cols-3 gap-1.5 px-2 pb-1">
+          {Array.from({ length: 9 }).map((_, i) => (
+            <div key={i} className="h-3 rounded-full bg-white/[0.07]" />
+          ))}
+        </div>
+      </div>
+      <p className="mt-4 text-center text-[10px] text-zinc-500">
+        Sent from the order — no re-keying
+      </p>
+    </div>
+  );
+}
+
 function PaymentMockup() {
   return (
     <div className="relative mx-auto w-full max-w-sm">

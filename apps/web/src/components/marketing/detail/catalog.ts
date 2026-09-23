@@ -129,6 +129,12 @@ export const INTEGRATION_META: RouteMeta[] = [
       "Card payments across Order Hub — storefront checkout, WhatsApp pay links and in-person Stripe Terminal, all settling direct to you.",
   },
   {
+    slug: "dojo",
+    name: "Dojo",
+    description:
+      "Take card payments on your Dojo card machine straight from the till — one tap to charge, refunds given back at the machine, and the money settling to your own Dojo account with nothing taken on top.",
+  },
+  {
     slug: "whatsapp",
     name: "WhatsApp",
     description:
