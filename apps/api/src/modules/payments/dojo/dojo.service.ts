@@ -617,7 +617,18 @@ export class DojoService {
       where: { providerChargeId: paymentIntentId, provider: "DOJO", tenantId },
       include: { order: { select: { id: true, locationId: true } } },
     });
-    if (!payment) throw new NotFoundException("Payment not found");
+    if (!payment) {
+      // "Payment not found" on its own can't be debugged from a log: say WHICH
+      // intent we looked for, and whether the row exists under another tenant.
+      const elsewhere = await (this.prisma as any).payment.count({
+        where: { providerChargeId: paymentIntentId, provider: "DOJO" },
+      });
+      this.logger.warn(
+        `Dojo payment lookup missed: intent "${paymentIntentId}" tenant ${tenantId}` +
+          ` — ${elsewhere} DOJO row(s) exist with that intent id`,
+      );
+      throw new NotFoundException("Payment not found");
+    }
     const { cfg } = await this.requireConfig(tenantId, payment.order.locationId);
     return { payment, cfg };
   }
@@ -666,6 +677,13 @@ export class DojoService {
     }
 
     if (sessionStatus && FAILED_SESSION.has(sessionStatus)) {
+      // A dead session is not the same as "no money". Dojo's sandbox CAPTURED a
+      // signature-rejected payment (VCMORHSSIS0, 2026-09-23) and only told us via
+      // a webhook 90s later — so the till said "nothing was taken" about an order
+      // that was, in fact, paid. Ask the intent before we say that to anyone.
+      if (await this.verifyAndSettle(payment, client, { allowAuthorized: false })) {
+        return { ...base, status: "Captured", paid: true, failed: false, needsSignature: false, unconfirmed: false };
+      }
       await this.markFailed(payment);
       return {
         ...base,

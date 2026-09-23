@@ -279,11 +279,49 @@ describe("DojoService.chargeStatus", () => {
   });
 
   it("reports a decline and marks the row FAILED", async () => {
-    const client = fakeClient({ getTerminalSession: jest.fn().mockResolvedValue({ id: "ts_1", status: "Declined" }) });
+    const client = fakeClient({
+      getTerminalSession: jest.fn().mockResolvedValue({ id: "ts_1", status: "Declined" }),
+      // A declined session leaves the intent uncaptured — that is what makes it
+      // safe to tell the operator nothing was taken.
+      getPaymentIntent: jest.fn().mockResolvedValue({
+        id: "pi_new",
+        status: "Declined",
+        amount: { value: 2450, currencyCode: "GBP" },
+      }),
+    });
     const { svc, prisma, payments } = makeDojo({ client, payment: processing });
     const s = await svc.chargeStatus("t-1", "pi_new");
     expect(s).toMatchObject({ paid: false, failed: true, message: expect.stringMatching(/declined/i) });
     expect(prisma.payment.update).toHaveBeenCalledWith({ where: { id: "pay-1" }, data: { status: "FAILED" } });
+    expect(payments.settleCardPresentPayment).not.toHaveBeenCalled();
+  });
+
+  // Sandbox VCMORHSSIS0, 2026-09-23: Dojo captured the money even though the
+  // signature was rejected, and only said so in a webhook 90s later. The till
+  // must never announce "nothing was taken" about an intent Dojo has captured.
+  it("settles a signature-rejected session whose intent Dojo captured anyway", async () => {
+    const client = fakeClient({
+      getTerminalSession: jest.fn().mockResolvedValue({ id: "ts_1", status: "SignatureVerificationRejected" }),
+    });
+    const { svc, prisma, payments } = makeDojo({ client, payment: processing });
+    const s = await svc.chargeStatus("t-1", "pi_new");
+    expect(s).toMatchObject({ paid: true, failed: false });
+    expect(payments.settleCardPresentPayment).toHaveBeenCalledWith(processing, "pi_new");
+    expect(prisma.payment.update).not.toHaveBeenCalledWith({ where: { id: "pay-1" }, data: { status: "FAILED" } });
+  });
+
+  it("reports a rejected signature when nothing was captured", async () => {
+    const client = fakeClient({
+      getTerminalSession: jest.fn().mockResolvedValue({ id: "ts_1", status: "SignatureVerificationRejected" }),
+      getPaymentIntent: jest.fn().mockResolvedValue({
+        id: "pi_new",
+        status: "SignatureVerificationRejected",
+        amount: { value: 2450, currencyCode: "GBP" },
+      }),
+    });
+    const { svc, payments } = makeDojo({ client, payment: processing });
+    const s = await svc.chargeStatus("t-1", "pi_new");
+    expect(s).toMatchObject({ paid: false, failed: true, message: expect.stringMatching(/signature rejected/i) });
     expect(payments.settleCardPresentPayment).not.toHaveBeenCalled();
   });
 
