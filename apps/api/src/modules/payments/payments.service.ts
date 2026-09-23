@@ -949,6 +949,24 @@ export class PaymentsService {
    */
   async settleCardPresentPayment(payment: any, ref?: string): Promise<void> {
     if (payment.status === PaymentRecordStatus.SUCCEEDED) return; // idempotent
+
+    // Money that has already gone back must never be banked again. The
+    // "already paid" guard above only catches SUCCEEDED, and a full refund
+    // leaves the row REFUNDED — so a routine provider webhook arriving after
+    // the refund walked straight through and rewrote the row to SUCCEEDED and
+    // the order to PAID (Dojo, order cmue9c1i…, 2026-09-23: a matched refund
+    // finished at 15:53:40 and a webhook re-settled it 1.1s later). The card
+    // machine's own refund is a SEPARATE transaction, so the payment intent
+    // stays "Captured" for ever after — verifying it with the provider can
+    // never tell us the money is still ours. The refund on our side can.
+    const refundedMinor = Number((payment.metadata as any)?.refundedMinor ?? 0);
+    if (payment.status === PaymentRecordStatus.REFUNDED || refundedMinor > 0) {
+      this.logger.warn(
+        `Refusing to settle payment ${payment.id} on order ${payment.orderId}: ` +
+          `${(refundedMinor / 100).toFixed(2)} has already been refunded (status ${payment.status})`,
+      );
+      return;
+    }
     const pi = { id: ref };
 
     // ── Split bill ────────────────────────────────────────────────────
