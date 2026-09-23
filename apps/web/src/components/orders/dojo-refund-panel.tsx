@@ -44,19 +44,30 @@ export function DojoRefundPanel({
   locationId,
   currency,
   role,
+  orderStatus,
+  orderPaymentStatus,
 }: {
   orderId: string;
   locationId?: string | null;
   currency?: string | null;
   role?: string | null;
+  /** Both only steer the cache — see the key below. */
+  orderStatus?: string | null;
+  orderPaymentStatus?: string | null;
 }) {
   const qc = useQueryClient();
   const allowed = !!role && REFUND_ROLES.has(role);
-  const key = ["order-payments", orderId];
+  // The order's own state is part of the key: cancelling a PAID order writes
+  // what it owes onto the PAYMENT row, and with a key of just the id this
+  // panel kept showing the snapshot it fetched before the cancel — the
+  // "refund owed" note never appeared until the drawer was reopened
+  // (2026-09-23). Keeping the previous rows on screen avoids a blink.
+  const key = ["order-payments", orderId, orderStatus, orderPaymentStatus];
   const q = useQuery({
     queryKey: key,
     queryFn: () => apiClient.get<PaymentRow[]>(`/v1/payments/orders/${orderId}`).then((r) => r.data),
     enabled: allowed,
+    placeholderData: (prev: PaymentRow[] | undefined) => prev,
   });
   const [amounts, setAmounts] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);

@@ -595,6 +595,8 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
           locationId={(order as any).locationId}
           currency={(order as any)?.location?.currency}
           role={userRole}
+          orderStatus={order.status}
+          orderPaymentStatus={(order as any).paymentStatus}
         />
       </div>
 
