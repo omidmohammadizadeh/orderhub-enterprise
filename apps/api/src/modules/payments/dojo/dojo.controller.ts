@@ -159,6 +159,33 @@ export class DojoController {
     });
   }
 
+  // Card-present refunds run ON the machine — same shape as taking a payment:
+  // start a session, then poll it. (Path stays inside charge/* so it can't be
+  // swallowed by payments/:paymentId/refund — see the note on `charge/refund`.)
+  @Post("charge/refund/terminal")
+  @Roles(...DOJO_ADMIN_ROLES)
+  @ApiOperation({ summary: "Start a refund on the card machine (customer's card must be present)" })
+  startTerminalRefund(
+    @Body() body: { paymentIntentId: string; terminalId?: string; amount?: number; reason?: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.dojo.startTerminalRefund({
+      tenantId: user.tenantId,
+      paymentIntentId: body.paymentIntentId,
+      terminalId: body.terminalId,
+      amount: body.amount,
+      reason: body.reason,
+      userId: user.userId,
+    });
+  }
+
+  @Get("charge/refund/status")
+  @Roles(...DOJO_ADMIN_ROLES)
+  @ApiOperation({ summary: "Poll a card-machine refund" })
+  terminalRefundStatus(@Query("paymentIntentId") paymentIntentId: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.dojo.terminalRefundStatus(user.tenantId, paymentIntentId);
+  }
+
   // ── Webhook ───────────────────────────────────────────────────────────────
 
   /**

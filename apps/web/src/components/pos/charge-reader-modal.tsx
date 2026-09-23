@@ -18,6 +18,7 @@ import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { terminalClient } from "@/lib/api/terminal.client";
 import { dojoClient } from "@/lib/api/dojo.client";
+import { DOJO_PROMPTS } from "@/lib/dojo-prompts";
 import { paymentLinkClient } from "@/lib/api/pos.client";
 import {
   getTerminalStatus,
@@ -44,21 +45,6 @@ const FAILED_PI_STATUSES = new Set([
 // `offline_pin_required`. Retrying the tap can never work, so the operator
 // has to be told to switch method rather than tap again.
 const INSERT_ONLY_DECLINES = new Set(["offline_pin_required", "online_or_offline_pin_required"]);
-
-// Dojo terminal notificationEvents → what the till shows while waiting.
-const DOJO_PROMPTS: Record<string, string> = {
-  PresentCard: "Customer: tap, insert or swipe your card",
-  PresentOnlyOneCard: "Present only one card",
-  InsertCard: "Customer: insert your card",
-  ReEnterCard: "Please present the card again",
-  EnterPin: "Customer is entering their PIN…",
-  RemoveCard: "Customer: remove your card",
-  PleaseWait: "Processing — please wait…",
-  CardUnsupported: "That card isn't supported — try another card",
-  CardError: "Card error — try the card again",
-  Approved: "Approved — confirming…",
-  Declined: "Declined on the machine",
-};
 
 function failureMessage(status: string, declineCode?: string | null): string {
   if (declineCode && INSERT_ONLY_DECLINES.has(declineCode)) {

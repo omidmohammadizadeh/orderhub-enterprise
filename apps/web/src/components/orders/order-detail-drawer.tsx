@@ -592,6 +592,7 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
         )}
         <DojoRefundPanel
           orderId={order.id}
+          locationId={(order as any).locationId}
           currency={(order as any)?.location?.currency}
           role={userRole}
         />

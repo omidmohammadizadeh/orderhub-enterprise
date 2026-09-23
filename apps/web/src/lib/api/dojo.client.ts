@@ -39,6 +39,22 @@ export interface DojoChargeStatus {
   message?: string;
 }
 
+export type DojoTerminalRefundStatus =
+  | { active: false }
+  | {
+      active: true;
+      terminalSessionId: string;
+      amount: number;
+      status: string | null;
+      /** What the machine is showing: PresentCard, RemoveCard… */
+      prompt?: string | null;
+      done: boolean;
+      failed: boolean;
+      message?: string;
+      full?: boolean;
+      leftToRefund?: number;
+    };
+
 const base = "/v1/payments/dojo";
 
 export const dojoClient = {
@@ -86,6 +102,24 @@ export const dojoClient = {
         `${base}/charge/refund`,
         { paymentIntentId, ...(amount !== undefined ? { amount } : {}), ...(reason ? { reason } : {}) },
       )
+      .then((r) => r.data),
+
+  // Card-present refunds run ON the machine: Dojo refuses both /refunds and
+  // /reversal for a payment its terminal captured. Start a session, then poll
+  // it — exactly like taking a payment, with the card in the customer's hand.
+  startTerminalRefund: (paymentIntentId: string, opts: { terminalId?: string; amount?: number; reason?: string } = {}) =>
+    apiClient
+      .post<{ terminalSessionId: string; amount: number; status: string }>(`${base}/charge/refund/terminal`, {
+        paymentIntentId,
+        ...(opts.terminalId ? { terminalId: opts.terminalId } : {}),
+        ...(opts.amount !== undefined ? { amount: opts.amount } : {}),
+        ...(opts.reason ? { reason: opts.reason } : {}),
+      })
+      .then((r) => r.data),
+
+  terminalRefundStatus: (paymentIntentId: string) =>
+    apiClient
+      .get<DojoTerminalRefundStatus>(`${base}/charge/refund/status`, { params: { paymentIntentId } })
       .then((r) => r.data),
 
   signature: (paymentIntentId: string, accepted: boolean) =>

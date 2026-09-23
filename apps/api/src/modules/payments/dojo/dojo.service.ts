@@ -799,29 +799,147 @@ export class DojoService {
     return this.refundRow(payment, cfg, args.amount, args.reason, args.userId);
   }
 
-  /** Cancelled/rejected order: refund every Dojo payment on it in full. */
+  /**
+   * Cancelled/rejected order. A card-present refund needs the customer's card
+   * at the machine, so there is nothing to do unattended here and pretending
+   * otherwise would be worse than useless: the order would look refunded while
+   * the customer still had no money back. Instead we mark what is owed, and
+   * the order drawer offers "Refund on card machine" for when they're there.
+   */
   async refundOrder(orderId: string, reason = "Order cancelled"): Promise<void> {
     const rows = await (this.prisma as any).payment.findMany({
-      where: { orderId, provider: "DOJO", status: "SUCCEEDED" },
-      include: { order: { select: { locationId: true } } },
+      where: { orderId, provider: "DOJO", status: { in: ["SUCCEEDED", "REFUNDED"] } },
     });
     for (const payment of rows) {
-      const loc = await this.prisma.location.findUnique({
-        where: { id: payment.order.locationId },
-        select: { settings: true },
+      const owedMinor = this.refundOwed(payment);
+      if (owedMinor <= 0) continue;
+      await (this.prisma as any).payment.update({
+        where: { id: payment.id },
+        data: {
+          metadata: { ...(payment.metadata as any), refundOwedMinor: owedMinor, refundOwedReason: reason },
+        },
       });
-      const cfg = this.configFrom(loc?.settings);
-      if (!cfg) {
-        this.logger.error(`Dojo refund skipped for order ${orderId}: Dojo no longer connected at the location`);
-        continue;
-      }
-      await this.refundRow(payment, cfg, undefined, reason).catch((err: any) =>
-        this.logger.error(`Dojo refund failed for order ${orderId} (${payment.providerChargeId}): ${err?.message}`),
+      this.logger.warn(
+        `Dojo: order ${orderId} cancelled with ${(owedMinor / 100).toFixed(2)} still on the customer's card — ` +
+          `a card-present refund is needed on the machine`,
       );
     }
   }
 
-  private async refundRow(payment: any, cfg: DojoLocationConfig, amount?: number, reason?: string, userId?: string) {
+  // ── Refund on the card machine (the only way back for a card-present sale) ─
+  //
+  // Dojo refuses BOTH /refunds and /reversal on a terminal capture (400, both
+  // of them, sandbox 2026-09-23). Its rule: money taken with a card at the
+  // machine goes back with the card at the machine — a "matched refund"
+  // terminal session running a negative transaction. So this mirrors taking a
+  // payment: start a session, poll it, and only write the books when Dojo says
+  // the money moved. The customer has to be standing there with the card.
+
+  /** Put a refund on the machine. Returns the session to poll. */
+  async startTerminalRefund(args: {
+    tenantId: string;
+    paymentIntentId: string;
+    terminalId?: string;
+    amount?: number;
+    reason?: string;
+    userId?: string;
+  }) {
+    const { payment, cfg } = await this.loadDojoPayment(args.tenantId, args.paymentIntentId);
+    const { leftMinor, wantMinor } = this.refundAmounts(payment, args.amount);
+    const terminalId = args.terminalId ?? cfg.terminals[0]?.id;
+    if (!terminalId) {
+      throw new BadRequestException("No card machine is set up at this location (Card readers page).");
+    }
+    const client = this.clientFor(cfg);
+    const session = await client.createRefundSession({
+      terminalId,
+      paymentIntentId: payment.providerChargeId,
+      // Leave the amount out for the whole remainder — that is Dojo's
+      // documented minimal matched refund; send it only for a part refund.
+      ...(wantMinor < leftMinor ? { amountMinor: wantMinor, currencyCode: payment.currency } : {}),
+    });
+
+    await (this.prisma as any).payment.update({
+      where: { id: payment.id },
+      data: {
+        metadata: {
+          ...(payment.metadata as any),
+          refundSession: {
+            id: session.id,
+            terminalId,
+            amountMinor: wantMinor,
+            reason: args.reason ?? null,
+            userId: args.userId ?? null,
+            startedAt: new Date().toISOString(),
+          },
+        },
+      },
+    });
+
+    this.logger.log(
+      `Dojo matched refund started: ${(wantMinor / 100).toFixed(2)} on ${payment.providerChargeId} ` +
+        `via ${terminalId} (${session.id})`,
+    );
+    return { terminalSessionId: session.id, amount: wantMinor / 100, status: session.status };
+  }
+
+  /** Poll the refund session. Writes the books once, when Dojo confirms it. */
+  async terminalRefundStatus(tenantId: string, paymentIntentId: string) {
+    const { payment, cfg } = await this.loadDojoPayment(tenantId, paymentIntentId);
+    const pending = (payment.metadata as any)?.refundSession;
+    if (!pending?.id) return { active: false as const };
+
+    const session = await this.clientFor(cfg).getTerminalSession(pending.id);
+    const status = session?.status ?? null;
+    const events = session?.notificationEvents ?? [];
+    const base = {
+      active: true as const,
+      terminalSessionId: pending.id as string,
+      amount: Number(pending.amountMinor ?? 0) / 100,
+      status,
+      prompt: events.length ? events[events.length - 1]!.notificationType : null,
+    };
+
+    if (status === "Captured" || status === "SignatureVerificationAccepted") {
+      const done = await this.recordRefund(payment, Number(pending.amountMinor), {
+        note: `Dojo terminal refund ${pending.id}`,
+        reason: pending.reason ?? undefined,
+        userId: pending.userId ?? undefined,
+      });
+      this.logger.log(`Dojo matched refund done: ${done.amount.toFixed(2)} on ${payment.providerChargeId}`);
+      return { ...base, done: true, failed: false, ...done };
+    }
+
+    if (status && FAILED_SESSION.has(status)) {
+      // Nothing moved — drop the pending session so staff can try again.
+      await (this.prisma as any).payment.update({
+        where: { id: payment.id },
+        data: { metadata: { ...(payment.metadata as any), refundSession: null } },
+      });
+      return {
+        ...base,
+        done: false,
+        failed: true,
+        message:
+          status === "Declined"
+            ? "The card machine declined the refund. Try again, or use a different card."
+            : status === "Expired"
+              ? "The card machine timed out before the card was presented."
+              : "The refund was cancelled on the card machine.",
+      };
+    }
+    return { ...base, done: false, failed: false };
+  }
+
+  /** How much is still owed back on this payment. */
+  private refundOwed(payment: any): number {
+    const takenMinor = Math.round(Number(payment.amount) * 100);
+    const refundedMinor = Number((payment.metadata as any)?.refundedMinor ?? 0);
+    return Math.max(0, takenMinor - refundedMinor);
+  }
+
+  /** How much of this payment may go back, and how much is being asked for. */
+  private refundAmounts(payment: any, amount?: number) {
     if (payment.status !== "SUCCEEDED" && payment.status !== "REFUNDED") {
       throw new BadRequestException("Only a completed card payment can be refunded");
     }
@@ -834,6 +952,11 @@ export class DojoService {
     if (wantMinor > leftMinor) {
       throw new BadRequestException(`Only ${(leftMinor / 100).toFixed(2)} is left to refund on this payment`);
     }
+    return { takenMinor, refundedMinor, leftMinor, wantMinor };
+  }
+
+  private async refundRow(payment: any, cfg: DojoLocationConfig, amount?: number, reason?: string, userId?: string) {
+    const { takenMinor, refundedMinor, leftMinor, wantMinor } = this.refundAmounts(payment, amount);
 
     const client = this.clientFor(cfg);
     // Same key for the same (payment, already-refunded, amount) state, so a
@@ -884,15 +1007,61 @@ export class DojoService {
     // Checklist: after refunding, GET the intent and show its status —
     // `Refunded` for a full refund, still `Captured` for a partial one.
     const pi = await client.getPaymentIntent(payment.providerChargeId).catch(() => null);
+    const done = await this.recordRefund(payment, wantMinor, {
+      note: res?.refundId ? `Dojo refund ${res.refundId}` : via === "reversal" ? "Dojo reversal" : null,
+      reason,
+      userId,
+    });
+    this.logger.log(
+      `Dojo ${via} ${res?.refundId ?? ""}: ${(wantMinor / 100).toFixed(2)} on ${payment.providerChargeId} ` +
+        `(${done.full ? "full" : "partial"}; intent now ${pi?.status ?? "unknown"})`,
+    );
+    return { refundId: res?.refundId ?? null, ...done, paymentIntentStatus: pi?.status ?? null };
+  }
+
+  /**
+   * The books, once money has actually gone back — whichever way it went
+   * (payment-intent refund, reversal, or a refund taken on the card machine).
+   * Idempotent per `note`: a duplicated poll can't write the refund twice.
+   */
+  private async recordRefund(
+    payment: any,
+    wantMinor: number,
+    opts: { note?: string | null; reason?: string; userId?: string },
+  ): Promise<{ amount: number; full: boolean; leftToRefund: number }> {
+    const takenMinor = Math.round(Number(payment.amount) * 100);
+    const refundedMinor = Number((payment.metadata as any)?.refundedMinor ?? 0);
+    if (opts.note) {
+      const already = await (this.prisma as any).refund.findFirst({
+        where: { paymentId: payment.id, note: opts.note },
+        select: { id: true },
+      });
+      if (already) {
+        return {
+          amount: wantMinor / 100,
+          full: refundedMinor >= takenMinor,
+          leftToRefund: Math.max(0, takenMinor - refundedMinor) / 100,
+        };
+      }
+    }
     const nowRefunded = refundedMinor + wantMinor;
     const full = nowRefunded >= takenMinor;
+    // A cancelled order carries what it still owes the customer; paying part
+    // of it back must shrink that figure, not leave the order shouting.
+    const owedMinor = Number((payment.metadata as any)?.refundOwedMinor ?? 0);
+    const stillOwed = owedMinor > 0 ? Math.max(0, owedMinor - wantMinor) : 0;
 
     await this.prisma.$transaction([
       (this.prisma as any).payment.update({
         where: { id: payment.id },
         data: {
           status: full ? "REFUNDED" : "SUCCEEDED",
-          metadata: { ...(payment.metadata as any), refundedMinor: nowRefunded },
+          metadata: {
+            ...(payment.metadata as any),
+            refundedMinor: nowRefunded,
+            refundSession: null,
+            refundOwedMinor: stillOwed || null,
+          },
         },
       }),
       (this.prisma as any).refund.create({
@@ -900,11 +1069,11 @@ export class DojoService {
           tenantId: payment.tenantId,
           paymentId: payment.id,
           amount: wantMinor / 100,
-          reason: reason ?? null,
+          reason: opts.reason ?? null,
           status: "SUCCEEDED",
           isPartial: !full,
-          processedBy: userId ?? null,
-          note: res?.refundId ? `Dojo refund ${res.refundId}` : via === "reversal" ? "Dojo reversal" : null,
+          processedBy: opts.userId ?? null,
+          note: opts.note ?? null,
         },
       }),
     ]);
@@ -925,17 +1094,7 @@ export class DojoService {
       data: { paymentStatus: (orderRefunded >= orderTaken ? "REFUNDED" : "PARTIALLY_REFUNDED") as any },
     });
 
-    this.logger.log(
-      `Dojo ${via} ${res?.refundId ?? ""}: ${(wantMinor / 100).toFixed(2)} on ${payment.providerChargeId} ` +
-        `(${full ? "full" : "partial"}; intent now ${pi?.status ?? "unknown"})`,
-    );
-    return {
-      refundId: res?.refundId ?? null,
-      amount: wantMinor / 100,
-      full,
-      paymentIntentStatus: pi?.status ?? null,
-      leftToRefund: (takenMinor - nowRefunded) / 100,
-    };
+    return { amount: wantMinor / 100, full, leftToRefund: (takenMinor - nowRefunded) / 100 };
   }
 
   /** Is this intent real money for (at least) `amountMinor`, excluding tips? */

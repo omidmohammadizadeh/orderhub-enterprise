@@ -42,6 +42,7 @@ function fakeClient(over: Partial<Record<keyof DojoApiClient, jest.Mock>> = {}) 
     cancelPaymentIntent: jest.fn().mockResolvedValue({}),
     refundPaymentIntent: jest.fn().mockResolvedValue({ refundId: "rfnd_1" }),
     reversePaymentIntent: jest.fn().mockResolvedValue({}),
+    createRefundSession: jest.fn().mockResolvedValue({ id: "ts_refund", status: "InitiateRequested" }),
     registerRestIntegration: jest.fn().mockResolvedValue([]),
     listWebhookEventTypes: jest.fn().mockResolvedValue([
       { model: "PaymentIntent", events: ["payment_intent.created", "payment_intent.status_updated"] },
@@ -77,7 +78,7 @@ function makeDojo(opts: { client?: any; order?: any; location?: any; payment?: a
   };
   const prisma = {
     $transaction: jest.fn(async (ops: any[]) => Promise.all(ops)),
-    refund: { create: jest.fn().mockResolvedValue({ id: "r1" }) },
+    refund: { create: jest.fn().mockResolvedValue({ id: "r1" }), findFirst: jest.fn().mockResolvedValue(null) },
     order: {
       update: jest.fn().mockResolvedValue({}),
       findFirst: jest.fn().mockResolvedValue(
@@ -706,6 +707,76 @@ describe("Dojo go-live checklist", () => {
         where: { id: "ord-1" },
         data: { paymentStatus: "PARTIALLY_REFUNDED" },
       });
+    });
+
+    // Card-present money goes back at the machine: Dojo refuses both /refunds
+    // and /reversal on a terminal capture.
+    it("starts a matched refund on the machine, no amount for the whole payment", async () => {
+      const { svc, client, prisma } = makeDojo({ payment: { ...paid } });
+      const r = await svc.startTerminalRefund({ tenantId: "t-1", paymentIntentId: "pi_new", terminalId: "tm_1" });
+      expect(client.createRefundSession).toHaveBeenCalledWith({ terminalId: "tm_1", paymentIntentId: "pi_new" });
+      expect(r).toMatchObject({ terminalSessionId: "ts_refund", amount: 24.5 });
+      // The pending session is parked on the row so the poll can find it.
+      expect(prisma.payment.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            metadata: expect.objectContaining({ refundSession: expect.objectContaining({ id: "ts_refund" }) }),
+          }),
+        }),
+      );
+    });
+
+    it("sends the amount only when part of the payment is going back", async () => {
+      const { svc, client } = makeDojo({ payment: { ...paid, currency: "gbp" } });
+      await svc.startTerminalRefund({ tenantId: "t-1", paymentIntentId: "pi_new", terminalId: "tm_1", amount: 10 });
+      expect(client.createRefundSession).toHaveBeenCalledWith(
+        expect.objectContaining({ amountMinor: 1000, currencyCode: "gbp" }),
+      );
+    });
+
+    it("books the refund when the machine captures it, and only once", async () => {
+      const pendingRow = {
+        ...paid,
+        metadata: { ...paid.metadata, refundSession: { id: "ts_refund", amountMinor: 2450 } },
+      };
+      const { svc, prisma } = makeDojo({ payment: pendingRow });
+      prisma.payment.findMany.mockResolvedValue([{ amount: 24.5, status: "REFUNDED", metadata: {} }]);
+      const first = await svc.terminalRefundStatus("t-1", "pi_new");
+      expect(first).toMatchObject({ done: true, amount: 24.5, full: true });
+      expect(prisma.refund.create).toHaveBeenCalledTimes(1);
+
+      // A second poll (or a duplicated request) must not refund twice.
+      prisma.refund.findFirst.mockResolvedValue({ id: "r1" });
+      const again = await svc.terminalRefundStatus("t-1", "pi_new");
+      expect(again).toMatchObject({ done: true });
+      expect(prisma.refund.create).toHaveBeenCalledTimes(1);
+    });
+
+    it("reports a refund the machine declined without touching the books", async () => {
+      const client = fakeClient({
+        getTerminalSession: jest.fn().mockResolvedValue({ id: "ts_refund", status: "Declined" }),
+      });
+      const { svc, prisma } = makeDojo({
+        client,
+        payment: { ...paid, metadata: { ...paid.metadata, refundSession: { id: "ts_refund", amountMinor: 2450 } } },
+      });
+      const r = await svc.terminalRefundStatus("t-1", "pi_new");
+      expect(r).toMatchObject({ failed: true, done: false, message: expect.stringMatching(/declined/i) });
+      expect(prisma.refund.create).not.toHaveBeenCalled();
+    });
+
+    // Cancelling can't move money on its own — the card has to be present.
+    it("records what a cancelled order owes instead of pretending to refund", async () => {
+      const { svc, prisma, client } = makeDojo({ payment: { ...paid } });
+      prisma.payment.findMany.mockResolvedValue([{ ...paid, tenantId: "t-1" }]);
+      await svc.refundOrder("ord-1", "Order cancelled");
+      expect(client.refundPaymentIntent).not.toHaveBeenCalled();
+      expect(client.createRefundSession).not.toHaveBeenCalled();
+      expect(prisma.payment.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ metadata: expect.objectContaining({ refundOwedMinor: 2450 }) }),
+        }),
+      );
     });
 
     it("never refunds more than is left", async () => {

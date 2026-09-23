@@ -195,6 +195,37 @@ export class DojoApiClient {
     });
   }
 
+  /**
+   * Money back to a card that is PRESENT at the machine. Dojo will not refund
+   * or reverse a terminal capture through the payment intent (both answer 400
+   * — sandbox, 2026-09-23); a card-present refund is a terminal session that
+   * runs a negative transaction on the machine.
+   *
+   * Shapes verified against the live API with Dojo's own public sandbox key:
+   * sessionType is one of Sale | MatchedRefund | UnlinkedRefund, `amount` is
+   * always the money OBJECT, and on a matched refund it is optional — leave
+   * it out for the whole payment, send it to give back part.
+   */
+  createRefundSession(args: {
+    terminalId: string;
+    /** Omit for an unlinked refund (no original sale to point at). */
+    paymentIntentId?: string;
+    /** Required when unlinked; on a matched refund only for a PART refund. */
+    amountMinor?: number;
+    currencyCode?: string;
+  }): Promise<DojoTerminalSession> {
+    const amount =
+      args.amountMinor !== undefined
+        ? { amount: { value: args.amountMinor, currencyCode: (args.currencyCode ?? "GBP").toUpperCase() } }
+        : {};
+    const details = args.paymentIntentId
+      ? { matchedRefund: { paymentIntentId: args.paymentIntentId, ...amount }, sessionType: "MatchedRefund" }
+      : { unlinkedRefund: { ...amount }, sessionType: "UnlinkedRefund" };
+    return this.request<DojoTerminalSession>("POST", "/terminal-sessions", {
+      body: { terminalId: args.terminalId, details },
+    });
+  }
+
   getTerminalSession(sessionId: string): Promise<DojoTerminalSession> {
     return this.request<DojoTerminalSession>(
       "GET",
