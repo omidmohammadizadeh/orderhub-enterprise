@@ -10,12 +10,14 @@ import {
   Patch,
   Post,
   Query,
+  UseFilters,
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { CurrentUser } from "../../../common/decorators/current-user.decorator";
 import { Public } from "../../../common/decorators/public.decorator";
 import { Roles, TILL_ROLES } from "../../../common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "../../auth/interfaces/jwt-payload.interface";
+import { DojoApiExceptionFilter } from "./dojo-api-exception.filter";
 import { DojoService } from "./dojo.service";
 
 // Connecting Dojo stores a key that moves a shop's money, so it's the same
@@ -32,6 +34,8 @@ const DOJO_ADMIN_ROLES = [
 @ApiTags("payments")
 @ApiBearerAuth()
 @Controller({ path: "payments/dojo", version: "1" })
+// Dojo saying no is not us falling over — see the filter.
+@UseFilters(DojoApiExceptionFilter)
 export class DojoController {
   private readonly logger = new Logger(DojoController.name);
 

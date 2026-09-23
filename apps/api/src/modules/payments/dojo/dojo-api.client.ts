@@ -153,12 +153,20 @@ export class DojoApiClient {
               .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(", ") : String(msgs)}`)
               .join("; ")
           : "";
+      // Last resort: Dojo sometimes 400s with a body that is neither RFC 7807
+      // nor a string (refunds did, 2026-09-23, leaving only "Bad Request" to
+      // go on). Carry the raw body so the next failure names itself.
+      const raw =
+        !fields && parsed && typeof parsed === "object" && !parsed.detail && !parsed.title
+          ? JSON.stringify(parsed).slice(0, 300)
+          : "";
       const detail =
         [
           (parsed && typeof parsed === "object" && (parsed.detail || parsed.title)) ||
-            (typeof parsed === "string" ? parsed : "") ||
+            (typeof parsed === "string" ? parsed.slice(0, 300) : "") ||
             res.statusText,
           fields,
+          raw,
         ]
           .filter(Boolean)
           .join(" — ");
