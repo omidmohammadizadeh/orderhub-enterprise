@@ -399,8 +399,12 @@ export class DojoService {
   async disablePayAtTable(tenantId: string, locationId: string) {
     const { loc, cfg } = await this.requireConfig(tenantId, locationId);
     // Our side refuses every EPOS call from now on (checkEposAuth reads
-    // `enabled`), which is the part that matters. Registering an empty
-    // capability list tells Dojo to stop offering it on the machines.
+    // `enabled`), and that is the ONLY thing actually switching it off.
+    // The empty-capability PUT below does NOT deregister: Dojo answers 200
+    // and leaves the capabilities exactly as they were (verified against
+    // api.dojo.tech, 2026-09-23). It is kept because rotating the password
+    // still invalidates the credentials Dojo holds. Dojo publishes no delete
+    // for a REST integration — ask them for one.
     await this.clientFor(cfg)
       .registerRestIntegration({
         url: `${this.publicApiBase()}/v1/dojo/epos/${loc.id}`,
