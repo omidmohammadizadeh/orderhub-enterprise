@@ -21,6 +21,37 @@ const GEMINI_PREFIX = "gemini:";
 // retry is free to us and a refund is not.
 const GEMINI_DOWNLOAD_GIVE_UP_MS = 20 * 60 * 1000;
 
+// What a render costs US, in USD. Published provider rates, checked
+// 2026-09-23 — keep them here rather than in someone's head, because the
+// same 8-second spokesperson clip is $0.40 through Google and $1.20 through
+// Replicate and nothing in the logs used to say which one ran.
+//
+//   ai.google.dev/gemini-api/docs/pricing  — Veo 3.1 Lite 720p w/ audio $0.05/s
+//   replicate.com/google/veo-3-fast        — with_audio $0.15/s
+//
+// A model we don't have a rate for costs `null`, which prints as "unknown"
+// rather than a confident zero.
+const USD_PER_SECOND: Record<string, number> = {
+  "veo-3.1-lite-generate-preview": 0.05,
+  "veo-3.1-fast-generate-preview": 0.1,
+  "veo-3.1-generate-preview": 0.4,
+  "google/veo-3-fast": 0.15,
+};
+
+/** Flat per-run rates for models not priced by the second. */
+const USD_PER_RUN: Record<string, number> = {
+  "google/nano-banana": 0.039,
+};
+
+function estimateUsd(model: string, seconds: number): number | null {
+  const perSecond = USD_PER_SECOND[model];
+  if (perSecond !== undefined) return Number((perSecond * seconds).toFixed(3));
+  const perRun = USD_PER_RUN[model];
+  return perRun !== undefined ? perRun : null;
+}
+
+const usd = (n: number | null) => (n === null ? "unknown cost" : `$${n.toFixed(2)}`);
+
 export interface GenerateVideoDto {
   imageUrl?: string; // video: source photo (required); image: optional reference
   prompt: string; // the marketing description / scene direction
@@ -91,7 +122,23 @@ export class VideoStudioService {
    */
   private providerFor(style: AdStyle): "replicate" | "gemini" {
     if (style.provider === "gemini" && this.gemini.isConfigured()) return "gemini";
+    if (style.provider === "gemini") {
+      // Falling back is a THREE TIMES price rise ($0.40 → $1.20 for the same
+      // 8s clip), and it used to happen in silence — no error, no log, just a
+      // bigger bill at the end of the month. Say it every time.
+      this.logger.warn(
+        `AI Studio: "${style.id}" wants Google Veo direct but GEMINI_API_KEY is not set — ` +
+          `falling back to Replicate, which costs about 3x as much per render. ` +
+          `Set GEMINI_API_KEY in Render to pay the cheaper rate.`,
+      );
+    }
     return "replicate";
+  }
+
+  /** Seconds of video a style produces — what the per-second rates bill on. */
+  private secondsFor(style: AdStyle, provider: "replicate" | "gemini"): number {
+    if (style.kind === "image") return 0;
+    return provider === "gemini" ? this.gemini.durationSeconds : 8;
   }
 
   private db() {
@@ -346,6 +393,16 @@ export class VideoStudioService {
         });
         jobId = prediction.id;
       }
+      // The one line that makes spend auditable after the fact: which provider
+      // actually served it, on what model, and what that bills us.
+      const seconds = this.secondsFor(style, provider);
+      const estimate = estimateUsd(gen.model, seconds);
+      this.logger.log(
+        `AI Studio render ${gen.id}: style=${style.id} provider=${provider} model=${gen.model}` +
+          (seconds ? ` ${seconds}s` : "") +
+          ` — costs us ${usd(estimate)}, charged ${cost} credit${cost === 1 ? "" : "s"}` +
+          ` (tenant ${user.tenantId})`,
+      );
       return this.db().videoGeneration.update({
         where: { id: gen.id },
         data: { status: "RENDERING", replicatePredictionId: jobId },
@@ -631,11 +688,22 @@ export class VideoStudioService {
 
   // ── Reads ────────────────────────────────────────────────────────────────
   async listGenerations(tenantId: string, limit = 30) {
-    return this.db().videoGeneration.findMany({
+    const rows = await this.db().videoGeneration.findMany({
       where: { tenantId },
       orderBy: { createdAt: "desc" },
       take: Math.min(Math.max(limit, 1), 100),
     });
+    // Derived, not stored: the model column already says which provider ran,
+    // so what a render cost us is recoverable for every row ever written —
+    // including the ones from before this existed. No migration, no backfill.
+    return rows.map((g: any) => ({
+      ...g,
+      provider: g.model?.startsWith("veo-") ? "gemini" : "replicate",
+      estCostUsd: estimateUsd(
+        g.model,
+        g.kind === "IMAGE" ? 0 : this.gemini.durationSeconds,
+      ),
+    }));
   }
 
   async getGeneration(id: string, tenantId: string) {

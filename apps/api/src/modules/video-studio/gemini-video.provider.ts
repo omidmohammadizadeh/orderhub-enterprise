@@ -64,7 +64,9 @@ export class GeminiVideoProvider {
    * Veo accepts 4 | 6 | 8, and rejects a string: "The value type for
    * `durationSeconds` needs to be a number."
    */
-  private readonly durationSeconds: number;
+  // Public: the service bills the per-second rate on it when logging what a
+  // render costs us.
+  readonly durationSeconds: number;
 
   constructor(private readonly config: ConfigService) {
     this.apiKey =
