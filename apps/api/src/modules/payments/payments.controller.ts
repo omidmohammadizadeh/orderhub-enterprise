@@ -197,6 +197,10 @@ export class PaymentsController {
   }
 
   // POST /v1/payments/:paymentId/refund
+  // CAREFUL: this pattern also matches `payments/<anything>/refund`, so a
+  // sub-controller under `payments/*` must never name a route `refund` — it
+  // would land here with paymentId set to the sub-path and 404 as a missing
+  // payment. Dojo's lives at `payments/dojo/charge/refund` for that reason.
   @Post(":paymentId/refund")
   @Roles("MANAGER", "TENANT_OWNER")
   @ApiOperation({ summary: "Issue a refund against a succeeded payment" })

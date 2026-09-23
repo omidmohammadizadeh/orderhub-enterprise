@@ -83,7 +83,7 @@ export const dojoClient = {
   refund: (paymentIntentId: string, amount?: number, reason?: string) =>
     apiClient
       .post<{ refundId: string | null; amount: number; full: boolean; paymentIntentStatus: string | null; leftToRefund: number }>(
-        `${base}/refund`,
+        `${base}/charge/refund`,
         { paymentIntentId, ...(amount !== undefined ? { amount } : {}), ...(reason ? { reason } : {}) },
       )
       .then((r) => r.data),

@@ -135,7 +135,11 @@ export class DojoController {
   }
 
   // Money going back out — manager tier, like the rest of the Dojo setup.
-  @Post("refund")
+  // NOTE the path: PaymentsController owns `payments/:paymentId/refund`, and it
+  // is registered first, so a plain `refund` here is swallowed by it with
+  // paymentId="dojo" and every refund 404s "Payment not found". Keep Dojo's
+  // refund inside the charge/* family, which nothing else can match.
+  @Post("charge/refund")
   @Roles(...DOJO_ADMIN_ROLES)
   @ApiOperation({ summary: "Refund a Dojo card payment (full, or partial with `amount`)" })
   refund(
