@@ -775,8 +775,16 @@ export class DojoService {
         data: { tipAmount: tipMinor / 100 },
       });
     }
-    await this.payments.settleCardPresentPayment(payment, pi.id);
-    this.logger.log(`Dojo payment settled: order ${payment.orderId} (${pi.id})`);
+    // The settle can decline — a refunded payment must not be banked again —
+    // and this used to log "settled" regardless, one line after the refusal
+    // (2026-09-23). The intent is still real money for the caller either way;
+    // only the log was wrong.
+    const banked = await this.payments.settleCardPresentPayment(payment, pi.id);
+    this.logger.log(
+      banked
+        ? `Dojo payment settled: order ${payment.orderId} (${pi.id})`
+        : `Dojo payment for order ${payment.orderId} needed no settling (${pi.id})`,
+    );
     return true;
   }
 

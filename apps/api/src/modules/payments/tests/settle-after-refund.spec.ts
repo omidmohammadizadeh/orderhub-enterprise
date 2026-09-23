@@ -70,6 +70,15 @@ describe("settleCardPresentPayment — money that has gone back", () => {
     expect(updates[1].data).toMatchObject({ paymentStatus: "PAID" });
   });
 
+  // Dojo logged "payment settled" one line after the refusal because it never
+  // asked whether the settle had done anything.
+  it("reports whether it actually banked the money", async () => {
+    const { svc } = makeService(null);
+    expect(await svc.settleCardPresentPayment(row(), "pi_x")).toBe(true);
+    expect(await svc.settleCardPresentPayment(row({ status: "SUCCEEDED" }), "pi_x")).toBe(false);
+    expect(await svc.settleCardPresentPayment(row({ status: "REFUNDED" }), "pi_x")).toBe(false);
+  });
+
   it("stays a no-op on an already-settled payment", async () => {
     const { svc, updates } = makeService(null);
     await svc.settleCardPresentPayment(row({ status: "SUCCEEDED" }), "pi_x");

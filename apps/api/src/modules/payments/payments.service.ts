@@ -946,9 +946,12 @@ export class PaymentsService {
    * Dojo in DojoService), bank it and move the order on. Everything after
    * "the card was taken" — PAID, the staff board, auto-accept, closing a
    * table — is identical whichever card machine took it, so it lives once.
+   * Returns whether this call actually banked the money: false when there was
+   * nothing to do (already settled) or nothing left to bank (refunded), so a
+   * caller does not announce a settlement that never happened.
    */
-  async settleCardPresentPayment(payment: any, ref?: string): Promise<void> {
-    if (payment.status === PaymentRecordStatus.SUCCEEDED) return; // idempotent
+  async settleCardPresentPayment(payment: any, ref?: string): Promise<boolean> {
+    if (payment.status === PaymentRecordStatus.SUCCEEDED) return false; // idempotent
 
     // Money that has already gone back must never be banked again. The
     // "already paid" guard above only catches SUCCEEDED, and a full refund
@@ -965,7 +968,7 @@ export class PaymentsService {
         `Refusing to settle payment ${payment.id} on order ${payment.orderId}: ` +
           `${(refundedMinor / 100).toFixed(2)} has already been refunded (status ${payment.status})`,
       );
-      return;
+      return false;
     }
     const pi = { id: ref };
 
@@ -975,7 +978,7 @@ export class PaymentsService {
     // order only flips once the banked parts actually cover the total.
     if ((payment.metadata as any)?.split) {
       await this.settleSplitPart(payment, pi);
-      return;
+      return true;
     }
 
     await this.prisma.$transaction([
@@ -1043,6 +1046,7 @@ export class PaymentsService {
     this.logger.log(
       `Terminal payment settled: order ${payment.orderId} → PAID (pi ${pi?.id})`,
     );
+    return true;
   }
 
   /**
