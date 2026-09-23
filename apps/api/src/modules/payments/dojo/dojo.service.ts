@@ -838,12 +838,48 @@ export class DojoService {
     const client = this.clientFor(cfg);
     // Same key for the same (payment, already-refunded, amount) state, so a
     // retried request can't refund twice; a later refund gets a new key.
-    const res = await client.refundPaymentIntent({
-      paymentIntentId: payment.providerChargeId,
-      amountMinor: wantMinor,
-      reason,
-      idempotencyKey: `orderhub-refund-${payment.id}-${refundedMinor}-${wantMinor}`,
-    });
+    const idempotencyKey = `orderhub-refund-${payment.id}-${refundedMinor}-${wantMinor}`;
+    // Dojo will not REFUND money it has not settled yet: a same-day capture
+    // answers "Your refund request was not successful. Status: Failed."
+    // (sandbox, 2026-09-23). Until settlement the way back is a REVERSAL —
+    // whole amount only, captureMode:Auto (which is all we create), within 7
+    // days. So an untouched payment being given back in full goes out as a
+    // reversal, and only falls back to a refund when Dojo refuses it (window
+    // expired, or already settled — in which case the refund is the right
+    // call anyway). A part-refund has no reversal to fall back on.
+    const wholePayment = refundedMinor === 0 && wantMinor === takenMinor;
+    let res: { refundId?: string | null } | null = null;
+    let via: "reversal" | "refund" = "refund";
+    if (wholePayment) {
+      try {
+        await client.reversePaymentIntent(payment.providerChargeId, idempotencyKey);
+        via = "reversal";
+      } catch (err: any) {
+        if (!(err instanceof DojoApiError)) throw err;
+        this.logger.warn(
+          `Dojo reversal refused for ${payment.providerChargeId} (${err.message}) — trying a refund instead`,
+        );
+      }
+    }
+    if (via === "refund") {
+      try {
+        res = await client.refundPaymentIntent({
+          paymentIntentId: payment.providerChargeId,
+          amountMinor: wantMinor,
+          reason,
+          idempotencyKey,
+        });
+      } catch (err: any) {
+        // Tell the operator what they can actually do about it.
+        if (err instanceof DojoApiError && !wholePayment) {
+          throw new BadRequestException(
+            `${err.message} — Dojo can only refund PART of a payment once it has settled (usually the next ` +
+              `working day). To give the whole amount back today, use the full refund button.`,
+          );
+        }
+        throw err;
+      }
+    }
 
     // Checklist: after refunding, GET the intent and show its status —
     // `Refunded` for a full refund, still `Captured` for a partial one.
@@ -868,7 +904,7 @@ export class DojoService {
           status: "SUCCEEDED",
           isPartial: !full,
           processedBy: userId ?? null,
-          note: res?.refundId ? `Dojo refund ${res.refundId}` : null,
+          note: res?.refundId ? `Dojo refund ${res.refundId}` : via === "reversal" ? "Dojo reversal" : null,
         },
       }),
     ]);
@@ -890,7 +926,7 @@ export class DojoService {
     });
 
     this.logger.log(
-      `Dojo refund ${res?.refundId ?? "?"}: ${(wantMinor / 100).toFixed(2)} on ${payment.providerChargeId} ` +
+      `Dojo ${via} ${res?.refundId ?? ""}: ${(wantMinor / 100).toFixed(2)} on ${payment.providerChargeId} ` +
         `(${full ? "full" : "partial"}; intent now ${pi?.status ?? "unknown"})`,
     );
     return {

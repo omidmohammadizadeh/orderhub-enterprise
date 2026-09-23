@@ -147,24 +147,29 @@ export class DojoApiClient {
       // RFC 7807: the useful part of a Dojo 400 is usually `errors`, a
       // field→messages map. Without it every validation failure reads
       // "One or more validation errors occurred", which names nothing.
+      // Dojo is inconsistent about case: validation 400s use RFC 7807's
+      // lowercase `detail`/`errors`, refund 400s answer in PascalCase
+      // (`{"Status":400,"Detail":"…"}`). Read either.
+      const pick = (key: string): any => {
+        if (!parsed || typeof parsed !== "object") return undefined;
+        const hit = Object.keys(parsed).find((k) => k.toLowerCase() === key);
+        return hit ? (parsed as Record<string, unknown>)[hit] : undefined;
+      };
+      const errs = pick("errors");
       const fields =
-        parsed && typeof parsed === "object" && parsed.errors && typeof parsed.errors === "object"
-          ? Object.entries(parsed.errors as Record<string, unknown>)
+        errs && typeof errs === "object"
+          ? Object.entries(errs as Record<string, unknown>)
               .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(", ") : String(msgs)}`)
               .join("; ")
           : "";
       // Last resort: Dojo sometimes 400s with a body that is neither RFC 7807
       // nor a string (refunds did, 2026-09-23, leaving only "Bad Request" to
       // go on). Carry the raw body so the next failure names itself.
-      const raw =
-        !fields && parsed && typeof parsed === "object" && !parsed.detail && !parsed.title
-          ? JSON.stringify(parsed).slice(0, 300)
-          : "";
+      const said = pick("detail") || pick("title");
+      const raw = !fields && !said && parsed && typeof parsed === "object" ? JSON.stringify(parsed).slice(0, 300) : "";
       const detail =
         [
-          (parsed && typeof parsed === "object" && (parsed.detail || parsed.title)) ||
-            (typeof parsed === "string" ? parsed.slice(0, 300) : "") ||
-            res.statusText,
+          said || (typeof parsed === "string" ? parsed.slice(0, 300) : "") || res.statusText,
           fields,
           raw,
         ]
@@ -255,6 +260,19 @@ export class DojoApiClient {
         amount: args.amountMinor,
         ...(args.reason ? { refundReason: args.reason.slice(0, 1024) } : {}),
       },
+    });
+  }
+
+  /**
+   * Full-amount undo of a payment Dojo has NOT settled yet. Dojo refuses a
+   * refund on a fresh `captureMode:Auto` capture ("Your refund request was not
+   * successful. Status: Failed.") — until settlement, reversal is the only
+   * route back. Allowed on a captured Auto intent within 7 days; full amount
+   * only; no body, the id is the whole request.
+   */
+  reversePaymentIntent(paymentIntentId: string, idempotencyKey?: string): Promise<unknown> {
+    return this.request("POST", `/payment-intents/${encodeURIComponent(paymentIntentId)}/reversal`, {
+      idempotencyKey,
     });
   }
 

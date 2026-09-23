@@ -41,6 +41,7 @@ function fakeClient(over: Partial<Record<keyof DojoApiClient, jest.Mock>> = {}) 
     }),
     cancelPaymentIntent: jest.fn().mockResolvedValue({}),
     refundPaymentIntent: jest.fn().mockResolvedValue({ refundId: "rfnd_1" }),
+    reversePaymentIntent: jest.fn().mockResolvedValue({}),
     registerRestIntegration: jest.fn().mockResolvedValue([]),
     listWebhookEventTypes: jest.fn().mockResolvedValue([
       { model: "PaymentIntent", events: ["payment_intent.created", "payment_intent.status_updated"] },
@@ -657,15 +658,43 @@ describe("Dojo go-live checklist", () => {
   describe("refunds", () => {
     const paid = { ...processing, status: "SUCCEEDED" };
 
-    it("refunds in full and marks the payment and order refunded", async () => {
+    // Dojo refuses to REFUND money it hasn't settled ("Status: Failed",
+    // sandbox 2026-09-23); the whole amount goes back as a reversal instead.
+    it("gives a whole untouched payment back as a reversal", async () => {
       const { svc, client, prisma } = makeDojo({ payment: { ...paid } });
+      prisma.payment.findMany.mockResolvedValue([{ amount: 24.5, status: "REFUNDED", metadata: {} }]);
+      const r = await svc.refundPayment({ tenantId: "t-1", paymentIntentId: "pi_new" });
+      expect(client.reversePaymentIntent).toHaveBeenCalledWith("pi_new", expect.any(String));
+      expect(client.refundPaymentIntent).not.toHaveBeenCalled();
+      expect(r).toMatchObject({ full: true, amount: 24.5, leftToRefund: 0 });
+      expect(prisma.order.update).toHaveBeenCalledWith({ where: { id: "ord-1" }, data: { paymentStatus: "REFUNDED" } });
+    });
+
+    // Past the 7-day window, or already settled: the refund is then correct.
+    it("falls back to a refund when Dojo refuses the reversal", async () => {
+      const client = fakeClient({
+        reversePaymentIntent: jest.fn().mockRejectedValue(new DojoApiError("too late", 400, {})),
+      });
+      const { svc, prisma } = makeDojo({ client, payment: { ...paid } });
       prisma.payment.findMany.mockResolvedValue([{ amount: 24.5, status: "REFUNDED", metadata: {} }]);
       const r = await svc.refundPayment({ tenantId: "t-1", paymentIntentId: "pi_new" });
       expect(client.refundPaymentIntent).toHaveBeenCalledWith(
         expect.objectContaining({ paymentIntentId: "pi_new", amountMinor: 2450 }),
       );
-      expect(r).toMatchObject({ full: true, amount: 24.5, leftToRefund: 0 });
-      expect(prisma.order.update).toHaveBeenCalledWith({ where: { id: "ord-1" }, data: { paymentStatus: "REFUNDED" } });
+      expect(r).toMatchObject({ full: true, amount: 24.5 });
+    });
+
+    it("tells the operator a part-refund has to wait for settlement", async () => {
+      const client = fakeClient({
+        refundPaymentIntent: jest
+          .fn()
+          .mockRejectedValue(new DojoApiError("Your refund request was not successful.", 400, {})),
+      });
+      const { svc } = makeDojo({ client, payment: { ...paid } });
+      await expect(svc.refundPayment({ tenantId: "t-1", paymentIntentId: "pi_new", amount: 10 })).rejects.toThrow(
+        /once it has settled/i,
+      );
+      expect(client.reversePaymentIntent).not.toHaveBeenCalled();
     });
 
     it("refunds part and leaves the rest refundable", async () => {
