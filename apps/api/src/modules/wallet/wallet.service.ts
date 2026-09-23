@@ -49,6 +49,10 @@ export interface WalletSummary {
   smsConfigured: boolean;
   /** Answered AI calls this balance still covers. null if voice is free. */
   callsRemaining: number | null;
+  /** AI Studio's price for a spokesperson video here, in pennies — this
+   *  balance funds those too, and a £1.50 line in a statement of 5p texts is
+   *  otherwise a surprise. */
+  aiStudioVideoMinor: number;
   autoTopup: {
     enabled: boolean;
     thresholdMinor: number;
@@ -182,6 +186,7 @@ export class WalletService {
       // actually wants when the AI is live — "£4.20" means nothing, "4 more
       // calls" means top up now.
       callsRemaining: voiceRate > 0 ? Math.floor(wallet.balanceMinor / voiceRate) : null,
+      aiStudioVideoMinor: this.aiStudioPriceMinor(wallet, "spokesperson"),
       autoTopup: {
         enabled: !!wallet.autoTopupEnabled,
         thresholdMinor: wallet.autoTopupThresholdMinor,

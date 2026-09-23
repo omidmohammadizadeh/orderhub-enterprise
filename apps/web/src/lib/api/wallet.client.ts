@@ -12,6 +12,8 @@ export interface WalletSummary {
   voicePricePerCallMinor: number;
   /** How many more calls the balance answers. null when calls are free. */
   callsRemaining: number | null;
+  /** Price of one AI Studio spokesperson video here, in pennies. */
+  aiStudioVideoMinor?: number;
   lowBalanceThresholdMinor: number;
   lowBalance: boolean;
   smsConfigured: boolean;

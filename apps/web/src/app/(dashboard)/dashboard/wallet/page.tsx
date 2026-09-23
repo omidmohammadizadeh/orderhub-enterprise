@@ -70,6 +70,7 @@ function WalletInner() {
 
   const rate = wallet?.pricePerSegmentMinor ?? 10;
   const approxTexts = wallet ? Math.floor(wallet.balanceMinor / rate) : 0;
+  const videoPriceMinor = wallet?.aiStudioVideoMinor ?? 0;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
@@ -80,7 +81,8 @@ function WalletInner() {
         <div>
           <h1 className="text-xl font-bold text-zinc-900">Wallet</h1>
           <p className="text-sm text-zinc-500">
-            Prepaid balance for AI phone calls, payment links &amp; texts
+            Prepaid balance for AI phone calls, texts, payment links &amp; AI
+            Studio videos
           </p>
         </div>
       </div>
@@ -142,6 +144,16 @@ function WalletInner() {
                 ≈ {approxTexts.toLocaleString()} texts left · {rate}p per message
                 segment
               </p>
+              {/* AI Studio spends this same balance, so a £1.50 video showing up
+                  in a statement full of 5p texts needs explaining here rather
+                  than in the ledger after the fact. */}
+              {videoPriceMinor > 0 && (
+                <p className="mt-1 text-sm text-zinc-500">
+                  ≈ {Math.floor((wallet?.balanceMinor ?? 0) / videoPriceMinor).toLocaleString()}{" "}
+                  AI Studio videos left · {formatGbp(videoPriceMinor)} per
+                  spokesperson video
+                </p>
+              )}
               {wallet?.lowBalance && (
                 <p className="mt-2 flex items-center gap-1.5 text-sm font-medium text-amber-600">
                   <AlertTriangle className="h-4 w-4" /> Low balance — top up to keep
