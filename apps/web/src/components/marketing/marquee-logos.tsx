@@ -76,7 +76,7 @@ export function MarqueeLogos({ brandKey }: { brandKey: SiteBrandKey }) {
       `}</style>
 
       <div className="marquee relative">
-        <div className="space-y-8">
+        <div className="space-y-2">
           <Row logos={top} />
           <Row logos={bottom} reverse />
         </div>
@@ -99,7 +99,11 @@ function Row({ logos, reverse }: { logos: LogoItem[]; reverse?: boolean }) {
   // identical frame.
   const half = [...logos, ...logos, ...logos];  // ~2,000px+ per half
   return (
-    <div className="overflow-hidden">
+    // overflow-hidden clips vertically as well as horizontally, and the "Soon"
+    // pill hangs 8px above its tile — without this padding the row sliced the
+    // top off every pill. (overflow-x alone isn't an option: the spec turns the
+    // other axis into `auto`, which means scrollbars.)
+    <div className="overflow-hidden py-3">
       <div className={`marquee-track flex items-center gap-10 sm:gap-16 ${reverse ? "marquee-track--reverse" : ""}`}>
         {[...half, ...half].map((l, i) => (
           <LogoTile key={`${l.brand}-${i}`} logo={l} />
