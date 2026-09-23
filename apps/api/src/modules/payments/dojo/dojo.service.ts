@@ -124,11 +124,19 @@ export class DojoService {
     });
   }
 
+  /**
+   * Where Dojo reaches us. It must be a PUBLICLY RESOLVABLE origin: Dojo
+   * validates the webhook URL when subscribing, and an unreachable host is
+   * rejected with a bare "one or more validation errors occurred". The
+   * fallback is the API's own Render origin — the same one the HubRise
+   * callback defaults to — because api.orderhubsolutions.com does not
+   * currently resolve.
+   */
   private publicApiBase(): string {
     return (
       this.config.get<string>("API_PUBLIC_URL") ??
       this.config.get<string>("PUBLIC_API_URL") ??
-      "https://api.orderhubsolutions.com"
+      "https://orderhub-api-0re6.onrender.com"
     ).replace(/\/+$/, "") + "/api";
   }
 
@@ -296,7 +304,10 @@ export class DojoService {
         this.logger.warn(`Dojo offered no payment_intent webhook events for ${loc.id} — polling only`);
       }
     } catch (err: any) {
-      this.logger.warn(`Dojo webhook subscribe failed for location ${loc.id}: ${err?.message}`);
+      this.logger.warn(
+        `Dojo webhook subscribe failed for location ${loc.id} ` +
+          `(url ${this.publicApiBase()}/v1/payments/dojo/webhook/${loc.id}): ${err?.message}`,
+      );
     }
 
     await this.saveConfig(loc.id, cfg);
