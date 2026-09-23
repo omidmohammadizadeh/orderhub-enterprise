@@ -130,6 +130,17 @@ describe("DojoApiClient", () => {
     }
   });
 
+  it("names the offending fields from a validation 400", async () => {
+    const { fetchImpl } = recorder(400, {
+      title: "One or more validation errors occurred.",
+      errors: { Events: ["The Events field is required."], Url: ["Not a valid URL."] },
+    });
+    const c = new DojoApiClient("sk_prod_x", {}, fetchImpl as any);
+    await expect(c.subscribeWebhook("https://x/y", [])).rejects.toThrow(
+      /Events: The Events field is required.; Url: Not a valid URL./,
+    );
+  });
+
   it("surfaces Dojo's problem-details message on failure", async () => {
     const { fetchImpl } = recorder(409, { title: "terminal unavailable", detail: "the terminal is either offline or currently in use" });
     const c = new DojoApiClient("sk_prod_x", {}, fetchImpl as any);

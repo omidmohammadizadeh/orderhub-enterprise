@@ -144,10 +144,24 @@ export class DojoApiClient {
       }
     }
     if (!res.ok) {
+      // RFC 7807: the useful part of a Dojo 400 is usually `errors`, a
+      // field→messages map. Without it every validation failure reads
+      // "One or more validation errors occurred", which names nothing.
+      const fields =
+        parsed && typeof parsed === "object" && parsed.errors && typeof parsed.errors === "object"
+          ? Object.entries(parsed.errors as Record<string, unknown>)
+              .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(", ") : String(msgs)}`)
+              .join("; ")
+          : "";
       const detail =
-        (parsed && typeof parsed === "object" && (parsed.detail || parsed.title)) ||
-        (typeof parsed === "string" ? parsed : "") ||
-        res.statusText;
+        [
+          (parsed && typeof parsed === "object" && (parsed.detail || parsed.title)) ||
+            (typeof parsed === "string" ? parsed : "") ||
+            res.statusText,
+          fields,
+        ]
+          .filter(Boolean)
+          .join(" — ");
       throw new DojoApiError(`Dojo ${method} ${path} → ${res.status}: ${detail}`, res.status, parsed);
     }
     return parsed as T;
