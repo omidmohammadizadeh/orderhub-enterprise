@@ -201,6 +201,7 @@ export function DojoRefundPanel({
           const refunded = Number(p.metadata?.refundedMinor ?? (p.status === "REFUNDED" ? taken * 100 : 0)) / 100;
           const left = Math.max(0, Math.round((taken - refunded) * 100) / 100);
           const owed = Number(p.metadata?.refundOwedMinor ?? 0) / 100;
+          const reason = (p.metadata?.refundOwedReason ?? "").trim().replace(/[.\s]+$/, "");
           const running = live?.paymentId === p.id;
           return (
             <li key={p.id} className="text-sm">
@@ -210,9 +211,10 @@ export function DojoRefundPanel({
               </p>
               {owed > 0 && left > 0 && (
                 <p className="mt-1 rounded-md bg-amber-50 px-2 py-1.5 text-xs font-medium text-amber-800">
+                  {/* The reason is whatever staff typed into the cancel box,
+                      so it arrives with stray spacing and punctuation. */}
                   {money(owed)} refund owed on the card machine
-                  {p.metadata?.refundOwedReason ? ` — ${p.metadata.refundOwedReason}` : ""}. The customer needs to
-                  present the card they paid with.
+                  {reason ? ` — ${reason}` : ""}. The customer needs to present the card they paid with.
                 </p>
               )}
               {left <= 0 ? (
