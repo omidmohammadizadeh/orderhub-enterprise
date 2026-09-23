@@ -270,6 +270,11 @@ export class DojoApiClient {
 
   // ── Webhooks ─────────────────────────────────────────────────────────────
 
+  /** Event names this account may subscribe to, grouped by model. */
+  listWebhookEventTypes(): Promise<Array<{ model?: string; events?: string[] }>> {
+    return this.request("GET", "/webhooks/events");
+  }
+
   subscribeWebhook(url: string, events: string[]): Promise<{ id: string }> {
     return this.request<{ id: string }>("POST", "/webhooks", { body: { url, events } });
   }

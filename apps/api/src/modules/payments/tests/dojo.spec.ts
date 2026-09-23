@@ -36,6 +36,10 @@ function fakeClient(over: Partial<Record<keyof DojoApiClient, jest.Mock>> = {}) 
     cancelPaymentIntent: jest.fn().mockResolvedValue({}),
     refundPaymentIntent: jest.fn().mockResolvedValue({ refundId: "rfnd_1" }),
     registerRestIntegration: jest.fn().mockResolvedValue([]),
+    listWebhookEventTypes: jest.fn().mockResolvedValue([
+      { model: "PaymentIntent", events: ["payment_intent.created", "payment_intent.status_updated"] },
+      { model: "Order", events: ["order.created"] },
+    ]),
     subscribeWebhook: jest.fn().mockResolvedValue({ id: "ws_1" }),
     deleteWebhook: jest.fn().mockResolvedValue({}),
     ...over,
@@ -152,13 +156,20 @@ describe("DojoService.connect", () => {
   });
 
   it("proves the key against /terminals, then saves it (never the raw key in the hint)", async () => {
-    const { svc, prisma } = makeDojo({ location: { id: "loc-1", name: "X", country: "GB", settings: {}, brand: { tenantId: "t-1" } } });
+    const { svc, prisma, client } = makeDojo({
+      location: { id: "loc-1", name: "X", country: "GB", settings: {}, brand: { tenantId: "t-1" } },
+    });
     await svc.connect("t-1", "loc-1", "sk_prod_supersecret99");
     const saved = prisma.location.update.mock.calls[0][0].data.settings.dojo;
     expect(saved.environment).toBe("production");
     expect(saved.keyHint).toBe("…et99");
     expect(saved.terminals).toEqual([{ id: "tm_1", label: "Dojo TID1" }]);
     expect(saved.webhookSubscriptionId).toBe("ws_1");
+    // Event names come from Dojo's own catalogue, never guessed.
+    expect(client.subscribeWebhook).toHaveBeenCalledWith(
+      expect.stringContaining("/api/v1/payments/dojo/webhook/loc-1"),
+      ["payment_intent.created", "payment_intent.status_updated"],
+    );
   });
 
   it("turns a 401 from Dojo into a plain-English refusal", async () => {

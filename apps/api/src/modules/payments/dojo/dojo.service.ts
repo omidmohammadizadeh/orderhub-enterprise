@@ -275,12 +275,26 @@ export class DojoService {
 
     // Best-effort webhook. The POS polls anyway, so a failure here costs
     // nothing but a little latency — never block connecting on it.
+    //
+    // The event NAMES come from Dojo rather than from us: subscribing to a
+    // name this account doesn't offer fails the whole call with "one or more
+    // validation errors occurred", which is what a guessed
+    // "payment_intent.status_updated" got.
     try {
-      const sub = await client.subscribeWebhook(
-        `${this.publicApiBase()}/v1/payments/dojo/webhook/${loc.id}`,
-        ["payment_intent.status_updated"],
-      );
-      cfg.webhookSubscriptionId = sub?.id ?? null;
+      const catalogue = await client.listWebhookEventTypes().catch(() => []);
+      const events = catalogue
+        .flatMap((g) => g?.events ?? [])
+        .filter((e) => typeof e === "string" && e.startsWith("payment_intent"));
+      if (events.length) {
+        const sub = await client.subscribeWebhook(
+          `${this.publicApiBase()}/v1/payments/dojo/webhook/${loc.id}`,
+          events,
+        );
+        cfg.webhookSubscriptionId = sub?.id ?? null;
+        this.logger.log(`Dojo webhook subscribed for ${loc.id}: ${events.join(", ")}`);
+      } else {
+        this.logger.warn(`Dojo offered no payment_intent webhook events for ${loc.id} — polling only`);
+      }
     } catch (err: any) {
       this.logger.warn(`Dojo webhook subscribe failed for location ${loc.id}: ${err?.message}`);
     }
