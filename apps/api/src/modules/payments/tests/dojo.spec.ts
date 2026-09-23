@@ -10,7 +10,13 @@ import { CredentialEncryptionService } from "../../integrations/credential-encry
 import { DojoApiClient, DojoApiError, dojoKeyEnvironment } from "../dojo/dojo-api.client";
 import { DojoEposService, EposError, areaIdOf } from "../dojo/dojo-epos.service";
 import { activeDojoLock } from "../dojo/dojo-lock";
-import { DojoService, findPaymentIntentId, hashSecret } from "../dojo/dojo.service";
+import {
+  DEFAULT_PUBLIC_API_ORIGIN,
+  DojoService,
+  findPaymentIntentId,
+  hashSecret,
+  usableHttpsOrigin,
+} from "../dojo/dojo.service";
 
 // Dojo card machines + Pay at Table. The money rule under test throughout:
 // nothing settles unless Dojo itself, asked with the shop's own key, says
@@ -642,5 +648,25 @@ describe("Dojo go-live checklist", () => {
       );
       expect(client.refundPaymentIntent).not.toHaveBeenCalled();
     });
+  });
+});
+
+
+describe("usableHttpsOrigin", () => {
+  it("keeps a real https origin and adds the scheme when it's only missing", () => {
+    expect(usableHttpsOrigin("https://api.example.com/")).toBe("https://api.example.com");
+    expect(usableHttpsOrigin("api.example.com")).toBe("https://api.example.com");
+  });
+
+  it("rejects what Dojo rejects — a bare service name, localhost, http, or nothing", () => {
+    // Production had API_PUBLIC_URL="orderhub-api-0re6"; Dojo answered
+    // "The Url field is not a valid fully-qualified https URL".
+    for (const bad of ["orderhub-api-0re6", "http://api.example.com", "http://localhost:4000", "", "   "]) {
+      expect(usableHttpsOrigin(bad)).toBeNull();
+    }
+  });
+
+  it("has a reachable default", () => {
+    expect(usableHttpsOrigin(DEFAULT_PUBLIC_API_ORIGIN)).toBe(DEFAULT_PUBLIC_API_ORIGIN);
   });
 });

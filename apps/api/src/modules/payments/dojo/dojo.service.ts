@@ -92,6 +92,30 @@ export const PAY_AT_TABLE_CAPABILITIES = [
   "ListAreas",
 ];
 
+/** The API's own public origin — the same one the HubRise callback defaults to. */
+export const DEFAULT_PUBLIC_API_ORIGIN = "https://orderhub-api-0re6.onrender.com";
+
+/**
+ * A configured base URL, only if a partner could actually call it: https,
+ * with a dotted public hostname. "orderhub-api-0re6" and "http://localhost:4000"
+ * both fail — neither is reachable from Dojo.
+ */
+export function usableHttpsOrigin(raw: string | null | undefined): string | null {
+  const value = String(raw ?? "").trim().replace(/\/+$/, "");
+  if (!value) return null;
+  const withScheme = /^https?:\/\//i.test(value) ? value : `https://${value}`;
+  let url: URL;
+  try {
+    url = new URL(withScheme);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== "https:") return null;
+  if (!url.hostname.includes(".")) return null;
+  if (/^(localhost|127\.|0\.0\.0\.0)/i.test(url.hostname)) return null;
+  return `${url.origin}${url.pathname === "/" ? "" : url.pathname.replace(/\/+$/, "")}`;
+}
+
 export function hashSecret(value: string): string {
   return createHash("sha256").update(value).digest("hex");
 }
@@ -125,19 +149,21 @@ export class DojoService {
   }
 
   /**
-   * Where Dojo reaches us. It must be a PUBLICLY RESOLVABLE origin: Dojo
-   * validates the webhook URL when subscribing, and an unreachable host is
-   * rejected with a bare "one or more validation errors occurred". The
-   * fallback is the API's own Render origin — the same one the HubRise
-   * callback defaults to — because api.orderhubsolutions.com does not
-   * currently resolve.
+   * Where Dojo reaches us. It must be a PUBLICLY RESOLVABLE https origin:
+   * Dojo validates the webhook URL when subscribing ("The Url field is not a
+   * valid fully-qualified https URL"), and Pay at Table registers the same
+   * base as the EPOS endpoint — a bad value there fails silently at the
+   * worst moment, when a waiter is standing at a table.
+   *
+   * Production's API_PUBLIC_URL was set to the bare Render SERVICE NAME
+   * ("orderhub-api-0re6"), so anything that isn't a fully-qualified https
+   * origin is discarded in favour of the known-good default rather than
+   * handed to a partner.
    */
   private publicApiBase(): string {
-    return (
-      this.config.get<string>("API_PUBLIC_URL") ??
-      this.config.get<string>("PUBLIC_API_URL") ??
-      "https://orderhub-api-0re6.onrender.com"
-    ).replace(/\/+$/, "") + "/api";
+    const configured =
+      this.config.get<string>("API_PUBLIC_URL") ?? this.config.get<string>("PUBLIC_API_URL") ?? "";
+    return (usableHttpsOrigin(configured) ?? DEFAULT_PUBLIC_API_ORIGIN) + "/api";
   }
 
   // ── Config (Location.settings.dojo — no schema change) ────────────────────
