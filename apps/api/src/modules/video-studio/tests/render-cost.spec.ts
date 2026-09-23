@@ -10,7 +10,8 @@
 // These pin the two things that make it visible: the fallback announces
 // itself, and finished work can be priced from what was actually stored.
 
-import { VideoStudioService } from "../video-studio.service";
+import { VideoStudioService, speechSeconds } from "../video-studio.service";
+import { clampDuration } from "../gemini-video.provider";
 
 function makeService(geminiConfigured: boolean) {
   const warnings: string[] = [];
@@ -22,6 +23,31 @@ function makeService(geminiConfigured: boolean) {
 }
 
 const spokesperson = (svc: any) => svc.styles().find((s: any) => s.id === "spokesperson");
+
+describe("AI Studio — fitting the clip to the line", () => {
+  it("reads a script as seconds of speech, not characters", () => {
+    // 22 words is the 8-second budget at ad-delivery pace.
+    const eight = new Array(22).fill("word").join(" ");
+    expect(speechSeconds(eight)).toBeCloseTo(8, 1);
+    expect(speechSeconds("   ")).toBe(0);
+  });
+
+  it("only ever asks Veo for 4, 6 or 8 seconds", () => {
+    // Anything else is a 400 from Google, so nothing in between may escape.
+    expect([1, 3.2, 4].map(clampDuration)).toEqual([4, 4, 4]);
+    expect([4.1, 6].map(clampDuration)).toEqual([6, 6]);
+    expect([6.5, 8, 20].map(clampDuration)).toEqual([8, 8, 8]);
+  });
+
+  it("buys a shorter clip for a shorter line — the customer pays the same", () => {
+    const { svc } = makeService(true);
+    const spokesperson = svc.styles().find((s: any) => s.id === "spokesperson");
+    // ~3.6s of speech → a 4s clip, which costs us $0.20 instead of $0.40.
+    expect(svc.secondsFor(spokesperson, "gemini", "Fresh pizza, hot from our oven, order now")).toBe(4);
+    // A full 22-word line still gets the whole eight.
+    expect(svc.secondsFor(spokesperson, "gemini", new Array(22).fill("word").join(" "))).toBe(8);
+  });
+});
 
 describe("AI Studio — what a render costs us", () => {
   it("uses Google direct when the key is there, and says nothing alarming", () => {

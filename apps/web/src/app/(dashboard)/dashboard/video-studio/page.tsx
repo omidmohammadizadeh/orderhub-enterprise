@@ -13,6 +13,7 @@ import {
   Sparkles,
   Upload,
   AlertCircle,
+  Clapperboard as FilmIcon,
 } from "lucide-react";
 import {
   videoStudioClient,
@@ -20,10 +21,52 @@ import {
   type VideoGeneration,
 } from "@/lib/api/video-studio.client";
 import { uploadsClient } from "@/lib/api/catalog.client";
+
+// Mirrors the server's limit — the API rejects a longer script outright, so
+// the page should say so before the button is pressed rather than after.
+const MAX_SCRIPT_SECONDS = 8;
+const MAX_SCRIPT_WORDS = Math.floor(MAX_SCRIPT_SECONDS * 2.75);
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 
 // Resize a picked image to at most `max` px on its long edge and return a
 // JPEG data URL. Keeps upload/generation payloads small and consistent.
+/**
+ * Grab the final frame of a finished video as a JPEG data URL.
+ *
+ * Seeks slightly BEFORE the end: seeking to exactly `duration` lands past the
+ * last decoded frame in most browsers and paints black. Needs the video to be
+ * served with CORS, or the canvas is tainted and toDataURL throws — which is
+ * why the caller offers "download it and upload a still" as the way out.
+ */
+async function lastFrameOf(url: string): Promise<string> {
+  const video = document.createElement("video");
+  video.crossOrigin = "anonymous";
+  video.muted = true;
+  video.preload = "auto";
+  video.src = url;
+  await new Promise<void>((resolve, reject) => {
+    video.onloadeddata = () => resolve();
+    video.onerror = () => reject(new Error("Couldn't load that video to read its last frame."));
+  });
+  await new Promise<void>((resolve) => {
+    video.onseeked = () => resolve();
+    video.currentTime = Math.max(0, (video.duration || 0.2) - 0.15);
+  });
+  const canvas = document.createElement("canvas");
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext("2d");
+  if (!ctx || !canvas.width) throw new Error("Couldn't read that video's last frame.");
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  try {
+    return canvas.toDataURL("image/jpeg", 0.9);
+  } catch {
+    throw new Error(
+      "That video can't be read directly. Download it and upload the last frame as a photo.",
+    );
+  }
+}
+
 async function downscaleImage(file: File, max: number): Promise<string> {
   const readAsDataUrl = () =>
     new Promise<string>((resolve, reject) => {
@@ -99,11 +142,54 @@ export default function VideoStudioPage() {
   const style = styles.find((s) => s.id === styleId) ?? styles[0];
   const priceOf = (id?: string) => (id ? (status?.pricesMinor?.[id] ?? 0) : 0);
   const cost = priceOf(style?.id);
+  // ~2.75 words a second is natural ad delivery; 8s is Veo's ceiling.
+  const scriptWords = script.trim().split(/\s+/).filter(Boolean).length;
+  const spokenSeconds = scriptWords / 2.75;
+  const tooLong = spokenSeconds > MAX_SCRIPT_SECONDS;
+  // The clip we'll actually ask for — 4, 6 or 8. Shorter costs us less and
+  // the customer pays the same, so there's no reason to buy silence.
+  const clipSeconds = [4, 6, 8].find((d) => spokenSeconds <= d) ?? 8;
   const money = (minor: number) =>
     new Intl.NumberFormat("en-GB", {
       style: "currency",
       currency: status?.currency || "GBP",
     }).format(minor / 100);
+
+  // Adopt a source image: hosted when storage is on, data URL when it isn't.
+  const useSource = async (dataUrl: string) => {
+    try {
+      const { publicUrl } = await uploadsClient.uploadProductImage({
+        dataUrl,
+        folder: "video-studio-src",
+      });
+      setImageUrl(publicUrl);
+    } catch {
+      setImageUrl(dataUrl);
+    }
+  };
+
+  // Continue a scene: the last frame of a finished video becomes the first
+  // frame of the next one. That is what actually keeps the same presenter,
+  // shop and lighting — Veo 3.1 Lite can't take reference images, and asking
+  // the prompt to "use the same man" does not hold a face.
+  const continueFrom = async (g: VideoGeneration) => {
+    if (!g.resultUrl) return;
+    setError(null);
+    setUploading(true);
+    try {
+      const frame = await lastFrameOf(g.resultUrl);
+      await useSource(frame);
+      setStyleId(g.kind === "IMAGE" ? styleId : "spokesperson");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (e: any) {
+      setError(
+        e?.message ??
+          "Couldn't read the last frame of that video. Download it and upload a still instead.",
+      );
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const onPickFile = async (file: File) => {
     setError(null);
@@ -112,18 +198,9 @@ export default function VideoStudioPage() {
       // Downscale to a compact JPEG data URL first — keeps the payload small
       // (phone photos are huge) and gives Replicate a clean image input.
       const dataUrl = await downscaleImage(file, 1024);
-      // Prefer a hosted URL when image storage is configured. If it isn't
-      // (Supabase not set up), fall back to the data URL — Replicate accepts a
-      // data URI as the image input, so generation still works.
-      try {
-        const { publicUrl } = await uploadsClient.uploadProductImage({
-          dataUrl,
-          folder: "video-studio-src",
-        });
-        setImageUrl(publicUrl);
-      } catch {
-        setImageUrl(dataUrl);
-      }
+      // Prefer a hosted URL when image storage is configured; the data URL
+      // still works as a model input when it isn't.
+      await useSource(dataUrl);
     } catch (e: any) {
       setError(e?.message ?? "Couldn't read the image");
     } finally {
@@ -166,7 +243,7 @@ export default function VideoStudioPage() {
   const canGenerate =
     (!!imageUrl || !!style?.imageOptional) &&
     prompt.trim().length > 3 &&
-    (!style?.needsScript || script.trim().length > 3) &&
+    (!style?.needsScript || (script.trim().length > 3 && !tooLong)) &&
     (status?.balanceMinor ?? 0) >= cost &&
     !uploading;
 
@@ -330,8 +407,19 @@ export default function VideoStudioPage() {
                     placeholder="e.g. Craving a proper feast? Grab our Solo Meal — a juicy gyros wrap, golden fries and a cold drink. Order now!"
                     className="w-full resize-none rounded-lg border border-zinc-300 px-3 py-2 text-sm"
                   />
-                  <p className="mt-1 text-xs text-zinc-500">
-                    Keep it short — about one or two sentences (~8 seconds of speech).
+                  {/* Veo never speaks faster to fit a long line — it stops
+                      when the clip ends, mid-word. So this is a limit, not a
+                      style note, and it has to be visible while typing. */}
+                  <p
+                    className={
+                      "mt-1 text-xs " + (tooLong ? "font-medium text-amber-700" : "text-zinc-500")
+                    }
+                  >
+                    {scriptWords === 0
+                      ? "Keep it to one or two sentences — about 22 words fits the 8 seconds."
+                      : tooLong
+                        ? `≈${spokenSeconds.toFixed(1)}s of speech — too long for an 8s video, the end would be cut off. Trim to about ${MAX_SCRIPT_WORDS} words (${scriptWords} now).`
+                        : `≈${spokenSeconds.toFixed(1)}s of speech · ${scriptWords} word${scriptWords === 1 ? "" : "s"} — fits an ${clipSeconds}s video.`}
                   </p>
                 </>
               )}
@@ -486,14 +574,27 @@ export default function VideoStudioPage() {
                   <div className="flex items-center justify-between gap-2 p-3">
                     <p className="line-clamp-2 text-xs text-zinc-600">{g.prompt}</p>
                     {g.status === "READY" && g.resultUrl && (
-                      <a
-                        href={g.resultUrl}
-                        download
-                        className="shrink-0 rounded-md p-1.5 text-violet-700 hover:bg-violet-50"
-                        title="Download"
-                      >
-                        <Download className="h-4 w-4" />
-                      </a>
+                      <div className="flex shrink-0 items-center gap-0.5">
+                        {g.kind !== "IMAGE" && (
+                          <button
+                            type="button"
+                            onClick={() => continueFrom(g)}
+                            disabled={uploading}
+                            className="rounded-md p-1.5 text-violet-700 hover:bg-violet-50 disabled:opacity-50"
+                            title="Continue this scene — same presenter and setting"
+                          >
+                            <FilmIcon className="h-4 w-4" />
+                          </button>
+                        )}
+                        <a
+                          href={g.resultUrl}
+                          download
+                          className="rounded-md p-1.5 text-violet-700 hover:bg-violet-50"
+                          title="Download"
+                        >
+                          <Download className="h-4 w-4" />
+                        </a>
+                      </div>
                     )}
                   </div>
                 </div>

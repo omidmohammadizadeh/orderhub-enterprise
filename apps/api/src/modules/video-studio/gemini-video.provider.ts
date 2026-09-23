@@ -44,6 +44,18 @@ function geminiReason(body: string): string {
 
 const API_BASE = "https://generativelanguage.googleapis.com/v1beta";
 
+/**
+ * Veo takes 4, 6 or 8 seconds and nothing else — anything else is a 400 from
+ * Google. Rounding UP to the next allowed value rather than down: a script cut
+ * off mid-sentence is worse than a second of silence at the end, and the 2p
+ * difference is not worth the ruined video.
+ */
+export const VEO_DURATIONS = [4, 6, 8] as const;
+export function clampDuration(seconds: number): number {
+  for (const d of VEO_DURATIONS) if (seconds <= d) return d;
+  return 8;
+}
+
 export interface GeminiOperationStatus {
   done: boolean;
   /** Set when done and successful. */
@@ -59,7 +71,8 @@ export class GeminiVideoProvider {
   /** Default: the Lite tier — $0.05/sec at 720p, the cheapest Veo with audio. */
   readonly model: string;
   /** 720p is the $0.05/sec tier; 1080p is $0.08/sec. Pinned deliberately. */
-  private readonly resolution: string;
+  // Public: the service prices a render on it before spending anything.
+  readonly resolution: string;
   /**
    * Veo accepts 4 | 6 | 8, and rejects a string: "The value type for
    * `durationSeconds` needs to be a number."
@@ -81,7 +94,7 @@ export class GeminiVideoProvider {
     const duration = Number(
       this.config.get<string>("VIDEO_STUDIO_GEMINI_DURATION"),
     );
-    this.durationSeconds = Number.isFinite(duration) && duration > 0 ? duration : 8;
+    this.durationSeconds = clampDuration(Number.isFinite(duration) && duration > 0 ? duration : 8);
   }
 
   isConfigured(): boolean {
@@ -133,6 +146,9 @@ export class GeminiVideoProvider {
     prompt: string;
     image?: string;
     aspectRatio?: string;
+    /** 4, 6 or 8. Shorter costs proportionally less, so a short script
+     *  shouldn't pay for eight seconds of silence. */
+    durationSeconds?: number;
   }): Promise<{ id: string }> {
     if (!this.apiKey) throw new Error("GEMINI_API_KEY not configured");
     const instance: Record<string, unknown> = { prompt: input.prompt };
@@ -144,7 +160,7 @@ export class GeminiVideoProvider {
       parameters: {
         aspectRatio: this.aspect(input.aspectRatio),
         resolution: this.resolution,
-        durationSeconds: this.durationSeconds,
+        durationSeconds: clampDuration(input.durationSeconds ?? this.durationSeconds),
       },
     };
     const res = await fetch(

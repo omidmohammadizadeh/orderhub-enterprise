@@ -9,7 +9,7 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { SupabaseStorageService } from "../uploads/supabase-storage.service";
 import { WalletService } from "../wallet/wallet.service";
 import { ReplicateProvider } from "./replicate.provider";
-import { GeminiVideoProvider } from "./gemini-video.provider";
+import { GeminiVideoProvider, clampDuration } from "./gemini-video.provider";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
 // Generations are keyed by their provider job id in a single column. Gemini
@@ -32,21 +32,40 @@ const GEMINI_DOWNLOAD_GIVE_UP_MS = 20 * 60 * 1000;
 //
 // A model we don't have a rate for costs `null`, which prints as "unknown"
 // rather than a confident zero.
-const USD_PER_SECOND: Record<string, number> = {
-  "veo-3.1-lite-generate-preview": 0.05,
-  "veo-3.1-fast-generate-preview": 0.1,
-  "veo-3.1-generate-preview": 0.4,
-  "google/veo-3-fast": 0.15,
+const USD_PER_SECOND: Record<string, Record<string, number>> = {
+  "veo-3.1-lite-generate-preview": { "720p": 0.05, "1080p": 0.08 },
+  "veo-3.1-fast-generate-preview": { "720p": 0.1, "1080p": 0.12, "4k": 0.3 },
+  "veo-3.1-generate-preview": { "720p": 0.4, "1080p": 0.4, "4k": 0.6 },
+  "google/veo-3-fast": { "720p": 0.15, "1080p": 0.15, "4k": 0.15 },
 };
+
+// A render must never quietly cost more than this. Resolution and model are
+// env-configurable, so without a ceiling one setting change turns a 40¢ video
+// into a $3.20 one and nothing says so until the bill.
+const MAX_COST_USD = Number(process.env["AI_STUDIO_MAX_COST_USD"]) || 0.4;
+
+// How long the spoken line takes. Ad delivery runs about 2.75 words a second;
+// Veo does NOT slow down to fit, it cuts the sentence off, so this decides the
+// clip length rather than merely describing it.
+const WORDS_PER_SECOND = 2.75;
+/** The longest clip Veo 3.1 Lite will make, and so the longest line it can say. */
+export const MAX_SPOKEN_SECONDS = 8;
+export function speechSeconds(script: string): number {
+  const words = script.trim().split(/\s+/).filter(Boolean).length;
+  return words / WORDS_PER_SECOND;
+}
 
 /** Flat per-run rates for models not priced by the second. */
 const USD_PER_RUN: Record<string, number> = {
   "google/nano-banana": 0.039,
 };
 
-function estimateUsd(model: string, seconds: number): number | null {
-  const perSecond = USD_PER_SECOND[model];
-  if (perSecond !== undefined) return Number((perSecond * seconds).toFixed(3));
+function estimateUsd(model: string, seconds: number, resolution = "720p"): number | null {
+  const byResolution = USD_PER_SECOND[model];
+  if (byResolution) {
+    const perSecond = byResolution[resolution] ?? byResolution["720p"];
+    if (perSecond !== undefined) return Number((perSecond * seconds).toFixed(3));
+  }
   const perRun = USD_PER_RUN[model];
   return perRun !== undefined ? perRun : null;
 }
@@ -138,9 +157,20 @@ export class VideoStudioService {
   }
 
   /** Seconds of video a style produces — what the per-second rates bill on. */
-  private secondsFor(style: AdStyle, provider: "replicate" | "gemini"): number {
+  private secondsFor(
+    style: AdStyle,
+    provider: "replicate" | "gemini",
+    script?: string,
+  ): number {
     if (style.kind === "image") return 0;
-    return provider === "gemini" ? this.gemini.durationSeconds : 8;
+    if (provider !== "gemini") return 8;
+    // Fit the clip to the line rather than always buying eight seconds: a
+    // ten-word script needs four, which costs us half as much. The customer
+    // pays the same either way, so this is margin, not a discount.
+    if (style.needsScript && script?.trim()) {
+      return clampDuration(Math.ceil(speechSeconds(script)));
+    }
+    return this.gemini.durationSeconds;
   }
 
   private db() {
@@ -324,6 +354,21 @@ export class VideoStudioService {
     if (style.needsScript && !dto.script?.trim()) {
       throw new BadRequestException("Add a short script for the spokesperson to say.");
     }
+    // Veo never speaks faster to fit a long line — it just stops when the clip
+    // ends, mid-word. Eight seconds is the model's ceiling, so a script that
+    // can't be said in eight seconds is a ruined video we'd have charged for.
+    if (style.needsScript && dto.script) {
+      const spoken = speechSeconds(dto.script);
+      if (spoken > MAX_SPOKEN_SECONDS) {
+        const words = dto.script.trim().split(/\s+/).filter(Boolean).length;
+        const keep = Math.floor(MAX_SPOKEN_SECONDS * WORDS_PER_SECOND);
+        throw new BadRequestException(
+          `That script is about ${spoken.toFixed(1)} seconds of speech and the video is ` +
+            `${MAX_SPOKEN_SECONDS} seconds long, so the end would be cut off mid-sentence. ` +
+            `Trim it to around ${keep} words — it's currently ${words}.`,
+        );
+      }
+    }
     const finalPrompt = this.buildPrompt(style, dto.prompt, dto.script);
 
     // Which wallet pays — and whether this user may spend from it. A
@@ -342,6 +387,25 @@ export class VideoStudioService {
     // Array-style reference input (e.g. nano-banana image_input: [url]).
     if (style.imageArrayKey && reference) {
       extra[style.imageArrayKey] = [reference];
+    }
+
+    // Refuse to render anything that would cost US more than the ceiling. The
+    // model and resolution are env-configurable, so without this one setting
+    // change turns a 40¢ video into a $3.20 one silently — and the customer's
+    // price is fixed, so every cent of that comes off the margin.
+    const seconds = this.secondsFor(style, provider, dto.script);
+    const model =
+      provider === "gemini" ? this.gemini.model : style.model || this.replicate.model;
+    const estimate = estimateUsd(model, seconds, this.gemini.resolution);
+    if (estimate !== null && estimate > MAX_COST_USD + 1e-9) {
+      this.logger.error(
+        `AI Studio refused "${style.id}": ${model} at ${this.gemini.resolution} for ${seconds}s ` +
+          `would cost $${estimate.toFixed(2)}, over the $${MAX_COST_USD.toFixed(2)} ceiling. ` +
+          `Change the model/resolution back, or raise AI_STUDIO_MAX_COST_USD deliberately.`,
+      );
+      throw new BadRequestException(
+        "This render is configured in a way that costs more than allowed. It hasn't been charged.",
+      );
     }
 
     // The row exists before the money moves so the wallet statement can name
@@ -389,6 +453,7 @@ export class VideoStudioService {
           image: reference || undefined,
           prompt: finalPrompt,
           aspectRatio: dto.format ? ASPECT_RATIOS[dto.format] : undefined,
+          durationSeconds: seconds,
         });
         jobId = `${GEMINI_PREFIX}${op.id}`;
       } else {
@@ -403,8 +468,6 @@ export class VideoStudioService {
       }
       // The one line that makes spend auditable after the fact: which provider
       // actually served it, on what model, and what that bills us.
-      const seconds = this.secondsFor(style, provider);
-      const estimate = estimateUsd(gen.model, seconds);
       this.logger.log(
         `AI Studio render ${gen.id}: style=${style.id} provider=${provider} model=${gen.model}` +
           (seconds ? ` ${seconds}s` : "") +
