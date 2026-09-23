@@ -920,7 +920,12 @@ export class DispatchService {
       if (!o.locationId || !accessible.includes(o.locationId)) {
         throw new ForbiddenException(`${ref} isn't in one of your locations.`);
       }
-      if (o.fulfillmentType !== FulfillmentType.DELIVERY) {
+      // MERCHANT_DELIVERY and PLATFORM_COURIER are deliveries too — a
+      // marketplace order the SHOP drives is exactly the case an own-fleet run
+      // is for. Comparing with DELIVERY alone refused every Just Eat / Deliveroo
+      // / Uber Eats merchant-delivered order. The marketplace-carried ones are
+      // excluded by the deliveryType check just below, not by this one.
+      if (!DELIVERY_FULFILLMENTS.includes(o.fulfillmentType)) {
         throw new BadRequestException(`${ref} isn't a delivery.`);
       }
       if (o.courierJobId) {

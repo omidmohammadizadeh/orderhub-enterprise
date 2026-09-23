@@ -127,3 +127,44 @@ describe("assignToDriver (own-fleet run)", () => {
     expect(upserts).toHaveLength(0);
   });
 });
+
+// A marketplace order the SHOP delivers is a delivery we can dispatch.
+//
+// Just Eat sends "delivery-by-merchant" as MERCHANT_DELIVERY (Deliveroo and
+// Uber Eats do the same for their merchant-delivered orders). The rider is
+// ours, the address is on the order, and the shop has to get it there — but
+// the eligibility check compared fulfillmentType with DELIVERY alone, so the
+// board offered no Dispatch button and the API would have refused the pick as
+// "isn't a delivery". Only PICKUP and DINE_IN are genuinely not deliveries,
+// and a marketplace-carried order is excluded by its deliveryType instead.
+describe("assignToDriver — merchant-delivered marketplace orders", () => {
+  it("accepts a MERCHANT_DELIVERY order", async () => {
+    const { s, upserts } = svcWith([
+      order("a", { fulfillmentType: "MERCHANT_DELIVERY", deliveryType: "MERCHANT" }),
+    ]);
+
+    await s.assignToDriver(manager, "d1", ["a"]);
+
+    expect(upserts).toHaveLength(1);
+  });
+
+  it("still refuses a collection order", async () => {
+    const { s, upserts } = svcWith([order("a", { fulfillmentType: "PICKUP" })]);
+
+    await expect(s.assignToDriver(manager, "d1", ["a"])).rejects.toThrow(
+      /#A isn't a delivery/,
+    );
+    expect(upserts).toHaveLength(0);
+  });
+
+  it("still refuses one the marketplace's own rider is carrying", async () => {
+    const { s, upserts } = svcWith([
+      order("a", { fulfillmentType: "PLATFORM_COURIER", deliveryType: "PLATFORM" }),
+    ]);
+
+    await expect(s.assignToDriver(manager, "d1", ["a"])).rejects.toThrow(
+      /marketplace's own rider/,
+    );
+    expect(upserts).toHaveLength(0);
+  });
+});

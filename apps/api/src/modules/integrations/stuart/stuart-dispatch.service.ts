@@ -39,6 +39,13 @@ export const STUART_MAX_DROPOFFS = 8;
 // courier or a driver, or has finished.
 const BULK_DISPATCHABLE = new Set(["ACCEPTED", "PREPARING", "READY"]);
 
+/** Fulfillment types a courier can carry. PICKUP and DINE_IN are not. */
+const DISPATCHABLE_FULFILLMENTS = [
+  "DELIVERY",
+  "MERCHANT_DELIVERY",
+  "PLATFORM_COURIER",
+];
+
 @Injectable()
 export class StuartDispatchService {
   private readonly logger = new Logger(StuartDispatchService.name);
@@ -373,7 +380,10 @@ export class StuartDispatchService {
 
     for (const o of found) {
       const ref = this.orderRef(o);
-      if (o.fulfillmentType !== "DELIVERY") {
+      // A marketplace order the SHOP delivers (MERCHANT_DELIVERY) is a
+      // delivery a courier can carry; only PICKUP and DINE_IN are not. The
+      // marketplace's own riders are excluded by deliveryType below.
+      if (!DISPATCHABLE_FULFILLMENTS.includes(o.fulfillmentType)) {
         throw new BadRequestException(`${ref} isn't a delivery.`);
       }
       if (o.courierJobId) {

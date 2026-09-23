@@ -16,6 +16,7 @@ import { PlatformBadge, FulfillmentBadge } from "./platform-badge";
 import { useUpdateOrderStatus } from "../../hooks/use-live-orders";
 import { useAuthStore } from "../../stores/auth.store";
 import { DispatchModal } from "./dispatch-modal";
+import { isDeliveryFulfillment } from "./bulk-dispatch-eligibility";
 import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { stuartClient } from "../../lib/api/stuart.client";
@@ -353,7 +354,7 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
             Map sits alongside and shows for EVERY delivery: "where is this
             going" is the same question whoever is carrying it, and on a
             platform order it is the only spatial answer the board can give. */}
-        {order.fulfillmentType === "DELIVERY" &&
+        {isDeliveryFulfillment(order.fulfillmentType) &&
           (() => {
             const isPlatform = (order as any).deliveryType === "PLATFORM";
             const OWN_FLEET_ASSIGNED = [

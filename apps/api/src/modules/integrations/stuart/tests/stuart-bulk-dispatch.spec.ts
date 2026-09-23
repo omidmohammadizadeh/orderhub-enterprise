@@ -292,3 +292,23 @@ describe("Stuart cancel on a run", () => {
     expect(client.cancelJob).toHaveBeenCalled();
   });
 });
+
+// Same rule as the own-fleet run: a marketplace order the SHOP delivers is a
+// delivery, so a courier can carry it.
+describe("Stuart bulk — merchant-delivered marketplace orders", () => {
+  it("accepts a MERCHANT_DELIVERY order", async () => {
+    const { s: svc } = svcWith({
+      orders: [
+        order("a", { fulfillmentType: "MERCHANT_DELIVERY", deliveryType: "MERCHANT" }),
+      ],
+    });
+
+    await expect((svc as any).loadBulk(["a"], manager)).resolves.toBeDefined();
+  });
+
+  it("still refuses a collection order", async () => {
+    const { s: svc } = svcWith({ orders: [order("a", { fulfillmentType: "PICKUP" })] });
+
+    await expect((svc as any).loadBulk(["a"], manager)).rejects.toThrow(/isn't a delivery/);
+  });
+});
