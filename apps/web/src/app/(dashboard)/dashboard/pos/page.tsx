@@ -546,9 +546,16 @@ export default function PosPage() {
     setPendingRepeatOrderId(null);
     let cancelled = false;
 
+    // Categories hold LINKS, not items — `c.items[].item` is the product.
+    // Keying this map on the link id meant nothing ever resolved, every line
+    // was judged "no longer on the menu", and the repeat produced an empty
+    // basket.
     const liveItems = new Map<string, any>();
     for (const c of (menuData as any)?.categories ?? []) {
-      for (const it of c.items ?? []) liveItems.set(it.id, it);
+      for (const link of c.items ?? []) {
+        const item = link?.item;
+        if (item?.id) liveItems.set(item.id, item);
+      }
     }
 
     (async () => {
@@ -564,21 +571,36 @@ export default function PosPage() {
             gone.push(it.name);
             continue;
           }
+          // A sized product is priced by its SIZE, not by the product's base
+          // price — repeating a 12" at the 10" price would undercharge every
+          // time. The order line records the SKU's plu, so the exact size can
+          // be found and re-priced; if that size has since gone, the line is
+          // dropped rather than guessed at.
+          const sized = live.hasMultipleSkus === true;
+          const sku = sized
+            ? (live.productSkus ?? []).find((v: any) => v.plu && v.plu === it.sku)
+            : null;
+          if (sized && !sku) {
+            gone.push(it.name);
+            continue;
+          }
           const wasPrice = Number(it.unitPrice);
-          const nowPrice = Number(live.basePrice);
-          // Only the BASE price is re-read. A modifier's price is recorded on
-          // the order line and nothing on the row ties it back to a live
-          // option, so re-pricing those would be guesswork.
+          const nowPrice = Number(sku ? sku.price : live.basePrice);
+          // Only the item's own price is re-read. A modifier's price is
+          // recorded on the order line and nothing on the row ties it back to
+          // a live option, so re-pricing those would be guesswork.
           if (Number.isFinite(wasPrice) && Math.abs(nowPrice - wasPrice) >= 0.01) {
-            repriced.push(live.name);
+            repriced.push(it.name);
           }
           lines.push({
             id: Math.random().toString(36).slice(2),
             menuItemId: live.id,
-            displayName: live.name,
+            // The recorded name carries the size ("Pepperoni 12\""), which the
+            // product's own name does not.
+            displayName: it.name || live.name,
             unitPrice: nowPrice,
             quantity: it.quantity,
-            plu: live.plu ?? null,
+            plu: sku?.plu ?? live.plu ?? null,
             modifiers: (it.modifiers ?? []).map((m: any) => ({
               name: m.name,
               price: Number(m.price ?? 0),

@@ -73,7 +73,18 @@ export function CallerIdPopup({
   );
   const router = useRouter();
   const pathname = usePathname();
-  const [ring, setRing] = useState<CallerIdRingPayload | null>(null);
+  /**
+   * Every call currently ringing, newest first — not one.
+   *
+   * A shop with two lines takes two calls at once, and replacing the card
+   * meant the first caller vanished off the screen mid-sentence: the person
+   * holding the phone lost the name, the address and the order they were
+   * reading out. Three is the cap because a fourth card would cover the till
+   * itself, and a caller nobody can see is no worse than one nobody can reach.
+   */
+  const [rings, setRings] = useState<CallerIdRingPayload[]>([]);
+  const dismiss = (payload: CallerIdRingPayload) =>
+    setRings((prev) => prev.filter((r) => r !== payload));
 
   const roomKey = locationIds.join(",");
   useEffect(() => {
@@ -85,7 +96,16 @@ export function CallerIdPopup({
     for (const id of locationIds) joinLocationRoom(socket, id);
     const onRing = (payload: CallerIdRingPayload) => {
       if (!locationIds.includes(payload.locationId)) return;
-      setRing(payload);
+      setRings((prev) => {
+        // The same line re-reporting itself is one call, not two. Providers
+        // and the Comet box both repeat a ring while the phone is still
+        // ringing, and a stack of identical cards is worse than none.
+        const already = prev.some(
+          (r) => r.phone === payload.phone && r.locationId === payload.locationId,
+        );
+        if (already) return prev;
+        return [payload, ...prev].slice(0, 3);
+      });
     };
     socket.on("callerid:ring", onRing);
     return () => {
@@ -96,34 +116,37 @@ export function CallerIdPopup({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomKey, accessToken]);
 
-  // Auto-dismiss after 60s so a missed call doesn't sit on screen all night.
+  /**
+   * One clock for every card.
+   *
+   * Each card's age is derived from the ring's own timestamp rather than
+   * counted per card, so a second call arriving does not restart the first
+   * one's timer — and cards that have been up for a minute drop off on their
+   * own, so a missed call doesn't sit on screen all night.
+   */
+  const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    if (!ring) return;
-    const t = setTimeout(() => setRing(null), 60_000);
-    return () => clearTimeout(t);
-  }, [ring]);
-
-  // How long this call has been on screen. A counter with three people on it
-  // needs to know whether the phone just started ringing or has been ringing
-  // for forty seconds, and "Incoming call" alone never said.
-  const [elapsed, setElapsed] = useState(0);
-  useEffect(() => {
-    if (!ring) return;
-    setElapsed(0);
-    const t = setInterval(() => setElapsed((n) => n + 1), 1000);
+    if (rings.length === 0) return;
+    const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
-  }, [ring]);
-
-  // Esc dismisses. The card sits over the till and the operator's hands are
-  // already on a keyboard when they are typing an order.
+  }, [rings.length]);
   useEffect(() => {
-    if (!ring) return;
+    if (rings.length === 0) return;
+    setRings((prev) =>
+      prev.filter((r) => now - new Date(r.at).getTime() < 60_000),
+    );
+  }, [now, rings.length]);
+
+  // Esc clears the newest card. The cards sit over the till and the operator's
+  // hands are already on a keyboard when they are typing an order.
+  useEffect(() => {
+    if (rings.length === 0) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setRing(null);
+      if (e.key === "Escape") setRings((prev) => prev.slice(1));
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [ring]);
+  }, [rings.length]);
 
   // Caller-ID HUB role: when this tablet hosts the Comet USB reader, the native
   // shell dispatches "native:callerid" with the ringing number. Forward it to
@@ -170,15 +193,14 @@ export function CallerIdPopup({
     return () => window.removeEventListener("native:callerid", onNative);
   }, [nativeLocationId]);
 
-  if (!ring) return null;
-  const { phone, match, locationId: ringLocationId } = ring;
-  const shopName =
-    locationNames && locationIds.length > 1
-      ? locationNames[ringLocationId]
-      : undefined;
+  if (rings.length === 0) return null;
 
-  const use = (address: CallerIdFill["address"]) => {
-    const detail: CallerIdFill = { phone, name: match?.name ?? null, address };
+  const use = (ring: CallerIdRingPayload, address: CallerIdFill["address"]) => {
+    const detail: CallerIdFill = {
+      phone: ring.phone,
+      name: ring.match?.name ?? null,
+      address,
+    };
     // startsWith, not equality. Any POS route that isn't the bare path — a
     // trailing slash, an order being edited — fell to the branch below, and
     // that branch pushes to the page the operator is already on: no remount,
@@ -199,25 +221,26 @@ export function CallerIdPopup({
       } catch {
         /* ignore */
       }
-      setSelectedLocationId(ringLocationId);
+      setSelectedLocationId(ring.locationId);
       router.push("/dashboard/pos");
     }
-    setRing(null);
+    dismiss(ring);
   };
 
   /**
    * Open the order the caller is ringing about, on the board they already know.
    *
-   * Deep-linked rather than shown inline: everything staff do next — accept it,
-   * amend it, reprint it, chase the driver — already lives on the board's
-   * drawer, and a second, thinner copy of that inside a popup would be the one
-   * that goes stale.
+   * Straight to the order, never through the till: everything staff do next —
+   * accept it, amend it, reprint it, chase the driver — already lives on the
+   * board's drawer, and Edit from there reaches the POS with the order loaded.
+   * A second, thinner copy of all that inside a popup would be the one that
+   * goes stale.
    */
-  const openExistingOrder = (orderId: string) => {
+  const openExistingOrder = (ring: CallerIdRingPayload, orderId: string) => {
     setPendingOpenOrderId(orderId);
-    setSelectedLocationId(ringLocationId);
+    setSelectedLocationId(ring.locationId);
     if (!pathname?.startsWith("/dashboard/orders")) router.push("/dashboard/orders");
-    setRing(null);
+    dismiss(ring);
   };
 
   /**
@@ -228,11 +251,11 @@ export function CallerIdPopup({
    * operator gets a finished order rather than a basket they have to introduce
    * to a customer.
    */
-  const repeatOrder = (order: CallerIdOrderSummary) => {
+  const repeatOrder = (ring: CallerIdRingPayload, order: CallerIdOrderSummary) => {
     const detail: CallerIdFill = {
-      phone,
-      name: match?.name ?? null,
-      address: match?.addresses[0] ?? null,
+      phone: ring.phone,
+      name: ring.match?.name ?? null,
+      address: ring.match?.addresses[0] ?? null,
     };
     setPendingCaller(detail);
     try {
@@ -241,22 +264,35 @@ export function CallerIdPopup({
       /* ignore */
     }
     setPendingRepeatOrderId(order.id);
-    setSelectedLocationId(ringLocationId);
+    setSelectedLocationId(ring.locationId);
     if (!pathname?.startsWith("/dashboard/pos")) router.push("/dashboard/pos");
-    setRing(null);
+    dismiss(ring);
   };
 
   return (
-    <IncomingCallCard
-      phone={phone}
-      match={match}
-      shopName={shopName}
-      elapsedSeconds={elapsed}
-      onDismiss={() => setRing(null)}
-      onUseAddress={use}
-      onOpenOrder={openExistingOrder}
-      onRepeat={repeatOrder}
-    />
+    <div className="pointer-events-none fixed bottom-4 right-4 z-50 flex max-h-[calc(100vh-2rem)] flex-col-reverse items-end gap-2 overflow-y-auto">
+      {rings.map((ring) => (
+        <div key={`${ring.locationId}:${ring.phone}:${ring.at}`} className="pointer-events-auto">
+          <IncomingCallCard
+            phone={ring.phone}
+            match={ring.match}
+            shopName={
+              locationNames && locationIds.length > 1
+                ? locationNames[ring.locationId]
+                : undefined
+            }
+            elapsedSeconds={Math.max(
+              0,
+              Math.floor((now - new Date(ring.at).getTime()) / 1000),
+            )}
+            onDismiss={() => dismiss(ring)}
+            onUseAddress={(address) => use(ring, address)}
+            onOpenOrder={(orderId) => openExistingOrder(ring, orderId)}
+            onRepeat={(order) => repeatOrder(ring, order)}
+          />
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -301,9 +337,10 @@ export function IncomingCallCard({
       // itself rather than just appear.
       role="status"
       aria-live="polite"
-      // max-w so the card never runs off a phone: 360 + the two 1rem insets is
-      // wider than a 375px screen, and the overflow lands on the dismiss button.
-      className="fixed bottom-4 right-4 z-50 w-[360px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-emerald-200 bg-white shadow-2xl"
+      // max-w so the card never runs off a phone: 360 is wider than a 375px
+      // screen once the stack's insets are taken off, and the overflow would
+      // land on the dismiss button.
+      className="w-[360px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-emerald-200 bg-white shadow-2xl"
     >
       <div className="flex items-center justify-between bg-emerald-600 px-4 py-2.5">
         <p className="flex items-center gap-2 text-sm font-bold text-white">
@@ -344,7 +381,9 @@ export function IncomingCallCard({
                 {phone}
               </p>
               <p className="mt-0.5 text-[11px] text-zinc-500">
-                {[
+                {match.orders === 0
+                  ? "First order with you — it's in the kitchen now"
+                  : [
                   `${match.orders} order${match.orders === 1 ? "" : "s"}`,
                   // Grouped, not compact: a lifetime figure is read as a
                   // number ("£1,284.50"), and £1284.50 makes staff count digits.
@@ -354,9 +393,9 @@ export function IncomingCallCard({
                   match.lastOrderAt
                     ? `last ordered ${sinceWords(match.lastOrderAt)}`
                     : null,
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
               </p>
             </div>
 
@@ -388,7 +427,11 @@ export function IncomingCallCard({
               />
             )}
 
-            {match.addresses.length > 0 && (
+            {/* Hidden while an order is live: the address list is for
+                BUILDING an order, and it pushed the one button this caller
+                actually needs down the card. "Start a new order" still leads
+                straight to it. */}
+            {!openOrder && match.addresses.length > 0 && (
               <div className="space-y-1.5">
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
                   Deliver to
@@ -407,9 +450,17 @@ export function IncomingCallCard({
               </div>
             )}
 
+            {/* Someone with food in the kitchen is ringing about that order,
+                and the button they need is already above. Starting ANOTHER
+                order is still one tap away, but it stops looking like the
+                thing to do. */}
             <button
               onClick={() => onUseAddress(match.addresses[0] ?? null)}
-              className="w-full touch-manipulation rounded-lg bg-emerald-600 px-3 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-emerald-500"
+              className={
+                openOrder
+                  ? "w-full touch-manipulation rounded-lg border border-zinc-200 px-3 py-2 text-xs font-semibold text-zinc-600 hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-zinc-400"
+                  : "w-full touch-manipulation rounded-lg bg-emerald-600 px-3 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-emerald-500"
+              }
             >
               {openOrder || lastOrder ? "Start a new order" : "Start order"} for{" "}
               {match.name.split(" ")[0]}
@@ -481,10 +532,10 @@ function OrderBlock({
       </p>
       <button
         onClick={onAction}
-        className={`mt-2 w-full touch-manipulation rounded-lg px-3 py-2 text-xs font-bold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
+        className={`mt-2 w-full touch-manipulation rounded-lg font-bold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
           live
-            ? "bg-amber-600 hover:bg-amber-700 focus-visible:ring-amber-600"
-            : "bg-zinc-800 hover:bg-zinc-900 focus-visible:ring-zinc-800"
+            ? "bg-amber-600 px-3 py-2.5 text-sm hover:bg-amber-700 focus-visible:ring-amber-600"
+            : "bg-zinc-800 px-3 py-2 text-xs hover:bg-zinc-900 focus-visible:ring-zinc-800"
         }`}
       >
         {actionLabel}

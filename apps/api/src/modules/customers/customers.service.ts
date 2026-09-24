@@ -319,6 +319,14 @@ export class CustomersService {
     // Last 9 digits uniquely identify a UK number across 0/+44 forms.
     const suffix = digits.slice(-9);
 
+    // Both reads at once. The popup lands while a phone is ringing, so the
+    // two queries must not queue behind each other.
+    const callerOrdersPromise = this.callerOrders(
+      tenantId,
+      suffix,
+      opts.locationId ?? null,
+    );
+
     const oneYearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
     const orders = await this.prisma.order.findMany({
       where: {
@@ -343,10 +351,34 @@ export class CustomersService {
       take: 5_000,
     });
 
+    const shopOrders = await callerOrdersPromise;
+
     const mine = orders.filter(
       (o) => (o.customerPhone ?? "").replace(/\D/g, "").endsWith(suffix),
     );
-    if (mine.length === 0) return null;
+    if (mine.length === 0) {
+      // No history — but an order they placed minutes ago is not history, and
+      // it is the single most likely reason they are ringing. Someone whose
+      // FIRST order is in the kitchen used to get "New caller, no order
+      // history" and a blank card, which is the one moment staff most need
+      // the order in front of them.
+      //
+      // Their name and address come off that order, so the card is still a
+      // card rather than a bare number.
+      if (!shopOrders.openOrder) return null;
+      return {
+        name: shopOrders.customerName ?? "Customer",
+        orders: 0,
+        email: null,
+        addresses: shopOrders.address ? [shopOrders.address] : [],
+        lifetimeSpend: null,
+        currency: shopOrders.currency,
+        firstOrderAt: null,
+        lastOrderAt: null,
+        openOrder: shopOrders.openOrder,
+        lastOrder: null,
+      };
+    }
 
     const name =
       mine.find((o) => (o.customerName ?? "").trim())?.customerName?.trim() ??
@@ -392,15 +424,7 @@ export class CustomersService {
       : null;
     const dates = mine.map((o) => o.createdAt).sort((a, b) => a.getTime() - b.getTime());
 
-    // The two orders that actually change what the person answering says.
-    // Scoped to the shop that is ringing: a caller's open order at the branch
-    // across town is not what the hand reaching for the phone needs, and a
-    // repeat has to come off the menu of the till it lands on.
-    const { openOrder, lastOrder, currency } = await this.callerOrders(
-      tenantId,
-      suffix,
-      opts.locationId ?? null,
-    );
+    const { openOrder, lastOrder, currency } = shopOrders;
 
     return {
       name,
@@ -436,8 +460,18 @@ export class CustomersService {
     openOrder: CallerOrderSummary | null;
     lastOrder: CallerOrderSummary | null;
     currency: string | null;
+    /** Off the live order, so a caller with no history is still a name. */
+    customerName: string | null;
+    address: CallerAddress | null;
   }> {
-    if (!locationId) return { openOrder: null, lastOrder: null, currency: null };
+    const none = {
+      openOrder: null,
+      lastOrder: null,
+      currency: null,
+      customerName: null,
+      address: null,
+    };
+    if (!locationId) return none;
     try {
       const since = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
       const rows = await this.prisma.order.findMany({
@@ -462,6 +496,8 @@ export class CustomersService {
           total: true,
           createdAt: true,
           customerPhone: true,
+          customerName: true,
+          deliveryAddress: true,
           fulfillmentType: true,
           location: { select: { currency: true } },
           items: { select: { name: true, quantity: true } },
@@ -496,12 +532,14 @@ export class CustomersService {
         openOrder: open ? toCallerOrder(open) : null,
         lastOrder: last ? toCallerOrder(last) : null,
         currency,
+        customerName: (open ?? last)?.customerName?.trim() || null,
+        address: addressOf((open ?? last)?.deliveryAddress),
       };
     } catch (e: any) {
       // A popup that shows the name is still worth having. Never let the extra
       // detail be the reason nothing appears while the phone is ringing.
       this.logger.warn(`caller order lookup failed: ${e?.message ?? e}`);
-      return { openOrder: null, lastOrder: null, currency: null };
+      return none;
     }
   }
 
@@ -791,6 +829,26 @@ const FINISHED_STATUSES = new Set<string>([
   "REJECTED",
   "FAILED",
 ]);
+
+export interface CallerAddress {
+  line1: string;
+  line2: string | null;
+  city: string | null;
+  postcode: string | null;
+}
+
+/** The delivery address off an order row, or null if it carried none. */
+function addressOf(raw: unknown): CallerAddress | null {
+  const a = (raw ?? {}) as Record<string, any>;
+  const line1 = String(a.line1 ?? "").trim();
+  if (!line1) return null;
+  return {
+    line1,
+    line2: (a.line2 ?? null) || null,
+    city: (a.city ?? null) || null,
+    postcode: (a.postcode ?? null) || null,
+  };
+}
 
 export interface CallerOrderSummary {
   id: string;

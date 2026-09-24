@@ -41,16 +41,31 @@ function orderRow(over: Record<string, any> = {}) {
   };
 }
 
-/** First findMany answers the year-wide history scan, second the shop scan. */
+/**
+ * Answer each query by what it ASKS for, not by the order it arrives in.
+ *
+ * The two reads run in parallel, so which one hits the mock first is an
+ * implementation detail — and pinning the tests to that ordering made every
+ * one of them fail the moment the reads were parallelised, for no reason a
+ * reader could see. The shop scan is the one scoped to a location.
+ */
+function makeFindMany(shopOrders: any[], history: any[]) {
+  return jest.fn(async (args: any) =>
+    args?.where?.locationId ? shopOrders : history,
+  );
+}
+
 function setup(shopOrders: any[], history: any[] = [HISTORY]) {
-  const findMany = jest
-    .fn()
-    .mockResolvedValueOnce(history)
-    .mockResolvedValueOnce(shopOrders);
+  const findMany = makeFindMany(shopOrders, history);
   return {
     svc: new CustomersService({ order: { findMany } } as any),
     findMany,
   };
+}
+
+/** The call the SHOP scan made, wherever it landed in the sequence. */
+function shopQuery(findMany: jest.Mock) {
+  return findMany.mock.calls.find((c: any[]) => c[0]?.where?.locationId)?.[0];
 }
 
 describe("the order attached to a ringing caller", () => {
@@ -123,7 +138,7 @@ describe("the order attached to a ringing caller", () => {
   it("asks only for orders this shop can act on, at this shop, recently", async () => {
     const { svc, findMany } = setup([orderRow()]);
     await svc.lookupByPhone("t1", "07788180709", { locationId: "loc-1" });
-    const where = findMany.mock.calls[1][0].where;
+    const where = shopQuery(findMany).where;
     expect(where).toMatchObject({ tenantId: "t1", locationId: "loc-1", isSandbox: false });
     // A marketplace order belongs to the marketplace: we cannot amend it and
     // its items are priced on somebody else's menu.
@@ -146,7 +161,7 @@ describe("the order attached to a ringing caller", () => {
   });
 
   it("attaches no order at all when the ringing shop isn't known", async () => {
-    const findMany = jest.fn().mockResolvedValueOnce([HISTORY]);
+    const findMany = makeFindMany([], [HISTORY]);
     const svc = new CustomersService({ order: { findMany } } as any);
     const hit = await svc.lookupByPhone("t1", "07788180709");
     expect(hit!.openOrder).toBeNull();
@@ -155,11 +170,53 @@ describe("the order attached to a ringing caller", () => {
     expect(findMany).toHaveBeenCalledTimes(1);
   });
 
+  it("shows a live order even when the caller has NO history", async () => {
+    // Their first-ever order, taken by the phone line ten minutes ago, and now
+    // they are ringing back about it. This used to render "New caller — no
+    // order history" and a blank card: the one moment staff most need the
+    // order in front of them was the one moment it wasn't.
+    const findMany = makeFindMany(
+      [
+        orderRow({
+          customerName: "Sam Patel",
+          deliveryAddress: { line1: "2 Mill Lane", city: "Gateshead", postcode: "NE10 8YH" },
+        }),
+      ],
+      [], // no history at all
+    );
+    const svc = new CustomersService({ order: { findMany } } as any);
+    const hit = await svc.lookupByPhone("t1", "07788180709", { locationId: "loc-1" });
+    expect(hit).not.toBeNull();
+    expect(hit!.openOrder).toMatchObject({ id: "o1", reference: "41" });
+    // The name and address come off that order, so it is still a card.
+    expect(hit!.name).toBe("Sam Patel");
+    expect(hit!.addresses).toEqual([
+      { line1: "2 Mill Lane", line2: null, city: "Gateshead", postcode: "NE10 8YH" },
+    ]);
+    // Honest about what it does not know.
+    expect(hit!.orders).toBe(0);
+    expect(hit!.lifetimeSpend).toBeNull();
+    expect(hit!.lastOrderAt).toBeNull();
+  });
+
+  it("is still a new caller when there is no history AND nothing live", async () => {
+    const findMany = makeFindMany(
+      [orderRow({ status: "COMPLETED", createdAt: hoursAgo(72) })],
+      [],
+    );
+    const svc = new CustomersService({ order: { findMany } } as any);
+    // A finished order they never told us about is not a reason to claim we
+    // know them — only something in the kitchen right now is.
+    await expect(
+      svc.lookupByPhone("t1", "07788180709", { locationId: "loc-1" }),
+    ).resolves.toBeNull();
+  });
+
   it("still shows the caller when the order lookup blows up", async () => {
-    const findMany = jest
-      .fn()
-      .mockResolvedValueOnce([HISTORY])
-      .mockRejectedValueOnce(new Error("db went away"));
+    const findMany = jest.fn(async (args: any) => {
+      if (args?.where?.locationId) throw new Error("db went away");
+      return [HISTORY];
+    });
     const svc = new CustomersService({ order: { findMany } } as any);
     const hit = await svc.lookupByPhone("t1", "07788180709", { locationId: "loc-1" });
     // The name is the part staff actually need while the phone is ringing.
