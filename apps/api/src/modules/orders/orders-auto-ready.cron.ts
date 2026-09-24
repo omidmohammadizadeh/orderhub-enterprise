@@ -62,12 +62,38 @@ export class OrdersAutoReadyCron {
           orderSource: true,
           platform: true,
           fulfillmentType: true,
+          tableId: true,
         },
       });
 
+      // Which of these orders is a table's OPEN TAB, as opposed to a ticket
+      // that merely carries a table number. Only the tab is exempt from the
+      // timer — see the note in nextAutoStatus. Resolved in one query for
+      // the whole batch, and skipped entirely on a run with no table orders,
+      // which is most runs at most shops.
+      const tableIds = [
+        ...new Set(
+          orders.map((o) => o.tableId).filter((id): id is string => !!id),
+        ),
+      ];
+      const openTabOrderIds = new Set<string>();
+      if (tableIds.length > 0) {
+        const tables = await this.prisma.table.findMany({
+          where: { id: { in: tableIds } },
+          select: { currentOrderId: true },
+        });
+        for (const t of tables) {
+          if (t.currentOrderId) openTabOrderIds.add(t.currentOrderId);
+        }
+      }
+
       let moved = 0;
       for (const order of orders) {
-        const next = nextAutoStatus(order as any, configured.get(order.locationId)!, now);
+        const next = nextAutoStatus(
+          { ...order, isOpenTab: openTabOrderIds.has(order.id) } as any,
+          configured.get(order.locationId)!,
+          now,
+        );
         if (!next) continue;
         try {
           await this.orders.updateStatus(

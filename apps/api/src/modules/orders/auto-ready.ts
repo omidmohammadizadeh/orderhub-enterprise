@@ -81,6 +81,16 @@ export interface AutoReadyOrder {
   orderSource?: string | null;
   platform?: string | null;
   fulfillmentType?: string | null;
+  /**
+   * This order IS a table's open tab — the growing dine-in order staff will
+   * settle at the end. Resolved by the caller from `Table.currentOrderId`,
+   * because "is the open tab" is a fact about the table, not the order.
+   *
+   * NOT the same as "is dine-in". A QR round the guest paid for on their
+   * phone is DINE_IN and carries a table number, but it is a finished
+   * ticket that nothing will ever be added to.
+   */
+  isOpenTab?: boolean;
 }
 
 /**
@@ -98,9 +108,16 @@ export function nextAutoStatus(
   if (!settings) return null;
   if (order.status !== "ACCEPTED" && order.status !== "PREPARING") return null;
 
-  // A dine-in tab sits accepted for the length of the meal — a timer must
-  // not close it off.
-  if (order.fulfillmentType === "DINE_IN") return null;
+  // A table TAB sits accepted for the length of the meal — a timer must not
+  // close it off, because READY blocks the next round.
+  //
+  // This used to test `fulfillmentType === "DINE_IN"`, which is a different
+  // question and quietly excluded every pay-at-the-table QR order: those are
+  // dine-in, and already paid for, and nothing is ever added to them, so the
+  // timer is exactly as right for them as it is for a collection order. The
+  // shop that turned Auto ready on watched its table tickets sit in Accepted
+  // all service. Ask the table what its open tab is instead.
+  if (order.isOpenTab) return null;
 
   if (
     settings.scope === "MARKETPLACE" &&

@@ -215,7 +215,7 @@ export function AutoReadyModal({
             <p className="rounded-md bg-zinc-50 px-3 py-2 text-[11px] text-zinc-600">
               These times are an estimate, not a check that the food is done. Staff can
               still tap Preparing or Ready early and that always wins — the timer only
-              moves an order nobody has moved already. Dine-in tabs are never touched.
+              moves an order nobody has moved already. An open table tab is never touched — it stays accepted until staff settle it.
             </p>
 
             {save.isError && (

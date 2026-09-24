@@ -124,11 +124,50 @@ describe("nextAutoStatus — which orders it touches", () => {
     ).toBe("READY");
   });
 
-  it("never closes off a dine-in tab, which sits accepted for the whole meal", () => {
+  it("never closes off an OPEN TAB, which sits accepted for the whole meal", () => {
     expect(
       nextAutoStatus(
-        order({ fulfillmentType: "DINE_IN", orderSource: "POS", platform: null }),
+        order({
+          fulfillmentType: "DINE_IN",
+          orderSource: "POS",
+          platform: null,
+          isOpenTab: true,
+        }),
         on({ scope: "ALL" }),
+        AT("2026-09-24T14:00:00Z"),
+      ),
+    ).toBeNull();
+  });
+
+  // The bug this replaced: the exemption tested `fulfillmentType === "DINE_IN"`,
+  // so every pay-at-the-table QR order was excluded too. Those are dine-in and
+  // paid for and nothing is ever added to them, so a shop with Auto ready on
+  // watched its table tickets sit in Accepted for the whole service.
+  it("does advance a prepaid table round — dine-in, but not a tab", () => {
+    expect(
+      nextAutoStatus(
+        order({
+          fulfillmentType: "DINE_IN",
+          orderSource: "POS",
+          platform: null,
+          isOpenTab: false,
+        }),
+        on({ scope: "ALL" }),
+        AT("2026-09-24T14:00:00Z"),
+      ),
+    ).toBe("READY");
+  });
+
+  it("still needs ALL scope — a table order is not a marketplace order", () => {
+    expect(
+      nextAutoStatus(
+        order({
+          fulfillmentType: "DINE_IN",
+          orderSource: "POS",
+          platform: null,
+          isOpenTab: false,
+        }),
+        on({ scope: "MARKETPLACE" }),
         AT("2026-09-24T14:00:00Z"),
       ),
     ).toBeNull();
