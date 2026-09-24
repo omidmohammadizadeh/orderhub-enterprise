@@ -2,12 +2,13 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { Beaker, Bike, ShoppingBag, Loader2, PauseCircle, FlaskConical, History, ChevronDown } from "lucide-react";
+import { Beaker, Bike, ShoppingBag, Loader2, PauseCircle, FlaskConical, History, ChevronDown, Timer } from "lucide-react";
 import { PlatformLogo } from "@/components/ui/platform-logo";
 import { OrderList } from "@/components/orders/order-list";
 import { StopTakingOrdersModal } from "@/components/orders/stop-taking-orders-modal";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { OrderHistoryModal } from "@/components/orders/order-history-modal";
+import { AutoReadyModal } from "@/components/orders/auto-ready-modal";
 import { useAuthStore } from "@/stores/auth.store";
 import { apiClient } from "@/lib/api/client";
 
@@ -80,6 +81,7 @@ export default function OrdersPage() {
   const canSimulate = role === "PLATFORM_ADMIN";
   const [pauseModalOpen, setPauseModalOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [autoReadyOpen, setAutoReadyOpen] = useState(false);
   /** Which platform the driver-simulation chooser is open for. */
   const [simChoice, setSimChoice] = useState<SimPlatform | null>(null);
   // Eight simulate buttons wrapped over three rows on a phone. One dropdown,
@@ -227,6 +229,22 @@ export default function OrdersPage() {
             </button>
           </div>
         )}
+        {/* Auto ready — the shop's own timer for preparing/ready, which is
+            what feeds the marketplaces' prep stages. */}
+        <button
+          type="button"
+          onClick={() => setAutoReadyOpen(true)}
+          disabled={!selectedLocationId}
+          title={
+            selectedLocationId
+              ? "Mark orders preparing and ready on a timer"
+              : "Select a location first"
+          }
+          className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <Timer className="h-4 w-4" />
+          Auto ready
+        </button>
         <button
           type="button"
           onClick={() => setHistoryOpen(true)}
@@ -289,6 +307,11 @@ export default function OrdersPage() {
           </div>
         )}
       </div>
+      <AutoReadyModal
+        open={autoReadyOpen}
+        locationId={selectedLocationId ?? null}
+        onClose={() => setAutoReadyOpen(false)}
+      />
       <OrderHistoryModal
         open={historyOpen}
         onClose={() => setHistoryOpen(false)}

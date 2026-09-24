@@ -2,6 +2,7 @@ import { Module, forwardRef } from "@nestjs/common";
 import { OrdersService } from "./orders.service";
 import { OrdersController } from "./orders.controller";
 import { OrdersAutoCompleteCron } from "./orders-auto-complete.cron";
+import { OrdersAutoReadyCron } from "./orders-auto-ready.cron";
 import { LoyaltyModule } from "../loyalty/loyalty.module";
 import { VoidItemsService } from "./void-items.service";
 import { SocketModule } from "../../infrastructure/socket/socket.module";
@@ -43,7 +44,7 @@ import { DispatchSettlementModule } from "../dispatch/dispatch-settlement.module
     DispatchSettlementModule,
   ],
   controllers: [OrdersController],
-  providers: [OrdersService, OrdersAutoCompleteCron, VoidItemsService],
+  providers: [OrdersService, OrdersAutoCompleteCron, OrdersAutoReadyCron, VoidItemsService],
   exports: [OrdersService, VoidItemsService],
 })
 export class OrdersModule {}
