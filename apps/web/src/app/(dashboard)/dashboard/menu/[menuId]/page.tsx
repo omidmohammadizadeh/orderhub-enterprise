@@ -956,7 +956,7 @@ export default function MenuEditorPage() {
                             <ChevronDown className="h-4 w-4" />
                           </button>
                         </div>
-                        <div className="pl-3 pr-24">
+                        <div className="pl-7 pr-24 md:pl-3">
                           <h3 className="font-bold text-zinc-900 text-base leading-tight mb-1">
                             {p.name}
                           </h3>
