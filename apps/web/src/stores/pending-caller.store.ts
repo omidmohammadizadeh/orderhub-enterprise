@@ -38,6 +38,19 @@ interface PendingCallerState {
    */
   pendingRepeatOrderId: string | null;
   setPendingRepeatOrderId: (orderId: string | null) => void;
+  /**
+   * An order the operator asked to OPEN, waiting for the orders list to show
+   * its detail panel.
+   *
+   * Same mechanism, same reason. A `?orderId=` query parameter looks like the
+   * natural home for this and does not work: the incoming-call card is mounted
+   * on every dashboard screen, so it is frequently pressed while the operator
+   * is ALREADY on the orders page — and changing the query there re-renders
+   * without remounting, so anything that reads the URL once on mount never
+   * sees it and the panel simply doesn't open.
+   */
+  pendingOpenOrderId: string | null;
+  setPendingOpenOrderId: (orderId: string | null) => void;
 }
 
 export const usePendingCallerStore = create<PendingCallerState>((set) => ({
@@ -45,4 +58,6 @@ export const usePendingCallerStore = create<PendingCallerState>((set) => ({
   setPendingCaller: (fill) => set({ pending: fill }),
   pendingRepeatOrderId: null,
   setPendingRepeatOrderId: (orderId) => set({ pendingRepeatOrderId: orderId }),
+  pendingOpenOrderId: null,
+  setPendingOpenOrderId: (orderId) => set({ pendingOpenOrderId: orderId }),
 }));

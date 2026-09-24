@@ -328,6 +328,9 @@ function KnownCustomer({
   const setPendingRepeatOrderId = usePendingCallerStore(
     (st) => st.setPendingRepeatOrderId,
   );
+  const setPendingOpenOrderId = usePendingCallerStore(
+    (st) => st.setPendingOpenOrderId,
+  );
   const router = useRouter();
 
   const digits = phone.replace(/\D/g, "");
@@ -393,11 +396,10 @@ function KnownCustomer({
       {match.openOrder ? (
         <button
           type="button"
-          onClick={() =>
-            router.push(
-              `/dashboard/orders?orderId=${encodeURIComponent(match.openOrder!.id)}`,
-            )
-          }
+          onClick={() => {
+            setPendingOpenOrderId(match.openOrder!.id);
+            router.push("/dashboard/orders");
+          }}
           className="mt-2 block w-full touch-manipulation break-words rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-left text-xs hover:border-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-amber-500"
         >
           <span className="font-semibold text-amber-900">

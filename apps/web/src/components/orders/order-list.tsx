@@ -36,6 +36,7 @@ import {
   ListChecks,
 } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { usePendingCallerStore } from "@/stores/pending-caller.store";
 import dynamic from "next/dynamic";
 import { canBulkDispatch } from "./bulk-dispatch-eligibility";
 import {
@@ -280,6 +281,46 @@ interface Props {
 export function OrderList({ locationId }: Props) {
   const { orders, isLoading, error } = useLiveOrders(locationId);
   const [selected, setSelected] = useState<Order | null>(null);
+
+  // "Open this order" on the incoming-call card. The caller is on the phone
+  // asking about an order that is already in the kitchen, so landing them on a
+  // board of forty tickets and leaving them to find it is most of the job
+  // undone — this opens the same detail panel tapping the card would.
+  //
+  // Keyed on the VALUE and on the orders arriving, never on this component's
+  // mount: the card is pressed from the orders page as often as from anywhere
+  // else, and the list is usually still fetching when it is pressed from
+  // elsewhere.
+  const pendingOpenOrderId = usePendingCallerStore((st) => st.pendingOpenOrderId);
+  const setPendingOpenOrderId = usePendingCallerStore(
+    (st) => st.setPendingOpenOrderId,
+  );
+  const [openMiss, setOpenMiss] = useState(false);
+  useEffect(() => {
+    if (!pendingOpenOrderId) return;
+    const hit = orders.find((o) => o.id === pendingOpenOrderId);
+    if (hit) {
+      setSelected(hit);
+      setOpenMiss(false);
+      setPendingOpenOrderId(null);
+      return;
+    }
+    if (isLoading) return;
+    // Not in the list — but not necessarily missing. Arriving from another
+    // screen switches the location, and the board can be showing the previous
+    // shop's cached orders for a moment while the new ones fetch. Give that a
+    // beat before saying anything: the effect re-runs the instant `orders`
+    // changes, which cancels this.
+    //
+    // If it is still absent after that, it was finished or cancelled between
+    // the phone ringing and the button being pressed — and saying so is the
+    // point, because a button that does nothing reads as broken software.
+    const t = setTimeout(() => {
+      setOpenMiss(true);
+      setPendingOpenOrderId(null);
+    }, 2500);
+    return () => clearTimeout(t);
+  }, [pendingOpenOrderId, orders, isLoading, setPendingOpenOrderId]);
   const [bucketFilter, setBucketFilter] = useState<string>("ALL");
   // Empty set = "all channels". The filter popover writes the
   // selected channel keys here; live filter narrows orders by
@@ -395,6 +436,25 @@ export function OrderList({ locationId }: Props) {
 
   return (
     <>
+      {openMiss && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="mb-3 flex items-start justify-between gap-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900"
+        >
+          <span>
+            That order isn&apos;t on the live board any more — it was completed
+            or cancelled. Look it up in Order history.
+          </span>
+          <button
+            onClick={() => setOpenMiss(false)}
+            className="shrink-0 rounded border border-current/40 px-2 py-0.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 focus-visible:ring-offset-2"
+          >
+            Got it
+          </button>
+        </div>
+      )}
+
       {/* Status dropdown + channel Filter, one tidy row */}
       <div className="mb-3 flex items-center gap-2">
         <div className="relative" ref={statusRef}>

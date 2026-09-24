@@ -68,6 +68,9 @@ export function CallerIdPopup({
   const setPendingRepeatOrderId = usePendingCallerStore(
     (st) => st.setPendingRepeatOrderId,
   );
+  const setPendingOpenOrderId = usePendingCallerStore(
+    (st) => st.setPendingOpenOrderId,
+  );
   const router = useRouter();
   const pathname = usePathname();
   const [ring, setRing] = useState<CallerIdRingPayload | null>(null);
@@ -211,8 +214,9 @@ export function CallerIdPopup({
    * that goes stale.
    */
   const openExistingOrder = (orderId: string) => {
+    setPendingOpenOrderId(orderId);
     setSelectedLocationId(ringLocationId);
-    router.push(`/dashboard/orders?orderId=${encodeURIComponent(orderId)}`);
+    if (!pathname?.startsWith("/dashboard/orders")) router.push("/dashboard/orders");
     setRing(null);
   };
 
