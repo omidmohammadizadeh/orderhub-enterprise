@@ -135,3 +135,50 @@ describe("MenuAvailabilityService.getBrandMatrix", () => {
     expect(res.items.map((i) => i.id)).toEqual(["i9"]);
   });
 });
+
+// A published menu must never leave the board empty.
+//
+// Live, 24 Sep 2026: the variant menu "kingston pizza-test store" published to
+// Just Eat for brand "order hub test store" (JET accepted 118 items), yet the
+// Inventory board for that brand read "No published menu for this brand yet".
+// The menu mixes several brands' items, so the board scoped to items tagged
+// with the selected brand — and none were, because a variant menu's items keep
+// the brand they were imported under. The operator then has no way to 86
+// anything that is live on Just Eat.
+//
+// When brand-scoping empties a menu that DOES have items, show the whole menu.
+describe("getBrandMatrix — a published menu whose items carry other brands", () => {
+  const branded = (id: string, name: string, brandId: string) => ({
+    ...item(id, name),
+    brandId,
+    brandIds: [],
+  });
+
+  it("falls back to the whole menu rather than an empty board", async () => {
+    const svc = makeService({
+      assignedMenu: { id: "menuV", name: "kingston pizza-test store" },
+      categories: [{ items: [{ itemId: "i1" }, { itemId: "i2" }] }],
+      items: [
+        branded("i1", "10\" Munch Box", "otherBrand"),
+        branded("i2", "Chips", "thirdBrand"),
+      ],
+    });
+
+    const res = await svc.getBrandMatrix("b1", "t1");
+
+    expect(res.items.map((i) => i.id).sort()).toEqual(["i1", "i2"]);
+    expect(res.sourceMenu).toEqual({ id: "menuV", name: "kingston pizza-test store" });
+  });
+
+  it("still scopes a master menu that DOES carry this brand's items", async () => {
+    const svc = makeService({
+      assignedMenu: { id: "menuM", name: "Master Menu" },
+      categories: [{ items: [{ itemId: "i1" }, { itemId: "i2" }] }],
+      items: [branded("i1", "Ours", "b1"), branded("i2", "Theirs", "otherBrand")],
+    });
+
+    const res = await svc.getBrandMatrix("b1", "t1");
+
+    expect(res.items.map((i) => i.id)).toEqual(["i1"]);
+  });
+});

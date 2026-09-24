@@ -175,13 +175,21 @@ export class MenuAvailabilityService {
       orderBy: { name: "asc" },
     });
     const distinctBrands = new Set(allItems.map((i) => i.brandId));
-    const scoped =
+    const brandScoped =
       distinctBrands.size > 1
         ? allItems.filter(
             (i) =>
               i.brandId === brandId || (i.brandIds ?? []).includes(brandId),
           )
         : allItems;
+    // A published menu must never leave the board empty. A VARIANT menu keeps
+    // the brands its items were imported under, so scoping by brand can match
+    // nothing even though the whole menu is live for this brand — which is
+    // exactly what happened to "kingston pizza-test store" on Just Eat
+    // (24 Sep 2026): 118 items live, board said "no published menu". An empty
+    // scope means the tags don't describe this menu, so fall back to all of it
+    // rather than hiding items the operator has to be able to 86.
+    const scoped = brandScoped.length > 0 ? brandScoped : allItems;
 
     // Collapse duplicate products into one row. A menu combined from several
     // source menus (master menu) or re-imported can carry multiple MenuItem
