@@ -5,11 +5,21 @@ import { LoyaltyService } from "../loyalty/loyalty.service";
 import { ReferralService } from "../loyalty/referral.service";
 import { DispatchSettlementService } from "../dispatch/dispatch-settlement.service";
 
-// Phase AW-27 — Daily auto-complete at the business-day rollover.
+// Phase AW-27 — Auto-complete at the business-day rollover.
 //
-// At 05:00 UTC every day (≈ 05:00 GMT / 06:00 BST, matching the
-// operator's "next shift" cutoff) we flip every non-terminal order
-// to COMPLETED so the next morning starts with a clean board.
+// The business day ends at 05:00 UTC (≈ 05:00 GMT / 06:00 BST, matching the
+// operator's "next shift" cutoff). Every non-terminal order from BEFORE that
+// line is flipped to COMPLETED so the next morning starts with a clean board.
+//
+// Runs hourly, not once at 05:00, because of the grace window below. An order
+// placed at 04:50 is skipped by the 05:00 run (it is only ten minutes old) and,
+// when this only ran daily, nothing looked at it again until 05:00 the NEXT
+// morning — so it sat on the orders board and the dispatch map for another day,
+// counting up as an ever-later red pin. The hourly run catches it at 06:00.
+//
+// The boundary is what keeps this safe: only orders from before the most recent
+// 05:00 are ever touched, so an order taken at 09:00 today is never completed
+// out from under the shop that is still working on it.
 //
 // In-scope statuses (anything that can still legitimately progress):
 //   PENDING, ACCEPTED, PREPARING, READY, DISPATCHED,
@@ -19,10 +29,10 @@ import { DispatchSettlementService } from "../dispatch/dispatch-settlement.servi
 // Out-of-scope (already terminal — left untouched):
 //   COMPLETED, CANCELLED, REJECTED, FAILED, REFUNDED
 //
-// We also bound by `updatedAt < 24h ago` so a fresh order placed at
-// 04:59 doesn't get completed five minutes later. The cron writes a
-// status-history row tagged "SYSTEM / 5am-rollover" so the audit
-// trail explains why the status flipped without operator input.
+// It also bounds by `updatedAt` older than an hour, so an order anyone has
+// touched recently is left alone. The cron writes a status-history row tagged
+// "SYSTEM / 5am-rollover" so the audit trail explains why the status flipped
+// without operator input.
 
 @Injectable()
 export class OrdersAutoCompleteCron {
@@ -52,10 +62,24 @@ export class OrdersAutoCompleteCron {
     private readonly dispatchSettlement: DispatchSettlementService,
   ) {}
 
-  // 05:00 UTC daily.
-  @Cron("0 5 * * *")
+  /** The most recent 05:00 UTC — the line between yesterday's trade and today's. */
+  static businessDayBoundary(now: Date): Date {
+    const boundary = new Date(now);
+    boundary.setUTCHours(5, 0, 0, 0);
+    if (boundary > now) boundary.setUTCDate(boundary.getUTCDate() - 1);
+    return boundary;
+  }
+
+  // Hourly, but only ever acting on orders from before the last 05:00.
+  @Cron("0 * * * *")
   async run() {
-    const cutoff = new Date(Date.now() - 60 * 60 * 1000); // 1h grace
+    const now = new Date();
+    // Both must hold: the order belongs to a finished business day, AND nobody
+    // has touched it for an hour. At the 05:00 run itself the hour is the
+    // tighter of the two, so that run behaves exactly as it always has.
+    const boundary = OrdersAutoCompleteCron.businessDayBoundary(now);
+    const graceCutoff = new Date(now.getTime() - 60 * 60 * 1000);
+    const cutoff = new Date(Math.min(boundary.getTime(), graceCutoff.getTime()));
 
     // Table Tabs — an OPEN dine-in tab (the table is still OCCUPIED and points
     // at this order as its running bill) must survive the rollover. It's real,
@@ -91,7 +115,7 @@ export class OrdersAutoCompleteCron {
     }
 
     if (rows.length === 0) {
-      this.logger.log("Auto-complete: no in-flight orders to roll over.");
+      this.logger.debug("Auto-complete: no in-flight orders to roll over.");
       // Still sweep: a stranded assignment can outlive the order that made it.
       await this.settleDispatch();
       return;

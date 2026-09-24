@@ -243,6 +243,16 @@ function CashUpTab({
     queryFn: () => getDriverCashUp(driver.id, range),
   });
 
+  // The outstanding balance, whatever period is on screen. Cashing up always
+  // settles THIS — it is what takes the driver back to zero — so while a past
+  // period is being viewed the button still has to say what it will clear.
+  // Same query key as the unfiltered view, so looking at outstanding costs
+  // nothing extra.
+  const outstandingView = useQuery({
+    queryKey: ["driver-cashup", driver.id, undefined],
+    queryFn: () => getDriverCashUp(driver.id, undefined),
+  });
+
   const settle = useMutation({
     mutationFn: () => settleDriverCashUp(driver.id),
     onSuccess: () => {
@@ -257,6 +267,7 @@ function CashUpTab({
   });
 
   const v = view.data;
+  const ov = outstandingView.data;
   const { money } = useCurrency();
   const owedToDriver = v ? v.cashHandover < 0 : false;
 
@@ -360,7 +371,15 @@ function CashUpTab({
             )}
           </div>
 
-          {v.outstanding && (
+          {/* Cashing up is available whichever period is on screen — an
+              operator who has just looked one up shouldn't have to find their
+              way back to clear the balance. It always settles the outstanding
+              balance, because that is what takes the driver to zero; settling
+              only the viewed period would advance the cleared marker past
+              everything before it and the driver would never be paid for those
+              deliveries. So when a period is being viewed, the button says
+              what it will actually clear. */}
+          {v.outstanding ? (
             <button
               onClick={() => settle.mutate()}
               disabled={settle.isPending || v.deliveries === 0}
@@ -369,6 +388,33 @@ function CashUpTab({
               {settle.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
               Cash up now — clears the balance
             </button>
+          ) : (
+            <div className="space-y-1.5">
+              <button
+                onClick={() => settle.mutate()}
+                disabled={settle.isPending || !ov || ov.deliveries === 0}
+                className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-zinc-800 disabled:opacity-50"
+              >
+                {settle.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                Cash up driver — clears the balance
+              </button>
+              <p className="text-[11px] text-zinc-500">
+                {!ov ? (
+                  "Checking the outstanding balance…"
+                ) : ov.deliveries === 0 ? (
+                  "Nothing outstanding — this driver is already cashed up."
+                ) : (
+                  <>
+                    Clears everything outstanding since the last cash-up —{" "}
+                    {ov.deliveries} deliver{ov.deliveries === 1 ? "y" : "ies"} and{" "}
+                    {ov.cashHandover < 0
+                      ? `${money(Math.abs(ov.cashHandover))} owed to the driver`
+                      : `${money(ov.cashHandover)} to hand over`}
+                    , not only the period shown above.
+                  </>
+                )}
+              </p>
+            </div>
           )}
         </>
       )}
