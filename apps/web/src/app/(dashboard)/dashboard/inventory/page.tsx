@@ -18,7 +18,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useCurrency } from "@/hooks/use-currency";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2, X, AlertCircle, Check, ChevronRight } from "lucide-react";
+import { Loader2, X, AlertCircle, Check, ChevronRight, Search } from "lucide-react";
 import toast from "react-hot-toast";
 import { brandsClient, type Brand } from "@/lib/api/locations.client";
 import {
@@ -91,7 +91,21 @@ export default function InventoryPage() {
     enabled: !!brandId,
     refetchInterval: 30_000,
   });
-  const items = matrixQuery.data?.items ?? [];
+  const allItems = matrixQuery.data?.items ?? [];
+
+  // A published menu runs to a couple of hundred products; the item you need
+  // to 86 mid-service is one of them. Name or PLU, because the kitchen calls
+  // it by name and the printed ticket calls it by code.
+  const [search, setSearch] = useState("");
+  const items = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return allItems;
+    return allItems.filter(
+      (i: InventoryItem) =>
+        i.name.toLowerCase().includes(q) ||
+        (i.plu ?? "").toLowerCase().includes(q),
+    );
+  }, [allItems, search]);
 
   /**
    * Phone only — which product's channel panel is open.
@@ -249,9 +263,37 @@ export default function InventoryPage() {
         </p>
       ) : null}
 
+      {brandId && allItems.length > 0 ? (
+        <div className="relative max-w-sm">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search this brand's products by name or PLU"
+            aria-label="Search products"
+            className="w-full rounded-lg border border-zinc-200 bg-white py-2 pl-9 pr-9 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900/10"
+          />
+          {search ? (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              aria-label="Clear search"
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
       {!brandId ? null : matrixQuery.isLoading ? (
         <div className="flex h-40 items-center justify-center text-zinc-400">
           <Loader2 className="h-5 w-5 animate-spin" />
+        </div>
+      ) : items.length === 0 && search.trim() ? (
+        <div className="rounded-md border border-dashed border-zinc-200 bg-white p-8 text-center text-sm text-zinc-500">
+          No product matches “{search.trim()}”.
         </div>
       ) : items.length === 0 ? (
         <div className="rounded-md border border-dashed border-zinc-200 bg-white p-8 text-center text-sm text-zinc-500">
@@ -316,7 +358,13 @@ export default function InventoryPage() {
           })}
         </div>
 
-        <div className="hidden overflow-x-auto rounded-lg border border-zinc-200 bg-white md:block">
+        {/* max-h + overflow makes this the scroll container, which is what
+            lets the header row stick: `sticky top-0` pins to the nearest
+            scrolling ancestor, and with the page as that ancestor the logos
+            scrolled away exactly when a long menu needed them. Now the
+            channel a switch belongs to stays on screen however far down the
+            list you are. */}
+        <div className="hidden max-h-[calc(100vh-15rem)] overflow-auto rounded-lg border border-zinc-200 bg-white md:block">
           {/* min-w-max is what makes the overflow-x-auto above do anything.
               With w-full alone the eight columns (Product + 7 channels) are
               squeezed into whatever the viewport is — about 47px each on a
@@ -324,15 +372,17 @@ export default function InventoryPage() {
               Product column is sticky, so it stays put while the channels
               scroll under it. */}
           <table className="w-full min-w-max text-sm">
-            <thead className="bg-zinc-50 text-[10px] uppercase tracking-wider text-zinc-500">
+            <thead className="text-[10px] uppercase tracking-wider text-zinc-500">
               <tr>
-                <th className="sticky left-0 z-10 bg-zinc-50 px-3 py-2.5 text-left font-semibold">
+                {/* The corner sits above both sticky axes, so it must outrank
+                    the row headers (z-20) and the channel headers (z-20). */}
+                <th className="sticky left-0 top-0 z-30 border-b border-zinc-200 bg-zinc-50 px-3 py-2.5 text-left font-semibold">
                   Product
                 </th>
                 {CHANNELS.map((c) => (
                   <th
                     key={c}
-                    className="whitespace-nowrap px-3 py-2.5 text-center font-semibold"
+                    className="sticky top-0 z-20 whitespace-nowrap border-b border-zinc-200 bg-zinc-50 px-3 py-2.5 text-center font-semibold"
                   >
                     <div className="flex flex-col items-center gap-1">
                       <PlatformLogo
@@ -352,7 +402,7 @@ export default function InventoryPage() {
                       much as the longest product name and leaves no room for
                       the channels it's meant to sit beside. The right border
                       marks the split once the channels scroll beneath. */}
-                  <td className="sticky left-0 z-10 w-[190px] min-w-[190px] max-w-[190px] border-r border-zinc-100 bg-white px-3 py-2.5">
+                  <td className="sticky left-0 z-20 w-[190px] min-w-[190px] max-w-[190px] border-r border-zinc-100 bg-white px-3 py-2.5">
                     <div className="flex items-center gap-3">
                       {item.imageUrl ? (
                         /* eslint-disable-next-line @next/next/no-img-element */
