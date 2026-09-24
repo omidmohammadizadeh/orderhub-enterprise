@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import {
   Clock,
@@ -213,6 +213,39 @@ export function OrderBoard({ locationId }: Props) {
   const [platformFilter, setPlatformFilter] = useState<string>("ALL");
   const { orders, isLoading, error } = useLiveOrders(locationId);
 
+  // Deep link from the incoming-call popup: a customer ringing about an order
+  // already in the kitchen lands on that order's drawer, not on a board of
+  // forty tickets they then have to find it among.
+  //
+  // Keyed on the id AND on the orders arriving, because the board is usually
+  // still fetching when this page mounts — reading once on mount would open
+  // nothing and look like a dead button. The id is consumed on the way in so
+  // closing the drawer doesn't immediately re-open it.
+  const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const id = new URLSearchParams(window.location.search).get("orderId");
+    if (id) setPendingOrderId(id);
+  }, []);
+  const [deepLinkMiss, setDeepLinkMiss] = useState(false);
+  useEffect(() => {
+    if (!pendingOrderId) return;
+    const hit = orders.find((o) => o.id === pendingOrderId);
+    if (hit) {
+      setSelectedOrder(hit);
+      setPendingOrderId(null);
+      setDeepLinkMiss(false);
+      return;
+    }
+    // Loaded, and it genuinely isn't here — it was finished or cancelled
+    // between the phone ringing and the button being pressed. Say so: a
+    // button that does nothing reads as broken software.
+    if (!isLoading) {
+      setPendingOrderId(null);
+      setDeepLinkMiss(true);
+    }
+  }, [pendingOrderId, orders, isLoading]);
+
   // Auto-print now runs globally from the dashboard layout
   // (AutoPrintRunner), so it works on every page — not just this board.
   // Nothing to mount here.
@@ -266,6 +299,25 @@ export function OrderBoard({ locationId }: Props) {
 
   return (
     <>
+      {deepLinkMiss && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="mb-3 flex items-start justify-between gap-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900"
+        >
+          <span>
+            That order isn&apos;t on the live board any more — it was finished or
+            cancelled. Look it up in Order history.
+          </span>
+          <button
+            onClick={() => setDeepLinkMiss(false)}
+            className="shrink-0 rounded border border-current/40 px-2 py-0.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-amber-600"
+          >
+            Got it
+          </button>
+        </div>
+      )}
+
       {/* Platform filter */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
         {platforms.map((p) => (

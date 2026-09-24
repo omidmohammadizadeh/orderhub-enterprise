@@ -1185,17 +1185,9 @@ export function spokenReference(value: string | number | null | undefined): stri
  * a sequential number, so they show the id tail. Reading the whole cuid back
  * instead is what made it sound like the wrong order had been found.
  */
-export function boardReference(order: {
-  displayId?: string | null;
-  orderNumber?: number | string | null;
-  id?: string | null;
-}): string {
-  if (order.displayId) return String(order.displayId);
-  if (order.orderNumber != null && order.orderNumber !== "") {
-    return String(order.orderNumber);
-  }
-  return String(order.id ?? "").slice(-6);
-}
+// Lives in @orderhub/shared now — the caller popup needs the same reference
+// the board and the phone line use, and two copies would drift.
+export { boardReference } from "@orderhub/shared";
 
 /**
  * The street out of a full first line — "11 Follingsby Drive" → "Follingsby

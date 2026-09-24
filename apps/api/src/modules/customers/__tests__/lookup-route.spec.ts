@@ -29,14 +29,24 @@ describe("GET /customers/lookup", () => {
   it("looks the number up against the caller's OWN tenant, never a supplied one", async () => {
     const customers: any = { lookupByPhone: jest.fn(async () => null) };
     const c = new CustomersController(customers, {} as any, {} as any);
-    await c.lookup({ tenantId: "t1", userId: "u1", role: "MANAGER" } as any, "07788187123");
-    expect(customers.lookupByPhone).toHaveBeenCalledWith("t1", "07788187123");
+    await c.lookup(
+      { tenantId: "t1", userId: "u1", role: "MANAGER" } as any,
+      "07788187123",
+      "loc-from-the-client",
+    );
+    // The tenant is the caller's own. The location only narrows which shop's
+    // live/last order is attached, and cannot reach outside that tenant.
+    expect(customers.lookupByPhone).toHaveBeenCalledWith("t1", "07788187123", {
+      locationId: "loc-from-the-client",
+    });
   });
 
   it("passes an empty string rather than undefined when no phone is given", async () => {
     const customers: any = { lookupByPhone: jest.fn(async () => null) };
     const c = new CustomersController(customers, {} as any, {} as any);
     await c.lookup({ tenantId: "t1" } as any, undefined);
-    expect(customers.lookupByPhone).toHaveBeenCalledWith("t1", "");
+    expect(customers.lookupByPhone).toHaveBeenCalledWith("t1", "", {
+      locationId: undefined,
+    });
   });
 });

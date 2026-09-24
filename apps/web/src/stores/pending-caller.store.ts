@@ -27,9 +27,22 @@ import type { CallerIdFill } from "@/components/pos/caller-id-popup";
 interface PendingCallerState {
   pending: CallerIdFill | null;
   setPendingCaller: (fill: CallerIdFill | null) => void;
+  /**
+   * An order the operator asked to have again, waiting for POS to load it.
+   *
+   * Travels the same way and for the same reason as the caller above: "Repeat
+   * this order" also switches the selected location, so anything read once on
+   * mount is read by the wrong mount. A query parameter has the same problem
+   * from the other side — pressing it while already on POS changes the URL
+   * without remounting, and a mount-only reader never sees it.
+   */
+  pendingRepeatOrderId: string | null;
+  setPendingRepeatOrderId: (orderId: string | null) => void;
 }
 
 export const usePendingCallerStore = create<PendingCallerState>((set) => ({
   pending: null,
   setPendingCaller: (fill) => set({ pending: fill }),
+  pendingRepeatOrderId: null,
+  setPendingRepeatOrderId: (orderId) => set({ pendingRepeatOrderId: orderId }),
 }));

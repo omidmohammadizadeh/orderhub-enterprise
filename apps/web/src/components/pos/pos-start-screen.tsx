@@ -31,7 +31,9 @@ import {
   ArrowRight,
   X,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
+import { usePendingCallerStore } from "@/stores/pending-caller.store";
 import type { PartialDraft } from "./pos-cart-panel";
 import { DeliveryAddressField } from "./delivery-address-field";
 import { cn } from "@/lib/utils";
@@ -322,6 +324,11 @@ function KnownCustomer({
 }) {
   const [match, setMatch] = useState<LookupMatch | null>(null);
   const [dismissed, setDismissed] = useState<string | null>(null);
+  const locationId = useSelectedLocationStore((s) => s.selectedLocationId);
+  const setPendingRepeatOrderId = usePendingCallerStore(
+    (st) => st.setPendingRepeatOrderId,
+  );
+  const router = useRouter();
 
   const digits = phone.replace(/\D/g, "");
   useEffect(() => {
@@ -335,7 +342,11 @@ function KnownCustomer({
     // Debounced: one request when typing pauses, not one per keystroke.
     const t = setTimeout(() => {
       apiClient
-        .get<LookupMatch | null>("/v1/customers/lookup", { params: { phone: digits } })
+        .get<LookupMatch | null>("/v1/customers/lookup", {
+          // The till's own shop, so "in progress now" and "the usual" are this
+          // kitchen's orders — a repeat has to come off the menu it lands on.
+          params: { phone: digits, locationId },
+        })
         .then((r) => {
           if (live) setMatch(r.data ?? null);
         })
@@ -349,7 +360,7 @@ function KnownCustomer({
       live = false;
       clearTimeout(t);
     };
-  }, [digits]);
+  }, [digits, locationId]);
 
   if (!match || dismissed === digits) return null;
   const firstName = (match.name ?? "").split(" ")[0] || "this customer";
@@ -375,6 +386,42 @@ function KnownCustomer({
           <X className="h-3.5 w-3.5" />
         </button>
       </div>
+
+      {/* The two things a returning customer is most likely ringing about.
+          Same rule as the incoming-call popup: a live order outranks a repeat,
+          because somebody with food in the kitchen is asking about THAT. */}
+      {match.openOrder ? (
+        <button
+          type="button"
+          onClick={() =>
+            router.push(
+              `/dashboard/orders?orderId=${encodeURIComponent(match.openOrder!.id)}`,
+            )
+          }
+          className="mt-2 block w-full touch-manipulation break-words rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-left text-xs hover:border-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-amber-500"
+        >
+          <span className="font-semibold text-amber-900">
+            Order #{match.openOrder.reference} in progress
+          </span>
+          <span className="block text-amber-800">
+            {match.openOrder.summary} — open it
+          </span>
+        </button>
+      ) : match.lastOrder ? (
+        <button
+          type="button"
+          onClick={() => {
+            onUse(match, match.addresses[0] ?? null);
+            setPendingRepeatOrderId(match.lastOrder!.id);
+          }}
+          className="mt-2 block w-full touch-manipulation break-words rounded-lg border border-zinc-300 bg-white px-3 py-2 text-left text-xs hover:border-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-zinc-500"
+        >
+          <span className="font-semibold text-zinc-900">
+            Repeat their last order
+          </span>
+          <span className="block text-zinc-600">{match.lastOrder.summary}</span>
+        </button>
+      ) : null}
 
       <div className="mt-2 space-y-1.5">
         {match.addresses.map((a, i) => (
@@ -406,6 +453,12 @@ function KnownCustomer({
   );
 }
 
+interface LookupOrder {
+  id: string;
+  reference: string;
+  summary: string;
+}
+
 interface LookupMatch {
   name: string;
   orders: number;
@@ -416,4 +469,8 @@ interface LookupMatch {
     city: string | null;
     postcode: string | null;
   }>;
+  /** Placed today at this shop and not finished — they're ringing about this. */
+  openOrder: LookupOrder | null;
+  /** Their last finished order at this shop, ready to be had again. */
+  lastOrder: LookupOrder | null;
 }

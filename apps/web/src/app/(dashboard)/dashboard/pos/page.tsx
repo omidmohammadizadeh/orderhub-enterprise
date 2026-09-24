@@ -191,6 +191,16 @@ export default function PosPage() {
     null,
   );
 
+  /**
+   * The repeated order's lines, for the same reason as the caller above.
+   *
+   * Cart hydration is keyed on the location and "Repeat this order" switches
+   * to the ringing shop, so hydration fires straight after the lines land and
+   * would replace them with whatever draft was last saved for that till —
+   * emptying a basket the operator has already read out to the customer.
+   */
+  const appliedRepeatRef = useRef<{ lines: CartLine[]; at: number } | null>(null);
+
   // Filling the draft covers both: the start screen renders from it, and the
   // cart panel is seeded from it as initialDraft.
   useEffect(() => {
@@ -450,6 +460,10 @@ export default function PosPage() {
     if (recent && Date.now() - recent.at < CALLER_FILL_TTL_MS) {
       fillOrderFromCaller(recent.fill);
     }
+    const repeated = appliedRepeatRef.current;
+    if (repeated && Date.now() - repeated.at < CALLER_FILL_TTL_MS) {
+      setCart(repeated.lines);
+    }
   }, [cartScopeKey]);
 
   useEffect(() => {
@@ -501,6 +515,104 @@ export default function PosPage() {
     }
     return Array.from(byId.values());
   }, [brandGroups, menuData]);
+
+  // ── "The usual" ───────────────────────────────────────────────────────────
+  //
+  // The caller-ID popup offers a returning customer's last order back to them,
+  // and this is where it lands: the lines go into a NEW basket at the till the
+  // caller rang, with the caller's own number and address arriving separately
+  // through the fill path above.
+  //
+  // Prices come off TODAY's menu, not off the old order. A repeat is a new
+  // sale, and the server takes the till's word for what a line costs — so
+  // replaying a six-month-old basket verbatim would quietly sell at last
+  // season's prices, every time, with nothing on screen to show for it.
+  // Anything no longer on the menu is dropped rather than carried, because a
+  // line the kitchen can't make is worse than a line the operator has to add.
+  const pendingRepeatOrderId = usePendingCallerStore(
+    (st) => st.pendingRepeatOrderId,
+  );
+  const setPendingRepeatOrderId = usePendingCallerStore(
+    (st) => st.setPendingRepeatOrderId,
+  );
+  const [repeatNote, setRepeatNote] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!pendingRepeatOrderId) return;
+    // Wait for the menu: without it every line would look unavailable and the
+    // whole basket would be dropped.
+    if (!menuData) return;
+    const orderId = pendingRepeatOrderId;
+    setPendingRepeatOrderId(null);
+    let cancelled = false;
+
+    const liveItems = new Map<string, any>();
+    for (const c of (menuData as any)?.categories ?? []) {
+      for (const it of c.items ?? []) liveItems.set(it.id, it);
+    }
+
+    (async () => {
+      try {
+        const { data: order } = await apiClient.get<any>(`/v1/orders/${orderId}`);
+        if (cancelled) return;
+        const lines: CartLine[] = [];
+        const gone: string[] = [];
+        const repriced: string[] = [];
+        for (const it of order.items ?? []) {
+          const live = it.menuItemId ? liveItems.get(it.menuItemId) : null;
+          if (!live) {
+            gone.push(it.name);
+            continue;
+          }
+          const wasPrice = Number(it.unitPrice);
+          const nowPrice = Number(live.basePrice);
+          // Only the BASE price is re-read. A modifier's price is recorded on
+          // the order line and nothing on the row ties it back to a live
+          // option, so re-pricing those would be guesswork.
+          if (Number.isFinite(wasPrice) && Math.abs(nowPrice - wasPrice) >= 0.01) {
+            repriced.push(live.name);
+          }
+          lines.push({
+            id: Math.random().toString(36).slice(2),
+            menuItemId: live.id,
+            displayName: live.name,
+            unitPrice: nowPrice,
+            quantity: it.quantity,
+            plu: live.plu ?? null,
+            modifiers: (it.modifiers ?? []).map((m: any) => ({
+              name: m.name,
+              price: Number(m.price ?? 0),
+            })),
+            notes: it.notes ?? "",
+          });
+        }
+        setCart(lines);
+        appliedRepeatRef.current = { lines, at: Date.now() };
+        setStep("menu");
+        setRepeatNote(
+          lines.length === 0
+            ? "Nothing from that order is on the menu any more — start it fresh."
+            : [
+                `Loaded their last order (${lines.length} line${lines.length === 1 ? "" : "s"}).`,
+                gone.length ? `Not on the menu now: ${gone.join(", ")}.` : null,
+                repriced.length
+                  ? `Priced at today's menu: ${repriced.join(", ")}.`
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(" "),
+        );
+      } catch (err: any) {
+        setRepeatNote(
+          err?.response?.data?.message ??
+            "Couldn't load that order — start a new one.",
+        );
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [pendingRepeatOrderId, menuData, setPendingRepeatOrderId]);
 
   // Mirror the live menu + modifier catalog to IndexedDB whenever they load.
   useEffect(() => {
@@ -1466,6 +1578,26 @@ export default function PosPage() {
               Retry now
             </button>
           )}
+        </div>
+      )}
+
+      {/* What the repeat actually loaded. An operator reading a basket back to
+          a customer has to know when a line was dropped or re-priced — a
+          silent difference between "your usual" and what is on screen is the
+          one thing that turns this feature into an argument at the door. */}
+      {repeatNote && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="mb-2 flex items-start justify-between gap-2 rounded-md bg-blue-50 px-3 py-2 text-sm text-blue-900"
+        >
+          <span>{repeatNote}</span>
+          <button
+            onClick={() => setRepeatNote(null)}
+            className="shrink-0 rounded border border-current/40 px-2 py-0.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-600"
+          >
+            Got it
+          </button>
         </div>
       )}
 

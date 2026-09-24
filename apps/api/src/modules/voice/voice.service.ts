@@ -1749,7 +1749,9 @@ export class VoiceService {
     try {
       const target = await this.contexts.callerIdTarget(dialled);
       if (!target?.callerIdOnly) return;
-      const match = await this.customers.lookupByPhone(target.tenantId, from);
+      const match = await this.customers.lookupByPhone(target.tenantId, from, {
+        locationId: target.locationId,
+      });
       this.socket.emitToLocation(target.locationId, 'callerid:ring', {
         locationId: target.locationId,
         phone: from,

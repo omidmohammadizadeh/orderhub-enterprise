@@ -4,6 +4,7 @@ import {
   ConflictException,
   Logger,
 } from "@nestjs/common";
+import { boardReference } from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 
 export interface CreateCustomerDto {
@@ -308,7 +309,11 @@ export class CustomersService {
   // Match a ringing landline number against past orders so the POS can
   // autofill the name and offer previous delivery addresses. Phone formats
   // vary (spaces, +44 vs 0), so match on the digit-normalised suffix.
-  async lookupByPhone(tenantId: string, rawPhone: string) {
+  async lookupByPhone(
+    tenantId: string,
+    rawPhone: string,
+    opts: { locationId?: string | null } = {},
+  ) {
     const digits = (rawPhone ?? "").replace(/\D/g, "");
     if (digits.length < 6) return null;
     // Last 9 digits uniquely identify a UK number across 0/+44 forms.
@@ -332,6 +337,7 @@ export class CustomersService {
         city: true,
         postcode: true,
         createdAt: true,
+        total: true,
       },
       orderBy: { createdAt: "desc" },
       take: 5_000,
@@ -375,7 +381,128 @@ export class CustomersService {
       if (addresses.length >= 4) break;
     }
 
-    return { name, orders: mine.length, email, addresses };
+    // What the customer is worth, and how long they have been one. Staff read
+    // "48 orders since March" very differently from "1 order, last August",
+    // and the popup is the only moment they have to read anything at all.
+    const totals = mine
+      .map((o) => Number(o.total))
+      .filter((n) => Number.isFinite(n) && n > 0);
+    const lifetimeSpend = totals.length
+      ? Math.round(totals.reduce((a, b) => a + b, 0) * 100) / 100
+      : null;
+    const dates = mine.map((o) => o.createdAt).sort((a, b) => a.getTime() - b.getTime());
+
+    // The two orders that actually change what the person answering says.
+    // Scoped to the shop that is ringing: a caller's open order at the branch
+    // across town is not what the hand reaching for the phone needs, and a
+    // repeat has to come off the menu of the till it lands on.
+    const { openOrder, lastOrder, currency } = await this.callerOrders(
+      tenantId,
+      suffix,
+      opts.locationId ?? null,
+    );
+
+    return {
+      name,
+      orders: mine.length,
+      email,
+      addresses,
+      lifetimeSpend,
+      currency,
+      firstOrderAt: dates[0]?.toISOString() ?? null,
+      lastOrderAt: dates[dates.length - 1]?.toISOString() ?? null,
+      openOrder,
+      lastOrder,
+    };
+  }
+
+  /**
+   * The caller's live order, and the one they would ask to have again.
+   *
+   * Two narrow, indexed reads rather than more work on the year-wide scan
+   * above: this runs while a phone is ringing, and the popup is worth nothing
+   * if it arrives after the call has been answered.
+   *
+   * "Open" means placed today and not yet finished. Today, not "the last 24
+   * hours" — a customer ringing at opening time about yesterday's late delivery
+   * is asking about a closed matter, and showing it as live would have staff
+   * chasing a driver who went home.
+   */
+  private async callerOrders(
+    tenantId: string,
+    suffix: string,
+    locationId: string | null,
+  ): Promise<{
+    openOrder: CallerOrderSummary | null;
+    lastOrder: CallerOrderSummary | null;
+    currency: string | null;
+  }> {
+    if (!locationId) return { openOrder: null, lastOrder: null, currency: null };
+    try {
+      const since = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+      const rows = await this.prisma.order.findMany({
+        where: {
+          tenantId,
+          locationId,
+          isSandbox: false,
+          createdAt: { gte: since },
+          customerPhone: { contains: suffix },
+          // Only orders this shop can act on or repeat. A marketplace order
+          // belongs to the marketplace: we cannot amend it, and its items are
+          // priced on somebody else's menu.
+          orderSource: { in: ["VOICE", "POS", "ONLINE", "DIRECT"] },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 20,
+        select: {
+          id: true,
+          displayId: true,
+          orderNumber: true,
+          status: true,
+          total: true,
+          createdAt: true,
+          customerPhone: true,
+          fulfillmentType: true,
+          location: { select: { currency: true } },
+          items: { select: { name: true, quantity: true } },
+        },
+      });
+      // The `contains` above is a cheap pre-filter — it would match a different
+      // number that merely ENDS the same way once punctuation is stripped, so
+      // the real test is the same digit-suffix comparison used everywhere else.
+      const mine = rows.filter((o) =>
+        (o.customerPhone ?? "").replace(/\D/g, "").endsWith(suffix),
+      );
+      const currency = mine[0]?.location?.currency ?? null;
+
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
+      const open =
+        mine.find(
+          (o) => !FINISHED_STATUSES.has(o.status) && o.createdAt >= startOfToday,
+        ) ?? null;
+      // Never the same row twice. An order placed and completed within the
+      // hour would otherwise fill both slots, and the card would read as two
+      // orders when there is one.
+      const last =
+        mine.find(
+          (o) =>
+            o.id !== open?.id &&
+            o.status === "COMPLETED" &&
+            (o.items?.length ?? 0) > 0,
+        ) ?? null;
+
+      return {
+        openOrder: open ? toCallerOrder(open) : null,
+        lastOrder: last ? toCallerOrder(last) : null,
+        currency,
+      };
+    } catch (e: any) {
+      // A popup that shows the name is still worth having. Never let the extra
+      // detail be the reason nothing appears while the phone is ringing.
+      this.logger.warn(`caller order lookup failed: ${e?.message ?? e}`);
+      return { openOrder: null, lastOrder: null, currency: null };
+    }
   }
 
   async findOne(customerId: string, tenantId: string) {
@@ -654,4 +781,56 @@ export class CustomersService {
         return 0;
     }
   }
+}
+
+// Statuses where nothing more is going to happen to the order, so a caller
+// ringing about one is not ringing about something in the kitchen.
+const FINISHED_STATUSES = new Set<string>([
+  "COMPLETED",
+  "CANCELLED",
+  "REJECTED",
+  "FAILED",
+]);
+
+export interface CallerOrderSummary {
+  id: string;
+  reference: string;
+  status: string;
+  placedAt: string;
+  total: number;
+  currency: string;
+  fulfillmentType: string;
+  itemCount: number;
+  summary: string;
+}
+
+function toCallerOrder(o: {
+  id: string;
+  displayId: string | null;
+  orderNumber: number | null;
+  status: string;
+  total: unknown;
+  createdAt: Date;
+  fulfillmentType: string;
+  location?: { currency: string | null } | null;
+  items: Array<{ name: string; quantity: number }>;
+}): CallerOrderSummary {
+  const items = o.items ?? [];
+  return {
+    id: o.id,
+    reference: boardReference(o),
+    status: o.status,
+    placedAt: o.createdAt.toISOString(),
+    total: Number(o.total ?? 0),
+    currency: o.location?.currency ?? "GBP",
+    fulfillmentType: o.fulfillmentType,
+    itemCount: items.reduce((n, i) => n + (i.quantity ?? 1), 0),
+    // Three lines is what fits on the card. The count on the end is there so
+    // "+2 more" never reads as the whole order.
+    summary:
+      items
+        .slice(0, 3)
+        .map((i) => (i.quantity > 1 ? `${i.quantity}× ${i.name}` : i.name))
+        .join(", ") + (items.length > 3 ? `, +${items.length - 3} more` : ""),
+  };
 }

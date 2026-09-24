@@ -90,10 +90,12 @@ export class CustomersController {
       );
     }
 
-    const match = await this.customers.lookupByPhone(
-      user.tenantId,
-      body.phone,
-    );
+    const match = await this.customers.lookupByPhone(user.tenantId, body.phone, {
+      // Safe to take from the request now that the two checks above have
+      // established this caller may act on this shop: it decides which
+      // kitchen's live order and which menu's repeat are shown.
+      locationId: body.locationId,
+    });
     const payload = {
       locationId: body.locationId,
       phone: body.phone,
@@ -161,7 +163,7 @@ export class CustomersController {
     const tenantId = await this.customers.tenantForLocation(locationId);
     if (!tenantId) throw new NotFoundException("Unknown location");
 
-    const match = await this.customers.lookupByPhone(tenantId, phone);
+    const match = await this.customers.lookupByPhone(tenantId, phone, { locationId });
     const payload = { locationId, phone, at: new Date().toISOString(), match };
     this.socket.emitToLocation(locationId, "callerid:ring", payload);
     this.callerIdSetup.record({
@@ -272,10 +274,15 @@ export class CustomersController {
   lookup(
     @CurrentUser() user: AuthenticatedUser,
     @Query("phone") phone?: string,
+    @Query("locationId") locationId?: string,
   ) {
     // Tenant-scoped through CurrentUser, exactly as caller-id/ring is — the
     // number comes from the caller but the tenant never does.
-    return this.customers.lookupByPhone(user.tenantId, phone ?? "");
+    //
+    // locationId only narrows the order detail (the live order, the one worth
+    // repeating) to the till asking. It cannot widen anything: the tenant is
+    // still the caller's own, so a pasted id from elsewhere finds nothing.
+    return this.customers.lookupByPhone(user.tenantId, phone ?? "", { locationId });
   }
 
   @Get(":customerId")

@@ -44,6 +44,28 @@ export interface ServerToClientEvents {
   "callerid:ring": (payload: CallerIdRingPayload) => void;
 }
 
+/**
+ * One order, as the caller popup shows it.
+ *
+ * Deliberately flat and already formatted where it can be: the popup appears
+ * while a phone is ringing and staff read it in about two seconds, so nothing
+ * on it should need a second request to become legible.
+ */
+export interface CallerIdOrderSummary {
+  id: string;
+  /** What the board calls it, so staff can shout the same thing. */
+  reference: string;
+  status: string;
+  /** ISO. */
+  placedAt: string;
+  total: number;
+  currency: string;
+  fulfillmentType: string;
+  itemCount: number;
+  /** "2× Margherita, Garlic Bread" — enough to recognise the order by. */
+  summary: string;
+}
+
 export interface CallerIdRingPayload {
   locationId: string;
   /** Raw number as reported by the caller-ID unit. */
@@ -60,6 +82,26 @@ export interface CallerIdRingPayload {
       city: string | null;
       postcode: string | null;
     }>;
+    /**
+     * What this customer is worth, over the same window the order count uses.
+     * Null when the orders carried no totals.
+     */
+    lifetimeSpend: number | null;
+    currency: string | null;
+    /** ISO. When they first and last ordered — "a regular" vs "one order, once". */
+    firstOrderAt: string | null;
+    lastOrderAt: string | null;
+    /**
+     * An order they have ALREADY placed today at the ringing shop that is not
+     * finished yet. This is nearly always why a customer rings back — "where is
+     * it?", "can you add chips?" — so it outranks everything else on the card.
+     */
+    openOrder: CallerIdOrderSummary | null;
+    /**
+     * Their most recent FINISHED order at the ringing shop, for "the usual".
+     * Scoped to the shop on purpose: repeating it loads that shop's menu.
+     */
+    lastOrder: CallerIdOrderSummary | null;
   };
 }
 
