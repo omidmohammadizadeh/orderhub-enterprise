@@ -251,11 +251,18 @@ export function CallerIdPopup({
    * operator gets a finished order rather than a basket they have to introduce
    * to a customer.
    */
-  const repeatOrder = (ring: CallerIdRingPayload, order: CallerIdOrderSummary) => {
+  const repeatOrder = (
+    ring: CallerIdRingPayload,
+    order: CallerIdOrderSummary,
+    address: CallerIdFill["address"],
+  ) => {
     const detail: CallerIdFill = {
       phone: ring.phone,
       name: ring.match?.name ?? null,
-      address: ring.match?.addresses[0] ?? null,
+      // Whichever address they TAPPED. Taking the first one silently was a
+      // quiet way to send a regular's dinner to a house they moved out of —
+      // this caller has four on file and no ranking between them.
+      address,
     };
     setPendingCaller(detail);
     try {
@@ -288,7 +295,7 @@ export function CallerIdPopup({
             onDismiss={() => dismiss(ring)}
             onUseAddress={(address) => use(ring, address)}
             onOpenOrder={(orderId) => openExistingOrder(ring, orderId)}
-            onRepeat={(order) => repeatOrder(ring, order)}
+            onRepeat={(order, address) => repeatOrder(ring, order, address)}
           />
         </div>
       ))}
@@ -321,9 +328,19 @@ export function IncomingCallCard({
   onDismiss: () => void;
   onUseAddress: (address: CallerIdFill["address"]) => void;
   onOpenOrder: (orderId: string) => void;
-  onRepeat: (order: CallerIdOrderSummary) => void;
+  onRepeat: (order: CallerIdOrderSummary, address: CallerIdFill["address"]) => void;
 }) {
   const ringingFor = `${Math.floor(elapsedSeconds / 60)}:${String(elapsedSeconds % 60).padStart(2, "0")}`;
+
+  /**
+   * The repeat the operator has chosen but not yet sent anywhere.
+   *
+   * Pressing "Repeat this order" used to leave for the till immediately, which
+   * looked exactly like pressing the green button underneath it and gave
+   * nobody the chance to say WHERE it was going. It now only arms the repeat;
+   * the address tapped next is what sends it.
+   */
+  const [repeating, setRepeating] = useState<CallerIdOrderSummary | null>(null);
 
   const openOrder = match?.openOrder ?? null;
   // Their usual, offered only when there is nothing live to deal with first.
@@ -422,8 +439,13 @@ export function IncomingCallCard({
                   lastOrder.currency,
                   { compact: true },
                 )}`}
-                actionLabel="Repeat this order"
-                onAction={() => onRepeat(lastOrder)}
+                actionLabel={repeating ? "Now pick where it goes ↓" : "Repeat this order"}
+                actionDone={!!repeating}
+                onAction={() => {
+                  // Nothing on file to choose between — don't invent a step.
+                  if (match.addresses.length === 0) onRepeat(lastOrder, null);
+                  else setRepeating(lastOrder);
+                }}
               />
             )}
 
@@ -433,13 +455,17 @@ export function IncomingCallCard({
                 straight to it. */}
             {!openOrder && match.addresses.length > 0 && (
               <div className="space-y-1.5">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
-                  Deliver to
+                <p
+                  className={`text-[11px] font-semibold uppercase tracking-wider ${
+                    repeating ? "text-zinc-900" : "text-zinc-400"
+                  }`}
+                >
+                  {repeating ? "Where is it going?" : "Deliver to"}
                 </p>
                 {match.addresses.map((a, i) => (
                   <button
                     key={i}
-                    onClick={() => onUseAddress(a)}
+                    onClick={() => (repeating ? onRepeat(repeating, a) : onUseAddress(a))}
                     className="w-full touch-manipulation break-words rounded-lg border border-zinc-200 px-3 py-2 text-left text-xs text-zinc-700 hover:border-emerald-400 hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-emerald-500"
                   >
                     {[a.line1, a.line2, a.city, a.postcode]
@@ -447,6 +473,17 @@ export function IncomingCallCard({
                       .join(", ")}
                   </button>
                 ))}
+                {/* A repeat is not always a delivery. Without this, collecting
+                    the same order again meant picking an address you then had
+                    to clear at the till. */}
+                {repeating && (
+                  <button
+                    onClick={() => onRepeat(repeating, null)}
+                    className="w-full touch-manipulation rounded-lg border border-zinc-200 px-3 py-2 text-left text-xs font-medium text-zinc-700 hover:border-emerald-400 hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-emerald-500"
+                  >
+                    They&rsquo;re collecting — no address
+                  </button>
+                )}
               </div>
             )}
 
@@ -497,6 +534,7 @@ function OrderBlock({
   order,
   subline,
   actionLabel,
+  actionDone,
   onAction,
 }: {
   tone: "live" | "past";
@@ -505,6 +543,8 @@ function OrderBlock({
   order: CallerIdOrderSummary;
   subline: string;
   actionLabel: string;
+  /** The action has been chosen and is waiting on a second tap elsewhere. */
+  actionDone?: boolean;
   onAction: () => void;
 }) {
   const live = tone === "live";
@@ -532,10 +572,12 @@ function OrderBlock({
       </p>
       <button
         onClick={onAction}
-        className={`mt-2 w-full touch-manipulation rounded-lg font-bold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
+        className={`mt-2 w-full touch-manipulation rounded-lg font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
           live
-            ? "bg-amber-600 px-3 py-2.5 text-sm hover:bg-amber-700 focus-visible:ring-amber-600"
-            : "bg-zinc-800 px-3 py-2 text-xs hover:bg-zinc-900 focus-visible:ring-zinc-800"
+            ? "bg-amber-600 px-3 py-2.5 text-sm text-white hover:bg-amber-700 focus-visible:ring-amber-600"
+            : actionDone
+              ? "border border-emerald-300 bg-emerald-50 px-3 py-2 text-xs text-emerald-800 focus-visible:ring-emerald-500"
+              : "bg-zinc-800 px-3 py-2 text-xs text-white hover:bg-zinc-900 focus-visible:ring-zinc-800"
         }`}
       >
         {actionLabel}

@@ -324,6 +324,8 @@ function KnownCustomer({
 }) {
   const [match, setMatch] = useState<LookupMatch | null>(null);
   const [dismissed, setDismissed] = useState<string | null>(null);
+  /** A repeat chosen but not yet sent — the address tapped next sends it. */
+  const [repeating, setRepeating] = useState<LookupOrder | null>(null);
   const locationId = useSelectedLocationStore((s) => s.selectedLocationId);
   const setPendingRepeatOrderId = usePendingCallerStore(
     (st) => st.setPendingRepeatOrderId,
@@ -413,13 +415,24 @@ function KnownCustomer({
         <button
           type="button"
           onClick={() => {
-            onUse(match, match.addresses[0] ?? null);
-            setPendingRepeatOrderId(match.lastOrder!.id);
+            // Arm it only. Sending it here would pick an address for them —
+            // this customer has four on file — and would pull them off this
+            // screen before they had said which one.
+            if (match.addresses.length === 0) {
+              onUse(match, null);
+              setPendingRepeatOrderId(match.lastOrder!.id);
+            } else {
+              setRepeating(match.lastOrder);
+            }
           }}
-          className="mt-2 block w-full touch-manipulation break-words rounded-lg border border-zinc-300 bg-white px-3 py-2 text-left text-xs hover:border-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-zinc-500"
+          className={`mt-2 block w-full touch-manipulation break-words rounded-lg border px-3 py-2 text-left text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-zinc-500 ${
+            repeating
+              ? "border-emerald-400 bg-emerald-50"
+              : "border-zinc-300 bg-white hover:border-zinc-400"
+          }`}
         >
           <span className="font-semibold text-zinc-900">
-            Repeat their last order
+            {repeating ? "Repeating — now pick where it goes" : "Repeat their last order"}
           </span>
           <span className="block text-zinc-600">{match.lastOrder.summary}</span>
         </button>
@@ -430,7 +443,10 @@ function KnownCustomer({
           <button
             key={`${a.line1}-${a.postcode ?? i}`}
             type="button"
-            onClick={() => onUse(match, a)}
+            onClick={() => {
+              onUse(match, a);
+              if (repeating) setPendingRepeatOrderId(repeating.id);
+            }}
             className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-left text-xs hover:border-emerald-400"
           >
             <span className="font-medium text-zinc-900">{a.line1}</span>
@@ -445,10 +461,13 @@ function KnownCustomer({
             customer ordering to a new address still wants their name filled. */}
         <button
           type="button"
-          onClick={() => onUse(match, null)}
+          onClick={() => {
+            onUse(match, null);
+            if (repeating) setPendingRepeatOrderId(repeating.id);
+          }}
           className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-left text-xs font-medium text-emerald-800 hover:border-emerald-400"
         >
-          Use {firstName}&rsquo;s name only
+          {repeating ? "They\u2019re collecting — no address" : `Use ${firstName}\u2019s name only`}
         </button>
       </div>
     </div>

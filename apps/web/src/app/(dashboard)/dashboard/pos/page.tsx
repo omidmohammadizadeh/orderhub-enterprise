@@ -539,6 +539,12 @@ export default function PosPage() {
 
   useEffect(() => {
     if (!pendingRepeatOrderId) return;
+    // Into the basket immediately, before the order has even been fetched.
+    // The menu read can take two seconds, and until this was here a repeat sat
+    // on the "who is this order for?" screen for that whole time — which is
+    // indistinguishable from having pressed "start a new order", and is
+    // exactly what it was mistaken for.
+    setStep("menu");
     // Wait for the menu: without it every line would look unavailable and the
     // whole basket would be dropped.
     if (!menuData) return;
