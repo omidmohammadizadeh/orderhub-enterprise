@@ -807,11 +807,7 @@ export class KdsService {
     // means "this ROUND is cooked", not "the meal is over": the customer may
     // order more at any time, and READY blocks addRound. The tab's order
     // stays open (ACCEPTED/PREPARING) until Pay & close COMPLETEs it.
-    const tabCheck = await this.prisma.order.findUnique({
-      where: { id: orderId },
-      select: { tableId: true },
-    });
-    if (tabCheck?.tableId) return;
+    if (await this.isOpenTab(orderId)) return;
 
     // Any open station tickets left? (Expo tickets don't block READY here —
     // expo serving is its own step when an expo screen exists.)
@@ -840,11 +836,7 @@ export class KdsService {
     await this.bumpAllForOrder(orderId);
     // Table Tabs — expo serving a dine-in round hands food to the table, but
     // the TAB stays open for more rounds; never push it to READY.
-    const tabCheck = await this.prisma.order.findUnique({
-      where: { id: orderId },
-      select: { tableId: true },
-    });
-    if (tabCheck?.tableId) return;
+    if (await this.isOpenTab(orderId)) return;
     if (this.onOrderProgress) {
       await this.onOrderProgress(orderId, "READY").catch((e) =>
         this.logger.warn(
@@ -852,6 +844,34 @@ export class KdsService {
         ),
       );
     }
+  }
+
+  /**
+   * Is this order a table TAB — the one growing dine-in order staff will
+   * settle at the end — rather than an ordinary ticket that happens to
+   * carry a table number?
+   *
+   * The distinction is what the two guards above actually want. A tab has no
+   * stage ladder, because more rounds are coming and READY blocks addRound.
+   * A pay-at-the-table QR round is the other kind: already paid for, never
+   * appended to, and with no Pay & close step to ever end it — so treating
+   * it as a tab strands it in Preparing until the 5am rollover, and a shop
+   * running the Nando's model would watch its board fill up all service.
+   *
+   * The test is the table itself. `Table.currentOrderId` is what "the open
+   * tab" means everywhere else in the system, so it is what it means here.
+   */
+  private async isOpenTab(orderId: string): Promise<boolean> {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      select: { tableId: true },
+    });
+    if (!order?.tableId) return false;
+    const table = await this.prisma.table.findUnique({
+      where: { id: order.tableId },
+      select: { currentOrderId: true },
+    });
+    return table?.currentOrderId === orderId;
   }
 
   // ── Access guards ──────────────────────────────────────────────────────────

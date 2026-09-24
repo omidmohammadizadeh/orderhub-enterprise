@@ -57,7 +57,16 @@ export interface TableQrResolved {
   /** True once a waiter (or an earlier scan) opened the tab. */
   tabOpen: boolean;
   covers: number | null;
+  /**
+   * How this shop runs QR ordering, set per location in Tables →
+   * Payment options.
+   *   PAY_LATER — send to the kitchen now, settle with staff at the end.
+   *   PAY_NOW   — the phone pays first; nothing is cooked until it has.
+   */
+  paymentMode: TableQrPaymentMode;
 }
+
+export type TableQrPaymentMode = "PAY_LATER" | "PAY_NOW";
 
 export interface TableQrTabLine {
   id: string;
@@ -73,6 +82,7 @@ export interface TableQrTab {
   total: number;
   /** Absent when the tab hasn't been opened yet. */
   paymentStatus?: string | null;
+  paymentMode?: TableQrPaymentMode;
 }
 
 export interface TableQrOrderItem {
@@ -91,6 +101,38 @@ export interface TableQrOrderResult {
   orderId: string;
   tableName: string;
   mode: "OPEN" | "ROUND";
+}
+
+/**
+ * The answer to "I want to pay for this round". The order already exists
+ * server-side by the time this lands — unpaid, and held back from the
+ * kitchen until Stripe says the money arrived.
+ */
+export interface TableQrCheckoutResult {
+  orderId: string;
+  tableName: string;
+  /** A repeat of a basket that already went through. No sheet to mount. */
+  alreadyPaid?: boolean;
+  clientSecret?: string;
+  /** The connected account the intent was minted on. Stripe.js must be
+   *  constructed with it or the secret won't confirm. */
+  stripeAccountId?: string;
+  /** What Stripe will actually take, in minor units. */
+  amountPence?: number;
+  subtotal: number;
+  serviceCharge: number;
+  serviceChargeLabel: string;
+  total: number;
+}
+
+export interface TableQrOrderStatus {
+  orderId: string;
+  displayId: string | null;
+  orderNumber: number | null;
+  status: string;
+  paymentStatus: string;
+  total: number;
+  paid: boolean;
 }
 
 /**
@@ -152,6 +194,51 @@ export const tableQrClient = {
     }
     return unwrap<TableQrOrderResult>(res);
   },
+
+  /**
+   * Pay-before-kitchen. Writes the order unpaid and hands back a Stripe
+   * direct-charge secret for the wallet sheet. The kitchen hears nothing
+   * until the payment webhook confirms, so a failed or abandoned card
+   * leaves no food cooked.
+   */
+  checkout: async (
+    token: string,
+    body: {
+      items: TableQrOrderItem[];
+      customerName?: string;
+      notes?: string | null;
+      /** Same stable per-basket id as sendRound — a retry replays the
+       *  same intent instead of writing a second order. */
+      requestId?: string;
+    },
+  ) => {
+    let res: Response;
+    try {
+      res = await fetch(
+        `${API_BASE}/v1/table-qr/${encodeURIComponent(token)}/checkout`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        },
+      );
+    } catch {
+      // Nothing was charged — the request never arrived. Safe to retry,
+      // and the requestId makes a duplicate impossible either way.
+      throw new TableQrError("We couldn't start your payment just now.", 0);
+    }
+    return unwrap<TableQrCheckoutResult>(res);
+  },
+
+  /**
+   * Did it land? Polled after the card is confirmed, because the money
+   * arriving (Stripe webhook) and the kitchen being told are the same
+   * event server-side — the phone shouldn't claim "sent" before it.
+   */
+  orderStatus: (token: string, orderId: string) =>
+    getJson<TableQrOrderStatus>(
+      `${API_BASE}/v1/table-qr/${encodeURIComponent(token)}/orders/${encodeURIComponent(orderId)}`,
+    ),
 
   /**
    * The menu, fetched through the storefront endpoint. `:slug` there also

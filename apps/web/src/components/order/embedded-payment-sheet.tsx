@@ -47,8 +47,24 @@ export interface EmbeddedPaymentSheetProps {
   /** What Stripe will actually take, including any service charge. */
   amountPence: number;
   orderId: string;
-  slug: string;
+  /** Storefront slug, used to build the default 3-D Secure return URL.
+   *  Omit it when passing `returnUrl` — a QR table has no storefront page
+   *  to come back to. */
+  slug?: string;
   brandId?: string | null;
+  /**
+   * Where 3-D Secure sends the customer back to. Defaults to the
+   * storefront confirmation route. A caller that lives somewhere else —
+   * the QR-at-table page, say — passes its own, because landing a diner
+   * on a storefront order-tracking screen would be a dead end.
+   */
+  returnUrl?: string;
+  /** Rendered above the card fields — an itemised "what am I paying for".
+   *  Optional: the storefront already showed a basket on the way in. */
+  summary?: React.ReactNode;
+  /** Heading copy, when "Payment" isn't the right word for the context. */
+  title?: string;
+  subtitle?: string;
   /** Payment succeeded outright — no redirect happened. */
   onPaid: () => void;
   /** Customer backed out before paying. */
@@ -66,7 +82,13 @@ export function EmbeddedPaymentSheet(props: EmbeddedPaymentSheetProps) {
     // Better a legible message than an Elements crash: this only happens
     // when the deploy is missing the key, which is an operator problem.
     return (
-      <Shell onCancel={props.onCancel} amountPence={props.amountPence} money={props.money}>
+      <Shell
+        onCancel={props.onCancel}
+        amountPence={props.amountPence}
+        money={props.money}
+        title={props.title}
+        subtitle={props.subtitle}
+      >
         <p className="text-sm text-red-600">
           Card payments aren&apos;t configured on this site. Please choose cash,
           or contact the restaurant.
@@ -104,6 +126,10 @@ function PaymentForm({
   slug,
   brandId,
   stripeAccountId,
+  returnUrl: returnUrlOverride,
+  summary,
+  title,
+  subtitle,
   onPaid,
   onCancel,
 }: EmbeddedPaymentSheetProps) {
@@ -130,11 +156,12 @@ function PaymentForm({
   // those customers to the same confirmation route the hosted flow used —
   // it bounces to the tracking screen by order id.
   const returnUrl = useMemo(() => {
+    if (returnUrlOverride) return returnUrlOverride;
     if (typeof window === "undefined") return "";
     const qs = new URLSearchParams({ orderId });
     if (brandId) qs.set("brand", brandId);
     return `${window.location.origin}/order/${slug}/confirmation?${qs.toString()}`;
-  }, [orderId, slug, brandId]);
+  }, [orderId, slug, brandId, returnUrlOverride]);
 
   const confirm = async () => {
     if (!stripe || !elements) return;
@@ -172,8 +199,15 @@ function PaymentForm({
   };
 
   return (
-    <Shell onCancel={busy ? undefined : onCancel} amountPence={amountPence} money={money}>
+    <Shell
+      onCancel={busy ? undefined : onCancel}
+      amountPence={amountPence}
+      money={money}
+      title={title}
+      subtitle={subtitle}
+    >
       <div className="space-y-4">
+        {summary}
         <div className={hasWallet ? "" : "hidden"}>
           <ExpressCheckoutElement
             options={{
@@ -269,21 +303,27 @@ function Shell({
   onCancel,
   amountPence,
   money,
+  title,
+  subtitle,
 }: {
   children: React.ReactNode;
   onCancel?: () => void;
   amountPence: number;
   /** Bound to the store's currency by the page — never format money here. */
   money: (n: number | string | null | undefined) => string;
+  title?: string;
+  subtitle?: string;
 }) {
   return (
     <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4">
       <div className="max-h-[92vh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 sm:max-w-md sm:rounded-2xl">
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
-            <h2 className="text-base font-semibold text-zinc-900">Payment</h2>
+            <h2 className="text-base font-semibold text-zinc-900">
+              {title ?? "Payment"}
+            </h2>
             <p className="text-xs text-zinc-500">
-              {money((amountPence / 100))} to complete your order
+              {subtitle ?? `${money(amountPence / 100)} to complete your order`}
             </p>
           </div>
           {onCancel && (

@@ -18,6 +18,7 @@ import {
   LayoutGrid,
   List as ListIcon,
   MoreHorizontal,
+  CreditCard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/stores/auth.store";
@@ -35,6 +36,7 @@ import { FloorPlan, elapsedLabel } from "@/components/tables/floor-plan";
 import { SeatDialog } from "@/components/tables/seat-dialog";
 import { TableActionsModal } from "@/components/tables/table-actions-modal";
 import { TableQrModal } from "@/components/tables/table-qr-modal";
+import { TablePaymentOptionsModal } from "@/components/tables/table-payment-options-modal";
 
 type View = "plan" | "list";
 const VIEW_KEY = "oh.tables.view";
@@ -85,6 +87,8 @@ export default function TablesPage() {
   const [seatId, setSeatId] = useState<string | null>(null);
   const [actionsId, setActionsId] = useState<string | null>(null);
   const [qrId, setQrId] = useState<string | null>(null);
+  // Pay-at-the-table vs settle-at-the-end, for scanned QR rounds.
+  const [paymentOptionsOpen, setPaymentOptionsOpen] = useState(false);
 
   const role = useAuthStore((s) => s.user?.role);
   const canManage = !!role && MANAGE_ROLES.includes(role as string);
@@ -96,6 +100,11 @@ export default function TablesPage() {
   });
   const enabled =
     !!(locationQuery.data as any)?.settings?.tableService?.enabled;
+  // Shown on the Payment options button so an owner can read the shop's
+  // current rule off the floor screen without opening anything.
+  const prepay =
+    (locationQuery.data as any)?.settings?.tableService?.qrPayment ===
+    "PAY_NOW";
 
   const tablesQuery = useQuery({
     queryKey: ["tables", locationId],
@@ -454,6 +463,21 @@ export default function TablesPage() {
           {/* Manage mode is the floor-plan editor — create/edit/delete tables
               and areas. Owner-level: the API's MANAGE list excludes MANAGER,
               so a manager entering this mode would only collect 403s. */}
+          {/* Whether a scanned QR round can reach the kitchen before it's
+              paid for. Owner-level for the same reason the dine-in toggle
+              is: the API refuses settings.tableService from a MANAGER. */}
+          {canManage && (
+            <Button
+              variant="outline"
+              onClick={() => setPaymentOptionsOpen(true)}
+            >
+              <CreditCard className="mr-1 h-4 w-4" />
+              Payment options
+              <span className="ml-1.5 text-xs font-normal text-zinc-500">
+                {prepay ? "Pay first" : "Pay at the end"}
+              </span>
+            </Button>
+          )}
           {canManage && (
             <Button variant="outline" onClick={() => setManage((m) => !m)}>
               {manage ? "Done" : "Manage tables"}
@@ -860,6 +884,15 @@ export default function TablesPage() {
           table={qrTable}
           locationId={locationId}
           onClose={() => setQrId(null)}
+        />
+      )}
+
+      {paymentOptionsOpen && (
+        <TablePaymentOptionsModal
+          locationId={locationId}
+          settings={(locationQuery.data as any)?.settings}
+          country={(locationQuery.data as any)?.country}
+          onClose={() => setPaymentOptionsOpen(false)}
         />
       )}
 

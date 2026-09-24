@@ -4,8 +4,20 @@
 //
 // A diner scans the sticker on their table and lands here. The token in the
 // URL is the only credential; everything (menu, tab, sending a round) hangs
-// off it. There is NO payment in this flow by design: rounds are added to
-// the table's tab and settled with staff at the end.
+// off it.
+//
+// Two flows, chosen per shop in the dashboard (Tables → Payment options) and
+// carried on `table.paymentMode`:
+//
+//   PAY_LATER — the original. The round joins the table's tab and is settled
+//               with staff at the end; this page never touches money.
+//   PAY_NOW   — the guest pays here first (Apple Pay / Google Pay / card) and
+//               NOTHING reaches the kitchen until Stripe says the money
+//               arrived. The card sheet is the same component the storefront
+//               uses, on the same direct-charge intent; the only thing this
+//               page adds is the itemised bill above it, because the service
+//               charge is computed server-side and the basket total on the
+//               way in is smaller than the amount being charged.
 //
 // Reuse, not reinvention:
 //   • the menu comes from the SAME public storefront endpoint /order/[slug]
@@ -32,6 +44,7 @@ import {
   RefreshCw,
   Utensils,
   AlertCircle,
+  CreditCard,
 } from "lucide-react";
 import {
   formatMoney,
@@ -43,8 +56,10 @@ import type { MenuItem, MenuCategory } from "@/lib/api/menus.client";
 import {
   tableQrClient,
   TableQrError,
+  type TableQrCheckoutResult,
   type TableQrOrderItem,
 } from "@/lib/api/table-qr.client";
+import { EmbeddedPaymentSheet } from "@/components/order/embedded-payment-sheet";
 
 // ── Basket ─────────────────────────────────────────────────────────────────
 
@@ -118,7 +133,16 @@ export default function TableQrPage() {
   const [basketOpen, setBasketOpen] = useState(false);
   const [guestName, setGuestName] = useState("");
   const [kitchenNotes, setKitchenNotes] = useState("");
-  const [sent, setSent] = useState<{ mode: "OPEN" | "ROUND" } | null>(null);
+  // What the "done" overlay is celebrating: a round added to the tab, or a
+  // basket that was paid for and is now on its way to the kitchen.
+  const [sent, setSent] = useState<
+    | { kind: "ROUND"; firstRound: boolean }
+    | { kind: "PAID"; orderId: string }
+    | null
+  >(null);
+  // The live card sheet, once /checkout has written the order and minted an
+  // intent for it. Null the rest of the time.
+  const [pay, setPay] = useState<TableQrCheckoutResult | null>(null);
   const [basket, dispatch] = useReducer(basketReducer, []);
 
   // ── Data ─────────────────────────────────────────────────────────────────
@@ -190,6 +214,46 @@ export default function TableQrPage() {
     }
   }, [basket, basketKey, hydrated]);
 
+  // ── Pay-before-kitchen ───────────────────────────────────────────────────
+
+  // Until the resolve lands we don't know which flow this shop runs, and the
+  // basket bar is hidden anyway — so the PAY_LATER default here is never the
+  // thing a guest acts on.
+  const prepay = table?.paymentMode === "PAY_NOW";
+
+  // 3-D Secure takes the whole page away and drops the guest back on
+  // /t/<token>?paid=<orderId>. Pick that up once the basket has hydrated
+  // (otherwise the restore below would put the paid round back), show the
+  // same confirmation they'd have seen without the redirect, and take the
+  // marker off the URL so a refresh doesn't replay it.
+  useEffect(() => {
+    if (typeof window === "undefined" || !hydrated) return;
+    const paidId = new URLSearchParams(window.location.search).get("paid");
+    if (!paidId) return;
+    dispatch({ type: "CLEAR" });
+    setSent({ kind: "PAID", orderId: paidId });
+    const url = new URL(window.location.href);
+    url.searchParams.delete("paid");
+    window.history.replaceState({}, "", url.toString());
+  }, [hydrated]);
+
+  // After a card clears, the money landing and the kitchen being told are the
+  // same server-side event (the Stripe webhook). Poll until it has, so the
+  // overlay only promises "on its way" once it genuinely is — and so a shop
+  // whose webhook isn't subscribed to connected-account events still gets
+  // there, because this route reconciles against Stripe on the way past.
+  const paidOrderId = sent?.kind === "PAID" ? sent.orderId : null;
+  const [kitchenConfirmed, setKitchenConfirmed] = useState(false);
+  const paidQuery = useQuery({
+    queryKey: ["table-qr-order", token, paidOrderId],
+    queryFn: () => tableQrClient.orderStatus(token, paidOrderId!),
+    enabled: !!paidOrderId && !kitchenConfirmed,
+    refetchInterval: 3000,
+  });
+  useEffect(() => {
+    if (paidQuery.data?.paid) setKitchenConfirmed(true);
+  }, [paidQuery.data?.paid]);
+
   // ── Derived ──────────────────────────────────────────────────────────────
 
   const categories: MenuCategory[] = useMemo(
@@ -231,41 +295,50 @@ export default function TableQrPage() {
   // it, so the server replays its answer instead of cooking twice.
   const requestIdRef = useRef<string | null>(null);
 
+  // An edited basket is a genuinely different round, so it must not reuse
+  // the previous attempt's id — the server would replay the old answer and
+  // the guest would be charged for, or served, the basket they just changed.
+  useEffect(() => {
+    requestIdRef.current = null;
+  }, [basket]);
+
+  const buildPayload = () => {
+    const items: TableQrOrderItem[] = basket.map((l) => ({
+      name: l.displayName,
+      quantity: l.quantity,
+      unitPrice: l.unitPrice,
+      totalPrice: round2(l.unitPrice * l.quantity),
+      modifiers: l.modifiers.map((m) => ({
+        ...toOrderLineModifier(m),
+        quantity: 1,
+      })),
+      notes: l.notes || null,
+      // Load-bearing: KDS station rules match on menuItemId. Dropping it
+      // once already cost us kitchen tickets in production.
+      menuItemId: l.menuItemId || null,
+    }));
+    if (!requestIdRef.current) {
+      requestIdRef.current = `${Date.now().toString(36)}-${Math.random()
+        .toString(36)
+        .slice(2, 10)}`;
+    }
+    return {
+      items,
+      customerName: guestName.trim() || undefined,
+      notes: kitchenNotes.trim() || null,
+      requestId: requestIdRef.current,
+    };
+  };
+
   const send = useMutation({
-    mutationFn: () => {
-      const items: TableQrOrderItem[] = basket.map((l) => ({
-        name: l.displayName,
-        quantity: l.quantity,
-        unitPrice: l.unitPrice,
-        totalPrice: round2(l.unitPrice * l.quantity),
-        modifiers: l.modifiers.map((m) => ({
-          ...toOrderLineModifier(m),
-          quantity: 1,
-        })),
-        notes: l.notes || null,
-        // Load-bearing: KDS station rules match on menuItemId. Dropping it
-        // once already cost us kitchen tickets in production.
-        menuItemId: l.menuItemId || null,
-      }));
-      if (!requestIdRef.current) {
-        requestIdRef.current = `${Date.now().toString(36)}-${Math.random()
-          .toString(36)
-          .slice(2, 10)}`;
-      }
-      return tableQrClient.sendRound(token, {
-        items,
-        customerName: guestName.trim() || undefined,
-        notes: kitchenNotes.trim() || null,
-        requestId: requestIdRef.current,
-      });
-    },
+    mutationFn: () => tableQrClient.sendRound(token, buildPayload()),
     onSuccess: (res) => {
       // Landed — the next basket is a genuinely new round.
       requestIdRef.current = null;
       dispatch({ type: "CLEAR" });
       setKitchenNotes("");
       setBasketOpen(false);
-      setSent({ mode: res.mode });
+      setSent({ kind: "ROUND", firstRound: res.mode === "OPEN" });
       // The tab now has the new lines on it, and the table may have just
       // been opened — both queries are stale.
       tabQuery.refetch();
@@ -276,10 +349,36 @@ export default function TableQrPage() {
     },
   });
 
+  // PAY_NOW. This writes the order unpaid and hands back an intent; the
+  // basket is deliberately NOT cleared yet, because backing out of the card
+  // sheet has to leave the guest their round rather than an empty phone.
+  const checkout = useMutation({
+    mutationFn: () => tableQrClient.checkout(token, buildPayload()),
+    onSuccess: (res) => {
+      if (res.alreadyPaid || !res.clientSecret || !res.stripeAccountId) {
+        // A repeat of a basket that already went through — don't ask for
+        // the money twice, just show them where it got to.
+        requestIdRef.current = null;
+        dispatch({ type: "CLEAR" });
+        setKitchenNotes("");
+        setBasketOpen(false);
+        setSent({ kind: "PAID", orderId: res.orderId });
+        return;
+      }
+      setPay(res);
+    },
+    onSettled: () => {
+      sendingRef.current = false;
+    },
+  });
+
+  const busySending = send.isPending || checkout.isPending;
+
   const handleSend = () => {
-    if (sendingRef.current || send.isPending || basket.length === 0) return;
+    if (sendingRef.current || busySending || basket.length === 0) return;
     sendingRef.current = true;
-    send.mutate();
+    if (prepay) checkout.mutate();
+    else send.mutate();
   };
 
   // ── Error / loading gates ────────────────────────────────────────────────
@@ -335,7 +434,7 @@ export default function TableQrPage() {
                 tabQuery.refetch();
               }}
             >
-              My tab
+              {prepay ? "My orders" : "My tab"}
               {(tabQuery.data?.items.length ?? 0) > 0 && (
                 <span
                   className={cn(
@@ -411,6 +510,7 @@ export default function TableQrPage() {
         ) : (
           <TabView
             money={money}
+            prepay={prepay}
             loading={tabQuery.isLoading}
             failed={tabQuery.isError}
             data={tabQuery.data}
@@ -481,12 +581,15 @@ export default function TableQrPage() {
           setGuestName={setGuestName}
           notes={kitchenNotes}
           setNotes={setKitchenNotes}
-          sending={send.isPending}
+          prepay={prepay}
+          sending={busySending}
           error={
-            send.error instanceof Error
-              ? send.error.message
-              : send.isError
-                ? "We couldn't send that. Please try again."
+            (prepay ? checkout.error : send.error) instanceof Error
+              ? (prepay ? checkout.error : send.error)!.message
+              : (prepay ? checkout.isError : send.isError)
+                ? prepay
+                  ? "We couldn't start your payment. Please try again."
+                  : "We couldn't send that. Please try again."
                 : null
           }
           onClose={() => setBasketOpen(false)}
@@ -497,18 +600,58 @@ export default function TableQrPage() {
         />
       )}
 
+      {/* ── Card sheet (shared with the storefront) ── */}
+      {pay?.clientSecret && pay.stripeAccountId && (
+        <EmbeddedPaymentSheet
+          money={(n) => money(Number(n ?? 0))}
+          clientSecret={pay.clientSecret}
+          stripeAccountId={pay.stripeAccountId}
+          amountPence={pay.amountPence ?? Math.round(pay.total * 100)}
+          orderId={pay.orderId}
+          brandId={table.brandId}
+          title={`Pay for ${pay.tableName}`}
+          subtitle="Your order goes to the kitchen as soon as this clears"
+          // 3-D Secure takes the page away; bring them back HERE, not to a
+          // storefront tracking screen they never came from.
+          returnUrl={
+            typeof window === "undefined"
+              ? undefined
+              : `${window.location.origin}/t/${encodeURIComponent(token)}?paid=${encodeURIComponent(pay.orderId)}`
+          }
+          summary={<BillSummary money={money} bill={pay} />}
+          onPaid={() => {
+            requestIdRef.current = null;
+            dispatch({ type: "CLEAR" });
+            setKitchenNotes("");
+            setBasketOpen(false);
+            setPay(null);
+            setSent({ kind: "PAID", orderId: pay.orderId });
+            tabQuery.refetch();
+            tableQuery.refetch();
+          }}
+          // Backing out leaves the basket exactly as it was. The unpaid
+          // order stays in the shop's "Waiting for payment" column until
+          // staff clear it, the same as an abandoned POS payment link.
+          onCancel={() => setPay(null)}
+        />
+      )}
+
       {/* ── Sent confirmation ── */}
       {sent && (
         <SentOverlay
-          firstRound={sent.mode === "OPEN"}
+          paid={sent.kind === "PAID"}
+          kitchenConfirmed={kitchenConfirmed}
+          firstRound={sent.kind === "ROUND" && sent.firstRound}
           tableName={table.tableName}
           onSeeTab={() => {
             setSent(null);
+            setKitchenConfirmed(false);
             setView("tab");
             tabQuery.refetch();
           }}
           onKeepOrdering={() => {
             setSent(null);
+            setKitchenConfirmed(false);
             setView("menu");
           }}
         />
@@ -670,7 +813,11 @@ function TabView({
   refreshing,
   onRefresh,
   money,
+  prepay,
 }: {
+  /** This shop takes payment up front, so there is no bill to settle —
+   *  the list is a receipt, not a tab. */
+  prepay: boolean;
   loading: boolean;
   failed: boolean;
   data?: {
@@ -697,7 +844,7 @@ function TabView({
     return (
       <div className="rounded-xl border border-zinc-200 bg-white p-6 text-center">
         <p className="text-sm font-semibold text-zinc-900">
-          We couldn&rsquo;t load your tab
+          We couldn&rsquo;t load your {prepay ? "orders" : "tab"}
         </p>
         <p className="mt-1 text-sm text-zinc-500">
           Your orders are safe with the kitchen — this is just the list.
@@ -753,9 +900,11 @@ function TabView({
       </div>
 
       <p className="text-center text-xs text-zinc-500">
-        {data.paymentStatus === "PAID"
-          ? "This tab has been settled — thank you!"
-          : "Nothing to pay here. Ask a member of staff when you're ready to settle up."}
+        {prepay
+          ? "All paid for — nothing to settle at the end."
+          : data.paymentStatus === "PAID"
+            ? "This tab has been settled — thank you!"
+            : "Nothing to pay here. Ask a member of staff when you're ready to settle up."}
       </p>
 
       <button
@@ -782,6 +931,7 @@ function BasketSheet({
   setGuestName,
   notes,
   setNotes,
+  prepay,
   sending,
   error,
   onClose,
@@ -799,6 +949,8 @@ function BasketSheet({
   setGuestName: (v: string) => void;
   notes: string;
   setNotes: (v: string) => void;
+  /** This shop takes payment before the kitchen starts. */
+  prepay: boolean;
   sending: boolean;
   error: string | null;
   onClose: () => void;
@@ -822,7 +974,9 @@ function BasketSheet({
           <div>
             <h2 className="text-base font-bold text-zinc-900">Your round</h2>
             <p className="text-xs text-zinc-500">
-              Going to the kitchen for {tableName}
+              {prepay
+                ? `Pay, and it goes to the kitchen for ${tableName}`
+                : `Going to the kitchen for ${tableName}`}
             </p>
           </div>
           <button
@@ -929,16 +1083,26 @@ function BasketSheet({
             {sending ? (
               <>
                 <Loader2 className="h-5 w-5 animate-spin" />
-                Sending…
+                {prepay ? "One moment…" : "Sending…"}
+              </>
+            ) : prepay ? (
+              <>
+                <CreditCard className="h-5 w-5" />
+                Continue to payment
               </>
             ) : (
               "Send to kitchen"
             )}
           </button>
+          {/* Deliberately "continue to payment", not "pay {total}": the shop's
+              service charge is worked out server-side, so the honest total is
+              the one itemised on the card sheet, not the basket figure. */}
           <p className="mt-2 text-center text-[11px] text-zinc-400">
-            {tabOpen
-              ? "Added to your table — settle up with staff at the end."
-              : "No payment now — settle up with staff at the end."}
+            {prepay
+              ? "Apple Pay, Google Pay or card. Your order reaches the kitchen once it's paid."
+              : tabOpen
+                ? "Added to your table — settle up with staff at the end."
+                : "No payment now — settle up with staff at the end."}
           </p>
         </div>
       </div>
@@ -947,28 +1111,56 @@ function BasketSheet({
 }
 
 function SentOverlay({
+  paid,
+  kitchenConfirmed,
   firstRound,
   tableName,
   onSeeTab,
   onKeepOrdering,
 }: {
+  /** The round was paid for on the phone rather than added to a tab. */
+  paid: boolean;
+  /** The server has confirmed the money landed and the order was released
+   *  to the kitchen. Until then the copy stays honest about waiting. */
+  kitchenConfirmed: boolean;
   firstRound: boolean;
   tableName: string;
   onSeeTab: () => void;
   onKeepOrdering: () => void;
 }) {
+  // A paid round isn't "sent" until the restaurant has actually been told —
+  // the money arriving and the kitchen ticket appearing are the same event
+  // server-side, and claiming the first before the second is how a guest
+  // ends up waiting for food nobody is cooking.
+  const pending = paid && !kitchenConfirmed;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6">
       <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center">
-        <CheckCircle className="mx-auto h-12 w-12 text-emerald-500" />
-        <h2 className="mt-4 text-xl font-bold text-zinc-900">Sent!</h2>
+        {pending ? (
+          <Loader2
+            className="mx-auto h-12 w-12 animate-spin text-zinc-400"
+            aria-hidden
+          />
+        ) : (
+          <CheckCircle className="mx-auto h-12 w-12 text-emerald-500" />
+        )}
+        <h2 className="mt-4 text-xl font-bold text-zinc-900">
+          {pending ? "Confirming your payment…" : paid ? "Paid!" : "Sent!"}
+        </h2>
         <p className="mt-1 text-sm text-zinc-600">
-          Your food is on its way to {tableName}.
+          {pending
+            ? "This takes a few seconds — you can keep this screen open."
+            : `Your food is on its way to ${tableName}.`}
         </p>
         <p className="mt-3 text-xs text-zinc-500">
-          {firstRound
-            ? "We've opened a tab for your table. Order as much as you like and settle up with staff at the end."
-            : "It's been added to your table's tab. Settle up with staff at the end."}
+          {paid
+            ? pending
+              ? "Your card has gone through. We're just waiting for the restaurant to confirm before the kitchen starts."
+              : "Paid in full — nothing to settle at the end. Order again whenever you like."
+            : firstRound
+              ? "We've opened a tab for your table. Order as much as you like and settle up with staff at the end."
+              : "It's been added to your table's tab. Settle up with staff at the end."}
         </p>
         <div className="mt-6 space-y-2">
           <button
@@ -981,11 +1173,56 @@ function SentOverlay({
             onClick={onSeeTab}
             className="min-h-[48px] w-full rounded-xl border border-zinc-200 text-sm font-semibold text-zinc-700 active:bg-zinc-100"
           >
-            See my tab
+            {paid ? "See my orders" : "See my tab"}
           </button>
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * The itemised bill above the card fields.
+ *
+ * It exists because the amount Stripe takes is NOT the basket total the
+ * guest just looked at: the shop's service charge is computed server-side,
+ * and a card surcharge can ride on top of it. Quoting one number without
+ * showing where it came from is exactly the moment a diner abandons.
+ */
+function BillSummary({
+  money,
+  bill,
+}: {
+  money: MoneyFn;
+  bill: TableQrCheckoutResult;
+}) {
+  const charged = (bill.amountPence ?? Math.round(bill.total * 100)) / 100;
+  // Whatever the payment provider adds on top of the restaurant's own bill.
+  const cardFee = round2(charged - bill.total);
+
+  return (
+    <dl className="space-y-1.5 rounded-xl bg-zinc-50 px-3 py-3 text-sm">
+      <div className="flex justify-between text-zinc-600">
+        <dt>Items</dt>
+        <dd>{money(bill.subtotal)}</dd>
+      </div>
+      {bill.serviceCharge > 0 && (
+        <div className="flex justify-between text-zinc-600">
+          <dt>{bill.serviceChargeLabel}</dt>
+          <dd>{money(bill.serviceCharge)}</dd>
+        </div>
+      )}
+      {cardFee > 0 && (
+        <div className="flex justify-between text-zinc-600">
+          <dt>Card fee</dt>
+          <dd>{money(cardFee)}</dd>
+        </div>
+      )}
+      <div className="flex justify-between border-t border-zinc-200 pt-1.5 text-base font-bold text-zinc-900">
+        <dt>Total</dt>
+        <dd>{money(charged)}</dd>
+      </div>
+    </dl>
   );
 }
 

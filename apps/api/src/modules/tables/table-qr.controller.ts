@@ -42,4 +42,38 @@ export class TableQrController {
   ) {
     return this.qr.placeOrder(token, body);
   }
+
+  // Pay-before-kitchen. Writes the order unpaid and returns a Stripe
+  // direct-charge secret; the kitchen only hears about it once the
+  // payment webhook confirms. Only valid where the location is set to
+  // PAY_NOW — the service refuses it otherwise rather than quietly
+  // charging a table that settles at the end.
+  @Post(":token/checkout")
+  @Public()
+  @ApiOperation({ summary: "Start card payment for a guest's round (pay-now tables)" })
+  checkout(
+    @Param("token") token: string,
+    @Body()
+    body: {
+      items: QrOrderItem[];
+      customerName?: string;
+      notes?: string | null;
+      requestId?: string;
+    },
+  ) {
+    return this.qr.checkout(token, body);
+  }
+
+  // The phone polls this after confirming a card, and it doubles as the
+  // safety net for a shop whose Stripe webhook isn't subscribed to
+  // connected-account events — see the note on orderStatus().
+  @Get(":token/orders/:orderId")
+  @Public()
+  @ApiOperation({ summary: "Has my order been paid for and sent to the kitchen?" })
+  orderStatus(
+    @Param("token") token: string,
+    @Param("orderId") orderId: string,
+  ) {
+    return this.qr.orderStatus(token, orderId);
+  }
 }
