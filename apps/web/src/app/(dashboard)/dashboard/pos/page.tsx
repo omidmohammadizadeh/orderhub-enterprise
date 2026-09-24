@@ -34,11 +34,10 @@ import {
   round2,
   toOrderLineModifier,
   categoryItemAllowsFulfillment,
-  buildRepeatLines,
-  indexMenuItems,
   type SelectedModifier,
   type ProductSku,
 } from "@orderhub/shared";
+import { useRepeatOrder } from "@/hooks/use-repeat-order";
 import { ModifierSelectionModal } from "@/components/pos/modifier-selection-modal";
 import {
   PosCartPanel,
@@ -539,65 +538,23 @@ export default function PosPage() {
   );
   const [repeatNote, setRepeatNote] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!pendingRepeatOrderId) return;
-    // Into the basket immediately, before the order has even been fetched.
-    // The menu read can take two seconds, and until this was here a repeat sat
-    // on the "who is this order for?" screen for that whole time — which is
-    // indistinguishable from having pressed "start a new order", and is
-    // exactly what it was mistaken for.
-    setStep("menu");
-    // Wait for the menu: without it every line would look unavailable and the
-    // whole basket would be dropped.
-    if (!menuData) return;
-    const orderId = pendingRepeatOrderId;
-    setPendingRepeatOrderId(null);
-    let cancelled = false;
-
-    const liveItems = indexMenuItems((menuData as any)?.categories);
-
-    (async () => {
-      try {
-        const { data: order } = await apiClient.get<any>(`/v1/orders/${orderId}`);
-        if (cancelled) return;
-        const { lines: built, gone, repriced, kept } = buildRepeatLines(
-          order.items ?? [],
-          liveItems,
-        );
-        const lines: CartLine[] = built.map((l) => ({
-          ...l,
-          id: Math.random().toString(36).slice(2),
-        }));
-        setCart(lines);
-        appliedRepeatRef.current = { lines, at: Date.now() };
-        setStep("menu");
-        setRepeatNote(
-          lines.length === 0
-            ? "Nothing from that order is on the menu any more — start it fresh."
-            : [
-                `Loaded their last order (${lines.length} line${lines.length === 1 ? "" : "s"}).`,
-                gone.length ? `Not on the menu now: ${gone.join(", ")}.` : null,
-                repriced.length
-                  ? `Priced at today's menu: ${repriced.join(", ")}.`
-                  : null,
-                kept.length
-                  ? `Couldn't tell which size — left at last time's price, please check: ${kept.join(", ")}.`
-                  : null,
-              ]
-                .filter(Boolean)
-                .join(" "),
-        );
-      } catch (err: any) {
-        setRepeatNote(
-          err?.response?.data?.message ??
-            "Couldn't load that order — start a new one.",
-        );
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [pendingRepeatOrderId, menuData, setPendingRepeatOrderId]);
+  useRepeatOrder({
+    orderId: pendingRepeatOrderId,
+    clear: () => setPendingRepeatOrderId(null),
+    categories: (menuData as any)?.categories ?? null,
+    fetchOrder: async (id) =>
+      (await apiClient.get<any>(`/v1/orders/${id}`)).data,
+    onStart: () => setStep("menu"),
+    onLines: (built) => {
+      const lines: CartLine[] = built.map((l) => ({
+        ...l,
+        id: Math.random().toString(36).slice(2),
+      }));
+      setCart(lines);
+      appliedRepeatRef.current = { lines, at: Date.now() };
+    },
+    onNote: setRepeatNote,
+  });
 
   // Mirror the live menu + modifier catalog to IndexedDB whenever they load.
   useEffect(() => {
