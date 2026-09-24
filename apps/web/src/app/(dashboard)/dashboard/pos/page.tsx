@@ -34,6 +34,8 @@ import {
   round2,
   toOrderLineModifier,
   categoryItemAllowsFulfillment,
+  buildRepeatLines,
+  indexMenuItems,
   type SelectedModifier,
   type ProductSku,
 } from "@orderhub/shared";
@@ -552,68 +554,20 @@ export default function PosPage() {
     setPendingRepeatOrderId(null);
     let cancelled = false;
 
-    // Categories hold LINKS, not items — `c.items[].item` is the product.
-    // Keying this map on the link id meant nothing ever resolved, every line
-    // was judged "no longer on the menu", and the repeat produced an empty
-    // basket.
-    const liveItems = new Map<string, any>();
-    for (const c of (menuData as any)?.categories ?? []) {
-      for (const link of c.items ?? []) {
-        const item = link?.item;
-        if (item?.id) liveItems.set(item.id, item);
-      }
-    }
+    const liveItems = indexMenuItems((menuData as any)?.categories);
 
     (async () => {
       try {
         const { data: order } = await apiClient.get<any>(`/v1/orders/${orderId}`);
         if (cancelled) return;
-        const lines: CartLine[] = [];
-        const gone: string[] = [];
-        const repriced: string[] = [];
-        for (const it of order.items ?? []) {
-          const live = it.menuItemId ? liveItems.get(it.menuItemId) : null;
-          if (!live) {
-            gone.push(it.name);
-            continue;
-          }
-          // A sized product is priced by its SIZE, not by the product's base
-          // price — repeating a 12" at the 10" price would undercharge every
-          // time. The order line records the SKU's plu, so the exact size can
-          // be found and re-priced; if that size has since gone, the line is
-          // dropped rather than guessed at.
-          const sized = live.hasMultipleSkus === true;
-          const sku = sized
-            ? (live.productSkus ?? []).find((v: any) => v.plu && v.plu === it.sku)
-            : null;
-          if (sized && !sku) {
-            gone.push(it.name);
-            continue;
-          }
-          const wasPrice = Number(it.unitPrice);
-          const nowPrice = Number(sku ? sku.price : live.basePrice);
-          // Only the item's own price is re-read. A modifier's price is
-          // recorded on the order line and nothing on the row ties it back to
-          // a live option, so re-pricing those would be guesswork.
-          if (Number.isFinite(wasPrice) && Math.abs(nowPrice - wasPrice) >= 0.01) {
-            repriced.push(it.name);
-          }
-          lines.push({
-            id: Math.random().toString(36).slice(2),
-            menuItemId: live.id,
-            // The recorded name carries the size ("Pepperoni 12\""), which the
-            // product's own name does not.
-            displayName: it.name || live.name,
-            unitPrice: nowPrice,
-            quantity: it.quantity,
-            plu: sku?.plu ?? live.plu ?? null,
-            modifiers: (it.modifiers ?? []).map((m: any) => ({
-              name: m.name,
-              price: Number(m.price ?? 0),
-            })),
-            notes: it.notes ?? "",
-          });
-        }
+        const { lines: built, gone, repriced, kept } = buildRepeatLines(
+          order.items ?? [],
+          liveItems,
+        );
+        const lines: CartLine[] = built.map((l) => ({
+          ...l,
+          id: Math.random().toString(36).slice(2),
+        }));
         setCart(lines);
         appliedRepeatRef.current = { lines, at: Date.now() };
         setStep("menu");
@@ -625,6 +579,9 @@ export default function PosPage() {
                 gone.length ? `Not on the menu now: ${gone.join(", ")}.` : null,
                 repriced.length
                   ? `Priced at today's menu: ${repriced.join(", ")}.`
+                  : null,
+                kept.length
+                  ? `Couldn't tell which size — left at last time's price, please check: ${kept.join(", ")}.`
                   : null,
               ]
                 .filter(Boolean)

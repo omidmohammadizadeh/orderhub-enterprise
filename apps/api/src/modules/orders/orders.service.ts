@@ -722,6 +722,15 @@ export class OrdersService {
                 // POS sends the MenuItem id so KDS category/item routing
                 // rules can match; marketplace items omit it (null).
                 menuItemId: (item as any).menuItemId ?? null,
+                // WHICH SIZE was sold. The till sends it and nothing kept it:
+                // OrderItem has no sku column, so the size lived only inside
+                // the printed name. That made a sized line impossible to
+                // re-price later — a repeat could not tell a 10" from a 12"
+                // and had to drop it. metadata is an existing column, so this
+                // costs no migration.
+                ...((item as any).sku
+                  ? { metadata: { sku: String((item as any).sku) } as Prisma.InputJsonValue }
+                  : {}),
               })),
             },
           },
@@ -1987,6 +1996,8 @@ export class OrdersService {
           notes: it.notes ?? null,
           // Round lines must route to stations like round-1 lines do.
           menuItemId: it.menuItemId ?? null,
+          // …and carry their size, for the same reason as above.
+          ...((it as any).sku ? { metadata: { sku: String((it as any).sku) } as any } : {}),
         })),
       });
       const u = await tx.order.update({
