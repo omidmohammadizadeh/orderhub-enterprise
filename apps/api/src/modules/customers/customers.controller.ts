@@ -27,6 +27,7 @@ import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface
 import { SocketService } from "../../infrastructure/socket/socket.service";
 import { extractVoipPhone } from "./voip-phone.util";
 import { CallerIdSetupService } from "./caller-id-setup.service";
+import { LocationAccessService } from "../../common/access/location-access.service";
 import { ForbiddenException, BadRequestException, NotFoundException, Headers } from "@nestjs/common";
 
 // Who may see and mint a shop's caller-ID webhook token: the same people who
@@ -51,6 +52,7 @@ export class CustomersController {
     private readonly customers: CustomersService,
     private readonly socket: SocketService,
     private readonly callerIdSetup: CallerIdSetupService,
+    private readonly access: LocationAccessService,
   ) {}
 
   // ── Caller-ID ─────────────────────────────────────────────────────────
@@ -66,6 +68,28 @@ export class CustomersController {
     @CurrentUser() user: AuthenticatedUser,
     @Body() body: { locationId: string; phone: string; test?: boolean },
   ) {
+    if (!body?.locationId) {
+      throw new BadRequestException("locationId is required");
+    }
+    // The lookup was always scoped to the caller's own tenant, but the
+    // BROADCAST wasn't: locationId came straight off the request, so anyone
+    // signed in could put a caller card on another shop's tills — and, since
+    // the ring log went in, leave a line in that shop's diagnostics too.
+    //
+    // Order matters. The per-user check runs FIRST so a probe can't tell
+    // "another tenant's shop" from "a shop in mine I'm not assigned to" —
+    // both come back 403. accessibleIds is itself tenant-scoped, so for a
+    // scoped role that single call already settles it; the tenant check
+    // below is what covers the tenant-wide roles, which assertAccess waves
+    // through by design.
+    await this.access.assertAccess(user, body.locationId);
+    const tenantId = await this.customers.tenantForLocation(body.locationId);
+    if (tenantId !== user.tenantId) {
+      throw new ForbiddenException(
+        "You don't have access to this location. Ask an owner to assign you to it.",
+      );
+    }
+
     const match = await this.customers.lookupByPhone(
       user.tenantId,
       body.phone,
