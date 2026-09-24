@@ -794,7 +794,7 @@ export function ProductForm({
                 <p className="text-[11px] uppercase tracking-wider text-zinc-400 mb-2">
                   Taxes (%)
                 </p>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-2 max-[380px]:grid-cols-1">
                   <Field label="Delivery">
                     <Input
                       type="number"
@@ -932,6 +932,25 @@ export function ProductForm({
         </div>
       </div>
 
+      {/* The only Save is at the very top, which on a phone is a whole
+          screen or two above the sizes and modifier groups you just
+          edited. This is the same mutation, at the end of the form. */}
+      <div className="flex justify-end lg:hidden">
+        <Button
+          size="sm"
+          onClick={() => saveMutation.mutate()}
+          disabled={!canSave || saveMutation.isPending}
+          className="w-full bg-orange-500 text-white hover:bg-orange-600 sm:w-auto"
+        >
+          <Save className="mr-1.5 h-3.5 w-3.5" />
+          {saveMutation.isPending
+            ? "Saving…"
+            : isEdit
+              ? "Save changes"
+              : "Create product"}
+        </Button>
+      </div>
+
       {isEdit && (
         <div className="flex justify-end">
           <button
@@ -974,7 +993,7 @@ export function ProductForm({
             }
           }}
         >
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl mx-4 p-5">
+          <div className="mx-2 w-full max-w-5xl rounded-xl bg-white p-4 shadow-2xl sm:mx-4 sm:p-5">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-100">
               <h2 className="text-base font-semibold text-zinc-900">
                 Create a new modifier group
@@ -1068,7 +1087,7 @@ export function ProductForm({
             if (e.target === e.currentTarget) setEditingGroupId(null);
           }}
         >
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl mx-4 p-5">
+          <div className="mx-2 w-full max-w-5xl rounded-xl bg-white p-4 shadow-2xl sm:mx-4 sm:p-5">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-100">
               <h2 className="text-base font-semibold text-zinc-900">
                 Edit modifier group
@@ -1140,7 +1159,7 @@ export function ProductForm({
             if (e.target === e.currentTarget) setSkuCreateTarget(null);
           }}
         >
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl mx-4 p-5">
+          <div className="mx-2 w-full max-w-5xl rounded-xl bg-white p-4 shadow-2xl sm:mx-4 sm:p-5">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-100">
               <h2 className="text-base font-semibold text-zinc-900">
                 Create a new modifier group
@@ -1264,14 +1283,16 @@ function SkuRow({
 
   return (
     <div className="rounded-lg border border-zinc-200 bg-white p-3">
-      <div className="grid grid-cols-12 gap-2 items-start">
+      {/* On a phone the name takes the first line and the supplement, PLU
+          and remove share the second; from sm up it is one row as before. */}
+      <div className="grid grid-cols-12 items-start gap-2">
         <Input
           placeholder='Size (e.g. 10")'
           value={sku.name}
           onChange={(e) => onChange({ ...sku, name: e.target.value })}
-          className="col-span-3 h-9 text-sm"
+          className="col-span-12 h-9 text-sm sm:col-span-3"
         />
-        <div className="col-span-3">
+        <div className="col-span-5 sm:col-span-3">
           <div className="relative">
             <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-zinc-400">
               +£
@@ -1320,7 +1341,7 @@ function SkuRow({
           placeholder="PLU"
           value={sku.plu}
           onChange={(e) => onChange({ ...sku, plu: e.target.value })}
-          className="col-span-5 h-9 text-sm font-mono"
+          className="col-span-6 h-9 font-mono text-sm sm:col-span-5"
         />
         <button
           type="button"

@@ -656,6 +656,20 @@ export function ModifierGroupForm({
         </Card>
       </div>
 
+      {/* Same reason as the product form: on a phone the Save at the top is
+          a screen or two above the options you just added. */}
+      <div className="flex justify-end lg:hidden">
+        <Button
+          size="sm"
+          onClick={() => saveMutation.mutate()}
+          disabled={!name.trim() || saveMutation.isPending}
+          className="w-full bg-orange-500 text-white hover:bg-orange-600 sm:w-auto"
+        >
+          <Save className="mr-1.5 h-3.5 w-3.5" />
+          {saveMutation.isPending ? "Saving…" : isEdit ? "Save changes" : "Create group"}
+        </Button>
+      </div>
+
       {isEdit && (
         <div className="flex justify-end">
           <button
@@ -688,7 +702,7 @@ export function ModifierGroupForm({
             if (e.target === e.currentTarget) setEditingModifierId(null);
           }}
         >
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl mx-4 p-5">
+          <div className="mx-2 w-full max-w-3xl rounded-xl bg-white p-4 shadow-2xl sm:mx-4 sm:p-5">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-100">
               <h2 className="text-base font-semibold text-zinc-900">
                 Edit modifier

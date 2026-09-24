@@ -887,12 +887,15 @@ function MenuCard({ menu, locationNameById, isDropdownOpen, onToggleDropdown, on
       ? STATUS_CONFIG.ARCHIVED
       : STATUS_CONFIG.DRAFT;
   return (
-    <div className="group relative flex items-center gap-4 rounded-xl border border-zinc-200 bg-white px-5 py-4 hover:border-zinc-300 transition-colors">
+    <div className="group relative flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white px-4 py-4 transition-colors hover:border-zinc-300 sm:flex-row sm:items-center sm:gap-4 sm:px-5">
+      {/* Icon and text stay together when the row stacks on a phone —
+          as siblings of the action group the icon got a line of its own. */}
+      <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
       <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-zinc-100">
         <UtensilsCrossed className="h-5 w-5 text-zinc-400" />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <p className="font-medium text-zinc-900 truncate">{menu.name}</p>
           <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold", cfg.cls)}>
             {cfg.label}
@@ -955,7 +958,8 @@ function MenuCard({ menu, locationNameById, isDropdownOpen, onToggleDropdown, on
           )}
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      </div>
+      <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
         <Button
           size="sm"
           onClick={onPublish}

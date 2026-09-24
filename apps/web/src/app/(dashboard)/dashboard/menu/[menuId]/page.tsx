@@ -45,6 +45,10 @@ import {
   PoundSterling,
   Camera,
   ArrowDownAZ,
+  ChevronUp,
+  ChevronDown,
+  X,
+  ListTree,
 } from "lucide-react";
 import { MenuSettingsDrawer } from "@/components/menu/menu-settings-drawer";
 import { VariantsManagerModal } from "@/components/menu/variants-manager-modal";
@@ -116,6 +120,8 @@ export default function MenuEditorPage() {
   const [pricingTarget, setPricingTarget] = useState<any | null>(null);
   const [newCatName, setNewCatName] = useState("");
   const [productSearch, setProductSearch] = useState("");
+  /** Phone only — the categories sidebar becomes a slide-over. */
+  const [catsOpen, setCatsOpen] = useState(false);
   const [showAddProductModal, setShowAddProductModal] = useState(false);
   // Phase AM — in-place product editor. `null` = closed. `"new"` opens
   // a blank form (Create New flow). Any other string opens edit mode
@@ -293,6 +299,22 @@ export default function MenuEditorPage() {
     setShowAddProductModal(false);
   };
 
+  /**
+   * Move a category one place. The same payload the drag handler sends —
+   * HTML5 drag events never fire on a touch screen, so without this the
+   * order of a menu is frozen on a phone.
+   */
+  const moveCategory = (idx: number, delta: number) => {
+    const to = idx + delta;
+    if (to < 0 || to >= categories.length) return;
+    const next = [...categories];
+    const [moved] = next.splice(idx, 1);
+    next.splice(to, 0, moved);
+    reorderCatMutation.mutate({
+      items: next.map((c: any, i: number) => ({ id: c.id, sortOrder: i })),
+    });
+  };
+
   // ── Loading / empty states ─────────────────────────────────────────
   if (isLoading) {
     return (
@@ -329,27 +351,56 @@ export default function MenuEditorPage() {
       )
     : products;
 
+  /** Same idea as moveCategory, for the products in the open category. */
+  const moveProduct = (idx: number, delta: number) => {
+    const to = idx + delta;
+    if (!activeCat || to < 0 || to >= filteredProducts.length) return;
+    const next = [...filteredProducts];
+    const [moved] = next.splice(idx, 1);
+    next.splice(to, 0, moved);
+    reorderItemsMutation.mutate({
+      catId: activeCat.id,
+      order: next.map((row: any, i: number) => ({
+        itemId: row.id,
+        sortOrder: i,
+      })),
+    });
+  };
+
   return (
     <div className="-mx-6 -my-6 h-[calc(100vh-4rem)] flex flex-col">
       {/* ── Top bar ───────────────────────────────────────────── */}
-      <div className="flex items-center justify-between border-b border-zinc-200 bg-white px-6 py-3.5">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-2.5 border-b border-zinc-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-6 sm:py-3.5">
+        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
           <button
             onClick={() => router.push("/dashboard/menu")}
-            className="flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-900"
+            className="flex flex-shrink-0 items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-900"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Menus
+            <span className="hidden sm:inline">Back to Menus</span>
           </button>
-          <h1 className="text-xl font-bold text-zinc-900 tracking-tight uppercase">
+          {/* The categories list is a slide-over on a phone; without this
+              there is no way to reach it, and no way to change category. */}
+          <button
+            onClick={() => setCatsOpen(true)}
+            className="flex flex-shrink-0 items-center gap-1.5 rounded-md border border-zinc-200 px-2.5 py-1.5 text-sm text-zinc-700 md:hidden"
+          >
+            <ListTree className="h-4 w-4" />
+            Categories
+          </button>
+          <h1 className="truncate text-base font-bold uppercase tracking-tight text-zinc-900 sm:text-xl">
             {menu.name}
           </h1>
         </div>
-        <div className="flex items-center gap-2">
+        {/* Six actions do not fit a phone. They scroll sideways rather than
+            wrapping onto three rows of a screen the products need, and
+            Publish is pulled to the front so the one that matters is the one
+            already in view. */}
+        <div className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 pb-0.5 sm:mx-0 sm:flex-wrap sm:justify-end sm:overflow-visible sm:px-0">
           <Button
             variant="outline"
             size="sm"
-            className="h-9 gap-1.5"
+            className="h-9 flex-shrink-0 gap-1.5"
             onClick={() => setVariantsOpen(true)}
           >
             <SlidersHorizontal className="h-4 w-4" />
@@ -361,7 +412,7 @@ export default function MenuEditorPage() {
             <Button
               variant="outline"
               size="sm"
-              className="h-9 gap-1.5"
+              className="h-9 flex-shrink-0 gap-1.5"
               onClick={() => setBulkPriceOpen(true)}
             >
               <PoundSterling className="h-4 w-4" />
@@ -371,7 +422,7 @@ export default function MenuEditorPage() {
           <Button
             variant="outline"
             size="sm"
-            className="h-9 gap-1.5"
+            className="h-9 flex-shrink-0 gap-1.5"
             onClick={() => setChannelPricingOpen(true)}
           >
             <Percent className="h-4 w-4" />
@@ -380,7 +431,7 @@ export default function MenuEditorPage() {
           <Button
             variant="outline"
             size="sm"
-            className="h-9 gap-1.5"
+            className="h-9 flex-shrink-0 gap-1.5"
             onClick={() => setSettingsOpen(true)}
           >
             <Settings className="h-4 w-4" />
@@ -389,7 +440,7 @@ export default function MenuEditorPage() {
           <Button
             variant="outline"
             size="sm"
-            className="h-9 gap-1.5"
+            className="h-9 flex-shrink-0 gap-1.5"
             onClick={() =>
               window.open(`/menu/${menuId}/preview`, "_blank")
             }
@@ -400,7 +451,7 @@ export default function MenuEditorPage() {
           {menu.status !== "PUBLISHED" && (
             <Button
               size="sm"
-              className="h-9 bg-emerald-600 hover:bg-emerald-700 text-white"
+              className="order-first h-9 flex-shrink-0 bg-emerald-600 text-white hover:bg-emerald-700 sm:order-none"
               onClick={() => publishMutation.mutate()}
             >
               Publish
@@ -466,9 +517,35 @@ export default function MenuEditorPage() {
 
       {/* ── Body: sidebar + main ─────────────────────────────── */}
       <div className="flex-1 flex min-h-0">
-        {/* ── Categories sidebar ─────────────────────────────── */}
-        <aside className="w-72 flex-shrink-0 border-r border-zinc-200 bg-white p-5 overflow-y-auto">
-          <h2 className="text-base font-bold text-zinc-900 mb-3">Categories</h2>
+        {/* ── Categories sidebar ─────────────────────────────────
+            One panel, two shapes: a fixed column on a laptop, a
+            slide-over on a phone. Same markup either way, so adding,
+            renaming, reordering and deleting a category all behave
+            identically — a second mobile-only copy would have drifted. */}
+        {catsOpen && (
+          <div
+            className="fixed inset-0 z-30 bg-black/40 md:hidden"
+            onClick={() => setCatsOpen(false)}
+          />
+        )}
+        <aside
+          className={cn(
+            "overflow-y-auto border-r border-zinc-200 bg-white p-5",
+            "fixed inset-y-0 left-0 z-40 w-[86%] max-w-xs shadow-2xl transition-transform duration-200",
+            "md:static md:z-auto md:w-72 md:max-w-none md:flex-shrink-0 md:translate-x-0 md:shadow-none",
+            catsOpen ? "translate-x-0" : "-translate-x-full",
+          )}
+        >
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-base font-bold text-zinc-900">Categories</h2>
+            <button
+              onClick={() => setCatsOpen(false)}
+              className="-mr-1 p-1 text-zinc-400 hover:text-zinc-700 md:hidden"
+              aria-label="Close categories"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
 
           {addingCategory ? (
             <div className="flex gap-1.5 mb-3">
@@ -536,10 +613,40 @@ export default function MenuEditorPage() {
                     ? "bg-orange-50 border-l-2 border-orange-500"
                     : "hover:bg-zinc-50 border-l-2 border-transparent",
                 )}
-                onClick={() => setActiveCatId(cat.id)}
+                onClick={() => {
+                  setActiveCatId(cat.id);
+                  setCatsOpen(false);
+                }}
               >
-                <span className="cursor-grab text-zinc-300 hover:text-zinc-600 px-1.5 py-2.5">
+                {/* Native drag-and-drop does not fire on touch, so a phone
+                    gets buttons instead of the handle — otherwise the order
+                    of the menu simply cannot be changed there. */}
+                <span className="hidden cursor-grab px-1.5 py-2.5 text-zinc-300 hover:text-zinc-600 md:inline-block">
                   <GripVertical className="h-3.5 w-3.5" />
+                </span>
+                <span className="flex flex-col md:hidden">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      moveCategory(idx, -1);
+                    }}
+                    disabled={idx === 0}
+                    className="px-1.5 text-zinc-400 disabled:opacity-25"
+                    aria-label={`Move ${cat.name} up`}
+                  >
+                    <ChevronUp className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      moveCategory(idx, 1);
+                    }}
+                    disabled={idx === categories.length - 1}
+                    className="px-1.5 text-zinc-400 disabled:opacity-25"
+                    aria-label={`Move ${cat.name} down`}
+                  >
+                    <ChevronDown className="h-3.5 w-3.5" />
+                  </button>
                 </span>
                 {editingCatId === cat.id ? (
                   <input
@@ -588,7 +695,7 @@ export default function MenuEditorPage() {
                       setEditingCatId(cat.id);
                       setEditCatName(cat.name);
                     }}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity px-2 py-2 text-zinc-300 hover:text-zinc-700"
+                    className="px-2 py-2 text-zinc-300 transition-opacity hover:text-zinc-700 md:opacity-0 md:group-hover:opacity-100"
                     title="Rename category"
                   >
                     <Pencil className="h-3.5 w-3.5" />
@@ -602,7 +709,7 @@ export default function MenuEditorPage() {
                     )
                       deleteCatMutation.mutate(cat.id);
                   }}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity px-2 py-2 text-zinc-300 hover:text-red-600"
+                  className="px-2 py-2 text-zinc-300 transition-opacity hover:text-red-600 md:opacity-0 md:group-hover:opacity-100"
                   title="Delete category"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -618,19 +725,25 @@ export default function MenuEditorPage() {
         </aside>
 
         {/* ── Main: active category products ───────────────────── */}
-        <main className="flex-1 overflow-y-auto bg-zinc-50 p-6">
+        <main className="flex-1 overflow-y-auto bg-zinc-50 p-4 sm:p-6">
           {!activeCat ? (
-            <div className="text-center py-16 text-sm text-zinc-400">
+            <div className="py-16 text-center text-sm text-zinc-400">
               Add a category from the sidebar to start building your menu.
+              <div className="mt-4 md:hidden">
+                <Button size="sm" variant="outline" onClick={() => setCatsOpen(true)}>
+                  <ListTree className="mr-1.5 h-4 w-4" />
+                  Open categories
+                </Button>
+              </div>
             </div>
           ) : (
             <>
               {/* Category header + search + Add product */}
-              <div className="flex items-center gap-3 mb-5">
-                <h2 className="text-xl font-bold text-zinc-900 flex-shrink-0">
+              <div className="mb-5 flex flex-wrap items-center gap-2 sm:gap-3">
+                <h2 className="w-full flex-shrink-0 truncate text-lg font-bold text-zinc-900 sm:w-auto sm:text-xl">
                   {activeCat.name}
                 </h2>
-                <div className="relative flex-1 max-w-md">
+                <div className="relative w-full min-w-[10rem] flex-1 sm:max-w-md">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
                   <Input
                     placeholder="Search products..."
@@ -643,7 +756,7 @@ export default function MenuEditorPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => setShowAddProductModal(true)}
-                  className="h-9"
+                  className="h-9 flex-shrink-0"
                 >
                   <Plus className="h-4 w-4 mr-1.5" />
                   Add Existing
@@ -680,7 +793,7 @@ export default function MenuEditorPage() {
                       })),
                     });
                   }}
-                  className="h-9"
+                  className="h-9 flex-shrink-0"
                   title="Put this category's products in alphabetical order"
                 >
                   <ArrowDownAZ className="h-4 w-4 mr-1.5" />
@@ -696,7 +809,7 @@ export default function MenuEditorPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => setPhotosOpen(true)}
-                    className="h-9"
+                    className="h-9 flex-shrink-0"
                     title="Generate AI photos for the items in this category"
                   >
                     <Camera className="h-4 w-4 mr-1.5" />
@@ -706,7 +819,7 @@ export default function MenuEditorPage() {
                 <Button
                   size="sm"
                   onClick={() => setProductEditorTarget("new")}
-                  className="h-9 bg-zinc-900 hover:bg-zinc-800 text-white"
+                  className="h-9 flex-shrink-0 bg-zinc-900 text-white hover:bg-zinc-800"
                 >
                   <Plus className="h-4 w-4 mr-1.5" />
                   Create New
@@ -787,14 +900,14 @@ export default function MenuEditorPage() {
                         <div className="absolute top-3 right-3 flex items-center gap-1">
                           <button
                             onClick={() => setPricingTarget(p)}
-                            className="p-1 text-zinc-300 hover:text-violet-600"
+                            className="p-2 text-zinc-400 hover:text-violet-600 md:p-1 md:text-zinc-300"
                             title="Channel pricing"
                           >
                             <Tag className="h-3.5 w-3.5" />
                           </button>
                           <button
                             onClick={() => setProductEditorTarget(p.id)}
-                            className="p-1 text-zinc-300 hover:text-zinc-900"
+                            className="p-2 text-zinc-400 hover:text-zinc-900 md:p-1 md:text-zinc-300"
                             title="Edit product"
                           >
                             <Pencil className="h-3.5 w-3.5" />
@@ -812,16 +925,38 @@ export default function MenuEditorPage() {
                                 });
                               }
                             }}
-                            className="p-1 text-zinc-300 hover:text-red-600"
+                            className="p-2 text-zinc-400 hover:text-red-600 md:p-1 md:text-zinc-300"
                             title="Remove from category"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
                         </div>
-                        <div className="absolute left-0 top-0 bottom-0 w-8 grid place-items-center text-zinc-200 group-hover:text-zinc-400 transition-colors">
+                        {/* The drag handle on a laptop; arrows on a phone,
+                            where HTML5 drag never fires. Same mutation. */}
+                        <div className="absolute bottom-0 left-0 top-0 hidden w-8 place-items-center text-zinc-200 transition-colors group-hover:text-zinc-400 md:grid">
                           <GripVertical className="h-4 w-4" />
                         </div>
-                        <div className="pl-3 pr-12">
+                        <div className="absolute bottom-0 left-0 top-0 flex w-8 flex-col items-center justify-center gap-1 text-zinc-300 md:hidden">
+                          <button
+                            type="button"
+                            onClick={() => moveProduct(idx, -1)}
+                            disabled={idx === 0}
+                            className="disabled:opacity-25"
+                            aria-label={`Move ${p.name} up`}
+                          >
+                            <ChevronUp className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => moveProduct(idx, 1)}
+                            disabled={idx === filteredProducts.length - 1}
+                            className="disabled:opacity-25"
+                            aria-label={`Move ${p.name} down`}
+                          >
+                            <ChevronDown className="h-4 w-4" />
+                          </button>
+                        </div>
+                        <div className="pl-3 pr-24">
                           <h3 className="font-bold text-zinc-900 text-base leading-tight mb-1">
                             {p.name}
                           </h3>

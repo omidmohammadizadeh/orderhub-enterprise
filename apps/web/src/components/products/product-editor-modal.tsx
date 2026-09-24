@@ -43,9 +43,12 @@ export function ProductEditorModal({
 }: Props) {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-start justify-center p-4 overflow-y-auto">
-      <div className="my-8 w-full max-w-5xl bg-white rounded-xl shadow-2xl">
-        <div className="sticky top-0 z-10 bg-white border-b border-zinc-100 flex items-center justify-between px-6 py-4 rounded-t-xl">
+    // Full-bleed on a phone: the product form is the longest thing in the
+    // dashboard, and 16px of backdrop either side plus a rounded card cost a
+    // sixth of the width for nothing.
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 backdrop-blur-sm sm:p-4">
+      <div className="min-h-full w-full max-w-5xl bg-white shadow-2xl sm:my-8 sm:min-h-0 sm:rounded-xl">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-zinc-100 bg-white px-4 py-3 sm:rounded-t-xl sm:px-6 sm:py-4">
           <h2 className="text-base font-semibold text-zinc-900">
             {productId ? "Edit product" : "Create product"}
           </h2>
@@ -58,7 +61,7 @@ export function ProductEditorModal({
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <ProductForm
             menuId={menuId}
             brandId={brandId}
