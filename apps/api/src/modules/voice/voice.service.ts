@@ -1749,9 +1749,13 @@ export class VoiceService {
     try {
       const target = await this.contexts.callerIdTarget(dialled);
       if (!target?.callerIdOnly) return;
-      const match = await this.customers.lookupByPhone(target.tenantId, from, {
-        locationId: target.locationId,
-      });
+      // No tenant means no lookup, but the number is still worth showing —
+      // a bare number on the till beats nothing at all.
+      const match = target.tenantId
+        ? await this.customers.lookupByPhone(target.tenantId, from, {
+            locationId: target.locationId,
+          })
+        : null;
       this.socket.emitToLocation(target.locationId, 'callerid:ring', {
         locationId: target.locationId,
         phone: from,

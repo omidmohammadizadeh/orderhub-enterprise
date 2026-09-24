@@ -152,12 +152,17 @@ export class VoiceContextService {
     // Postgres JSON path equality on the stored value first (cheap, indexed by
     // the settings column), then a normalised sweep so a shop that typed the
     // number with spaces or a leading 0 still resolves.
+    // The brand comes with it because the TENANT lives there — a Location row
+    // has no tenantId of its own, and reading one off it yields undefined.
+    const withBrand = { brand: { select: { tenantId: true } } } as const;
+
     const exact = await this.db().location.findFirst({
       where: {
         deletedAt: null,
         isActive: true,
         settings: { path: ['voiceNumber'], equals: dialled },
       },
+      include: withBrand,
     });
     if (exact) return exact;
 
@@ -167,7 +172,7 @@ export class VoiceContextService {
     });
     const hit = candidates.find((l: any) => normaliseNumber(l?.settings?.voiceNumber) === wanted);
     if (!hit) return null;
-    return this.db().location.findUnique({ where: { id: hit.id } });
+    return this.db().location.findUnique({ where: { id: hit.id }, include: withBrand });
   }
 
   /**
@@ -179,7 +184,8 @@ export class VoiceContextService {
    * menu with us at all, and the popup is the only thing they bought.
    */
   async callerIdTarget(dialled: string): Promise<{
-    tenantId: string;
+    /** Null when the shop's brand can't be read — the number still shows. */
+    tenantId: string | null;
     locationId: string;
     callerIdOnly: boolean;
     /** The shop's own line, so a ring carrying it instead of the caller's can be spotted. */
@@ -190,7 +196,12 @@ export class VoiceContextService {
     if (!location) return null;
     const settings = (location.settings ?? {}) as any;
     return {
-      tenantId: String(location.tenantId),
+      // Off the BRAND. `location.tenantId` does not exist: reading it gave the
+      // string "undefined", every caller-ID lookup ran against a tenant that
+      // owns nothing, and so every caller — including a regular of two years
+      // with an order in the kitchen — came up on the till as "New caller, no
+      // order history".
+      tenantId: (location as any).brand?.tenantId ?? null,
       locationId: String(location.id),
       callerIdOnly: settings.voiceCallerIdOnly === true,
       locationPhone: (location as any).phone ?? null,
