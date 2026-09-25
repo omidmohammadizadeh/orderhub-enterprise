@@ -2205,6 +2205,15 @@ export class OrdersService {
         currency: "gbp",
         status: "SUCCEEDED",
         method: dto.method,
+        // No provider took this money: it's cash in the drawer, or a card
+        // keyed into the shop's own standalone machine and recorded here.
+        // The column defaults to STRIPE, and that default is dangerous —
+        // captureForOrder and refundForOrder both take the most recent
+        // CARD + provider:"STRIPE" row on the order, so a manual record
+        // written after a real Stripe payment SHADOWS it. Refunding then
+        // finds no stripePaymentIntentId and returns silently: the customer
+        // never gets their money and nothing is logged.
+        provider: "MANUAL",
         netAmount: amount,
         metadata: {
           source: "SPLIT_BILL",
