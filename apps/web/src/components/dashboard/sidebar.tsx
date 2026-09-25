@@ -45,6 +45,7 @@ import {
   CalendarDays,
   MonitorSmartphone,
   Bot,
+  ShieldCheck,
   Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SidebarLocationSwitcher } from "./sidebar-location-switcher";
@@ -58,6 +59,8 @@ import { leadsClient } from "@/lib/api/leads.client";
 import { locationsClient } from "@/lib/api/locations.client";
 import { queryKeys } from "@/lib/api/query-keys";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
+import { dashboardTabForPath } from "@orderhub/shared";
+import { useDashboardTabAccess } from "@/hooks/use-dashboard-tabs";
 
 interface NavItem {
   href: string;
@@ -248,6 +251,19 @@ const secondaryNav: NavItem[] = [
   { href: "/dashboard/sandbox", label: "Sandbox", icon: FlaskConical, roles: ["PLATFORM_ADMIN"] },
 ];
 
+// Platform-admin tooling. Its own group rather than another PLATFORM_ADMIN
+// entry buried among Secrets/Sandbox/Branding, because this is where the
+// controls that change what OTHER people see now live — and those want to be
+// somewhere an admin can find on purpose, not stumble on.
+const adminNav: NavItem[] = [
+  {
+    href: "/dashboard/admin",
+    label: "Admin Dashboard",
+    icon: ShieldCheck,
+    roles: ["PLATFORM_ADMIN"],
+  },
+];
+
 import { useLayoutStore } from "@/stores/layout.store";
 
 export function Sidebar() {
@@ -307,6 +323,14 @@ function _Sidebar() {
   const tableServiceOn = !!(locationQuery.data as any)?.settings?.tableService
     ?.enabled;
 
+  // Admin Dashboard → Dashboard access. A tab switched off for the selected
+  // location is gone for everyone who works there, whatever their role — so
+  // this filter runs AFTER the role filter and can only ever take away.
+  // Platform admins and device accounts are exempt (see the hook).
+  const tabAccess = useDashboardTabAccess();
+  const tabVisible = (href: string) =>
+    !tabAccess.isHidden(dashboardTabForPath(href)?.key);
+
   return (
     <aside className="flex h-screen w-[220px] flex-shrink-0 flex-col bg-[#0a0a0b] border-r border-white/[0.06]">
       {/* ── Logo ─────────────────────────────────────── */}
@@ -342,7 +366,8 @@ function _Sidebar() {
               // UI cleanliness.
               (!item.roles ||
                 (user?.role && item.roles.includes(user.role))) &&
-              (!item.requiresTableService || tableServiceOn),
+              (!item.requiresTableService || tableServiceOn) &&
+              tabVisible(item.href),
           )
           .map((item) => {
             // Phase AR — overlay the live unread-leads count onto
@@ -367,10 +392,12 @@ function _Sidebar() {
               (i) =>
                 (!deviceHome || i.href === deviceHome) &&
                 (!i.roles ||
-                  (user?.role && i.roles.includes(user.role))),
+                  (user?.role && i.roles.includes(user.role))) &&
+                tabVisible(i.href),
             );
           const ops = filterFor(operationsNav);
           const fin = filterFor(financeNav);
+          const adm = filterFor(adminNav);
           const sec = filterFor(secondaryNav);
           return (
             <>
@@ -396,6 +423,21 @@ function _Sidebar() {
                     Finance
                   </p>
                   {fin.map((item) => (
+                    <SidebarNavItem
+                      key={item.href}
+                      item={item}
+                      isActive={pathname.startsWith(item.href)}
+                    />
+                  ))}
+                </>
+              )}
+              {adm.length > 0 && (
+                <>
+                  <div className="my-3 mx-1 h-px bg-white/[0.06]" />
+                  <p className="px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
+                    Admin
+                  </p>
+                  {adm.map((item) => (
                     <SidebarNavItem
                       key={item.href}
                       item={item}

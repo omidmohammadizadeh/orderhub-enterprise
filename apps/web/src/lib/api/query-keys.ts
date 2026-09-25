@@ -36,4 +36,8 @@ export const queryKeys = {
   // GET /v1/printers?locationId=
   printers: (locationId?: string) =>
     ["printers", "list", locationId ?? "all"] as const,
+
+  // GET /v1/admin/dashboard-access (admin screen only — the sidebar reads the
+  // same facts off the locations list it already holds)
+  dashboardAccess: ["admin", "dashboard-access"] as const,
 } as const;

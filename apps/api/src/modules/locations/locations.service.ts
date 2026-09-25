@@ -5,7 +5,11 @@ import {
   ForbiddenException,
 } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
-import { currencyForCountry, timezoneForCountry } from "@orderhub/shared";
+import {
+  currencyForCountry,
+  timezoneForCountry,
+  DASHBOARD_ACCESS_SETTINGS_KEY,
+} from "@orderhub/shared";
 import { CredentialEncryptionService } from "../integrations/credential-encryption.service";
 import { SupabaseStorageService } from "../uploads/supabase-storage.service";
 import { rehostImageIfInline } from "../uploads/rehost-image";
@@ -270,6 +274,22 @@ export function managerForbiddenLocationFields(dto: {
   return offending;
 }
 
+/** Remove the admin-owned dashboard-access key from a location PATCH body.
+ *
+ *  PLATFORM_ADMIN is exempt so the admin screen's own writes (and any future
+ *  admin tooling that patches a location wholesale) still work. Returns the
+ *  dto unchanged when the key isn't present, so the common path allocates
+ *  nothing. */
+export function stripDashboardAccess<T extends { settings?: Record<string, unknown> | null }>(
+  dto: T,
+  role?: string,
+): T {
+  if (role === "PLATFORM_ADMIN") return dto;
+  if (!dto.settings || !(DASHBOARD_ACCESS_SETTINGS_KEY in dto.settings)) return dto;
+  const { [DASHBOARD_ACCESS_SETTINGS_KEY]: _dropped, ...rest } = dto.settings;
+  return { ...dto, settings: rest };
+}
+
 @Injectable()
 export class LocationsService {
   constructor(
@@ -494,6 +514,14 @@ export class LocationsService {
         );
       }
     }
+    // Dashboard access (which sidebar tabs this shop's staff can see) is
+    // written ONLY by PUT /admin/dashboard-access. Hiding the toggles from
+    // the location form isn't a permission — this same PATCH is one curl
+    // away, and an owner who could set it would just hand themselves back
+    // the tab an admin switched off. Silently dropped rather than refused:
+    // the settings blob is shallow-merged from several tabs, and a 403
+    // would lose whatever else the operator was actually saving.
+    dto = stripDashboardAccess(dto, role);
     const current = await this.assertAccess(locationId, tenantId);
     // Inline logo → hosted file, before it can land in a column and be
     // re-sent inside every storefront response.

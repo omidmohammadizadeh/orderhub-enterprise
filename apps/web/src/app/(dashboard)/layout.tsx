@@ -7,6 +7,7 @@ import { AlertSoundPlayer } from "@/components/dashboard/alert-sound-player";
 import { AutoPrintRunner } from "@/components/dashboard/auto-print-runner";
 import { GlobalCallerIdPopup } from "@/components/dashboard/global-caller-id";
 import { KioskRouteGuard } from "@/components/dashboard/kiosk-route-guard";
+import { DashboardTabGuard } from "@/components/dashboard/dashboard-tab-guard";
 import { TapToPaySplash } from "@/components/dashboard/tap-to-pay-splash";
 
 // Private app — never appear in search results.
@@ -32,6 +33,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <AutoPrintRunner />
         <GlobalCallerIdPopup />
         <KioskRouteGuard />
+        <DashboardTabGuard />
         <TapToPaySplash />
         <div className="flex h-screen overflow-hidden bg-zinc-50">
           <Sidebar />

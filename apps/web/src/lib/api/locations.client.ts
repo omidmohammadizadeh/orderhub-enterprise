@@ -58,6 +58,10 @@ export interface Location {
   // back to these when the brand hasn't set its own.
   prepTime?: number | null;
   busyExtraPrepTime?: number | null;
+  /** Free-form per-location blob. Home of `tableService`, and of
+   *  `dashboardAccess.disabledTabs` (written only by the admin screen —
+   *  see disabledTabsFromSettings in @orderhub/shared). */
+  settings?: Record<string, any> | null;
   _count?: { platformConnections?: number };
 }
 
