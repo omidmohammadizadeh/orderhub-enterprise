@@ -29,6 +29,7 @@ import {
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { hasNativeBridge, bridgeSupportsPrinter } from "@/lib/printing/bridge";
 import { PrintersTab } from "@/components/printers/printers-tab";
+import { ThisTabletCard } from "@/components/printers/this-tablet-card";
 import { StationsTab } from "@/components/printers/stations-tab";
 import { AgentsTab } from "@/components/printers/agents-tab";
 import { AlertsTab } from "@/components/printers/alerts-tab";
@@ -164,7 +165,12 @@ export default function PrintersPage() {
         </TabBtn>
       </div>
 
-      {tab === "printers" && <PrintersTab locationId={locationId ?? undefined} />}
+      {tab === "printers" && (
+        <>
+          <ThisTabletCard locationId={locationId ?? undefined} />
+          <PrintersTab locationId={locationId ?? undefined} />
+        </>
+      )}
       {tab === "stations" && <StationsTab locationId={locationId ?? undefined} />}
       {tab === "agents" && <AgentsTab locationId={locationId ?? undefined} />}
       {tab === "alerts" && <AlertsTab locationId={locationId ?? undefined} />}

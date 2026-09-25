@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { terminalClient } from "@/lib/api/terminal.client";
 import { dojoClient } from "@/lib/api/dojo.client";
 import { DOJO_PROMPTS } from "@/lib/dojo-prompts";
+import { useDeviceStore, chooseCardMachine } from "@/stores/device.store";
 import { paymentLinkClient } from "@/lib/api/pos.client";
 import {
   getTerminalStatus,
@@ -115,7 +116,13 @@ export function ChargeReaderModal({
   // Set once staff pick a method themselves, so the "default to Dojo when
   // that's the only counter machine" choice below never overrides them.
   const [methodTouched, setMethodTouched] = useState(false);
-  const [dojoTerminalId, setDojoTerminalId] = useState<string | null>(null);
+  // Which machine THIS tablet charges to. Persisted per device, because two
+  // tills in one shop must not both send their totals to the same machine —
+  // the customer standing at it would pay the other till's amount.
+  const pinnedMachine = useDeviceStore(
+    (st) => (locationId ? st.cardMachineByLocation[locationId] : undefined) ?? null,
+  );
+  const setPinnedMachine = useDeviceStore((st) => st.setCardMachine);
   const [dojoNeedsSignature, setDojoNeedsSignature] = useState(false);
   const [dojoPrompt, setDojoPrompt] = useState<string | null>(null);
   // Expired session — Dojo never said whether the card went through.
@@ -166,11 +173,10 @@ export function ChargeReaderModal({
   const dojo = dojoQuery.data?.connected ? dojoQuery.data : null;
   const dojoTerminals = dojo?.terminals ?? [];
   const dojoAvailable = dojoTerminals.length > 0;
-  const activeDojo =
-    dojoTerminals.find((t) => t.id === dojoTerminalId) ??
-    dojoTerminals.find((t) => t.status === "Available") ??
-    dojoTerminals[0] ??
-    null;
+  // One machine at the shop? Nothing to choose. More than one and no pin?
+  // Deliberately NOTHING — the till asks rather than guessing, because the
+  // guess is what sends this order to someone else's counter.
+  const activeDojo = chooseCardMachine(dojoTerminals, pinnedMachine);
 
   useEffect(() => {
     if (open) {
@@ -185,7 +191,8 @@ export function ChargeReaderModal({
       // (Tap to Pay isn't the default even when available — WisePad 3 stays
       // the operator's expected first tab; Tap to Pay is an extra option.)
       setMethodTouched(false);
-      setDojoTerminalId(null);
+      // The machine pin is NOT reset here: it belongs to the tablet, not to
+      // this order, and re-asking every sale is the behaviour we removed.
       setDojoNeedsSignature(false);
       setDojoPrompt(null);
       setDojoUnconfirmed(false);
@@ -641,19 +648,35 @@ export function ChargeReaderModal({
                 </p>
               )}
               {dojoTerminals.length > 1 && (
-                <select
-                  aria-label="Dojo card machine"
-                  value={activeDojo?.id}
-                  onChange={(e) => setDojoTerminalId(e.target.value)}
-                  disabled={phase === "waiting" || phase === "charging"}
-                  className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm"
-                >
-                  {dojoTerminals.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.label} · {t.status === "InUse" ? "in use" : t.status.toLowerCase()}
-                    </option>
-                  ))}
-                </select>
+                <div className="space-y-1">
+                  <label
+                    htmlFor="dojo-machine"
+                    className="block text-xs font-medium text-zinc-500"
+                  >
+                    This tablet&rsquo;s card machine
+                  </label>
+                  <select
+                    id="dojo-machine"
+                    value={activeDojo?.id ?? ""}
+                    onChange={(e) =>
+                      locationId && setPinnedMachine(locationId, e.target.value || null)
+                    }
+                    disabled={phase === "waiting" || phase === "charging"}
+                    className="w-full rounded-md border border-zinc-200 bg-white text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 px-3 py-2 text-sm"
+                  >
+                    <option value="">Choose a machine…</option>
+                    {dojoTerminals.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.label} · {t.status === "InUse" ? "in use" : t.status.toLowerCase()}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-zinc-500">
+                    {activeDojo
+                      ? "Remembered on this tablet — other tills keep their own."
+                      : "Pick the machine standing at this till. It's remembered here."}
+                  </p>
+                </div>
               )}
               {phase === "waiting" ? (
                 dojoNeedsSignature ? (
@@ -690,6 +713,7 @@ export function ChargeReaderModal({
                 <Button
                   onClick={startDojoCharge}
                   disabled={phase === "charging" || !activeDojo}
+                  title={!activeDojo ? "Choose this tablet's card machine first" : undefined}
                   className="w-full bg-emerald-600 py-3 text-white hover:bg-emerald-700"
                 >
                   {phase === "charging" ? (

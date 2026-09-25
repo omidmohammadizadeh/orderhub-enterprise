@@ -9,6 +9,7 @@ import { CheckCircle2, Loader2, Pencil, Utensils } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { dojoClient, type DojoStatus } from "@/lib/api/dojo.client";
+import { useDeviceStore } from "@/stores/device.store";
 
 const STATUS_STYLE: Record<string, string> = {
   Available: "bg-emerald-50 text-emerald-700",
@@ -19,6 +20,8 @@ const STATUS_STYLE: Record<string, string> = {
 export function DojoCardMachines({ locationId }: { locationId: string }) {
   const qc = useQueryClient();
   const key = ["dojo-status", locationId];
+  const pinnedMachine = useDeviceStore((st) => st.cardMachineByLocation[locationId] ?? null);
+  const setPinnedMachine = useDeviceStore((st) => st.setCardMachine);
   const q = useQuery({ queryKey: key, queryFn: () => dojoClient.status(locationId) });
   const [apiKey, setApiKey] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
@@ -121,6 +124,37 @@ export function DojoCardMachines({ locationId }: { locationId: string }) {
             <p className="rounded-md bg-red-50 p-2 text-xs text-red-700">
               Couldn&rsquo;t reach Dojo just now: {s.terminalsError}
             </p>
+          )}
+          {/* Per-DEVICE, not per-shop: with two tills sharing one Dojo account,
+              a till that picks "the first available machine" sends its total to
+              whichever machine is free — including the one a customer is
+              already standing at. Only worth showing when there's a choice. */}
+          {s.terminals.length > 1 && (
+            <div className="rounded-lg border border-zinc-200 bg-zinc-50/60 p-3">
+              <label
+                htmlFor="this-tablet-machine"
+                className="block text-sm font-semibold text-zinc-900"
+              >
+                This tablet&rsquo;s card machine
+              </label>
+              <p className="mt-0.5 text-xs text-zinc-500">
+                Charges from this tablet go here. Every other till keeps its own
+                choice, and nothing is sent until one is picked.
+              </p>
+              <select
+                id="this-tablet-machine"
+                value={pinnedMachine ?? ""}
+                onChange={(e) => setPinnedMachine(locationId, e.target.value || null)}
+                className="mt-2 w-full max-w-sm rounded-md border border-zinc-300 bg-white text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 px-3 py-2 text-sm"
+              >
+                <option value="">Not set — the till will ask</option>
+                {s.terminals.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           )}
           {s.terminals.length === 0 ? (
             <p className="text-sm text-zinc-500">

@@ -7,6 +7,7 @@
 // so the caller can surface it.
 
 import { printersClient } from "../api/printers.client";
+import { pinnedPrinter, chooseReceiptPrinters } from "../../stores/device.store";
 import { formatMoney } from "@orderhub/shared";
 import { marketingClient } from "../api/marketing.client";
 import {
@@ -192,9 +193,14 @@ export async function openCashDrawerViaBridge(
       "No reachable printer for this location — the drawer opens via the receipt printer.",
     );
   }
-  // Front counter first (that's the till), then anything else.
+  // This tablet's own printer first — the drawer is physically under THIS
+  // till, and "first front counter wins" had till B popping till A's cash
+  // drawer open with a customer standing at it.
+  const pinned = pinnedPrinter(locationId);
   const target =
-    reachable.find((p: any) => p.kind === "FRONT_COUNTER") ?? reachable[0]!;
+    reachable.find((p: any) => p.id === pinned) ??
+    reachable.find((p: any) => p.kind === "FRONT_COUNTER") ??
+    reachable[0]!;
   await writeToPrinter(target, buildDrawerKick(resolveCommandSet(target)));
   return target.name ?? "printer";
 }
@@ -211,7 +217,7 @@ export async function printOrderViaBridge(
   const printers = await printersClient.list(order.locationId);
   // Bluetooth or LAN printers at this location that the current app
   // build can actually reach.
-  const targets = printers.filter(
+  const reachable = printers.filter(
     (p: any) =>
       p.locationId === order.locationId &&
       (p.connectionType === "BLUETOOTH" || p.connectionType === "LAN") &&
@@ -219,6 +225,12 @@ export async function printOrderViaBridge(
       p.isActive !== false &&
       bridgeSupportsPrinter(p),
   );
+  // When this tablet has claimed a printer, it replaces the OTHER front
+  // counters only. A shop with two tills and one kitchen printer should get
+  // the receipt at this till and the ticket in the kitchen — dropping
+  // everything but the pinned printer would silently stop the kitchen copy,
+  // which is a far worse bug than the one being fixed.
+  const targets = chooseReceiptPrinters(reachable, pinnedPrinter(order.locationId));
   if (targets.length === 0) {
     throw new Error(
       "No reachable printer for this location. Add a Bluetooth or LAN printer in Printers.",
