@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Put } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Put } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { DASHBOARD_TABS } from "@orderhub/shared";
 import { DashboardAccessService } from "./dashboard-access.service";
@@ -51,5 +51,23 @@ export class DashboardAccessController {
       userId: user.userId,
       role: user.role as string,
     });
+  }
+
+  @Post(":locationId/apply-to")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Copy this location's disabled-tab list onto other locations",
+  })
+  applyTo(
+    @Param("locationId") locationId: string,
+    @Body() body: { locationIds?: unknown },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.access.applyTo(
+      user.tenantId,
+      locationId,
+      body?.locationIds,
+      { userId: user.userId, role: user.role as string },
+    );
   }
 }

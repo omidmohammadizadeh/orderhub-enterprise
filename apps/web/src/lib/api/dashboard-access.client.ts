@@ -29,4 +29,12 @@ export const dashboardAccessClient = {
         disabledTabs,
       })
       .then((r) => r.data),
+  /** Copy one location's list onto others. Replaces theirs outright. */
+  applyTo: (locationId: string, locationIds: string[]) =>
+    apiClient
+      .post<{ applied: number; disabledTabs: string[] }>(
+        `/v1/admin/dashboard-access/${locationId}/apply-to`,
+        { locationIds },
+      )
+      .then((r) => r.data),
 };

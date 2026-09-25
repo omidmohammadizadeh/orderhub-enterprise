@@ -17,9 +17,13 @@ function makePrisma(location: any = makeLocation()) {
     location: {
       findFirst: jest.fn().mockResolvedValue(location),
       findMany: jest.fn().mockResolvedValue([location]),
-      update: jest.fn().mockResolvedValue({}),
+      update: jest.fn((args: any) => ({ __update: args })),
     },
     auditLog: { create: jest.fn().mockResolvedValue({}) },
+    // Mirrors Prisma's array form: the caller builds the writes, the client
+    // runs them together. Returning them lets a test assert on what would
+    // have been sent AND that it went through one transaction.
+    $transaction: jest.fn((ops: any[]) => Promise.resolve(ops)),
   };
 }
 
@@ -241,6 +245,154 @@ describe("DashboardAccessService", () => {
         disabledTabs: ["tables"],
       },
     ]);
+  });
+});
+
+describe("DashboardAccessService.applyTo", () => {
+  function applyPrisma(sourceSettings: any, targets: any[]) {
+    const prisma = makePrisma(makeLocation(sourceSettings));
+    prisma.location.findMany.mockResolvedValue(targets);
+    return prisma;
+  }
+
+  it("copies the source's list onto every target, keeping their other settings", async () => {
+    const prisma = applyPrisma(
+      { dashboardAccess: { disabledTabs: ["tables", "reservations"] } },
+      [
+        { id: "loc-2", settings: { tableService: { enabled: false } } },
+        { id: "loc-3", settings: {} },
+      ],
+    );
+    const res = await service(prisma).applyTo("tenant-a", "loc-1", [
+      "loc-2",
+      "loc-3",
+    ]);
+    expect(res).toEqual({
+      applied: 2,
+      disabledTabs: ["tables", "reservations"],
+    });
+    const written = prisma.location.update.mock.calls.map((c: any) => c[0]);
+    expect(written).toEqual([
+      {
+        where: { id: "loc-2" },
+        data: {
+          settings: {
+            tableService: { enabled: false },
+            dashboardAccess: { disabledTabs: ["tables", "reservations"] },
+          },
+        },
+      },
+      {
+        where: { id: "loc-3" },
+        data: {
+          settings: {
+            dashboardAccess: { disabledTabs: ["tables", "reservations"] },
+          },
+        },
+      },
+    ]);
+  });
+
+  it("writes every location in one transaction", async () => {
+    // Half a franchise matching the source is worse than a failed button:
+    // nothing on screen would say which half.
+    const prisma = applyPrisma(
+      { dashboardAccess: { disabledTabs: ["tables"] } },
+      [{ id: "loc-2", settings: {} }, { id: "loc-3", settings: {} }],
+    );
+    await service(prisma).applyTo("tenant-a", "loc-1", ["loc-2", "loc-3"]);
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(prisma.$transaction.mock.calls[0][0]).toHaveLength(2);
+  });
+
+  it("replaces a target's list rather than merging into it", async () => {
+    // "Make these match that one" is the only promise the button can keep.
+    // A union would leave a target hiding something the source shows.
+    const prisma = applyPrisma({ dashboardAccess: { disabledTabs: ["tables"] } }, [
+      { id: "loc-2", settings: { dashboardAccess: { disabledTabs: ["kiosk"] } } },
+    ]);
+    await service(prisma).applyTo("tenant-a", "loc-1", ["loc-2"]);
+    expect(prisma.location.update.mock.calls[0][0].data.settings).toEqual({
+      dashboardAccess: { disabledTabs: ["tables"] },
+    });
+  });
+
+  it("copies an empty list too — applying 'all visible' is a real intent", async () => {
+    const prisma = applyPrisma({}, [
+      { id: "loc-2", settings: { dashboardAccess: { disabledTabs: ["tables"] } } },
+    ]);
+    const res = await service(prisma).applyTo("tenant-a", "loc-1", ["loc-2"]);
+    expect(res.applied).toBe(1);
+    expect(prisma.location.update.mock.calls[0][0].data.settings).toEqual({
+      dashboardAccess: { disabledTabs: [] },
+    });
+  });
+
+  it("re-resolves the targets against the tenant", async () => {
+    // The id list arrives from a browser: it's a request, not a fact.
+    const prisma = applyPrisma({}, [{ id: "loc-2", settings: {} }]);
+    await service(prisma).applyTo("tenant-a", "loc-1", ["loc-2", "loc-evil"]);
+    expect(prisma.location.findMany.mock.calls[0][0].where).toMatchObject({
+      id: { in: ["loc-2", "loc-evil"] },
+      deletedAt: null,
+      brand: { tenantId: "tenant-a" },
+    });
+  });
+
+  it("writes nothing when no target resolves inside the tenant", async () => {
+    const prisma = applyPrisma({ dashboardAccess: { disabledTabs: ["tables"] } }, []);
+    const res = await service(prisma).applyTo("tenant-a", "loc-1", ["loc-evil"]);
+    expect(res).toEqual({ applied: 0, disabledTabs: ["tables"] });
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it("ignores the source in its own target list", async () => {
+    const prisma = applyPrisma({}, [{ id: "loc-2", settings: {} }]);
+    await service(prisma).applyTo("tenant-a", "loc-1", ["loc-1", "loc-2"]);
+    expect(prisma.location.findMany.mock.calls[0][0].where.id.in).toEqual([
+      "loc-2",
+    ]);
+  });
+
+  it("does nothing when handed an empty or malformed list", async () => {
+    const prisma = applyPrisma({}, [{ id: "loc-2", settings: {} }]);
+    await expect(
+      service(prisma).applyTo("tenant-a", "loc-1", []),
+    ).resolves.toEqual({ applied: 0, disabledTabs: [] });
+    await expect(
+      service(prisma).applyTo("tenant-a", "loc-1", "loc-2" as any),
+    ).resolves.toEqual({ applied: 0, disabledTabs: [] });
+    expect(prisma.location.findMany).not.toHaveBeenCalled();
+  });
+
+  it("404s when the source isn't in the tenant", async () => {
+    const prisma = applyPrisma({}, []);
+    prisma.location.findFirst.mockResolvedValue(null);
+    await expect(
+      service(prisma).applyTo("tenant-b", "loc-1", ["loc-2"]),
+    ).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it("audits each target under its own id, naming the source", async () => {
+    // "Why can't my staff see Tables?" is asked about one shop, so the
+    // answer has to be findable under that shop's id.
+    const prisma = applyPrisma({ dashboardAccess: { disabledTabs: ["tables"] } }, [
+      { id: "loc-2", settings: { dashboardAccess: { disabledTabs: [] } } },
+    ]);
+    await service(prisma).applyTo("tenant-a", "loc-1", ["loc-2"], {
+      userId: "user-9",
+      role: "PLATFORM_ADMIN",
+    });
+    expect(prisma.auditLog.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          resourceId: "loc-2",
+          before: { disabledTabs: [] },
+          after: { disabledTabs: ["tables"] },
+          meta: { role: "PLATFORM_ADMIN", copiedFrom: "loc-1" },
+        }),
+      }),
+    );
   });
 });
 

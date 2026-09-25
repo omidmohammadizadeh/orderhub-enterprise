@@ -104,6 +104,79 @@ export class DashboardAccessService {
     };
   }
 
+  /**
+   * Copy one location's disabled list onto others. Standing up twenty dark
+   * kitchens one toggle at a time is how half of them end up different from
+   * the other half.
+   *
+   * Replaces the targets' lists outright rather than merging: "make these
+   * match that one" is the only instruction the button can honestly claim
+   * to carry out, and a union would quietly leave a target hiding something
+   * the source shows.
+   */
+  async applyTo(
+    tenantId: string,
+    sourceLocationId: string,
+    locationIds: unknown,
+    actor: { userId?: string; role?: string } = {},
+  ): Promise<{ applied: number; disabledTabs: string[] }> {
+    const source = await this.requireLocation(tenantId, sourceLocationId);
+    const disabledTabs = disabledTabsFromSettings(source.settings);
+
+    const requested = Array.isArray(locationIds)
+      ? locationIds.filter(
+          (id): id is string => typeof id === "string" && id !== sourceLocationId,
+        )
+      : [];
+    if (requested.length === 0) return { applied: 0, disabledTabs };
+
+    // Re-resolve every target against the tenant. Ids arrive from a browser,
+    // so the list a client sends is a request, not a fact — an id from
+    // another tenant must find nothing here rather than be written to.
+    const targets = await this.prisma.location.findMany({
+      where: {
+        id: { in: requested },
+        deletedAt: null,
+        brand: { tenantId },
+      },
+      select: { id: true, settings: true },
+    });
+    if (targets.length === 0) return { applied: 0, disabledTabs };
+
+    // One transaction: either every shop in the group matches the source or
+    // none does. A half-applied copy across a franchise is worse than a
+    // failed button, because nothing on screen says which half.
+    await this.prisma.$transaction(
+      targets.map((t) =>
+        this.prisma.location.update({
+          where: { id: t.id },
+          data: {
+            settings: {
+              ...((t.settings as Record<string, unknown> | null) ?? {}),
+              [DASHBOARD_ACCESS_SETTINGS_KEY]: { disabledTabs },
+            } as any,
+          },
+        }),
+      ),
+    );
+
+    // Audited per location, not once for the batch: "why can't my staff see
+    // Tables?" is asked about one shop, and the answer has to be findable
+    // under that shop's id.
+    for (const t of targets) {
+      await this.audit(
+        tenantId,
+        t.id,
+        disabledTabsFromSettings(t.settings),
+        disabledTabs,
+        actor,
+        { copiedFrom: sourceLocationId },
+      );
+    }
+
+    return { applied: targets.length, disabledTabs };
+  }
+
   private async requireLocation(tenantId: string, locationId: string) {
     // Scoped through brand.tenantId — Location has no tenantId column of its
     // own, and `location.tenantId` reads as undefined, matching nothing.
@@ -127,6 +200,7 @@ export class DashboardAccessService {
     before: string[],
     after: string[],
     actor: { userId?: string; role?: string },
+    extraMeta: Record<string, unknown> = {},
   ) {
     try {
       await this.prisma.auditLog.create({
@@ -138,7 +212,7 @@ export class DashboardAccessService {
           resourceId: locationId,
           before: { disabledTabs: before } as any,
           after: { disabledTabs: after } as any,
-          meta: { role: actor.role ?? null } as any,
+          meta: { role: actor.role ?? null, ...extraMeta } as any,
         },
       });
     } catch (err: any) {

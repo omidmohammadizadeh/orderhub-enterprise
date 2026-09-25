@@ -25,8 +25,10 @@ import {
   Info,
   LayoutList,
   Loader2,
+  Copy,
   RotateCcw,
   Search,
+  X,
 } from "lucide-react";
 import {
   DASHBOARD_TABS,
@@ -53,6 +55,7 @@ export function DashboardAccessPanel() {
   const [search, setSearch] = useState("");
   /** Working copy. null = "showing whatever the server last said". */
   const [draft, setDraft] = useState<Set<string> | null>(null);
+  const [copyingTo, setCopyingTo] = useState(false);
 
   const rowsQuery = useQuery({
     queryKey: queryKeys.dashboardAccess,
@@ -98,6 +101,25 @@ export function DashboardAccessPanel() {
     onError: (err: any) =>
       toast.error(
         err?.response?.data?.message ?? "Couldn't save dashboard access",
+      ),
+  });
+
+  const applyMut = useMutation({
+    mutationFn: (locationIds: string[]) =>
+      dashboardAccessClient.applyTo(selectedId!, locationIds),
+    onSuccess: ({ applied }) => {
+      toast.success(
+        applied === 0
+          ? "No locations were changed"
+          : `Applied to ${applied} location${applied === 1 ? "" : "s"}`,
+      );
+      setCopyingTo(false);
+      qc.invalidateQueries({ queryKey: queryKeys.dashboardAccess });
+      qc.invalidateQueries({ queryKey: queryKeys.locations });
+    },
+    onError: (err: any) =>
+      toast.error(
+        err?.response?.data?.message ?? "Couldn't apply to those locations",
       ),
   });
 
@@ -261,6 +283,23 @@ export function DashboardAccessPanel() {
                   >
                     <RotateCcw className="mr-1 h-3.5 w-3.5" aria-hidden="true" /> Show all
                   </Button>
+                  {rows.length > 1 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setCopyingTo(true)}
+                      // Copying applies what this location HAS, not what's on
+                      // screen. Offering it mid-edit would copy a version the
+                      // admin hasn't agreed to yet.
+                      disabled={dirty || saveMut.isPending}
+                      title={
+                        dirty ? "Save your changes first" : undefined
+                      }
+                    >
+                      <Copy className="mr-1 h-3.5 w-3.5" aria-hidden="true" />{" "}
+                      Apply to other locations
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     size="sm"
@@ -288,6 +327,18 @@ export function DashboardAccessPanel() {
                   keep their one assigned page too.
                 </span>
               </p>
+
+              {copyingTo && (
+                <ApplyToDialog
+                  source={selected}
+                  candidates={rows.filter(
+                    (r) => r.locationId !== selected.locationId,
+                  )}
+                  pending={applyMut.isPending}
+                  onCancel={() => setCopyingTo(false)}
+                  onApply={(ids) => applyMut.mutate(ids)}
+                />
+              )}
 
               {TABS_BY_GROUP.map(([group, tabs]) => (
                 <section
@@ -342,6 +393,152 @@ export function DashboardAccessPanel() {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+/** Copy one location's tab visibility onto others.
+ *
+ *  Every row shows what that location hides TODAY, because the thing being
+ *  agreed to is an overwrite — an admin who can't see what they're about to
+ *  replace is being asked to confirm something they don't know. */
+function ApplyToDialog({
+  source,
+  candidates,
+  pending,
+  onCancel,
+  onApply,
+}: {
+  source: DashboardAccessRow;
+  candidates: DashboardAccessRow[];
+  pending: boolean;
+  onCancel: () => void;
+  onApply: (locationIds: string[]) => void;
+}) {
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const allPicked = picked.size === candidates.length && candidates.length > 0;
+
+  // Esc closes, as every dialog in the app should.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !pending) onCancel();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onCancel, pending]);
+
+  function toggleOne(id: string) {
+    const next = new Set(picked);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setPicked(next);
+  }
+
+  const hiddenCount = source.disabledTabs.length;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      onClick={() => !pending && onCancel()}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="apply-to-title"
+        onClick={(e) => e.stopPropagation()}
+        className="flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-xl bg-white shadow-xl"
+      >
+        <div className="flex items-start justify-between gap-3 border-b border-zinc-100 p-4">
+          <div className="min-w-0">
+            <h2
+              id="apply-to-title"
+              className="text-sm font-semibold text-zinc-900"
+            >
+              Apply {source.locationName}&rsquo;s tabs elsewhere
+            </h2>
+            <p className="mt-0.5 text-xs text-zinc-500">
+              {hiddenCount === 0
+                ? "Every tab visible"
+                : `${hiddenCount} tab${hiddenCount === 1 ? "" : "s"} hidden`}
+              . This replaces each chosen location&rsquo;s own settings.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={pending}
+            aria-label="Close"
+            className="rounded-lg p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
+
+        <div className="border-b border-zinc-100 px-4 py-2">
+          <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-zinc-600">
+            <input
+              type="checkbox"
+              checked={allPicked}
+              onChange={() =>
+                setPicked(
+                  allPicked
+                    ? new Set()
+                    : new Set(candidates.map((c) => c.locationId)),
+                )
+              }
+              className="h-4 w-4 rounded border-zinc-300 text-orange-500 focus-visible:ring-2 focus-visible:ring-orange-500"
+            />
+            Select all {candidates.length}
+          </label>
+        </div>
+
+        <ul className="flex-1 divide-y divide-zinc-100 overflow-y-auto">
+          {candidates.map((c) => (
+            <li key={c.locationId}>
+              <label className="flex cursor-pointer items-center gap-3 px-4 py-2.5 hover:bg-zinc-50">
+                <input
+                  type="checkbox"
+                  checked={picked.has(c.locationId)}
+                  onChange={() => toggleOne(c.locationId)}
+                  className="h-4 w-4 flex-shrink-0 rounded border-zinc-300 text-orange-500 focus-visible:ring-2 focus-visible:ring-orange-500"
+                />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-medium text-zinc-900">
+                    {c.locationName}
+                  </span>
+                  <span className="block truncate text-xs text-zinc-500">
+                    {c.brandName ?? "—"} · currently{" "}
+                    {c.disabledTabs.length === 0
+                      ? "all visible"
+                      : `${c.disabledTabs.length} hidden`}
+                  </span>
+                </span>
+              </label>
+            </li>
+          ))}
+        </ul>
+
+        <div className="flex items-center justify-end gap-2 border-t border-zinc-100 p-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onCancel}
+            disabled={pending}
+          >
+            Cancel
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => onApply([...picked])}
+            disabled={picked.size === 0}
+            loading={pending}
+          >
+            {picked.size === 0
+              ? "Apply"
+              : `Apply to ${picked.size} location${picked.size === 1 ? "" : "s"}`}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
