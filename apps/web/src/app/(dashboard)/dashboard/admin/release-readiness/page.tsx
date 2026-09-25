@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { apiClient } from "@/lib/api/client";
+import { useAuthStore } from "@/stores/auth.store";
 import {
   CheckCircle,
   XCircle,
@@ -17,12 +19,27 @@ import {
   Wifi,
 } from "lucide-react";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+// This page built its own fetch against NEXT_PUBLIC_API_URL with no
+// Authorization header. The dashboard authenticates with a Bearer token that
+// apiClient attaches (and refreshes on a 401); `credentials: "include"` sends
+// cookies, which this API doesn't use — so every check 401'd. Using the same
+// client as the rest of the dashboard is the whole fix.
 
-async function apiFetch<T>(path: string): Promise<T> {
-  const res = await fetch(`${API}${path}`, { credentials: "include" });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
+function errText(err: any): string {
+  return (
+    err?.response?.data?.message ??
+    err?.response?.data?.error ??
+    err?.message ??
+    "Request failed"
+  );
+}
+
+/** A row from /v1/onboarding/locations — the same list the go-live page uses. */
+interface LocationOption {
+  locationId: string;
+  locationName: string;
+  tenantId: string;
+  brandName?: string;
 }
 
 interface ReadinessResult {
@@ -69,16 +86,51 @@ function CheckRow({ label, value, icon }: { label: string; value: unknown; icon?
 }
 
 export default function ReleaseReadinessPage() {
-  const [tenantId, setTenantId] = useState("");
-  const [locationId, setLocationId] = useState("");
+  const user = useAuthStore((s) => s.user);
+  // The endpoint is PLATFORM_ADMIN on the server: it reports NODE_ENV, whether
+  // the credential-encryption key is set, outbox depth and webhook health
+  // across every platform — none of which is one tenant's business.
+  if (user && user.role !== "PLATFORM_ADMIN") {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-center">
+        <Server className="mb-3 h-10 w-10 text-zinc-300" aria-hidden="true" />
+        <p className="font-medium text-zinc-500">Admin only</p>
+        <p className="mt-1 text-sm text-zinc-400">
+          Only the platform team can run a readiness check.
+        </p>
+      </div>
+    );
+  }
+  return <ReleaseReadinessInner />;
+}
+
+function ReleaseReadinessInner() {
+  // Picked, not typed. This screen used to ask an operator to paste a tenant
+  // UUID and a location UUID from memory; the ids are already listed by the
+  // endpoint the go-live page reads, so offer the shops by name instead.
+  const [selected, setSelected] = useState<LocationOption | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const tenantId = selected?.tenantId ?? "";
+  const locationId = selected?.locationId ?? "";
+
+  const locationsQuery = useQuery<LocationOption[]>({
+    queryKey: ["go-live-locations", ""],
+    queryFn: () =>
+      apiClient
+        .get<LocationOption[]>("/v1/onboarding/locations")
+        .then((r) => r.data),
+    staleTime: 60_000,
+  });
+  const locations = locationsQuery.data ?? [];
 
   const { data, isLoading, refetch, error } = useQuery<ReadinessResult>({
     queryKey: ["release-readiness", tenantId, locationId],
     queryFn: () =>
-      apiFetch(
-        `/v1/health/release-readiness?tenantId=${encodeURIComponent(tenantId)}&locationId=${encodeURIComponent(locationId)}`,
-      ),
+      apiClient
+        .get<ReadinessResult>(
+          `/v1/health/release-readiness?tenantId=${encodeURIComponent(tenantId)}&locationId=${encodeURIComponent(locationId)}`,
+        )
+        .then((r) => r.data),
     enabled: submitted && !!tenantId,
     staleTime: 30_000,
   });
@@ -95,28 +147,48 @@ export default function ReleaseReadinessPage() {
 
       {/* Inputs */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="text-xs font-medium text-gray-500">Tenant ID</label>
-            <input
-              type="text"
-              value={tenantId}
-              onChange={(e) => setTenantId(e.target.value)}
-              placeholder="tenant UUID..."
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-200 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-medium text-gray-500">Location ID (optional)</label>
-            <input
-              type="text"
-              value={locationId}
-              onChange={(e) => setLocationId(e.target.value)}
-              placeholder="location UUID..."
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-200 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        </div>
+        <label
+          htmlFor="readiness-location"
+          className="text-xs font-medium text-gray-500"
+        >
+          Location
+        </label>
+        <select
+          id="readiness-location"
+          value={selected?.locationId ?? ""}
+          onChange={(e) => {
+            setSelected(
+              locations.find((l) => l.locationId === e.target.value) ?? null,
+            );
+            setSubmitted(false);
+          }}
+          disabled={locationsQuery.isPending}
+          className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">
+            {locationsQuery.isPending
+              ? "Loading locations…"
+              : locations.length === 0
+                ? "No locations found"
+                : "Choose a location…"}
+          </option>
+          {locations.map((l) => (
+            <option key={l.locationId} value={l.locationId}>
+              {l.locationName}
+              {l.brandName ? ` — ${l.brandName}` : ""}
+            </option>
+          ))}
+        </select>
+        {locationsQuery.isError && (
+          <p className="mt-1 text-xs text-red-600">
+            Couldn&rsquo;t load locations: {errText(locationsQuery.error)}
+          </p>
+        )}
+        {selected && (
+          <p className="mt-1 font-mono text-[11px] text-gray-400">
+            tenant {selected.tenantId} · location {selected.locationId}
+          </p>
+        )}
         <button
           onClick={() => { setSubmitted(true); refetch(); }}
           disabled={!tenantId || isLoading}
@@ -129,7 +201,7 @@ export default function ReleaseReadinessPage() {
 
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">
-          Check failed: {String(error)}
+          Check failed: {errText(error)}
         </div>
       )}
 

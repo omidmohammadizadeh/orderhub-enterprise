@@ -21,23 +21,32 @@ import {
   Shield,
   Loader2,
 } from "lucide-react";
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+import { apiClient } from "@/lib/api/client";
+import { useAuthStore } from "@/stores/auth.store";
 
 // ── API helpers ───────────────────────────────────────────────────────────────
+//
+// This page used to build its own fetch against NEXT_PUBLIC_API_URL. Two
+// things were wrong with that and both made it dead on arrival:
+//
+//   • it sent no Authorization header. The dashboard authenticates with a
+//     Bearer token that apiClient attaches (and silently refreshes on 401);
+//     `credentials: "include"` carries cookies, which this API doesn't use.
+//     Every request 401'd.
+//   • it prefixed "/api" onto a base that IS "/api" in production
+//     (render.yaml sets NEXT_PUBLIC_API_URL=/api so browser traffic goes
+//     through the Next rewrite proxy), producing /api/api/v1/... — a 404.
+//
+// Both disappear by using the same client as the rest of the dashboard.
 
-async function apiFetch<T>(path: string, opts?: RequestInit): Promise<T> {
-  const res = await fetch(`${API}${path}`, {
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    ...opts,
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text || `HTTP ${res.status}`);
-  }
-  if (res.status === 204) return undefined as T;
-  return res.json();
+/** Axios puts the server's message under response.data; keep the fallback. */
+function errText(err: any): string {
+  return (
+    err?.response?.data?.message ??
+    err?.response?.data?.error ??
+    err?.message ??
+    "Request failed"
+  );
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -252,6 +261,25 @@ function PrinterCard({ p }: { p: PrinterReadiness }) {
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function GoLiveWizardPage() {
+  const user = useAuthStore((s) => s.user);
+  // Reachable only from the Admin Dashboard, which is platform-admin only —
+  // and the override below is PLATFORM_ADMIN on the server too. Says so
+  // rather than letting someone who wandered in watch every query 403.
+  if (user && user.role !== "PLATFORM_ADMIN") {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-center">
+        <Shield className="mb-3 h-10 w-10 text-zinc-300" aria-hidden="true" />
+        <p className="font-medium text-zinc-500">Admin only</p>
+        <p className="mt-1 text-sm text-zinc-400">
+          Only the platform team can take a location live.
+        </p>
+      </div>
+    );
+  }
+  return <GoLiveWizard />;
+}
+
+function GoLiveWizard() {
   const qc = useQueryClient();
   const [selectedLocation, setSelectedLocation] = useState<LocationSummary | null>(null);
   const [tenantFilter, setTenantFilter] = useState("");
@@ -263,9 +291,11 @@ export default function GoLiveWizardPage() {
   const { data: locations, isLoading: loadingList, refetch: refetchList } = useQuery<LocationSummary[]>({
     queryKey: ["go-live-locations", tenantFilter],
     queryFn: () =>
-      apiFetch(
-        `/api/v1/onboarding/locations${tenantFilter ? `?tenantId=${encodeURIComponent(tenantFilter)}` : ""}`,
-      ),
+      apiClient
+        .get<LocationSummary[]>(
+          `/v1/onboarding/locations${tenantFilter ? `?tenantId=${encodeURIComponent(tenantFilter)}` : ""}`,
+        )
+        .then((r) => r.data),
     retry: 1,
   });
 
@@ -277,9 +307,11 @@ export default function GoLiveWizardPage() {
   } = useQuery<LocationReadiness>({
     queryKey: ["go-live-readiness", selectedLocation?.locationId],
     queryFn: () =>
-      apiFetch(
-        `/api/v1/onboarding/locations/${selectedLocation!.locationId}/readiness?tenantId=${encodeURIComponent(selectedLocation!.tenantId)}`,
-      ),
+      apiClient
+        .get<LocationReadiness>(
+          `/v1/onboarding/locations/${selectedLocation!.locationId}/readiness?tenantId=${encodeURIComponent(selectedLocation!.tenantId)}`,
+        )
+        .then((r) => r.data),
     enabled: !!selectedLocation,
     retry: 1,
   });
@@ -297,18 +329,20 @@ export default function GoLiveWizardPage() {
       targetStatus: string;
       reason?: string;
     }) =>
-      apiFetch(`/api/v1/onboarding/locations/${locationId}/transition?tenantId=${encodeURIComponent(tenantId)}`, {
-        method: "POST",
-        body: JSON.stringify({ targetStatus, reason }),
-      }),
+      apiClient
+        .post(
+          `/v1/onboarding/locations/${locationId}/transition?tenantId=${encodeURIComponent(tenantId)}`,
+          { targetStatus, reason },
+        )
+        .then((r) => r.data),
     onSuccess: (data: any) => {
       setActionError(null);
       setActionSuccess(`Status updated to ${data.status}`);
       qc.invalidateQueries({ queryKey: ["go-live-locations"] });
       qc.invalidateQueries({ queryKey: ["go-live-readiness"] });
     },
-    onError: (err: Error) => {
-      setActionError(err.message);
+    onError: (err: any) => {
+      setActionError(errText(err));
       setActionSuccess(null);
     },
   });
@@ -326,13 +360,12 @@ export default function GoLiveWizardPage() {
       targetStatus: string;
       reason: string;
     }) =>
-      apiFetch(
-        `/api/v1/onboarding/locations/${locationId}/admin-override?tenantId=${encodeURIComponent(tenantId)}`,
-        {
-          method: "POST",
-          body: JSON.stringify({ targetStatus, reason }),
-        },
-      ),
+      apiClient
+        .post(
+          `/v1/onboarding/locations/${locationId}/admin-override?tenantId=${encodeURIComponent(tenantId)}`,
+          { targetStatus, reason },
+        )
+        .then((r) => r.data),
     onSuccess: (data: any) => {
       setActionError(null);
       setActionSuccess(`Admin override applied — status: ${data.status}`);
@@ -340,8 +373,8 @@ export default function GoLiveWizardPage() {
       qc.invalidateQueries({ queryKey: ["go-live-locations"] });
       qc.invalidateQueries({ queryKey: ["go-live-readiness"] });
     },
-    onError: (err: Error) => {
-      setActionError(err.message);
+    onError: (err: any) => {
+      setActionError(errText(err));
       setActionSuccess(null);
     },
   });

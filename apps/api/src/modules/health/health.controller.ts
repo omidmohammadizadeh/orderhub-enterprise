@@ -5,6 +5,7 @@ import type { Queue } from "bull";
 import { ApiTags, ApiOperation } from "@nestjs/swagger";
 import { SkipThrottle } from "@nestjs/throttler";
 import { Public } from "../../common/decorators/public.decorator";
+import { Roles } from "../../common/decorators/roles.decorator";
 import { BillingExempt } from "../../common/guards/billing.guard";
 import { QUEUES } from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
@@ -87,7 +88,15 @@ export class HealthController {
     return { status: "ok" };
   }
 
+  // Platform-team only, and not because the page is admin-only — because the
+  // answer is. `tenantId` is taken straight from the query with no check that
+  // the caller belongs to it, so any signed-in user could read another
+  // tenant's integration-encryption state; and most of what comes back
+  // (NODE_ENV, whether the encryption key is set, outbox depth, webhook health
+  // across every platform) isn't one tenant's business at all. The runbooks
+  // that curl this already do so with an admin token.
   @Get("release-readiness")
+  @Roles("PLATFORM_ADMIN")
   @ApiOperation({ summary: "Release readiness check for a specific tenant/location" })
   async releaseReadiness(
     @Query("tenantId") tenantId: string,
