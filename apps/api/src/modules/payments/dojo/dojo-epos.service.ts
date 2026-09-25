@@ -149,7 +149,10 @@ export class DojoEposService {
 
   private orderInclude = {
     items: { select: { name: true, quantity: true, unitPrice: true, totalPrice: true, modifiers: true, notes: true, menuItemId: true, id: true } },
-    payments: { where: { status: "SUCCEEDED" }, select: { amount: true, tipAmount: true, provider: true, providerChargeId: true, stripePaymentIntentId: true, id: true } },
+    // metadata carries refundedMinor: a PART-refunded payment keeps status
+    // SUCCEEDED, so counting its full amount as paid would tell the terminal
+    // the table owes less than it does.
+    payments: { where: { status: "SUCCEEDED" }, select: { amount: true, tipAmount: true, provider: true, providerChargeId: true, stripePaymentIntentId: true, id: true, metadata: true } },
   } as const;
 
   private async loadTab(ctx: EposContext, orderId: string) {
@@ -252,12 +255,19 @@ export class DojoEposService {
       };
     });
 
-    const payments = (order.payments ?? []).map((p: any) => ({
-      paymentIntentId: p.providerChargeId ?? p.stripePaymentIntentId ?? p.id,
-      paidAmount: this.money(ctx, p.amount),
-      ...(Number(p.tipAmount) > 0 ? { tipsAmount: this.money(ctx, p.tipAmount) } : {}),
-    }));
-    const paidMinor = (order.payments ?? []).reduce((s: number, p: any) => s + minor(p.amount), 0);
+    // What a payment is still worth to the shop. A fully refunded row isn't
+    // SUCCEEDED so it never reaches here; a partly refunded one does, and only
+    // the part we kept counts towards the bill.
+    const keptMinor = (p: any) =>
+      Math.max(0, minor(p.amount) - Number((p.metadata as any)?.refundedMinor ?? 0));
+    const payments = (order.payments ?? [])
+      .filter((p: any) => keptMinor(p) > 0)
+      .map((p: any) => ({
+        paymentIntentId: p.providerChargeId ?? p.stripePaymentIntentId ?? p.id,
+        paidAmount: { value: keptMinor(p), currencyCode: this.currency(ctx) },
+        ...(Number(p.tipAmount) > 0 ? { tipsAmount: this.money(ctx, p.tipAmount) } : {}),
+      }));
+    const paidMinor = (order.payments ?? []).reduce((s: number, p: any) => s + keptMinor(p), 0);
     const tipsMinor = (order.payments ?? []).reduce((s: number, p: any) => s + minor(p.tipAmount), 0);
     const totalMinor = minor(order.total);
     const open = (OPEN_TAB_STATUSES as readonly string[]).includes(order.status);

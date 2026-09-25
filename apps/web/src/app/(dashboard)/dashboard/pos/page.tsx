@@ -165,6 +165,37 @@ export default function PosPage() {
     refetchInterval: 10_000,
   });
   const tabTotal = Number((tabOrderQuery.data as any)?.total ?? 0);
+
+  // What has ALREADY been paid on this tab.
+  //
+  // The order payload carries no payments, so the till couldn't see a part
+  // payment and "Pay & close" charged the whole total again — taking a
+  // customer's £4.13 split twice (found 2026-09-25, against Dojo's bill,
+  // which subtracts correctly). A partly-refunded payment counts only for
+  // what's still with us; a fully refunded one is not SUCCEEDED at all.
+  const tabPaymentsQuery = useQuery({
+    queryKey: ["pos-tab-payments", tabOrderId],
+    queryFn: () =>
+      apiClient.get(`/v1/payments/orders/${tabOrderId}`).then((r) => r.data),
+    enabled: !!tabOrderId,
+    refetchInterval: 10_000,
+  });
+  const tabPaidMinor = ((tabPaymentsQuery.data as any[]) ?? [])
+    .filter((p) => p?.status === "SUCCEEDED")
+    .reduce(
+      (sum, p) =>
+        sum +
+        Math.max(
+          0,
+          Math.round(Number(p.amount ?? 0) * 100) -
+            Number(p?.metadata?.refundedMinor ?? 0),
+        ),
+      0,
+    );
+  const tabPaid = tabPaidMinor / 100;
+  // Never below zero: an over-refund shouldn't turn into a negative charge.
+  const tabOutstanding =
+    Math.max(0, Math.round(tabTotal * 100) - tabPaidMinor) / 100;
   const tabItemCount = ((tabOrderQuery.data as any)?.items ?? []).reduce(
     (s: number, i: any) => s + (i.quantity ?? 0),
     0,
@@ -989,11 +1020,11 @@ export default function PosPage() {
     if (!tabOrderId) return;
     setPayChoiceOpen(false);
     setClosingTab(true);
-    setChargeOrder({ id: tabOrderId, amount: tabTotal });
+    setChargeOrder({ id: tabOrderId, amount: tabOutstanding });
   };
   const settleCash = async () => {
     if (!tabOrderId || !tableId || settlingCash) return;
-    if (!window.confirm(`${money(tabTotal)} received in cash?`)) return;
+    if (!window.confirm(`${money(tabOutstanding)} received in cash?`)) return;
     setSettlingCash(true);
     try {
       // Settle through the split-payment endpoint, not payment-status +
@@ -1004,7 +1035,7 @@ export default function PosPage() {
       // directly (it is allowed to bypass the ladder), frees the table and
       // emits to the board, all server-side in one call.
       await tablesClient.addPayment(tabOrderId, {
-        amount: Number(tabTotal.toFixed(2)),
+        amount: Number(tabOutstanding.toFixed(2)),
         method: "CASH",
         note: "Tab settled — cash",
       });
@@ -1297,7 +1328,13 @@ export default function PosPage() {
             {tabOrderId
               ? ` — running tab: ${tabItemCount} item${
                   tabItemCount === 1 ? "" : "s"
-                }, ${money(tabTotal)}. Add items and “Send to kitchen”.`
+                }, ${money(tabTotal)}${
+                  // Part payments are invisible otherwise, and staff reading
+                  // only the total will believe the whole bill is outstanding.
+                  tabPaidMinor > 0
+                    ? ` · ${money(tabPaid)} already paid, ${money(tabOutstanding)} left`
+                    : ""
+                }. Add items and “Send to kitchen”.`
               : currentTable?.status === "OCCUPIED"
                 ? // Seated but nothing sent yet. Say so explicitly: the
                   // bill/settle actions need a real tab, and "new tab"
@@ -1389,7 +1426,7 @@ export default function PosPage() {
                 onClick={payAndCloseTab}
                 className="shrink-0 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
               >
-                Pay &amp; close · {money(tabTotal)}
+                Pay &amp; close · {money(tabOutstanding)}
               </button>
             ))}
           </div>
