@@ -107,6 +107,21 @@ export interface CartPanelProps {
   // of "Place order" so the operator knows the action will amend the
   // existing ticket rather than create a new one.
   submitButtonLabel?: string;
+  /**
+   * The delivery fee an EXISTING order is already charging — set only when
+   * amending one, never for a new order.
+   *
+   * The panel re-derives the fee from a zone lookup every time it mounts, so
+   * an amendment whose lookup didn't come back (offline, a 429, a zone since
+   * renamed) submitted £0.00 and took the delivery charge off a bill the
+   * customer had already been quoted. A lookup now replaces this only when it
+   * returns a real answer.
+   *
+   * Deliberately a prop and not a PartialDraft field: the draft is autosaved
+   * and restored for the NEXT walk-in, where a stale fee would be re-applied
+   * to an address nobody has priced.
+   */
+  existingDeliveryFee?: number;
   // Persistence callbacks — the parent owns the draft store key (per
   // location) so it can purge on successful submit.
   initialDraft?: PartialDraft;
@@ -167,6 +182,7 @@ export function PosCartPanel(props: CartPanelProps) {
     feedback,
     initialDraft,
     onDraftChange,
+    existingDeliveryFee,
     dineIn,
   } = props;
   // Prices follow this location's currency, not a hardcoded pound — and the
@@ -259,7 +275,14 @@ export function PosCartPanel(props: CartPanelProps) {
   }, []);
 
   // Delivery fee lookup
-  const [deliveryFee, setDeliveryFee] = useState<number>(0);
+  // What this order is already charging for delivery. A lookup replaces it
+  // only when it comes back with a real answer; anything else leaves it
+  // standing. Captured in a ref because it is the order's fact, not a value
+  // the panel edits — the live figure is `deliveryFee` below.
+  const carriedDeliveryFee = useRef<number>(Number(existingDeliveryFee ?? 0));
+  const [deliveryFee, setDeliveryFee] = useState<number>(
+    carriedDeliveryFee.current,
+  );
   const [deliveryFeeOverride, setDeliveryFeeOverride] = useState<number | null>(null);
   const [deliveryLookupNote, setDeliveryLookupNote] = useState<string | null>(null);
   const [deliveryMinSpend, setDeliveryMinSpend] = useState<number | null>(null);
@@ -455,6 +478,19 @@ export function PosCartPanel(props: CartPanelProps) {
           setDeliveryLookupNote(
             `${area.trim()} is outside the delivery areas. Add it in Delivery fees to serve it.`,
           );
+        } else if (carriedDeliveryFee.current > 0) {
+          // The zone was there when the order was taken and isn't now —
+          // renamed, or deleted. The customer was quoted the old fee, so an
+          // amendment about a missing drink must not quietly drop it. Say
+          // what happened and leave the money alone; the operator can still
+          // override it.
+          setDeliveryFee(carriedDeliveryFee.current);
+          setDeliveryMinSpend(null);
+          setDeliveryLookupNote(
+            `No delivery zone matches "${key}" any more — keeping the ${money(
+              carriedDeliveryFee.current,
+            )} already on this order.`,
+          );
         } else {
           setDeliveryFee(0);
           setDeliveryMinSpend(null);
@@ -463,7 +499,18 @@ export function PosCartPanel(props: CartPanelProps) {
           );
         }
       } catch {
-        if (!cancelled) setDeliveryLookupNote("Delivery fee lookup failed");
+        // Offline, a 500, or a 429 the cooldown interceptor rejected without
+        // reaching the network. We know nothing new, so we change nothing —
+        // and crucially say so, because a silent £0.00 reads exactly like a
+        // shop that doesn't charge for delivery.
+        if (cancelled) return;
+        setDeliveryLookupNote(
+          carriedDeliveryFee.current > 0
+            ? `Couldn't check the delivery fee — keeping the ${money(
+                carriedDeliveryFee.current,
+              )} already on this order.`
+            : "Couldn't check the delivery fee. Set one manually before saving.",
+        );
       }
     }, 350);
     return () => {
@@ -1066,10 +1113,24 @@ export function PosCartPanel(props: CartPanelProps) {
           <Row label="Discount" value={`−${money(discountAmount)}`} accent="text-emerald-700" />
         )}
         {fulfillmentType === "DELIVERY" && !dineIn && (
-          <Row
-            label={`Delivery${(discountType === "FREE_DELIVERY" || promoApplied?.freeDelivery) ? " (free)" : ""}`}
-            value={`${money(effectiveDeliveryFee)}`}
-          />
+          <>
+            <Row
+              label={`Delivery${(discountType === "FREE_DELIVERY" || promoApplied?.freeDelivery) ? " (free)" : ""}`}
+              value={`${money(effectiveDeliveryFee)}`}
+            />
+            {/* The zone lookup has always had something to say when it
+                couldn't price the address — it just had nowhere to say it,
+                so a fee that failed to resolve looked identical to a shop
+                that delivers free. */}
+            {deliveryLookupNote && deliveryFeeOverride == null && (
+              <p
+                role="status"
+                className="text-[11px] leading-snug text-amber-700"
+              >
+                {deliveryLookupNote}
+              </p>
+            )}
+          </>
         )}
         {/* Dine-in: show what's already on the tab and what the bill
             becomes once this round is sent — the number staff quote when

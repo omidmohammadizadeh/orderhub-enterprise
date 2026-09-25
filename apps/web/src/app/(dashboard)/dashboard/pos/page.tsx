@@ -392,6 +392,9 @@ export default function PosPage() {
   const router = useRouter();
   const [editOrderId, setEditOrderId] = useState<string | null>(null);
   const [editOrderNumber, setEditOrderNumber] = useState<string | null>(null);
+  const [editOrderDeliveryFee, setEditOrderDeliveryFee] = useState<number | null>(
+    null,
+  );
   const [editHydrated, setEditHydrated] = useState(false);
 
   useEffect(() => {
@@ -450,6 +453,12 @@ export default function PosPage() {
           area: addr.area ?? "",
           notes: order.specialInstructions ?? "",
         });
+        // Not part of the draft — see existingDeliveryFee on the cart panel.
+        // The panel re-derives the fee from a zone lookup on every mount, so
+        // without this an amendment whose lookup didn't come back submitted
+        // £0.00 and took the delivery charge off a bill the customer had
+        // already been quoted.
+        setEditOrderDeliveryFee(Number(order.deliveryFee ?? 0));
         setEditOrderNumber(
           order.orderNumber ? `#${order.orderNumber}` : `#${order.id.slice(-6)}`,
         );
@@ -475,6 +484,7 @@ export default function PosPage() {
   function exitEditMode() {
     setEditOrderId(null);
     setEditOrderNumber(null);
+    setEditOrderDeliveryFee(null);
     setEditHydrated(false);
     setCart([]);
     setDraft({});
@@ -1775,6 +1785,7 @@ export default function PosPage() {
               }}
               submitting={submitMutation.isPending}
               submitButtonLabel={editOrderId ? "Save changes" : undefined}
+              existingDeliveryFee={editOrderDeliveryFee ?? undefined}
               feedback={submitFeedback}
               initialDraft={draft}
               onDraftChange={setDraft}
