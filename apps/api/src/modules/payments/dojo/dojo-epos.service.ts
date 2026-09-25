@@ -92,6 +92,12 @@ export function areaIdOf(area: string | null | undefined): string {
   return a ? `area-${Buffer.from(a.toLowerCase()).toString("base64url")}` : "area-main";
 }
 
+/** "TABLE 3" → "TABLE 3"; "3" → "Table 3"; "Window seat" → "Table Window seat". */
+export function tableLabel(name: string): string {
+  const trimmed = name.trim();
+  return /^tab(le)?\b/i.test(trimmed) ? trimmed : `Table ${trimmed}`;
+}
+
 @Injectable()
 export class DojoEposService {
   private readonly logger = new Logger(DojoEposService.name);
@@ -280,7 +286,11 @@ export class DojoEposService {
     return {
       id: order.id,
       reference: order.displayId ?? order.id.slice(-8),
-      displayName: table?.name ? `Table ${table.name}` : order.displayId ?? "Table order",
+      // "Table" is a prefix, not a decoration: a shop whose tables are called
+      // "TABLE 3" got "Table TABLE 3" on the customer's screen, while one
+      // using "Window seat" needs the word to make sense at all. Add it only
+      // when the name doesn't already say it.
+      displayName: table?.name ? tableLabel(table.name) : order.displayId ?? "Table order",
       status: STATUS_MAP[order.status] ?? "Accepted",
       createdAt: new Date(order.createdAt).toISOString(),
       updatedAt: new Date(order.updatedAt).toISOString(),
