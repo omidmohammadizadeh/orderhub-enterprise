@@ -55,6 +55,13 @@ export type DojoTerminalRefundStatus =
       leftToRefund?: number;
     };
 
+export interface DojoPayAtTablePreview {
+  payAtTableEnabled: boolean;
+  /** What a green result here does and doesn't mean. */
+  proves: string;
+  steps: Array<{ name: string; ok: boolean; data?: unknown; error?: string }>;
+}
+
 const base = "/v1/payments/dojo";
 
 export const dojoClient = {
@@ -70,6 +77,13 @@ export const dojoClient = {
   renameTerminal: (locationId: string, terminalId: string, label: string) =>
     apiClient
       .patch(`${base}/locations/${locationId}/terminals/${terminalId}`, { label })
+      .then((r) => r.data),
+
+  // "What would Dojo see?" — our own Pay at Table handlers, run against this
+  // location. Needed because a virtual card machine can't drive the real flow.
+  previewPayAtTable: (locationId: string) =>
+    apiClient
+      .get<DojoPayAtTablePreview>(`${base}/locations/${locationId}/pay-at-table/preview`)
       .then((r) => r.data),
 
   enablePayAtTable: (locationId: string) =>

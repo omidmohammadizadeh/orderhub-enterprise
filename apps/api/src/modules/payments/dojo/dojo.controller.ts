@@ -19,6 +19,7 @@ import { Roles, TILL_ROLES } from "../../../common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "../../auth/interfaces/jwt-payload.interface";
 import { DojoApiExceptionFilter } from "./dojo-api-exception.filter";
 import { DojoService } from "./dojo.service";
+import { DojoEposService } from "./dojo-epos.service";
 
 // Connecting Dojo stores a key that moves a shop's money, so it's the same
 // list as registering a Stripe reader — plus the Team Roles equivalents,
@@ -39,7 +40,10 @@ const DOJO_ADMIN_ROLES = [
 export class DojoController {
   private readonly logger = new Logger(DojoController.name);
 
-  constructor(private readonly dojo: DojoService) {}
+  constructor(
+    private readonly dojo: DojoService,
+    private readonly epos: DojoEposService,
+  ) {}
 
   // ── Setup (card-readers settings page) ────────────────────────────────────
 
@@ -92,6 +96,68 @@ export class DojoController {
   @ApiOperation({ summary: "Turn off Dojo Pay at Table" })
   disablePayAtTable(@Param("locationId") locationId: string, @CurrentUser() user: AuthenticatedUser) {
     return this.dojo.disablePayAtTable(user.tenantId, locationId);
+  }
+
+  /**
+   * "What would Dojo see?" — runs OUR OWN Pay at Table handlers and returns
+   * their answers.
+   *
+   * A virtual card machine can't drive Pay at Table: the VCMs simulate payment
+   * outcomes, not the waiter's table menu, which is a separate application on
+   * a physical terminal. Without hardware there is no other way to find out
+   * whether the areas, tables, open tabs and bill we hand Dojo are right.
+   *
+   * Be clear about the limit: this skips HTTP, Basic auth and the terminal
+   * entirely, so a green result here does NOT mean Pay at Table works — only
+   * that the half we own is correct. The response says so, because a
+   * diagnostic that overstates itself is worse than none.
+   */
+  @Get("locations/:locationId/pay-at-table/preview")
+  @Roles(...DOJO_ADMIN_ROLES)
+  @ApiOperation({ summary: "Preview the data Dojo's table app would receive" })
+  async previewPayAtTable(
+    @Param("locationId") locationId: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("tableId") tableId?: string,
+  ) {
+    const { ctx, payAtTableEnabled } = await this.dojo.eposPreviewContext(
+      user.tenantId,
+      locationId,
+    );
+    const step = async <T>(name: string, run: () => Promise<T>) => {
+      try {
+        return { name, ok: true as const, data: await run() };
+      } catch (err: any) {
+        // One failing step must not hide the others — the point is to see
+        // which part of the chain is wrong.
+        return { name, ok: false as const, error: err?.message ?? String(err) };
+      }
+    };
+
+    const areas = await step("ListAreas", () => this.epos.listAreas(ctx));
+    const tables = await step("SearchTables", () =>
+      this.epos.searchTables(ctx, {}),
+    );
+    const orders = await step("SearchOrders", () =>
+      this.epos.searchOrders(ctx, tableId ? { dineIn: { tableId } } : {}),
+    );
+    // The bill is the screen the customer actually reads, so preview the
+    // first open tab's rather than stopping at the list.
+    const firstOrderId =
+      orders.ok && Array.isArray((orders.data as any)?.data)
+        ? (orders.data as any).data[0]?.id
+        : undefined;
+    const bill = firstOrderId
+      ? await step("GetOrderBillById", () => this.epos.getBill(ctx, firstOrderId))
+      : { name: "GetOrderBillById", ok: false as const, error: "No open table tab to bill." };
+
+    return {
+      payAtTableEnabled,
+      // Said plainly so nobody reads a pass here as "Pay at Table works".
+      proves:
+        "The data our endpoints return. NOT the HTTP layer, the Basic auth, or the terminal itself — those need a real card machine.",
+      steps: [areas, tables, orders, bill],
+    };
   }
 
   // ── Taking a payment at the counter ───────────────────────────────────────

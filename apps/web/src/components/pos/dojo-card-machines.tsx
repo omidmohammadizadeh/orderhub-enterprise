@@ -8,7 +8,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Loader2, Pencil, Utensils } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
-import { dojoClient, type DojoStatus } from "@/lib/api/dojo.client";
+import { dojoClient, type DojoStatus, type DojoPayAtTablePreview } from "@/lib/api/dojo.client";
 import { useDeviceStore } from "@/stores/device.store";
 
 const STATUS_STYLE: Record<string, string> = {
@@ -26,6 +26,7 @@ export function DojoCardMachines({ locationId }: { locationId: string }) {
   const [apiKey, setApiKey] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [renaming, setRenaming] = useState<{ id: string; label: string } | null>(null);
+  const [preview, setPreview] = useState<DojoPayAtTablePreview | null>(null);
 
   const run = async (label: string, fn: () => Promise<unknown>, ok: string) => {
     setBusy(label);
@@ -262,6 +263,77 @@ export function DojoCardMachines({ locationId }: { locationId: string }) {
                 </Button>
               )}
             </div>
+
+            {/* A virtual card machine can't drive Pay at Table — the VCMs
+                simulate payment outcomes, not the waiter's table menu, which
+                is a separate app on a physical terminal. Without hardware this
+                is the only way to see what we'd answer. */}
+            {s.payAtTable.enabled && (
+              <div className="mt-3 border-t border-zinc-200 pt-3">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={busy !== null}
+                  onClick={async () => {
+                    setBusy("preview");
+                    try {
+                      setPreview(await dojoClient.previewPayAtTable(locationId));
+                    } catch (e: any) {
+                      toast.error(e?.response?.data?.message ?? "Couldn't run the check");
+                    } finally {
+                      setBusy(null);
+                    }
+                  }}
+                >
+                  {busy === "preview" ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "Check what Dojo would see"
+                  )}
+                </Button>
+                <p className="mt-1.5 text-xs text-zinc-500">
+                  Runs our own table, bill and order lookups for this shop. Open a
+                  table tab first, or there&rsquo;ll be no bill to show.
+                </p>
+
+                {preview && (
+                  <div className="mt-3 space-y-2">
+                    <ul className="space-y-2">
+                      {preview.steps.map((step) => (
+                        <li
+                          key={step.name}
+                          className="rounded-md border border-zinc-200 bg-white p-2"
+                        >
+                          <div className="flex items-center gap-2 text-sm font-medium">
+                            <span
+                              className={
+                                "inline-block h-2 w-2 shrink-0 rounded-full " +
+                                (step.ok ? "bg-emerald-500" : "bg-red-500")
+                              }
+                              aria-hidden
+                            />
+                            <span className="text-zinc-900">{step.name}</span>
+                            <span className="sr-only">{step.ok ? "passed" : "failed"}</span>
+                          </div>
+                          {step.ok ? (
+                            <pre className="mt-1 max-h-56 overflow-auto rounded bg-zinc-50 p-2 text-[11px] leading-relaxed text-zinc-700">
+                              {JSON.stringify(step.data, null, 2)}
+                            </pre>
+                          ) : (
+                            <p className="mt-1 text-xs text-red-700">{step.error}</p>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                    {/* Said on screen, not just in the payload: a green row
+                        here is not a passing Pay at Table test. */}
+                    <p className="rounded-md bg-amber-50 p-2 text-xs text-amber-800">
+                      {preview.proves}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <button

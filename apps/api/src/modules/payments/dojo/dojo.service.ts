@@ -425,6 +425,28 @@ export class DojoService {
    * its tenant) the credentials belong to, or null. Deliberately answers
    * "no" the same way for unknown location, disabled, and wrong password.
    */
+  /**
+   * The same context checkEposAuth builds, but for an ADMIN of this tenant
+   * rather than for Dojo.
+   *
+   * Pay at Table can only be driven from a terminal running Dojo's table app,
+   * and a virtual card machine doesn't have one — it simulates payment
+   * outcomes, not the waiter's menu. So without hardware there is no way to
+   * see what we would answer. This lets the dashboard ask our own handlers
+   * directly and show the operator the actual JSON.
+   *
+   * It deliberately proves LESS than a real call: no HTTP, no Basic auth, no
+   * terminal. What it does prove is the part we own — that the areas, tables,
+   * open tabs and bill we would hand Dojo are correct.
+   */
+  async eposPreviewContext(tenantId: string, locationId: string) {
+    const { loc, cfg } = await this.requireConfig(tenantId, locationId);
+    return {
+      ctx: { loc: loc as any, cfg, tenantId },
+      payAtTableEnabled: !!cfg.payAtTable?.enabled,
+    };
+  }
+
   async checkEposAuth(locationId: string, authorization: string | undefined) {
     if (!authorization?.startsWith("Basic ")) return null;
     let user = "";
