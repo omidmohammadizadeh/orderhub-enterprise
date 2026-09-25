@@ -1838,14 +1838,58 @@ export class OrdersService {
           }
         : {};
 
+      // ── The bill ──────────────────────────────────────────────────────
+      //
+      // An omitted field meant ZERO here, so any caller that sent items
+      // without repeating the money wiped it: a £3.50 delivery fee became
+      // £0 because the amendment was about a missing drink.
+      //
+      // And the total was whatever the client said. The till computes
+      // `subtotal - discount + deliveryFee` and knows nothing about the
+      // service charge (createOrder adds that server-side) or the tip — so
+      // editing a dine-in order silently dropped both off the bill.
+      //
+      // Omitted now means UNCHANGED, and the arithmetic happens here.
+      // switchFulfillment already worked this way; the caller decides the
+      // fee, because zone rules live in the browser alongside the POS, but
+      // it does not get to decide what the parts add up to.
+      //
+      // `dto.total` is consequently ignored, and deliberately not checked
+      // against this one: the till and the voice agent each total an order
+      // their own way (the till leaves out the service charge and the tip,
+      // the agent puts both in), so a mismatch is the normal case and an
+      // alarm on it would only ever be noise.
+      const taxAmount = dto.taxAmount ?? Number(order.taxAmount ?? 0);
+      const discount = dto.discount ?? Number(order.discount ?? 0);
+      const deliveryFee = dto.deliveryFee ?? Number(order.deliveryFee ?? 0);
+      // Part of what is owed, and rebuilt from the order rather than carried
+      // inside the incoming total — or the second edit would charge the
+      // service charge twice. The service charge has no way in here at all
+      // (createOrder derives it from the location's own rule); the tip did,
+      // as a declared parameter that was then dropped on the floor.
+      const serviceCharge = Number(order.serviceCharge ?? 0);
+      const tipAmount = dto.tipAmount ?? Number(order.tipAmount ?? 0);
+      const newTotal = round2(
+        Math.max(
+          0,
+          dto.subtotal +
+            taxAmount +
+            deliveryFee -
+            discount +
+            serviceCharge +
+            tipAmount,
+        ),
+      );
+
       const u = await tx.order.update({
         where: { id: order.id },
         data: {
           subtotal: dto.subtotal,
-          taxAmount: dto.taxAmount ?? 0,
-          deliveryFee: dto.deliveryFee ?? 0,
-          discount: dto.discount ?? 0,
-          total: dto.total,
+          taxAmount,
+          deliveryFee,
+          discount,
+          tipAmount,
+          total: newTotal,
           customerInfo: customerInfoUpdate,
           customerName: customerNameUpdate,
           customerPhone: customerPhoneUpdate,
@@ -1857,7 +1901,7 @@ export class OrdersService {
       });
 
       const beforeTotal = Number(order.total);
-      const afterTotal = dto.total;
+      const afterTotal = newTotal;
       const beforeCount = order.items.reduce((s, i) => s + i.quantity, 0);
       const afterCount = dto.items.reduce((s, i) => s + i.quantity, 0);
       await tx.orderStatusHistory.create({
