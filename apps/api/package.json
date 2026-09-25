@@ -17,6 +17,7 @@
     "db:rotate-keys": "ts-node -P tsconfig.json src/scripts/rotate-credential-encryption.ts",
     "db:repair-refunded-orders": "ts-node -P tsconfig.json src/scripts/repair-refunded-orders.ts",
     "db:explain-order-payments": "ts-node -P tsconfig.json src/scripts/explain-order-payments.ts",
+    "db:tidy-names": "ts-node -P tsconfig.json src/scripts/tidy-customer-facing-names.ts",
     "deploy:preflight": "pnpm db:generate && pnpm type-check && pnpm test -- --no-coverage"
   },
   "dependencies": {
