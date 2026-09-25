@@ -16,6 +16,7 @@
     "db:backfill-encryption": "ts-node -P tsconfig.json src/scripts/backfill-credential-encryption.ts",
     "db:rotate-keys": "ts-node -P tsconfig.json src/scripts/rotate-credential-encryption.ts",
     "db:repair-refunded-orders": "ts-node -P tsconfig.json src/scripts/repair-refunded-orders.ts",
+    "db:explain-order-payments": "ts-node -P tsconfig.json src/scripts/explain-order-payments.ts",
     "deploy:preflight": "pnpm db:generate && pnpm type-check && pnpm test -- --no-coverage"
   },
   "dependencies": {
