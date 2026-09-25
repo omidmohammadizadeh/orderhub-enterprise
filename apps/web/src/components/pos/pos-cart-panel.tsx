@@ -12,7 +12,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useCurrency } from "@/hooks/use-currency";
 import { useQuery } from "@tanstack/react-query";
-import { Trash2, ShoppingBag, Loader2, Clock, Calendar, Tag, Phone, CheckCircle2, Search, XCircle, WifiOff, UtensilsCrossed } from "lucide-react";
+import { Trash2, ShoppingBag, Loader2, Clock, Calendar, Tag, Phone, CheckCircle2, Search, XCircle, WifiOff, UtensilsCrossed, MapPin } from "lucide-react";
 import {
   round2,
   zoneMode,
@@ -22,14 +22,12 @@ import {
 import {
   deliveryZonesClient,
   promoCodesClient,
-  addressLookupClient,
-  type AddressSuggestion,
-  type AddressProvider,
   type DeliveryZone,
   type PromoCode,
   type PromoValidateResult,
 } from "@/lib/api/pos.client";
 import { useOnlineStatus } from "@/lib/pos/use-online-status";
+import { DeliveryAddressField } from "./delivery-address-field";
 
 // ── Types the parent feeds in ────────────────────────────────────────────────
 export interface CartLine {
@@ -198,11 +196,11 @@ export function PosCartPanel(props: CartPanelProps) {
   // Same field the storefront asks for, so a phone order and an online order
   // to the same flat are priced the same way.
   const [area, setArea] = useState(initialDraft?.area ?? "");
-  const [addrQuery, setAddrQuery] = useState("");
-  const [addrSuggestions, setAddrSuggestions] = useState<AddressSuggestion[]>([]);
-  const [addrSearching, setAddrSearching] = useState(false);
-  const [addrProvider, setAddrProvider] = useState<AddressProvider>("manual");
-  const [postcodeProvider, setPostcodeProvider] = useState<AddressProvider>("manual");
+  // Open straight away when there's nothing to show — an empty summary with a
+  // "Change" link is a dead end for the operator who most needs the field.
+  const [addressOpen, setAddressOpen] = useState(
+    !(initialDraft?.addressLine1 ?? "").trim(),
+  );
 
   // The location's own zones — needed here (not just in the setup modal)
   // because in area mode they ARE the operator's picker.
@@ -216,10 +214,6 @@ export function PosCartPanel(props: CartPanelProps) {
   const deliveryAreas = useMemo(() => areaZoneNames(zones as any), [zones]);
   const needsPostcode = postcodeRequiredFor(country);
 
-  // Postcode lookup (UK-style: enter postcode → pick from list of houses)
-  const [pcLookupResults, setPcLookupResults] = useState<AddressSuggestion[]>([]);
-  const [pcLookupLoading, setPcLookupLoading] = useState(false);
-  const [pcLookupNote, setPcLookupNote] = useState<string | null>(null);
 
   // Caller-ID autofill: the incoming-call popup (caller-id-popup.tsx)
   // dispatches "pos:callerid-fill" when the operator taps "Start order" —
@@ -416,48 +410,6 @@ export function PosCartPanel(props: CartPanelProps) {
     onDraftChange,
   ]);
 
-  // ── Address provider detect (once) ────────────────────────────────────────
-  useEffect(() => {
-    let cancelled = false;
-    addressLookupClient
-      .status()
-      .then((r) => {
-        if (cancelled) return;
-        setAddrProvider(r.searchProvider);
-        setPostcodeProvider(r.postcodeProvider);
-      })
-      .catch(() => undefined);
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  // ── Address autocomplete (debounced) ──────────────────────────────────────
-  useEffect(() => {
-    if (fulfillmentType !== "DELIVERY") return;
-    if (addrQuery.trim().length < 3) {
-      setAddrSuggestions([]);
-      return;
-    }
-    if (addrProvider === "manual") return; // no remote, skip
-    let cancelled = false;
-    const handle = window.setTimeout(async () => {
-      setAddrSearching(true);
-      try {
-        const res = await addressLookupClient.search(addrQuery, "gb", 5);
-        if (!cancelled) setAddrSuggestions(res.suggestions);
-      } catch {
-        if (!cancelled) setAddrSuggestions([]);
-      } finally {
-        if (!cancelled) setAddrSearching(false);
-      }
-    }, 300);
-    return () => {
-      cancelled = true;
-      window.clearTimeout(handle);
-    };
-  }, [addrQuery, fulfillmentType, addrProvider]);
-
   // ── Postcode → delivery fee lookup ────────────────────────────────────────
   useEffect(() => {
     if (fulfillmentType !== "DELIVERY") {
@@ -567,6 +519,11 @@ export function PosCartPanel(props: CartPanelProps) {
       ? deliveryMinSpend - subtotal
       : 0;
 
+  const addressSummary = [addrLine1, addrLine2, area, city, postcode]
+    .map((v) => v.trim())
+    .filter(Boolean)
+    .join(", ");
+
   const errors: string[] = [];
   if (cart.length === 0) errors.push("Cart is empty");
   if (fulfillmentType === "DELIVERY") {
@@ -628,100 +585,10 @@ export function PosCartPanel(props: CartPanelProps) {
     if (discountType === "PROMO_CODE") setDiscountType(null);
   };
 
-  const applySuggestion = (s: AddressSuggestion) => {
-    // Only overwrite line1 if the suggestion provides one. The postcodes.io
-    // fallback returns an empty line1 (it can only resolve town + postcode),
-    // and we don't want clicking that to wipe a building name the operator
-    // already typed.
-    if (s.line1) setAddrLine1(s.line1);
-    if (s.line2) setAddrLine2(s.line2);
-    else if (s.line1) setAddrLine2("");
-    if (s.city) setCity(s.city);
-    if (s.postcode) setPostcode(s.postcode);
-    setAddrQuery("");
-    setAddrSuggestions([]);
-    setPcLookupResults([]);
-    setPcLookupNote(null);
-  };
-
-  /**
-   * Google autocomplete only returns lightweight predictions — line1/city/
-   * postcode are blank until we resolve the place_id with /details. Other
-   * providers (Mapbox, getaddress.io, postcodes.io) return fully-structured
-   * suggestions in one hop, so the resolver short-circuits for them.
-   */
-  const pickAddressSuggestion = async (s: AddressSuggestion) => {
-    if (s.provider !== "google") {
-      applySuggestion(s);
-      return;
-    }
-    // Optimistically fill what we have so the UI doesn't go blank during
-    // the details fetch.
-    applySuggestion(s);
-    try {
-      const res = await addressLookupClient.details(s.id);
-      if (res.suggestion) applySuggestion(res.suggestion);
-    } catch {
-      // Details failed — leave the operator with the optimistic fill, they
-      // can edit the fields by hand.
-    }
-  };
-
-  /**
-   * UK postcode → list of houses at that postcode (getaddress.io). The
-   * operator types or pastes the postcode then hits "Find" — we render the
-   * results as a clickable list. Picking one fills line1/line2/city/postcode
-   * so the operator only has to add a flat number or buzzer code.
-   */
-  const runPostcodeLookup = async () => {
-    const pc = postcode.trim();
-    if (pc.length < 5) {
-      setPcLookupNote("Enter a full postcode first");
-      setPcLookupResults([]);
-      return;
-    }
-    setPcLookupLoading(true);
-    setPcLookupNote(null);
-    try {
-      const res = await addressLookupClient.postcode(pc);
-      if (res.suggestions.length === 0) {
-        setPcLookupResults([]);
-        setPcLookupNote(
-          res.provider === "manual"
-            ? "Postcode lookup unavailable. Enter address manually."
-            : res.provider === "postcodes_io"
-              ? "Postcode not recognised. Enter address manually."
-              : "No addresses found for this postcode.",
-        );
-      } else {
-        setPcLookupResults(res.suggestions);
-        if (res.provider === "postcodes_io") {
-          // The free postcodes.io fallback can only give us the town +
-          // postcode — not house-level addresses.
-          setPcLookupNote(
-            "Free lookup (town + postcode only). For street names, allow Nominatim or set GETADDRESS_API_KEY.",
-          );
-        } else if (res.provider === "osm") {
-          // OSM gives street + town but not house numbers — the operator
-          // still has to type the door number.
-          setPcLookupNote(
-            `${res.suggestions.length} street${res.suggestions.length === 1 ? "" : "s"} found nearby — pick one, then add the house/flat number.`,
-          );
-        } else {
-          setPcLookupNote(
-            `${res.suggestions.length} address${res.suggestions.length === 1 ? "" : "es"} — tap one to use`,
-          );
-        }
-      }
-    } catch (err: any) {
-      setPcLookupResults([]);
-      setPcLookupNote(
-        err?.response?.data?.message ?? "Postcode lookup failed",
-      );
-    } finally {
-      setPcLookupLoading(false);
-    }
-  };
+  // Address search, postcode→houses lookup and suggestion-picking used to
+  // live here as a second implementation that nothing rendered. The live
+  // copy is DeliveryAddressField, which the start screen, the
+  // collection→delivery switch and now this panel all share.
 
   const handlePlaceOrder = async () => {
     if (!canSubmit) return;
@@ -900,7 +767,75 @@ export function PosCartPanel(props: CartPanelProps) {
             again here gave two places to change the same thing, which is how
             a cart ends up disagreeing with the order that gets placed. */}
 
-        {/* Delivery address is captured on step 1 and drives the fee below. */}
+        {/* Delivery address. Step 1 is where it's first typed, but it has to
+            be changeable HERE too: a customer rings back to say they're at
+            their mum's, and editing an order re-opens the till straight on
+            the menu with no way back to step 1 — so until now the one thing
+            an operator could not amend was the one thing the customer was
+            calling about.
+
+            Collapsed to a single line by default so the normal flow keeps
+            its compact checkout; the same shared field the start screen and
+            the collection→delivery switch use, because three copies of
+            "what counts as a valid address" would not stay in step. Editing
+            the postcode or area re-runs the zone lookup below on its own. */}
+        {!dineIn && fulfillmentType === "DELIVERY" && (
+          <Section title="Delivery address">
+            {addressOpen ? (
+              <div className="space-y-2">
+                <DeliveryAddressField
+                  draft={{
+                    addressLine1: addrLine1,
+                    addressLine2: addrLine2,
+                    city,
+                    postcode,
+                    area,
+                  }}
+                  set={(patch) => {
+                    if (patch.addressLine1 !== undefined)
+                      setAddrLine1(patch.addressLine1);
+                    if (patch.addressLine2 !== undefined)
+                      setAddrLine2(patch.addressLine2);
+                    if (patch.city !== undefined) setCity(patch.city);
+                    if (patch.postcode !== undefined)
+                      setPostcode(patch.postcode);
+                    if (patch.area !== undefined) setArea(patch.area);
+                  }}
+                  locationId={locationId}
+                  // The Section above is the heading, and the fee is a few
+                  // rows down this same panel, not "on the next step".
+                  label={null}
+                  hint={null}
+                />
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setAddressOpen(false)}
+                    className="rounded-lg border border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+                  >
+                    Done
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-start gap-2">
+                <MapPin className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-zinc-400" />
+                <p className="min-w-0 flex-1 text-xs leading-relaxed text-zinc-700">
+                  {addressSummary || (
+                    <span className="text-red-600">No address yet</span>
+                  )}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setAddressOpen(true)}
+                  className="flex-shrink-0 rounded px-1 text-[11px] font-semibold text-orange-600 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+                >
+                  Change
+                </button>
+              </div>
+            )}
+          </Section>
+        )}
 
         {/* Expected time / schedule — takeaway-only. Dine-in food fires to
             the kitchen the moment the round is sent; there is nothing to

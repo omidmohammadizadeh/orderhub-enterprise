@@ -65,11 +65,20 @@ export function DeliveryAddressField({
   set,
   locationId,
   label = "Delivery address",
+  hint,
 }: {
   draft: DeliveryAddressValue;
   set: (patch: Partial<DeliveryAddressValue>) => void;
   locationId?: string | null;
-  label?: string;
+  /** null drops the label row, for a caller that already has a heading. */
+  label?: string | null;
+  /**
+   * Replaces the footer line about how the fee is worked out. The default
+   * says "on the next step", which is true on the start screen and a lie in
+   * the checkout panel, where the fee is a few rows further down the same
+   * screen. null drops the line.
+   */
+  hint?: string | null;
 }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<AddressSuggestion[]>([]);
@@ -148,8 +157,15 @@ export function DeliveryAddressField({
     }
   };
 
-  return (
-    <Field label={label} Icon={MapPin} required>
+  const defaultHint = byArea
+    ? "The area sets the delivery fee on the next step."
+    : mode === "RADIUS"
+      ? "The distance from the shop sets the delivery fee on the next step."
+      : "The postcode sets the delivery fee on the next step.";
+  const footer = hint === undefined ? defaultHint : hint;
+
+  const body = (
+    <>
       {/* Search first — one tap fills the four fields below. */}
       <div className="relative">
         <input
@@ -237,13 +253,14 @@ export function DeliveryAddressField({
           </select>
         )}
       </div>
-      <p className="text-[11px] text-zinc-400">
-        {byArea
-          ? "The area sets the delivery fee on the next step."
-          : mode === "RADIUS"
-            ? "The distance from the shop sets the delivery fee on the next step."
-            : "The postcode sets the delivery fee on the next step."}
-      </p>
+      {footer && <p className="text-[11px] text-zinc-400">{footer}</p>}
+    </>
+  );
+
+  if (label === null) return <div className="space-y-1.5">{body}</div>;
+  return (
+    <Field label={label} Icon={MapPin} required>
+      {body}
     </Field>
   );
 }

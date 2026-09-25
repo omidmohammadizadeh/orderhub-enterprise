@@ -34,6 +34,7 @@ import {
   round2,
   toOrderLineModifier,
   categoryItemAllowsFulfillment,
+  resolveDeliveryAddress,
   type SelectedModifier,
   type ProductSku,
 } from "@orderhub/shared";
@@ -426,15 +427,27 @@ export default function PosPage() {
           notes: it.notes ?? "",
         }));
         setCart(lines);
+        const addr = resolveDeliveryAddress(order);
         setDraft({
           customerName: order.customerName ?? order.customerInfo?.name ?? "",
           customerPhone: order.customerPhone ?? order.customerInfo?.phone ?? "",
           fulfillmentType:
             order.fulfillmentType === "DELIVERY" ? "DELIVERY" : "PICKUP",
-          addressLine1: order.deliveryAddress?.line1 ?? "",
-          addressLine2: order.deliveryAddress?.line2 ?? "",
-          city: order.deliveryAddress?.city ?? "",
-          postcode: order.deliveryAddress?.postcode ?? "",
+          // Read the same way the driver app reads it. An order keeps its
+          // address in a JSON blob whose keys differ per marketplace AND in
+          // structured columns, and only sometimes in both — reading the blob
+          // alone showed an empty address form for anything that arrived
+          // through ingestCanonical, which is every online and marketplace
+          // order. The operator then could neither see where it was going
+          // nor save, because a delivery with no line 1 fails validation.
+          addressLine1: addr.line1 ?? "",
+          addressLine2: addr.line2 ?? "",
+          city: addr.city ?? "",
+          postcode: addr.postcode ?? "",
+          // Where a shop prices by area rather than postcode, this IS the
+          // zone key. Dropping it left the fee unpriced and "Delivery area
+          // required" on screen with no field to answer it.
+          area: addr.area ?? "",
           notes: order.specialInstructions ?? "",
         });
         setEditOrderNumber(

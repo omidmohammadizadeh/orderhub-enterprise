@@ -1813,6 +1813,31 @@ export class OrdersService {
       const customerPhoneUpdate =
         dto.customerInfo?.phone ?? order.customerPhone ?? null;
 
+      // An order carries its address twice: the blob and the structured
+      // columns. createOrder and switchFulfillment both write both; this
+      // path wrote only the blob, so a customer who rang to change where
+      // their food was going left the columns holding the old address —
+      // and dispatch prices the driver's fee straight off order.postcode
+      // (driver-earnings.service.ts, dispatch.service.ts). The delivery
+      // read fine while the money was computed from the previous house.
+      const addressChanged = dto.deliveryAddress !== undefined;
+      const addr = (dto.deliveryAddress ?? {}) as Record<string, any>;
+      const addressUpdate = addressChanged
+        ? {
+            deliveryAddress: dto.deliveryAddress as any,
+            addressLine1: addr.line1 ?? null,
+            addressLine2: addr.line2 ?? null,
+            city: addr.city ?? null,
+            postcode: addr.postcode ?? null,
+            // Coordinates belong to the OLD address. Keeping them is how a
+            // driver gets a correct address on the screen and a map pin at
+            // the previous door; they re-geocode from the new one.
+            deliveryLat: null,
+            deliveryLng: null,
+            geocodedAt: null,
+          }
+        : {};
+
       const u = await tx.order.update({
         where: { id: order.id },
         data: {
@@ -1824,9 +1849,7 @@ export class OrdersService {
           customerInfo: customerInfoUpdate,
           customerName: customerNameUpdate,
           customerPhone: customerPhoneUpdate,
-          deliveryAddress: dto.deliveryAddress
-            ? (dto.deliveryAddress as any)
-            : order.deliveryAddress ?? undefined,
+          ...addressUpdate,
           specialInstructions:
             dto.specialInstructions ?? order.specialInstructions,
           updatedAt: new Date(),
