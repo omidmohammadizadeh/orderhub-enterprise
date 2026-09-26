@@ -146,6 +146,18 @@ export function useLiveOrders(locationId?: string) {
     orders: liveOrders,
     isLoading: query.isLoading,
     error: query.error,
+    // `orders` above survives a failed refetch (the bridging effect only
+    // writes on success), so the views need to know a fetch is failing
+    // WITHOUT being told to throw the tickets away. They decide: keep the
+    // board and warn, or — with nothing cached — show the failure.
+    isFetching: query.isFetching,
+    refetch: query.refetch,
+    // Whether THIS location's feed has a last-known-good snapshot. Deliberately
+    // not `orders.length > 0`: the store is one global list, so right after a
+    // location switch it still holds the previous location's tickets — a failed
+    // first fetch for the new location would have shown those under the new
+    // location's name. The query cache is keyed by location, so it can't lie.
+    hasSnapshot: query.data !== undefined,
   };
 }
 

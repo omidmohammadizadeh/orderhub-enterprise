@@ -13,7 +13,6 @@
 
 import { useMemo, useState } from "react";
 import {
-  AlertCircle,
   Bike,
   CheckCircle2,
   ChefHat,
@@ -52,6 +51,7 @@ import { PlatformBadge, FulfillmentBadge } from "./platform-badge";
 import { useLiveOrders } from "../../hooks/use-live-orders";
 import type { Order } from "../../lib/api/orders.client";
 import { isAwaitingOurPayment } from "@/lib/orders/awaiting-payment";
+import { OrdersFeedBanner, OrdersFeedError } from "./feed-status";
 
 // Only loaded once someone actually opens it — it pulls in three courier
 // clients the board has no use for otherwise.
@@ -279,7 +279,8 @@ interface Props {
 }
 
 export function OrderList({ locationId }: Props) {
-  const { orders, isLoading, error } = useLiveOrders(locationId);
+  const { orders, isLoading, error, isFetching, refetch, hasSnapshot } =
+    useLiveOrders(locationId);
   const [selected, setSelected] = useState<Order | null>(null);
 
   // "Open this order" on the incoming-call card. The caller is on the phone
@@ -426,16 +427,26 @@ export function OrderList({ locationId }: Props) {
       </div>
     );
   }
-  if (error) {
+  // Same rule as the board: keep the rows we have, warn above them.
+  if (error && !hasSnapshot) {
     return (
-      <div className="flex h-64 items-center justify-center gap-2 text-sm text-red-500">
-        <AlertCircle className="h-4 w-4" /> Failed to load orders
-      </div>
+      <OrdersFeedError
+        error={error}
+        isRetrying={isFetching}
+        onRetry={() => void refetch()}
+      />
     );
   }
 
   return (
     <>
+      {error && (
+        <OrdersFeedBanner
+          error={error}
+          isRetrying={isFetching}
+          onRetry={() => void refetch()}
+        />
+      )}
       {openMiss && (
         <div
           role="status"

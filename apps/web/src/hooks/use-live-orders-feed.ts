@@ -18,6 +18,10 @@
 //     alive (idempotency guards in the consumers make replays harmless).
 //     The poll stops the moment the socket reconnects, and every reconnect
 //     triggers one catch-up refetch.
+//   • Last fetch FAILED    → a 10s retry poll overrides both of the above
+//     until one succeeds. Socket-first has no steady poll to fall back on,
+//     so without this a single failed request wedged the board on "Failed
+//     to load orders" until a human reloaded the tab.
 //
 // Every consumer (orders board, auto-accept, auto-print) observes the SAME
 // queryKeys.liveOrders(locationId) cache — React Query guarantees one
@@ -40,6 +44,29 @@ import { queryKeys } from "../lib/api/query-keys";
 const FALLBACK_POLL_MS = 60_000;
 /** Coalesce bursts of socket events (a rush of orders) into one refetch. */
 const EVENT_DEBOUNCE_MS = 800;
+/** How often to re-try while the feed is BROKEN (last fetch errored).
+ *
+ *  This is the difference between a blip and an outage. Socket-first means a
+ *  connected board has no steady poll at all, and React Query stops after its
+ *  one retry — so a single failed fetch (a deploy restart, a 502 from the
+ *  edge, a dropped packet on shop wifi, the client 429 cooldown in
+ *  lib/api/client.ts opening a window) left the board showing "Failed to load
+ *  orders" FOREVER: nothing was scheduled to ever ask again, and the operator
+ *  had to notice and reload the tab. Recovery can't depend on a human. While
+ *  the query is in an error state we poll on this cadence, whatever the socket
+ *  thinks, and drop straight back to socket-first the moment one succeeds. */
+export const ERROR_RETRY_MS = 10_000;
+
+/** The whole polling policy in one pure function, so the rule that stopped a
+ *  failed feed from ever retrying itself is testable rather than buried in a
+ *  ternary inside useQuery. Precedence matters: BROKEN beats connected. */
+export function feedRefetchInterval(opts: {
+  errored: boolean;
+  connected: boolean;
+}): number | false {
+  if (opts.errored) return ERROR_RETRY_MS;
+  return opts.connected ? false : FALLBACK_POLL_MS;
+}
 
 /** Reactive view of the shared socket's connection state. */
 export function useSocketConnected(): boolean {
@@ -88,11 +115,26 @@ export function useLiveOrdersFeed(
     // asks the server to join every room it's allowed to see (room:join-all
     // below), so it gets the same socket-first treatment as a single
     // location once connected.
-    refetchInterval: connected ? false : FALLBACK_POLL_MS,
+    //
+    // Broken (last fetch errored) → retry regardless, see ERROR_RETRY_MS.
+    refetchInterval: (query) =>
+      feedRefetchInterval({
+        errored: query.state.status === "error",
+        connected,
+      }),
+    // Keep retrying a broken feed even while the tab is in the background —
+    // a till tablet parked on another app must not come back to a dead board.
+    refetchIntervalInBackground: true,
     staleTime: 30_000,
     // Focus-refetch races in-flight status mutations (see useLiveOrders for
     // the war story); event-driven invalidation covers freshness instead.
-    refetchOnWindowFocus: false,
+    // The ONE exception is an errored feed: there's no good data to snap back
+    // to and no mutation to race, so coming back to the tab retries at once
+    // instead of waiting out the retry tick.
+    refetchOnWindowFocus: (query) => query.state.status === "error",
+    // Laptop lid, wifi flap, tablet losing 4G: the browser tells us the
+    // network came back, so ask again immediately rather than on the tick.
+    refetchOnReconnect: "always",
   });
 
   useEffect(() => {
