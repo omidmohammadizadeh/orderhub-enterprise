@@ -28,6 +28,7 @@ import { OpeningHoursEditor } from './opening-hours-editor';
 import { WhatsAppConnectionSection } from './whatsapp-connection-section';
 import { StuartConnectionSection } from './stuart-connection-section';
 import { UberDirectConnectionSection } from './uber-direct-connection-section';
+import { JetGoConnectionSection } from './jet-go-connection-section';
 import { ImageUploader } from '@/components/products/image-uploader';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { KITCHEN_LANGUAGES } from '@/lib/kitchen-languages';
@@ -721,6 +722,9 @@ function GeneralTab({
 
       {/* Phase BI — per-location Uber Direct courier dispatch. */}
       {location?.id && <UberDirectConnectionSection locationId={location.id} />}
+
+      {/* Phase BJ — per-location JET Go (Just Eat DaaS) courier dispatch. */}
+      {location?.id && <JetGoConnectionSection locationId={location.id} />}
 
       {/* Phase AW — Stripe Connect + application fee live on the brand,
           not the location. A single kitchen running three virtual brands

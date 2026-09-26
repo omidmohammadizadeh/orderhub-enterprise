@@ -256,6 +256,10 @@ const PLATFORM_META: Record<
   UBER_EATS:   { slug: "ubereats",   bg: "#000000", svg: (p) => <UberEatsLogo {...p} /> },
   UBER_DIRECT: { slug: "uberdirect", bg: "#000000", svg: (p) => <UberDirectLogo {...p} /> },
   STUART:      { slug: "stuart",     bg: "#ff5a1a", svg: (p) => <StuartLogo {...p} /> },
+  // JET Go is Just Eat's courier network, so it falls back to the Just Eat mark
+  // — but it keeps its own slug, because an operator who uploads a JET Go tile
+  // should not have it replace Just Eat's on the orders board.
+  JET_GO:      { slug: "jetgo",      bg: "#ff8000", svg: (p) => <JustEatLogo {...p} /> },
   HUBRISE:     { slug: "hubrise",    bg: "#7c3aed", svg: (p) => <HubRiseLogo {...p} /> },
   POS:         { slug: "orderhub",   bg: "#0a0a0a", svg: (p) => <OrderHubLogo {...p} /> },
   DIRECT:      { slug: "orderhub",   bg: "#0a0a0a", svg: (p) => <OrderHubLogo {...p} /> },
@@ -289,6 +293,7 @@ const LABELS: Record<string, string> = {
   HUBRISE: "HubRise",
   STUART: "Stuart",
   UBER_DIRECT: "Uber Direct",
+  JET_GO: "JET Go",
   DIRECT_ONLINE: "Direct online ordering",
   CAREEM: "Careem",
   TALABAT: "talabat",

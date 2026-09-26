@@ -609,6 +609,11 @@ export type StuartConfig = $Result.DefaultSelection<Prisma.$StuartConfigPayload>
  */
 export type UberDirectConfig = $Result.DefaultSelection<Prisma.$UberDirectConfigPayload>
 /**
+ * Model JetGoConfig
+ * 
+ */
+export type JetGoConfig = $Result.DefaultSelection<Prisma.$JetGoConfigPayload>
+/**
  * Model Review
  * 
  */
@@ -2820,6 +2825,16 @@ export class PrismaClient<
   get uberDirectConfig(): Prisma.UberDirectConfigDelegate<ExtArgs>;
 
   /**
+   * `prisma.jetGoConfig`: Exposes CRUD operations for the **JetGoConfig** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more JetGoConfigs
+    * const jetGoConfigs = await prisma.jetGoConfig.findMany()
+    * ```
+    */
+  get jetGoConfig(): Prisma.JetGoConfigDelegate<ExtArgs>;
+
+  /**
    * `prisma.review`: Exposes CRUD operations for the **Review** model.
     * Example usage:
     * ```ts
@@ -3527,6 +3542,7 @@ export namespace Prisma {
     WalletTransaction: 'WalletTransaction',
     StuartConfig: 'StuartConfig',
     UberDirectConfig: 'UberDirectConfig',
+    JetGoConfig: 'JetGoConfig',
     Review: 'Review',
     VoiceCall: 'VoiceCall',
     GroupOrder: 'GroupOrder',
@@ -3557,7 +3573,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "referralProgram" | "referralCode" | "referral"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "referralProgram" | "referralCode" | "referral"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -11818,6 +11834,76 @@ export namespace Prisma {
           count: {
             args: Prisma.UberDirectConfigCountArgs<ExtArgs>
             result: $Utils.Optional<UberDirectConfigCountAggregateOutputType> | number
+          }
+        }
+      }
+      JetGoConfig: {
+        payload: Prisma.$JetGoConfigPayload<ExtArgs>
+        fields: Prisma.JetGoConfigFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.JetGoConfigFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JetGoConfigPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.JetGoConfigFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JetGoConfigPayload>
+          }
+          findFirst: {
+            args: Prisma.JetGoConfigFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JetGoConfigPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.JetGoConfigFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JetGoConfigPayload>
+          }
+          findMany: {
+            args: Prisma.JetGoConfigFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JetGoConfigPayload>[]
+          }
+          create: {
+            args: Prisma.JetGoConfigCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JetGoConfigPayload>
+          }
+          createMany: {
+            args: Prisma.JetGoConfigCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.JetGoConfigCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JetGoConfigPayload>[]
+          }
+          delete: {
+            args: Prisma.JetGoConfigDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JetGoConfigPayload>
+          }
+          update: {
+            args: Prisma.JetGoConfigUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JetGoConfigPayload>
+          }
+          deleteMany: {
+            args: Prisma.JetGoConfigDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.JetGoConfigUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.JetGoConfigUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JetGoConfigPayload>
+          }
+          aggregate: {
+            args: Prisma.JetGoConfigAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateJetGoConfig>
+          }
+          groupBy: {
+            args: Prisma.JetGoConfigGroupByArgs<ExtArgs>
+            result: $Utils.Optional<JetGoConfigGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.JetGoConfigCountArgs<ExtArgs>
+            result: $Utils.Optional<JetGoConfigCountAggregateOutputType> | number
           }
         }
       }
@@ -30433,6 +30519,7 @@ export namespace Prisma {
     dispatchPrinter?: boolean | Location$dispatchPrinterArgs<ExtArgs>
     stuartConfig?: boolean | Location$stuartConfigArgs<ExtArgs>
     uberDirectConfig?: boolean | Location$uberDirectConfigArgs<ExtArgs>
+    jetGoConfig?: boolean | Location$jetGoConfigArgs<ExtArgs>
     loyaltyCard?: boolean | Location$loyaltyCardArgs<ExtArgs>
     referralProgram?: boolean | Location$referralProgramArgs<ExtArgs>
     loyaltyRewards?: boolean | Location$loyaltyRewardsArgs<ExtArgs>
@@ -30603,6 +30690,7 @@ export namespace Prisma {
     dispatchPrinter?: boolean | Location$dispatchPrinterArgs<ExtArgs>
     stuartConfig?: boolean | Location$stuartConfigArgs<ExtArgs>
     uberDirectConfig?: boolean | Location$uberDirectConfigArgs<ExtArgs>
+    jetGoConfig?: boolean | Location$jetGoConfigArgs<ExtArgs>
     loyaltyCard?: boolean | Location$loyaltyCardArgs<ExtArgs>
     referralProgram?: boolean | Location$referralProgramArgs<ExtArgs>
     loyaltyRewards?: boolean | Location$loyaltyRewardsArgs<ExtArgs>
@@ -30645,6 +30733,7 @@ export namespace Prisma {
       dispatchPrinter: Prisma.$PrinterPayload<ExtArgs> | null
       stuartConfig: Prisma.$StuartConfigPayload<ExtArgs> | null
       uberDirectConfig: Prisma.$UberDirectConfigPayload<ExtArgs> | null
+      jetGoConfig: Prisma.$JetGoConfigPayload<ExtArgs> | null
       loyaltyCard: Prisma.$LoyaltyCardPayload<ExtArgs> | null
       referralProgram: Prisma.$ReferralProgramPayload<ExtArgs> | null
       loyaltyRewards: Prisma.$LoyaltyRewardPayload<ExtArgs>[]
@@ -31108,6 +31197,7 @@ export namespace Prisma {
     dispatchPrinter<T extends Location$dispatchPrinterArgs<ExtArgs> = {}>(args?: Subset<T, Location$dispatchPrinterArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     stuartConfig<T extends Location$stuartConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$stuartConfigArgs<ExtArgs>>): Prisma__StuartConfigClient<$Result.GetResult<Prisma.$StuartConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     uberDirectConfig<T extends Location$uberDirectConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$uberDirectConfigArgs<ExtArgs>>): Prisma__UberDirectConfigClient<$Result.GetResult<Prisma.$UberDirectConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    jetGoConfig<T extends Location$jetGoConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$jetGoConfigArgs<ExtArgs>>): Prisma__JetGoConfigClient<$Result.GetResult<Prisma.$JetGoConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     loyaltyCard<T extends Location$loyaltyCardArgs<ExtArgs> = {}>(args?: Subset<T, Location$loyaltyCardArgs<ExtArgs>>): Prisma__LoyaltyCardClient<$Result.GetResult<Prisma.$LoyaltyCardPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     referralProgram<T extends Location$referralProgramArgs<ExtArgs> = {}>(args?: Subset<T, Location$referralProgramArgs<ExtArgs>>): Prisma__ReferralProgramClient<$Result.GetResult<Prisma.$ReferralProgramPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     loyaltyRewards<T extends Location$loyaltyRewardsArgs<ExtArgs> = {}>(args?: Subset<T, Location$loyaltyRewardsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LoyaltyRewardPayload<ExtArgs>, T, "findMany"> | Null>
@@ -31998,6 +32088,21 @@ export namespace Prisma {
      */
     include?: UberDirectConfigInclude<ExtArgs> | null
     where?: UberDirectConfigWhereInput
+  }
+
+  /**
+   * Location.jetGoConfig
+   */
+  export type Location$jetGoConfigArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JetGoConfig
+     */
+    select?: JetGoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JetGoConfigInclude<ExtArgs> | null
+    where?: JetGoConfigWhereInput
   }
 
   /**
@@ -142989,6 +143094,1031 @@ export namespace Prisma {
 
 
   /**
+   * Model JetGoConfig
+   */
+
+  export type AggregateJetGoConfig = {
+    _count: JetGoConfigCountAggregateOutputType | null
+    _min: JetGoConfigMinAggregateOutputType | null
+    _max: JetGoConfigMaxAggregateOutputType | null
+  }
+
+  export type JetGoConfigMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    market: string | null
+    environment: string | null
+    collectPointId: string | null
+    collectPointName: string | null
+    webhookToken: string | null
+    webhookSecret: string | null
+    active: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type JetGoConfigMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    market: string | null
+    environment: string | null
+    collectPointId: string | null
+    collectPointName: string | null
+    webhookToken: string | null
+    webhookSecret: string | null
+    active: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type JetGoConfigCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    market: number
+    environment: number
+    credentials: number
+    collectPointId: number
+    collectPointName: number
+    webhookToken: number
+    webhookSecret: number
+    active: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type JetGoConfigMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    market?: true
+    environment?: true
+    collectPointId?: true
+    collectPointName?: true
+    webhookToken?: true
+    webhookSecret?: true
+    active?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type JetGoConfigMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    market?: true
+    environment?: true
+    collectPointId?: true
+    collectPointName?: true
+    webhookToken?: true
+    webhookSecret?: true
+    active?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type JetGoConfigCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    market?: true
+    environment?: true
+    credentials?: true
+    collectPointId?: true
+    collectPointName?: true
+    webhookToken?: true
+    webhookSecret?: true
+    active?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type JetGoConfigAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which JetGoConfig to aggregate.
+     */
+    where?: JetGoConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of JetGoConfigs to fetch.
+     */
+    orderBy?: JetGoConfigOrderByWithRelationInput | JetGoConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: JetGoConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` JetGoConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` JetGoConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned JetGoConfigs
+    **/
+    _count?: true | JetGoConfigCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: JetGoConfigMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: JetGoConfigMaxAggregateInputType
+  }
+
+  export type GetJetGoConfigAggregateType<T extends JetGoConfigAggregateArgs> = {
+        [P in keyof T & keyof AggregateJetGoConfig]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateJetGoConfig[P]>
+      : GetScalarType<T[P], AggregateJetGoConfig[P]>
+  }
+
+
+
+
+  export type JetGoConfigGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: JetGoConfigWhereInput
+    orderBy?: JetGoConfigOrderByWithAggregationInput | JetGoConfigOrderByWithAggregationInput[]
+    by: JetGoConfigScalarFieldEnum[] | JetGoConfigScalarFieldEnum
+    having?: JetGoConfigScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: JetGoConfigCountAggregateInputType | true
+    _min?: JetGoConfigMinAggregateInputType
+    _max?: JetGoConfigMaxAggregateInputType
+  }
+
+  export type JetGoConfigGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string
+    market: string
+    environment: string
+    credentials: JsonValue
+    collectPointId: string | null
+    collectPointName: string | null
+    webhookToken: string
+    webhookSecret: string
+    active: boolean
+    createdAt: Date
+    updatedAt: Date
+    _count: JetGoConfigCountAggregateOutputType | null
+    _min: JetGoConfigMinAggregateOutputType | null
+    _max: JetGoConfigMaxAggregateOutputType | null
+  }
+
+  type GetJetGoConfigGroupByPayload<T extends JetGoConfigGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<JetGoConfigGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof JetGoConfigGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], JetGoConfigGroupByOutputType[P]>
+            : GetScalarType<T[P], JetGoConfigGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type JetGoConfigSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    market?: boolean
+    environment?: boolean
+    credentials?: boolean
+    collectPointId?: boolean
+    collectPointName?: boolean
+    webhookToken?: boolean
+    webhookSecret?: boolean
+    active?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["jetGoConfig"]>
+
+  export type JetGoConfigSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    market?: boolean
+    environment?: boolean
+    credentials?: boolean
+    collectPointId?: boolean
+    collectPointName?: boolean
+    webhookToken?: boolean
+    webhookSecret?: boolean
+    active?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["jetGoConfig"]>
+
+  export type JetGoConfigSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    market?: boolean
+    environment?: boolean
+    credentials?: boolean
+    collectPointId?: boolean
+    collectPointName?: boolean
+    webhookToken?: boolean
+    webhookSecret?: boolean
+    active?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type JetGoConfigInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+  export type JetGoConfigIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+
+  export type $JetGoConfigPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "JetGoConfig"
+    objects: {
+      location: Prisma.$LocationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string
+      market: string
+      environment: string
+      credentials: Prisma.JsonValue
+      collectPointId: string | null
+      collectPointName: string | null
+      webhookToken: string
+      webhookSecret: string
+      active: boolean
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["jetGoConfig"]>
+    composites: {}
+  }
+
+  type JetGoConfigGetPayload<S extends boolean | null | undefined | JetGoConfigDefaultArgs> = $Result.GetResult<Prisma.$JetGoConfigPayload, S>
+
+  type JetGoConfigCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<JetGoConfigFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: JetGoConfigCountAggregateInputType | true
+    }
+
+  export interface JetGoConfigDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['JetGoConfig'], meta: { name: 'JetGoConfig' } }
+    /**
+     * Find zero or one JetGoConfig that matches the filter.
+     * @param {JetGoConfigFindUniqueArgs} args - Arguments to find a JetGoConfig
+     * @example
+     * // Get one JetGoConfig
+     * const jetGoConfig = await prisma.jetGoConfig.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends JetGoConfigFindUniqueArgs>(args: SelectSubset<T, JetGoConfigFindUniqueArgs<ExtArgs>>): Prisma__JetGoConfigClient<$Result.GetResult<Prisma.$JetGoConfigPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one JetGoConfig that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {JetGoConfigFindUniqueOrThrowArgs} args - Arguments to find a JetGoConfig
+     * @example
+     * // Get one JetGoConfig
+     * const jetGoConfig = await prisma.jetGoConfig.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends JetGoConfigFindUniqueOrThrowArgs>(args: SelectSubset<T, JetGoConfigFindUniqueOrThrowArgs<ExtArgs>>): Prisma__JetGoConfigClient<$Result.GetResult<Prisma.$JetGoConfigPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first JetGoConfig that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {JetGoConfigFindFirstArgs} args - Arguments to find a JetGoConfig
+     * @example
+     * // Get one JetGoConfig
+     * const jetGoConfig = await prisma.jetGoConfig.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends JetGoConfigFindFirstArgs>(args?: SelectSubset<T, JetGoConfigFindFirstArgs<ExtArgs>>): Prisma__JetGoConfigClient<$Result.GetResult<Prisma.$JetGoConfigPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first JetGoConfig that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {JetGoConfigFindFirstOrThrowArgs} args - Arguments to find a JetGoConfig
+     * @example
+     * // Get one JetGoConfig
+     * const jetGoConfig = await prisma.jetGoConfig.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends JetGoConfigFindFirstOrThrowArgs>(args?: SelectSubset<T, JetGoConfigFindFirstOrThrowArgs<ExtArgs>>): Prisma__JetGoConfigClient<$Result.GetResult<Prisma.$JetGoConfigPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more JetGoConfigs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {JetGoConfigFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all JetGoConfigs
+     * const jetGoConfigs = await prisma.jetGoConfig.findMany()
+     * 
+     * // Get first 10 JetGoConfigs
+     * const jetGoConfigs = await prisma.jetGoConfig.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const jetGoConfigWithIdOnly = await prisma.jetGoConfig.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends JetGoConfigFindManyArgs>(args?: SelectSubset<T, JetGoConfigFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$JetGoConfigPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a JetGoConfig.
+     * @param {JetGoConfigCreateArgs} args - Arguments to create a JetGoConfig.
+     * @example
+     * // Create one JetGoConfig
+     * const JetGoConfig = await prisma.jetGoConfig.create({
+     *   data: {
+     *     // ... data to create a JetGoConfig
+     *   }
+     * })
+     * 
+     */
+    create<T extends JetGoConfigCreateArgs>(args: SelectSubset<T, JetGoConfigCreateArgs<ExtArgs>>): Prisma__JetGoConfigClient<$Result.GetResult<Prisma.$JetGoConfigPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many JetGoConfigs.
+     * @param {JetGoConfigCreateManyArgs} args - Arguments to create many JetGoConfigs.
+     * @example
+     * // Create many JetGoConfigs
+     * const jetGoConfig = await prisma.jetGoConfig.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends JetGoConfigCreateManyArgs>(args?: SelectSubset<T, JetGoConfigCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many JetGoConfigs and returns the data saved in the database.
+     * @param {JetGoConfigCreateManyAndReturnArgs} args - Arguments to create many JetGoConfigs.
+     * @example
+     * // Create many JetGoConfigs
+     * const jetGoConfig = await prisma.jetGoConfig.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many JetGoConfigs and only return the `id`
+     * const jetGoConfigWithIdOnly = await prisma.jetGoConfig.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends JetGoConfigCreateManyAndReturnArgs>(args?: SelectSubset<T, JetGoConfigCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$JetGoConfigPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a JetGoConfig.
+     * @param {JetGoConfigDeleteArgs} args - Arguments to delete one JetGoConfig.
+     * @example
+     * // Delete one JetGoConfig
+     * const JetGoConfig = await prisma.jetGoConfig.delete({
+     *   where: {
+     *     // ... filter to delete one JetGoConfig
+     *   }
+     * })
+     * 
+     */
+    delete<T extends JetGoConfigDeleteArgs>(args: SelectSubset<T, JetGoConfigDeleteArgs<ExtArgs>>): Prisma__JetGoConfigClient<$Result.GetResult<Prisma.$JetGoConfigPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one JetGoConfig.
+     * @param {JetGoConfigUpdateArgs} args - Arguments to update one JetGoConfig.
+     * @example
+     * // Update one JetGoConfig
+     * const jetGoConfig = await prisma.jetGoConfig.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends JetGoConfigUpdateArgs>(args: SelectSubset<T, JetGoConfigUpdateArgs<ExtArgs>>): Prisma__JetGoConfigClient<$Result.GetResult<Prisma.$JetGoConfigPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more JetGoConfigs.
+     * @param {JetGoConfigDeleteManyArgs} args - Arguments to filter JetGoConfigs to delete.
+     * @example
+     * // Delete a few JetGoConfigs
+     * const { count } = await prisma.jetGoConfig.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends JetGoConfigDeleteManyArgs>(args?: SelectSubset<T, JetGoConfigDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more JetGoConfigs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {JetGoConfigUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many JetGoConfigs
+     * const jetGoConfig = await prisma.jetGoConfig.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends JetGoConfigUpdateManyArgs>(args: SelectSubset<T, JetGoConfigUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one JetGoConfig.
+     * @param {JetGoConfigUpsertArgs} args - Arguments to update or create a JetGoConfig.
+     * @example
+     * // Update or create a JetGoConfig
+     * const jetGoConfig = await prisma.jetGoConfig.upsert({
+     *   create: {
+     *     // ... data to create a JetGoConfig
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the JetGoConfig we want to update
+     *   }
+     * })
+     */
+    upsert<T extends JetGoConfigUpsertArgs>(args: SelectSubset<T, JetGoConfigUpsertArgs<ExtArgs>>): Prisma__JetGoConfigClient<$Result.GetResult<Prisma.$JetGoConfigPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of JetGoConfigs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {JetGoConfigCountArgs} args - Arguments to filter JetGoConfigs to count.
+     * @example
+     * // Count the number of JetGoConfigs
+     * const count = await prisma.jetGoConfig.count({
+     *   where: {
+     *     // ... the filter for the JetGoConfigs we want to count
+     *   }
+     * })
+    **/
+    count<T extends JetGoConfigCountArgs>(
+      args?: Subset<T, JetGoConfigCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], JetGoConfigCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a JetGoConfig.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {JetGoConfigAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends JetGoConfigAggregateArgs>(args: Subset<T, JetGoConfigAggregateArgs>): Prisma.PrismaPromise<GetJetGoConfigAggregateType<T>>
+
+    /**
+     * Group by JetGoConfig.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {JetGoConfigGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends JetGoConfigGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: JetGoConfigGroupByArgs['orderBy'] }
+        : { orderBy?: JetGoConfigGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, JetGoConfigGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetJetGoConfigGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the JetGoConfig model
+   */
+  readonly fields: JetGoConfigFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for JetGoConfig.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__JetGoConfigClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the JetGoConfig model
+   */ 
+  interface JetGoConfigFieldRefs {
+    readonly id: FieldRef<"JetGoConfig", 'String'>
+    readonly tenantId: FieldRef<"JetGoConfig", 'String'>
+    readonly locationId: FieldRef<"JetGoConfig", 'String'>
+    readonly market: FieldRef<"JetGoConfig", 'String'>
+    readonly environment: FieldRef<"JetGoConfig", 'String'>
+    readonly credentials: FieldRef<"JetGoConfig", 'Json'>
+    readonly collectPointId: FieldRef<"JetGoConfig", 'String'>
+    readonly collectPointName: FieldRef<"JetGoConfig", 'String'>
+    readonly webhookToken: FieldRef<"JetGoConfig", 'String'>
+    readonly webhookSecret: FieldRef<"JetGoConfig", 'String'>
+    readonly active: FieldRef<"JetGoConfig", 'Boolean'>
+    readonly createdAt: FieldRef<"JetGoConfig", 'DateTime'>
+    readonly updatedAt: FieldRef<"JetGoConfig", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * JetGoConfig findUnique
+   */
+  export type JetGoConfigFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JetGoConfig
+     */
+    select?: JetGoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JetGoConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which JetGoConfig to fetch.
+     */
+    where: JetGoConfigWhereUniqueInput
+  }
+
+  /**
+   * JetGoConfig findUniqueOrThrow
+   */
+  export type JetGoConfigFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JetGoConfig
+     */
+    select?: JetGoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JetGoConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which JetGoConfig to fetch.
+     */
+    where: JetGoConfigWhereUniqueInput
+  }
+
+  /**
+   * JetGoConfig findFirst
+   */
+  export type JetGoConfigFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JetGoConfig
+     */
+    select?: JetGoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JetGoConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which JetGoConfig to fetch.
+     */
+    where?: JetGoConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of JetGoConfigs to fetch.
+     */
+    orderBy?: JetGoConfigOrderByWithRelationInput | JetGoConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for JetGoConfigs.
+     */
+    cursor?: JetGoConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` JetGoConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` JetGoConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of JetGoConfigs.
+     */
+    distinct?: JetGoConfigScalarFieldEnum | JetGoConfigScalarFieldEnum[]
+  }
+
+  /**
+   * JetGoConfig findFirstOrThrow
+   */
+  export type JetGoConfigFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JetGoConfig
+     */
+    select?: JetGoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JetGoConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which JetGoConfig to fetch.
+     */
+    where?: JetGoConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of JetGoConfigs to fetch.
+     */
+    orderBy?: JetGoConfigOrderByWithRelationInput | JetGoConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for JetGoConfigs.
+     */
+    cursor?: JetGoConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` JetGoConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` JetGoConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of JetGoConfigs.
+     */
+    distinct?: JetGoConfigScalarFieldEnum | JetGoConfigScalarFieldEnum[]
+  }
+
+  /**
+   * JetGoConfig findMany
+   */
+  export type JetGoConfigFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JetGoConfig
+     */
+    select?: JetGoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JetGoConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which JetGoConfigs to fetch.
+     */
+    where?: JetGoConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of JetGoConfigs to fetch.
+     */
+    orderBy?: JetGoConfigOrderByWithRelationInput | JetGoConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing JetGoConfigs.
+     */
+    cursor?: JetGoConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` JetGoConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` JetGoConfigs.
+     */
+    skip?: number
+    distinct?: JetGoConfigScalarFieldEnum | JetGoConfigScalarFieldEnum[]
+  }
+
+  /**
+   * JetGoConfig create
+   */
+  export type JetGoConfigCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JetGoConfig
+     */
+    select?: JetGoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JetGoConfigInclude<ExtArgs> | null
+    /**
+     * The data needed to create a JetGoConfig.
+     */
+    data: XOR<JetGoConfigCreateInput, JetGoConfigUncheckedCreateInput>
+  }
+
+  /**
+   * JetGoConfig createMany
+   */
+  export type JetGoConfigCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many JetGoConfigs.
+     */
+    data: JetGoConfigCreateManyInput | JetGoConfigCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * JetGoConfig createManyAndReturn
+   */
+  export type JetGoConfigCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JetGoConfig
+     */
+    select?: JetGoConfigSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many JetGoConfigs.
+     */
+    data: JetGoConfigCreateManyInput | JetGoConfigCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JetGoConfigIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * JetGoConfig update
+   */
+  export type JetGoConfigUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JetGoConfig
+     */
+    select?: JetGoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JetGoConfigInclude<ExtArgs> | null
+    /**
+     * The data needed to update a JetGoConfig.
+     */
+    data: XOR<JetGoConfigUpdateInput, JetGoConfigUncheckedUpdateInput>
+    /**
+     * Choose, which JetGoConfig to update.
+     */
+    where: JetGoConfigWhereUniqueInput
+  }
+
+  /**
+   * JetGoConfig updateMany
+   */
+  export type JetGoConfigUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update JetGoConfigs.
+     */
+    data: XOR<JetGoConfigUpdateManyMutationInput, JetGoConfigUncheckedUpdateManyInput>
+    /**
+     * Filter which JetGoConfigs to update
+     */
+    where?: JetGoConfigWhereInput
+  }
+
+  /**
+   * JetGoConfig upsert
+   */
+  export type JetGoConfigUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JetGoConfig
+     */
+    select?: JetGoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JetGoConfigInclude<ExtArgs> | null
+    /**
+     * The filter to search for the JetGoConfig to update in case it exists.
+     */
+    where: JetGoConfigWhereUniqueInput
+    /**
+     * In case the JetGoConfig found by the `where` argument doesn't exist, create a new JetGoConfig with this data.
+     */
+    create: XOR<JetGoConfigCreateInput, JetGoConfigUncheckedCreateInput>
+    /**
+     * In case the JetGoConfig was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<JetGoConfigUpdateInput, JetGoConfigUncheckedUpdateInput>
+  }
+
+  /**
+   * JetGoConfig delete
+   */
+  export type JetGoConfigDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JetGoConfig
+     */
+    select?: JetGoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JetGoConfigInclude<ExtArgs> | null
+    /**
+     * Filter which JetGoConfig to delete.
+     */
+    where: JetGoConfigWhereUniqueInput
+  }
+
+  /**
+   * JetGoConfig deleteMany
+   */
+  export type JetGoConfigDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which JetGoConfigs to delete
+     */
+    where?: JetGoConfigWhereInput
+  }
+
+  /**
+   * JetGoConfig without action
+   */
+  export type JetGoConfigDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JetGoConfig
+     */
+    select?: JetGoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JetGoConfigInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Model Review
    */
 
@@ -161487,6 +162617,25 @@ export namespace Prisma {
   export type UberDirectConfigScalarFieldEnum = (typeof UberDirectConfigScalarFieldEnum)[keyof typeof UberDirectConfigScalarFieldEnum]
 
 
+  export const JetGoConfigScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    market: 'market',
+    environment: 'environment',
+    credentials: 'credentials',
+    collectPointId: 'collectPointId',
+    collectPointName: 'collectPointName',
+    webhookToken: 'webhookToken',
+    webhookSecret: 'webhookSecret',
+    active: 'active',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type JetGoConfigScalarFieldEnum = (typeof JetGoConfigScalarFieldEnum)[keyof typeof JetGoConfigScalarFieldEnum]
+
+
   export const ReviewScalarFieldEnum: {
     id: 'id',
     tenantId: 'tenantId',
@@ -163405,6 +164554,21 @@ export namespace Prisma {
   };
 
   export type UberDirectConfigOrderByRelevanceFieldEnum = (typeof UberDirectConfigOrderByRelevanceFieldEnum)[keyof typeof UberDirectConfigOrderByRelevanceFieldEnum]
+
+
+  export const JetGoConfigOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    market: 'market',
+    environment: 'environment',
+    collectPointId: 'collectPointId',
+    collectPointName: 'collectPointName',
+    webhookToken: 'webhookToken',
+    webhookSecret: 'webhookSecret'
+  };
+
+  export type JetGoConfigOrderByRelevanceFieldEnum = (typeof JetGoConfigOrderByRelevanceFieldEnum)[keyof typeof JetGoConfigOrderByRelevanceFieldEnum]
 
 
   export const ReviewOrderByRelevanceFieldEnum: {
@@ -165918,6 +167082,7 @@ export namespace Prisma {
     dispatchPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
     stuartConfig?: XOR<StuartConfigNullableRelationFilter, StuartConfigWhereInput> | null
     uberDirectConfig?: XOR<UberDirectConfigNullableRelationFilter, UberDirectConfigWhereInput> | null
+    jetGoConfig?: XOR<JetGoConfigNullableRelationFilter, JetGoConfigWhereInput> | null
     loyaltyCard?: XOR<LoyaltyCardNullableRelationFilter, LoyaltyCardWhereInput> | null
     referralProgram?: XOR<ReferralProgramNullableRelationFilter, ReferralProgramWhereInput> | null
     loyaltyRewards?: LoyaltyRewardListRelationFilter
@@ -166014,6 +167179,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterOrderByWithRelationInput
     stuartConfig?: StuartConfigOrderByWithRelationInput
     uberDirectConfig?: UberDirectConfigOrderByWithRelationInput
+    jetGoConfig?: JetGoConfigOrderByWithRelationInput
     loyaltyCard?: LoyaltyCardOrderByWithRelationInput
     referralProgram?: ReferralProgramOrderByWithRelationInput
     loyaltyRewards?: LoyaltyRewardOrderByRelationAggregateInput
@@ -166114,6 +167280,7 @@ export namespace Prisma {
     dispatchPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
     stuartConfig?: XOR<StuartConfigNullableRelationFilter, StuartConfigWhereInput> | null
     uberDirectConfig?: XOR<UberDirectConfigNullableRelationFilter, UberDirectConfigWhereInput> | null
+    jetGoConfig?: XOR<JetGoConfigNullableRelationFilter, JetGoConfigWhereInput> | null
     loyaltyCard?: XOR<LoyaltyCardNullableRelationFilter, LoyaltyCardWhereInput> | null
     referralProgram?: XOR<ReferralProgramNullableRelationFilter, ReferralProgramWhereInput> | null
     loyaltyRewards?: LoyaltyRewardListRelationFilter
@@ -176939,6 +178106,102 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"UberDirectConfig"> | Date | string
   }
 
+  export type JetGoConfigWhereInput = {
+    AND?: JetGoConfigWhereInput | JetGoConfigWhereInput[]
+    OR?: JetGoConfigWhereInput[]
+    NOT?: JetGoConfigWhereInput | JetGoConfigWhereInput[]
+    id?: StringFilter<"JetGoConfig"> | string
+    tenantId?: StringFilter<"JetGoConfig"> | string
+    locationId?: StringFilter<"JetGoConfig"> | string
+    market?: StringFilter<"JetGoConfig"> | string
+    environment?: StringFilter<"JetGoConfig"> | string
+    credentials?: JsonFilter<"JetGoConfig">
+    collectPointId?: StringNullableFilter<"JetGoConfig"> | string | null
+    collectPointName?: StringNullableFilter<"JetGoConfig"> | string | null
+    webhookToken?: StringFilter<"JetGoConfig"> | string
+    webhookSecret?: StringFilter<"JetGoConfig"> | string
+    active?: BoolFilter<"JetGoConfig"> | boolean
+    createdAt?: DateTimeFilter<"JetGoConfig"> | Date | string
+    updatedAt?: DateTimeFilter<"JetGoConfig"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }
+
+  export type JetGoConfigOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    market?: SortOrder
+    environment?: SortOrder
+    credentials?: SortOrder
+    collectPointId?: SortOrderInput | SortOrder
+    collectPointName?: SortOrderInput | SortOrder
+    webhookToken?: SortOrder
+    webhookSecret?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    location?: LocationOrderByWithRelationInput
+    _relevance?: JetGoConfigOrderByRelevanceInput
+  }
+
+  export type JetGoConfigWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    locationId?: string
+    AND?: JetGoConfigWhereInput | JetGoConfigWhereInput[]
+    OR?: JetGoConfigWhereInput[]
+    NOT?: JetGoConfigWhereInput | JetGoConfigWhereInput[]
+    tenantId?: StringFilter<"JetGoConfig"> | string
+    market?: StringFilter<"JetGoConfig"> | string
+    environment?: StringFilter<"JetGoConfig"> | string
+    credentials?: JsonFilter<"JetGoConfig">
+    collectPointId?: StringNullableFilter<"JetGoConfig"> | string | null
+    collectPointName?: StringNullableFilter<"JetGoConfig"> | string | null
+    webhookToken?: StringFilter<"JetGoConfig"> | string
+    webhookSecret?: StringFilter<"JetGoConfig"> | string
+    active?: BoolFilter<"JetGoConfig"> | boolean
+    createdAt?: DateTimeFilter<"JetGoConfig"> | Date | string
+    updatedAt?: DateTimeFilter<"JetGoConfig"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }, "id" | "locationId">
+
+  export type JetGoConfigOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    market?: SortOrder
+    environment?: SortOrder
+    credentials?: SortOrder
+    collectPointId?: SortOrderInput | SortOrder
+    collectPointName?: SortOrderInput | SortOrder
+    webhookToken?: SortOrder
+    webhookSecret?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: JetGoConfigCountOrderByAggregateInput
+    _max?: JetGoConfigMaxOrderByAggregateInput
+    _min?: JetGoConfigMinOrderByAggregateInput
+  }
+
+  export type JetGoConfigScalarWhereWithAggregatesInput = {
+    AND?: JetGoConfigScalarWhereWithAggregatesInput | JetGoConfigScalarWhereWithAggregatesInput[]
+    OR?: JetGoConfigScalarWhereWithAggregatesInput[]
+    NOT?: JetGoConfigScalarWhereWithAggregatesInput | JetGoConfigScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"JetGoConfig"> | string
+    tenantId?: StringWithAggregatesFilter<"JetGoConfig"> | string
+    locationId?: StringWithAggregatesFilter<"JetGoConfig"> | string
+    market?: StringWithAggregatesFilter<"JetGoConfig"> | string
+    environment?: StringWithAggregatesFilter<"JetGoConfig"> | string
+    credentials?: JsonWithAggregatesFilter<"JetGoConfig">
+    collectPointId?: StringNullableWithAggregatesFilter<"JetGoConfig"> | string | null
+    collectPointName?: StringNullableWithAggregatesFilter<"JetGoConfig"> | string | null
+    webhookToken?: StringWithAggregatesFilter<"JetGoConfig"> | string
+    webhookSecret?: StringWithAggregatesFilter<"JetGoConfig"> | string
+    active?: BoolWithAggregatesFilter<"JetGoConfig"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"JetGoConfig"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"JetGoConfig"> | Date | string
+  }
+
   export type ReviewWhereInput = {
     AND?: ReviewWhereInput | ReviewWhereInput[]
     OR?: ReviewWhereInput[]
@@ -180198,6 +181461,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -180290,6 +181554,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -180382,6 +181647,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -180474,6 +181740,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -192892,6 +194159,117 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type JetGoConfigCreateInput = {
+    id?: string
+    tenantId: string
+    market?: string
+    environment?: string
+    credentials: JsonNullValueInput | InputJsonValue
+    collectPointId?: string | null
+    collectPointName?: string | null
+    webhookToken: string
+    webhookSecret?: string
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutJetGoConfigInput
+  }
+
+  export type JetGoConfigUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    market?: string
+    environment?: string
+    credentials: JsonNullValueInput | InputJsonValue
+    collectPointId?: string | null
+    collectPointName?: string | null
+    webhookToken: string
+    webhookSecret?: string
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type JetGoConfigUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    market?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    collectPointId?: NullableStringFieldUpdateOperationsInput | string | null
+    collectPointName?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookToken?: StringFieldUpdateOperationsInput | string
+    webhookSecret?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutJetGoConfigNestedInput
+  }
+
+  export type JetGoConfigUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    market?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    collectPointId?: NullableStringFieldUpdateOperationsInput | string | null
+    collectPointName?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookToken?: StringFieldUpdateOperationsInput | string
+    webhookSecret?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type JetGoConfigCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    market?: string
+    environment?: string
+    credentials: JsonNullValueInput | InputJsonValue
+    collectPointId?: string | null
+    collectPointName?: string | null
+    webhookToken: string
+    webhookSecret?: string
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type JetGoConfigUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    market?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    collectPointId?: NullableStringFieldUpdateOperationsInput | string | null
+    collectPointName?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookToken?: StringFieldUpdateOperationsInput | string
+    webhookSecret?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type JetGoConfigUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    market?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    collectPointId?: NullableStringFieldUpdateOperationsInput | string | null
+    collectPointName?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookToken?: StringFieldUpdateOperationsInput | string
+    webhookSecret?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type ReviewCreateInput = {
     id?: string
     tenantId: string
@@ -196327,6 +197705,11 @@ export namespace Prisma {
   export type UberDirectConfigNullableRelationFilter = {
     is?: UberDirectConfigWhereInput | null
     isNot?: UberDirectConfigWhereInput | null
+  }
+
+  export type JetGoConfigNullableRelationFilter = {
+    is?: JetGoConfigWhereInput | null
+    isNot?: JetGoConfigWhereInput | null
   }
 
   export type LoyaltyCardNullableRelationFilter = {
@@ -204551,6 +205934,58 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type JetGoConfigOrderByRelevanceInput = {
+    fields: JetGoConfigOrderByRelevanceFieldEnum | JetGoConfigOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type JetGoConfigCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    market?: SortOrder
+    environment?: SortOrder
+    credentials?: SortOrder
+    collectPointId?: SortOrder
+    collectPointName?: SortOrder
+    webhookToken?: SortOrder
+    webhookSecret?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type JetGoConfigMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    market?: SortOrder
+    environment?: SortOrder
+    collectPointId?: SortOrder
+    collectPointName?: SortOrder
+    webhookToken?: SortOrder
+    webhookSecret?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type JetGoConfigMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    market?: SortOrder
+    environment?: SortOrder
+    collectPointId?: SortOrder
+    collectPointName?: SortOrder
+    webhookToken?: SortOrder
+    webhookSecret?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
   export type ReviewOrderByRelevanceInput = {
     fields: ReviewOrderByRelevanceFieldEnum | ReviewOrderByRelevanceFieldEnum[]
     sort: SortOrder
@@ -208148,6 +209583,12 @@ export namespace Prisma {
     connect?: UberDirectConfigWhereUniqueInput
   }
 
+  export type JetGoConfigCreateNestedOneWithoutLocationInput = {
+    create?: XOR<JetGoConfigCreateWithoutLocationInput, JetGoConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: JetGoConfigCreateOrConnectWithoutLocationInput
+    connect?: JetGoConfigWhereUniqueInput
+  }
+
   export type LoyaltyCardCreateNestedOneWithoutLocationInput = {
     create?: XOR<LoyaltyCardCreateWithoutLocationInput, LoyaltyCardUncheckedCreateWithoutLocationInput>
     connectOrCreate?: LoyaltyCardCreateOrConnectWithoutLocationInput
@@ -208321,6 +209762,12 @@ export namespace Prisma {
     create?: XOR<UberDirectConfigCreateWithoutLocationInput, UberDirectConfigUncheckedCreateWithoutLocationInput>
     connectOrCreate?: UberDirectConfigCreateOrConnectWithoutLocationInput
     connect?: UberDirectConfigWhereUniqueInput
+  }
+
+  export type JetGoConfigUncheckedCreateNestedOneWithoutLocationInput = {
+    create?: XOR<JetGoConfigCreateWithoutLocationInput, JetGoConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: JetGoConfigCreateOrConnectWithoutLocationInput
+    connect?: JetGoConfigWhereUniqueInput
   }
 
   export type LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput = {
@@ -208702,6 +210149,16 @@ export namespace Prisma {
     update?: XOR<XOR<UberDirectConfigUpdateToOneWithWhereWithoutLocationInput, UberDirectConfigUpdateWithoutLocationInput>, UberDirectConfigUncheckedUpdateWithoutLocationInput>
   }
 
+  export type JetGoConfigUpdateOneWithoutLocationNestedInput = {
+    create?: XOR<JetGoConfigCreateWithoutLocationInput, JetGoConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: JetGoConfigCreateOrConnectWithoutLocationInput
+    upsert?: JetGoConfigUpsertWithoutLocationInput
+    disconnect?: JetGoConfigWhereInput | boolean
+    delete?: JetGoConfigWhereInput | boolean
+    connect?: JetGoConfigWhereUniqueInput
+    update?: XOR<XOR<JetGoConfigUpdateToOneWithWhereWithoutLocationInput, JetGoConfigUpdateWithoutLocationInput>, JetGoConfigUncheckedUpdateWithoutLocationInput>
+  }
+
   export type LoyaltyCardUpdateOneWithoutLocationNestedInput = {
     create?: XOR<LoyaltyCardCreateWithoutLocationInput, LoyaltyCardUncheckedCreateWithoutLocationInput>
     connectOrCreate?: LoyaltyCardCreateOrConnectWithoutLocationInput
@@ -209036,6 +210493,16 @@ export namespace Prisma {
     delete?: UberDirectConfigWhereInput | boolean
     connect?: UberDirectConfigWhereUniqueInput
     update?: XOR<XOR<UberDirectConfigUpdateToOneWithWhereWithoutLocationInput, UberDirectConfigUpdateWithoutLocationInput>, UberDirectConfigUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput = {
+    create?: XOR<JetGoConfigCreateWithoutLocationInput, JetGoConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: JetGoConfigCreateOrConnectWithoutLocationInput
+    upsert?: JetGoConfigUpsertWithoutLocationInput
+    disconnect?: JetGoConfigWhereInput | boolean
+    delete?: JetGoConfigWhereInput | boolean
+    connect?: JetGoConfigWhereUniqueInput
+    update?: XOR<XOR<JetGoConfigUpdateToOneWithWhereWithoutLocationInput, JetGoConfigUpdateWithoutLocationInput>, JetGoConfigUncheckedUpdateWithoutLocationInput>
   }
 
   export type LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput = {
@@ -214001,6 +215468,20 @@ export namespace Prisma {
     upsert?: LocationUpsertWithoutUberDirectConfigInput
     connect?: LocationWhereUniqueInput
     update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutUberDirectConfigInput, LocationUpdateWithoutUberDirectConfigInput>, LocationUncheckedUpdateWithoutUberDirectConfigInput>
+  }
+
+  export type LocationCreateNestedOneWithoutJetGoConfigInput = {
+    create?: XOR<LocationCreateWithoutJetGoConfigInput, LocationUncheckedCreateWithoutJetGoConfigInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutJetGoConfigInput
+    connect?: LocationWhereUniqueInput
+  }
+
+  export type LocationUpdateOneRequiredWithoutJetGoConfigNestedInput = {
+    create?: XOR<LocationCreateWithoutJetGoConfigInput, LocationUncheckedCreateWithoutJetGoConfigInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutJetGoConfigInput
+    upsert?: LocationUpsertWithoutJetGoConfigInput
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutJetGoConfigInput, LocationUpdateWithoutJetGoConfigInput>, LocationUncheckedUpdateWithoutJetGoConfigInput>
   }
 
   export type CustomerPushOrderCreateNestedManyWithoutSubscriptionInput = {
@@ -219047,6 +220528,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -219138,6 +220620,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -219310,6 +220793,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -219401,6 +220885,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -221545,6 +223030,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -221636,6 +223122,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -224513,6 +226000,41 @@ export namespace Prisma {
     create: XOR<UberDirectConfigCreateWithoutLocationInput, UberDirectConfigUncheckedCreateWithoutLocationInput>
   }
 
+  export type JetGoConfigCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    market?: string
+    environment?: string
+    credentials: JsonNullValueInput | InputJsonValue
+    collectPointId?: string | null
+    collectPointName?: string | null
+    webhookToken: string
+    webhookSecret?: string
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type JetGoConfigUncheckedCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    market?: string
+    environment?: string
+    credentials: JsonNullValueInput | InputJsonValue
+    collectPointId?: string | null
+    collectPointName?: string | null
+    webhookToken: string
+    webhookSecret?: string
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type JetGoConfigCreateOrConnectWithoutLocationInput = {
+    where: JetGoConfigWhereUniqueInput
+    create: XOR<JetGoConfigCreateWithoutLocationInput, JetGoConfigUncheckedCreateWithoutLocationInput>
+  }
+
   export type LoyaltyCardCreateWithoutLocationInput = {
     id?: string
     tenantId: string
@@ -225663,6 +227185,47 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type JetGoConfigUpsertWithoutLocationInput = {
+    update: XOR<JetGoConfigUpdateWithoutLocationInput, JetGoConfigUncheckedUpdateWithoutLocationInput>
+    create: XOR<JetGoConfigCreateWithoutLocationInput, JetGoConfigUncheckedCreateWithoutLocationInput>
+    where?: JetGoConfigWhereInput
+  }
+
+  export type JetGoConfigUpdateToOneWithWhereWithoutLocationInput = {
+    where?: JetGoConfigWhereInput
+    data: XOR<JetGoConfigUpdateWithoutLocationInput, JetGoConfigUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type JetGoConfigUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    market?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    collectPointId?: NullableStringFieldUpdateOperationsInput | string | null
+    collectPointName?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookToken?: StringFieldUpdateOperationsInput | string
+    webhookSecret?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type JetGoConfigUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    market?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    collectPointId?: NullableStringFieldUpdateOperationsInput | string | null
+    collectPointName?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookToken?: StringFieldUpdateOperationsInput | string
+    webhookSecret?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type LoyaltyCardUpsertWithoutLocationInput = {
     update: XOR<LoyaltyCardUpdateWithoutLocationInput, LoyaltyCardUncheckedUpdateWithoutLocationInput>
     create: XOR<LoyaltyCardCreateWithoutLocationInput, LoyaltyCardUncheckedCreateWithoutLocationInput>
@@ -225956,6 +227519,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -226047,6 +227611,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -226269,6 +227834,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -226360,6 +227926,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -226451,6 +228018,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -226542,6 +228110,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -226649,6 +228218,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -226740,6 +228310,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -227397,6 +228968,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -227488,6 +229060,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -227686,6 +229259,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -227777,6 +229351,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -228916,6 +230491,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -229007,6 +230583,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -229114,6 +230691,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -229205,6 +230783,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -229405,6 +230984,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -229496,6 +231076,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -229718,6 +231299,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -229809,6 +231391,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -233223,6 +234806,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -233314,6 +234898,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -233530,6 +235115,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -233621,6 +235207,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -235108,6 +236695,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -235199,6 +236787,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -235415,6 +237004,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -235506,6 +237096,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -235712,6 +237303,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -235803,6 +237395,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -235910,6 +237503,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -236001,6 +237595,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -236161,6 +237756,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -236252,6 +237848,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -236945,6 +238542,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -237036,6 +238634,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -238340,6 +239939,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -238431,6 +240031,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -238566,6 +240167,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -238657,6 +240259,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -238764,6 +240367,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -238855,6 +240459,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -239071,6 +240676,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -239162,6 +240768,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -239368,6 +240975,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -239459,6 +241067,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -239618,6 +241227,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -239709,6 +241319,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -239816,6 +241427,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -239907,6 +241519,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -240014,6 +241627,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -240105,6 +241719,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -240196,6 +241811,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -240287,6 +241903,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -240457,6 +242074,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -240548,6 +242166,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -241152,6 +242771,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -241243,6 +242863,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -241500,6 +243121,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -241591,6 +243213,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -241692,6 +243315,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -241783,6 +243407,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -241895,6 +243520,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -241986,6 +243612,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -243161,6 +244788,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -243252,6 +244880,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -243615,6 +245244,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -243706,6 +245336,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -243959,6 +245590,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -244050,6 +245682,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -244399,6 +246032,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -244490,6 +246124,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -244830,6 +246465,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -244921,6 +246557,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -245865,6 +247502,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -245956,6 +247594,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -246257,6 +247896,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -246348,6 +247988,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -251188,6 +252829,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -251279,6 +252921,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -251461,6 +253104,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -251552,6 +253196,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -252885,6 +254530,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -252976,6 +254622,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -253083,6 +254730,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -253174,6 +254822,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -253265,6 +254914,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -253356,6 +255006,7 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -253463,6 +255114,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -253554,6 +255206,391 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
+  }
+
+  export type LocationCreateWithoutJetGoConfigInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    currency?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
+    tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationUncheckedCreateWithoutJetGoConfigInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    currency?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
+    tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutJetGoConfigInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutJetGoConfigInput, LocationUncheckedCreateWithoutJetGoConfigInput>
+  }
+
+  export type LocationUpsertWithoutJetGoConfigInput = {
+    update: XOR<LocationUpdateWithoutJetGoConfigInput, LocationUncheckedUpdateWithoutJetGoConfigInput>
+    create: XOR<LocationCreateWithoutJetGoConfigInput, LocationUncheckedCreateWithoutJetGoConfigInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutJetGoConfigInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutJetGoConfigInput, LocationUncheckedUpdateWithoutJetGoConfigInput>
+  }
+
+  export type LocationUpdateWithoutJetGoConfigInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
+    tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutJetGoConfigInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
+    tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -254142,6 +256179,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -254233,6 +256271,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -254486,6 +256525,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -254577,6 +256617,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -254878,6 +256919,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
@@ -254969,6 +257011,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
@@ -255253,6 +257296,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
@@ -255344,6 +257388,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
@@ -256177,6 +258222,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
   }
@@ -256268,6 +258314,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
   }
@@ -256465,6 +258512,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
   }
@@ -256556,6 +258604,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
   }
@@ -256702,6 +258751,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
@@ -256793,6 +258843,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
@@ -256972,6 +259023,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
@@ -257063,6 +259115,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
@@ -260992,6 +263045,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -261083,6 +263137,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -265931,6 +267986,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -266022,6 +268078,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -266178,6 +268235,7 @@ export namespace Prisma {
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -266269,6 +268327,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -266772,6 +268831,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -266863,6 +268923,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -269606,6 +271667,10 @@ export namespace Prisma {
      * @deprecated Use UberDirectConfigDefaultArgs instead
      */
     export type UberDirectConfigArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = UberDirectConfigDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use JetGoConfigDefaultArgs instead
+     */
+    export type JetGoConfigArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = JetGoConfigDefaultArgs<ExtArgs>
     /**
      * @deprecated Use ReviewDefaultArgs instead
      */

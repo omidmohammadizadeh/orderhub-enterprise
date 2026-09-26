@@ -3,7 +3,11 @@
 // Phase BH — unified per-order dispatch chooser. Shows each courier option with
 // a PRICE the operator sees before committing:
 //   • Stuart      — live quote from Stuart + the OrderHub per-dispatch fee.
-//   • Uber Direct — placeholder until the integration is activated.
+//   • Uber Direct — live quote from Uber + the OrderHub per-dispatch fee.
+//   • JET Go      — live quote from Just Eat's own courier network. Its quote can
+//                   also come back with WARNINGS (a cash order no courier will
+//                   collect, a scheduled slot JET will treat as ASAP), and those
+//                   are shown before the operator commits, not after.
 //   • Own fleet   — the location's online drivers (no courier fee); pick one.
 
 import { useEffect, useState } from "react";
@@ -13,6 +17,7 @@ import toast from "react-hot-toast";
 import { Bike, Loader2, Truck, User, X } from "lucide-react";
 import { stuartClient } from "@/lib/api/stuart.client";
 import { uberDirectClient } from "@/lib/api/uber-direct.client";
+import { jetGoClient } from "@/lib/api/jet-go.client";
 import {
   assignOrders,
   getOnlineDrivers,
@@ -23,6 +28,8 @@ interface CourierQuote {
   currency: string;
   amount: number | string | null;
   dispatchFeeMinor: number;
+  /** JET Go surfaces things worth seeing before committing. */
+  warnings?: string[];
 }
 
 interface Props {
@@ -50,6 +57,9 @@ export function DispatchModal({ orderId, locationId, orderRef, onClose }: Props)
   const [uberAvailable, setUberAvailable] = useState<boolean | null>(null);
   const [uberQuote, setUberQuote] = useState<CourierQuote | null>(null);
   const [uberQuoteErr, setUberQuoteErr] = useState<string | null>(null);
+  const [jetAvailable, setJetAvailable] = useState<boolean | null>(null);
+  const [jetQuote, setJetQuote] = useState<CourierQuote | null>(null);
+  const [jetQuoteErr, setJetQuoteErr] = useState<string | null>(null);
   const [drivers, setDrivers] = useState<OnlineDriver[] | null>(null);
   const [busy, setBusy] = useState<string | null>(null); // which action is running
 
@@ -95,6 +105,27 @@ export function DispatchModal({ orderId, locationId, orderRef, onClose }: Props)
         }
       } catch {
         if (alive) setUberAvailable(false);
+      }
+      // JET Go availability + quote. readyToDispatch, not just active: a
+      // location with no collect point chosen cannot dispatch at all.
+      try {
+        const cfg = await jetGoClient.getConfig(locationId ?? "");
+        if (!alive) return;
+        const ok = cfg.configured && cfg.readyToDispatch;
+        setJetAvailable(ok);
+        if (ok) {
+          try {
+            const q = await jetGoClient.quote(orderId);
+            if (alive) setJetQuote(q);
+          } catch (e: any) {
+            if (alive)
+              setJetQuoteErr(
+                e?.response?.data?.message ?? "Couldn't get a JET Go quote.",
+              );
+          }
+        }
+      } catch {
+        if (alive) setJetAvailable(false);
       }
       // Own-fleet drivers
       try {
@@ -143,6 +174,21 @@ export function DispatchModal({ orderId, locationId, orderRef, onClose }: Props)
       toast.error(
         e?.response?.data?.message ?? "Couldn't dispatch to Uber Direct",
       );
+      setBusy(null);
+    }
+  }
+
+  async function dispatchJetGo() {
+    setBusy("jetgo");
+    try {
+      const r = await jetGoClient.dispatch(orderId);
+      done(
+        r.adminBypass
+          ? "Dispatched to JET Go (admin — no wallet charge)"
+          : "Dispatched to JET Go",
+      );
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message ?? "Couldn't dispatch to JET Go");
       setBusy(null);
     }
   }
@@ -273,6 +319,67 @@ export function DispatchModal({ orderId, locationId, orderRef, onClose }: Props)
               <p className="mt-1.5 text-[11px] text-zinc-400">
                 Add your Uber Direct credentials in Location settings to enable
                 this.
+              </p>
+            )}
+          </div>
+
+          {/* JET Go */}
+          <div className="rounded-xl border border-zinc-200 p-3.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Bike className="h-4 w-4 text-orange-600" />
+                <span className="text-sm font-semibold text-zinc-900">JET Go</span>
+              </div>
+              <div className="text-right">
+                {jetAvailable === null ? (
+                  <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
+                ) : !jetAvailable ? (
+                  <span className="text-[11px] text-zinc-400">Not set up</span>
+                ) : jetQuote ? (
+                  <>
+                    <div className="text-sm font-semibold text-zinc-900">
+                      {money(jetQuote.currency, jetQuote.amount)}
+                    </div>
+                    <div className="text-[10px] text-zinc-400">
+                      + {jetQuote.dispatchFeeMinor}p OrderHub fee
+                    </div>
+                  </>
+                ) : jetQuoteErr ? (
+                  <span className="text-[11px] text-amber-600">Quote unavailable</span>
+                ) : (
+                  <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
+                )}
+              </div>
+            </div>
+            {/* Shown BEFORE the button: a cash order is the one where finding out
+                afterwards costs the shop the whole order. */}
+            {jetQuote?.warnings?.length ? (
+              <ul className="mt-2 space-y-1">
+                {jetQuote.warnings.map((w) => (
+                  <li
+                    key={w}
+                    className="rounded-md bg-amber-50 px-2 py-1.5 text-[11px] leading-snug text-amber-800"
+                  >
+                    {w}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            {jetQuoteErr && !jetQuote && (
+              <p className="mt-2 text-[11px] leading-snug text-amber-700">{jetQuoteErr}</p>
+            )}
+            <button
+              onClick={dispatchJetGo}
+              disabled={!jetAvailable || busy !== null}
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-orange-600 py-2 text-sm font-semibold text-white hover:bg-orange-700 disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600"
+            >
+              {busy === "jetgo" && <Loader2 className="h-4 w-4 animate-spin" />}
+              Dispatch to JET Go
+            </button>
+            {jetAvailable === false && (
+              <p className="mt-1.5 text-[11px] text-zinc-400">
+                Add your JET Go credentials and pick a collect point in Location
+                settings to enable this.
               </p>
             )}
           </div>

@@ -21,6 +21,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { stuartClient } from "../../lib/api/stuart.client";
 import { uberDirectClient } from "../../lib/api/uber-direct.client";
+import { jetGoClient } from "../../lib/api/jet-go.client";
 import { unassignOrder } from "../../lib/api/dispatch.client";
 import { printOrderViaBridge } from "../../lib/printing/print-order";
 import type { Order } from "../../lib/api/orders.client";
@@ -161,6 +162,15 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
         await stuartClient.cancel(order.id);
       } else if ((order as any).courierProvider === "UBER_DIRECT") {
         await uberDirectClient.cancel(order.id);
+      } else if ((order as any).courierProvider === "JET_GO") {
+        // JET Go cancels asynchronously: it can refuse (the courier may already
+        // have collected), and the CANCELJOBSTATUS webhook is what confirms it.
+        // So this must NOT claim the order is free to dispatch again yet.
+        const r = await jetGoClient.cancel(order.id);
+        toast.success(r.message ?? "Cancellation requested with JET Go");
+        queryClient.invalidateQueries({ queryKey: ["orders", "live"] });
+        setCancelling(false);
+        return;
       } else {
         // Own fleet — pull the delivery back from the driver.
         await unassignOrder(order.id);
@@ -376,7 +386,11 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
                 ? "Choose a courier — see the price before you send."
                 : courierProvider === "STUART"
                   ? "Cancels the Stuart job and frees the order to dispatch again."
-                  : "Pulls the order back from the driver so you can dispatch again.";
+                  : courierProvider === "UBER_DIRECT"
+                    ? "Cancels the Uber Direct delivery and frees the order to dispatch again."
+                    : courierProvider === "JET_GO"
+                      ? "Asks JET Go to cancel. They can refuse once a courier has collected, so the order stays put until they confirm."
+                      : "Pulls the order back from the driver so you can dispatch again.";
             return (
               <div className="px-5 py-4 border-b border-zinc-100">
                 <div className="flex flex-wrap items-center gap-2">

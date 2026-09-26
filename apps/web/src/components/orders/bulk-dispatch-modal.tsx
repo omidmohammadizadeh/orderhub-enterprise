@@ -2,14 +2,17 @@
 
 // Bulk dispatch — send several delivery orders in one go.
 //
-// The three couriers are genuinely different shapes, and the modal says so
-// rather than pretending they are one button:
+// The couriers are genuinely different shapes, and the modal says so rather than
+// pretending they are one button:
 //   • Own fleet  — ONE driver takes every order as a run, stops in the order
 //                  they were picked. No courier fee.
 //   • Stuart     — ONE courier for the lot (multi-drop, up to 8, one shop).
 //                  Stuart prices the run as one job and picks the route itself.
 //   • Uber Direct — Uber has no multi-drop, so it is one courier PER order:
 //                  N separate deliveries, N prices, shown as a total.
+//   • JET Go     — same as Uber: no multi-drop, one courier per order. Its quote
+//                  also carries warnings (a cash order, a slot it will treat as
+//                  ASAP), shown per order before the operator commits.
 //
 // Sibling of DispatchModal (single order) — same chrome and the same colour per
 // courier, so it reads as the same tool doing more at once.
@@ -25,6 +28,7 @@ import {
   type StuartBulkQuote,
 } from "@/lib/api/stuart.client";
 import { uberDirectClient } from "@/lib/api/uber-direct.client";
+import { jetGoClient } from "@/lib/api/jet-go.client";
 import {
   assignOrders,
   getOnlineDrivers,
@@ -57,7 +61,7 @@ const errMsg = (e: any, fallback: string) =>
 /** "1 order" / "3 orders". A partial Uber send can leave exactly one. */
 const nOrders = (n: number) => `${n} ${n === 1 ? "order" : "orders"}`;
 
-type Busy = null | "stuart" | "uber" | `driver:${string}`;
+type Busy = null | "stuart" | "uber" | "jetgo" | `driver:${string}`;
 
 export function BulkDispatchModal({ orders, onClose, onDispatched }: Props) {
   const queryClient = useQueryClient();
@@ -86,6 +90,19 @@ export function BulkDispatchModal({ orders, onClose, onDispatched }: Props) {
   const [uberErr, setUberErr] = useState<string | null>(null);
   /** Orders Uber refused on the last attempt, with why. */
   const [uberFailures, setUberFailures] = useState<
+    Array<{ ref: string; message: string }>
+  >([]);
+
+  const [jetAvailable, setJetAvailable] = useState<boolean | null>(null);
+  const [jetTotal, setJetTotal] = useState<{
+    currency: string;
+    amount: number;
+    feeMinor: number;
+  } | null>(null);
+  const [jetErr, setJetErr] = useState<string | null>(null);
+  /** Deduped across the pick — the same cash warning on six orders is one line. */
+  const [jetWarnings, setJetWarnings] = useState<string[]>([]);
+  const [jetFailures, setJetFailures] = useState<
     Array<{ ref: string; message: string }>
   >([]);
 
@@ -129,6 +146,10 @@ export function BulkDispatchModal({ orders, onClose, onDispatched }: Props) {
     setUberTotal(null);
     setUberErr(null);
     setUberAvailable(null);
+    setJetTotal(null);
+    setJetErr(null);
+    setJetAvailable(null);
+    setJetWarnings([]);
 
     getOnlineDrivers(shopId)
       .then((d) => alive && setDrivers(d))
@@ -177,6 +198,29 @@ export function BulkDispatchModal({ orders, onClose, onDispatched }: Props) {
         }
       })
       .catch(() => alive && setUberAvailable(false));
+
+    // JET Go: readyToDispatch at EVERY shop in the pick (credentials AND a
+    // collect point AND active), then one quote per order, summed.
+    Promise.all(locationIds.map((l) => jetGoClient.getConfig(l!)))
+      .then(async (cfgs) => {
+        if (!alive) return;
+        const ok = cfgs.length > 0 && cfgs.every((c) => c.configured && c.readyToDispatch);
+        setJetAvailable(ok);
+        if (!ok) return;
+        try {
+          const quotes = await Promise.all(ids.map((id) => jetGoClient.quote(id)));
+          if (!alive) return;
+          setJetTotal({
+            currency: quotes[0]?.currency ?? "GBP",
+            amount: quotes.reduce((sum, q) => sum + (Number(q?.amount) || 0), 0),
+            feeMinor: quotes.reduce((sum, q) => sum + (Number(q?.dispatchFeeMinor) || 0), 0),
+          });
+          setJetWarnings([...new Set(quotes.flatMap((q) => q?.warnings ?? []))]);
+        } catch (e) {
+          if (alive) setJetErr(errMsg(e, "Couldn't get a JET Go quote."));
+        }
+      })
+      .catch(() => alive && setJetAvailable(false));
 
     return () => {
       alive = false;
@@ -250,6 +294,39 @@ export function BulkDispatchModal({ orders, onClose, onDispatched }: Props) {
       toast.success(`${sent.length} of ${orders.length} sent to Uber Direct`);
     }
     setUberFailures(failed);
+    setBusy(null);
+  }
+
+  // One delivery per order, so one refusal must not stop the rest — and the
+  // operator has to see exactly which ones stayed behind.
+  async function sendToJetGo() {
+    setBusy("jetgo");
+    setJetFailures([]);
+    const sent: string[] = [];
+    const failed: Array<{ ref: string; message: string }> = [];
+    for (const o of orders) {
+      try {
+        await jetGoClient.dispatch(o.id);
+        sent.push(o.id);
+      } catch (e) {
+        failed.push({ ref: refOf(o), message: errMsg(e, "JET Go refused it") });
+      }
+    }
+    if (failed.length === 0) {
+      finish(
+        sent,
+        sent.length === 1
+          ? "Sent to JET Go"
+          : `${sent.length} orders sent to JET Go — one courier each`,
+      );
+      return;
+    }
+    queryClient.invalidateQueries({ queryKey: ["orders", "live"] });
+    if (sent.length > 0) {
+      onDispatched(sent, false);
+      toast.success(`${sent.length} of ${orders.length} sent to JET Go`);
+    }
+    setJetFailures(failed);
     setBusy(null);
   }
 
@@ -467,6 +544,89 @@ export function BulkDispatchModal({ orders, onClose, onDispatched }: Props) {
                 </p>
                 <ul className="mt-1 space-y-0.5">
                   {uberFailures.map((f) => (
+                    <li key={f.ref}>
+                      {f.ref}: {f.message}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          {/* JET Go — no multi-drop either, so one courier per order. */}
+          <div className="rounded-xl border border-zinc-200 p-3.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Bike className="h-4 w-4 text-orange-600" />
+                <span className="text-sm font-semibold text-zinc-900">JET Go</span>
+              </div>
+              <div className="text-right">
+                {jetAvailable === null ? (
+                  <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
+                ) : !jetAvailable ? (
+                  <span className="text-[11px] text-zinc-400">Not set up</span>
+                ) : jetTotal ? (
+                  <>
+                    <div className="text-sm font-semibold text-zinc-900">
+                      {money(jetTotal.currency, jetTotal.amount)}
+                    </div>
+                    <div className="text-[10px] text-zinc-400">
+                      {orders.length === 1
+                        ? `+ ${jetTotal.feeMinor}p OrderHub fee`
+                        : `total, + ${jetTotal.feeMinor}p OrderHub fees`}
+                    </div>
+                  </>
+                ) : jetErr ? (
+                  <span className="text-[11px] text-amber-600">Quote unavailable</span>
+                ) : (
+                  <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
+                )}
+              </div>
+            </div>
+            <p className="mt-1 text-[11px] text-zinc-500">
+              JET Go sends a separate courier for each order.
+            </p>
+            {jetWarnings.length > 0 && (
+              <ul className="mt-2 space-y-1">
+                {jetWarnings.map((w) => (
+                  <li
+                    key={w}
+                    className="rounded-md bg-amber-50 px-2 py-1.5 text-[11px] leading-snug text-amber-800"
+                  >
+                    {w}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <button
+              onClick={sendToJetGo}
+              disabled={!jetAvailable || busy !== null}
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-orange-600 py-2 text-sm font-semibold text-white hover:bg-orange-700 disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600"
+            >
+              {busy === "jetgo" && <Loader2 className="h-4 w-4 animate-spin" />}
+              {orders.length === 1
+                ? "Send to JET Go"
+                : `Send ${orders.length} JET Go couriers`}
+            </button>
+            {jetAvailable === false && (
+              <p className="mt-1.5 text-[11px] text-zinc-400">
+                {locationIds.length > 1
+                  ? "JET Go needs to be set up, with a collect point, at every shop in this pick."
+                  : "Add your JET Go credentials and pick a collect point in Location settings to enable this."}
+              </p>
+            )}
+            {jetFailures.length > 0 && (
+              <div
+                role="alert"
+                className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-[11px] text-amber-800"
+              >
+                <p className="font-semibold">
+                  {jetFailures.length === 1
+                    ? "1 didn't go — it's still on the board:"
+                    : `${jetFailures.length} didn't go — they're still on the board:`}
+                </p>
+                <ul className="mt-1 space-y-0.5">
+                  {jetFailures.map((f) => (
                     <li key={f.ref}>
                       {f.ref}: {f.message}
                     </li>

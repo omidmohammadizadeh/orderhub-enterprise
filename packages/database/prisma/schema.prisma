@@ -604,6 +604,8 @@ model Location {
   stuartConfig     StuartConfig?
   // Phase BI — Uber Direct courier config (per location).
   uberDirectConfig UberDirectConfig?
+  // Phase BJ — JET Go (Just Eat Delivery-as-a-Service) courier config.
+  jetGoConfig      JetGoConfig?
 
   // Phase AN — Stripe Connect + application fee config
   stripeConnectedAccountId  String?
@@ -4627,6 +4629,65 @@ model UberDirectConfig {
   updatedAt DateTime @updatedAt
 
   @@map("uber_direct_configs")
+}
+
+// Per-location JET Go config. JET Go is Just Eat Takeaway's Delivery-as-a-Service
+// network (the API is SkipTheDishes' DaaS platform) — the same "we dispatch a
+// courier for YOUR order" product as Uber Direct and Stuart, so the money model
+// is identical: the restaurant's own JET Go account pays for the courier, and
+// OrderHub only takes a flat per-dispatch fee from the location wallet.
+//
+// Two things make it different from the other two networks:
+//
+//  1. `collectPointId`. JET Go doesn't take a pickup ADDRESS — it takes the id of
+//     a collect point JET has already onboarded, fetched from GET /collect-points.
+//     Without it there is nothing to estimate against, so dispatch is gated on it
+//     as much as on `active`.
+//
+//  2. `webhookToken` is shared, not per-location. JET Go allows exactly ONE
+//     notification config per client credential, so two locations that paste the
+//     same clientId MUST end up on one webhook URL — the second registration
+//     would otherwise overwrite the first and silently strand the first shop's
+//     courier updates. upsert() reuses the token of any sibling location already
+//     holding that clientId, which makes re-registering idempotent. Routing never
+//     depends on it: every webhook carries the requestId, which is unique across
+//     the whole platform, so the token only authenticates.
+model JetGoConfig {
+  id         String   @id @default(cuid())
+  tenantId   String
+  locationId String   @unique
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  // Which JET market the credentials belong to: UK | CA | AU | EU. This picks the
+  // API hostname, and it is not cosmetic — UK credentials against the CA host are
+  // simply unauthorized.
+  market      String  @default("UK")
+  // "sandbox" (staging hosts + the /simulate endpoint) | "production".
+  environment String  @default("sandbox")
+  // Encrypted { clientId, clientSecret } envelope (CredentialEncryptionService).
+  credentials Json
+  // The JET collect point this location collects from (a UUID from
+  // GET /v1/delivery/collect-points), plus its name for the settings screen.
+  collectPointId   String?
+  collectPointName String?
+  // The opaque id in our webhook PATH. Safe to show the operator — it is how
+  // JET addresses us, not how it proves who it is.
+  webhookToken String
+  // The credential JET sends back on every webhook (x-api-key, or the password
+  // half of Basic). Deliberately a DIFFERENT value from webhookToken: the URL
+  // gets copied into dashboards, emails and support tickets, and if the path
+  // segment were also the secret then anyone who saw the URL could post fake
+  // courier updates. Never leaves the server except in the register call to JET.
+  webhookSecret String @default("")
+  // Master on/off for this location. Dispatch refuses when false.
+  active       Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([webhookToken])
+  @@map("jet_go_configs")
 }
 
 // Customer reviews of a completed order. Deliberately scalar-only (no Prisma

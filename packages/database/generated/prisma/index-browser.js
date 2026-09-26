@@ -2113,6 +2113,22 @@ exports.Prisma.UberDirectConfigScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.JetGoConfigScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  market: 'market',
+  environment: 'environment',
+  credentials: 'credentials',
+  collectPointId: 'collectPointId',
+  collectPointName: 'collectPointName',
+  webhookToken: 'webhookToken',
+  webhookSecret: 'webhookSecret',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.ReviewScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -3616,6 +3632,18 @@ exports.Prisma.UberDirectConfigOrderByRelevanceFieldEnum = {
   environment: 'environment'
 };
 
+exports.Prisma.JetGoConfigOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  market: 'market',
+  environment: 'environment',
+  collectPointId: 'collectPointId',
+  collectPointName: 'collectPointName',
+  webhookToken: 'webhookToken',
+  webhookSecret: 'webhookSecret'
+};
+
 exports.Prisma.ReviewOrderByRelevanceFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -4368,6 +4396,7 @@ exports.Prisma.ModelName = {
   WalletTransaction: 'WalletTransaction',
   StuartConfig: 'StuartConfig',
   UberDirectConfig: 'UberDirectConfig',
+  JetGoConfig: 'JetGoConfig',
   Review: 'Review',
   VoiceCall: 'VoiceCall',
   GroupOrder: 'GroupOrder',
