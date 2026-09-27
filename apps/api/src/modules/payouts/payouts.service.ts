@@ -847,6 +847,40 @@ export class PayoutsService {
     "friday",
   ];
 
+  /**
+   * The earliest weekday whose payout includes EVERYTHING sold the previous
+   * Monday–Sunday — or null when no weekday can (a hold of 5+ working days).
+   *
+   * A weekly payout does not pay "last week". It pays whatever balance has
+   * CLEARED by that morning, and Stripe holds card money `delay_days` working
+   * days first (UK: 3). A Sunday sale counts from Monday, so it clears on
+   * Monday + delay_days: Thursday on a 3-day hold. Paying on Monday therefore
+   * pays up to the previous Wednesday/Thursday, and Friday–Sunday — a
+   * takeaway's biggest days — slip a whole extra week. That was the complaint:
+   * "I'm not getting last week's sales the following week."
+   *
+   * Counted in working days even where Stripe counts calendar days, because
+   * that only ever makes the answer later, never too early.
+   */
+  static fullWeekPayoutDay(delayDays: number | null | undefined): string | null {
+    if (!Number.isInteger(delayDays) || (delayDays as number) < 0) return null;
+    return PayoutsService.PAYOUT_WEEKDAYS[delayDays as number] ?? null;
+  }
+
+  /** Stripe's hold on this account, or null when we can't read it. */
+  private async payoutDelayDays(stripeAccountId: string): Promise<number | null> {
+    try {
+      const acct = await this.stripe!.accounts.retrieve(stripeAccountId);
+      const d = (acct as any)?.settings?.payouts?.schedule?.delay_days;
+      return Number.isInteger(d) ? d : null;
+    } catch (e: any) {
+      this.logger.warn(
+        `Couldn't read the payout hold for ${stripeAccountId}: ${e?.message}`,
+      );
+      return null;
+    }
+  }
+
   /** What Stripe currently pays this shop on. */
   async payoutSchedule(
     tenantId: string,
@@ -859,6 +893,10 @@ export class PayoutsService {
     interval: string;
     weeklyAnchor: string | null;
     monthlyAnchor: number | null;
+    /** Working days Stripe holds card money before it can be paid out. */
+    delayDays: number | null;
+    /** Earliest weekly payout day that covers the whole previous Mon–Sun. */
+    fullWeekFrom: string | null;
   } | null> {
     const account = await this.resolveOwnAccount(tenantId, userId, role, opts);
     if (!this.stripe || account.stripeAccountId.startsWith("mock_acct_")) {
@@ -875,6 +913,8 @@ export class PayoutsService {
         interval: s.interval ?? "daily",
         weeklyAnchor: s.weekly_anchor ?? null,
         monthlyAnchor: s.monthly_anchor ?? null,
+        delayDays: Number.isInteger(s.delay_days) ? s.delay_days : null,
+        fullWeekFrom: PayoutsService.fullWeekPayoutDay(s.delay_days),
       };
     } catch (e: any) {
       // Never break the page over this — the payout history matters more.
@@ -892,6 +932,9 @@ export class PayoutsService {
    * automatic payouts entirely, so the balance would sit at Stripe until
    * somebody released it by hand. That is not a payout day, and an owner
    * picking it would quietly stop being paid.
+   *
+   * A weekly day too early to include last weekend is refused too — see
+   * fullWeekPayoutDay. "Weekly" has to mean "last week's takings".
    */
   async updatePayoutSchedule(
     tenantId: string,
@@ -956,6 +999,22 @@ export class PayoutsService {
       throw new BadRequestException(
         "Stripe isn't configured in this environment.",
       );
+    }
+
+    if (weeklyAnchor) {
+      // Unknown hold → don't block; we can't prove the day is too early.
+      const delayDays = await this.payoutDelayDays(account.stripeAccountId);
+      const fullWeekFrom = PayoutsService.fullWeekPayoutDay(delayDays);
+      const idx = PayoutsService.PAYOUT_WEEKDAYS;
+      if (fullWeekFrom && idx.indexOf(weeklyAnchor) < idx.indexOf(fullWeekFrom)) {
+        const cap = (d: string) => d.charAt(0).toUpperCase() + d.slice(1);
+        throw new BadRequestException(
+          `A ${cap(weeklyAnchor)} payout would miss last weekend's sales — ` +
+            `Stripe holds card payments for ${delayDays} working days, so they ` +
+            `wouldn't reach you until the week after. Choose ${cap(fullWeekFrom)} ` +
+            `or later to be paid for the whole of last week, Monday to Sunday.`,
+        );
+      }
     }
 
     const schedule: Record<string, unknown> = { interval };

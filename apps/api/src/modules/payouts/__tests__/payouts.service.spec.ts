@@ -833,6 +833,10 @@ describe("PayoutsService.updatePayoutSchedule", () => {
       update: jest.fn().mockResolvedValue({
         settings: { payouts: { schedule } },
       }),
+      // Stripe UK's standard hold: card money clears 3 working days after sale.
+      retrieve: jest.fn().mockResolvedValue({
+        settings: { payouts: { schedule: { interval: "daily", delay_days: 3 } } },
+      }),
     },
   });
 
@@ -956,6 +960,52 @@ describe("PayoutsService.updatePayoutSchedule", () => {
     expect(stripe.accounts.update).not.toHaveBeenCalled();
   });
 
+  // "Weekly" has to mean last week's takings. On a 3-working-day hold a
+  // Sunday sale clears on Thursday, so a Monday payout pays up to the previous
+  // Wednesday and Friday–Sunday wait an extra week — the owners' complaint.
+  it("refuses a weekly day that would miss last weekend's sales", async () => {
+    const stripe = scheduled({ interval: "weekly", weekly_anchor: "monday" });
+    const svc = makeService({ prisma: prismaWith({ userLocations: [LOC_A] }), stripe });
+
+    for (const weeklyAnchor of ["monday", "tuesday", "wednesday"]) {
+      await expect(
+        svc.updatePayoutSchedule(TENANT, "u1", "OWNER", {
+          accountId: "acc-a",
+          interval: "weekly",
+          weeklyAnchor,
+        }),
+      ).rejects.toThrow(/Thursday or later/);
+    }
+    expect(stripe.accounts.update).not.toHaveBeenCalled();
+  });
+
+  it("accepts Thursday, the first day that covers the whole previous week", async () => {
+    const stripe = scheduled({ interval: "weekly", weekly_anchor: "thursday" });
+    const svc = makeService({ prisma: prismaWith({ userLocations: [LOC_A] }), stripe });
+
+    await svc.updatePayoutSchedule(TENANT, "u1", "OWNER", {
+      accountId: "acc-a",
+      interval: "weekly",
+      weeklyAnchor: "thursday",
+    });
+    expect(stripe.accounts.update).toHaveBeenCalledWith("acct_A", {
+      settings: { payouts: { schedule: { interval: "weekly", weekly_anchor: "thursday" } } },
+    });
+  });
+
+  it("doesn't block a day when Stripe won't tell us the hold", async () => {
+    const stripe = scheduled({ interval: "weekly", weekly_anchor: "monday" });
+    stripe.accounts.retrieve.mockRejectedValue(new Error("rate limited"));
+    const svc = makeService({ prisma: prismaWith({ userLocations: [LOC_A] }), stripe });
+
+    await svc.updatePayoutSchedule(TENANT, "u1", "OWNER", {
+      accountId: "acc-a",
+      interval: "weekly",
+      weeklyAnchor: "monday",
+    });
+    expect(stripe.accounts.update).toHaveBeenCalled();
+  });
+
   it("says so plainly when Stripe isn't configured", async () => {
     const svc = makeService({ prisma: prismaWith({ userLocations: [LOC_A] }), stripe: null });
     await expect(
@@ -964,6 +1014,20 @@ describe("PayoutsService.updatePayoutSchedule", () => {
         interval: "daily",
       }),
     ).rejects.toBeInstanceOf(BadRequestException);
+  });
+});
+
+describe("PayoutsService.fullWeekPayoutDay", () => {
+  it("is the weekday a Sunday sale clears on", () => {
+    expect(PayoutsService.fullWeekPayoutDay(2)).toBe("wednesday");
+    expect(PayoutsService.fullWeekPayoutDay(3)).toBe("thursday");
+    expect(PayoutsService.fullWeekPayoutDay(4)).toBe("friday");
+  });
+
+  it("is null when no weekday can cover the whole week, or the hold is unknown", () => {
+    expect(PayoutsService.fullWeekPayoutDay(7)).toBeNull();
+    expect(PayoutsService.fullWeekPayoutDay(null)).toBeNull();
+    expect(PayoutsService.fullWeekPayoutDay(undefined)).toBeNull();
   });
 });
 

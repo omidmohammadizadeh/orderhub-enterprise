@@ -408,6 +408,9 @@ function PayoutScheduleCard({
       setCadence(current.interval);
     }
     if (current.weeklyAnchor) setWeekday(current.weeklyAnchor);
+    // Nothing weekly yet: start on the first day that pays all of last week,
+    // not on a day we'd then refuse.
+    else if (current.fullWeekFrom) setWeekday(current.fullWeekFrom);
     if (current.monthlyAnchor) setMonthDay(current.monthlyAnchor);
   }, [current]);
 
@@ -433,6 +436,18 @@ function PayoutScheduleCard({
   // Nothing to show when Stripe can't tell us the current schedule — better a
   // missing card than a control that claims a day we haven't verified.
   if (scheduleQuery.isLoading || current == null) return null;
+
+  // Stripe only pays out money that has CLEARED, and card money clears
+  // `delayDays` working days after the sale. A payout day earlier than
+  // `fullWeekFrom` misses last Friday–Sunday, which then waits a whole extra
+  // week — "weekly" has to mean last week's takings, so those days are off.
+  const fullWeekIdx = current.fullWeekFrom
+    ? WEEKDAYS.indexOf(current.fullWeekFrom as (typeof WEEKDAYS)[number])
+    : -1;
+  const tooEarly = (d: string) =>
+    fullWeekIdx > 0 && WEEKDAYS.indexOf(d as (typeof WEEKDAYS)[number]) < fullWeekIdx;
+  const currentMissesWeekend =
+    current.interval === 'weekly' && !!current.weeklyAnchor && tooEarly(current.weeklyAnchor);
 
   const unchanged =
     cadence === current.interval &&
@@ -472,8 +487,9 @@ function PayoutScheduleCard({
             aria-label="Day of the week"
           >
             {WEEKDAYS.map((d) => (
-              <option key={d} value={d}>
+              <option key={d} value={d} disabled={tooEarly(d) && d !== current.weeklyAnchor}>
                 {titleCase(d)}
+                {tooEarly(d) ? ' — misses last weekend' : ''}
               </option>
             ))}
           </select>
@@ -496,7 +512,12 @@ function PayoutScheduleCard({
 
         <button
           onClick={() => save.mutate()}
-          disabled={unchanged || save.isPending || needsShopChoice}
+          disabled={
+            unchanged ||
+            save.isPending ||
+            needsShopChoice ||
+            (cadence === 'weekly' && tooEarly(weekday))
+          }
           title={
             needsShopChoice
               ? 'Choose a shop above — payout days are set per shop.'
@@ -504,7 +525,10 @@ function PayoutScheduleCard({
           }
           className={cn(
             'rounded-lg px-3 py-1.5 text-sm font-medium transition',
-            unchanged || save.isPending || needsShopChoice
+            unchanged ||
+              save.isPending ||
+              needsShopChoice ||
+              (cadence === 'weekly' && tooEarly(weekday))
               ? 'bg-zinc-100 text-zinc-400'
               : 'bg-zinc-900 text-white hover:bg-zinc-800',
           )}
@@ -517,9 +541,21 @@ function PayoutScheduleCard({
         </button>
       </div>
 
+      {currentMissesWeekend && (
+        <p className="mx-5 mb-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          {titleCase(current.weeklyAnchor!)} payouts don&apos;t include last
+          Friday–Sunday: card payments take {current.delayDays} working days to
+          clear, so the weekend reaches you a week later. Switch to{' '}
+          {titleCase(current.fullWeekFrom!)} to be paid for the whole of last
+          week.
+        </p>
+      )}
+
       <p className="px-5 pb-4 text-xs text-zinc-400">
         {needsShopChoice
           ? `Showing ${current.accountLabel}. Choose a shop above to change its payout day — each shop has its own.`
+          : cadence === 'weekly' && current.fullWeekFrom
+            ? `Everything you sold Monday–Sunday is in the following ${titleCase(current.fullWeekFrom)}'s payout. Card payments take ${current.delayDays} working days to clear, so that is the earliest day the whole week has.`
           : cadence === 'monthly' && monthDay > 28
             ? 'In shorter months this is paid on the last day.'
             : 'Payouts settle on working days, so a day that falls on a weekend or bank holiday lands the next working day.'}
