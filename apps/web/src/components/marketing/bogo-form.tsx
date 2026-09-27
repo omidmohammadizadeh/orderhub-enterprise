@@ -32,6 +32,7 @@ const CHANNELS: Array<{ id: string; label: string; wired: boolean }> = [
   { id: "DELIVEROO", label: "Deliveroo", wired: false },
   { id: "WHATSAPP", label: "WhatsApp", wired: false },
   { id: "HUBRISE", label: "HubRise", wired: false },
+  { id: "KEETA", label: "Keeta", wired: false },
 ];
 
 const AUDIENCES: Array<{ id: CampaignAudience; label: string; sub: string }> = [

@@ -329,6 +329,37 @@ export const INTEGRATIONS: Integration[] = [
     ],
   },
 
+  // ── Keeta ─────────────────────────────────────────────────────────────────
+  {
+    slug: "keeta",
+    name: "Keeta",
+    brand: "keeta",
+    navDescription: "Coming soon",
+    category: "Marketplace",
+    accent: "#FFE000",
+    status: "soon",
+    badge: "Marketplace · Gulf region · Coming soon",
+    title: "Keeta, on the same board",
+    subtitle:
+      "A direct Keeta integration for restaurants in the UAE, Saudi Arabia, Kuwait, Qatar, Bahrain and Oman — orders on your board and in the kitchen, your menu published straight across, and store hours and stock kept in step. Register your interest and we'll bring your shop on first.",
+    highlights: ["Direct order sync", "Menu & sold-out sync", "Store hours & pause"],
+    heroMockup: <PosBoardMockup />,
+    capabilities: [
+      { icon: Activity, title: "Direct order sync", body: "Keeta orders land on the same board as your POS, storefront and other marketplaces, and print straight to the kitchen screens." },
+      { icon: UtensilsCrossed, title: "Menu publishing", body: "Publish your Order Hub menu to Keeta with categories, sizes, modifier groups and nested options." },
+      { icon: Tag, title: "Sold-out items", body: "Mark an item out of stock once and it comes off Keeta too — restored automatically when it's back." },
+      { icon: Store, title: "Pause the store", body: "Close your Keeta store from Order Hub when the kitchen needs a break, and reopen it just as quickly." },
+      { icon: Clock, title: "Opening hours", body: "Push each store's opening hours to Keeta from Order Hub." },
+      { icon: Wallet, title: "Refund requests", body: "Customer refund requests from Keeta reach Order Hub, so you can answer them without leaving the board." },
+    ],
+    flow: [
+      { title: "Register interest", body: "Tell us about your restaurant and we'll line you up for onboarding." },
+      { title: "Connect Keeta", body: "Link your Keeta store to Order Hub." },
+      { title: "Publish your menu", body: "Send your catalog across so both menus always match." },
+      { title: "One board", body: "Keeta joins your unified orders board alongside every channel." },
+    ],
+  },
+
   // ── Stripe ────────────────────────────────────────────────────────────────
   {
     slug: "stripe",

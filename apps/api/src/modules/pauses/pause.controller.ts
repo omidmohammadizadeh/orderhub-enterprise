@@ -39,6 +39,7 @@ const CHANNELS: SupportedChannel[] = [
   "WHATSAPP",
   "HUBRISE",
   "GLOVO",
+  "KEETA",
 ];
 const DURATIONS: DurationPreset[] = [
   "1h",

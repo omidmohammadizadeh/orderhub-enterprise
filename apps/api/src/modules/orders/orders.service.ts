@@ -153,6 +153,7 @@ export const SIMULATABLE_PLATFORMS = [
   "CAREEM",
   "TALABAT",
   "GLOVO",
+  "KEETA",
   "ONLINE",
   "WHATSAPP",
   "VOICE",

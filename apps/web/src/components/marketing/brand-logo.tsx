@@ -30,6 +30,7 @@ export type BrandKey =
   | "careem"
   | "talabat"
   | "glovo"
+  | "keeta"
   | "dojo";
 
 interface Props {
@@ -65,6 +66,7 @@ const BRAND_META: Record<BrandKey, BrandMeta> = {
   careem:     { name: "Careem",        bg: "#FFFFFF", slug: "careem" },
   talabat:    { name: "talabat",       bg: "#FF5A00", slug: "talabat" },
   glovo:      { name: "Glovo",         bg: "#FFC244", slug: "glovo" },
+  keeta:      { name: "Keeta",         bg: "#FFE000", slug: "keeta" },
   dojo:       { name: "Dojo",          bg: "#FFFFFF", slug: "dojo" },
 };
 
@@ -112,10 +114,10 @@ export function BrandLogo({ brand, size = 56, rounded = true, label }: Props) {
         <img
           src={primarySrc}
           alt={`${meta.name} logo`}
-          // talabat's and Glovo's files are full-bleed app icons — fill the
-          // tile so its rounded edge clips their square corners.
-          width={brand === "talabat" || brand === "glovo" ? size : size * 0.88}
-          height={brand === "talabat" || brand === "glovo" ? size : size * 0.88}
+          // talabat's, Glovo's and Keeta's files are full-bleed app icons —
+          // fill the tile so its rounded edge clips their square corners.
+          width={brand === "talabat" || brand === "glovo" || brand === "keeta" ? size : size * 0.88}
+          height={brand === "talabat" || brand === "glovo" || brand === "keeta" ? size : size * 0.88}
           loading="eager"
           onError={() => setPrimaryFailed(true)}
           style={{ display: "block", objectFit: "contain" }}

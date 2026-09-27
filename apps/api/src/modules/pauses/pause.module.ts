@@ -6,6 +6,7 @@ import { DeliverooModule } from "../integrations/deliveroo/deliveroo.module";
 import { UberEatsModule } from "../integrations/ubereats/ubereats.module";
 import { JetModule } from "../integrations/jet/jet.module";
 import { GlovoModule } from "../integrations/glovo/glovo.module";
+import { KeetaModule } from "../integrations/keeta/keeta.module";
 
 @Module({
   // Phase BA-2 — DeliverooModule provides DeliverooConnectionService so a
@@ -17,6 +18,7 @@ import { GlovoModule } from "../integrations/glovo/glovo.module";
     UberEatsModule,
     JetModule,
     GlovoModule,
+    KeetaModule,
   ],
   controllers: [PauseController],
   providers: [PauseService],

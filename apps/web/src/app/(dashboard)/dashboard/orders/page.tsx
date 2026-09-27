@@ -26,6 +26,7 @@ type SimPlatform =
   | "CAREEM"
   | "TALABAT"
   | "GLOVO"
+  | "KEETA"
   | "ONLINE"
   | "WHATSAPP"
   | "VOICE";
@@ -37,6 +38,7 @@ const SIM_LABEL: Record<SimPlatform, string> = {
   CAREEM: "Careem",
   TALABAT: "talabat",
   GLOVO: "Glovo",
+  KEETA: "Keeta",
   ONLINE: "Online ordering",
   WHATSAPP: "WhatsApp",
   VOICE: "AI Voice",
@@ -53,6 +55,7 @@ const SIM_MARKETPLACES = new Set<SimPlatform>([
   "CAREEM",
   "TALABAT",
   "GLOVO",
+  "KEETA",
 ]);
 
 const CAN_RUN_TEST_ORDERS = new Set(["PLATFORM_ADMIN", "ONBOARDING_AGENT"]);

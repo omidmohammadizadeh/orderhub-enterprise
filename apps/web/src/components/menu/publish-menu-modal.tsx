@@ -21,6 +21,7 @@ import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { menusClient } from "@/lib/api/menus.client";
 import { glovoClient } from "@/lib/api/glovo.client";
+import { keetaClient } from "@/lib/api/keeta.client";
 import {
   brandsClient,
   locationsClient,
@@ -107,6 +108,13 @@ const TARGETS: Target[] = [
       "Direct Glovo push — Glovo fetches this menu for the brand's connected store. Glovo allows 5 full uploads a day per store.",
     wired: true,
   },
+  {
+    id: "KEETA",
+    title: "Keeta",
+    description:
+      "Direct Keeta push — replaces the whole menu on the brand's connected Keeta store. Keeta then lock menu editing in their own portal.",
+    wired: true,
+  },
 ];
 
 type Step = "channels" | "location" | "brand";
@@ -158,11 +166,13 @@ export function PublishMenuModal({
   const shopCountry = (locationsQuery.data ?? []).find(
     (l: any) => l.id === locationId,
   )?.country as string | undefined;
+  // Keeta the same way: Gulf markets only.
+  const COUNTRY_GATED = new Set(["GLOVO", "KEETA"]);
   const visibleTargets = TARGETS.filter(
     (t) =>
-      t.id !== "GLOVO" ||
-      initiallyPublishedTo.includes("GLOVO") ||
-      channelsForCountry(shopCountry).some((c) => c.id === "GLOVO"),
+      !COUNTRY_GATED.has(t.id) ||
+      initiallyPublishedTo.includes(t.id) ||
+      channelsForCountry(shopCountry).some((c) => c.id === t.id),
   );
 
   // Brand picker: only the brands that operate AT the picked location(s) —
@@ -262,6 +272,30 @@ export function PublishMenuModal({
             .catch((e: any) =>
               pushErrors.push(
                 `Glovo: ${e?.response?.data?.message ?? e?.message ?? "failed"}`,
+              ),
+            );
+        }
+        if (next.includes("KEETA")) {
+          await keetaClient
+            .publishMenu(menuId, { locationId: loc || undefined })
+            .then((r) => {
+              // Refused before sending — every rule Keeta would reject on is
+              // checked first, so these are the reasons, not a network error.
+              if (r && r.ok === false) {
+                const errs = r.errors ?? [];
+                pushErrors.push(
+                  `Keeta: not sent — ${errs
+                    .slice(0, 3)
+                    .map((e) => `${e.name ?? e.code}: ${e.message}`)
+                    .join("; ")}${errs.length > 3 ? ` (+${errs.length - 3} more)` : ""}`,
+                );
+                return;
+              }
+              for (const w of r?.warnings ?? []) pushWarnings.push(`Keeta: ${w.name ?? w.code} ${w.message}`);
+            })
+            .catch((e: any) =>
+              pushErrors.push(
+                `Keeta: ${e?.response?.data?.message ?? e?.message ?? "failed"}`,
               ),
             );
         }
@@ -641,6 +675,7 @@ function describeSelection(s: Set<string>): string {
     UBER_EATS: "Uber Eats",
     DELIVEROO: "Deliveroo",
     GLOVO: "Glovo",
+    KEETA: "Keeta",
   };
   const names = Array.from(s).map((id) => labels[id] ?? id);
   if (names.length === 0) return "no channels";

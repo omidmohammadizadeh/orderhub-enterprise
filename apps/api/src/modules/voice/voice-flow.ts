@@ -370,6 +370,7 @@ const MARKETPLACES: Record<string, string> = {
   TALABAT: "talabat",
   CAREEM: "Careem",
   GLOVO: "Glovo",
+  KEETA: "Keeta",
   DOORDASH: "DoorDash",
   GRUBHUB: "Grubhub",
 };

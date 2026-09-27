@@ -330,7 +330,9 @@ export type PlatformId =
   | "CAREEM"
   | "TALABAT"
   // Southern & Eastern Europe, Central Asia, Africa. Free-form string too.
-  | "GLOVO";
+  | "GLOVO"
+  // Gulf (Meituan). Free-form string too.
+  | "KEETA";
 
 export type ConnectionStatus =
   | "not_connected"

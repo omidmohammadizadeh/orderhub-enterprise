@@ -691,6 +691,11 @@ export type ReferralCode = $Result.DefaultSelection<Prisma.$ReferralCodePayload>
  * only ever be referred once, whoever gets there first.
  */
 export type Referral = $Result.DefaultSelection<Prisma.$ReferralPayload>
+/**
+ * Model KeetaAuthorization
+ * 
+ */
+export type KeetaAuthorization = $Result.DefaultSelection<Prisma.$KeetaAuthorizationPayload>
 
 /**
  * Enums
@@ -790,6 +795,7 @@ export const IntegrationPlatform: {
   GRUBHUB: 'GRUBHUB',
   CAREEM: 'CAREEM',
   GLOVO: 'GLOVO',
+  KEETA: 'KEETA',
   WHATSAPP: 'WHATSAPP'
 };
 
@@ -896,6 +902,7 @@ export const OrderPlatform: {
   GRUBHUB: 'GRUBHUB',
   CAREEM: 'CAREEM',
   GLOVO: 'GLOVO',
+  KEETA: 'KEETA',
   WHATSAPP: 'WHATSAPP',
   VOICE: 'VOICE'
 };
@@ -916,6 +923,7 @@ export const OrderSource: {
   GRUBHUB: 'GRUBHUB',
   CAREEM: 'CAREEM',
   GLOVO: 'GLOVO',
+  KEETA: 'KEETA',
   WHATSAPP: 'WHATSAPP',
   VOICE: 'VOICE'
 };
@@ -2983,6 +2991,16 @@ export class PrismaClient<
     * ```
     */
   get referral(): Prisma.ReferralDelegate<ExtArgs>;
+
+  /**
+   * `prisma.keetaAuthorization`: Exposes CRUD operations for the **KeetaAuthorization** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more KeetaAuthorizations
+    * const keetaAuthorizations = await prisma.keetaAuthorization.findMany()
+    * ```
+    */
+  get keetaAuthorization(): Prisma.KeetaAuthorizationDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -3557,7 +3575,8 @@ export namespace Prisma {
     LoyaltyReward: 'LoyaltyReward',
     ReferralProgram: 'ReferralProgram',
     ReferralCode: 'ReferralCode',
-    Referral: 'Referral'
+    Referral: 'Referral',
+    KeetaAuthorization: 'KeetaAuthorization'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -3573,7 +3592,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "referralProgram" | "referralCode" | "referral"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "referralProgram" | "referralCode" | "referral" | "keetaAuthorization"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -12954,6 +12973,76 @@ export namespace Prisma {
           count: {
             args: Prisma.ReferralCountArgs<ExtArgs>
             result: $Utils.Optional<ReferralCountAggregateOutputType> | number
+          }
+        }
+      }
+      KeetaAuthorization: {
+        payload: Prisma.$KeetaAuthorizationPayload<ExtArgs>
+        fields: Prisma.KeetaAuthorizationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.KeetaAuthorizationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KeetaAuthorizationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.KeetaAuthorizationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KeetaAuthorizationPayload>
+          }
+          findFirst: {
+            args: Prisma.KeetaAuthorizationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KeetaAuthorizationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.KeetaAuthorizationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KeetaAuthorizationPayload>
+          }
+          findMany: {
+            args: Prisma.KeetaAuthorizationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KeetaAuthorizationPayload>[]
+          }
+          create: {
+            args: Prisma.KeetaAuthorizationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KeetaAuthorizationPayload>
+          }
+          createMany: {
+            args: Prisma.KeetaAuthorizationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.KeetaAuthorizationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KeetaAuthorizationPayload>[]
+          }
+          delete: {
+            args: Prisma.KeetaAuthorizationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KeetaAuthorizationPayload>
+          }
+          update: {
+            args: Prisma.KeetaAuthorizationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KeetaAuthorizationPayload>
+          }
+          deleteMany: {
+            args: Prisma.KeetaAuthorizationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.KeetaAuthorizationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.KeetaAuthorizationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KeetaAuthorizationPayload>
+          }
+          aggregate: {
+            args: Prisma.KeetaAuthorizationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateKeetaAuthorization>
+          }
+          groupBy: {
+            args: Prisma.KeetaAuthorizationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<KeetaAuthorizationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.KeetaAuthorizationCountArgs<ExtArgs>
+            result: $Utils.Optional<KeetaAuthorizationCountAggregateOutputType> | number
           }
         }
       }
@@ -160259,6 +160348,1008 @@ export namespace Prisma {
 
 
   /**
+   * Model KeetaAuthorization
+   */
+
+  export type AggregateKeetaAuthorization = {
+    _count: KeetaAuthorizationCountAggregateOutputType | null
+    _min: KeetaAuthorizationMinAggregateOutputType | null
+    _max: KeetaAuthorizationMaxAggregateOutputType | null
+  }
+
+  export type KeetaAuthorizationMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    keetaBrandId: string | null
+    brandName: string | null
+    keetaUserId: string | null
+    accessToken: string | null
+    refreshToken: string | null
+    expiresAt: Date | null
+    issuedAt: Date | null
+    status: string | null
+    lastRefreshAt: Date | null
+    lastError: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type KeetaAuthorizationMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    keetaBrandId: string | null
+    brandName: string | null
+    keetaUserId: string | null
+    accessToken: string | null
+    refreshToken: string | null
+    expiresAt: Date | null
+    issuedAt: Date | null
+    status: string | null
+    lastRefreshAt: Date | null
+    lastError: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type KeetaAuthorizationCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    keetaBrandId: number
+    brandName: number
+    keetaUserId: number
+    accessToken: number
+    refreshToken: number
+    expiresAt: number
+    issuedAt: number
+    status: number
+    shops: number
+    lastRefreshAt: number
+    lastError: number
+    metadata: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type KeetaAuthorizationMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    keetaBrandId?: true
+    brandName?: true
+    keetaUserId?: true
+    accessToken?: true
+    refreshToken?: true
+    expiresAt?: true
+    issuedAt?: true
+    status?: true
+    lastRefreshAt?: true
+    lastError?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type KeetaAuthorizationMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    keetaBrandId?: true
+    brandName?: true
+    keetaUserId?: true
+    accessToken?: true
+    refreshToken?: true
+    expiresAt?: true
+    issuedAt?: true
+    status?: true
+    lastRefreshAt?: true
+    lastError?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type KeetaAuthorizationCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    keetaBrandId?: true
+    brandName?: true
+    keetaUserId?: true
+    accessToken?: true
+    refreshToken?: true
+    expiresAt?: true
+    issuedAt?: true
+    status?: true
+    shops?: true
+    lastRefreshAt?: true
+    lastError?: true
+    metadata?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type KeetaAuthorizationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which KeetaAuthorization to aggregate.
+     */
+    where?: KeetaAuthorizationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KeetaAuthorizations to fetch.
+     */
+    orderBy?: KeetaAuthorizationOrderByWithRelationInput | KeetaAuthorizationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: KeetaAuthorizationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KeetaAuthorizations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KeetaAuthorizations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned KeetaAuthorizations
+    **/
+    _count?: true | KeetaAuthorizationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: KeetaAuthorizationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: KeetaAuthorizationMaxAggregateInputType
+  }
+
+  export type GetKeetaAuthorizationAggregateType<T extends KeetaAuthorizationAggregateArgs> = {
+        [P in keyof T & keyof AggregateKeetaAuthorization]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateKeetaAuthorization[P]>
+      : GetScalarType<T[P], AggregateKeetaAuthorization[P]>
+  }
+
+
+
+
+  export type KeetaAuthorizationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: KeetaAuthorizationWhereInput
+    orderBy?: KeetaAuthorizationOrderByWithAggregationInput | KeetaAuthorizationOrderByWithAggregationInput[]
+    by: KeetaAuthorizationScalarFieldEnum[] | KeetaAuthorizationScalarFieldEnum
+    having?: KeetaAuthorizationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: KeetaAuthorizationCountAggregateInputType | true
+    _min?: KeetaAuthorizationMinAggregateInputType
+    _max?: KeetaAuthorizationMaxAggregateInputType
+  }
+
+  export type KeetaAuthorizationGroupByOutputType = {
+    id: string
+    tenantId: string
+    keetaBrandId: string | null
+    brandName: string | null
+    keetaUserId: string | null
+    accessToken: string
+    refreshToken: string
+    expiresAt: Date
+    issuedAt: Date
+    status: string
+    shops: JsonValue
+    lastRefreshAt: Date | null
+    lastError: string | null
+    metadata: JsonValue
+    createdAt: Date
+    updatedAt: Date
+    _count: KeetaAuthorizationCountAggregateOutputType | null
+    _min: KeetaAuthorizationMinAggregateOutputType | null
+    _max: KeetaAuthorizationMaxAggregateOutputType | null
+  }
+
+  type GetKeetaAuthorizationGroupByPayload<T extends KeetaAuthorizationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<KeetaAuthorizationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof KeetaAuthorizationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], KeetaAuthorizationGroupByOutputType[P]>
+            : GetScalarType<T[P], KeetaAuthorizationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type KeetaAuthorizationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    keetaBrandId?: boolean
+    brandName?: boolean
+    keetaUserId?: boolean
+    accessToken?: boolean
+    refreshToken?: boolean
+    expiresAt?: boolean
+    issuedAt?: boolean
+    status?: boolean
+    shops?: boolean
+    lastRefreshAt?: boolean
+    lastError?: boolean
+    metadata?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["keetaAuthorization"]>
+
+  export type KeetaAuthorizationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    keetaBrandId?: boolean
+    brandName?: boolean
+    keetaUserId?: boolean
+    accessToken?: boolean
+    refreshToken?: boolean
+    expiresAt?: boolean
+    issuedAt?: boolean
+    status?: boolean
+    shops?: boolean
+    lastRefreshAt?: boolean
+    lastError?: boolean
+    metadata?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["keetaAuthorization"]>
+
+  export type KeetaAuthorizationSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    keetaBrandId?: boolean
+    brandName?: boolean
+    keetaUserId?: boolean
+    accessToken?: boolean
+    refreshToken?: boolean
+    expiresAt?: boolean
+    issuedAt?: boolean
+    status?: boolean
+    shops?: boolean
+    lastRefreshAt?: boolean
+    lastError?: boolean
+    metadata?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+
+  export type $KeetaAuthorizationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "KeetaAuthorization"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      keetaBrandId: string | null
+      brandName: string | null
+      keetaUserId: string | null
+      accessToken: string
+      refreshToken: string
+      expiresAt: Date
+      issuedAt: Date
+      status: string
+      shops: Prisma.JsonValue
+      lastRefreshAt: Date | null
+      lastError: string | null
+      metadata: Prisma.JsonValue
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["keetaAuthorization"]>
+    composites: {}
+  }
+
+  type KeetaAuthorizationGetPayload<S extends boolean | null | undefined | KeetaAuthorizationDefaultArgs> = $Result.GetResult<Prisma.$KeetaAuthorizationPayload, S>
+
+  type KeetaAuthorizationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<KeetaAuthorizationFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: KeetaAuthorizationCountAggregateInputType | true
+    }
+
+  export interface KeetaAuthorizationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['KeetaAuthorization'], meta: { name: 'KeetaAuthorization' } }
+    /**
+     * Find zero or one KeetaAuthorization that matches the filter.
+     * @param {KeetaAuthorizationFindUniqueArgs} args - Arguments to find a KeetaAuthorization
+     * @example
+     * // Get one KeetaAuthorization
+     * const keetaAuthorization = await prisma.keetaAuthorization.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends KeetaAuthorizationFindUniqueArgs>(args: SelectSubset<T, KeetaAuthorizationFindUniqueArgs<ExtArgs>>): Prisma__KeetaAuthorizationClient<$Result.GetResult<Prisma.$KeetaAuthorizationPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one KeetaAuthorization that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {KeetaAuthorizationFindUniqueOrThrowArgs} args - Arguments to find a KeetaAuthorization
+     * @example
+     * // Get one KeetaAuthorization
+     * const keetaAuthorization = await prisma.keetaAuthorization.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends KeetaAuthorizationFindUniqueOrThrowArgs>(args: SelectSubset<T, KeetaAuthorizationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__KeetaAuthorizationClient<$Result.GetResult<Prisma.$KeetaAuthorizationPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first KeetaAuthorization that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KeetaAuthorizationFindFirstArgs} args - Arguments to find a KeetaAuthorization
+     * @example
+     * // Get one KeetaAuthorization
+     * const keetaAuthorization = await prisma.keetaAuthorization.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends KeetaAuthorizationFindFirstArgs>(args?: SelectSubset<T, KeetaAuthorizationFindFirstArgs<ExtArgs>>): Prisma__KeetaAuthorizationClient<$Result.GetResult<Prisma.$KeetaAuthorizationPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first KeetaAuthorization that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KeetaAuthorizationFindFirstOrThrowArgs} args - Arguments to find a KeetaAuthorization
+     * @example
+     * // Get one KeetaAuthorization
+     * const keetaAuthorization = await prisma.keetaAuthorization.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends KeetaAuthorizationFindFirstOrThrowArgs>(args?: SelectSubset<T, KeetaAuthorizationFindFirstOrThrowArgs<ExtArgs>>): Prisma__KeetaAuthorizationClient<$Result.GetResult<Prisma.$KeetaAuthorizationPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more KeetaAuthorizations that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KeetaAuthorizationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all KeetaAuthorizations
+     * const keetaAuthorizations = await prisma.keetaAuthorization.findMany()
+     * 
+     * // Get first 10 KeetaAuthorizations
+     * const keetaAuthorizations = await prisma.keetaAuthorization.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const keetaAuthorizationWithIdOnly = await prisma.keetaAuthorization.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends KeetaAuthorizationFindManyArgs>(args?: SelectSubset<T, KeetaAuthorizationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KeetaAuthorizationPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a KeetaAuthorization.
+     * @param {KeetaAuthorizationCreateArgs} args - Arguments to create a KeetaAuthorization.
+     * @example
+     * // Create one KeetaAuthorization
+     * const KeetaAuthorization = await prisma.keetaAuthorization.create({
+     *   data: {
+     *     // ... data to create a KeetaAuthorization
+     *   }
+     * })
+     * 
+     */
+    create<T extends KeetaAuthorizationCreateArgs>(args: SelectSubset<T, KeetaAuthorizationCreateArgs<ExtArgs>>): Prisma__KeetaAuthorizationClient<$Result.GetResult<Prisma.$KeetaAuthorizationPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many KeetaAuthorizations.
+     * @param {KeetaAuthorizationCreateManyArgs} args - Arguments to create many KeetaAuthorizations.
+     * @example
+     * // Create many KeetaAuthorizations
+     * const keetaAuthorization = await prisma.keetaAuthorization.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends KeetaAuthorizationCreateManyArgs>(args?: SelectSubset<T, KeetaAuthorizationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many KeetaAuthorizations and returns the data saved in the database.
+     * @param {KeetaAuthorizationCreateManyAndReturnArgs} args - Arguments to create many KeetaAuthorizations.
+     * @example
+     * // Create many KeetaAuthorizations
+     * const keetaAuthorization = await prisma.keetaAuthorization.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many KeetaAuthorizations and only return the `id`
+     * const keetaAuthorizationWithIdOnly = await prisma.keetaAuthorization.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends KeetaAuthorizationCreateManyAndReturnArgs>(args?: SelectSubset<T, KeetaAuthorizationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KeetaAuthorizationPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a KeetaAuthorization.
+     * @param {KeetaAuthorizationDeleteArgs} args - Arguments to delete one KeetaAuthorization.
+     * @example
+     * // Delete one KeetaAuthorization
+     * const KeetaAuthorization = await prisma.keetaAuthorization.delete({
+     *   where: {
+     *     // ... filter to delete one KeetaAuthorization
+     *   }
+     * })
+     * 
+     */
+    delete<T extends KeetaAuthorizationDeleteArgs>(args: SelectSubset<T, KeetaAuthorizationDeleteArgs<ExtArgs>>): Prisma__KeetaAuthorizationClient<$Result.GetResult<Prisma.$KeetaAuthorizationPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one KeetaAuthorization.
+     * @param {KeetaAuthorizationUpdateArgs} args - Arguments to update one KeetaAuthorization.
+     * @example
+     * // Update one KeetaAuthorization
+     * const keetaAuthorization = await prisma.keetaAuthorization.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends KeetaAuthorizationUpdateArgs>(args: SelectSubset<T, KeetaAuthorizationUpdateArgs<ExtArgs>>): Prisma__KeetaAuthorizationClient<$Result.GetResult<Prisma.$KeetaAuthorizationPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more KeetaAuthorizations.
+     * @param {KeetaAuthorizationDeleteManyArgs} args - Arguments to filter KeetaAuthorizations to delete.
+     * @example
+     * // Delete a few KeetaAuthorizations
+     * const { count } = await prisma.keetaAuthorization.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends KeetaAuthorizationDeleteManyArgs>(args?: SelectSubset<T, KeetaAuthorizationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more KeetaAuthorizations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KeetaAuthorizationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many KeetaAuthorizations
+     * const keetaAuthorization = await prisma.keetaAuthorization.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends KeetaAuthorizationUpdateManyArgs>(args: SelectSubset<T, KeetaAuthorizationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one KeetaAuthorization.
+     * @param {KeetaAuthorizationUpsertArgs} args - Arguments to update or create a KeetaAuthorization.
+     * @example
+     * // Update or create a KeetaAuthorization
+     * const keetaAuthorization = await prisma.keetaAuthorization.upsert({
+     *   create: {
+     *     // ... data to create a KeetaAuthorization
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the KeetaAuthorization we want to update
+     *   }
+     * })
+     */
+    upsert<T extends KeetaAuthorizationUpsertArgs>(args: SelectSubset<T, KeetaAuthorizationUpsertArgs<ExtArgs>>): Prisma__KeetaAuthorizationClient<$Result.GetResult<Prisma.$KeetaAuthorizationPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of KeetaAuthorizations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KeetaAuthorizationCountArgs} args - Arguments to filter KeetaAuthorizations to count.
+     * @example
+     * // Count the number of KeetaAuthorizations
+     * const count = await prisma.keetaAuthorization.count({
+     *   where: {
+     *     // ... the filter for the KeetaAuthorizations we want to count
+     *   }
+     * })
+    **/
+    count<T extends KeetaAuthorizationCountArgs>(
+      args?: Subset<T, KeetaAuthorizationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], KeetaAuthorizationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a KeetaAuthorization.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KeetaAuthorizationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends KeetaAuthorizationAggregateArgs>(args: Subset<T, KeetaAuthorizationAggregateArgs>): Prisma.PrismaPromise<GetKeetaAuthorizationAggregateType<T>>
+
+    /**
+     * Group by KeetaAuthorization.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KeetaAuthorizationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends KeetaAuthorizationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: KeetaAuthorizationGroupByArgs['orderBy'] }
+        : { orderBy?: KeetaAuthorizationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, KeetaAuthorizationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetKeetaAuthorizationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the KeetaAuthorization model
+   */
+  readonly fields: KeetaAuthorizationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for KeetaAuthorization.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__KeetaAuthorizationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the KeetaAuthorization model
+   */ 
+  interface KeetaAuthorizationFieldRefs {
+    readonly id: FieldRef<"KeetaAuthorization", 'String'>
+    readonly tenantId: FieldRef<"KeetaAuthorization", 'String'>
+    readonly keetaBrandId: FieldRef<"KeetaAuthorization", 'String'>
+    readonly brandName: FieldRef<"KeetaAuthorization", 'String'>
+    readonly keetaUserId: FieldRef<"KeetaAuthorization", 'String'>
+    readonly accessToken: FieldRef<"KeetaAuthorization", 'String'>
+    readonly refreshToken: FieldRef<"KeetaAuthorization", 'String'>
+    readonly expiresAt: FieldRef<"KeetaAuthorization", 'DateTime'>
+    readonly issuedAt: FieldRef<"KeetaAuthorization", 'DateTime'>
+    readonly status: FieldRef<"KeetaAuthorization", 'String'>
+    readonly shops: FieldRef<"KeetaAuthorization", 'Json'>
+    readonly lastRefreshAt: FieldRef<"KeetaAuthorization", 'DateTime'>
+    readonly lastError: FieldRef<"KeetaAuthorization", 'String'>
+    readonly metadata: FieldRef<"KeetaAuthorization", 'Json'>
+    readonly createdAt: FieldRef<"KeetaAuthorization", 'DateTime'>
+    readonly updatedAt: FieldRef<"KeetaAuthorization", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * KeetaAuthorization findUnique
+   */
+  export type KeetaAuthorizationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeetaAuthorization
+     */
+    select?: KeetaAuthorizationSelect<ExtArgs> | null
+    /**
+     * Filter, which KeetaAuthorization to fetch.
+     */
+    where: KeetaAuthorizationWhereUniqueInput
+  }
+
+  /**
+   * KeetaAuthorization findUniqueOrThrow
+   */
+  export type KeetaAuthorizationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeetaAuthorization
+     */
+    select?: KeetaAuthorizationSelect<ExtArgs> | null
+    /**
+     * Filter, which KeetaAuthorization to fetch.
+     */
+    where: KeetaAuthorizationWhereUniqueInput
+  }
+
+  /**
+   * KeetaAuthorization findFirst
+   */
+  export type KeetaAuthorizationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeetaAuthorization
+     */
+    select?: KeetaAuthorizationSelect<ExtArgs> | null
+    /**
+     * Filter, which KeetaAuthorization to fetch.
+     */
+    where?: KeetaAuthorizationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KeetaAuthorizations to fetch.
+     */
+    orderBy?: KeetaAuthorizationOrderByWithRelationInput | KeetaAuthorizationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for KeetaAuthorizations.
+     */
+    cursor?: KeetaAuthorizationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KeetaAuthorizations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KeetaAuthorizations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of KeetaAuthorizations.
+     */
+    distinct?: KeetaAuthorizationScalarFieldEnum | KeetaAuthorizationScalarFieldEnum[]
+  }
+
+  /**
+   * KeetaAuthorization findFirstOrThrow
+   */
+  export type KeetaAuthorizationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeetaAuthorization
+     */
+    select?: KeetaAuthorizationSelect<ExtArgs> | null
+    /**
+     * Filter, which KeetaAuthorization to fetch.
+     */
+    where?: KeetaAuthorizationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KeetaAuthorizations to fetch.
+     */
+    orderBy?: KeetaAuthorizationOrderByWithRelationInput | KeetaAuthorizationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for KeetaAuthorizations.
+     */
+    cursor?: KeetaAuthorizationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KeetaAuthorizations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KeetaAuthorizations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of KeetaAuthorizations.
+     */
+    distinct?: KeetaAuthorizationScalarFieldEnum | KeetaAuthorizationScalarFieldEnum[]
+  }
+
+  /**
+   * KeetaAuthorization findMany
+   */
+  export type KeetaAuthorizationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeetaAuthorization
+     */
+    select?: KeetaAuthorizationSelect<ExtArgs> | null
+    /**
+     * Filter, which KeetaAuthorizations to fetch.
+     */
+    where?: KeetaAuthorizationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KeetaAuthorizations to fetch.
+     */
+    orderBy?: KeetaAuthorizationOrderByWithRelationInput | KeetaAuthorizationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing KeetaAuthorizations.
+     */
+    cursor?: KeetaAuthorizationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KeetaAuthorizations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KeetaAuthorizations.
+     */
+    skip?: number
+    distinct?: KeetaAuthorizationScalarFieldEnum | KeetaAuthorizationScalarFieldEnum[]
+  }
+
+  /**
+   * KeetaAuthorization create
+   */
+  export type KeetaAuthorizationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeetaAuthorization
+     */
+    select?: KeetaAuthorizationSelect<ExtArgs> | null
+    /**
+     * The data needed to create a KeetaAuthorization.
+     */
+    data: XOR<KeetaAuthorizationCreateInput, KeetaAuthorizationUncheckedCreateInput>
+  }
+
+  /**
+   * KeetaAuthorization createMany
+   */
+  export type KeetaAuthorizationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many KeetaAuthorizations.
+     */
+    data: KeetaAuthorizationCreateManyInput | KeetaAuthorizationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * KeetaAuthorization createManyAndReturn
+   */
+  export type KeetaAuthorizationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeetaAuthorization
+     */
+    select?: KeetaAuthorizationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many KeetaAuthorizations.
+     */
+    data: KeetaAuthorizationCreateManyInput | KeetaAuthorizationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * KeetaAuthorization update
+   */
+  export type KeetaAuthorizationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeetaAuthorization
+     */
+    select?: KeetaAuthorizationSelect<ExtArgs> | null
+    /**
+     * The data needed to update a KeetaAuthorization.
+     */
+    data: XOR<KeetaAuthorizationUpdateInput, KeetaAuthorizationUncheckedUpdateInput>
+    /**
+     * Choose, which KeetaAuthorization to update.
+     */
+    where: KeetaAuthorizationWhereUniqueInput
+  }
+
+  /**
+   * KeetaAuthorization updateMany
+   */
+  export type KeetaAuthorizationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update KeetaAuthorizations.
+     */
+    data: XOR<KeetaAuthorizationUpdateManyMutationInput, KeetaAuthorizationUncheckedUpdateManyInput>
+    /**
+     * Filter which KeetaAuthorizations to update
+     */
+    where?: KeetaAuthorizationWhereInput
+  }
+
+  /**
+   * KeetaAuthorization upsert
+   */
+  export type KeetaAuthorizationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeetaAuthorization
+     */
+    select?: KeetaAuthorizationSelect<ExtArgs> | null
+    /**
+     * The filter to search for the KeetaAuthorization to update in case it exists.
+     */
+    where: KeetaAuthorizationWhereUniqueInput
+    /**
+     * In case the KeetaAuthorization found by the `where` argument doesn't exist, create a new KeetaAuthorization with this data.
+     */
+    create: XOR<KeetaAuthorizationCreateInput, KeetaAuthorizationUncheckedCreateInput>
+    /**
+     * In case the KeetaAuthorization was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<KeetaAuthorizationUpdateInput, KeetaAuthorizationUncheckedUpdateInput>
+  }
+
+  /**
+   * KeetaAuthorization delete
+   */
+  export type KeetaAuthorizationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeetaAuthorization
+     */
+    select?: KeetaAuthorizationSelect<ExtArgs> | null
+    /**
+     * Filter which KeetaAuthorization to delete.
+     */
+    where: KeetaAuthorizationWhereUniqueInput
+  }
+
+  /**
+   * KeetaAuthorization deleteMany
+   */
+  export type KeetaAuthorizationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which KeetaAuthorizations to delete
+     */
+    where?: KeetaAuthorizationWhereInput
+  }
+
+  /**
+   * KeetaAuthorization without action
+   */
+  export type KeetaAuthorizationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeetaAuthorization
+     */
+    select?: KeetaAuthorizationSelect<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -162933,6 +164024,28 @@ export namespace Prisma {
   export type ReferralScalarFieldEnum = (typeof ReferralScalarFieldEnum)[keyof typeof ReferralScalarFieldEnum]
 
 
+  export const KeetaAuthorizationScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    keetaBrandId: 'keetaBrandId',
+    brandName: 'brandName',
+    keetaUserId: 'keetaUserId',
+    accessToken: 'accessToken',
+    refreshToken: 'refreshToken',
+    expiresAt: 'expiresAt',
+    issuedAt: 'issuedAt',
+    status: 'status',
+    shops: 'shops',
+    lastRefreshAt: 'lastRefreshAt',
+    lastError: 'lastError',
+    metadata: 'metadata',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type KeetaAuthorizationScalarFieldEnum = (typeof KeetaAuthorizationScalarFieldEnum)[keyof typeof KeetaAuthorizationScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -164792,6 +165905,21 @@ export namespace Prisma {
   };
 
   export type ReferralOrderByRelevanceFieldEnum = (typeof ReferralOrderByRelevanceFieldEnum)[keyof typeof ReferralOrderByRelevanceFieldEnum]
+
+
+  export const KeetaAuthorizationOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    keetaBrandId: 'keetaBrandId',
+    brandName: 'brandName',
+    keetaUserId: 'keetaUserId',
+    accessToken: 'accessToken',
+    refreshToken: 'refreshToken',
+    status: 'status',
+    lastError: 'lastError'
+  };
+
+  export type KeetaAuthorizationOrderByRelevanceFieldEnum = (typeof KeetaAuthorizationOrderByRelevanceFieldEnum)[keyof typeof KeetaAuthorizationOrderByRelevanceFieldEnum]
 
 
   /**
@@ -179762,6 +180890,115 @@ export namespace Prisma {
     qualifyingOrderId?: StringNullableWithAggregatesFilter<"Referral"> | string | null
     qualifiedAt?: DateTimeNullableWithAggregatesFilter<"Referral"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Referral"> | Date | string
+  }
+
+  export type KeetaAuthorizationWhereInput = {
+    AND?: KeetaAuthorizationWhereInput | KeetaAuthorizationWhereInput[]
+    OR?: KeetaAuthorizationWhereInput[]
+    NOT?: KeetaAuthorizationWhereInput | KeetaAuthorizationWhereInput[]
+    id?: StringFilter<"KeetaAuthorization"> | string
+    tenantId?: StringFilter<"KeetaAuthorization"> | string
+    keetaBrandId?: StringNullableFilter<"KeetaAuthorization"> | string | null
+    brandName?: StringNullableFilter<"KeetaAuthorization"> | string | null
+    keetaUserId?: StringNullableFilter<"KeetaAuthorization"> | string | null
+    accessToken?: StringFilter<"KeetaAuthorization"> | string
+    refreshToken?: StringFilter<"KeetaAuthorization"> | string
+    expiresAt?: DateTimeFilter<"KeetaAuthorization"> | Date | string
+    issuedAt?: DateTimeFilter<"KeetaAuthorization"> | Date | string
+    status?: StringFilter<"KeetaAuthorization"> | string
+    shops?: JsonFilter<"KeetaAuthorization">
+    lastRefreshAt?: DateTimeNullableFilter<"KeetaAuthorization"> | Date | string | null
+    lastError?: StringNullableFilter<"KeetaAuthorization"> | string | null
+    metadata?: JsonFilter<"KeetaAuthorization">
+    createdAt?: DateTimeFilter<"KeetaAuthorization"> | Date | string
+    updatedAt?: DateTimeFilter<"KeetaAuthorization"> | Date | string
+  }
+
+  export type KeetaAuthorizationOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    keetaBrandId?: SortOrderInput | SortOrder
+    brandName?: SortOrderInput | SortOrder
+    keetaUserId?: SortOrderInput | SortOrder
+    accessToken?: SortOrder
+    refreshToken?: SortOrder
+    expiresAt?: SortOrder
+    issuedAt?: SortOrder
+    status?: SortOrder
+    shops?: SortOrder
+    lastRefreshAt?: SortOrderInput | SortOrder
+    lastError?: SortOrderInput | SortOrder
+    metadata?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _relevance?: KeetaAuthorizationOrderByRelevanceInput
+  }
+
+  export type KeetaAuthorizationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    tenantId_keetaBrandId?: KeetaAuthorizationTenantIdKeetaBrandIdCompoundUniqueInput
+    AND?: KeetaAuthorizationWhereInput | KeetaAuthorizationWhereInput[]
+    OR?: KeetaAuthorizationWhereInput[]
+    NOT?: KeetaAuthorizationWhereInput | KeetaAuthorizationWhereInput[]
+    tenantId?: StringFilter<"KeetaAuthorization"> | string
+    keetaBrandId?: StringNullableFilter<"KeetaAuthorization"> | string | null
+    brandName?: StringNullableFilter<"KeetaAuthorization"> | string | null
+    keetaUserId?: StringNullableFilter<"KeetaAuthorization"> | string | null
+    accessToken?: StringFilter<"KeetaAuthorization"> | string
+    refreshToken?: StringFilter<"KeetaAuthorization"> | string
+    expiresAt?: DateTimeFilter<"KeetaAuthorization"> | Date | string
+    issuedAt?: DateTimeFilter<"KeetaAuthorization"> | Date | string
+    status?: StringFilter<"KeetaAuthorization"> | string
+    shops?: JsonFilter<"KeetaAuthorization">
+    lastRefreshAt?: DateTimeNullableFilter<"KeetaAuthorization"> | Date | string | null
+    lastError?: StringNullableFilter<"KeetaAuthorization"> | string | null
+    metadata?: JsonFilter<"KeetaAuthorization">
+    createdAt?: DateTimeFilter<"KeetaAuthorization"> | Date | string
+    updatedAt?: DateTimeFilter<"KeetaAuthorization"> | Date | string
+  }, "id" | "tenantId_keetaBrandId">
+
+  export type KeetaAuthorizationOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    keetaBrandId?: SortOrderInput | SortOrder
+    brandName?: SortOrderInput | SortOrder
+    keetaUserId?: SortOrderInput | SortOrder
+    accessToken?: SortOrder
+    refreshToken?: SortOrder
+    expiresAt?: SortOrder
+    issuedAt?: SortOrder
+    status?: SortOrder
+    shops?: SortOrder
+    lastRefreshAt?: SortOrderInput | SortOrder
+    lastError?: SortOrderInput | SortOrder
+    metadata?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: KeetaAuthorizationCountOrderByAggregateInput
+    _max?: KeetaAuthorizationMaxOrderByAggregateInput
+    _min?: KeetaAuthorizationMinOrderByAggregateInput
+  }
+
+  export type KeetaAuthorizationScalarWhereWithAggregatesInput = {
+    AND?: KeetaAuthorizationScalarWhereWithAggregatesInput | KeetaAuthorizationScalarWhereWithAggregatesInput[]
+    OR?: KeetaAuthorizationScalarWhereWithAggregatesInput[]
+    NOT?: KeetaAuthorizationScalarWhereWithAggregatesInput | KeetaAuthorizationScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"KeetaAuthorization"> | string
+    tenantId?: StringWithAggregatesFilter<"KeetaAuthorization"> | string
+    keetaBrandId?: StringNullableWithAggregatesFilter<"KeetaAuthorization"> | string | null
+    brandName?: StringNullableWithAggregatesFilter<"KeetaAuthorization"> | string | null
+    keetaUserId?: StringNullableWithAggregatesFilter<"KeetaAuthorization"> | string | null
+    accessToken?: StringWithAggregatesFilter<"KeetaAuthorization"> | string
+    refreshToken?: StringWithAggregatesFilter<"KeetaAuthorization"> | string
+    expiresAt?: DateTimeWithAggregatesFilter<"KeetaAuthorization"> | Date | string
+    issuedAt?: DateTimeWithAggregatesFilter<"KeetaAuthorization"> | Date | string
+    status?: StringWithAggregatesFilter<"KeetaAuthorization"> | string
+    shops?: JsonWithAggregatesFilter<"KeetaAuthorization">
+    lastRefreshAt?: DateTimeNullableWithAggregatesFilter<"KeetaAuthorization"> | Date | string | null
+    lastError?: StringNullableWithAggregatesFilter<"KeetaAuthorization"> | string | null
+    metadata?: JsonWithAggregatesFilter<"KeetaAuthorization">
+    createdAt?: DateTimeWithAggregatesFilter<"KeetaAuthorization"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"KeetaAuthorization"> | Date | string
   }
 
   export type TenantCreateInput = {
@@ -196045,6 +197282,139 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type KeetaAuthorizationCreateInput = {
+    id?: string
+    tenantId: string
+    keetaBrandId?: string | null
+    brandName?: string | null
+    keetaUserId?: string | null
+    accessToken: string
+    refreshToken: string
+    expiresAt: Date | string
+    issuedAt: Date | string
+    status?: string
+    shops?: JsonNullValueInput | InputJsonValue
+    lastRefreshAt?: Date | string | null
+    lastError?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type KeetaAuthorizationUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    keetaBrandId?: string | null
+    brandName?: string | null
+    keetaUserId?: string | null
+    accessToken: string
+    refreshToken: string
+    expiresAt: Date | string
+    issuedAt: Date | string
+    status?: string
+    shops?: JsonNullValueInput | InputJsonValue
+    lastRefreshAt?: Date | string | null
+    lastError?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type KeetaAuthorizationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    keetaBrandId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandName?: NullableStringFieldUpdateOperationsInput | string | null
+    keetaUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    accessToken?: StringFieldUpdateOperationsInput | string
+    refreshToken?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    issuedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    shops?: JsonNullValueInput | InputJsonValue
+    lastRefreshAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type KeetaAuthorizationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    keetaBrandId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandName?: NullableStringFieldUpdateOperationsInput | string | null
+    keetaUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    accessToken?: StringFieldUpdateOperationsInput | string
+    refreshToken?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    issuedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    shops?: JsonNullValueInput | InputJsonValue
+    lastRefreshAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type KeetaAuthorizationCreateManyInput = {
+    id?: string
+    tenantId: string
+    keetaBrandId?: string | null
+    brandName?: string | null
+    keetaUserId?: string | null
+    accessToken: string
+    refreshToken: string
+    expiresAt: Date | string
+    issuedAt: Date | string
+    status?: string
+    shops?: JsonNullValueInput | InputJsonValue
+    lastRefreshAt?: Date | string | null
+    lastError?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type KeetaAuthorizationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    keetaBrandId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandName?: NullableStringFieldUpdateOperationsInput | string | null
+    keetaUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    accessToken?: StringFieldUpdateOperationsInput | string
+    refreshToken?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    issuedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    shops?: JsonNullValueInput | InputJsonValue
+    lastRefreshAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type KeetaAuthorizationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    keetaBrandId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandName?: NullableStringFieldUpdateOperationsInput | string | null
+    keetaUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    accessToken?: StringFieldUpdateOperationsInput | string
+    refreshToken?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    issuedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    shops?: JsonNullValueInput | InputJsonValue
+    lastRefreshAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -206986,6 +208356,70 @@ export namespace Prisma {
     qualifyingOrderId?: SortOrder
     qualifiedAt?: SortOrder
     createdAt?: SortOrder
+  }
+
+  export type KeetaAuthorizationOrderByRelevanceInput = {
+    fields: KeetaAuthorizationOrderByRelevanceFieldEnum | KeetaAuthorizationOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type KeetaAuthorizationTenantIdKeetaBrandIdCompoundUniqueInput = {
+    tenantId: string
+    keetaBrandId: string
+  }
+
+  export type KeetaAuthorizationCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    keetaBrandId?: SortOrder
+    brandName?: SortOrder
+    keetaUserId?: SortOrder
+    accessToken?: SortOrder
+    refreshToken?: SortOrder
+    expiresAt?: SortOrder
+    issuedAt?: SortOrder
+    status?: SortOrder
+    shops?: SortOrder
+    lastRefreshAt?: SortOrder
+    lastError?: SortOrder
+    metadata?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type KeetaAuthorizationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    keetaBrandId?: SortOrder
+    brandName?: SortOrder
+    keetaUserId?: SortOrder
+    accessToken?: SortOrder
+    refreshToken?: SortOrder
+    expiresAt?: SortOrder
+    issuedAt?: SortOrder
+    status?: SortOrder
+    lastRefreshAt?: SortOrder
+    lastError?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type KeetaAuthorizationMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    keetaBrandId?: SortOrder
+    brandName?: SortOrder
+    keetaUserId?: SortOrder
+    accessToken?: SortOrder
+    refreshToken?: SortOrder
+    expiresAt?: SortOrder
+    issuedAt?: SortOrder
+    status?: SortOrder
+    lastRefreshAt?: SortOrder
+    lastError?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type BrandCreateNestedManyWithoutTenantInput = {
@@ -271731,6 +273165,10 @@ export namespace Prisma {
      * @deprecated Use ReferralDefaultArgs instead
      */
     export type ReferralArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ReferralDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use KeetaAuthorizationDefaultArgs instead
+     */
+    export type KeetaAuthorizationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = KeetaAuthorizationDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

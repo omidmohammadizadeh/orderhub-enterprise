@@ -153,6 +153,7 @@ export class CustomersService {
       CAREEM: ["CAREEM"],
       TALABAT: ["TALABAT"],
       GLOVO: ["GLOVO"],
+      KEETA: ["KEETA"],
     };
 
     // Location scoping: a scoped user only sees customers from their accessible

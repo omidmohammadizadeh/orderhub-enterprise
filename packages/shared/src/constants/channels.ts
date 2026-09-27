@@ -21,6 +21,7 @@ export type ChannelId =
   | "CAREEM"
   | "TALABAT"
   | "GLOVO"
+  | "KEETA"
   | "HUBRISE";
 
 export interface ChannelDef {
@@ -59,6 +60,16 @@ const GULF: ChannelDef[] = [
   { id: "DELIVEROO" },
 ];
 
+// Keeta (Meituan) launched across the Gulf from 2023 (KSA) and August 2025
+// (UAE, Qatar, Kuwait, Bahrain). Source for the country list: the currencies
+// its Standard API accepts — SAR, AED, QAR, KWD, BHD, OMR (plus HKD and BRL,
+// which are not Gulf markets we serve). Jordan and Egypt are NOT among them,
+// so those two keep the plain Gulf set.
+const GULF_WITH_KEETA: ChannelDef[] = [...GULF, { id: "KEETA" }];
+
+/** Where Keeta's Standard API trades that we serve (see GULF_WITH_KEETA). */
+export const KEETA_COUNTRIES = ["AE", "SA", "KW", "QA", "BH", "OM"] as const;
+
 // Glovo's markets (restaurant Partners API, docs/glovo-integration.md). Only
 // Glovo and direct ordering are listed: nobody has confirmed which other
 // marketplaces we would integrate with there, and the rule above applies —
@@ -81,12 +92,12 @@ export const GLOVO_COUNTRIES = [
 export const CHANNELS_BY_COUNTRY: Record<string, ChannelDef[]> = {
   GB: UK,
   IE: [DIRECT, { id: "JUST_EAT" }, { id: "UBER_EATS" }, { id: "DELIVEROO" }],
-  AE: GULF,
-  SA: GULF,
-  KW: GULF,
-  QA: GULF,
-  BH: GULF,
-  OM: GULF,
+  AE: GULF_WITH_KEETA,
+  SA: GULF_WITH_KEETA,
+  KW: GULF_WITH_KEETA,
+  QA: GULF_WITH_KEETA,
+  BH: GULF_WITH_KEETA,
+  OM: GULF_WITH_KEETA,
   JO: GULF,
   EG: GULF,
   ...Object.fromEntries(GLOVO_COUNTRIES.map((c) => [c, GLOVO_MARKET])),
