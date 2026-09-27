@@ -61,6 +61,7 @@
     },
     "plugins": [
       "./plugins/withCometUsb",
+      "./plugins/withOptionalCamera",
       "expo-apple-authentication",
       "expo-secure-store",
       [
