@@ -29,6 +29,13 @@ export interface PayoutSchedule {
   weeklyAnchor: string | null;
   /** Only on a monthly schedule — 1–31. */
   monthlyAnchor: number | null;
+  /** Working days Stripe holds card money before paying it out (UK: 3). */
+  delayDays?: number | null;
+  /**
+   * Earliest weekly payout day that includes all of the previous Mon–Sun.
+   * Earlier days miss last weekend, so the page doesn't offer them.
+   */
+  fullWeekFrom?: string | null;
 }
 
 export interface PayoutRow {
