@@ -55,13 +55,30 @@ export function CameraScanModal({
       cb.current(code);
     };
 
+    const openCamera = () =>
+      navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+        audio: false,
+      });
+
     (async () => {
       try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: "environment" } },
-          audio: false,
-        });
-        if (cancelled) return;
+        try {
+          stream = await openCamera();
+        } catch (err: any) {
+          // The Android app asks for the camera the first time, and Android's
+          // permission dialog pauses the app — which cancels the WebView's
+          // request, so this first try is refused even when the person taps
+          // Allow. The permission IS granted by now; ask once more.
+          if (err?.name !== "NotAllowedError" || cancelled) throw err;
+          await new Promise((r) => setTimeout(r, 700));
+          if (cancelled) return;
+          stream = await openCamera();
+        }
+        if (cancelled) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
         const video = videoRef.current!;
 
         const Detector = (window as any).BarcodeDetector;
