@@ -14,6 +14,8 @@ import { MenuAssignmentsService } from "../../menus/menu-assignments.service";
 import { RetailCatalogService } from "../retail-catalog.service";
 import { RetailReturnsService } from "../retail-returns.service";
 import { RetailStockService } from "../retail-stock.service";
+import { RetailPickingService } from "../retail-picking.service";
+import { soldOutItemIds } from "../retail-availability";
 
 const URL = process.env.RETAIL_IT_DATABASE_URL;
 const d = URL ? describe : describe.skip;
@@ -23,6 +25,8 @@ d("retail R1 (database)", () => {
   let stock: RetailStockService;
   let catalog: RetailCatalogService;
   let returns: RetailReturnsService;
+  let picking: RetailPickingService;
+  const captureForOrder = jest.fn(async () => undefined);
   const refundStripeAmount = jest.fn(async () => "re_test_123");
   // Behaves like DojoService's card-machine refund: start stores the session
   // (with our context) on the payment; a "tapped" status books the Refund row
@@ -116,6 +120,21 @@ d("retail R1 (database)", () => {
       { emitToTenant: () => undefined } as any,
       { emit: () => undefined } as any,
       dojoStub as any,
+    );
+    // updateStatus stand-in: writes the status (the real one also prints,
+    // emits and syncs — not what these tests are about).
+    const ordersStub = {
+      resolveOrderAccessWhere: async (u: any) => ({ tenantId: u.tenantId }),
+      updateStatus: async (id: string, _t: string, dto: any) =>
+        prisma.order.update({ where: { id }, data: { status: dto.status } }),
+    };
+    picking = new RetailPickingService(
+      prisma as any,
+      ordersStub as any,
+      { refundStripeAmount, captureForOrder } as any,
+      stock,
+      { emitToTenant: () => undefined } as any,
+      { emit: () => undefined } as any,
     );
   });
 
@@ -487,5 +506,126 @@ d("retail R1 (database)", () => {
     await expect(returns.findSale(owner(), shopId, "#k7q2m")).resolves.toMatchObject({
       order: { id: order.id },
     });
+  });
+  // ── R3 picking + R2-lite ────────────────────────────────────────────────
+
+  async function onlineOrder(opts: { paymentMethod: string; lines: Parameters<typeof sale>[0]["lines"] }) {
+    const o = await sale({ paymentMethod: opts.paymentMethod, lines: opts.lines });
+    return prisma.order.update({
+      where: { id: o.id },
+      data: { isWalkIn: false, orderSource: "ONLINE", fulfillmentType: "DELIVERY", status: "ACCEPTED" } as any,
+      include: { items: true },
+    });
+  }
+
+  it("picks a card order: refunds what was missing, zeroes the empty shelf, marks it ready", async () => {
+    const milk = await variantByBarcode("5000128104517");
+    const coke = await variantByBarcode("5000112637922");
+    const order = await onlineOrder({
+      paymentMethod: "CARD",
+      lines: [
+        { name: "Milk 2L", qty: 2, total: 3.1, menuItemId: milk.menuItemId, variantId: milk.id },
+        { name: "Coke", qty: 1, total: 1.35, menuItemId: coke.menuItemId, variantId: coke.id },
+      ],
+    });
+    const payment = await prisma.payment.create({
+      data: {
+        tenantId,
+        orderId: order.id,
+        amount: 4.45,
+        netAmount: 4.45,
+        status: "SUCCEEDED",
+        method: "CARD",
+        provider: "STRIPE",
+        stripePaymentIntentId: `pi_pick_${tag}`,
+      } as any,
+    });
+    await stock.syncOrder(order.id, "commit");
+    const cokeBefore = await levelOf(coke.id);
+
+    const list = await picking.list(owner(), shopId);
+    const onList = list.orders.find((o: any) => o.id === order.id)!;
+    expect(onList.lines.map((l: any) => l.aisle)).toEqual(expect.arrayContaining(["Dairy", "Drinks"]));
+    expect(onList.lines.find((l: any) => l.name === "Coke").barcodes).toContain("5000112637922");
+
+    await picking.start(owner(), order.id);
+    const milkLine = order.items.find((i) => i.name === "Milk 2L")!;
+    const cokeLine = order.items.find((i) => i.name === "Coke")!;
+    await picking.setLine(owner(), order.id, milkLine.id, { picked: 1 });
+    await picking.setLine(owner(), order.id, cokeLine.id, { picked: 1 });
+
+    refundStripeAmount.mockClear();
+    refundStripeAmount.mockResolvedValueOnce("re_pick_1");
+    const done = await picking.complete(owner(), order.id);
+    expect(done).toMatchObject({ refund: 1.55, settledBy: "CARD", missing: 1 });
+    expect(refundStripeAmount).toHaveBeenCalledWith(expect.objectContaining({ id: payment.id }), 155, expect.anything());
+    const after = await prisma.order.findUniqueOrThrow({ where: { id: order.id } });
+    expect(after).toMatchObject({ status: "READY", paymentStatus: "PARTIALLY_REFUNDED" });
+    expect(await levelOf(milk.id)).toBe(0); // missing at picking → empty shelf
+    expect(await levelOf(coke.id)).toBe(cokeBefore); // fully picked: untouched
+    const refund = await prisma.refund.findFirstOrThrow({ where: { orderId: order.id }, include: { lines: true } });
+    expect(refund.lines).toEqual([expect.objectContaining({ orderItemId: milkLine.id, quantity: 1, restock: false })]);
+    await expect(picking.complete(owner(), order.id)).rejects.toThrow(/already finished/);
+  });
+
+  it("picks a cash-on-delivery order: collects less instead of refunding, honours 'no substitute'", async () => {
+    const coke = await variantByBarcode("5000112637922");
+    const walkers = await variantByBarcode("5012345678900").catch(() => null);
+    const order = await onlineOrder({
+      paymentMethod: "CASH",
+      lines: [{ name: "Coke", qty: 2, total: 2.7, menuItemId: coke.menuItemId, variantId: coke.id }],
+    });
+    await prisma.orderItem.update({
+      where: { id: order.items[0]!.id },
+      data: { metadata: { variantId: coke.id, substitution: "NONE" } },
+    });
+    await expect(
+      picking.setLine(owner(), order.id, order.items[0]!.id, { picked: 1, sub: { name: "Pepsi", qty: 1, unitPrice: 1 } }),
+    ).rejects.toThrow(/no substitute/);
+    await picking.setLine(owner(), order.id, order.items[0]!.id, { picked: 1 });
+    const done = await picking.complete(owner(), order.id);
+    expect(done).toMatchObject({ refund: 1.35, settledBy: "CASH_COLLECT" });
+    const after = await prisma.order.findUniqueOrThrow({ where: { id: order.id } });
+    expect(Number(after.total)).toBe(1.35);
+    expect(await prisma.refund.count({ where: { orderId: order.id } })).toBe(0);
+    expect(walkers === null || walkers !== undefined).toBe(true);
+  });
+
+  it("refuses to finish an order where nothing was picked", async () => {
+    const coke = await variantByBarcode("5000112637922");
+    const order = await onlineOrder({
+      paymentMethod: "CASH",
+      lines: [{ name: "Coke", qty: 1, total: 1.35, menuItemId: coke.menuItemId, variantId: coke.id }],
+    });
+    await expect(picking.complete(owner(), order.id)).rejects.toThrow(/cancel the order instead/);
+  });
+
+  it("books a scanned delivery and reports stock value", async () => {
+    const coke = await variantByBarcode("5000112637922");
+    await prisma.productVariant.update({ where: { id: coke.id }, data: { costPrice: 0.5, lowStockAt: 100 } });
+    const before = await levelOf(coke.id);
+    await expect(
+      stock.receive({ tenantId, locationId: shopId, userId: "u-owner", reference: "PO-7", lines: [{ variantId: coke.id, quantity: 12 }] }),
+    ).resolves.toMatchObject({ units: 12, reference: "PO-7" });
+    expect(await levelOf(coke.id)).toBe(before + 12);
+    const last = await prisma.productStockMovement.findFirstOrThrow({ where: { variantId: coke.id }, orderBy: { createdAt: "desc" } });
+    expect(last).toMatchObject({ type: "PURCHASE", quantity: 12, reason: "Delivery PO-7" });
+    await expect(
+      stock.receive({ tenantId, locationId: shopId, userId: "u", lines: [{ variantId: coke.id, quantity: -1 }] }),
+    ).rejects.toThrow(/only adds stock/);
+
+    const report = await stock.report(tenantId, shopId);
+    const row = report.rows.find((r) => r.variantId === coke.id)!;
+    expect(row).toMatchObject({ quantity: before + 12, cost: 0.5, low: true });
+    expect(row.value).toBeCloseTo(0.5 * (before + 12));
+    expect(report.totals.low).toBeGreaterThanOrEqual(1);
+  });
+
+  it("knows what the storefront should show as sold out", async () => {
+    const milk = await variantByBarcode("5000128104517"); // zeroed at picking above
+    const coke = await variantByBarcode("5000112637922");
+    const out = await soldOutItemIds(prisma as any, shopId, [milk.menuItemId, coke.menuItemId]);
+    expect(out.has(milk.menuItemId)).toBe(true);
+    expect(out.has(coke.menuItemId)).toBe(false);
   });
 });

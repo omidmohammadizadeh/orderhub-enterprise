@@ -44,6 +44,7 @@ import { ReferralClaim } from "@/components/storefront/referral-claim";
 import { ReferAFriend } from "@/components/storefront/refer-a-friend";
 import { PlacingOrderSheet } from "@/components/storefront/placing-order-sheet";
 import { TipStep } from "@/components/storefront/tip-step";
+import { ShopProductTile } from "@/components/storefront/shop-product-tile";
 import {
   RatingPill,
   StorefrontReviews,
@@ -137,6 +138,8 @@ import type { SelectedModifier, ProductSku } from "@orderhub/shared";
 interface Storefront {
   location: {
     id: string;
+    /** Retail R3 — GROCERY / RETAIL get the shop layout. Absent on old payloads. */
+    businessType?: "RESTAURANT" | "GROCERY" | "RETAIL";
     name: string;
     slug: string;
     phone?: string;
@@ -223,6 +226,9 @@ interface CartLine {
   bogoOf?: string;
   // Phase AW-19 — FREE_ITEM gift marker (campaign id). Internal-only.
   freeItemOf?: string;
+  /** Retail R3 — shops only: may the picker swap this if it's out of stock?
+   *  Absent = yes (BEST_MATCH), the grocery norm. */
+  substitution?: "BEST_MATCH" | "NONE";
 }
 
 type CartAction =
@@ -231,6 +237,7 @@ type CartAction =
   | { type: "DECREMENT"; id: string }
   | { type: "REMOVE"; id: string }
   | { type: "SET"; lines: CartLine[] }
+  | { type: "SET_SUBSTITUTION"; id: string; value: "BEST_MATCH" | "NONE" }
   | { type: "CLEAR" };
 
 /**
@@ -297,6 +304,8 @@ function cartReducer(state: CartLine[], action: CartAction): CartLine[] {
         .filter((l) => l.quantity > 0);
     case "REMOVE":
       return state.filter((l) => l.id !== action.id);
+    case "SET_SUBSTITUTION":
+      return state.map((l) => (l.id === action.id ? { ...l, substitution: action.value } : l));
     case "CLEAR":
       return [];
     default:
@@ -1044,6 +1053,13 @@ function OrderPage() {
   // customer can't otherwise see how many they've already added without
   // opening the cart. Anything configurable still opens the sheet, because a
   // second "Large, no onions" is not the same line as the first.
+  // Retail R3 — a GROCERY/RETAIL location gets the shop layout: product tiles
+  // with steppers, stock-aware, per-line substitution in the basket.
+  const isShop =
+    storefront?.location?.businessType === "GROCERY" ||
+    storefront?.location?.businessType === "RETAIL";
+  const shopMinDelivery = isShop ? Number(cfg?.minOrderForDelivery ?? 0) || null : null;
+
   const isSimpleItem = useCallback(
     (item: MenuItem) =>
       !(item.modifierGroupLinks?.length ?? 0) && !(item as any).hasMultipleSkus,
@@ -1325,6 +1341,8 @@ function OrderPage() {
         unitPrice: l.unitPrice,
         modifiers: l.modifiers.map(toOrderLineModifier),
         notes: l.notes,
+        // Retail R3 — ignored by the server for restaurants.
+        ...(l.substitution ? { substitution: l.substitution } : {}),
       }));
       const payload: any = {
         idempotencyKey: `direct-${Date.now()}-${Math.random()
@@ -2165,7 +2183,7 @@ function OrderPage() {
             <input
               value={search}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search for food…"
+              placeholder={isShop ? "Search products…" : "Search for food…"}
               className="w-full rounded-xl border border-zinc-200 bg-white px-9 py-3 text-sm focus:border-zinc-400 focus:outline-none"
             />
           </div>
@@ -2250,6 +2268,35 @@ function OrderPage() {
                     Nothing in {cat.name} yet — check back soon.
                   </p>
                 ) : (
+                  isShop ? (
+                    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
+                      {items.map((item) => {
+                        const { amount, from } = displayPrice(item as any);
+                        const promo = itemPromos[item.id] ?? null;
+                        const off = promo && promo.percentageOff > 0 ? promo.percentageOff : 0;
+                        const simple = isSimpleItem(item);
+                        return (
+                          <ShopProductTile
+                            key={item.id}
+                            name={item.name}
+                            imageUrl={(cfg?.showItemImages ?? true) ? (item as any).imageUrl : null}
+                            price={money(off ? Math.round(amount * (1 - off / 100) * 100) / 100 : amount)}
+                            wasPrice={off ? money(amount) : null}
+                            fromPrice={!!from}
+                            soldOut={!!(item as any).outOfStock}
+                            qty={simple ? (plainLineFor(item.id)?.quantity ?? 0) : 0}
+                            simple={simple}
+                            onInc={() => handleProductClick(item)}
+                            onDec={() => {
+                              const line = plainLineFor(item.id);
+                              if (line) dispatch({ type: "DECREMENT", id: line.id });
+                            }}
+                            onOpen={() => openItemSheet(item)}
+                          />
+                        );
+                      })}
+                    </div>
+                  ) : (
                   <>
                     {/* Phones get a list, not a grid. A card per row wastes
                         most of a 375px screen on padding and image, so the
@@ -2295,6 +2342,7 @@ function OrderPage() {
                       ))}
                     </div>
                   </>
+                  )
                 )}
               </section>
             ))
@@ -2428,6 +2476,8 @@ function OrderPage() {
           onClose={() => setCartOpen(false)}
           cart={cart}
           dispatch={dispatch}
+          isShop={isShop}
+          minOrderForDelivery={shopMinDelivery}
           subtotal={subtotal}
           deliveryFee={deliveryFee}
           serviceCharge={serviceCharge}
@@ -3265,6 +3315,9 @@ interface CartPanelProps {
   onClose: () => void;
   cart: CartLine[];
   dispatch: React.Dispatch<CartAction>;
+  /** Retail R3 — shop basket: per-line substitution, delivery minimum. */
+  isShop?: boolean;
+  minOrderForDelivery?: number | null;
   subtotal: number;
   deliveryFee: number;
   serviceCharge: number;
@@ -3370,6 +3423,8 @@ function CartPanel(props: CartPanelProps) {
     money,
     onClose,
     cart,
+    isShop,
+    minOrderForDelivery,
     addrFlat,
     setAddrFlat,
     promoCode,
@@ -3455,7 +3510,11 @@ function CartPanel(props: CartPanelProps) {
   // without buying something else first — being made to add a drink to claim
   // a free chicken is the sort of small meanness people remember.
   const rewardApplied = !!loyaltyReward && useLoyaltyReward;
+  // Retail R3 — a shop's delivery minimum (the server enforces it too).
+  const belowShopMinimum =
+    !!isShop && fulfillmentType === "DELIVERY" && !!minOrderForDelivery && subtotal + 1e-9 < minOrderForDelivery;
   const canPlace =
+    !belowShopMinimum &&
     (cart.length > 0 || rewardApplied) &&
     customerName.trim().length > 0 &&
     customerPhone.trim().length > 0 &&
@@ -3563,6 +3622,22 @@ function CartPanel(props: CartPanelProps) {
                     <p className="mt-1 text-xs text-zinc-500">
                       {money(l.unitPrice * l.quantity)}
                     </p>
+                    {isShop && !l.bogoOf && !l.freeItemOf && (
+                      <label className="mt-1 flex items-center gap-1.5 text-[11px] text-zinc-600">
+                        <input
+                          type="checkbox"
+                          checked={l.substitution !== "NONE"}
+                          onChange={(e) =>
+                            dispatch({
+                              type: "SET_SUBSTITUTION",
+                              id: l.id,
+                              value: e.target.checked ? "BEST_MATCH" : "NONE",
+                            })
+                          }
+                        />
+                        Swap for similar if out of stock
+                      </label>
+                    )}
                   </div>
                   <div className="flex items-center gap-1">
                     <button
@@ -3991,6 +4066,12 @@ function CartPanel(props: CartPanelProps) {
             />
           )}
           <Row label="Total" value={`${money(total)}`} bold />
+          {belowShopMinimum && (
+            <p className="text-[11px] text-amber-700">
+              Delivery minimum is {money(minOrderForDelivery!)} — add{" "}
+              {money(minOrderForDelivery! - subtotal)} more, or choose collection.
+            </p>
+          )}
           {placeError && (
             <p className="text-[11px] text-red-600">{placeError}</p>
           )}

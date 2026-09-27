@@ -406,3 +406,96 @@ export function normalizeImportRows(
 /** Minor units → a 2dp decimal string for Prisma Decimal columns. */
 export const toMajor = (minor: number) => (minor / 100).toFixed(2);
 export const toMinor = (major: unknown) => Math.round(Number(major ?? 0) * 100);
+
+// ── Online grocery: substitutions and picking (R3) ─────────────────────────
+
+/** What the customer asked for if a line is out of stock at picking time. */
+export const SUBSTITUTION_PREFS = ["BEST_MATCH", "NONE"] as const;
+export type SubstitutionPref = (typeof SUBSTITUTION_PREFS)[number];
+
+export function parseSubstitutionPref(v: unknown): SubstitutionPref | undefined {
+  return typeof v === "string" && (SUBSTITUTION_PREFS as readonly string[]).includes(v)
+    ? (v as SubstitutionPref)
+    : undefined;
+}
+
+/**
+ * A line's picking state, kept in OrderItem.metadata.pick. `picked` of the
+ * ordered quantity came off the shelf; `sub` replaced some of the rest with
+ * another product. Whatever is left is missing.
+ */
+export interface PickState {
+  picked: number;
+  sub?: { variantId?: string | null; menuItemId?: string | null; name: string; qty: number; unitPrice: number } | null;
+}
+
+export interface PickLine {
+  id: string;
+  name: string;
+  quantity: number;
+  /** Line total in minor units, as ordered. */
+  totalMinor: number;
+  pick?: PickState | null;
+}
+
+/** Validate a pick update against the ordered quantity; throws a staff-readable Error. */
+export function normalizePick(line: { name: string; quantity: number }, pick: PickState): PickState {
+  const picked = Math.trunc(Number(pick.picked));
+  if (!Number.isFinite(picked) || picked < 0 || picked > line.quantity) {
+    throw new Error(`Picked must be between 0 and ${line.quantity} for ${line.name}`);
+  }
+  if (!pick.sub) return { picked, sub: null };
+  const qty = Math.trunc(Number(pick.sub.qty));
+  if (!Number.isFinite(qty) || qty < 1) throw new Error("A substitute needs a quantity of at least 1");
+  if (picked + qty > line.quantity) {
+    throw new Error(`Only ${line.quantity - picked} × ${line.name} can be substituted`);
+  }
+  const unitPrice = Number(pick.sub.unitPrice);
+  if (!Number.isFinite(unitPrice) || unitPrice < 0) throw new Error("The substitute needs a price");
+  const name = String(pick.sub.name ?? "").trim();
+  if (!name) throw new Error("Name the substitute");
+  return {
+    picked,
+    sub: {
+      variantId: pick.sub.variantId ?? null,
+      menuItemId: pick.sub.menuItemId ?? null,
+      name,
+      qty,
+      unitPrice: Math.round(unitPrice * 100) / 100,
+    },
+  };
+}
+
+/**
+ * What goes back to the customer once picking is done.
+ *
+ * Each unit is worth what they actually paid for it (its share of the line,
+ * scaled by any order discount — the same rule as a till return). A missing
+ * unit is refunded in full. A substituted unit is charged at the cheaper of
+ * the two prices, never more: a customer who asked for a £1 own-brand and got
+ * a £1.40 branded one is not asked for 40p, and gets the difference back if
+ * the substitute is cheaper. A line never touched counts as all missing.
+ */
+export function priceShortfall(args: {
+  lines: PickLine[];
+  subtotalMinor: number;
+  discountMinor: number;
+}): {
+  refundMinor: number;
+  lines: Array<{ id: string; missing: number; substituted: number; refundMinor: number }>;
+} {
+  const factor =
+    args.subtotalMinor > 0 && args.discountMinor > 0
+      ? Math.max(0, args.subtotalMinor - args.discountMinor) / args.subtotalMinor
+      : 1;
+  const out = args.lines.map((l) => {
+    const picked = Math.min(l.quantity, Math.max(0, l.pick?.picked ?? 0));
+    const subQty = Math.min(l.quantity - picked, Math.max(0, l.pick?.sub?.qty ?? 0));
+    const missing = l.quantity - picked - subQty;
+    const unitPaid = l.quantity > 0 ? (l.totalMinor / l.quantity) * factor : 0;
+    const subUnit = Math.round((l.pick?.sub?.unitPrice ?? 0) * 100) * factor;
+    const refund = missing * unitPaid + subQty * Math.max(0, unitPaid - subUnit);
+    return { id: l.id, missing, substituted: subQty, refundMinor: Math.round(refund) };
+  });
+  return { refundMinor: out.reduce((s, l) => s + l.refundMinor, 0), lines: out };
+}

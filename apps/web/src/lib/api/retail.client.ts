@@ -118,6 +118,67 @@ export type MachineReturnStatus =
       sale?: SaleForReturn;
     };
 
+// ── R3 picking ─────────────────────────────────────────────────────────────
+
+export interface PickSub {
+  variantId?: string | null;
+  menuItemId?: string | null;
+  name: string;
+  qty: number;
+  unitPrice: number;
+}
+
+export interface PickLine {
+  id: string;
+  name: string;
+  quantity: number;
+  unitPrice: number;
+  notes: string | null;
+  modifiers: Array<{ name: string }> | null;
+  aisle: string;
+  aisleOrder: number;
+  barcodes: string[];
+  variantId: string | null;
+  substitution: "BEST_MATCH" | "NONE";
+  pick: { picked: number; sub?: PickSub | null } | null;
+}
+
+export interface PickOrder {
+  id: string;
+  displayId: string | null;
+  orderNumber: number | null;
+  status: string;
+  fulfillmentType: string;
+  orderSource: string;
+  customerName: string;
+  scheduledFor: string | null;
+  createdAt: string;
+  specialInstructions: string | null;
+  paymentMethod: string | null;
+  paymentStatus: string;
+  total: number;
+  picking: { completedAt: string; refund: number; settledBy: string } | null;
+  lines: PickLine[];
+}
+
+export interface StockReport {
+  rows: Array<{
+    variantId: string;
+    product: string;
+    variant: string;
+    barcode: string | null;
+    sku: string | null;
+    quantity: number;
+    price: number;
+    cost: number | null;
+    value: number | null;
+    lowStockAt: number | null;
+    low: boolean;
+    trackStock: boolean;
+  }>;
+  totals: { variants: number; units: number; valueAtCost: number; low: number; uncosted: number };
+}
+
 export interface VariantInput {
   name?: string;
   barcode?: string | null;
@@ -182,6 +243,27 @@ export const retailClient = {
     apiClient
       .post<ReturnResult>("/v1/retail/returns", body)
       .then((r) => r.data),
+
+  // ── R3 picking ──
+  pickList: (locationId: string) =>
+    apiClient.get<{ orders: PickOrder[] }>(`${base(locationId)}/picking`).then((r) => r.data),
+  startPicking: (orderId: string) => apiClient.post(`/v1/retail/picking/${orderId}/start`).then((r) => r.data),
+  pickLine: (orderId: string, itemId: string, body: { picked: number; sub?: PickSub | null }) =>
+    apiClient.patch(`/v1/retail/picking/${orderId}/lines/${itemId}`, body).then((r) => r.data),
+  completePicking: (orderId: string) =>
+    apiClient
+      .post<{ refund: number; settledBy: "CARD" | "CASH_COLLECT" | "OWED" | "NONE"; missing: number; substituted: number }>(
+        `/v1/retail/picking/${orderId}/complete`,
+      )
+      .then((r) => r.data),
+
+  // ── R2-lite ──
+  receive: (locationId: string, body: { reference?: string; lines: Array<{ variantId: string; quantity: number }> }) =>
+    apiClient
+      .post<{ lines: number; units: number; reference: string | null }>(`${base(locationId)}/stock/receive`, body)
+      .then((r) => r.data),
+  stockReport: (locationId: string) =>
+    apiClient.get<StockReport>(`${base(locationId)}/stock/report`).then((r) => r.data),
 
   /** Poll a return being refunded on the Dojo card machine. */
   pollDojoReturn: (orderId: string) =>

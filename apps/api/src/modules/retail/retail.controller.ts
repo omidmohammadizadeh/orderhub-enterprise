@@ -23,6 +23,7 @@ import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface
 import { IMPORT_MAX_ROWS, RetailCatalogService } from "./retail-catalog.service";
 import { RetailReturnsService } from "./retail-returns.service";
 import { RetailStockService } from "./retail-stock.service";
+import { RetailPickingService } from "./retail-picking.service";
 
 // Building the catalogue and pricing it is a manager's job; counting stock
 // and scanning at the till is everyone on shift.
@@ -78,6 +79,34 @@ class CreateReturnBodyDto {
   @IsOptional() @IsString() @MaxLength(100) terminalId?: string;
 }
 
+class ReceiveLineDto {
+  @IsString() variantId!: string;
+  @IsInt() @Min(1) quantity!: number;
+}
+
+class ReceiveBodyDto {
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(500)
+  @ValidateNested({ each: true })
+  @Type(() => ReceiveLineDto)
+  lines!: ReceiveLineDto[];
+  @IsOptional() @IsString() @MaxLength(100) reference?: string;
+}
+
+class PickSubDto {
+  @IsOptional() @IsString() variantId?: string | null;
+  @IsOptional() @IsString() menuItemId?: string | null;
+  @IsString() @MaxLength(200) name!: string;
+  @IsInt() @Min(1) qty!: number;
+  @IsNumber() @Min(0) unitPrice!: number;
+}
+
+class PickLineBodyDto {
+  @IsInt() @Min(0) picked!: number;
+  @IsOptional() @ValidateNested() @Type(() => PickSubDto) sub?: PickSubDto | null;
+}
+
 class PollReturnBodyDto {
   @IsString() orderId!: string;
 }
@@ -90,6 +119,7 @@ export class RetailController {
     private readonly catalog: RetailCatalogService,
     private readonly stock: RetailStockService,
     private readonly returns: RetailReturnsService,
+    private readonly picking: RetailPickingService,
     private readonly access: LocationAccessService,
   ) {}
 
@@ -190,6 +220,69 @@ export class RetailController {
       quantity: body.quantity,
       reason: body.reason,
     });
+  }
+
+  @Post("locations/:locationId/stock/receive")
+  @Roles(...TILL_ROLES)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Book a delivery scanned in at the back door" })
+  async receive(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("locationId") locationId: string,
+    @Body() body: ReceiveBodyDto,
+  ) {
+    await this.access.assertAccess(user, locationId);
+    return this.stock.receive({
+      tenantId: user.tenantId,
+      locationId,
+      userId: user.userId,
+      reference: body.reference,
+      lines: body.lines,
+    });
+  }
+
+  @Get("locations/:locationId/stock/report")
+  @Roles(...TILL_ROLES)
+  @ApiOperation({ summary: "Stock on hand, value at cost, low-stock count" })
+  async report(@CurrentUser() user: AuthenticatedUser, @Param("locationId") locationId: string) {
+    await this.access.assertAccess(user, locationId);
+    return this.stock.report(user.tenantId, locationId);
+  }
+
+  // ── Picking (online orders at a shop) ─────────────────────────────────────
+
+  @Get("locations/:locationId/picking")
+  @Roles(...TILL_ROLES)
+  @ApiOperation({ summary: "Online orders to pick, with aisles, barcodes and substitution choices" })
+  async pickList(@CurrentUser() user: AuthenticatedUser, @Param("locationId") locationId: string) {
+    await this.access.assertAccess(user, locationId);
+    return this.picking.list(user, locationId);
+  }
+
+  @Post("picking/:orderId/start")
+  @Roles(...TILL_ROLES)
+  @HttpCode(HttpStatus.OK)
+  startPicking(@CurrentUser() user: AuthenticatedUser, @Param("orderId") orderId: string) {
+    return this.picking.start(user, orderId);
+  }
+
+  @Patch("picking/:orderId/lines/:itemId")
+  @Roles(...TILL_ROLES)
+  pickLine(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("orderId") orderId: string,
+    @Param("itemId") itemId: string,
+    @Body() body: PickLineBodyDto,
+  ) {
+    return this.picking.setLine(user, orderId, itemId, { picked: body.picked, sub: body.sub ?? null } as any);
+  }
+
+  @Post("picking/:orderId/complete")
+  @Roles(...TILL_ROLES)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Finish picking: refund the shortfall, fix stock, mark ready" })
+  completePicking(@CurrentUser() user: AuthenticatedUser, @Param("orderId") orderId: string) {
+    return this.picking.complete(user, orderId);
   }
 
   @Get("locations/:locationId/stock/:variantId/history")

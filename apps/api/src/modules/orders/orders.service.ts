@@ -742,13 +742,17 @@ export class OrdersService {
                 // re-price later — a repeat could not tell a 10" from a 12"
                 // and had to drop it. metadata is an existing column, so this
                 // costs no migration.
-                ...((item as any).sku || (item as any).variantId
+                ...((item as any).sku || (item as any).variantId || (item as any).substitution
                   ? {
                       metadata: {
                         ...((item as any).sku ? { sku: String((item as any).sku) } : {}),
                         // Retail R1 — which barcoded variant was sold.
                         ...((item as any).variantId
                           ? { variantId: String((item as any).variantId) }
+                          : {}),
+                        // Retail R3 — the shopper's substitution choice.
+                        ...((item as any).substitution
+                          ? { substitution: String((item as any).substitution) }
                           : {}),
                       } as Prisma.InputJsonValue,
                     }
@@ -1151,6 +1155,7 @@ export class OrdersService {
         // Retail R1 — the scanned variant, so stock and returns know exactly
         // which barcode was sold. Kept in OrderItem.metadata beside sku.
         ...(i.variantId ? { variantId: i.variantId } : {}),
+        ...(i.substitution ? { substitution: i.substitution } : {}),
         // Carried through to OrderItem.menuItemId so KDS station rules
         // (category/item routing) can match POS lines.
         menuItemId: i.menuItemId,

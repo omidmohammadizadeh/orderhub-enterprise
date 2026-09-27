@@ -47,6 +47,7 @@ import {
   Bot,
   ShieldCheck,
   ScanBarcode,
+  ShoppingBasket,
   Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SidebarLocationSwitcher } from "./sidebar-location-switcher";
@@ -172,6 +173,8 @@ const primaryNav: NavItem[] = [
   // Retail R1 — barcodes, counts and the spreadsheet import. Shop floor, like
   // Inventory: whoever is on shift does the stock count.
   { href: "/dashboard/stock", label: "Stock & barcodes", icon: ScanBarcode, roles: SHOP_FLOOR, requiresShop: true },
+  // Retail R3 — online orders are picked here, not on the KDS.
+  { href: "/dashboard/picking", label: "Picking", icon: ShoppingBasket, roles: SHOP_FLOOR, requiresShop: true },
   { href: "/dashboard/team", label: "Team Roles", icon: UserCog, roles: MANAGER_TIER },
   // Managers keep Printers: a jammed or offline printer is a mid-service
   // problem, and the person on shift is the one who has to clear it.

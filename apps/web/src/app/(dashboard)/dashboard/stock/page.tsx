@@ -10,7 +10,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { FileSpreadsheet, Loader2, PackagePlus, Search } from "lucide-react";
+import { AlertTriangle, Download, FileSpreadsheet, Loader2, PackagePlus, Search, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCurrency } from "@/hooks/use-currency";
 import { locationsClient } from "@/lib/api/locations.client";
@@ -22,6 +22,7 @@ import { isShopType } from "@/components/locations/business-type-picker";
 import { StockProductCard } from "@/components/retail/stock-product-card";
 import { ImportProductsModal } from "@/components/retail/import-products-modal";
 import { NewProductModal } from "@/components/retail/new-product-modal";
+import { ReceiveDeliveryModal } from "@/components/retail/receive-delivery-modal";
 
 const CATALOG_MANAGERS = ["PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "MANAGER", "DARK_KITCHEN_MANAGER"];
 const looksLikeBarcode = (s: string) => /^\d{6,14}$/.test(s.trim());
@@ -36,6 +37,8 @@ export default function StockPage() {
   const [lowOnly, setLowOnly] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [newProduct, setNewProduct] = useState<{ barcode?: string } | null>(null);
+  const [receiving, setReceiving] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   // Debounce typing; a scan (ends in Enter) searches at once.
   useEffect(() => {
@@ -57,7 +60,43 @@ export default function StockPage() {
     enabled: !!locationId && isShop,
     placeholderData: (prev) => prev,
   });
-  const refresh = () => void products.refetch();
+  // R2-lite — the low-stock count for the banner (same numbers as the report).
+  const report = useQuery({
+    queryKey: ["retail-stock-report", locationId],
+    queryFn: () => retailClient.stockReport(locationId!),
+    enabled: !!locationId && isShop,
+    staleTime: 30_000,
+  });
+  const refresh = () => {
+    void products.refetch();
+    void report.refetch();
+  };
+
+  const exportCsv = async () => {
+    if (!locationId) return;
+    setExporting(true);
+    try {
+      const r = await retailClient.stockReport(locationId);
+      const cell = (v: unknown) => {
+        const t = v === null || v === undefined ? "" : String(v);
+        return /[",\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t;
+      };
+      const head = ["Product", "Variant", "Barcode", "SKU", "In stock", "Low stock at", "Price", "Cost", "Value at cost"];
+      const body = r.rows.map((x) =>
+        [x.product, x.variant, x.barcode, x.sku, x.quantity, x.lowStockAt, x.price, x.cost, x.value].map(cell).join(","),
+      );
+      const csv = [head.join(","), ...body].join("\n");
+      const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+      const a = Object.assign(document.createElement("a"), {
+        href: url,
+        download: `stock-${new Date().toISOString().slice(0, 10)}.csv`,
+      });
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   if (!locationId) {
     return (
@@ -94,17 +133,44 @@ export default function StockPage() {
             Everything on {location.data?.name ?? "this shop"}&apos;s till. Tap a count to set what&apos;s on the shelf.
           </p>
         </div>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" onClick={() => setReceiving(true)}>
+            <Truck className="mr-1.5 h-4 w-4" /> Receive delivery
+          </Button>
+          <Button variant="outline" size="sm" loading={exporting} onClick={() => void exportCsv()}>
+            <Download className="mr-1.5 h-4 w-4" /> Stock report
+          </Button>
         {canManage && (
-          <div className="flex gap-2">
+          <>
             <Button variant="outline" size="sm" onClick={() => setNewProduct({})}>
               <PackagePlus className="mr-1.5 h-4 w-4" /> New product
             </Button>
             <Button size="sm" onClick={() => setImportOpen(true)}>
               <FileSpreadsheet className="mr-1.5 h-4 w-4" /> Import spreadsheet
             </Button>
-          </div>
+          </>
         )}
+        </div>
       </header>
+
+      {!!report.data?.totals.low && !lowOnly && (
+        <button
+          type="button"
+          onClick={() => setLowOnly(true)}
+          className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-left text-sm text-amber-900 hover:bg-amber-100"
+        >
+          <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+          {report.data.totals.low} product{report.data.totals.low === 1 ? " is" : "s are"} at or below the
+          low-stock alert — show them
+        </button>
+      )}
+      {report.data && (
+        <p className="text-xs text-zinc-500">
+          {report.data.totals.units} items in stock
+          {report.data.totals.valueAtCost > 0 && ` · ${money(report.data.totals.valueAtCost)} at cost`}
+          {report.data.totals.uncosted > 0 && ` (${report.data.totals.uncosted} without a cost price)`}
+        </p>
+      )}
 
       <div className="flex flex-wrap items-center gap-2">
         <label className="relative min-w-[14rem] flex-1">
@@ -181,6 +247,9 @@ export default function StockPage() {
 
       {importOpen && (
         <ImportProductsModal locationId={locationId} onClose={() => setImportOpen(false)} onDone={refresh} />
+      )}
+      {receiving && (
+        <ReceiveDeliveryModal locationId={locationId} onClose={() => setReceiving(false)} onDone={refresh} />
       )}
       {newProduct && (
         <NewProductModal

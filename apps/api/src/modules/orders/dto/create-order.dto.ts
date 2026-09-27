@@ -9,6 +9,7 @@ import {
   ValidateNested,
   IsPositive,
   Min,
+  IsIn,
 } from "class-validator";
 import { Type } from "class-transformer";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
@@ -47,6 +48,8 @@ export class CreateOrderItemDto {
   @ApiPropertyOptional() @IsOptional() @IsString() sku?: string;
   // Retail R1 — the ProductVariant a scanned line sold (stock + returns).
   @ApiPropertyOptional() @IsOptional() @IsString() variantId?: string;
+  // Retail R3 — shop orders: BEST_MATCH | NONE if the line is out of stock at picking.
+  @ApiPropertyOptional() @IsOptional() @IsIn(["BEST_MATCH", "NONE"]) substitution?: "BEST_MATCH" | "NONE";
   // KDS station routing matches items by MenuItem id (category/item rules).
   // POS sends it so kitchen screens with routing rules work for POS orders.
   @ApiPropertyOptional() @IsOptional() @IsString() menuItemId?: string;

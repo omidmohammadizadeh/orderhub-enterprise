@@ -29,6 +29,9 @@ import { resolveNestedModifierGroups } from "../menus/nested-modifier-groups";
 import { PauseService } from "../pauses/pause.service";
 import { MarketingService } from "../marketing/marketing.service";
 import { DeliveryZonesService } from "../delivery-zones/delivery-zones.service";
+import { isShop, soldOutItemIds } from "../retail/retail-availability";
+import { parseSubstitutionPref, priceShortfall, toMinor } from "../retail/retail.logic";
+import { isCurrentlyOpen as isOpenAt } from "../../common/opening-hours.util";
 
 export interface CheckoutItemDto {
   menuItemId: string;
@@ -49,6 +52,9 @@ export interface CheckoutItemDto {
     parentOptionId?: string | null;
   }>;
   notes?: string;
+  /** Retail R3 — shops only: what to do if this line is out of stock at
+   *  picking. BEST_MATCH (default) or NONE. Ignored for restaurants. */
+  substitution?: string;
 }
 
 export interface CheckoutDto {
@@ -749,6 +755,19 @@ export class OrderingService {
           );
         }
       }
+
+      // Retail R3 — a shop's storefront follows its stock count: a product
+      // whose counted stock has run out shows as sold out (greyed, not
+      // hidden — a shopper looking for it should learn it's gone, not
+      // wonder if they've misremembered). Restaurants are untouched.
+      if (isShop(location)) {
+        const soldOut = await soldOutItemIds(this.prisma, location.id, itemIds);
+        for (const cat of (menu as any).categories ?? []) {
+          for (const link of cat.items ?? []) {
+            if (link?.item && soldOut.has(link.item.id)) link.item.outOfStock = true;
+          }
+        }
+      }
     }
 
     // Phase AP fix #4 — also surface the brand's full modifier-group
@@ -907,6 +926,8 @@ export class OrderingService {
     const b = overrideBrand;
     const locationView = {
       id: location.id,
+      // Retail R3 — GROCERY/RETAIL switch the storefront to the shop layout.
+      businessType: (location as any).businessType ?? "RESTAURANT",
       name: b?.name ?? location.name,
       slug: location.onlineOrderingSlug ?? location.slug,
       phone: b?.phone ?? location.phone,
@@ -1514,8 +1535,23 @@ export class OrderingService {
     const checkoutHours = brandHoursConfigured
       ? pinnedBrandHours
       : location.openingHours;
+    const shop = isShop(location);
     if (!this.isCurrentlyOpen(checkoutHours as any, location.timezone)) {
-      throw new BadRequestException("Store is currently closed");
+      // Retail R3 — a shop takes orders for a later slot while it's shut
+      // (tonight's shop for tomorrow morning's delivery is the normal case for
+      // groceries). The slot itself must fall inside the opening hours.
+      const slot = dto.scheduledFor ? new Date(dto.scheduledFor) : null;
+      const slotOk =
+        shop &&
+        slot !== null &&
+        !Number.isNaN(slot.getTime()) &&
+        slot.getTime() > Date.now() &&
+        isOpenAt(checkoutHours as any, location.timezone, slot);
+      if (!slotOk) {
+        throw new BadRequestException(
+          shop ? "The shop is closed — choose a delivery or collection slot when it's open" : "Store is currently closed",
+        );
+      }
     }
 
     // Phase AW-15 — server-side defence against a customer reaching the
@@ -1582,6 +1618,7 @@ export class OrderingService {
       dto.items.map((i) => i.menuItemId),
       dto.fulfillmentType,
     );
+    if (shop) await this.assertShopBasket(location, dto);
 
     const items = dto.items.map((item) => ({
       menuItemId: item.menuItemId,
@@ -1604,6 +1641,8 @@ export class OrderingService {
       totalPrice: round2(item.unitPrice * item.quantity),
       modifiers: item.modifiers ?? [],
       notes: item.notes,
+      // Retail R3 — shops only; carried to OrderItem.metadata for the picker.
+      ...(shop ? { substitution: parseSubstitutionPref(item.substitution) ?? "BEST_MATCH" } : {}),
     }));
 
     // Phase AW-19 — re-resolve the marketing campaign server-side so a
@@ -2003,6 +2042,37 @@ export class OrderingService {
     return order;
   }
 
+  /**
+   * Retail R3 — the checks a shop's basket must pass that a restaurant's
+   * never had: nothing sold out, and the delivery minimum met. Server-side
+   * because the basket is client-supplied and can be minutes stale.
+   */
+  private async assertShopBasket(location: any, dto: CheckoutDto) {
+    const soldOut = await soldOutItemIds(
+      this.prisma,
+      location.id,
+      dto.items.map((i) => i.menuItemId).filter(Boolean),
+    );
+    const gone = dto.items.filter((i) => soldOut.has(i.menuItemId)).map((i) => i.name);
+    if (gone.length) {
+      throw new BadRequestException(
+        `Sorry — ${gone.join(", ")} ${gone.length === 1 ? "has" : "have"} just sold out. Remove ${gone.length === 1 ? "it" : "them"} to continue.`,
+      );
+    }
+    if (dto.fulfillmentType === "DELIVERY") {
+      const cfg =
+        (await this.prisma.directOrderingConfig.findUnique({ where: { brandId: location.brandId } }).catch(() => null)) ??
+        (await this.prisma.directOrderingConfig.findUnique({ where: { locationId: location.id } }).catch(() => null));
+      const min = Number((cfg as any)?.minOrderForDelivery ?? 0);
+      const basket = dto.items.reduce((sum, i) => sum + Number(i.unitPrice) * Number(i.quantity), 0);
+      if (min > 0 && basket + 1e-9 < min) {
+        throw new BadRequestException(
+          `The minimum for delivery is ${min.toFixed(2)} — add ${(min - basket).toFixed(2)} more, or choose collection.`,
+        );
+      }
+    }
+  }
+
   async getOrderStatus(orderId: string) {
     // Phase AP follow-up: the customer-facing storefront polls this
     // endpoint while it shows the "waiting for restaurant" screen and
@@ -2066,7 +2136,8 @@ export class OrderingService {
         cancelledAt: true,
         cancelReason: true,
         total: true,
-        location: { select: { name: true } },
+        // currency: Retail R3 — the picking summary shows a refund amount.
+        location: { select: { name: true, currency: true, businessType: true } },
         // Phase AX-4 — live delivery tracking: destination + the assigned
         // driver's name/phone and last known GPS so the customer can watch
         // the driver approach, call them, or chat.
@@ -2095,8 +2166,12 @@ export class OrderingService {
             quantity: true,
             modifiers: true,
             notes: true,
+            totalPrice: true,
+            metadata: true,
           },
         },
+        subtotal: true,
+        discount: true,
       },
     });
     if (!order) throw new NotFoundException("Order not found");
@@ -2117,9 +2192,43 @@ export class OrderingService {
               : null,
           }
         : null;
-    const { driverAssignment: _ignored, ...rest } = order;
+    const { driverAssignment: _ignored, items: rawItems, subtotal: _s, discount: _d, ...rest } = order;
+    // Retail R3 — once a shop has picked the order, tell the customer what
+    // was unavailable or swapped and what went back to them. metadata stays
+    // server-side; only this summary leaves.
+    const picked = rawItems.some((i: any) => (i.metadata as any)?.pick);
+    const shortfall = picked
+      ? priceShortfall({
+          lines: rawItems.map((i: any) => ({
+            id: i.id,
+            name: i.name,
+            quantity: i.quantity,
+            totalMinor: toMinor(i.totalPrice),
+            pick: (i.metadata as any)?.pick ?? null,
+          })),
+          subtotalMinor: toMinor(order.subtotal),
+          discountMinor: toMinor(order.discount),
+        })
+      : null;
+    const picking = shortfall
+      ? {
+          complete: rawItems.some((i: any) => (i.metadata as any)?.pickCompletedAt),
+          refund: shortfall.refundMinor / 100,
+          unavailable: shortfall.lines
+            .filter((l) => l.missing > 0)
+            .map((l) => ({ name: rawItems.find((i: any) => i.id === l.id)!.name, quantity: l.missing })),
+          substituted: shortfall.lines
+            .filter((l) => l.substituted > 0)
+            .map((l) => {
+              const it: any = rawItems.find((i: any) => i.id === l.id);
+              return { name: it.name, with: it.metadata?.pick?.sub?.name ?? "", quantity: l.substituted };
+            }),
+        }
+      : null;
     return {
       ...rest,
+      items: rawItems.map(({ metadata: _m, totalPrice: _t, ...it }: any) => it),
+      picking,
       destination:
         order.deliveryLat != null && order.deliveryLng != null
           ? { lat: order.deliveryLat, lng: order.deliveryLng }

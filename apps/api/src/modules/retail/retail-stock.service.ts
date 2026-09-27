@@ -156,6 +156,91 @@ export class RetailStockService {
     });
   }
 
+  /**
+   * R2-lite — goods in. A delivery scanned in at the back door, booked as one
+   * batch: every line is a PURCHASE movement carrying the delivery reference,
+   * all in one transaction so a half-received delivery never exists.
+   */
+  async receive(args: {
+    tenantId: string;
+    locationId: string;
+    userId: string;
+    reference?: string;
+    lines: Array<{ variantId: string; quantity: number }>;
+  }) {
+    const lines = (args.lines ?? []).filter((l) => l && Number.isInteger(l.quantity) && l.quantity !== 0);
+    if (!lines.length) throw new BadRequestException("Scan at least one item");
+    if (lines.some((l) => l.quantity < 0)) {
+      throw new BadRequestException("A delivery only adds stock — use Adjust to take stock off");
+    }
+    const ids = [...new Set(lines.map((l) => l.variantId))];
+    const found = await this.prisma.productVariant.count({ where: { id: { in: ids }, tenantId: args.tenantId } });
+    if (found !== ids.length) throw new NotFoundException("One of those products no longer exists");
+    const ref = args.reference?.trim() || null;
+    const units = lines.reduce((s, l) => s + l.quantity, 0);
+    await this.prisma.$transaction((tx) =>
+      this.applyMoves(
+        lines.map((l) => ({
+          tenantId: args.tenantId,
+          locationId: args.locationId,
+          variantId: l.variantId,
+          type: "PURCHASE" as const,
+          quantity: l.quantity,
+          reason: ref ? `Delivery ${ref}` : "Delivery received",
+          recordedBy: args.userId,
+        })),
+        tx,
+      ),
+    );
+    return { lines: lines.length, units, reference: ref };
+  }
+
+  /**
+   * R2-lite — stock report: every counted variant at this location with its
+   * quantity and value at cost, plus how many are at or under their alert.
+   */
+  async report(tenantId: string, locationId: string) {
+    const variants = await this.prisma.productVariant.findMany({
+      where: { tenantId, isActive: true },
+      include: {
+        menuItem: { select: { name: true, basePrice: true, locationId: true } },
+        stockLevels: { where: { locationId }, select: { quantity: true } },
+      },
+      orderBy: [{ menuItem: { name: "asc" } }, { sortOrder: "asc" }],
+    });
+    const rows = variants
+      // This shop's products: made here, or holding stock here.
+      .filter((v) => v.menuItem.locationId === locationId || v.stockLevels.length > 0)
+      .map((v) => {
+        const quantity = v.stockLevels[0]?.quantity ?? 0;
+        const cost = v.costPrice === null ? null : Number(v.costPrice);
+        return {
+          variantId: v.id,
+          product: v.menuItem.name,
+          variant: v.name,
+          barcode: v.barcode,
+          sku: v.sku,
+          quantity,
+          price: Number(v.price ?? v.menuItem.basePrice),
+          cost,
+          value: cost === null ? null : Math.round(cost * Math.max(0, quantity) * 100) / 100,
+          lowStockAt: v.lowStockAt,
+          low: v.trackStock && quantity <= (v.lowStockAt ?? 0),
+          trackStock: v.trackStock,
+        };
+      });
+    return {
+      rows,
+      totals: {
+        variants: rows.length,
+        units: rows.reduce((s, r) => s + Math.max(0, r.quantity), 0),
+        valueAtCost: Math.round(rows.reduce((s, r) => s + (r.value ?? 0), 0) * 100) / 100,
+        low: rows.filter((r) => r.low).length,
+        uncosted: rows.filter((r) => r.cost === null).length,
+      },
+    };
+  }
+
   async history(tenantId: string, locationId: string, variantId: string, limit = 50) {
     return this.prisma.productStockMovement.findMany({
       where: { tenantId, locationId, variantId },

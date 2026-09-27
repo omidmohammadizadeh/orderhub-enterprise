@@ -12,11 +12,12 @@ import { RetailController } from "./retail.controller";
 import { RetailCatalogService } from "./retail-catalog.service";
 import { RetailReturnsService } from "./retail-returns.service";
 import { RetailStockService } from "./retail-stock.service";
+import { RetailPickingService } from "./retail-picking.service";
 
 @Module({
   imports: [SocketModule, MenusModule, MenuAssignmentsModule, OrdersModule, PaymentsModule],
   controllers: [RetailController],
-  providers: [RetailCatalogService, RetailStockService, RetailReturnsService, LocationAccessService],
+  providers: [RetailCatalogService, RetailStockService, RetailReturnsService, RetailPickingService, LocationAccessService],
   exports: [RetailCatalogService, RetailStockService],
 })
 export class RetailModule {}

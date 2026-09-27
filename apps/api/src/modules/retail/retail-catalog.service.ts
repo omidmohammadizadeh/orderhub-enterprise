@@ -431,29 +431,39 @@ export class RetailCatalogService {
           locationId,
           name: "Shop",
           status: "PUBLISHED",
-          publishedTo: ["POS"],
+          // R3 — the shop's catalogue is its storefront too.
+          publishedTo: ["POS", "ONLINE"],
           lastPublishedAt: now,
         },
         select: { id: true, brandId: true, name: true },
       });
-      await tx.menuChannelAssignment.upsert({
-        where: {
-          locationId_channel_brandId: { locationId, channel: "POS", brandId: loc.brandId },
-        },
-        create: {
-          tenantId,
-          menuId: m.id,
-          locationId,
-          brandId: loc.brandId,
-          channel: "POS",
-          publishedAt: now,
-          createdBy: userId ?? null,
-        },
-        update: { menuId: m.id, publishedAt: now },
-      });
+      for (const channel of ["POS", "ONLINE"]) {
+        // ONLINE only claims an empty slot: never take over a storefront the
+        // shop already publishes something else to.
+        const taken =
+          channel === "ONLINE" &&
+          (await tx.menuChannelAssignment.findUnique({
+            where: { locationId_channel_brandId: { locationId, channel, brandId: loc.brandId } },
+            select: { id: true },
+          }));
+        if (taken) continue;
+        await tx.menuChannelAssignment.upsert({
+          where: { locationId_channel_brandId: { locationId, channel, brandId: loc.brandId } },
+          create: {
+            tenantId,
+            menuId: m.id,
+            locationId,
+            brandId: loc.brandId,
+            channel,
+            publishedAt: now,
+            createdBy: userId ?? null,
+          },
+          update: { menuId: m.id, publishedAt: now },
+        });
+      }
       return m;
     });
-    this.logger.log(`Created Shop menu ${menu.id} for location ${locationId}`);
+    this.logger.log(`Created Shop menu ${menu.id} for location ${locationId} (till + online)`);
     return { ...menu, created: true };
   }
 
