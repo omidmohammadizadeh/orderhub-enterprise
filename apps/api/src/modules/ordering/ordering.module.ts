@@ -40,5 +40,7 @@ import { DeliveryZonesModule } from "../delivery-zones/delivery-zones.module";
   ],
   controllers: [OrderingController],
   providers: [OrderingService],
+  // Group orders place through OrderingService.checkout (server pricing).
+  exports: [OrderingService],
 })
 export class OrderingModule {}

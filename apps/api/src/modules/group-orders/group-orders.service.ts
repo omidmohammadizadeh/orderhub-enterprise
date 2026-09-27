@@ -8,6 +8,7 @@ import {
 import { randomBytes } from "crypto";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { OrdersService } from "../orders/orders.service";
+import { OrderingService } from "../ordering/ordering.service";
 import { PaymentsService } from "../payments/payments.service";
 
 // Group ordering — a shared basket several people add to before it becomes
@@ -31,6 +32,7 @@ export class GroupOrdersService {
     private readonly prisma: PrismaService,
     private readonly orders: OrdersService,
     private readonly payments: PaymentsService,
+    private readonly ordering: OrderingService,
   ) {}
 
   private db() {
@@ -364,125 +366,75 @@ export class GroupOrdersService {
       throw new BadRequestException("A delivery address is required");
     }
 
-    // Card group orders go down the SAME Stripe path as an ordinary online
-    // order (authorise now, capture when staff accept). Fail before creating
-    // the order if the shop can't take cards, so the host isn't left with a
-    // placed order they have no way to pay for.
-    const isCard = String(input.paymentMethod ?? "").toUpperCase() === "CARD";
+    // Placed through the storefront checkout itself, so a group order is
+    // priced, zoned, gated (open / paused / card set up) and paid for exactly
+    // like any other online order. This used to build the order here from
+    // each guest's stored lineTotal and the host's `deliveryFee` — both sent
+    // by the browser, so either could be anything.
     const location = await this.resolveStore(basket.locationId);
-    if (isCard) {
-      const connect = await this.payments.resolveConnectAccount(
-        basket.tenantId,
-        basket.locationId,
-        basket.brandId,
-      );
-      if (!connect) {
-        throw new BadRequestException(
-          "This restaurant hasn't set up card payments yet. Please choose Cash, or contact the restaurant.",
-        );
-      }
-    }
+    const storeSlug = location.onlineOrderingSlug ?? location.slug ?? location.id;
+    const people = new Set(items.map((i: any) => i.addedByRef)).size;
+    const isCard = String(input.paymentMethod ?? "").toUpperCase() === "CARD";
 
-    const orderItems = items.map((it: any) => {
+    const checkoutItems = items.map((it: any) => {
       const c = (it.cartItem ?? {}) as any;
-      const name = String(c.name ?? "Item");
-      const unitPrice = Number(c.unitPrice ?? it.lineTotal / (it.quantity || 1));
       return {
+        menuItemId: String(c.menuItemId ?? ""),
         // Whose line this is, carried into the item name so the kitchen
-        // ticket can be bagged per person. This is the whole operational
-        // point of group ordering for a collection order.
-        name: `${name} (${it.addedByName})`,
+        // ticket can be bagged per person — the operational point of group
+        // ordering for a collection order.
+        name: `${String(c.name ?? "Item")} (${it.addedByName})`,
         quantity: it.quantity,
-        unitPrice: Math.round(unitPrice * 100) / 100,
-        totalPrice: Math.round(it.lineTotal * 100) / 100,
-        ...(c.menuItemId ? { menuItemId: String(c.menuItemId) } : {}),
+        // A cross-check only; the checkout re-prices every line itself.
+        unitPrice: Number(c.unitPrice ?? it.lineTotal / (it.quantity || 1)),
+        ...(c.skuPlu ? { skuPlu: String(c.skuPlu) } : {}),
+        ...(c.skuName ? { skuName: String(c.skuName) } : {}),
         ...(c.notes ? { notes: String(c.notes) } : {}),
-        ...(Array.isArray(c.modifiers) && c.modifiers.length
-          ? {
-              modifiers: c.modifiers.map((m: any) => ({
-                name: String(m?.name ?? ""),
-                price: Number(m?.price ?? 0),
-                ...(m?.quantity ? { quantity: Number(m.quantity) } : {}),
-              })),
-            }
-          : {}),
+        modifiers: Array.isArray(c.modifiers)
+          ? c.modifiers.map((m: any) => ({
+              name: String(m?.name ?? ""),
+              price: Number(m?.price ?? 0),
+              ...(m?.optionId ? { optionId: String(m.optionId) } : {}),
+              ...(m?.depth ? { depth: Number(m.depth) } : {}),
+              ...(Array.isArray(m?.path) ? { path: m.path.map(String) } : {}),
+              ...(m?.parentOptionId ? { parentOptionId: String(m.parentOptionId) } : {}),
+            }))
+          : [],
       };
     });
-
     const subtotal =
       Math.round(items.reduce((s: number, i: any) => s + i.lineTotal, 0) * 100) / 100;
-    const deliveryFee = isDelivery ? Number(input.deliveryFee ?? 0) : 0;
-    const total = Math.round((subtotal + deliveryFee) * 100) / 100;
 
-    const dto: any = {
-      locationId: basket.locationId,
-      ...(basket.brandId ? { brandId: basket.brandId } : {}),
-      orderSource: "ONLINE",
-      fulfillmentType: isDelivery ? "DELIVERY" : "PICKUP",
-      customerInfo: input.customerInfo,
-      ...(input.deliveryAddress ? { deliveryAddress: input.deliveryAddress } : {}),
-      items: orderItems,
-      subtotal,
-      ...(deliveryFee > 0 ? { deliveryFee } : {}),
-      total,
-      // Name the group on the ticket so the shop knows why one order has
-      // items labelled with five different people on it.
-      specialInstructions: [
-        `GROUP ORDER — ${items.length} item(s) from ${
-          new Set(items.map((i: any) => i.addedByRef)).size
-        } people`,
-        input.specialInstructions,
-      ]
-        .filter(Boolean)
-        .join(" · "),
-      paymentMethod: isCard ? "CARD" : (input.paymentMethod ?? "CASH"),
-      // Never PAID at creation time: a card order is only paid once Stripe
-      // says so, and a cash order once the shop takes the money.
-      paymentStatus: "PENDING",
-      ...(input.idempotencyKey ? { idempotencyKey: input.idempotencyKey } : {}),
-    };
-
-    const order = await this.orders.create(dto, basket.tenantId);
-
-    // Only mark PLACED once the order actually exists — if create() throws,
-    // the basket stays LOCKED and the host can retry rather than being left
-    // with a basket that claims to be placed and no order.
-    await this.db().groupOrder.update({
-      where: { id: basket.id },
-      data: { status: "PLACED", orderId: (order as any).id, placedAt: new Date() },
-    });
-    this.logger.log(
-      `group order ${basket.token} placed as order ${(order as any).id}`,
+    const result: any = await this.ordering.checkout(
+      storeSlug,
+      {
+        idempotencyKey: input.idempotencyKey ?? `group-${basket.token}`,
+        fulfillmentType: isDelivery ? "DELIVERY" : "PICKUP",
+        customerInfo: input.customerInfo,
+        ...(input.deliveryAddress ? { deliveryAddress: input.deliveryAddress as any } : {}),
+        items: checkoutItems,
+        subtotal,
+        // Only a starting point — the checkout resolves the fee from zones.
+        ...(isDelivery && input.deliveryFee !== undefined ? { deliveryFee: Number(input.deliveryFee) } : {}),
+        total: subtotal,
+        // Name the group on the ticket so the shop knows why one order has
+        // items labelled with several different people on it.
+        specialInstructions: [`GROUP ORDER — ${items.length} item(s) from ${people} people`, input.specialInstructions]
+          .filter(Boolean)
+          .join(" · "),
+        paymentMethod: isCard ? "CARD" : "CASH",
+      },
+      basket.brandId ?? undefined,
     );
 
-    if (!isCard) return order;
-
-    // Hosted Stripe Checkout, exactly as the ordinary storefront does it: the
-    // host pays on Stripe's domain and lands on the same confirmation page,
-    // and the order only reaches the staff board once the webhook reports
-    // authorization. A failure here leaves a PLACED basket behind a real but
-    // unpaid order — the shop sees it the moment it's paid for, and the host
-    // gets a clear error rather than a silent success.
-    const origin = (
-      process.env.WEB_URL ?? "https://www.orderhubsolutions.com"
-    ).replace(/\/+$/, "");
-    const storeSlug =
-      location.onlineOrderingSlug ?? location.slug ?? location.id;
-    const brandQs = basket.brandId
-      ? `&brand=${encodeURIComponent(basket.brandId)}`
-      : "";
-    const { url } = await this.payments.createCheckoutSession({
-      tenantId: basket.tenantId,
-      orderId: (order as any).id,
-      successUrl: `${origin}/order/${storeSlug}/confirmation?orderId=${
-        (order as any).id
-      }&session_id={CHECKOUT_SESSION_ID}${brandQs}`,
-      cancelUrl: `${origin}/order/${storeSlug}?canceledOrderId=${
-        (order as any).id
-      }${brandQs}`,
-      customerEmail: input.customerInfo?.email,
+    // Only mark PLACED once the order actually exists — if checkout throws,
+    // the basket stays LOCKED and the host can retry (or fix what it said).
+    await this.db().groupOrder.update({
+      where: { id: basket.id },
+      data: { status: "PLACED", orderId: result.id, placedAt: new Date() },
     });
-    return { ...(order as any), checkoutUrl: url };
+    this.logger.log(`group order ${basket.token} placed as order ${result.id}`);
+    return result;
   }
 
   async cancel(token: string, hostRef?: string) {

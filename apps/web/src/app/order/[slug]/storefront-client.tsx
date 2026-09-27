@@ -1202,8 +1202,13 @@ function OrderPage() {
           unitPrice: line.unitPrice,
           menuItemId: line.menuItemId,
           notes: line.notes || undefined,
-          // Same shape the ordinary checkout sends: name + price only.
-          modifiers: line.modifiers.map(toOrderLineModifier),
+          // Same shape the ordinary checkout sends, including the size and
+          // option ids the server needs to price the line when the host places.
+          modifiers: line.modifiers.map((m) => ({
+            ...toOrderLineModifier(m),
+            ...(m.id ? { optionId: m.id } : {}),
+          })),
+          ...(line.selectedSku ? { skuPlu: line.selectedSku.plu ?? null, skuName: line.selectedSku.name } : {}),
         },
         quantity: line.quantity,
         // unitPrice is already modifier-inclusive — the same rule the local
