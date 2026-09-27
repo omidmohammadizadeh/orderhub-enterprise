@@ -13,6 +13,8 @@
 //   • JET Go     — same as Uber: no multi-drop, one courier per order. Its quote
 //                  also carries warnings (a cash order, a slot it will treat as
 //                  ASAP), shown per order before the operator commits.
+//   • Yango      — UAE shops only, one courier per order; YangoDispatchCard
+//                  renders nothing for a pick with no UAE shop in it.
 //
 // Sibling of DispatchModal (single order) — same chrome and the same colour per
 // courier, so it reads as the same tool doing more at once.
@@ -29,6 +31,7 @@ import {
 } from "@/lib/api/stuart.client";
 import { uberDirectClient } from "@/lib/api/uber-direct.client";
 import { jetGoClient } from "@/lib/api/jet-go.client";
+import { YangoDispatchCard } from "./yango-dispatch-card";
 import {
   assignOrders,
   getOnlineDrivers,
@@ -61,7 +64,7 @@ const errMsg = (e: any, fallback: string) =>
 /** "1 order" / "3 orders". A partial Uber send can leave exactly one. */
 const nOrders = (n: number) => `${n} ${n === 1 ? "order" : "orders"}`;
 
-type Busy = null | "stuart" | "uber" | "jetgo" | `driver:${string}`;
+type Busy = null | "stuart" | "uber" | "jetgo" | "yango" | `driver:${string}`;
 
 export function BulkDispatchModal({ orders, onClose, onDispatched }: Props) {
   const queryClient = useQueryClient();
@@ -635,6 +638,23 @@ export function BulkDispatchModal({ orders, onClose, onDispatched }: Props) {
               </div>
             )}
           </div>
+
+          {/* Yango — UAE only, one courier per order. */}
+          <YangoDispatchCard
+            orders={orders.map((o) => ({ id: o.id, ref: refOf(o) }))}
+            locationIds={locationIds as string[]}
+            disabled={busy !== null}
+            onBusyChange={(b) => setBusy(b ? "yango" : null)}
+            onSent={(sentIds, allSent, message) => {
+              if (allSent) {
+                finish(sentIds, message);
+                return;
+              }
+              toast.success(message);
+              queryClient.invalidateQueries({ queryKey: ["orders", "live"] });
+              onDispatched(sentIds, false);
+            }}
+          />
         </div>
       </div>
     </div>

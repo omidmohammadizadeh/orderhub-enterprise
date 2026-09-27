@@ -22,6 +22,7 @@ import toast from "react-hot-toast";
 import { stuartClient } from "../../lib/api/stuart.client";
 import { uberDirectClient } from "../../lib/api/uber-direct.client";
 import { jetGoClient } from "../../lib/api/jet-go.client";
+import { yangoClient } from "../../lib/api/yango.client";
 import { unassignOrder } from "../../lib/api/dispatch.client";
 import { printOrderViaBridge } from "../../lib/printing/print-order";
 import type { Order } from "../../lib/api/orders.client";
@@ -168,6 +169,23 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
         // So this must NOT claim the order is free to dispatch again yet.
         const r = await jetGoClient.cancel(order.id);
         toast.success(r.message ?? "Cancellation requested with JET Go");
+        queryClient.invalidateQueries({ queryKey: ["orders", "live"] });
+        setCancelling(false);
+        return;
+      } else if ((order as any).courierProvider === "YANGO") {
+        // Yango: free until the courier reaches the shop, then it COSTS money.
+        // The first call only reports the fee; charging it takes a yes here.
+        let r = await yangoClient.cancel(order.id);
+        if (r.needsConfirmation) {
+          const fee =
+            r.fee != null && r.currency ? formatMoney(r.fee, r.currency) : "a cancellation fee";
+          if (!window.confirm(`The Yango courier is already at the shop. Cancelling now costs ${fee}, charged to your Yango account. Cancel anyway?`)) {
+            setCancelling(false);
+            return;
+          }
+          r = await yangoClient.cancel(order.id, true);
+        }
+        toast.success(r.message ?? "Yango delivery cancelled");
         queryClient.invalidateQueries({ queryKey: ["orders", "live"] });
         setCancelling(false);
         return;
@@ -366,16 +384,23 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
             platform order it is the only spatial answer the board can give. */}
         {isDeliveryFulfillment(order.fulfillmentType) &&
           (() => {
-            const isPlatform = (order as any).deliveryType === "PLATFORM";
+            const courierProvider = (order as any).courierProvider as
+              | string
+              | null;
+            // Our own dispatch writes deliveryType PLATFORM too, so that alone
+            // can't mean "a marketplace's rider": read that way, every order we
+            // booked on Stuart / Uber Direct / JET Go / Yango lost its Cancel
+            // dispatch button. A courier WE booked is ours to cancel.
+            const OUR_COURIERS = ["STUART", "UBER_DIRECT", "JET_GO", "YANGO"];
+            const isPlatform =
+              (order as any).deliveryType === "PLATFORM" &&
+              !OUR_COURIERS.includes(courierProvider ?? "");
             const OWN_FLEET_ASSIGNED = [
               "ASSIGNED_DRIVER",
               "ACCEPTED_BY_DRIVER",
               "RIDER_ARRIVED",
               "OUT_FOR_DELIVERY",
             ];
-            const courierProvider = (order as any).courierProvider as
-              | string
-              | null;
             const dispatched =
               !!(order as any).courierJobId ||
               (!courierProvider &&
@@ -390,6 +415,8 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
                     ? "Cancels the Uber Direct delivery and frees the order to dispatch again."
                     : courierProvider === "JET_GO"
                       ? "Asks JET Go to cancel. They can refuse once a courier has collected, so the order stays put until they confirm."
+                      : courierProvider === "YANGO"
+                        ? "Cancels the Yango delivery — free until the courier reaches the shop, then Yango charges a fee (you'll be asked first)."
                       : "Pulls the order back from the driver so you can dispatch again.";
             return (
               <div className="px-5 py-4 border-b border-zinc-100">

@@ -2129,6 +2129,22 @@ exports.Prisma.JetGoConfigScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.YangoConfigScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  mode: 'mode',
+  credentials: 'credentials',
+  taxiClass: 'taxiClass',
+  contactEmail: 'contactEmail',
+  pickupLat: 'pickupLat',
+  pickupLng: 'pickupLng',
+  webhookToken: 'webhookToken',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.ReviewScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -3644,6 +3660,16 @@ exports.Prisma.JetGoConfigOrderByRelevanceFieldEnum = {
   webhookSecret: 'webhookSecret'
 };
 
+exports.Prisma.YangoConfigOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  mode: 'mode',
+  taxiClass: 'taxiClass',
+  contactEmail: 'contactEmail',
+  webhookToken: 'webhookToken'
+};
+
 exports.Prisma.ReviewOrderByRelevanceFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -4397,6 +4423,7 @@ exports.Prisma.ModelName = {
   StuartConfig: 'StuartConfig',
   UberDirectConfig: 'UberDirectConfig',
   JetGoConfig: 'JetGoConfig',
+  YangoConfig: 'YangoConfig',
   Review: 'Review',
   VoiceCall: 'VoiceCall',
   GroupOrder: 'GroupOrder',

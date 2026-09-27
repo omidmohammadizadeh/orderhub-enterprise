@@ -8,6 +8,8 @@
 //                   also come back with WARNINGS (a cash order no courier will
 //                   collect, a scheduled slot JET will treat as ASAP), and those
 //                   are shown before the operator commits, not after.
+//   • Yango       — UAE shops only (YangoDispatchCard renders nothing elsewhere).
+//                   Starts in estimate-only mode: a real price, no booking.
 //   • Own fleet   — the location's online drivers (no courier fee); pick one.
 
 import { useEffect, useState } from "react";
@@ -18,6 +20,7 @@ import { Bike, Loader2, Truck, User, X } from "lucide-react";
 import { stuartClient } from "@/lib/api/stuart.client";
 import { uberDirectClient } from "@/lib/api/uber-direct.client";
 import { jetGoClient } from "@/lib/api/jet-go.client";
+import { YangoDispatchCard } from "./yango-dispatch-card";
 import {
   assignOrders,
   getOnlineDrivers,
@@ -383,6 +386,15 @@ export function DispatchModal({ orderId, locationId, orderRef, onClose }: Props)
               </p>
             )}
           </div>
+
+          {/* Yango — UAE only; hides itself for any other shop. */}
+          <YangoDispatchCard
+            orders={[{ id: orderId, ref: orderRef }]}
+            locationIds={locationId ? [locationId] : []}
+            disabled={busy !== null}
+            onBusyChange={(b) => setBusy(b ? "yango" : null)}
+            onSent={(_ids, _all, message) => done(message)}
+          />
 
           {/* Own fleet */}
           <div className="rounded-xl border border-zinc-200 p-3.5">

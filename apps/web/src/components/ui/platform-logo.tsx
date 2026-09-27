@@ -122,6 +122,20 @@ function StuartLogo({ size, rounded = true }: LogoProps) {
   );
 }
 
+function YangoLogo({ size, rounded = true }: LogoProps) {
+  // Yango Delivery — red tile with a white "Y" stub, same pattern as Stuart.
+  return (
+    <svg
+      viewBox="0 0 100 100"
+      style={tileStyle(size, rounded)}
+      aria-label="Yango Delivery"
+    >
+      <rect width="100" height="100" fill="#f5222d" />
+      <text x="50" y="72" textAnchor="middle" fontFamily="ui-sans-serif, system-ui, sans-serif" fontWeight="900" fontSize="62" fill="white">Y</text>
+    </svg>
+  );
+}
+
 function OrderHubLogo({ size, rounded = true }: LogoProps) {
   // POS / DIRECT fallback — bag silhouette with stacked wordmark.
   return (
@@ -260,6 +274,9 @@ const PLATFORM_META: Record<
   // — but it keeps its own slug, because an operator who uploads a JET Go tile
   // should not have it replace Just Eat's on the orders board.
   JET_GO:      { slug: "jetgo",      bg: "#ff8000", svg: (p) => <JustEatLogo {...p} /> },
+  // Yango Delivery (UAE courier dispatch). No bundled mark — a lettered tile in
+  // Yango red until someone uploads /brand-logos/yango.png.
+  YANGO:       { slug: "yango",      bg: "#f5222d", svg: (p) => <YangoLogo {...p} /> },
   HUBRISE:     { slug: "hubrise",    bg: "#7c3aed", svg: (p) => <HubRiseLogo {...p} /> },
   POS:         { slug: "orderhub",   bg: "#0a0a0a", svg: (p) => <OrderHubLogo {...p} /> },
   DIRECT:      { slug: "orderhub",   bg: "#0a0a0a", svg: (p) => <OrderHubLogo {...p} /> },
@@ -294,6 +311,7 @@ const LABELS: Record<string, string> = {
   STUART: "Stuart",
   UBER_DIRECT: "Uber Direct",
   JET_GO: "JET Go",
+  YANGO: "Yango Delivery",
   DIRECT_ONLINE: "Direct online ordering",
   CAREEM: "Careem",
   TALABAT: "talabat",

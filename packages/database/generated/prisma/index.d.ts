@@ -614,6 +614,11 @@ export type UberDirectConfig = $Result.DefaultSelection<Prisma.$UberDirectConfig
  */
 export type JetGoConfig = $Result.DefaultSelection<Prisma.$JetGoConfigPayload>
 /**
+ * Model YangoConfig
+ * 
+ */
+export type YangoConfig = $Result.DefaultSelection<Prisma.$YangoConfigPayload>
+/**
  * Model Review
  * 
  */
@@ -2835,6 +2840,16 @@ export class PrismaClient<
   get jetGoConfig(): Prisma.JetGoConfigDelegate<ExtArgs>;
 
   /**
+   * `prisma.yangoConfig`: Exposes CRUD operations for the **YangoConfig** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more YangoConfigs
+    * const yangoConfigs = await prisma.yangoConfig.findMany()
+    * ```
+    */
+  get yangoConfig(): Prisma.YangoConfigDelegate<ExtArgs>;
+
+  /**
    * `prisma.review`: Exposes CRUD operations for the **Review** model.
     * Example usage:
     * ```ts
@@ -3543,6 +3558,7 @@ export namespace Prisma {
     StuartConfig: 'StuartConfig',
     UberDirectConfig: 'UberDirectConfig',
     JetGoConfig: 'JetGoConfig',
+    YangoConfig: 'YangoConfig',
     Review: 'Review',
     VoiceCall: 'VoiceCall',
     GroupOrder: 'GroupOrder',
@@ -3573,7 +3589,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "referralProgram" | "referralCode" | "referral"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "yangoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "referralProgram" | "referralCode" | "referral"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -11904,6 +11920,76 @@ export namespace Prisma {
           count: {
             args: Prisma.JetGoConfigCountArgs<ExtArgs>
             result: $Utils.Optional<JetGoConfigCountAggregateOutputType> | number
+          }
+        }
+      }
+      YangoConfig: {
+        payload: Prisma.$YangoConfigPayload<ExtArgs>
+        fields: Prisma.YangoConfigFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.YangoConfigFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$YangoConfigPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.YangoConfigFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$YangoConfigPayload>
+          }
+          findFirst: {
+            args: Prisma.YangoConfigFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$YangoConfigPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.YangoConfigFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$YangoConfigPayload>
+          }
+          findMany: {
+            args: Prisma.YangoConfigFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$YangoConfigPayload>[]
+          }
+          create: {
+            args: Prisma.YangoConfigCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$YangoConfigPayload>
+          }
+          createMany: {
+            args: Prisma.YangoConfigCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.YangoConfigCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$YangoConfigPayload>[]
+          }
+          delete: {
+            args: Prisma.YangoConfigDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$YangoConfigPayload>
+          }
+          update: {
+            args: Prisma.YangoConfigUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$YangoConfigPayload>
+          }
+          deleteMany: {
+            args: Prisma.YangoConfigDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.YangoConfigUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.YangoConfigUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$YangoConfigPayload>
+          }
+          aggregate: {
+            args: Prisma.YangoConfigAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateYangoConfig>
+          }
+          groupBy: {
+            args: Prisma.YangoConfigGroupByArgs<ExtArgs>
+            result: $Utils.Optional<YangoConfigGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.YangoConfigCountArgs<ExtArgs>
+            result: $Utils.Optional<YangoConfigCountAggregateOutputType> | number
           }
         }
       }
@@ -30520,6 +30606,7 @@ export namespace Prisma {
     stuartConfig?: boolean | Location$stuartConfigArgs<ExtArgs>
     uberDirectConfig?: boolean | Location$uberDirectConfigArgs<ExtArgs>
     jetGoConfig?: boolean | Location$jetGoConfigArgs<ExtArgs>
+    yangoConfig?: boolean | Location$yangoConfigArgs<ExtArgs>
     loyaltyCard?: boolean | Location$loyaltyCardArgs<ExtArgs>
     referralProgram?: boolean | Location$referralProgramArgs<ExtArgs>
     loyaltyRewards?: boolean | Location$loyaltyRewardsArgs<ExtArgs>
@@ -30691,6 +30778,7 @@ export namespace Prisma {
     stuartConfig?: boolean | Location$stuartConfigArgs<ExtArgs>
     uberDirectConfig?: boolean | Location$uberDirectConfigArgs<ExtArgs>
     jetGoConfig?: boolean | Location$jetGoConfigArgs<ExtArgs>
+    yangoConfig?: boolean | Location$yangoConfigArgs<ExtArgs>
     loyaltyCard?: boolean | Location$loyaltyCardArgs<ExtArgs>
     referralProgram?: boolean | Location$referralProgramArgs<ExtArgs>
     loyaltyRewards?: boolean | Location$loyaltyRewardsArgs<ExtArgs>
@@ -30734,6 +30822,7 @@ export namespace Prisma {
       stuartConfig: Prisma.$StuartConfigPayload<ExtArgs> | null
       uberDirectConfig: Prisma.$UberDirectConfigPayload<ExtArgs> | null
       jetGoConfig: Prisma.$JetGoConfigPayload<ExtArgs> | null
+      yangoConfig: Prisma.$YangoConfigPayload<ExtArgs> | null
       loyaltyCard: Prisma.$LoyaltyCardPayload<ExtArgs> | null
       referralProgram: Prisma.$ReferralProgramPayload<ExtArgs> | null
       loyaltyRewards: Prisma.$LoyaltyRewardPayload<ExtArgs>[]
@@ -31198,6 +31287,7 @@ export namespace Prisma {
     stuartConfig<T extends Location$stuartConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$stuartConfigArgs<ExtArgs>>): Prisma__StuartConfigClient<$Result.GetResult<Prisma.$StuartConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     uberDirectConfig<T extends Location$uberDirectConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$uberDirectConfigArgs<ExtArgs>>): Prisma__UberDirectConfigClient<$Result.GetResult<Prisma.$UberDirectConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     jetGoConfig<T extends Location$jetGoConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$jetGoConfigArgs<ExtArgs>>): Prisma__JetGoConfigClient<$Result.GetResult<Prisma.$JetGoConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    yangoConfig<T extends Location$yangoConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$yangoConfigArgs<ExtArgs>>): Prisma__YangoConfigClient<$Result.GetResult<Prisma.$YangoConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     loyaltyCard<T extends Location$loyaltyCardArgs<ExtArgs> = {}>(args?: Subset<T, Location$loyaltyCardArgs<ExtArgs>>): Prisma__LoyaltyCardClient<$Result.GetResult<Prisma.$LoyaltyCardPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     referralProgram<T extends Location$referralProgramArgs<ExtArgs> = {}>(args?: Subset<T, Location$referralProgramArgs<ExtArgs>>): Prisma__ReferralProgramClient<$Result.GetResult<Prisma.$ReferralProgramPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     loyaltyRewards<T extends Location$loyaltyRewardsArgs<ExtArgs> = {}>(args?: Subset<T, Location$loyaltyRewardsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LoyaltyRewardPayload<ExtArgs>, T, "findMany"> | Null>
@@ -32103,6 +32193,21 @@ export namespace Prisma {
      */
     include?: JetGoConfigInclude<ExtArgs> | null
     where?: JetGoConfigWhereInput
+  }
+
+  /**
+   * Location.yangoConfig
+   */
+  export type Location$yangoConfigArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the YangoConfig
+     */
+    select?: YangoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: YangoConfigInclude<ExtArgs> | null
+    where?: YangoConfigWhereInput
   }
 
   /**
@@ -144119,6 +144224,1069 @@ export namespace Prisma {
 
 
   /**
+   * Model YangoConfig
+   */
+
+  export type AggregateYangoConfig = {
+    _count: YangoConfigCountAggregateOutputType | null
+    _avg: YangoConfigAvgAggregateOutputType | null
+    _sum: YangoConfigSumAggregateOutputType | null
+    _min: YangoConfigMinAggregateOutputType | null
+    _max: YangoConfigMaxAggregateOutputType | null
+  }
+
+  export type YangoConfigAvgAggregateOutputType = {
+    pickupLat: number | null
+    pickupLng: number | null
+  }
+
+  export type YangoConfigSumAggregateOutputType = {
+    pickupLat: number | null
+    pickupLng: number | null
+  }
+
+  export type YangoConfigMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    mode: string | null
+    taxiClass: string | null
+    contactEmail: string | null
+    pickupLat: number | null
+    pickupLng: number | null
+    webhookToken: string | null
+    active: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type YangoConfigMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    mode: string | null
+    taxiClass: string | null
+    contactEmail: string | null
+    pickupLat: number | null
+    pickupLng: number | null
+    webhookToken: string | null
+    active: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type YangoConfigCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    mode: number
+    credentials: number
+    taxiClass: number
+    contactEmail: number
+    pickupLat: number
+    pickupLng: number
+    webhookToken: number
+    active: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type YangoConfigAvgAggregateInputType = {
+    pickupLat?: true
+    pickupLng?: true
+  }
+
+  export type YangoConfigSumAggregateInputType = {
+    pickupLat?: true
+    pickupLng?: true
+  }
+
+  export type YangoConfigMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    mode?: true
+    taxiClass?: true
+    contactEmail?: true
+    pickupLat?: true
+    pickupLng?: true
+    webhookToken?: true
+    active?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type YangoConfigMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    mode?: true
+    taxiClass?: true
+    contactEmail?: true
+    pickupLat?: true
+    pickupLng?: true
+    webhookToken?: true
+    active?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type YangoConfigCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    mode?: true
+    credentials?: true
+    taxiClass?: true
+    contactEmail?: true
+    pickupLat?: true
+    pickupLng?: true
+    webhookToken?: true
+    active?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type YangoConfigAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which YangoConfig to aggregate.
+     */
+    where?: YangoConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of YangoConfigs to fetch.
+     */
+    orderBy?: YangoConfigOrderByWithRelationInput | YangoConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: YangoConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` YangoConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` YangoConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned YangoConfigs
+    **/
+    _count?: true | YangoConfigCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: YangoConfigAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: YangoConfigSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: YangoConfigMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: YangoConfigMaxAggregateInputType
+  }
+
+  export type GetYangoConfigAggregateType<T extends YangoConfigAggregateArgs> = {
+        [P in keyof T & keyof AggregateYangoConfig]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateYangoConfig[P]>
+      : GetScalarType<T[P], AggregateYangoConfig[P]>
+  }
+
+
+
+
+  export type YangoConfigGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: YangoConfigWhereInput
+    orderBy?: YangoConfigOrderByWithAggregationInput | YangoConfigOrderByWithAggregationInput[]
+    by: YangoConfigScalarFieldEnum[] | YangoConfigScalarFieldEnum
+    having?: YangoConfigScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: YangoConfigCountAggregateInputType | true
+    _avg?: YangoConfigAvgAggregateInputType
+    _sum?: YangoConfigSumAggregateInputType
+    _min?: YangoConfigMinAggregateInputType
+    _max?: YangoConfigMaxAggregateInputType
+  }
+
+  export type YangoConfigGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string
+    mode: string
+    credentials: JsonValue
+    taxiClass: string
+    contactEmail: string | null
+    pickupLat: number | null
+    pickupLng: number | null
+    webhookToken: string
+    active: boolean
+    createdAt: Date
+    updatedAt: Date
+    _count: YangoConfigCountAggregateOutputType | null
+    _avg: YangoConfigAvgAggregateOutputType | null
+    _sum: YangoConfigSumAggregateOutputType | null
+    _min: YangoConfigMinAggregateOutputType | null
+    _max: YangoConfigMaxAggregateOutputType | null
+  }
+
+  type GetYangoConfigGroupByPayload<T extends YangoConfigGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<YangoConfigGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof YangoConfigGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], YangoConfigGroupByOutputType[P]>
+            : GetScalarType<T[P], YangoConfigGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type YangoConfigSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    mode?: boolean
+    credentials?: boolean
+    taxiClass?: boolean
+    contactEmail?: boolean
+    pickupLat?: boolean
+    pickupLng?: boolean
+    webhookToken?: boolean
+    active?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["yangoConfig"]>
+
+  export type YangoConfigSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    mode?: boolean
+    credentials?: boolean
+    taxiClass?: boolean
+    contactEmail?: boolean
+    pickupLat?: boolean
+    pickupLng?: boolean
+    webhookToken?: boolean
+    active?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["yangoConfig"]>
+
+  export type YangoConfigSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    mode?: boolean
+    credentials?: boolean
+    taxiClass?: boolean
+    contactEmail?: boolean
+    pickupLat?: boolean
+    pickupLng?: boolean
+    webhookToken?: boolean
+    active?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type YangoConfigInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+  export type YangoConfigIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+
+  export type $YangoConfigPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "YangoConfig"
+    objects: {
+      location: Prisma.$LocationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string
+      mode: string
+      credentials: Prisma.JsonValue
+      taxiClass: string
+      contactEmail: string | null
+      pickupLat: number | null
+      pickupLng: number | null
+      webhookToken: string
+      active: boolean
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["yangoConfig"]>
+    composites: {}
+  }
+
+  type YangoConfigGetPayload<S extends boolean | null | undefined | YangoConfigDefaultArgs> = $Result.GetResult<Prisma.$YangoConfigPayload, S>
+
+  type YangoConfigCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<YangoConfigFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: YangoConfigCountAggregateInputType | true
+    }
+
+  export interface YangoConfigDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['YangoConfig'], meta: { name: 'YangoConfig' } }
+    /**
+     * Find zero or one YangoConfig that matches the filter.
+     * @param {YangoConfigFindUniqueArgs} args - Arguments to find a YangoConfig
+     * @example
+     * // Get one YangoConfig
+     * const yangoConfig = await prisma.yangoConfig.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends YangoConfigFindUniqueArgs>(args: SelectSubset<T, YangoConfigFindUniqueArgs<ExtArgs>>): Prisma__YangoConfigClient<$Result.GetResult<Prisma.$YangoConfigPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one YangoConfig that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {YangoConfigFindUniqueOrThrowArgs} args - Arguments to find a YangoConfig
+     * @example
+     * // Get one YangoConfig
+     * const yangoConfig = await prisma.yangoConfig.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends YangoConfigFindUniqueOrThrowArgs>(args: SelectSubset<T, YangoConfigFindUniqueOrThrowArgs<ExtArgs>>): Prisma__YangoConfigClient<$Result.GetResult<Prisma.$YangoConfigPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first YangoConfig that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {YangoConfigFindFirstArgs} args - Arguments to find a YangoConfig
+     * @example
+     * // Get one YangoConfig
+     * const yangoConfig = await prisma.yangoConfig.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends YangoConfigFindFirstArgs>(args?: SelectSubset<T, YangoConfigFindFirstArgs<ExtArgs>>): Prisma__YangoConfigClient<$Result.GetResult<Prisma.$YangoConfigPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first YangoConfig that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {YangoConfigFindFirstOrThrowArgs} args - Arguments to find a YangoConfig
+     * @example
+     * // Get one YangoConfig
+     * const yangoConfig = await prisma.yangoConfig.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends YangoConfigFindFirstOrThrowArgs>(args?: SelectSubset<T, YangoConfigFindFirstOrThrowArgs<ExtArgs>>): Prisma__YangoConfigClient<$Result.GetResult<Prisma.$YangoConfigPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more YangoConfigs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {YangoConfigFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all YangoConfigs
+     * const yangoConfigs = await prisma.yangoConfig.findMany()
+     * 
+     * // Get first 10 YangoConfigs
+     * const yangoConfigs = await prisma.yangoConfig.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const yangoConfigWithIdOnly = await prisma.yangoConfig.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends YangoConfigFindManyArgs>(args?: SelectSubset<T, YangoConfigFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$YangoConfigPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a YangoConfig.
+     * @param {YangoConfigCreateArgs} args - Arguments to create a YangoConfig.
+     * @example
+     * // Create one YangoConfig
+     * const YangoConfig = await prisma.yangoConfig.create({
+     *   data: {
+     *     // ... data to create a YangoConfig
+     *   }
+     * })
+     * 
+     */
+    create<T extends YangoConfigCreateArgs>(args: SelectSubset<T, YangoConfigCreateArgs<ExtArgs>>): Prisma__YangoConfigClient<$Result.GetResult<Prisma.$YangoConfigPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many YangoConfigs.
+     * @param {YangoConfigCreateManyArgs} args - Arguments to create many YangoConfigs.
+     * @example
+     * // Create many YangoConfigs
+     * const yangoConfig = await prisma.yangoConfig.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends YangoConfigCreateManyArgs>(args?: SelectSubset<T, YangoConfigCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many YangoConfigs and returns the data saved in the database.
+     * @param {YangoConfigCreateManyAndReturnArgs} args - Arguments to create many YangoConfigs.
+     * @example
+     * // Create many YangoConfigs
+     * const yangoConfig = await prisma.yangoConfig.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many YangoConfigs and only return the `id`
+     * const yangoConfigWithIdOnly = await prisma.yangoConfig.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends YangoConfigCreateManyAndReturnArgs>(args?: SelectSubset<T, YangoConfigCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$YangoConfigPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a YangoConfig.
+     * @param {YangoConfigDeleteArgs} args - Arguments to delete one YangoConfig.
+     * @example
+     * // Delete one YangoConfig
+     * const YangoConfig = await prisma.yangoConfig.delete({
+     *   where: {
+     *     // ... filter to delete one YangoConfig
+     *   }
+     * })
+     * 
+     */
+    delete<T extends YangoConfigDeleteArgs>(args: SelectSubset<T, YangoConfigDeleteArgs<ExtArgs>>): Prisma__YangoConfigClient<$Result.GetResult<Prisma.$YangoConfigPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one YangoConfig.
+     * @param {YangoConfigUpdateArgs} args - Arguments to update one YangoConfig.
+     * @example
+     * // Update one YangoConfig
+     * const yangoConfig = await prisma.yangoConfig.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends YangoConfigUpdateArgs>(args: SelectSubset<T, YangoConfigUpdateArgs<ExtArgs>>): Prisma__YangoConfigClient<$Result.GetResult<Prisma.$YangoConfigPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more YangoConfigs.
+     * @param {YangoConfigDeleteManyArgs} args - Arguments to filter YangoConfigs to delete.
+     * @example
+     * // Delete a few YangoConfigs
+     * const { count } = await prisma.yangoConfig.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends YangoConfigDeleteManyArgs>(args?: SelectSubset<T, YangoConfigDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more YangoConfigs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {YangoConfigUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many YangoConfigs
+     * const yangoConfig = await prisma.yangoConfig.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends YangoConfigUpdateManyArgs>(args: SelectSubset<T, YangoConfigUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one YangoConfig.
+     * @param {YangoConfigUpsertArgs} args - Arguments to update or create a YangoConfig.
+     * @example
+     * // Update or create a YangoConfig
+     * const yangoConfig = await prisma.yangoConfig.upsert({
+     *   create: {
+     *     // ... data to create a YangoConfig
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the YangoConfig we want to update
+     *   }
+     * })
+     */
+    upsert<T extends YangoConfigUpsertArgs>(args: SelectSubset<T, YangoConfigUpsertArgs<ExtArgs>>): Prisma__YangoConfigClient<$Result.GetResult<Prisma.$YangoConfigPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of YangoConfigs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {YangoConfigCountArgs} args - Arguments to filter YangoConfigs to count.
+     * @example
+     * // Count the number of YangoConfigs
+     * const count = await prisma.yangoConfig.count({
+     *   where: {
+     *     // ... the filter for the YangoConfigs we want to count
+     *   }
+     * })
+    **/
+    count<T extends YangoConfigCountArgs>(
+      args?: Subset<T, YangoConfigCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], YangoConfigCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a YangoConfig.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {YangoConfigAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends YangoConfigAggregateArgs>(args: Subset<T, YangoConfigAggregateArgs>): Prisma.PrismaPromise<GetYangoConfigAggregateType<T>>
+
+    /**
+     * Group by YangoConfig.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {YangoConfigGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends YangoConfigGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: YangoConfigGroupByArgs['orderBy'] }
+        : { orderBy?: YangoConfigGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, YangoConfigGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetYangoConfigGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the YangoConfig model
+   */
+  readonly fields: YangoConfigFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for YangoConfig.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__YangoConfigClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the YangoConfig model
+   */ 
+  interface YangoConfigFieldRefs {
+    readonly id: FieldRef<"YangoConfig", 'String'>
+    readonly tenantId: FieldRef<"YangoConfig", 'String'>
+    readonly locationId: FieldRef<"YangoConfig", 'String'>
+    readonly mode: FieldRef<"YangoConfig", 'String'>
+    readonly credentials: FieldRef<"YangoConfig", 'Json'>
+    readonly taxiClass: FieldRef<"YangoConfig", 'String'>
+    readonly contactEmail: FieldRef<"YangoConfig", 'String'>
+    readonly pickupLat: FieldRef<"YangoConfig", 'Float'>
+    readonly pickupLng: FieldRef<"YangoConfig", 'Float'>
+    readonly webhookToken: FieldRef<"YangoConfig", 'String'>
+    readonly active: FieldRef<"YangoConfig", 'Boolean'>
+    readonly createdAt: FieldRef<"YangoConfig", 'DateTime'>
+    readonly updatedAt: FieldRef<"YangoConfig", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * YangoConfig findUnique
+   */
+  export type YangoConfigFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the YangoConfig
+     */
+    select?: YangoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: YangoConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which YangoConfig to fetch.
+     */
+    where: YangoConfigWhereUniqueInput
+  }
+
+  /**
+   * YangoConfig findUniqueOrThrow
+   */
+  export type YangoConfigFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the YangoConfig
+     */
+    select?: YangoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: YangoConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which YangoConfig to fetch.
+     */
+    where: YangoConfigWhereUniqueInput
+  }
+
+  /**
+   * YangoConfig findFirst
+   */
+  export type YangoConfigFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the YangoConfig
+     */
+    select?: YangoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: YangoConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which YangoConfig to fetch.
+     */
+    where?: YangoConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of YangoConfigs to fetch.
+     */
+    orderBy?: YangoConfigOrderByWithRelationInput | YangoConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for YangoConfigs.
+     */
+    cursor?: YangoConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` YangoConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` YangoConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of YangoConfigs.
+     */
+    distinct?: YangoConfigScalarFieldEnum | YangoConfigScalarFieldEnum[]
+  }
+
+  /**
+   * YangoConfig findFirstOrThrow
+   */
+  export type YangoConfigFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the YangoConfig
+     */
+    select?: YangoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: YangoConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which YangoConfig to fetch.
+     */
+    where?: YangoConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of YangoConfigs to fetch.
+     */
+    orderBy?: YangoConfigOrderByWithRelationInput | YangoConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for YangoConfigs.
+     */
+    cursor?: YangoConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` YangoConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` YangoConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of YangoConfigs.
+     */
+    distinct?: YangoConfigScalarFieldEnum | YangoConfigScalarFieldEnum[]
+  }
+
+  /**
+   * YangoConfig findMany
+   */
+  export type YangoConfigFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the YangoConfig
+     */
+    select?: YangoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: YangoConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which YangoConfigs to fetch.
+     */
+    where?: YangoConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of YangoConfigs to fetch.
+     */
+    orderBy?: YangoConfigOrderByWithRelationInput | YangoConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing YangoConfigs.
+     */
+    cursor?: YangoConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` YangoConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` YangoConfigs.
+     */
+    skip?: number
+    distinct?: YangoConfigScalarFieldEnum | YangoConfigScalarFieldEnum[]
+  }
+
+  /**
+   * YangoConfig create
+   */
+  export type YangoConfigCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the YangoConfig
+     */
+    select?: YangoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: YangoConfigInclude<ExtArgs> | null
+    /**
+     * The data needed to create a YangoConfig.
+     */
+    data: XOR<YangoConfigCreateInput, YangoConfigUncheckedCreateInput>
+  }
+
+  /**
+   * YangoConfig createMany
+   */
+  export type YangoConfigCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many YangoConfigs.
+     */
+    data: YangoConfigCreateManyInput | YangoConfigCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * YangoConfig createManyAndReturn
+   */
+  export type YangoConfigCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the YangoConfig
+     */
+    select?: YangoConfigSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many YangoConfigs.
+     */
+    data: YangoConfigCreateManyInput | YangoConfigCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: YangoConfigIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * YangoConfig update
+   */
+  export type YangoConfigUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the YangoConfig
+     */
+    select?: YangoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: YangoConfigInclude<ExtArgs> | null
+    /**
+     * The data needed to update a YangoConfig.
+     */
+    data: XOR<YangoConfigUpdateInput, YangoConfigUncheckedUpdateInput>
+    /**
+     * Choose, which YangoConfig to update.
+     */
+    where: YangoConfigWhereUniqueInput
+  }
+
+  /**
+   * YangoConfig updateMany
+   */
+  export type YangoConfigUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update YangoConfigs.
+     */
+    data: XOR<YangoConfigUpdateManyMutationInput, YangoConfigUncheckedUpdateManyInput>
+    /**
+     * Filter which YangoConfigs to update
+     */
+    where?: YangoConfigWhereInput
+  }
+
+  /**
+   * YangoConfig upsert
+   */
+  export type YangoConfigUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the YangoConfig
+     */
+    select?: YangoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: YangoConfigInclude<ExtArgs> | null
+    /**
+     * The filter to search for the YangoConfig to update in case it exists.
+     */
+    where: YangoConfigWhereUniqueInput
+    /**
+     * In case the YangoConfig found by the `where` argument doesn't exist, create a new YangoConfig with this data.
+     */
+    create: XOR<YangoConfigCreateInput, YangoConfigUncheckedCreateInput>
+    /**
+     * In case the YangoConfig was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<YangoConfigUpdateInput, YangoConfigUncheckedUpdateInput>
+  }
+
+  /**
+   * YangoConfig delete
+   */
+  export type YangoConfigDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the YangoConfig
+     */
+    select?: YangoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: YangoConfigInclude<ExtArgs> | null
+    /**
+     * Filter which YangoConfig to delete.
+     */
+    where: YangoConfigWhereUniqueInput
+  }
+
+  /**
+   * YangoConfig deleteMany
+   */
+  export type YangoConfigDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which YangoConfigs to delete
+     */
+    where?: YangoConfigWhereInput
+  }
+
+  /**
+   * YangoConfig without action
+   */
+  export type YangoConfigDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the YangoConfig
+     */
+    select?: YangoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: YangoConfigInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Model Review
    */
 
@@ -162636,6 +163804,25 @@ export namespace Prisma {
   export type JetGoConfigScalarFieldEnum = (typeof JetGoConfigScalarFieldEnum)[keyof typeof JetGoConfigScalarFieldEnum]
 
 
+  export const YangoConfigScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    mode: 'mode',
+    credentials: 'credentials',
+    taxiClass: 'taxiClass',
+    contactEmail: 'contactEmail',
+    pickupLat: 'pickupLat',
+    pickupLng: 'pickupLng',
+    webhookToken: 'webhookToken',
+    active: 'active',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type YangoConfigScalarFieldEnum = (typeof YangoConfigScalarFieldEnum)[keyof typeof YangoConfigScalarFieldEnum]
+
+
   export const ReviewScalarFieldEnum: {
     id: 'id',
     tenantId: 'tenantId',
@@ -164569,6 +165756,19 @@ export namespace Prisma {
   };
 
   export type JetGoConfigOrderByRelevanceFieldEnum = (typeof JetGoConfigOrderByRelevanceFieldEnum)[keyof typeof JetGoConfigOrderByRelevanceFieldEnum]
+
+
+  export const YangoConfigOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    mode: 'mode',
+    taxiClass: 'taxiClass',
+    contactEmail: 'contactEmail',
+    webhookToken: 'webhookToken'
+  };
+
+  export type YangoConfigOrderByRelevanceFieldEnum = (typeof YangoConfigOrderByRelevanceFieldEnum)[keyof typeof YangoConfigOrderByRelevanceFieldEnum]
 
 
   export const ReviewOrderByRelevanceFieldEnum: {
@@ -167083,6 +168283,7 @@ export namespace Prisma {
     stuartConfig?: XOR<StuartConfigNullableRelationFilter, StuartConfigWhereInput> | null
     uberDirectConfig?: XOR<UberDirectConfigNullableRelationFilter, UberDirectConfigWhereInput> | null
     jetGoConfig?: XOR<JetGoConfigNullableRelationFilter, JetGoConfigWhereInput> | null
+    yangoConfig?: XOR<YangoConfigNullableRelationFilter, YangoConfigWhereInput> | null
     loyaltyCard?: XOR<LoyaltyCardNullableRelationFilter, LoyaltyCardWhereInput> | null
     referralProgram?: XOR<ReferralProgramNullableRelationFilter, ReferralProgramWhereInput> | null
     loyaltyRewards?: LoyaltyRewardListRelationFilter
@@ -167180,6 +168381,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigOrderByWithRelationInput
     uberDirectConfig?: UberDirectConfigOrderByWithRelationInput
     jetGoConfig?: JetGoConfigOrderByWithRelationInput
+    yangoConfig?: YangoConfigOrderByWithRelationInput
     loyaltyCard?: LoyaltyCardOrderByWithRelationInput
     referralProgram?: ReferralProgramOrderByWithRelationInput
     loyaltyRewards?: LoyaltyRewardOrderByRelationAggregateInput
@@ -167281,6 +168483,7 @@ export namespace Prisma {
     stuartConfig?: XOR<StuartConfigNullableRelationFilter, StuartConfigWhereInput> | null
     uberDirectConfig?: XOR<UberDirectConfigNullableRelationFilter, UberDirectConfigWhereInput> | null
     jetGoConfig?: XOR<JetGoConfigNullableRelationFilter, JetGoConfigWhereInput> | null
+    yangoConfig?: XOR<YangoConfigNullableRelationFilter, YangoConfigWhereInput> | null
     loyaltyCard?: XOR<LoyaltyCardNullableRelationFilter, LoyaltyCardWhereInput> | null
     referralProgram?: XOR<ReferralProgramNullableRelationFilter, ReferralProgramWhereInput> | null
     loyaltyRewards?: LoyaltyRewardListRelationFilter
@@ -178202,6 +179405,104 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"JetGoConfig"> | Date | string
   }
 
+  export type YangoConfigWhereInput = {
+    AND?: YangoConfigWhereInput | YangoConfigWhereInput[]
+    OR?: YangoConfigWhereInput[]
+    NOT?: YangoConfigWhereInput | YangoConfigWhereInput[]
+    id?: StringFilter<"YangoConfig"> | string
+    tenantId?: StringFilter<"YangoConfig"> | string
+    locationId?: StringFilter<"YangoConfig"> | string
+    mode?: StringFilter<"YangoConfig"> | string
+    credentials?: JsonFilter<"YangoConfig">
+    taxiClass?: StringFilter<"YangoConfig"> | string
+    contactEmail?: StringNullableFilter<"YangoConfig"> | string | null
+    pickupLat?: FloatNullableFilter<"YangoConfig"> | number | null
+    pickupLng?: FloatNullableFilter<"YangoConfig"> | number | null
+    webhookToken?: StringFilter<"YangoConfig"> | string
+    active?: BoolFilter<"YangoConfig"> | boolean
+    createdAt?: DateTimeFilter<"YangoConfig"> | Date | string
+    updatedAt?: DateTimeFilter<"YangoConfig"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }
+
+  export type YangoConfigOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    mode?: SortOrder
+    credentials?: SortOrder
+    taxiClass?: SortOrder
+    contactEmail?: SortOrderInput | SortOrder
+    pickupLat?: SortOrderInput | SortOrder
+    pickupLng?: SortOrderInput | SortOrder
+    webhookToken?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    location?: LocationOrderByWithRelationInput
+    _relevance?: YangoConfigOrderByRelevanceInput
+  }
+
+  export type YangoConfigWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    locationId?: string
+    AND?: YangoConfigWhereInput | YangoConfigWhereInput[]
+    OR?: YangoConfigWhereInput[]
+    NOT?: YangoConfigWhereInput | YangoConfigWhereInput[]
+    tenantId?: StringFilter<"YangoConfig"> | string
+    mode?: StringFilter<"YangoConfig"> | string
+    credentials?: JsonFilter<"YangoConfig">
+    taxiClass?: StringFilter<"YangoConfig"> | string
+    contactEmail?: StringNullableFilter<"YangoConfig"> | string | null
+    pickupLat?: FloatNullableFilter<"YangoConfig"> | number | null
+    pickupLng?: FloatNullableFilter<"YangoConfig"> | number | null
+    webhookToken?: StringFilter<"YangoConfig"> | string
+    active?: BoolFilter<"YangoConfig"> | boolean
+    createdAt?: DateTimeFilter<"YangoConfig"> | Date | string
+    updatedAt?: DateTimeFilter<"YangoConfig"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }, "id" | "locationId">
+
+  export type YangoConfigOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    mode?: SortOrder
+    credentials?: SortOrder
+    taxiClass?: SortOrder
+    contactEmail?: SortOrderInput | SortOrder
+    pickupLat?: SortOrderInput | SortOrder
+    pickupLng?: SortOrderInput | SortOrder
+    webhookToken?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: YangoConfigCountOrderByAggregateInput
+    _avg?: YangoConfigAvgOrderByAggregateInput
+    _max?: YangoConfigMaxOrderByAggregateInput
+    _min?: YangoConfigMinOrderByAggregateInput
+    _sum?: YangoConfigSumOrderByAggregateInput
+  }
+
+  export type YangoConfigScalarWhereWithAggregatesInput = {
+    AND?: YangoConfigScalarWhereWithAggregatesInput | YangoConfigScalarWhereWithAggregatesInput[]
+    OR?: YangoConfigScalarWhereWithAggregatesInput[]
+    NOT?: YangoConfigScalarWhereWithAggregatesInput | YangoConfigScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"YangoConfig"> | string
+    tenantId?: StringWithAggregatesFilter<"YangoConfig"> | string
+    locationId?: StringWithAggregatesFilter<"YangoConfig"> | string
+    mode?: StringWithAggregatesFilter<"YangoConfig"> | string
+    credentials?: JsonWithAggregatesFilter<"YangoConfig">
+    taxiClass?: StringWithAggregatesFilter<"YangoConfig"> | string
+    contactEmail?: StringNullableWithAggregatesFilter<"YangoConfig"> | string | null
+    pickupLat?: FloatNullableWithAggregatesFilter<"YangoConfig"> | number | null
+    pickupLng?: FloatNullableWithAggregatesFilter<"YangoConfig"> | number | null
+    webhookToken?: StringWithAggregatesFilter<"YangoConfig"> | string
+    active?: BoolWithAggregatesFilter<"YangoConfig"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"YangoConfig"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"YangoConfig"> | Date | string
+  }
+
   export type ReviewWhereInput = {
     AND?: ReviewWhereInput | ReviewWhereInput[]
     OR?: ReviewWhereInput[]
@@ -181462,6 +182763,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -181555,6 +182857,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -181648,6 +182951,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -181741,6 +183045,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -194270,6 +195575,117 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type YangoConfigCreateInput = {
+    id?: string
+    tenantId: string
+    mode?: string
+    credentials: JsonNullValueInput | InputJsonValue
+    taxiClass?: string
+    contactEmail?: string | null
+    pickupLat?: number | null
+    pickupLng?: number | null
+    webhookToken: string
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutYangoConfigInput
+  }
+
+  export type YangoConfigUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    mode?: string
+    credentials: JsonNullValueInput | InputJsonValue
+    taxiClass?: string
+    contactEmail?: string | null
+    pickupLat?: number | null
+    pickupLng?: number | null
+    webhookToken: string
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type YangoConfigUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    mode?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    taxiClass?: StringFieldUpdateOperationsInput | string
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    pickupLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    pickupLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    webhookToken?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutYangoConfigNestedInput
+  }
+
+  export type YangoConfigUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    mode?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    taxiClass?: StringFieldUpdateOperationsInput | string
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    pickupLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    pickupLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    webhookToken?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type YangoConfigCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    mode?: string
+    credentials: JsonNullValueInput | InputJsonValue
+    taxiClass?: string
+    contactEmail?: string | null
+    pickupLat?: number | null
+    pickupLng?: number | null
+    webhookToken: string
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type YangoConfigUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    mode?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    taxiClass?: StringFieldUpdateOperationsInput | string
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    pickupLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    pickupLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    webhookToken?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type YangoConfigUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    mode?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    taxiClass?: StringFieldUpdateOperationsInput | string
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    pickupLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    pickupLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    webhookToken?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type ReviewCreateInput = {
     id?: string
     tenantId: string
@@ -197710,6 +199126,11 @@ export namespace Prisma {
   export type JetGoConfigNullableRelationFilter = {
     is?: JetGoConfigWhereInput | null
     isNot?: JetGoConfigWhereInput | null
+  }
+
+  export type YangoConfigNullableRelationFilter = {
+    is?: YangoConfigWhereInput | null
+    isNot?: YangoConfigWhereInput | null
   }
 
   export type LoyaltyCardNullableRelationFilter = {
@@ -205986,6 +207407,68 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type YangoConfigOrderByRelevanceInput = {
+    fields: YangoConfigOrderByRelevanceFieldEnum | YangoConfigOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type YangoConfigCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    mode?: SortOrder
+    credentials?: SortOrder
+    taxiClass?: SortOrder
+    contactEmail?: SortOrder
+    pickupLat?: SortOrder
+    pickupLng?: SortOrder
+    webhookToken?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type YangoConfigAvgOrderByAggregateInput = {
+    pickupLat?: SortOrder
+    pickupLng?: SortOrder
+  }
+
+  export type YangoConfigMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    mode?: SortOrder
+    taxiClass?: SortOrder
+    contactEmail?: SortOrder
+    pickupLat?: SortOrder
+    pickupLng?: SortOrder
+    webhookToken?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type YangoConfigMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    mode?: SortOrder
+    taxiClass?: SortOrder
+    contactEmail?: SortOrder
+    pickupLat?: SortOrder
+    pickupLng?: SortOrder
+    webhookToken?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type YangoConfigSumOrderByAggregateInput = {
+    pickupLat?: SortOrder
+    pickupLng?: SortOrder
+  }
+
   export type ReviewOrderByRelevanceInput = {
     fields: ReviewOrderByRelevanceFieldEnum | ReviewOrderByRelevanceFieldEnum[]
     sort: SortOrder
@@ -209589,6 +211072,12 @@ export namespace Prisma {
     connect?: JetGoConfigWhereUniqueInput
   }
 
+  export type YangoConfigCreateNestedOneWithoutLocationInput = {
+    create?: XOR<YangoConfigCreateWithoutLocationInput, YangoConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: YangoConfigCreateOrConnectWithoutLocationInput
+    connect?: YangoConfigWhereUniqueInput
+  }
+
   export type LoyaltyCardCreateNestedOneWithoutLocationInput = {
     create?: XOR<LoyaltyCardCreateWithoutLocationInput, LoyaltyCardUncheckedCreateWithoutLocationInput>
     connectOrCreate?: LoyaltyCardCreateOrConnectWithoutLocationInput
@@ -209768,6 +211257,12 @@ export namespace Prisma {
     create?: XOR<JetGoConfigCreateWithoutLocationInput, JetGoConfigUncheckedCreateWithoutLocationInput>
     connectOrCreate?: JetGoConfigCreateOrConnectWithoutLocationInput
     connect?: JetGoConfigWhereUniqueInput
+  }
+
+  export type YangoConfigUncheckedCreateNestedOneWithoutLocationInput = {
+    create?: XOR<YangoConfigCreateWithoutLocationInput, YangoConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: YangoConfigCreateOrConnectWithoutLocationInput
+    connect?: YangoConfigWhereUniqueInput
   }
 
   export type LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput = {
@@ -210159,6 +211654,16 @@ export namespace Prisma {
     update?: XOR<XOR<JetGoConfigUpdateToOneWithWhereWithoutLocationInput, JetGoConfigUpdateWithoutLocationInput>, JetGoConfigUncheckedUpdateWithoutLocationInput>
   }
 
+  export type YangoConfigUpdateOneWithoutLocationNestedInput = {
+    create?: XOR<YangoConfigCreateWithoutLocationInput, YangoConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: YangoConfigCreateOrConnectWithoutLocationInput
+    upsert?: YangoConfigUpsertWithoutLocationInput
+    disconnect?: YangoConfigWhereInput | boolean
+    delete?: YangoConfigWhereInput | boolean
+    connect?: YangoConfigWhereUniqueInput
+    update?: XOR<XOR<YangoConfigUpdateToOneWithWhereWithoutLocationInput, YangoConfigUpdateWithoutLocationInput>, YangoConfigUncheckedUpdateWithoutLocationInput>
+  }
+
   export type LoyaltyCardUpdateOneWithoutLocationNestedInput = {
     create?: XOR<LoyaltyCardCreateWithoutLocationInput, LoyaltyCardUncheckedCreateWithoutLocationInput>
     connectOrCreate?: LoyaltyCardCreateOrConnectWithoutLocationInput
@@ -210503,6 +212008,16 @@ export namespace Prisma {
     delete?: JetGoConfigWhereInput | boolean
     connect?: JetGoConfigWhereUniqueInput
     update?: XOR<XOR<JetGoConfigUpdateToOneWithWhereWithoutLocationInput, JetGoConfigUpdateWithoutLocationInput>, JetGoConfigUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type YangoConfigUncheckedUpdateOneWithoutLocationNestedInput = {
+    create?: XOR<YangoConfigCreateWithoutLocationInput, YangoConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: YangoConfigCreateOrConnectWithoutLocationInput
+    upsert?: YangoConfigUpsertWithoutLocationInput
+    disconnect?: YangoConfigWhereInput | boolean
+    delete?: YangoConfigWhereInput | boolean
+    connect?: YangoConfigWhereUniqueInput
+    update?: XOR<XOR<YangoConfigUpdateToOneWithWhereWithoutLocationInput, YangoConfigUpdateWithoutLocationInput>, YangoConfigUncheckedUpdateWithoutLocationInput>
   }
 
   export type LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput = {
@@ -215482,6 +216997,20 @@ export namespace Prisma {
     upsert?: LocationUpsertWithoutJetGoConfigInput
     connect?: LocationWhereUniqueInput
     update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutJetGoConfigInput, LocationUpdateWithoutJetGoConfigInput>, LocationUncheckedUpdateWithoutJetGoConfigInput>
+  }
+
+  export type LocationCreateNestedOneWithoutYangoConfigInput = {
+    create?: XOR<LocationCreateWithoutYangoConfigInput, LocationUncheckedCreateWithoutYangoConfigInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutYangoConfigInput
+    connect?: LocationWhereUniqueInput
+  }
+
+  export type LocationUpdateOneRequiredWithoutYangoConfigNestedInput = {
+    create?: XOR<LocationCreateWithoutYangoConfigInput, LocationUncheckedCreateWithoutYangoConfigInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutYangoConfigInput
+    upsert?: LocationUpsertWithoutYangoConfigInput
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutYangoConfigInput, LocationUpdateWithoutYangoConfigInput>, LocationUncheckedUpdateWithoutYangoConfigInput>
   }
 
   export type CustomerPushOrderCreateNestedManyWithoutSubscriptionInput = {
@@ -220529,6 +222058,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -220621,6 +222151,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -220794,6 +222325,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -220886,6 +222418,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -223031,6 +224564,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -223123,6 +224657,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -226035,6 +227570,41 @@ export namespace Prisma {
     create: XOR<JetGoConfigCreateWithoutLocationInput, JetGoConfigUncheckedCreateWithoutLocationInput>
   }
 
+  export type YangoConfigCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    mode?: string
+    credentials: JsonNullValueInput | InputJsonValue
+    taxiClass?: string
+    contactEmail?: string | null
+    pickupLat?: number | null
+    pickupLng?: number | null
+    webhookToken: string
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type YangoConfigUncheckedCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    mode?: string
+    credentials: JsonNullValueInput | InputJsonValue
+    taxiClass?: string
+    contactEmail?: string | null
+    pickupLat?: number | null
+    pickupLng?: number | null
+    webhookToken: string
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type YangoConfigCreateOrConnectWithoutLocationInput = {
+    where: YangoConfigWhereUniqueInput
+    create: XOR<YangoConfigCreateWithoutLocationInput, YangoConfigUncheckedCreateWithoutLocationInput>
+  }
+
   export type LoyaltyCardCreateWithoutLocationInput = {
     id?: string
     tenantId: string
@@ -227226,6 +228796,47 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type YangoConfigUpsertWithoutLocationInput = {
+    update: XOR<YangoConfigUpdateWithoutLocationInput, YangoConfigUncheckedUpdateWithoutLocationInput>
+    create: XOR<YangoConfigCreateWithoutLocationInput, YangoConfigUncheckedCreateWithoutLocationInput>
+    where?: YangoConfigWhereInput
+  }
+
+  export type YangoConfigUpdateToOneWithWhereWithoutLocationInput = {
+    where?: YangoConfigWhereInput
+    data: XOR<YangoConfigUpdateWithoutLocationInput, YangoConfigUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type YangoConfigUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    mode?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    taxiClass?: StringFieldUpdateOperationsInput | string
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    pickupLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    pickupLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    webhookToken?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type YangoConfigUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    mode?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    taxiClass?: StringFieldUpdateOperationsInput | string
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    pickupLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    pickupLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    webhookToken?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type LoyaltyCardUpsertWithoutLocationInput = {
     update: XOR<LoyaltyCardUpdateWithoutLocationInput, LoyaltyCardUncheckedUpdateWithoutLocationInput>
     create: XOR<LoyaltyCardCreateWithoutLocationInput, LoyaltyCardUncheckedCreateWithoutLocationInput>
@@ -227520,6 +229131,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -227612,6 +229224,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -227835,6 +229448,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -227927,6 +229541,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -228019,6 +229634,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -228111,6 +229727,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -228219,6 +229836,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -228311,6 +229929,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -228969,6 +230588,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -229061,6 +230681,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -229260,6 +230881,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -229352,6 +230974,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -230492,6 +232115,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -230584,6 +232208,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -230692,6 +232317,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -230784,6 +232410,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -230985,6 +232612,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -231077,6 +232705,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -231300,6 +232929,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -231392,6 +233022,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -234807,6 +236438,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -234899,6 +236531,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -235116,6 +236749,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -235208,6 +236842,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -236696,6 +238331,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -236788,6 +238424,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -237005,6 +238642,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -237097,6 +238735,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -237304,6 +238943,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -237396,6 +239036,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -237504,6 +239145,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -237596,6 +239238,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -237757,6 +239400,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -237849,6 +239493,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -238543,6 +240188,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -238635,6 +240281,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -239940,6 +241587,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -240032,6 +241680,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -240168,6 +241817,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -240260,6 +241910,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -240368,6 +242019,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -240460,6 +242112,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -240677,6 +242330,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -240769,6 +242423,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -240976,6 +242631,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -241068,6 +242724,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -241228,6 +242885,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -241320,6 +242978,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -241428,6 +243087,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -241520,6 +243180,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -241628,6 +243289,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -241720,6 +243382,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -241812,6 +243475,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -241904,6 +243568,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -242075,6 +243740,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -242167,6 +243833,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -242772,6 +244439,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -242864,6 +244532,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -243122,6 +244791,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -243214,6 +244884,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -243316,6 +244987,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -243408,6 +245080,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -243521,6 +245194,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -243613,6 +245287,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -244789,6 +246464,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -244881,6 +246557,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -245245,6 +246922,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -245337,6 +247015,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -245591,6 +247270,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -245683,6 +247363,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -246033,6 +247714,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -246125,6 +247807,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -246466,6 +248149,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -246558,6 +248242,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -247503,6 +249188,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -247595,6 +249281,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -247897,6 +249584,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -247989,6 +249677,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -252830,6 +254519,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -252922,6 +254612,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -253105,6 +254796,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -253197,6 +254889,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -254531,6 +256224,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -254623,6 +256317,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -254731,6 +256426,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -254823,6 +256519,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -254915,6 +256612,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -255007,6 +256705,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -255115,6 +256814,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -255207,6 +256907,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -255299,6 +257000,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -255391,6 +257093,7 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -255499,6 +257202,7 @@ export namespace Prisma {
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -255591,6 +257295,395 @@ export namespace Prisma {
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
+  }
+
+  export type LocationCreateWithoutYangoConfigInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    currency?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
+    tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationUncheckedCreateWithoutYangoConfigInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    currency?: string
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
+    tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutYangoConfigInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutYangoConfigInput, LocationUncheckedCreateWithoutYangoConfigInput>
+  }
+
+  export type LocationUpsertWithoutYangoConfigInput = {
+    update: XOR<LocationUpdateWithoutYangoConfigInput, LocationUncheckedUpdateWithoutYangoConfigInput>
+    create: XOR<LocationCreateWithoutYangoConfigInput, LocationUncheckedCreateWithoutYangoConfigInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutYangoConfigInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutYangoConfigInput, LocationUncheckedUpdateWithoutYangoConfigInput>
+  }
+
+  export type LocationUpdateWithoutYangoConfigInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
+    tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutYangoConfigInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
+    tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -256180,6 +258273,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -256272,6 +258366,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -256526,6 +258621,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -256618,6 +258714,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -256920,6 +259017,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
@@ -257012,6 +259110,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
@@ -257297,6 +259396,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
@@ -257389,6 +259489,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
@@ -258223,6 +260324,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
   }
@@ -258315,6 +260417,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
   }
@@ -258513,6 +260616,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
   }
@@ -258605,6 +260709,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
   }
@@ -258752,6 +260857,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
@@ -258844,6 +260950,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
@@ -259024,6 +261131,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
@@ -259116,6 +261224,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
@@ -263046,6 +265155,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -263138,6 +265248,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -267987,6 +270098,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -268079,6 +270191,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -268236,6 +270349,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -268328,6 +270442,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -268832,6 +270947,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -268924,6 +271040,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -271671,6 +273788,10 @@ export namespace Prisma {
      * @deprecated Use JetGoConfigDefaultArgs instead
      */
     export type JetGoConfigArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = JetGoConfigDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use YangoConfigDefaultArgs instead
+     */
+    export type YangoConfigArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = YangoConfigDefaultArgs<ExtArgs>
     /**
      * @deprecated Use ReviewDefaultArgs instead
      */

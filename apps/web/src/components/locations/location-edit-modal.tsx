@@ -29,6 +29,7 @@ import { WhatsAppConnectionSection } from './whatsapp-connection-section';
 import { StuartConnectionSection } from './stuart-connection-section';
 import { UberDirectConnectionSection } from './uber-direct-connection-section';
 import { JetGoConnectionSection } from './jet-go-connection-section';
+import { YangoConnectionSection } from './yango-connection-section';
 import { ImageUploader } from '@/components/products/image-uploader';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { KITCHEN_LANGUAGES } from '@/lib/kitchen-languages';
@@ -725,6 +726,11 @@ function GeneralTab({
 
       {/* Phase BJ — per-location JET Go (Just Eat DaaS) courier dispatch. */}
       {location?.id && <JetGoConnectionSection locationId={location.id} />}
+
+      {/* Phase BK — Yango Delivery courier dispatch. UAE shops only: the
+          section renders nothing for a location the API says isn't in the UAE
+          (unless it was already set up, so it can still be switched off). */}
+      {location?.id && <YangoConnectionSection locationId={location.id} />}
 
       {/* Phase AW — Stripe Connect + application fee live on the brand,
           not the location. A single kitchen running three virtual brands

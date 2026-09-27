@@ -66,6 +66,8 @@ const CHANNEL_FILTERS: Array<{ value: string; label: string }> = [
   { value: "STRIPE", label: "Stripe" },
   { value: "STUART", label: "Stuart" },
   { value: "UBER_DIRECT", label: "Uber Direct" },
+  { value: "JET_GO", label: "JET Go" },
+  { value: "YANGO", label: "Yango Delivery" },
 ];
 
 const CHANNEL_LABEL: Record<string, string> = {
@@ -80,6 +82,8 @@ const CHANNEL_LABEL: Record<string, string> = {
   STRIPE: "Stripe",
   STUART: "Stuart",
   UBER_DIRECT: "Uber Direct",
+  JET_GO: "JET Go",
+  YANGO: "Yango Delivery",
   ALL: "All channels",
 };
 
@@ -95,6 +99,8 @@ const CHANNEL_COLOR: Record<string, string> = {
   STRIPE: "bg-indigo-100 text-indigo-700",
   STUART: "bg-sky-100 text-sky-700",
   UBER_DIRECT: "bg-zinc-200 text-zinc-700",
+  JET_GO: "bg-orange-100 text-orange-700",
+  YANGO: "bg-red-100 text-red-700",
 };
 
 function statusBadge(status: LogEntry["status"]) {

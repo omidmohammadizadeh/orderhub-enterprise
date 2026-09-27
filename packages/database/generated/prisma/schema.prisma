@@ -606,6 +606,8 @@ model Location {
   uberDirectConfig UberDirectConfig?
   // Phase BJ — JET Go (Just Eat Delivery-as-a-Service) courier config.
   jetGoConfig      JetGoConfig?
+  // Phase BK — Yango Delivery (UAE) courier config.
+  yangoConfig      YangoConfig?
 
   // Phase AN — Stripe Connect + application fee config
   stripeConnectedAccountId  String?
@@ -1233,7 +1235,7 @@ model MenuItemOnCategory {
   @@map("menu_items_on_categories")
 }
 
-// ── Modifier Groups ─────���─────────────────────────────────────────────────────
+// ── Modifier Groups ───────────────────────────────────────────────────────────
 model ModifierGroup {
   id          String  @id @default(cuid())
   brandId     String
@@ -3807,7 +3809,7 @@ model SystemSecret {
 
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE I — TRANSACTIONAL OUTBOX
-// ══════════════════════════════════════════════════════════════════════════════
+// ═════════════════════════���════════════════════════════════════════════════════
 
 model OutboxEvent {
   id             String            @id @default(cuid())
@@ -4688,6 +4690,58 @@ model JetGoConfig {
   @@index([tenantId])
   @@index([webhookToken])
   @@map("jet_go_configs")
+}
+
+// Per-location Yango Delivery config (UAE). Yango Delivery is the international
+// brand of Yandex Delivery, and its B2B "express claims" API is Yandex's —
+// every call goes to b2b.taxi.yandex.net whatever the country. Same money model
+// as Stuart / Uber Direct / JET Go: the shop's OWN Yango business account pays
+// for the courier (the token below is that account's), OrderHub only takes the
+// flat per-dispatch wallet fee.
+//
+// Two things make it different:
+//
+//  1. There is NO sandbox. Accepting a claim sends a real courier and bills the
+//     shop. So `mode` defaults to "estimate_only": quotes work, dispatch refuses
+//     before anything is created. An operator has to switch to "live" on purpose.
+//
+//  2. Yango takes COORDINATES for the pickup, and Location has none. They are
+//     geocoded once when the config is saved and stored here, so every dispatch
+//     uses the same point (and the operator can correct it) instead of
+//     re-geocoding a shop address on every order.
+model YangoConfig {
+  id         String   @id @default(cuid())
+  tenantId   String
+  locationId String   @unique
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  // "estimate_only" (default — no claim is ever created) | "live".
+  mode         String  @default("estimate_only")
+  // Encrypted { token } envelope. The token is the static bearer token from the
+  // Yango business cabinet's Integration tab; it never expires on its own but
+  // dies when the cabinet password changes.
+  credentials  Json
+  // Yango tariff class: "courier" (bike/foot, <=10kg) | "express" (car, <=20kg).
+  taxiClass    String  @default("courier")
+  // Yango REQUIRES an email on the pickup contact.
+  contactEmail String?
+  // The pickup point, [lat, lng] here — Yango's own order is [lon, lat] and the
+  // client flips it at the edge.
+  pickupLat    Float?
+  pickupLng    Float?
+  // The opaque path segment of our callback URL. Yango's callback is unsigned
+  // and carries only claim_id, so it is treated purely as a nudge to re-read
+  // the claim from Yango — a forged one can cause a re-fetch, nothing more.
+  webhookToken String
+  // Master on/off for this location. Dispatch refuses when false.
+  active       Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([webhookToken])
+  @@map("yango_configs")
 }
 
 // Customer reviews of a completed order. Deliberately scalar-only (no Prisma
