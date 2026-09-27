@@ -51,7 +51,6 @@ export class CustomerAuthController {
     return this.customerAuth.verifyEmail(token);
   }
 
-  @Public()
   /**
    * Park the session in a cookie as well as returning it in the body.
    *
@@ -78,6 +77,12 @@ export class CustomerAuthController {
     res.clearCookie(CUSTOMER_TOKEN_COOKIE, { path: "/" });
   }
 
+  // @Public() must sit directly on the route. It was once separated from
+  // this handler by the cookie helpers above, which moved the decorator onto
+  // setSessionCookie and left login behind the staff JWT guard — every
+  // email/password sign-in on every storefront answered 401 for seven weeks
+  // (2026-08-07 → 2026-09-27). tests/public-routes.spec.ts now pins it.
+  @Public()
   @Post("login")
   @ApiOperation({ summary: "Customer email/password login" })
   async login(
