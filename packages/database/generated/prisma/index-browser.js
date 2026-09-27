@@ -346,6 +346,7 @@ exports.Prisma.LocationScalarFieldEnum = {
   postcode: 'postcode',
   country: 'country',
   currency: 'currency',
+  businessType: 'businessType',
   about: 'about',
   logoUrl: 'logoUrl',
   customDomain: 'customDomain',
@@ -1477,6 +1478,8 @@ exports.Prisma.RefundScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
   paymentId: 'paymentId',
+  orderId: 'orderId',
+  method: 'method',
   stripeRefundId: 'stripeRefundId',
   amount: 'amount',
   reason: 'reason',
@@ -1484,6 +1487,58 @@ exports.Prisma.RefundScalarFieldEnum = {
   isPartial: 'isPartial',
   processedBy: 'processedBy',
   note: 'note',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.ProductVariantScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  brandId: 'brandId',
+  menuItemId: 'menuItemId',
+  name: 'name',
+  options: 'options',
+  sku: 'sku',
+  barcode: 'barcode',
+  price: 'price',
+  costPrice: 'costPrice',
+  trackStock: 'trackStock',
+  lowStockAt: 'lowStockAt',
+  isActive: 'isActive',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ProductStockLevelScalarFieldEnum = {
+  id: 'id',
+  variantId: 'variantId',
+  locationId: 'locationId',
+  quantity: 'quantity',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ProductStockMovementScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  variantId: 'variantId',
+  type: 'type',
+  quantity: 'quantity',
+  reason: 'reason',
+  orderId: 'orderId',
+  refundId: 'refundId',
+  recordedBy: 'recordedBy',
+  dedupeKey: 'dedupeKey',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.RefundLineScalarFieldEnum = {
+  id: 'id',
+  refundId: 'refundId',
+  orderItemId: 'orderItemId',
+  quantity: 'quantity',
+  amount: 'amount',
+  restock: 'restock',
   createdAt: 'createdAt'
 };
 
@@ -3247,10 +3302,46 @@ exports.Prisma.RefundOrderByRelevanceFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
   paymentId: 'paymentId',
+  orderId: 'orderId',
+  method: 'method',
   stripeRefundId: 'stripeRefundId',
   reason: 'reason',
   processedBy: 'processedBy',
   note: 'note'
+};
+
+exports.Prisma.ProductVariantOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  brandId: 'brandId',
+  menuItemId: 'menuItemId',
+  name: 'name',
+  sku: 'sku',
+  barcode: 'barcode'
+};
+
+exports.Prisma.ProductStockLevelOrderByRelevanceFieldEnum = {
+  id: 'id',
+  variantId: 'variantId',
+  locationId: 'locationId'
+};
+
+exports.Prisma.ProductStockMovementOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  variantId: 'variantId',
+  reason: 'reason',
+  orderId: 'orderId',
+  refundId: 'refundId',
+  recordedBy: 'recordedBy',
+  dedupeKey: 'dedupeKey'
+};
+
+exports.Prisma.RefundLineOrderByRelevanceFieldEnum = {
+  id: 'id',
+  refundId: 'refundId',
+  orderItemId: 'orderItemId'
 };
 
 exports.Prisma.LedgerEntryOrderByRelevanceFieldEnum = {
@@ -3930,6 +4021,12 @@ exports.OAuthProvider = exports.$Enums.OAuthProvider = {
   JUST_EAT: 'JUST_EAT'
 };
 
+exports.BusinessType = exports.$Enums.BusinessType = {
+  RESTAURANT: 'RESTAURANT',
+  GROCERY: 'GROCERY',
+  RETAIL: 'RETAIL'
+};
+
 exports.LocationGoLiveStatus = exports.$Enums.LocationGoLiveStatus = {
   DRAFT: 'DRAFT',
   CONFIGURING: 'CONFIGURING',
@@ -4211,6 +4308,17 @@ exports.RefundStatus = exports.$Enums.RefundStatus = {
   CANCELLED: 'CANCELLED'
 };
 
+exports.StockMovementType = exports.$Enums.StockMovementType = {
+  PURCHASE: 'PURCHASE',
+  SALE_DEDUCTION: 'SALE_DEDUCTION',
+  WASTE: 'WASTE',
+  ADJUSTMENT: 'ADJUSTMENT',
+  TRANSFER_IN: 'TRANSFER_IN',
+  TRANSFER_OUT: 'TRANSFER_OUT',
+  RETURN: 'RETURN',
+  COUNT_CORRECTION: 'COUNT_CORRECTION'
+};
+
 exports.LedgerEntryType = exports.$Enums.LedgerEntryType = {
   PAYMENT: 'PAYMENT',
   REFUND: 'REFUND',
@@ -4227,17 +4335,6 @@ exports.PayoutStatus = exports.$Enums.PayoutStatus = {
   PAID: 'PAID',
   FAILED: 'FAILED',
   CANCELLED: 'CANCELLED'
-};
-
-exports.StockMovementType = exports.$Enums.StockMovementType = {
-  PURCHASE: 'PURCHASE',
-  SALE_DEDUCTION: 'SALE_DEDUCTION',
-  WASTE: 'WASTE',
-  ADJUSTMENT: 'ADJUSTMENT',
-  TRANSFER_IN: 'TRANSFER_IN',
-  TRANSFER_OUT: 'TRANSFER_OUT',
-  RETURN: 'RETURN',
-  COUNT_CORRECTION: 'COUNT_CORRECTION'
 };
 
 exports.PurchaseOrderStatus = exports.$Enums.PurchaseOrderStatus = {
@@ -4413,6 +4510,10 @@ exports.Prisma.ModelName = {
   Payment: 'Payment',
   PaymentMethod: 'PaymentMethod',
   Refund: 'Refund',
+  ProductVariant: 'ProductVariant',
+  ProductStockLevel: 'ProductStockLevel',
+  ProductStockMovement: 'ProductStockMovement',
+  RefundLine: 'RefundLine',
   LedgerEntry: 'LedgerEntry',
   Payout: 'Payout',
   Supplier: 'Supplier',

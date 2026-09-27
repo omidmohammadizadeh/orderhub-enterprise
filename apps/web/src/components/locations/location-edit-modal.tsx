@@ -24,6 +24,8 @@ import {
   type Location,
   type LocationStatus,
 } from '@/lib/api/locations.client';
+import type { BusinessType } from '@/lib/api/locations.client';
+import { BusinessTypePicker } from './business-type-picker';
 import { OpeningHoursEditor } from './opening-hours-editor';
 import { WhatsAppConnectionSection } from './whatsapp-connection-section';
 import { StuartConnectionSection } from './stuart-connection-section';
@@ -159,6 +161,9 @@ function GeneralTab({
   // from the Brands section.
 
   const [name, setName] = useState(location?.name ?? '');
+  // Retail R1 — restaurant, grocery or retail shop. See BusinessTypePicker.
+  const savedBusinessType: BusinessType = location?.businessType ?? 'RESTAURANT';
+  const [businessType, setBusinessType] = useState<BusinessType>(savedBusinessType);
   const [line1, setLine1] = useState(location?.addressLine1 ?? '');
   const [line2, setLine2] = useState(location?.addressLine2 ?? '');
   const [city, setCity] = useState(location?.city ?? '');
@@ -342,6 +347,7 @@ function GeneralTab({
               }
             : undefined,
         phone: phone || undefined,
+        businessType,
       } as any);
 
       // CreateLocationDto on the API is intentionally minimal (name +
@@ -383,6 +389,9 @@ function GeneralTab({
         googleReviewUrl: googleReviewUrl || null,
         onlineOrderingSlug: slug || null,
         status,
+        // Only when it changed: the business type is owner-level, and sending
+        // it back unchanged would refuse a manager's unrelated save.
+        ...(businessType !== savedBusinessType ? { businessType } : {}),
         // Phase AU — HubRise. Only send the access token when the
         // operator typed a new one (so we don't accidentally clobber
         // a stored token with the empty input field). Catalog id is
@@ -468,6 +477,17 @@ function GeneralTab({
           is optional, fill in over time. Brands are added later from
           the Brands section so the create form stays a single short
           form. */}
+      <Field
+        label="What do you sell here?"
+        help={
+          isCreate
+            ? 'Sets up the till and stock for the way this shop trades. You can change it later.'
+            : 'Shops scan barcodes at the till and finish a paid counter sale straight away.'
+        }
+      >
+        <BusinessTypePicker value={businessType} onChange={setBusinessType} />
+      </Field>
+
       <Field label="Location name" help="Only field required to create.">
         <Input value={name} onChange={setName} placeholder="e.g. KLO Consett" />
       </Field>

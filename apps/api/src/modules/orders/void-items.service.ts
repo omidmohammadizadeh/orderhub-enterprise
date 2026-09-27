@@ -75,7 +75,8 @@ export class VoidItemsService {
     return { configured: !!(loc?.settings as any)?.managerPinHash };
   }
 
-  private async assertPin(locationId: string, pin: string) {
+  // Public since Retail R1 — a till return by a cashier needs the same PIN.
+  async assertPin(locationId: string, pin: string) {
     const loc = await this.prisma.location.findUnique({
       where: { id: locationId },
       select: { settings: true },

@@ -29,6 +29,7 @@ import { buildPrintPayload } from "../lib/printing/order-receipt";
 import {
   resolveReceiptOffer,
   applyReceiptOffer,
+  applyReturnsCode,
   printerRenderOptions,
 } from "../lib/printing/print-order";
 import { isAwaitingOurPayment } from "../lib/orders/awaiting-payment";
@@ -156,6 +157,8 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
           ? offer
           : offer && { ...offer, isMarketplace: false }, // logo only, no QR
       );
+      // Retail R1 — the customer's receipt at a shop carries its returns QR.
+      if (copiesField === "copiesNewOrder") applyReturnsCode(payload, order);
       let printedAny = false;
       for (const p of btPrinters) {
         const fallback = copiesField === "copiesNewOrder" ? 1 : 0;

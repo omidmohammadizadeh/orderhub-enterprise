@@ -542,6 +542,7 @@ model Location {
   menuAssignments      MenuChannelAssignment[]
   itemChannelSnoozes   MenuItemChannelAvailability[]
   homeDrivers          Driver[]                      @relation("DriverHomeLocation")
+  productStockLevels   ProductStockLevel[]
 
   // Phase AS-1 — print routing defaults.
   //   defaultKitchenStation — every kitchen ticket that doesn't match
@@ -569,6 +570,14 @@ model Location {
   // `country` — see currencyForCountry in @orderhub/shared, which is also
   // what the "Add location" form uses to pick a default.
   currency     String  @default("GBP")
+
+  // Retail R1 — what kind of business trades here. A PRESET, not a fork:
+  // it picks sensible defaults (the till opens in scan mode, a paid walk-in
+  // sale completes on the spot instead of climbing the kitchen ladder, stock
+  // is counted per barcoded variant) while every underlying feature stays
+  // available to every type. RESTAURANT is the default so every existing
+  // location behaves exactly as before.
+  businessType BusinessType @default(RESTAURANT)
   about        String?
   logoUrl      String?
 
@@ -1108,6 +1117,8 @@ model MenuItem {
   categories          MenuItemOnCategory[]
   modifierGroupLinks  ModifierGroupOnItem[]
   variants            MenuItemVariant[]
+  // Retail R1 — the barcoded, stock-counted variants. See ProductVariant.
+  productVariants     ProductVariant[]
   recipe              Recipe?
   stationRoutes       MenuItemStation[]
   // Phase AW-14 — per-channel snooze records ("86" board). One row
@@ -2167,6 +2178,9 @@ model OrderItem {
   notes      String?
   metadata   Json    @default("{}")
 
+  // Retail R1 — item-level returns against this line.
+  refundLines RefundLine[]
+
   createdAt DateTime @default(now())
 
   @@index([orderId])
@@ -3107,8 +3121,15 @@ model PaymentMethod {
 model Refund {
   id             String       @id @default(cuid())
   tenantId       String
-  paymentId      String
-  payment        Payment      @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  // Nullable since Retail R1: a walk-in CASH sale never writes a Payment row
+  // (the till only flips Order.paymentStatus), so cash handed back over the
+  // counter has no payment to hang off. Every provider refund still sets it.
+  paymentId      String?
+  payment        Payment?     @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  // Retail R1 — the order the refund belongs to, and how the money went back
+  // (CASH | CARD). Set by the returns flow; older rows leave both null.
+  orderId        String?
+  method         String?
   stripeRefundId String?      @unique
   amount         Decimal      @db.Decimal(10, 2)
   reason         String?
@@ -3118,12 +3139,137 @@ model Refund {
   note           String?
 
   ledgerEntries LedgerEntry[]
+  // Retail R1 — which lines (and how many of each) this refund returned.
+  lines         RefundLine[]
 
   createdAt DateTime @default(now())
 
   @@index([tenantId])
   @@index([paymentId])
+  @@index([orderId])
   @@map("refunds")
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// RETAIL R1 — BARCODED VARIANTS, PER-LOCATION STOCK, ITEM-LEVEL RETURNS
+// ══════════════════════════════════════════════════════════════════════════════
+//
+// A retail product is still a MenuItem, so the till, the storefront and every
+// marketplace publish keep working unchanged. What retail adds is underneath
+// it: one ProductVariant per thing with its own barcode (a can of Coke has
+// one; a T-shirt has one per size × colour), and a stock count per variant
+// per location. Stock is a ledger — ProductStockLevel is the running total
+// and ProductStockMovement is the audit trail that explains it.
+//
+// A product with more than one variant also mirrors them into
+// MenuItem.productSkus (variant.sku = productSkus[].plu), so every existing
+// size picker offers them with no new UI.
+
+// One sellable, scannable version of a product.
+model ProductVariant {
+  id         String   @id @default(cuid())
+  tenantId   String
+  // Denormalised from the MenuItem: barcodes are unique per BRAND, not per
+  // tenant — a tenant running two shop brands legitimately sells the same
+  // can of Coke (same EAN) under both.
+  brandId    String
+  menuItemId String
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  // "Default" for a single-variant product; "M / Black" for a garment.
+  name       String
+  // Free-form option values, e.g. { "size": "M", "colour": "Black" }.
+  options    Json     @default("{}")
+  // Our code for the variant. Equals the item PLU for a single-variant
+  // product and productSkus[].plu for a multi-variant one — the order line's
+  // `sku` is how a sale is traced back to its variant.
+  sku        String?
+  // EAN-13 / UPC-A / EAN-8 / Code 128 — whatever is printed on the pack.
+  barcode    String?
+  // Null = sell at the product's basePrice.
+  price      Decimal? @db.Decimal(10, 2)
+  costPrice  Decimal? @db.Decimal(10, 2)
+  // Off for things that are not counted (a service, a gift-wrap charge).
+  trackStock Boolean  @default(true)
+  // Warn when the count at a location falls to or below this.
+  lowStockAt Int?
+  isActive   Boolean  @default(true)
+  sortOrder  Int      @default(0)
+
+  stockLevels ProductStockLevel[]
+  movements   ProductStockMovement[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([brandId, barcode])
+  @@index([tenantId, barcode])
+  @@index([menuItemId])
+  @@map("product_variants")
+}
+
+// Running stock count of one variant at one location. May go negative: a
+// till must never refuse a sale because the books are behind the shelf.
+model ProductStockLevel {
+  id         String         @id @default(cuid())
+  variantId  String
+  variant    ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  locationId String
+  location   Location       @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  quantity   Int            @default(0)
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([variantId, locationId])
+  @@index([locationId])
+  @@map("product_stock_levels")
+}
+
+// Append-only log of every stock change. Never updated, never deleted.
+model ProductStockMovement {
+  id         String            @id @default(cuid())
+  tenantId   String
+  locationId String
+  variantId  String
+  variant    ProductVariant    @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  type       StockMovementType
+  // Signed: positive = into stock, negative = out.
+  quantity   Int
+  reason     String?
+  orderId    String?
+  refundId   String?
+  recordedBy String?
+  // Idempotency. A sale is deducted once however many times the status
+  // event fires ("sale:<orderItemId>"), a cancel restores it once
+  // ("unsale:<orderItemId>"), a return restocks once ("return:<lineId>").
+  // Written with ON CONFLICT DO NOTHING, and the running total only moves
+  // when the insert actually happened.
+  dedupeKey  String?           @unique
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId, locationId, createdAt(sort: Desc)])
+  @@index([variantId, createdAt(sort: Desc)])
+  @@index([orderId])
+  @@map("product_stock_movements")
+}
+
+// One returned line of a Refund: which order line, how many, how much.
+model RefundLine {
+  id          String    @id @default(cuid())
+  refundId    String
+  refund      Refund    @relation(fields: [refundId], references: [id], onDelete: Cascade)
+  orderItemId String
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  quantity    Int
+  amount      Decimal   @db.Decimal(10, 2)
+  // Back on the shelf (stock +quantity) or written off as damaged.
+  restock     Boolean   @default(true)
+
+  createdAt DateTime @default(now())
+
+  @@index([refundId])
+  @@index([orderItemId])
+  @@map("refund_lines")
 }
 
 // Append-only double-entry ledger — every financial event produces rows here
@@ -4062,6 +4208,12 @@ enum PayoutStatus {
   PAID
   FAILED
   CANCELLED
+}
+
+enum BusinessType {
+  RESTAURANT
+  GROCERY
+  RETAIL
 }
 
 enum StockMovementType {

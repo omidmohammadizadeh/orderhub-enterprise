@@ -82,6 +82,7 @@ export const DASHBOARD_TABS: DashboardTabDef[] = [
   { key: "reviews", label: "Reviews", href: "/dashboard/reviews", group: "Main" },
   { key: "analytics", label: "Analytics", href: "/dashboard/analytics", group: "Main" },
   { key: "inventory", label: "Inventory", href: "/dashboard/inventory", group: "Main", hint: "Stock and 86'ing." },
+  { key: "stock", label: "Stock & barcodes", href: "/dashboard/stock", group: "Main", hint: "Shops only: barcodes, stock counts, spreadsheet import." },
   { key: "team", label: "Team Roles", href: "/dashboard/team", group: "Main" },
   { key: "printers", label: "Printers", href: "/dashboard/printers", group: "Main" },
   { key: "card-readers", label: "Card Readers", href: "/dashboard/card-readers", group: "Main", hint: "Terminals and Tap to Pay." },

@@ -28,6 +28,7 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { PrintRoutingService, type PrintTarget } from "./print-routing.service";
 import { SocketService } from "../../infrastructure/socket/socket.service";
 import { qrRasterBase64 } from "./qr-raster";
+import { isRetailType, receiptCodeFor } from "../retail/retail.logic";
 import {
   buildStorefrontQrUrl,
   isMarketplaceSource,
@@ -1184,6 +1185,45 @@ export class PrintJobsService {
     }
   }
 
+  /**
+   * Retail R1 — the returns code on a shop's receipt: a QR of the order id
+   * that the till's Returns screen scans to pull the sale back up.
+   *
+   * Unlike the marketing QR this ignores the printer's "Print QR code"
+   * toggle: it is part of the receipt's job at a shop, not an advert. Only
+   * server-driven LAN printers here; a tablet-driven printer adds it itself
+   * (print-order.ts applyReturnsCode). Returns how many targets got it.
+   */
+  private async bakeReturnsQr(order: any, receiptTargets: any[]): Promise<number> {
+    const loc = await (this.prisma as any).location.findUnique({
+      where: { id: order.locationId },
+      select: { businessType: true },
+    });
+    if (!isRetailType(loc?.businessType)) return 0;
+    const printers = await (this.prisma as any).printer.findMany({
+      where: {
+        id: { in: receiptTargets.map((t) => t.printerId) },
+        agentId: null,
+        connectionType: { in: ["LAN", "EPSON_EPOS"] },
+      },
+      select: { id: true, paperWidth: true },
+    });
+    const byId = new Map<string, any>(printers.map((p: any) => [p.id, p]));
+    let baked = 0;
+    for (const t of receiptTargets) {
+      const printer = byId.get(t.printerId);
+      if (!printer) continue;
+      const raster = qrRasterBase64(receiptCodeFor(order.id), {
+        paperWidth: printer.paperWidth === 58 ? 58 : 80,
+      });
+      if (!raster) continue;
+      t.payload = { ...(t.payload ?? {}), qrRaster: raster, qrCaption: "Keep for returns — scan at the till" };
+      baked++;
+    }
+    if (baked) this.logger.log(`order ${order.id}: returns QR baked onto ${baked} LAN printer(s)`);
+    return baked;
+  }
+
   private async bakeQrForServerRenderedReceipts(
     targets: any[],
     order: any,
@@ -1203,6 +1243,8 @@ export class PrintJobsService {
         return say("no CUSTOMER_RECEIPT target on this order");
       }
       if (!isMarketplaceSource(order.orderSource, order.platform)) {
+        // Retail R1 — a shop's own sale prints its RETURNS code here instead.
+        if ((await this.bakeReturnsQr(order, receiptTargets)) > 0) return;
         // Our own channels never get it — that customer already orders direct.
         return say(
           `not a marketplace order (source=${order.orderSource ?? "?"} platform=${order.platform ?? "?"})`,

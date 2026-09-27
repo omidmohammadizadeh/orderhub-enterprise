@@ -42,6 +42,7 @@ import {
 import type { CreateOrderDto } from "./dto/create-order.dto";
 import type { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
 import { activeDojoLock } from "../payments/dojo/dojo-lock";
+import { isRetailType } from "../retail/retail.logic";
 import type { CanonicalOrder } from "@orderhub/shared";
 
 // Phase AM — if the operator scheduled this order more than this many seconds
@@ -69,6 +70,8 @@ const ORDER_INCLUDE = {
       // orders side by side — formatting them all in the selected location's
       // currency would misprice half the screen.
       currency: true,
+      // Retail R1 — a shop's receipt carries a returns QR (see print-order.ts).
+      businessType: true,
       brand: { select: { id: true, name: true, logoUrl: true, phone: true, addressLine1: true, city: true, postcode: true } },
     },
   },
@@ -366,10 +369,20 @@ export class OrdersService {
     try {
       const location = await this.prisma.location.findUnique({
         where: { id: locationId },
-        select: { settings: true },
+        select: { settings: true, businessType: true },
       });
       const settings = (location?.settings ?? {}) as Record<string, unknown>;
-      if (settings.autoAcceptOrders !== true) {
+      // Retail R1 — at a shop, a sale over the counter has nobody to accept
+      // it: the customer is standing there and has just paid. The toggle
+      // below is about whether incoming ONLINE/marketplace orders need a
+      // human, so it still governs everything else at a shop. The payment
+      // guards further down still hold an unpaid sale back.
+      const shopCounterSale =
+        isRetailType(location?.businessType) &&
+        (await this.prisma.order.count({
+          where: { id: orderId, orderSource: "POS", isWalkIn: true, tableId: null },
+        })) > 0;
+      if (settings.autoAcceptOrders !== true && !shopCounterSale) {
         this.logger.log(
           `Auto-accept OFF for location ${locationId} — order ${orderId} left PENDING`,
         );
@@ -729,8 +742,16 @@ export class OrdersService {
                 // re-price later — a repeat could not tell a 10" from a 12"
                 // and had to drop it. metadata is an existing column, so this
                 // costs no migration.
-                ...((item as any).sku
-                  ? { metadata: { sku: String((item as any).sku) } as Prisma.InputJsonValue }
+                ...((item as any).sku || (item as any).variantId
+                  ? {
+                      metadata: {
+                        ...((item as any).sku ? { sku: String((item as any).sku) } : {}),
+                        // Retail R1 — which barcoded variant was sold.
+                        ...((item as any).variantId
+                          ? { variantId: String((item as any).variantId) }
+                          : {}),
+                      } as Prisma.InputJsonValue,
+                    }
                   : {}),
               })),
             },
@@ -1127,6 +1148,9 @@ export class OrdersService {
         totalPrice: i.totalPrice,
         notes: i.notes,
         sku: i.sku,
+        // Retail R1 — the scanned variant, so stock and returns know exactly
+        // which barcode was sold. Kept in OrderItem.metadata beside sku.
+        ...(i.variantId ? { variantId: i.variantId } : {}),
         // Carried through to OrderItem.menuItemId so KDS station rules
         // (category/item routing) can match POS lines.
         menuItemId: i.menuItemId,
@@ -2747,7 +2771,87 @@ export class OrdersService {
       })
       .catch(() => undefined);
 
+    // Retail R1 — a paid walk-in sale at a shop ends here. Accepting it was
+    // only ever the step that prints the receipt; there is no kitchen for it
+    // to climb through. Fire-and-forget so it never fails this transition.
+    if (newStatus === "ACCEPTED") {
+      void this.maybeCompleteRetailSale(orderId, tenantId).catch((e) =>
+        this.logger.warn(`Retail completion failed for ${orderId}: ${e?.message}`),
+      );
+    }
+
     return updated;
+  }
+
+  /**
+   * Retail R1 — finish a paid walk-in sale at a shop (GROCERY/RETAIL).
+   *
+   * Only a POS walk-in with no table, already PAID and already ACCEPTED (so
+   * the receipt has printed). Writes COMPLETED straight past the kitchen
+   * ladder, the same way completeAndFreeTable closes a settled tab, and emits
+   * the status event so stock, loyalty and the board all see it. The
+   * conditional update makes a double call harmless.
+   */
+  async maybeCompleteRetailSale(orderId: string, tenantId: string): Promise<boolean> {
+    const o = await this.prisma.order.findFirst({
+      where: { id: orderId, tenantId },
+      select: {
+        status: true,
+        orderSource: true,
+        isWalkIn: true,
+        tableId: true,
+        paymentStatus: true,
+        locationId: true,
+        location: { select: { businessType: true } },
+      },
+    });
+    if (!o || !isRetailType(o.location?.businessType)) return false;
+    if (o.orderSource !== "POS" || o.isWalkIn !== true || o.tableId) return false;
+    if (o.paymentStatus !== "PAID" || o.status !== "ACCEPTED") return false;
+
+    const { count } = await this.prisma.order.updateMany({
+      where: { id: orderId, status: "ACCEPTED" },
+      data: { status: "COMPLETED" },
+    });
+    if (count === 0) return false;
+    await this.prisma.orderStatusHistory.create({
+      data: {
+        orderId,
+        tenantId,
+        fromStatus: "ACCEPTED",
+        toStatus: "COMPLETED",
+        actorType: "SYSTEM",
+        changedBy: "system:retail-sale",
+        note: "Shop sale paid at the counter",
+      },
+    });
+    this.events.emit("order.status_changed", {
+      orderId,
+      tenantId,
+      locationId: o.locationId,
+      fromStatus: "ACCEPTED",
+      toStatus: "COMPLETED",
+      actorType: "SYSTEM",
+    });
+    const done = await this.prisma.order.findUnique({ where: { id: orderId } });
+    if (done?.locationId) {
+      this.socket.emitOrderUpdated(done.locationId, {
+        orderId,
+        tenantId,
+        locationId: done.locationId,
+        platform: done.platform,
+        orderSource: done.orderSource,
+        fulfillmentType: done.fulfillmentType,
+        displayId: done.displayId,
+        status: done.status,
+        total: Number(done.total),
+        itemCount: 0,
+        customerName: (done.customerInfo as any)?.name ?? "",
+        scheduledFor: done.scheduledFor?.toISOString() ?? null,
+        createdAt: done.createdAt.toISOString(),
+      });
+    }
+    return true;
   }
 
   /** The slug the customer-facing storefront lives under, so a notification

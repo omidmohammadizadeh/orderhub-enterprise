@@ -28,6 +28,9 @@ import {
   SlidersHorizontal,
   ChevronLeft,
   Paintbrush,
+  ScanBarcode,
+  RotateCcw,
+  Camera,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -113,6 +116,11 @@ import {
 import { hasNativeBridge } from "@/lib/printing/bridge";
 import { formatDisplayPrice } from "@/lib/menu/display-price";
 import { isAwaitingOurPayment } from "@/lib/orders/awaiting-payment";
+import { retailClient, type BarcodeEntry } from "@/lib/api/retail.client";
+import { findByBarcode, useBarcodeScanner } from "@/lib/pos/barcode-scanner";
+import { isShopType } from "@/components/locations/business-type-picker";
+import { RetailReturnsModal } from "@/components/pos/retail-returns-modal";
+import { CameraScanModal, isCameraScanSupported } from "@/components/pos/camera-scan-modal";
 
 interface PersistedCart {
   cart: CartLine[];
@@ -654,7 +662,10 @@ export default function PosPage() {
         if (!categoryItemAllowsFulfillment(c, it, draft.fulfillmentType)) continue;
         if (
           it.name.toLowerCase().includes(q) ||
-          (it.description ?? "").toLowerCase().includes(q)
+          (it.description ?? "").toLowerCase().includes(q) ||
+          // Retail R1 — shop staff search by product code as often as by name.
+          (it.plu ?? "").toLowerCase() === q ||
+          ((it as any).sku ?? "").toLowerCase() === q
         ) {
           out.push({ item: it, categoryId: c.id, categoryName: c.name });
         }
@@ -713,6 +724,8 @@ export default function PosPage() {
           totalPrice: round2(line.unitPrice * line.quantity),
           notes: line.notes,
           sku: line.plu ?? undefined,
+          // Retail R1 — which barcoded variant was scanned (stock + returns).
+          ...(line.variantId ? { variantId: line.variantId } : {}),
           // KDS station routing (category/item rules) matches on this.
           menuItemId: line.menuItemId || undefined,
           modifiers: line.modifiers.map((m) => ({
@@ -908,7 +921,9 @@ export default function PosPage() {
           });
         } catch (err: any) {
           const msg = String(err?.response?.data?.message ?? "");
-          if (!/ACCEPTED\s*(→|->|to)\s*ACCEPTED|already/i.test(msg)) {
+          // A shop's counter sale can be accepted AND completed server-side
+          // before this lands (Retail R1) — that is the same "already done".
+          if (!/(ACCEPTED|COMPLETED)\s*(→|->|to)\s*ACCEPTED|already/i.test(msg)) {
             throw err;
           }
           // Already accepted (location auto-accept) — nothing to do.
@@ -1225,6 +1240,147 @@ export default function PosPage() {
     [categories],
   );
 
+  // ── Retail R1 — barcode scanning at a shop ─────────────────────────────
+  //
+  // At a GROCERY/RETAIL location the till scans. The barcode index is fetched
+  // with the menu and cached beside it in IndexedDB (same store, prefixed
+  // key — no DB version bump for an open tab to block), so scanning keeps
+  // working when the internet drops, exactly like the menu does.
+  const isShop = isShopType((locationQuery.data as any)?.businessType);
+  const [returnsOpen, setReturnsOpen] = useState(false);
+  const [returnsCode, setReturnsCode] = useState<string | undefined>(undefined);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [scanNotice, setScanNotice] = useState<{ tone: "ok" | "warn"; text: string } | null>(null);
+  const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const notify = useCallback((tone: "ok" | "warn", text: string) => {
+    setScanNotice({ tone, text });
+    if (noticeTimer.current) clearTimeout(noticeTimer.current);
+    noticeTimer.current = setTimeout(() => setScanNotice(null), tone === "ok" ? 1800 : 5000);
+  }, []);
+
+  const barcodeQuery = useQuery({
+    queryKey: ["retail-barcodes", selectedLocationId],
+    queryFn: () => retailClient.barcodes(selectedLocationId!),
+    enabled: !!selectedLocationId && isShop,
+    staleTime: 60_000,
+    // Re-read when the menu is refetched (a product added mid-shift).
+    refetchInterval: 5 * 60_000,
+  });
+  const [cachedBarcodes, setCachedBarcodes] = useState<BarcodeEntry[] | null>(null);
+  useEffect(() => {
+    if (!selectedLocationId || !isShop) return;
+    const key = `barcodes:${selectedLocationId}`;
+    if (barcodeQuery.data) {
+      void cacheMenu(key, barcodeQuery.data);
+    } else if (barcodeQuery.isError || !online) {
+      void getCachedMenu(key).then((row) => setCachedBarcodes((row?.menu as BarcodeEntry[]) ?? null));
+    }
+  }, [selectedLocationId, isShop, barcodeQuery.data, barcodeQuery.isError, online]);
+  const barcodeIndex = useMemo(
+    () => new Map((barcodeQuery.data ?? cachedBarcodes ?? []).map((e) => [e.barcode, e])),
+    [barcodeQuery.data, cachedBarcodes],
+  );
+  /** Items the till may sell right now (the menu already drops 86'd ones). */
+  const sellableItemIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const c of categories) for (const l of c.items ?? []) if (l.item?.isAvailable) ids.add(l.item.id);
+    return ids;
+  }, [categories]);
+
+  // A fresh sale at a shop is a walk-in at the counter — skip the "who is it
+  // for" step. Going back to it still works: the draft then has a mode set.
+  useEffect(() => {
+    if (isShop && step === "start" && !draft.fulfillmentType && !tableId && !editOrderId) {
+      setDraft((d) => ({ ...d, fulfillmentType: "PICKUP", walkIn: true }));
+      setStep("menu");
+    }
+  }, [isShop, step, draft.fulfillmentType, tableId, editOrderId]);
+
+  const addScanned = useCallback(
+    (entry: BarcodeEntry) => {
+      setCart((prev) => {
+        // Same variant, no add-ons → one line with a bigger quantity, the
+        // way every supermarket till reads "Coke ×3".
+        const i = prev.findIndex((l) => l.variantId === entry.variantId && l.modifiers.length === 0 && !l.notes);
+        if (i >= 0) {
+          const next = [...prev];
+          next[i] = { ...next[i]!, quantity: next[i]!.quantity + 1 };
+          return next;
+        }
+        return [
+          ...prev,
+          {
+            id: Math.random().toString(36).slice(2),
+            menuItemId: entry.menuItemId,
+            displayName: entry.name,
+            unitPrice: entry.price,
+            quantity: 1,
+            plu: entry.sku,
+            variantId: entry.variantId,
+            modifiers: [],
+          },
+        ];
+      });
+      notify("ok", `${entry.name} · ${money(entry.price)}`);
+    },
+    [notify, money],
+  );
+
+  const handleScan = useCallback(
+    async (code: string) => {
+      // A receipt scanned at the till means "I'm returning this".
+      if (code.toUpperCase().startsWith("OHR:")) {
+        setReturnsCode(code);
+        setReturnsOpen(true);
+        return;
+      }
+      if (step === "start") setStep("menu");
+      const entry = findByBarcode(barcodeIndex, code);
+      if (entry) {
+        if (!sellableItemIds.has(entry.menuItemId)) {
+          notify("warn", `${entry.name} is switched off on this till (out of stock or hidden).`);
+          return;
+        }
+        addScanned(entry);
+        return;
+      }
+      if (!online) {
+        notify("warn", `No product with barcode ${code} on this till.`);
+        return;
+      }
+      try {
+        const hit = await retailClient.lookup(selectedLocationId!, code);
+        notify(
+          "warn",
+          hit.found
+            ? `${hit.product.name} isn't on this till's menu yet — add it to the menu published to the POS.`
+            : `Unknown barcode ${code}. Add it in Stock & barcodes.`,
+        );
+      } catch {
+        notify("warn", `No product with barcode ${code} on this till.`);
+      }
+    },
+    [step, barcodeIndex, sellableItemIds, addScanned, notify, online, selectedLocationId],
+  );
+
+  const anyModalOpen =
+    !!modalItem ||
+    !!chargeOrder ||
+    !!cashOrder ||
+    !!payLinkOrder ||
+    showFeeModal ||
+    showPromosModal ||
+    showExtraCharge ||
+    showServiceCharge ||
+    voidOpen ||
+    pinOpen ||
+    payChoiceOpen ||
+    splitOpen ||
+    coloursOpen ||
+    returnsOpen ||
+    cameraOpen;
+  useBarcodeScanner(isShop && !anyModalOpen, (code) => void handleScan(code));
+
   /** Reminds staff which kind of order they're building, once past step 1. */
   const orderTypeLabel =
     draft.walkIn
@@ -1247,6 +1403,24 @@ export default function PosPage() {
     disabled?: boolean;
     show: boolean;
   }> = [
+    {
+      key: "returns",
+      label: "Returns",
+      title: "Scan a receipt to refund items and put them back in stock",
+      icon: RotateCcw,
+      onClick: () => setReturnsOpen(true),
+      disabled: !selectedLocationId || !online,
+      show: isShop,
+    },
+    {
+      key: "camera-scan",
+      label: "Scan with camera",
+      title: "Use this tablet's camera as a barcode scanner",
+      icon: Camera,
+      onClick: () => setCameraOpen(true),
+      disabled: !selectedLocationId,
+      show: isShop && isCameraScanSupported(),
+    },
     {
       key: "tile-colours",
       label: "Tile colours",
@@ -1630,11 +1804,36 @@ export default function PosPage() {
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search the whole menu…"
+                  // Retail R1 — a scanner typing into a focused search box
+                  // (or a code typed by hand) adds the product on Enter.
+                  onKeyDown={(e) => {
+                    if (e.key !== "Enter" || !isShop) return;
+                    const entry = findByBarcode(barcodeIndex, search);
+                    if (entry) {
+                      e.preventDefault();
+                      setSearch("");
+                      void handleScan(entry.barcode);
+                    }
+                  }}
+                  placeholder={isShop ? "Scan or search products…" : "Search the whole menu…"}
                   className="w-full rounded-lg border border-zinc-200 bg-white px-9 py-2 text-sm focus:border-zinc-900 focus:outline-none"
                 />
               </div>
             </div>
+
+            {isShop && scanNotice && (
+              <div
+                role="status"
+                className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${
+                  scanNotice.tone === "ok"
+                    ? "bg-emerald-50 text-emerald-900"
+                    : "bg-amber-50 text-amber-900"
+                }`}
+              >
+                <ScanBarcode className="h-4 w-4 flex-shrink-0" />
+                <span className="truncate">{scanNotice.text}</span>
+              </div>
+            )}
 
             {/* Where in the menu we are. Only once a category is open — the
                 category grid is its own signpost. */}
@@ -1835,6 +2034,30 @@ export default function PosPage() {
         onSave={(colours, size) => saveColours.mutate({ colours, size })}
         onClose={() => setColoursOpen(false)}
       />
+
+      {/* Retail R1 — returns and camera scanning (shops only). */}
+      {returnsOpen && selectedLocationId && (
+        <RetailReturnsModal
+          locationId={selectedLocationId}
+          role={posRole}
+          initialCode={returnsCode}
+          onClose={() => {
+            setReturnsOpen(false);
+            setReturnsCode(undefined);
+          }}
+          // Cash is going back over the counter — the drawer has to open.
+          onCashRefunded={() => void openDrawer()}
+        />
+      )}
+      {cameraOpen && (
+        <CameraScanModal
+          onClose={() => setCameraOpen(false)}
+          onDetected={(code) => {
+            setCameraOpen(false);
+            void handleScan(code);
+          }}
+        />
+      )}
 
       {pinOpen && selectedLocationId && canManagePin && (
         <ManagerPinModal

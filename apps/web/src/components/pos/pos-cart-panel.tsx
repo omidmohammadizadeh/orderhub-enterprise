@@ -37,6 +37,8 @@ export interface CartLine {
   unitPrice: number;
   quantity: number;
   plu?: string | null;
+  /** Retail R1 — the barcoded variant a scanned line sold. */
+  variantId?: string;
   modifiers: Array<{ name: string; price: number }>;
   notes?: string;
 }

@@ -18,9 +18,13 @@ export type LocationStatus = "active" | "suspended" | "closed";
 export type CustomDomainStatus = "not_configured" | "pending" | "verified" | "failed";
 export type AppFeeMode = "none" | "fixed_only" | "percentage_only" | "fixed_and_percentage";
 
+/** Retail R1 — what trades here. A preset for the till and setup screens. */
+export type BusinessType = "RESTAURANT" | "GROCERY" | "RETAIL";
+
 export interface Location {
   id: string;
   brandId: string;
+  businessType?: BusinessType;
   brand?: { id: string; name: string };
   name: string;
   phone?: string | null;
@@ -114,6 +118,7 @@ export const locationsClient = {
     address: { line1: string; line2?: string; city: string; postcode: string; country?: string };
     phone?: string;
     timezone?: string;
+    businessType?: BusinessType;
   }) => apiClient.post<Location>("/v1/locations", body).then((r) => r.data),
   update: (id: string, body: Partial<Location> & { addressLine1?: string }) =>
     apiClient.patch<Location>(`/v1/locations/${id}`, body).then((r) => r.data),

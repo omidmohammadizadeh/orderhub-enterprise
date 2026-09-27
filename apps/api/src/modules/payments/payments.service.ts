@@ -646,6 +646,50 @@ export class PaymentsService {
     return result;
   }
 
+  /**
+   * Retail R1 — refund PART of a Stripe payment, on the account it lives on.
+   *
+   * Unlike createRefund above, this never books money Stripe didn't move: no
+   * mock id when Stripe isn't configured, no swallowed error. It throws, and
+   * the caller writes nothing. It also passes {stripeAccount} — terminal and
+   * storefront charges are direct charges on the connected account, where a
+   * platform-scoped refunds.create finds no such PaymentIntent.
+   *
+   * Books nothing itself; the returns flow records the Refund, its lines and
+   * the restock in one transaction once this has succeeded.
+   */
+  async refundStripeAmount(
+    payment: { id: string; orderId: string; stripePaymentIntentId: string | null },
+    amountMinor: number,
+    metadata: Record<string, string> = {},
+  ): Promise<string> {
+    if (!this.stripe) throw new BadRequestException("Card refunds aren't available — Stripe is not configured");
+    if (!payment.stripePaymentIntentId) {
+      throw new BadRequestException("This card payment has no Stripe reference to refund against");
+    }
+    if (!Number.isInteger(amountMinor) || amountMinor <= 0) {
+      throw new BadRequestException("Nothing to refund");
+    }
+    const stripeAccount = await this.stripeAccountForPayment(payment);
+    try {
+      const refund = await this.stripe.refunds.create(
+        {
+          payment_intent: payment.stripePaymentIntentId,
+          amount: amountMinor,
+          reason: "requested_by_customer",
+          metadata: { orderId: payment.orderId, ...metadata },
+        },
+        stripeAccount ? { stripeAccount } : undefined,
+      );
+      return refund.id as string;
+    } catch (err: any) {
+      this.logger.error(
+        `Stripe partial refund failed for payment ${payment.id} (${amountMinor} minor): ${err?.message}`,
+      );
+      throw new BadRequestException(`The card refund was declined by Stripe: ${err?.message ?? "unknown error"}`);
+    }
+  }
+
   // ── Phase AP-8 — Stripe Connect manual-capture flow ────────────────────────
   //
   // Used by the online-ordering storefront. Customer hits "Place order" with

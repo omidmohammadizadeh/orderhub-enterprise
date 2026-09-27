@@ -45,6 +45,8 @@ export class CreateOrderItemDto {
   @ApiProperty() @IsNumber() @Min(0) totalPrice!: number;
   @ApiPropertyOptional() @IsOptional() @IsString() notes?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() sku?: string;
+  // Retail R1 — the ProductVariant a scanned line sold (stock + returns).
+  @ApiPropertyOptional() @IsOptional() @IsString() variantId?: string;
   // KDS station routing matches items by MenuItem id (category/item rules).
   // POS sends it so kitchen screens with routing rules work for POS orders.
   @ApiPropertyOptional() @IsOptional() @IsString() menuItemId?: string;
