@@ -532,6 +532,24 @@ export class PaymentsService {
 
   // ── Refund ─────────────────────────────────────────────────────────────────
 
+  /**
+   * POST /v1/payments/:paymentId/refund — refund part or all of a payment.
+   *
+   * A refund is only ever BOOKED once the money has actually moved. This
+   * used to (a) call Stripe without {stripeAccount}, so every terminal and
+   * storefront charge — direct charges on the connected account — failed
+   * with "No such payment_intent", (b) swallow that error, and (c) write the
+   * Refund + ledger rows as SUCCEEDED anyway, with a fake `mock_re_…` id
+   * whenever Stripe wasn't configured. The books said refunded; the customer
+   * had nothing.
+   *
+   * Now, by how the money was taken:
+   *   - Stripe (has a PaymentIntent): refunded on the account the charge
+   *     lives on; any Stripe failure throws and nothing is written.
+   *   - Cash: nothing to call — recorded as handed back over the counter.
+   *   - Dojo / Tap: refused. Those have their own refund flows (Dojo needs
+   *     the card at the machine), and booking one here moved no money.
+   */
   async createRefund(
     tenantId: string,
     paymentId: string,
@@ -546,9 +564,12 @@ export class PaymentsService {
     if (payment.status !== PaymentRecordStatus.SUCCEEDED) {
       throw new BadRequestException("Only succeeded payments can be refunded");
     }
+    if (!Number.isFinite(dto.amount) || dto.amount <= 0) {
+      throw new BadRequestException("Refund amount must be more than zero");
+    }
 
     const refundAmount = new Decimal(dto.amount.toFixed(2));
-    const totalAmount = new Decimal(payment.amount).add(new Decimal(payment.tipAmount));
+    const totalAmount = new Decimal(payment.amount).add(new Decimal(payment.tipAmount ?? 0));
 
     // Check total refunded so far
     const alreadyRefunded = (payment.refunds as any[])
@@ -563,87 +584,113 @@ export class PaymentsService {
     }
 
     const isPartial = refundAmount.lessThan(totalAmount);
+    const provider = String(payment.provider ?? "STRIPE").toUpperCase();
+    const isCash = payment.method === "CASH";
 
+    // 1. Move the money — or refuse. Nothing is written until this succeeds.
     let stripeRefundId: string | null = null;
-
-    if (this.stripe && payment.stripePaymentIntentId) {
-      try {
-        const stripeRefund = await this.stripe.refunds.create({
-          payment_intent: payment.stripePaymentIntentId,
-          amount: Math.round(refundAmount.toNumber() * 100),
-          reason: dto.reason ?? "requested_by_customer",
-        });
-        stripeRefundId = stripeRefund.id;
-      } catch (err: any) {
-        this.logger.error(`Stripe refund failed: ${err.message}`);
-        stripeRefundId = null;
-      }
-    } else {
-      stripeRefundId = `mock_re_${Date.now()}`;
+    if (payment.stripePaymentIntentId) {
+      stripeRefundId = await this.refundStripeAmount(
+        payment,
+        Math.round(refundAmount.toNumber() * 100),
+        { reason: dto.reason ?? "" },
+      );
+    } else if (!isCash) {
+      throw new BadRequestException(
+        provider === "DOJO"
+          ? "This was paid on a Dojo card machine — refund it from the order with Refund on card machine."
+          : provider === "TAP"
+            ? "Tap payments can't be part-refunded here — cancel the order to refund it through Tap."
+            : "This payment has no card reference to refund against. Refund it as cash instead.",
+      );
     }
 
     const isFullRefund = refundAmount.greaterThanOrEqualTo(remainingRefundable);
 
-    const result = await this.prisma.$transaction(async (tx: any) => {
-      const createdRefund = await tx.refund.create({
-        data: {
-          tenantId,
-          paymentId,
-          stripeRefundId,
-          amount: refundAmount,
-          reason: dto.reason ?? null,
-          status: RefundStatus.SUCCEEDED,
-          isPartial,
-          note: dto.note ?? null,
-        },
+    // 2. Book it.
+    try {
+      const result = await this.prisma.$transaction(async (tx: any) => {
+        const createdRefund = await tx.refund.create({
+          data: {
+            tenantId,
+            paymentId,
+            orderId: payment.orderId,
+            method: isCash ? "CASH" : "CARD",
+            stripeRefundId,
+            amount: refundAmount,
+            reason: dto.reason ?? null,
+            status: RefundStatus.SUCCEEDED,
+            isPartial,
+            note: dto.note ?? null,
+          },
+        });
+
+        await tx.ledgerEntry.create({
+          data: {
+            tenantId,
+            paymentId,
+            refundId: createdRefund.id,
+            type: LedgerEntryType.REFUND,
+            amount: refundAmount,
+            currency: payment.currency,
+            description: `Refund for payment ${paymentId}${dto.reason ? `: ${dto.reason}` : ""}`,
+            reference: stripeRefundId ?? createdRefund.id,
+            metadata: { isPartial, method: isCash ? "CASH" : "CARD" },
+          },
+        });
+
+        if (isFullRefund) {
+          await tx.payment.update({
+            where: { id: paymentId },
+            data: { status: PaymentRecordStatus.REFUNDED },
+          });
+        }
+
+        // The ORDER is only "refunded" once everything taken on it has gone
+        // back — a split bill refunded on one card is PARTIALLY_REFUNDED.
+        const all = await tx.payment.findMany({
+          where: { orderId: payment.orderId, status: { in: ["SUCCEEDED", "REFUNDED"] } },
+          select: { id: true, amount: true, tipAmount: true, status: true },
+        });
+        const refunds = await tx.refund.findMany({
+          where: { paymentId: { in: all.map((p: any) => p.id) }, status: RefundStatus.SUCCEEDED },
+          select: { amount: true },
+        });
+        const takenMinor = all.reduce(
+          (s: number, p: any) => s + Math.round((Number(p.amount) + Number(p.tipAmount ?? 0)) * 100),
+          0,
+        );
+        const refundedMinor = refunds.reduce(
+          (s: number, r: any) => s + Math.round(Number(r.amount) * 100),
+          0,
+        );
+        const orderStatus =
+          refundedMinor >= takenMinor ? PaymentStatus.REFUNDED : PaymentStatus.PARTIALLY_REFUNDED;
+        await tx.order.update({
+          where: { id: payment.orderId },
+          data: { paymentStatus: orderStatus },
+        });
+
+        return { refund: createdRefund, orderStatus };
       });
 
-      await tx.ledgerEntry.create({
-        data: {
-          tenantId,
-          paymentId,
-          refundId: createdRefund.id,
-          type: LedgerEntryType.REFUND,
-          amount: refundAmount,
-          currency: payment.currency,
-          description: `Refund for payment ${paymentId}${dto.reason ? `: ${dto.reason}` : ""}`,
-          reference: stripeRefundId ?? createdRefund.id,
-          metadata: { isPartial },
-        },
-      });
+      this.socket.emitToTenant(tenantId, "order:updated" as any, {
+        orderId: payment.orderId,
+        paymentStatus: result.orderStatus,
+      } as any);
 
-      // Update payment status
-      await tx.payment.update({
-        where: { id: paymentId },
-        data: {
-          status: isFullRefund
-            ? PaymentRecordStatus.REFUNDED
-            : PaymentRecordStatus.SUCCEEDED,
-        },
-      });
-
-      // Update order payment status
-      await tx.order.update({
-        where: { id: payment.orderId },
-        data: {
-          paymentStatus: isFullRefund
-            ? PaymentStatus.REFUNDED
-            : PaymentStatus.PARTIALLY_REFUNDED,
-        },
-      });
-
-      return createdRefund;
-    });
-
-    this.socket.emitToTenant(tenantId, "order:updated" as any, {
-      orderId: payment.orderId,
-      paymentStatus: isFullRefund ? "REFUNDED" : "PARTIALLY_REFUNDED",
-    } as any);
-
-    this.logger.log(
-      `Refund created: ${result.id} — ${refundAmount} for payment ${paymentId}`,
-    );
-    return result;
+      this.logger.log(
+        `Refund created: ${result.refund.id} — ${refundAmount} for payment ${paymentId}${stripeRefundId ? ` (Stripe ${stripeRefundId})` : " (cash)"}`,
+      );
+      return result.refund;
+    } catch (err) {
+      if (stripeRefundId) {
+        this.logger.error(
+          `REFUND NOT BOOKED: Stripe refund ${stripeRefundId} (${refundAmount}) went through for payment ${paymentId} but writing it failed: ${(err as Error).message}. Book it by hand.`,
+        );
+      }
+      throw err;
+    }
   }
 
   /**
