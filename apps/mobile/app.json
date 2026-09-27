@@ -3,7 +3,7 @@
     "name": "Order Hub Solutions",
     "slug": "orderhub-pos",
     "scheme": "orderhub",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "newArchEnabled": false,
     "orientation": "default",
     "icon": "./assets/icon.png",
