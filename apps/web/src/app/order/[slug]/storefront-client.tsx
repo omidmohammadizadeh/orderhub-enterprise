@@ -1339,7 +1339,13 @@ function OrderPage() {
         name: l.displayName,
         quantity: l.quantity,
         unitPrice: l.unitPrice,
-        modifiers: l.modifiers.map(toOrderLineModifier),
+        // The option id and the size let the server price the line exactly
+        // (it re-prices every line; unitPrice here is only a cross-check).
+        modifiers: l.modifiers.map((m) => ({
+          ...toOrderLineModifier(m),
+          ...(m.id ? { optionId: m.id } : {}),
+        })),
+        ...(l.selectedSku ? { skuPlu: l.selectedSku.plu ?? null, skuName: l.selectedSku.name } : {}),
         notes: l.notes,
         // Retail R3 — ignored by the server for restaurants.
         ...(l.substitution ? { substitution: l.substitution } : {}),

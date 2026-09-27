@@ -32,6 +32,7 @@ import { DeliveryZonesService } from "../delivery-zones/delivery-zones.service";
 import { isShop, soldOutItemIds } from "../retail/retail-availability";
 import { parseSubstitutionPref, priceShortfall, toMinor } from "../retail/retail.logic";
 import { isCurrentlyOpen as isOpenAt } from "../../common/opening-hours.util";
+import { BasketPriceError, buildPricingContext, priceBasket } from "./checkout-pricing";
 
 export interface CheckoutItemDto {
   menuItemId: string;
@@ -47,6 +48,8 @@ export interface CheckoutItemDto {
   modifiers?: Array<{
     name: string;
     price: number;
+    /** The modifier option's id, for exact server-side pricing. */
+    optionId?: string | null;
     depth?: number;
     path?: string[];
     parentOptionId?: string | null;
@@ -55,6 +58,10 @@ export interface CheckoutItemDto {
   /** Retail R3 — shops only: what to do if this line is out of stock at
    *  picking. BEST_MATCH (default) or NONE. Ignored for restaurants. */
   substitution?: string;
+  /** The chosen size of a multi-size product — lets the server price it
+   *  exactly (checkout-pricing.ts). Absent from tabs opened before it. */
+  skuPlu?: string | null;
+  skuName?: string | null;
 }
 
 export interface CheckoutDto {
@@ -1618,13 +1625,30 @@ export class OrderingService {
       dto.items.map((i) => i.menuItemId),
       dto.fulfillmentType,
     );
-    if (shop) await this.assertShopBasket(location, dto);
 
-    const items = dto.items.map((item) => ({
+    // Price every line again from the storefront the customer ordered from.
+    // The browser's unitPrice / subtotal / discount are no longer trusted —
+    // see checkout-pricing.ts for how an honest basket prices identically.
+    const served = await this.getStorefrontBySlug(slug, brandIdOverride, "ONLINE");
+    let basket: ReturnType<typeof priceBasket>;
+    try {
+      basket = priceBasket(buildPricingContext(served), dto.items as any);
+    } catch (err) {
+      if (err instanceof BasketPriceError) {
+        this.logger.warn(`Checkout refused for slug=${slug}: ${err.message}`);
+        throw new BadRequestException(err.message);
+      }
+      throw err;
+    }
+    const serverSubtotal = basket.subtotal;
+    if (shop) await this.assertShopBasket(location, dto, serverSubtotal);
+
+    const items = dto.items.map((item, i) => ({
       menuItemId: item.menuItemId,
       name: item.name,
       quantity: item.quantity,
-      unitPrice: item.unitPrice,
+      // Server-priced (checkout-pricing.ts), never the browser's figure.
+      unitPrice: basket.lines[i]!.unitPrice,
       // unitPrice ALREADY includes the modifiers.
       //
       // calculateCartItem() returns basePrice + sum(modifiers), and that is
@@ -1638,8 +1662,9 @@ export class OrderingService {
       // £26.90 subtotal, the £3.00 gap being exactly its modifier total.
       // OrderItem.totalPrice is also what reporting sums, so the inflation
       // was not confined to paper.
-      totalPrice: round2(item.unitPrice * item.quantity),
-      modifiers: item.modifiers ?? [],
+      totalPrice: round2(basket.lines[i]!.unitPrice * item.quantity),
+      // Server-priced; the option id was only needed to price it.
+      modifiers: basket.lines[i]!.modifiers.map(({ optionId: _o, ...m }) => m),
       notes: item.notes,
       // Retail R3 — shops only; carried to OrderItem.metadata for the picker.
       ...(shop ? { substitution: parseSubstitutionPref(item.substitution) ?? "BEST_MATCH" } : {}),
@@ -1712,13 +1737,13 @@ export class OrderingService {
       if (
         appliedCampaign &&
         (appliedCampaign.minOrder == null ||
-          dto.subtotal >= appliedCampaign.minOrder)
+          serverSubtotal >= appliedCampaign.minOrder)
       ) {
         if (appliedCampaign.percentageOff != null) {
           campaignDiscount =
-            Math.round(dto.subtotal * appliedCampaign.percentageOff) / 100;
+            Math.round(serverSubtotal * appliedCampaign.percentageOff) / 100;
         } else if (appliedCampaign.amountOff != null) {
-          campaignDiscount = Math.min(dto.subtotal, appliedCampaign.amountOff);
+          campaignDiscount = Math.min(serverSubtotal, appliedCampaign.amountOff);
         }
         if (campaignDiscount > 0) {
           appliedDiscountCampaign = { id: appliedCampaign.id };
@@ -1731,10 +1756,31 @@ export class OrderingService {
         `Campaign re-resolution failed for slug=${slug}: ${(err as Error).message}`,
       );
     }
+    // Promo code, validated here against the server subtotal. The browser's
+    // `discount` used to be taken as-is (whichever was larger of it and the
+    // campaign), so any number sent there came off the bill.
+    let promoDiscount = 0;
+    let promoFreeDelivery = false;
+    if (dto.promoCode?.trim()) {
+      try {
+        const promo: any = await this.promoCodes.validate(location.brand.tenantId, {
+          code: dto.promoCode.trim(),
+          locationId: location.id,
+          subtotal: serverSubtotal,
+        });
+        if (promo?.valid) {
+          promoDiscount = Math.min(serverSubtotal, Math.max(0, Number(promo.discountAmount ?? 0)));
+          promoFreeDelivery = !!promo.freeDelivery;
+        }
+      } catch (err) {
+        this.logger.warn(`Promo validation failed for slug=${slug}: ${(err as Error).message}`);
+      }
+    }
+
     // Phase AW-19 — server-side enforcement of FREE_DELIVERY so a
     // tampered cart can't charge the customer if the campaign is
     // active. Resolution failures fall back to dto.deliveryFee.
-    let serverDeliveryFee = dto.deliveryFee ?? 0;
+    let serverDeliveryFee = promoFreeDelivery && dto.fulfillmentType === "DELIVERY" ? 0 : (dto.deliveryFee ?? 0);
     try {
       const fd = await this.marketing.resolveFreeDelivery(
         campaignBrandId,
@@ -1809,7 +1855,7 @@ export class OrderingService {
           );
         }
         if (outcome.kind === "CHARGE") {
-          if (!appliedFreeDeliveryCampaign) serverDeliveryFee = outcome.fee;
+          if (!appliedFreeDeliveryCampaign && !promoFreeDelivery) serverDeliveryFee = outcome.fee;
         } else if (serverDeliveryFee <= 0) {
           // See resolveDeliveryFee — a delivery order can never end up
           // charged £0 unless a genuine FREE_DELIVERY campaign actually
@@ -1823,7 +1869,7 @@ export class OrderingService {
           const fallbackFee = resolveDeliveryFee({
             fulfillmentType: dto.fulfillmentType,
             requestedFee: serverDeliveryFee,
-            freeDeliveryApplied: !!appliedFreeDeliveryCampaign,
+            freeDeliveryApplied: !!appliedFreeDeliveryCampaign || promoFreeDelivery,
             zoneFees: zones.map((z) => Number(z.fee)),
           });
           if (fallbackFee !== serverDeliveryFee) {
@@ -1843,23 +1889,30 @@ export class OrderingService {
         );
       }
     }
-    const serverDiscount = round2(Math.max(dto.discount ?? 0, campaignDiscount));
+    // Campaign and promo don't stack — the better one applies, as on the
+    // storefront. Both computed here; the browser's `discount` is ignored.
+    const serverDiscount = round2(Math.max(promoDiscount, campaignDiscount));
+    // Tax is never negative (nothing the storefront sends, today, anyway).
+    const serverTax = round2(Math.max(0, Number(dto.taxAmount ?? 0) || 0));
     // Tip is customer-set, so it's an untrusted number that raises the
     // charge. Floor at zero, and cap it against the basket rather than
     // accepting anything: a fat-fingered or tampered value should fail
     // safe at a generous ceiling, not bill someone hundreds.
-    const goods = round2(dto.subtotal - serverDiscount + serverDeliveryFee);
+    const goods = round2(serverSubtotal - serverDiscount + serverDeliveryFee);
     const tipCeiling = round2(Math.max(goods * 2, 50));
     const serverTip = round2(
       Math.min(Math.max(Number(dto.tipAmount ?? 0) || 0, 0), tipCeiling),
     );
     const serverTotal = round2(
-      dto.subtotal -
-        serverDiscount +
-        (dto.taxAmount ?? 0) +
-        serverDeliveryFee +
-        serverTip,
+      Math.max(0, serverSubtotal - serverDiscount) + serverTax + serverDeliveryFee + serverTip,
     );
+    if (Math.abs(serverTotal - Number(dto.total ?? 0)) > 0.05) {
+      // Not an error: a service charge, a stale promo figure or a price that
+      // dropped all legitimately differ. Logged so a real mismatch shows up.
+      this.logger.log(
+        `Checkout total for slug=${slug}: browser ${Number(dto.total ?? 0).toFixed(2)}, charged ${serverTotal.toFixed(2)}`,
+      );
+    }
 
     // The loyalty reward, added as a real order line at zero.
     //
@@ -1885,8 +1938,8 @@ export class OrderingService {
         customerInfo: dto.customerInfo,
         deliveryAddress: dto.deliveryAddress,
         items,
-        subtotal: dto.subtotal,
-        taxAmount: dto.taxAmount ?? 0,
+        subtotal: serverSubtotal,
+        taxAmount: serverTax,
         deliveryFee: serverDeliveryFee,
         discount: serverDiscount,
         total: serverTotal,
@@ -2047,7 +2100,7 @@ export class OrderingService {
    * never had: nothing sold out, and the delivery minimum met. Server-side
    * because the basket is client-supplied and can be minutes stale.
    */
-  private async assertShopBasket(location: any, dto: CheckoutDto) {
+  private async assertShopBasket(location: any, dto: CheckoutDto, subtotal?: number) {
     const soldOut = await soldOutItemIds(
       this.prisma,
       location.id,
@@ -2064,7 +2117,10 @@ export class OrderingService {
         (await this.prisma.directOrderingConfig.findUnique({ where: { brandId: location.brandId } }).catch(() => null)) ??
         (await this.prisma.directOrderingConfig.findUnique({ where: { locationId: location.id } }).catch(() => null));
       const min = Number((cfg as any)?.minOrderForDelivery ?? 0);
-      const basket = dto.items.reduce((sum, i) => sum + Number(i.unitPrice) * Number(i.quantity), 0);
+      // The server-priced subtotal when checkout has one; the sent prices
+      // otherwise (only the unit spec calls it that way).
+      const basket =
+        subtotal ?? dto.items.reduce((sum, i) => sum + Number(i.unitPrice) * Number(i.quantity), 0);
       if (min > 0 && basket + 1e-9 < min) {
         throw new BadRequestException(
           `The minimum for delivery is ${min.toFixed(2)} — add ${(min - basket).toFixed(2)} more, or choose collection.`,
