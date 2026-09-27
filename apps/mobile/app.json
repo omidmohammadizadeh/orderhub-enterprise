@@ -33,6 +33,7 @@
         "NSBluetoothPeripheralUsageDescription": "Order Hub connects to nearby Bluetooth card readers and receipt printers.",
         "NSLocalNetworkUsageDescription": "Order Hub discovers and connects to receipt printers on your local Wi-Fi network.",
         "NSLocationWhenInUseUsageDescription": "Location is required by the payments provider to accept card payments.",
+        "NSCameraUsageDescription": "Order Hub uses the camera to scan product barcodes and receipt QR codes at the till.",
         "UISupportedExternalAccessoryProtocols": []
       }
     },
@@ -54,7 +55,8 @@
         "BLUETOOTH_CONNECT",
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
-        "NFC"
+        "NFC",
+        "CAMERA"
       ]
     },
     "plugins": [

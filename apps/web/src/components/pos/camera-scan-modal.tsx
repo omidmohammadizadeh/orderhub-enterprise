@@ -2,21 +2,28 @@
 
 // Retail R1 — scan with the tablet's camera when there is no scanner.
 //
-// Uses the browser's own BarcodeDetector (Chrome / Android WebView — i.e. the
-// Sunmi and Android tablets shops actually use). Where it doesn't exist the
-// till simply doesn't offer this button; a £25 USB scanner is the better tool
-// anyway. Detection runs on a timer, not requestAnimationFrame, which stops
-// dead in a background tab.
+// Two decoders, same result:
+//   • the browser's own BarcodeDetector where it exists (Chrome / Android
+//     WebView — the Sunmi and Android tablets shops mostly use): fast, free;
+//   • ZXing (@zxing/browser, pure JS) everywhere else — iPad Safari and the
+//     iOS app's WKWebView have no BarcodeDetector at all. Loaded only when the
+//     camera opens on such a device, so it costs the till's bundle nothing.
+// Both run on timers, never requestAnimationFrame, which stops dead in a
+// background tab.
+//
+// Inside the OrderHub tablet app the camera needs the native permission
+// (CAMERA on Android, NSCameraUsageDescription on iOS — see apps/mobile).
 
 import { useEffect, useRef, useState } from "react";
 import { Camera, X } from "lucide-react";
 
 const FORMATS = ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "code_39", "qr_code"];
 
+/** Anything with a camera the page may open — the decoder is sorted out later. */
 export function isCameraScanSupported(): boolean {
   return (
     typeof window !== "undefined" &&
-    "BarcodeDetector" in window &&
+    window.isSecureContext !== false &&
     !!navigator.mediaDevices?.getUserMedia
   );
 }
@@ -39,44 +46,59 @@ export function CameraScanModal({
   useEffect(() => {
     let stream: MediaStream | null = null;
     let timer: ReturnType<typeof setTimeout> | null = null;
+    let zxingControls: { stop: () => void } | null = null;
     let cancelled = false;
+
+    const found = (code: string | undefined | null) => {
+      if (!code || done.current || cancelled) return;
+      done.current = true;
+      cb.current(code);
+    };
 
     (async () => {
       try {
-        const Detector = (window as any).BarcodeDetector;
-        const supported: string[] = (await Detector.getSupportedFormats?.()) ?? FORMATS;
-        const detector = new Detector({ formats: FORMATS.filter((f) => supported.includes(f)) });
         stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: { ideal: "environment" } },
           audio: false,
         });
         if (cancelled) return;
         const video = videoRef.current!;
-        video.srcObject = stream;
-        await video.play();
 
-        const tick = async () => {
-          if (cancelled || done.current) return;
-          try {
-            if (video.readyState >= 2) {
-              const hits = await detector.detect(video);
-              const code = hits?.[0]?.rawValue as string | undefined;
-              if (code) {
-                done.current = true;
-                cb.current(code);
-                return;
+        const Detector = (window as any).BarcodeDetector;
+        if (Detector) {
+          const supported: string[] = (await Detector.getSupportedFormats?.()) ?? FORMATS;
+          const detector = new Detector({ formats: FORMATS.filter((f) => supported.includes(f)) });
+          video.srcObject = stream;
+          await video.play();
+          const tick = async () => {
+            if (cancelled || done.current) return;
+            try {
+              if (video.readyState >= 2) {
+                const hits = await detector.detect(video);
+                found(hits?.[0]?.rawValue as string | undefined);
+                if (done.current) return;
               }
+            } catch {
+              /* a frame that fails to decode — try the next one */
             }
-          } catch {
-            /* a frame that fails to decode — try the next one */
-          }
-          timer = setTimeout(tick, 150);
-        };
-        void tick();
+            timer = setTimeout(tick, 150);
+          };
+          void tick();
+          return;
+        }
+
+        // No native detector (iPad / iOS app): decode with ZXing.
+        const { BrowserMultiFormatReader } = await import("@zxing/browser");
+        if (cancelled) return;
+        const reader = new BrowserMultiFormatReader(undefined, { delayBetweenScanAttempts: 150 });
+        zxingControls = await reader.decodeFromStream(stream, video, (result) => {
+          if (result) found(result.getText());
+        });
+        if (cancelled) zxingControls.stop();
       } catch (err: any) {
         setError(
           err?.name === "NotAllowedError"
-            ? "Camera access was refused. Allow the camera for this site, or use a barcode scanner."
+            ? "Camera access was refused. Allow the camera for OrderHub (in the tablet's settings for the app, or the browser's site settings), or use a barcode scanner."
             : "Couldn't start the camera on this device.",
         );
       }
@@ -85,6 +107,7 @@ export function CameraScanModal({
     return () => {
       cancelled = true;
       if (timer) clearTimeout(timer);
+      zxingControls?.stop();
       stream?.getTracks().forEach((t) => t.stop());
     };
   }, []);

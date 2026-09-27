@@ -88,6 +88,8 @@ export interface SaleForReturn {
   original:
     | { method: "CASH"; provider: null; supported: true }
     | { method: "CARD"; provider: string; supported: boolean; note?: string };
+  /** A card-machine refund started earlier and not yet finished. */
+  pendingOnMachine: { amount: number; startedAt: string | null } | null;
   returns: Array<{
     id: string;
     amount: number;
@@ -96,6 +98,25 @@ export interface SaleForReturn {
     createdAt: string;
   }>;
 }
+
+export type ReturnResult =
+  | { pending?: false; refundId: string; amount: number; method: "CASH" | "CARD"; sale: SaleForReturn }
+  /** Card-present (Dojo): the customer must tap their card — poll until done. */
+  | { pending: true; method: "CARD"; provider: "DOJO"; amount: number; terminalSessionId: string };
+
+export type MachineReturnStatus =
+  | { active: false; sale: SaleForReturn }
+  | {
+      active: true;
+      amount: number;
+      status: string | null;
+      /** What the machine is showing: PresentCard, EnterPin… */
+      prompt: string | null;
+      done: boolean;
+      failed: boolean;
+      message?: string;
+      sale?: SaleForReturn;
+    };
 
 export interface VariantInput {
   name?: string;
@@ -156,11 +177,13 @@ export const retailClient = {
     refundMethod?: "ORIGINAL" | "CASH";
     reason?: string;
     managerPin?: string;
+    terminalId?: string;
   }) =>
     apiClient
-      .post<{ refundId: string; amount: number; method: "CASH" | "CARD"; sale: SaleForReturn }>(
-        "/v1/retail/returns",
-        body,
-      )
+      .post<ReturnResult>("/v1/retail/returns", body)
       .then((r) => r.data),
+
+  /** Poll a return being refunded on the Dojo card machine. */
+  pollDojoReturn: (orderId: string) =>
+    apiClient.post<MachineReturnStatus>("/v1/retail/returns/dojo/poll", { orderId }).then((r) => r.data),
 };

@@ -8,12 +8,15 @@
 // anything already returned, so two tills can't refund the same item twice.
 
 import { useEffect, useMemo, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { Camera, Loader2, Minus, Plus, RotateCcw, X } from "lucide-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Camera, CreditCard, Loader2, Minus, Plus, RotateCcw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCurrency } from "@/hooks/use-currency";
 import { useBarcodeScanner } from "@/lib/pos/barcode-scanner";
 import { retailClient, type SaleForReturn } from "@/lib/api/retail.client";
+import { dojoClient } from "@/lib/api/dojo.client";
+import { DOJO_PROMPTS } from "@/lib/dojo-prompts";
+import { chooseCardMachine, useDeviceStore } from "@/stores/device.store";
 import { CameraScanModal, isCameraScanSupported } from "./camera-scan-modal";
 
 const REASONS = ["Changed mind", "Faulty", "Wrong size", "Damaged", "Out of date", "Other"];
@@ -49,6 +52,24 @@ export function RetailReturnsModal({
   const [camera, setCamera] = useState(false);
   const [done, setDone] = useState<{ amount: number; method: "CASH" | "CARD" } | null>(null);
   const needsPin = !MANAGER_ROLES.includes(String(role));
+  // Card-present (Dojo) refunds happen ON the machine: while one is running
+  // this holds its amount, and the screen shows the machine's prompt.
+  const [machine, setMachine] = useState<{ amount: number } | null>(null);
+  const [machinePrompt, setMachinePrompt] = useState<string | null>(null);
+  const [machineError, setMachineError] = useState<string | null>(null);
+  const [chosenTerminal, setChosenTerminal] = useState<string | null>(null);
+  const pinnedMachine = useDeviceStore((st) => st.cardMachineByLocation[locationId] ?? null);
+  const onMachine = sale?.original.method === "CARD" && sale.original.provider === "DOJO" && !cash;
+  const dojoQuery = useQuery({
+    queryKey: ["dojo-status", locationId],
+    queryFn: () => dojoClient.status(locationId),
+    enabled: !!onMachine,
+    retry: false,
+  });
+  const dojoTerminals = dojoQuery.data?.connected ? (dojoQuery.data.terminals ?? []) : [];
+  // Same rule as taking a payment: this till's own machine, or the only one
+  // — never a guess between several, which is how money reaches the wrong counter.
+  const activeTerminal = chooseCardMachine(dojoTerminals, chosenTerminal ?? pinnedMachine);
 
   const find = useMutation({
     mutationFn: (c: string) => retailClient.findSale(locationId, c),
@@ -58,8 +79,49 @@ export function RetailReturnsModal({
       setDamaged({});
       setDone(null);
       setCash(!s.original.supported);
+      setMachineError(null);
+      // Closed mid-refund last time? Pick the waiting card machine back up.
+      if (s.pendingOnMachine) setMachine({ amount: s.pendingOnMachine.amount });
     },
   });
+
+  // Poll the card machine until the customer has tapped (or it gives up).
+  useEffect(() => {
+    if (!machine || !sale) return;
+    let stop = false;
+    const tick = async () => {
+      try {
+        const r = await retailClient.pollDojoReturn(sale.order.id);
+        if (stop) return;
+        if (!r.active || r.done) {
+          if (r.active && r.done) setDone({ amount: r.amount, method: "CARD" });
+          if (r.sale) setSale(r.sale);
+          setMachine(null);
+          setMachinePrompt(null);
+          setQty({});
+          setDamaged({});
+          setPin("");
+          return;
+        }
+        if (r.failed) {
+          setMachineError(r.message ?? "The card machine didn't complete the refund.");
+          if (r.sale) setSale(r.sale);
+          setMachine(null);
+          setMachinePrompt(null);
+          return;
+        }
+        setMachinePrompt(r.prompt);
+      } catch {
+        /* a blip — keep polling */
+      }
+      if (!stop) timer = setTimeout(tick, 2000);
+    };
+    let timer = setTimeout(tick, 1500);
+    return () => {
+      stop = true;
+      clearTimeout(timer);
+    };
+  }, [machine, sale?.order.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (initialCode) find.mutate(initialCode);
@@ -68,7 +130,7 @@ export function RetailReturnsModal({
   }, []);
 
   // A scanner at the returns screen reads the receipt, not a product.
-  useBarcodeScanner(!sale && !camera, (c) => {
+  useBarcodeScanner(!sale && !camera && !machine, (c) => {
     setCode(c);
     find.mutate(c);
   });
@@ -103,8 +165,14 @@ export function RetailReturnsModal({
         refundMethod: cash ? "CASH" : "ORIGINAL",
         reason,
         ...(needsPin ? { managerPin: pin } : {}),
+        ...(onMachine && activeTerminal ? { terminalId: activeTerminal.id } : {}),
       }),
     onSuccess: (r) => {
+      if (r.pending) {
+        setMachineError(null);
+        setMachine({ amount: r.amount });
+        return;
+      }
       setDone({ amount: r.amount, method: r.method });
       setSale(r.sale);
       setQty({});
@@ -172,6 +240,24 @@ export function RetailReturnsModal({
               )}
             </div>
           )}
+
+          {machine && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="flex items-center gap-3 rounded-lg border border-sky-200 bg-sky-50 p-3 text-sky-900"
+            >
+              <Loader2 className="h-5 w-5 flex-shrink-0 animate-spin" aria-hidden />
+              <div>
+                <p className="font-semibold">Refunding {money(machine.amount)} on the card machine</p>
+                <p className="text-xs">
+                  {(machinePrompt && DOJO_PROMPTS[machinePrompt]) ??
+                    "Ask the customer to tap or insert the card they paid with."}
+                </p>
+              </div>
+            </div>
+          )}
+          {machineError && <p className="rounded-lg bg-red-50 p-3 text-xs text-red-700">{machineError}</p>}
 
           {sale && (
             <>
@@ -296,6 +382,48 @@ export function RetailReturnsModal({
                   </div>
                   )}
 
+                  {onMachine && !machine && (
+                    <div>
+                      {dojoQuery.isLoading ? null : dojoTerminals.length === 0 ? (
+                        <p className="rounded-lg bg-amber-50 p-2 text-xs text-amber-800">
+                          No Dojo card machine is connected here — refund it as cash instead.
+                        </p>
+                      ) : activeTerminal ? (
+                        <p className="flex items-center gap-1.5 text-xs text-zinc-600">
+                          <CreditCard className="h-3.5 w-3.5" aria-hidden /> On {activeTerminal.label}
+                          {dojoTerminals.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => setChosenTerminal(null)}
+                              className="ml-1 font-medium text-orange-600 hover:underline"
+                            >
+                              change
+                            </button>
+                          )}
+                        </p>
+                      ) : (
+                        <div>
+                          <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+                            Which card machine?
+                          </span>
+                          <div className="flex flex-wrap gap-2">
+                            {dojoTerminals.map((t) => (
+                              <Button
+                                key={t.id}
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setChosenTerminal(t.id)}
+                              >
+                                {t.label}
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {needsPin && (
                     <label className="block">
                       <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
@@ -318,16 +446,21 @@ export function RetailReturnsModal({
           )}
         </div>
 
-        {sale?.canReturn && lines.length > 0 && (
+        {sale?.canReturn && lines.length > 0 && !machine && (
           <footer className="border-t border-zinc-200 p-4">
             <Button
               className="w-full"
               size="lg"
               loading={submit.isPending}
-              disabled={submit.isPending || (needsPin && pin.length < 4)}
+              disabled={submit.isPending || (needsPin && pin.length < 4) || (onMachine && !activeTerminal)}
               onClick={() => submit.mutate()}
             >
-              Refund {money(preview)} {cash || sale.original.method === "CASH" ? "in cash" : "to card"}
+              Refund {money(preview)}{" "}
+              {cash || sale.original.method === "CASH"
+                ? "in cash"
+                : onMachine
+                  ? "on the card machine"
+                  : "to card"}
             </Button>
           </footer>
         )}

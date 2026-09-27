@@ -18,7 +18,7 @@ import {
   Logger,
   NotFoundException,
 } from "@nestjs/common";
-import { EventEmitter2 } from "@nestjs/event-emitter";
+import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
 import { randomUUID } from "crypto";
 import type { Prisma } from "@orderhub/database";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
@@ -26,6 +26,7 @@ import { SocketService } from "../../infrastructure/socket/socket.service";
 import { OrdersService } from "../orders/orders.service";
 import { VoidItemsService } from "../orders/void-items.service";
 import { PaymentsService } from "../payments/payments.service";
+import { DojoService } from "../payments/dojo/dojo.service";
 import { RetailStockService, type StockMove } from "./retail-stock.service";
 import {
   parseReceiptScan,
@@ -55,6 +56,16 @@ export interface CreateReturnInput {
   refundMethod?: RefundMethod;
   reason?: string;
   managerPin?: string;
+  /** Dojo card machine to run a card-present refund on (the till's pinned one). */
+  terminalId?: string;
+}
+
+/** A priced line, as stored on a pending card-machine refund until it lands. */
+interface PricedLine {
+  orderItemId: string;
+  quantity: number;
+  amountMinor: number;
+  restock: boolean;
 }
 
 const RETURNABLE_PAYMENT = new Set(["PAID", "PARTIALLY_REFUNDED"]);
@@ -71,7 +82,17 @@ export class RetailReturnsService {
     private readonly stock: RetailStockService,
     private readonly socket: SocketService,
     private readonly events: EventEmitter2,
+    private readonly dojo: DojoService,
   ) {}
+
+  /** A card-machine refund for a return that is waiting for the customer's card. */
+  private pendingMachineReturn(payments: any[]) {
+    for (const p of payments ?? []) {
+      const s = (p.metadata as any)?.refundSession;
+      if (p.provider === "DOJO" && s?.id && s?.context?.kind === "retail_return") return { payment: p, session: s };
+    }
+    return null;
+  }
 
   /** Refunds already made against this order, by either the new or old path. */
   private async priorRefunds(orderId: string) {
@@ -158,13 +179,31 @@ export class RetailReturnsService {
       original: card
         ? card.provider === "STRIPE" && card.stripePaymentIntentId
           ? { method: "CARD", provider: "STRIPE", supported: true }
-          : {
-              method: "CARD",
-              provider: card.provider,
-              supported: false,
-              note: "Paid on a card machine that needs the customer's card present — refund as cash, or use Refund on card machine from the order.",
-            }
+          : card.provider === "DOJO" && card.providerChargeId
+            ? {
+                method: "CARD",
+                provider: "DOJO",
+                supported: true,
+                note: "The customer taps or inserts the card they paid with on the card machine.",
+              }
+            : {
+                method: "CARD",
+                provider: card.provider,
+                supported: false,
+                note: "This card payment can't be refunded from here — refund it as cash.",
+              }
         : { method: "CASH", provider: null, supported: true },
+      // A card-machine refund started earlier and not finished — the till
+      // resumes polling it rather than letting anyone start another.
+      pendingOnMachine: (() => {
+        const pending = this.pendingMachineReturn(order.payments);
+        return pending
+          ? {
+              amount: Number(pending.session.amountMinor ?? 0) / 100,
+              startedAt: pending.session.startedAt ?? null,
+            }
+          : null;
+      })(),
       returns: prior.map((r) => ({
         id: r.id,
         amount: Number(r.amount),
@@ -189,6 +228,13 @@ export class RetailReturnsService {
   async createReturn(user: AuthenticatedUser, input: CreateReturnInput) {
     const order: any = await this.scopedOrder(user, { id: input.orderId });
     if (!order) throw new NotFoundException("Sale not found");
+    if (this.pendingMachineReturn(order.payments)) {
+      // Its lines aren't booked until the card is presented, so starting
+      // another return now could refund the same item twice.
+      throw new BadRequestException(
+        "A refund on this receipt is waiting on the card machine — finish or cancel it first.",
+      );
+    }
     if (!RETURNABLE_PAYMENT.has(order.paymentStatus)) {
       throw new BadRequestException(
         order.paymentStatus === "REFUNDED"
@@ -243,11 +289,35 @@ export class RetailReturnsService {
     const card = method === "ORIGINAL" ? this.cardPayment(order.payments) : null;
     let paidBack: "CASH" | "CARD" = "CASH";
     let providerRefundId: string | null = null;
+    const restockOf = (orderItemId: string) =>
+      input.lines.find((l) => l.orderItemId === orderItemId)?.restock !== false;
+
+    if (card?.provider === "DOJO" && card.providerChargeId) {
+      // Card-present: the money only goes back with the card at the machine.
+      // Start the matched refund and carry the priced lines on the session;
+      // pollDojoReturn books them once Dojo says the money moved.
+      const lines: PricedLine[] = priced.map((l) => ({ ...l, restock: restockOf(l.orderItemId) }));
+      const started = await this.dojo.startTerminalRefund({
+        tenantId: order.tenantId,
+        paymentIntentId: card.providerChargeId,
+        terminalId: input.terminalId,
+        amount: amountMinor / 100,
+        reason: reason ?? undefined,
+        userId: user.userId,
+        context: { kind: "retail_return", orderId: order.id, lines, reason },
+      });
+      return {
+        pending: true as const,
+        method: "CARD" as const,
+        provider: "DOJO",
+        amount: amountMinor / 100,
+        terminalSessionId: started.terminalSessionId,
+      };
+    }
+
     if (card) {
       if (card.provider !== "STRIPE" || !card.stripePaymentIntentId) {
-        throw new BadRequestException(
-          "This sale was paid on a card machine that needs the customer's card present. Refund it as cash, or use Refund on card machine from the order.",
-        );
+        throw new BadRequestException("This card payment can't be refunded from here — refund it as cash.");
       }
       const alreadyOnCard = prior
         .filter((r) => r.paymentId === card.id)
@@ -285,37 +355,14 @@ export class RetailReturnsService {
             note: "Retail return",
           },
         });
-        const moves: StockMove[] = [];
-        for (const line of priced) {
-          const lineId = randomUUID();
-          const restock = input.lines.find((l) => l.orderItemId === line.orderItemId)?.restock !== false;
-          await tx.refundLine.create({
-            data: {
-              id: lineId,
-              refundId: created.id,
-              orderItemId: line.orderItemId,
-              quantity: line.quantity,
-              amount: toMajor(line.amountMinor),
-              restock,
-            },
-          });
-          const item = order.items.find((i: any) => i.id === line.orderItemId);
-          const v = item ? resolveVariantForLine(item, variants.byItem, variants.byId) : null;
-          if (restock && v?.trackStock) {
-            moves.push({
-              tenantId: order.tenantId,
-              locationId: order.locationId,
-              variantId: v.id,
-              type: "RETURN",
-              quantity: line.quantity,
-              reason: reason ?? "Customer return",
-              orderId: order.id,
-              refundId: created.id,
-              recordedBy: user.userId ?? null,
-              dedupeKey: `return:${lineId}`,
-            });
-          }
-        }
+        const moves = await this.bookLines(tx, {
+          order,
+          refundId: created.id,
+          lines: priced.map((l) => ({ ...l, restock: restockOf(l.orderItemId) })),
+          variants,
+          reason,
+          userId: user.userId ?? null,
+        });
         await tx.ledgerEntry.create({
           data: {
             tenantId: order.tenantId,
@@ -370,6 +417,177 @@ export class RetailReturnsService {
       }
       throw err;
     }
+  }
+
+  /**
+   * Write a return's lines and work out its restock. Shared by the immediate
+   * paths (cash, Stripe) and the card-machine path, so both leave exactly the
+   * same records behind. Returns the stock moves for the caller to apply in
+   * the same transaction.
+   */
+  private async bookLines(
+    tx: any,
+    args: {
+      order: any;
+      refundId: string;
+      lines: PricedLine[];
+      variants: Awaited<ReturnType<RetailReturnsService["variantsFor"]>>;
+      reason: string | null;
+      userId: string | null;
+    },
+  ): Promise<StockMove[]> {
+    const { order, refundId, lines, variants, reason, userId } = args;
+    const moves: StockMove[] = [];
+    for (const line of lines) {
+      const lineId = randomUUID();
+      await tx.refundLine.create({
+        data: {
+          id: lineId,
+          refundId,
+          orderItemId: line.orderItemId,
+          quantity: line.quantity,
+          amount: toMajor(line.amountMinor),
+          restock: line.restock,
+        },
+      });
+      const item = order.items.find((i: any) => i.id === line.orderItemId);
+      const v = item ? resolveVariantForLine(item, variants.byItem, variants.byId) : null;
+      if (line.restock && v?.trackStock) {
+        moves.push({
+          tenantId: order.tenantId,
+          locationId: order.locationId,
+          variantId: v.id,
+          type: "RETURN",
+          quantity: line.quantity,
+          reason: reason ?? "Customer return",
+          orderId: order.id,
+          refundId,
+          recordedBy: userId,
+          dedupeKey: `return:${lineId}`,
+        });
+      }
+    }
+    return moves;
+  }
+
+  /**
+   * Poll a card-machine return. While the customer is at the machine this
+   * relays Dojo's prompt; once Dojo confirms (it books the Refund row itself,
+   * via DojoService.recordRefund) the return's lines, restock and ledger entry
+   * are attached to that same row — once, however many times this is polled.
+   */
+  async pollDojoReturn(user: AuthenticatedUser, orderId: string) {
+    const order: any = await this.scopedOrder(user, { id: orderId });
+    if (!order) throw new NotFoundException("Sale not found");
+    const pending = this.pendingMachineReturn(order.payments);
+    if (!pending) {
+      return { active: false as const, sale: await this.describe(order) };
+    }
+    const { payment, session } = pending;
+    const status: any = await this.dojo.terminalRefundStatus(order.tenantId, payment.providerChargeId);
+    const base = {
+      active: true as const,
+      amount: Number(session.amountMinor ?? 0) / 100,
+      status: status.status ?? null,
+      prompt: status.prompt ?? null,
+    };
+    if (status.failed) {
+      return { ...base, done: false, failed: true, message: status.message, sale: await this.describe(order) };
+    }
+    if (!status.done) return { ...base, done: false, failed: false };
+
+    await this.attachMachineReturn(order, payment, session);
+    const fresh: any = await this.scopedOrder(user, { id: orderId });
+    return { ...base, done: true, failed: false, sale: await this.describe(fresh) };
+  }
+
+  /** Dojo booked a card-machine refund that carries a return — attach it,
+   *  whichever screen polled it to completion. */
+  @OnEvent("dojo.terminal_refund_recorded")
+  async onDojoRefundRecorded(ev: { tenantId: string; paymentId: string; orderId: string; session: any }) {
+    if (ev.session?.context?.kind !== "retail_return") return;
+    const order: any = await this.prisma.order.findFirst({
+      where: { id: ev.orderId, tenantId: ev.tenantId },
+      include: {
+        items: { orderBy: { createdAt: "asc" } },
+        payments: true,
+        location: { select: { id: true, name: true, currency: true, businessType: true } },
+      },
+    });
+    const payment = order?.payments.find((p: any) => p.id === ev.paymentId);
+    if (!order || !payment) return;
+    await this.attachMachineReturn(order, payment, ev.session);
+  }
+
+  private async attachMachineReturn(order: any, payment: any, session: any) {
+    const refund = await this.prisma.refund.findFirst({
+      where: { paymentId: payment.id, note: `Dojo terminal refund ${session.id}` },
+      include: { lines: { select: { id: true } } },
+    });
+    if (!refund) {
+      this.logger.error(
+        `Dojo refund ${session.id} reported done but no Refund row was found for payment ${payment.id} — return lines not booked`,
+      );
+      return;
+    }
+    if (refund.lines.length) return; // already attached by an earlier poll
+
+    const ctx = session.context as { lines: PricedLine[]; reason: string | null };
+    const variants = await this.variantsFor(order);
+    const reason = ctx.reason ?? null;
+    await this.prisma.$transaction(async (tx) => {
+      // Claim the row first: a concurrent poll that gets here second updates
+      // nothing and stops, so lines can never be attached twice.
+      const claimed = await tx.refund.updateMany({
+        where: { id: refund.id, orderId: null },
+        data: { orderId: order.id, method: "CARD" },
+      });
+      if (claimed.count === 0) return;
+      const moves = await this.bookLines(tx, {
+        order,
+        refundId: refund.id,
+        lines: ctx.lines,
+        variants,
+        reason,
+        userId: session.userId ?? null,
+      });
+      await tx.ledgerEntry.create({
+        data: {
+          tenantId: order.tenantId,
+          paymentId: payment.id,
+          refundId: refund.id,
+          type: "REFUND",
+          amount: refund.amount,
+          currency: String(payment.currency ?? order.location?.currency ?? "GBP").toLowerCase(),
+          description: `Return on order #${order.orderNumber ?? order.displayId ?? order.id} (card machine)${reason ? `: ${reason}` : ""}`,
+          reference: refund.id,
+          metadata: { kind: "retail_return", lines: ctx.lines.length, dojoSession: session.id },
+        },
+      });
+      // Dojo's own recompute only sees card payments; a sale that also had
+      // cash returns needs the whole picture.
+      const refunds = await tx.refund.findMany({
+        where: { status: "SUCCEEDED", OR: [{ orderId: order.id }, { payment: { orderId: order.id } }] },
+        select: { amount: true },
+      });
+      const refundedMinor = refunds.reduce((sum, r) => sum + toMinor(r.amount), 0);
+      await tx.order.update({
+        where: { id: order.id },
+        data: { paymentStatus: refundedMinor >= toMinor(order.total) ? "REFUNDED" : "PARTIALLY_REFUNDED" },
+      });
+      await this.stock.applyMoves(moves, tx);
+    });
+    this.events.emit("activity.log", {
+      tenantId: order.tenantId,
+      locationId: order.locationId,
+      brandId: order.brandId ?? null,
+      category: "ORDERS",
+      channel: order.platform ?? "POS",
+      action: "order.returned",
+      status: "INFO",
+      message: `Return on order #${order.orderNumber ?? order.displayId ?? order.id}: ${ctx.lines.reduce((sum, l) => sum + l.quantity, 0)} item(s), ${toMajor(toMinor(refund.amount))} back on the card machine`,
+      details: { orderId: order.id, refundId: refund.id, method: "CARD" },
+    });
   }
 
   private async variantsFor(order: any) {

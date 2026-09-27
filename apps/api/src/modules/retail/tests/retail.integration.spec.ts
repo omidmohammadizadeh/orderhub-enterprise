@@ -24,6 +24,42 @@ d("retail R1 (database)", () => {
   let catalog: RetailCatalogService;
   let returns: RetailReturnsService;
   const refundStripeAmount = jest.fn(async () => "re_test_123");
+  // Behaves like DojoService's card-machine refund: start stores the session
+  // (with our context) on the payment; a "tapped" status books the Refund row
+  // exactly as recordRefund does and clears the session.
+  let machineOutcome: "waiting" | "tapped" | "declined" = "waiting";
+  const dojoStub = {
+    startTerminalRefund: jest.fn(async (a: any) => {
+      const p = await prisma.payment.findFirstOrThrow({ where: { providerChargeId: a.paymentIntentId } });
+      await prisma.payment.update({
+        where: { id: p.id },
+        data: {
+          metadata: {
+            refundSession: { id: `ses_${p.id}`, amountMinor: Math.round(a.amount * 100), context: a.context },
+          },
+        },
+      });
+      return { terminalSessionId: `ses_${p.id}`, amount: a.amount, status: "InitiateRequested" };
+    }),
+    terminalRefundStatus: jest.fn(async (_t: string, pi: string) => {
+      const p = await prisma.payment.findFirstOrThrow({ where: { providerChargeId: pi } });
+      const s = (p.metadata as any).refundSession;
+      if (machineOutcome === "waiting") return { active: true, done: false, failed: false, prompt: "PresentCard" };
+      await prisma.payment.update({ where: { id: p.id }, data: { metadata: { refundSession: null } } });
+      if (machineOutcome === "declined") return { active: true, done: false, failed: true, message: "Declined" };
+      await prisma.refund.create({
+        data: {
+          tenantId,
+          paymentId: p.id,
+          amount: s.amountMinor / 100,
+          status: "SUCCEEDED",
+          isPartial: true,
+          note: `Dojo terminal refund ${s.id}`,
+        },
+      });
+      return { active: true, done: true, failed: false };
+    }),
+  };
   const tag = `it${Date.now()}`;
   let tenantId: string;
   let brandId: string;
@@ -79,6 +115,7 @@ d("retail R1 (database)", () => {
       stock,
       { emitToTenant: () => undefined } as any,
       { emit: () => undefined } as any,
+      dojoStub as any,
     );
   });
 
@@ -341,7 +378,79 @@ d("retail R1 (database)", () => {
     expect(refund).toMatchObject({ paymentId: payment.id, stripeRefundId: "re_test_123", method: "CARD" });
   });
 
-  it("won't pretend to refund a card-present Dojo sale, but will give cash", async () => {
+  it("refunds a Dojo card-present sale on the card machine, then books the lines once", async () => {
+    const coke = await variantByBarcode("5000112637922");
+    const order = await sale({
+      paymentMethod: "CARD_TERMINAL",
+      lines: [{ name: "Coke", qty: 2, total: 2.7, menuItemId: coke.menuItemId, variantId: coke.id }],
+    });
+    await prisma.payment.create({
+      data: {
+        tenantId,
+        orderId: order.id,
+        amount: 2.7,
+        netAmount: 2.7,
+        status: "SUCCEEDED",
+        method: "CARD",
+        provider: "DOJO",
+        providerChargeId: `pi_dojo_${tag}`,
+      } as any,
+    });
+    await stock.syncOrder(order.id, "commit");
+    const afterSale = await levelOf(coke.id);
+    const line = order.items[0]!.id;
+
+    expect((await returns.findSale(owner(), shopId, `OHR:${order.id}`)).original).toMatchObject({
+      provider: "DOJO",
+      supported: true,
+    });
+
+    machineOutcome = "waiting";
+    const started = await returns.createReturn(owner(), {
+      orderId: order.id,
+      lines: [{ orderItemId: line, quantity: 1 }],
+      terminalId: "term_1",
+    });
+    expect(started).toMatchObject({ pending: true, provider: "DOJO", amount: 1.35 });
+    expect(dojoStub.startTerminalRefund).toHaveBeenLastCalledWith(
+      expect.objectContaining({ amount: 1.35, terminalId: "term_1" }),
+    );
+    // Nothing is booked, and nothing else can be returned, until the card is tapped.
+    expect(await prisma.refund.count({ where: { payment: { orderId: order.id } } })).toBe(0);
+    await expect(
+      returns.createReturn(owner(), { orderId: order.id, lines: [{ orderItemId: line, quantity: 1 }], refundMethod: "CASH" }),
+    ).rejects.toThrow(/waiting on the card machine/);
+    await expect(returns.pollDojoReturn(owner(), order.id)).resolves.toMatchObject({ done: false, prompt: "PresentCard" });
+
+    machineOutcome = "tapped";
+    const done: any = await returns.pollDojoReturn(owner(), order.id);
+    expect(done).toMatchObject({ done: true });
+    expect(done.sale.items[0]).toMatchObject({ returnable: 1 });
+    const refund = await prisma.refund.findFirstOrThrow({
+      where: { payment: { orderId: order.id } },
+      include: { lines: true, ledgerEntries: true },
+    });
+    expect(refund).toMatchObject({ orderId: order.id, method: "CARD" });
+    expect(refund.lines).toHaveLength(1);
+    expect(refund.ledgerEntries).toHaveLength(1);
+    expect(await levelOf(coke.id)).toBe(afterSale + 1);
+
+    // The drawer's poll (or a retried event) lands the same session again: no double booking.
+    const session = {
+      id: refund.note!.replace("Dojo terminal refund ", ""),
+      context: {
+        kind: "retail_return",
+        lines: [{ orderItemId: line, quantity: 1, amountMinor: 135, restock: true }],
+        reason: null,
+      },
+    };
+    const pay = await prisma.payment.findFirstOrThrow({ where: { orderId: order.id } });
+    await returns.onDojoRefundRecorded({ tenantId, paymentId: pay.id, orderId: order.id, session });
+    expect(await prisma.refundLine.count({ where: { refundId: refund.id } })).toBe(1);
+    expect(await levelOf(coke.id)).toBe(afterSale + 1);
+  });
+
+  it("books nothing when the card machine declines, and cash still works", async () => {
     const coke = await variantByBarcode("5000112637922");
     const order = await sale({
       paymentMethod: "CARD_TERMINAL",
@@ -356,11 +465,14 @@ d("retail R1 (database)", () => {
         status: "SUCCEEDED",
         method: "CARD",
         provider: "DOJO",
+        providerChargeId: `pi_dojo2_${tag}`,
       } as any,
     });
     const input = { orderId: order.id, lines: [{ orderItemId: order.items[0]!.id, quantity: 1 }] };
-    await expect(returns.createReturn(owner(), input)).rejects.toThrow(/card machine/);
-    expect(await prisma.refund.count({ where: { orderId: order.id } })).toBe(0);
+    machineOutcome = "declined";
+    await returns.createReturn(owner(), input);
+    await expect(returns.pollDojoReturn(owner(), order.id)).resolves.toMatchObject({ failed: true });
+    expect(await prisma.refund.count({ where: { payment: { orderId: order.id } } })).toBe(0);
     await expect(returns.createReturn(owner(), { ...input, refundMethod: "CASH" })).resolves.toMatchObject({
       method: "CASH",
     });

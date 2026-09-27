@@ -74,6 +74,12 @@ class CreateReturnBodyDto {
   @IsOptional() @IsIn(["ORIGINAL", "CASH"]) refundMethod?: "ORIGINAL" | "CASH";
   @IsOptional() @IsString() @MaxLength(200) reason?: string;
   @IsOptional() @IsString() @MaxLength(8) managerPin?: string;
+  // Dojo card machine for a card-present refund (the till's pinned one).
+  @IsOptional() @IsString() @MaxLength(100) terminalId?: string;
+}
+
+class PollReturnBodyDto {
+  @IsString() orderId!: string;
 }
 
 @ApiTags("retail")
@@ -216,5 +222,13 @@ export class RetailController {
   @ApiOperation({ summary: "Return items from a sale: refund them and put them back in stock" })
   createReturn(@CurrentUser() user: AuthenticatedUser, @Body() body: CreateReturnBodyDto) {
     return this.returns.createReturn(user, body);
+  }
+
+  @Post("returns/dojo/poll")
+  @Roles(...TILL_ROLES)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Poll a return being refunded on the Dojo card machine" })
+  pollDojoReturn(@CurrentUser() user: AuthenticatedUser, @Body() body: PollReturnBodyDto) {
+    return this.returns.pollDojoReturn(user, body.orderId);
   }
 }

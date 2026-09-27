@@ -489,6 +489,13 @@ export function PosWebView({ tokens, onSignOut }: Props) {
           // it until a user tap.
           mediaPlaybackRequiresUserAction={false}
           allowsInlineMediaPlayback
+          // Camera barcode scanning at a shop's till (Retail R1). Our own
+          // pages get the camera without WebKit asking again on every scan;
+          // anything else is prompted. The OS permission (NSCameraUsage-
+          // Description / Android CAMERA) is still asked once, by the system.
+          // Android needs no prop: the WebView maps the page's request to the
+          // CAMERA runtime permission, which app.json now declares.
+          mediaCapturePermissionGrantType="grantIfSameHostElsePrompt"
           // Cookies + localStorage persist across launches so the web
           // session survives a cold start (in addition to our JWT).
           sharedCookiesEnabled
