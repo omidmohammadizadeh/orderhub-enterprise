@@ -58,6 +58,7 @@ import { UberEatsModule } from "./modules/integrations/ubereats/ubereats.module"
 import { JetModule } from "./modules/integrations/jet/jet.module";
 import { GlovoModule } from "./modules/integrations/glovo/glovo.module";
 import { CareemModule } from "./modules/integrations/careem/careem.module";
+import { KeetaModule } from "./modules/integrations/keeta/keeta.module";
 import { WebhooksModule } from "./modules/webhooks/webhooks.module";
 import { DispatchModule } from "./modules/dispatch/dispatch.module";
 import { DriverAppModule } from "./modules/driver-app/driver-app.module";
@@ -264,6 +265,7 @@ function bullRedisOptions(raw: string | undefined): Record<string, unknown> {
     JetModule,
     GlovoModule,
     CareemModule,
+    KeetaModule,
     StuartModule,
     UberDirectModule,
     JetGoModule,

@@ -871,6 +871,7 @@ function prettyChannel(c: string): string {
     DELIVEROO: "Deliveroo",
     WHATSAPP: "WhatsApp",
     HUBRISE: "HubRise",
+    KEETA: "Keeta",
   };
   return map[c] ?? c;
 }

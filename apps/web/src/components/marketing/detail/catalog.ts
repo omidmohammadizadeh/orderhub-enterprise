@@ -123,6 +123,12 @@ export const INTEGRATION_META: RouteMeta[] = [
       "A direct Glovo integration, coming soon — orders, status updates, menu publishing and out-of-stock items on the same board as every other channel.",
   },
   {
+    slug: "keeta",
+    name: "Keeta",
+    description:
+      "A direct Keeta integration for the Gulf, coming soon — orders, menu publishing, sold-out items, store pause and opening hours on the same board as every other channel.",
+  },
+  {
     slug: "stripe",
     name: "Stripe",
     description:

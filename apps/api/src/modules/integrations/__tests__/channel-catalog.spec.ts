@@ -51,6 +51,13 @@ describe("channelsForCountry", () => {
     expect(ids(" ae ")).toEqual(ids("AE"));
   });
 
+  it("offers Keeta where its Standard API trades, and nowhere else", () => {
+    // Source: the currencies Keeta's Standard API accepts (SAR, AED, QAR, KWD,
+    // BHD, OMR). Jordan and Egypt are not Keeta markets.
+    for (const c of ["AE", "SA", "KW", "QA", "BH", "OM"]) expect(ids(c)).toContain("KEETA");
+    for (const c of ["JO", "EG", "GB", "ES"]) expect(ids(c)).not.toContain("KEETA");
+  });
+
   it("lists every Talabat market we intend to sell into", () => {
     for (const c of ["AE", "SA", "KW", "QA", "BH", "OM", "JO", "EG"]) {
       expect(CHANNELS_BY_COUNTRY[c]).toBeDefined();

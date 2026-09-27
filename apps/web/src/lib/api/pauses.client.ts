@@ -10,6 +10,7 @@ export const CHANNELS = [
   "DELIVEROO",
   "WHATSAPP",
   "HUBRISE",
+  "KEETA",
 ] as const;
 export type PauseChannel = (typeof CHANNELS)[number];
 

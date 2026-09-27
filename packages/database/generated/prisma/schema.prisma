@@ -3922,6 +3922,7 @@ enum IntegrationPlatform {
   GRUBHUB
   CAREEM
   GLOVO
+  KEETA
   WHATSAPP
 }
 
@@ -3945,6 +3946,7 @@ enum OrderPlatform {
   GRUBHUB
   CAREEM
   GLOVO
+  KEETA
   WHATSAPP
   // The AI phone line. The voice module used to write "PHONE" here, which is
   // not a member of this enum — so Prisma rejected every completed call and
@@ -3965,6 +3967,7 @@ enum OrderSource {
   GRUBHUB
   CAREEM
   GLOVO
+  KEETA
   WHATSAPP
   // Taken over the phone by the AI voice line. Shown as "AI Voice".
   VOICE
@@ -5384,4 +5387,44 @@ model Referral {
   @@index([tenantId])
   @@index([referrerAccountId, status])
   @@map("referrals")
+}
+
+// Phase KT — direct Keeta (Meituan) integration, Standard Keeta API.
+//
+// Keeta authorizes by BRAND, not by store: a chain's merchant approves our app
+// once and ONE access token then covers every store under that Keeta brand.
+// Each of our brand × location pairs still gets its own BrandPlatformConnection
+// (platform "KEETA", externalStoreId = Keeta shopId), but the token itself
+// lives here, once, because Keeta's refresh tokens are SINGLE-USE: copies on
+// several connection rows would each spend it, and every copy but the first
+// would be dead the moment one refreshed.
+//
+// accessToken / refreshToken hold CredentialEncryptionService envelopes
+// (serialised JSON), never plaintext outside a keyless dev box.
+model KeetaAuthorization {
+  id            String    @id @default(cuid())
+  tenantId      String
+  // Keeta's brand id and name from /base/authorized/resource/get.
+  keetaBrandId  String?
+  brandName     String?
+  keetaUserId   String?
+  accessToken   String
+  refreshToken  String
+  // Both tokens expire together, 90 days after issue.
+  expiresAt     DateTime
+  issuedAt      DateTime
+  // active | revoked | refresh_failed
+  status        String    @default("active")
+  // [{ id, name, address, latitude, longitude }] — the stores this token covers.
+  shops         Json      @default("[]")
+  lastRefreshAt DateTime?
+  lastError     String?
+  metadata      Json      @default("{}")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, keetaBrandId])
+  @@index([tenantId])
+  @@map("keeta_authorizations")
 }

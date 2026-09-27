@@ -255,6 +255,22 @@ function GlovoLogo({ size, rounded = true }: LogoProps) {
   );
 }
 
+function KeetaLogo({ size, rounded = true }: LogoProps) {
+  // Initial tile in Keeta's yellow with black text — the real mark is keeta.png.
+  return (
+    <svg viewBox="0 0 100 100" style={tileStyle(size, rounded)} aria-label="Keeta">
+      <rect width="100" height="100" fill="#FFE000" />
+      <text
+        x="50" y="50" fill="#000000" fontSize="58" fontWeight="700"
+        textAnchor="middle" dominantBaseline="central"
+        fontFamily="system-ui, sans-serif"
+      >
+        k
+      </text>
+    </svg>
+  );
+}
+
 // Map each canonical platform key to:
 //   slug  — the PNG filename the operator uploads at /brand-logos/{slug}.png
 //   bg    — brand background colour (sits behind the PNG; if the PNG has
@@ -284,6 +300,7 @@ const PLATFORM_META: Record<
   // UAE / GCC marketplaces.
   CAREEM:      { slug: "careem",     bg: "#00493E", svg: (p) => <CareemLogo {...p} /> },
   TALABAT:     { slug: "talabat",    bg: "#FF5A00", svg: (p) => <TalabatLogo {...p} /> },
+  KEETA:       { slug: "keeta",      bg: "#FFE000", svg: (p) => <KeetaLogo {...p} /> },
   // Southern & Eastern Europe, Central Asia, Africa.
   GLOVO:       { slug: "glovo",      bg: "#FFC244", svg: (p) => <GlovoLogo {...p} /> },
   // Phase AY — WhatsApp ordering channel.
@@ -316,6 +333,7 @@ const LABELS: Record<string, string> = {
   CAREEM: "Careem",
   TALABAT: "talabat",
   GLOVO: "Glovo",
+  KEETA: "Keeta",
 };
 
 interface Props {

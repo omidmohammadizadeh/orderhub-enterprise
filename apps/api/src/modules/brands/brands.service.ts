@@ -225,6 +225,9 @@ export class BrandsService {
     "JUST_EAT",
     "UBER_EATS",
     "DELIVEROO",
+    // Keeta publishes through VariantPriceResolverService.forBrandChannel
+    // ("KEETA"), so its variant menu must be pickable here.
+    "KEETA",
   ] as const;
 
   async getChannelSources(brandId: string, tenantId: string) {

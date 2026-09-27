@@ -39,7 +39,9 @@ describe("Glovo markets", () => {
 
   it("does not change the UK, Ireland or the Gulf", () => {
     expect(channelsForCountry("GB").map((c) => c.id)).not.toContain("GLOVO");
-    expect(channelsForCountry("AE").map((c) => c.id)).toEqual(["DIRECT_ONLINE", "TALABAT", "CAREEM", "DELIVEROO"]);
+    // The Gulf set is the Gulf marketplaces — Keeta joined it, Glovo never did.
+    expect(channelsForCountry("AE").map((c) => c.id)).toEqual(["DIRECT_ONLINE", "TALABAT", "CAREEM", "DELIVEROO", "KEETA"]);
+    expect(channelsForCountry("AE").map((c) => c.id)).not.toContain("GLOVO");
     expect(currencyForCountry("GB")).toBe("GBP");
     expect(timezoneForCountry("GB")).toBe("Europe/London");
   });

@@ -2397,6 +2397,25 @@ exports.Prisma.ReferralScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.KeetaAuthorizationScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  keetaBrandId: 'keetaBrandId',
+  brandName: 'brandName',
+  keetaUserId: 'keetaUserId',
+  accessToken: 'accessToken',
+  refreshToken: 'refreshToken',
+  expiresAt: 'expiresAt',
+  issuedAt: 'issuedAt',
+  status: 'status',
+  shops: 'shops',
+  lastRefreshAt: 'lastRefreshAt',
+  lastError: 'lastError',
+  metadata: 'metadata',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -3847,6 +3866,18 @@ exports.Prisma.ReferralOrderByRelevanceFieldEnum = {
   verifiedPhone: 'verifiedPhone',
   qualifyingOrderId: 'qualifyingOrderId'
 };
+
+exports.Prisma.KeetaAuthorizationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  keetaBrandId: 'keetaBrandId',
+  brandName: 'brandName',
+  keetaUserId: 'keetaUserId',
+  accessToken: 'accessToken',
+  refreshToken: 'refreshToken',
+  status: 'status',
+  lastError: 'lastError'
+};
 exports.TenantPlan = exports.$Enums.TenantPlan = {
   STARTER: 'STARTER',
   PROFESSIONAL: 'PROFESSIONAL',
@@ -3920,6 +3951,7 @@ exports.IntegrationPlatform = exports.$Enums.IntegrationPlatform = {
   GRUBHUB: 'GRUBHUB',
   CAREEM: 'CAREEM',
   GLOVO: 'GLOVO',
+  KEETA: 'KEETA',
   WHATSAPP: 'WHATSAPP'
 };
 
@@ -3996,6 +4028,7 @@ exports.OrderPlatform = exports.$Enums.OrderPlatform = {
   GRUBHUB: 'GRUBHUB',
   CAREEM: 'CAREEM',
   GLOVO: 'GLOVO',
+  KEETA: 'KEETA',
   WHATSAPP: 'WHATSAPP',
   VOICE: 'VOICE'
 };
@@ -4013,6 +4046,7 @@ exports.OrderSource = exports.$Enums.OrderSource = {
   GRUBHUB: 'GRUBHUB',
   CAREEM: 'CAREEM',
   GLOVO: 'GLOVO',
+  KEETA: 'KEETA',
   WHATSAPP: 'WHATSAPP',
   VOICE: 'VOICE'
 };
@@ -4438,7 +4472,8 @@ exports.Prisma.ModelName = {
   LoyaltyReward: 'LoyaltyReward',
   ReferralProgram: 'ReferralProgram',
   ReferralCode: 'ReferralCode',
-  Referral: 'Referral'
+  Referral: 'Referral',
+  KeetaAuthorization: 'KeetaAuthorization'
 };
 
 /**

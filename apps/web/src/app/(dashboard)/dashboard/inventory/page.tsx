@@ -40,6 +40,7 @@ const CHANNEL_LABELS: Record<Channel, string> = {
   DELIVEROO: "Deliveroo",
   WHATSAPP: "WhatsApp",
   HUBRISE: "HubRise",
+  KEETA: "Keeta",
 };
 
 const PLATFORM_LOGO_KEY: Record<Channel, string> = {
@@ -50,6 +51,7 @@ const PLATFORM_LOGO_KEY: Record<Channel, string> = {
   DELIVEROO: "DELIVEROO",
   WHATSAPP: "ONLINE",
   HUBRISE: "HUBRISE",
+  KEETA: "KEETA",
 };
 
 const DURATION_LABELS: Record<DurationPreset, string> = {

@@ -11,7 +11,7 @@ dispatch chooser, the same wallet fee and the same order statuses.
 
 Code: `apps/api/src/modules/integrations/yango/` · Dashboard:
 `yango-connection-section.tsx`, `yango-dispatch-card.tsx`, `lib/api/yango.client.ts`
-· Schema: `YangoConfig` + migration `20260927120000_yango_dispatch`.
+· Schema: `YangoConfig` + migration `20260927140000_yango_dispatch`.
 
 ---
 

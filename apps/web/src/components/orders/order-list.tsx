@@ -133,6 +133,13 @@ const CHANNELS: Channel[] = [
     enabled: true,
   },
   {
+    // Direct integration (Standard API, Gulf) — orders really arrive.
+    key: "KEETA",
+    label: "Keeta",
+    match: (p) => p === "KEETA",
+    enabled: true,
+  },
+  {
     key: "CAREEM",
     label: "Careem",
     match: () => false,

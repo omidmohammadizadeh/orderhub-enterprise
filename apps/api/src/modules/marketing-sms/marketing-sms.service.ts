@@ -51,6 +51,7 @@ export class MarketingSmsService {
     "GRUBHUB",
     "CAREEM",
     "GLOVO",
+    "KEETA",
     "DIRECT",
   ];
 
