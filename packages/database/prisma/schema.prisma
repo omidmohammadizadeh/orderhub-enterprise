@@ -1061,6 +1061,12 @@ model MenuItem {
   // or 18. The till asks for ID, the storefront asks for confirmation and
   // online orders carry an ID CHECK note. See @orderhub/shared age-check.
   minAge             Int?
+  // Retail — sold by weight: null = each, "KG" / "100G" = basePrice is per
+  // that unit, order lines carry grams, stock is counted in grams.
+  // scaleCode is the product's number on the shop's label scale (the code
+  // inside "2…" barcodes). See @orderhub/shared weighed.
+  sellBy             String?
+  scaleCode          String?
   metadata           Json      @default("{}")
 
   // ── Multi-SKU pricing ──────────────────────────────────────────────────

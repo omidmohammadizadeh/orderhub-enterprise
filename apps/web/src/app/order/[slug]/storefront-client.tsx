@@ -39,6 +39,11 @@ import {
   currencySymbol,
   applyMultiBuys,
   basketMinAge,
+  describeMultiBuy,
+  normaliseSellBy,
+  sellByLabel,
+  weighedLineName,
+  type SellBy,
   type MultiBuyApplication,
   type MultiBuyDeal,
 } from "@orderhub/shared";
@@ -52,6 +57,7 @@ import { ReferAFriend } from "@/components/storefront/refer-a-friend";
 import { PlacingOrderSheet } from "@/components/storefront/placing-order-sheet";
 import { TipStep } from "@/components/storefront/tip-step";
 import { ShopProductTile } from "@/components/storefront/shop-product-tile";
+import { WeightSheet } from "@/components/storefront/weight-sheet";
 import {
   RatingPill,
   StorefrontReviews,
@@ -236,6 +242,8 @@ interface CartLine {
   /** Retail R3 — shops only: may the picker swap this if it's out of stock?
    *  Absent = yes (BEST_MATCH), the grocery norm. */
   substitution?: "BEST_MATCH" | "NONE";
+  /** Retail — weighed products: grams per pack (the checkout re-prices it). */
+  weightGrams?: number;
 }
 
 type CartAction =
@@ -270,6 +278,7 @@ function cartLineKey(line: Omit<CartLine, "id">): string {
     line.plu ?? "",
     line.bogoOf ?? "",
     line.freeItemOf ?? "",
+    line.weightGrams ?? "",
     mods,
   ].join("\u0000");
 }
@@ -501,6 +510,8 @@ function OrderPage() {
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [scheduledFor, setScheduledFor] = useState<string | null>(null); // ISO
   const [modalItem, setModalItem] = useState<MenuItem | null>(null);
+  // Retail — a loose product waiting for the shopper to pick an amount.
+  const [weighItem, setWeighItem] = useState<MenuItem | null>(null);
   const [confirmedOrderId, setConfirmedOrderId] = useState<string | null>(null);
   // Set once an embedded CARD order has been created and is waiting to be
   // paid on-page. Non-null means the payment sheet is up.
@@ -991,6 +1002,16 @@ function OrderPage() {
     [cart, multiBuyDeals],
   );
   const afterDeals = round2(Math.max(0, subtotal - multiBuy.savings));
+  // The first multi-buy each product counts towards, for its tile badge.
+  const dealLabelFor = useCallback(
+    (itemId: string): string | null => {
+      const d = multiBuyDeals.find((x) =>
+        x.mode === "MEAL_DEAL" ? x.slots.some((sl) => sl.itemIds.includes(itemId)) : x.itemIds.includes(itemId),
+      );
+      return d ? describeMultiBuy(d, currencySymbol(currency)) : null;
+    },
+    [multiBuyDeals, currency],
+  );
   const campaignClears =
     storeCampaign &&
     (storeCampaign.minOrder == null ||
@@ -1088,7 +1109,9 @@ function OrderPage() {
 
   const isSimpleItem = useCallback(
     (item: MenuItem) =>
-      !(item.modifierGroupLinks?.length ?? 0) && !(item as any).hasMultipleSkus,
+      !(item.modifierGroupLinks?.length ?? 0) &&
+      !(item as any).hasMultipleSkus &&
+      !normaliseSellBy((item as any).sellBy),
     [],
   );
   // The plain line for an item: same item, no modifiers, no note. A line
@@ -1235,6 +1258,7 @@ function OrderPage() {
             ...(m.id ? { optionId: m.id } : {}),
           })),
           ...(line.selectedSku ? { skuPlu: line.selectedSku.plu ?? null, skuName: line.selectedSku.name } : {}),
+          ...(line.weightGrams ? { weightGrams: line.weightGrams } : {}),
         },
         quantity: line.quantity,
         // unitPrice is already modifier-inclusive — the same rule the local
@@ -1377,6 +1401,7 @@ function OrderPage() {
           ...(m.id ? { optionId: m.id } : {}),
         })),
         ...(l.selectedSku ? { skuPlu: l.selectedSku.plu ?? null, skuName: l.selectedSku.name } : {}),
+        ...(l.weightGrams ? { weightGrams: l.weightGrams } : {}),
         notes: l.notes,
         // Retail R3 — ignored by the server for restaurants.
         ...(l.substitution ? { substitution: l.substitution } : {}),
@@ -2331,6 +2356,12 @@ function OrderPage() {
                               if (line) dispatch({ type: "DECREMENT", id: line.id });
                             }}
                             onOpen={() => openItemSheet(item)}
+                            unitSuffix={
+                              normaliseSellBy((item as any).sellBy)
+                                ? sellByLabel(normaliseSellBy((item as any).sellBy) as SellBy)
+                                : null
+                            }
+                            deal={dealLabelFor(item.id)}
                           />
                         );
                       })}
@@ -2643,6 +2674,38 @@ function OrderPage() {
       {/* Modifier modal — reuses POS modal exactly. allModifierGroups
           is required for multi-SKU products (their per-SKU groups are
           stored as plain ID arrays, not FK-linked). */}
+      {weighItem && (
+        <WeightSheet
+          name={weighItem.name}
+          pricePerUnit={Number(weighItem.basePrice)}
+          sellBy={normaliseSellBy((weighItem as any).sellBy) as SellBy}
+          percentageOff={itemPromos[weighItem.id]?.percentageOff ?? 0}
+          money={money}
+          onClose={() => setWeighItem(null)}
+          onAdd={(grams, unitPrice, quantity) => {
+            const item = weighItem;
+            setWeighItem(null);
+            addLine({
+              menuItemId: item.id,
+              displayName: weighedLineName(
+                item.name,
+                grams,
+                Number(item.basePrice),
+                normaliseSellBy((item as any).sellBy) as SellBy,
+                currencySymbol(currency),
+              ),
+              unitPrice,
+              quantity,
+              modifiers: [],
+              selectedSku: null,
+              notes: "",
+              plu: item.plu ?? null,
+              weightGrams: grams,
+            });
+          }}
+        />
+      )}
+
       {modalItem && (
         <ModifierSelectionModal
           item={modalItem}
@@ -2856,6 +2919,10 @@ function OrderPage() {
    */
   function openItemSheet(item: MenuItem) {
     if (storefront?.closed) return;
+    if (normaliseSellBy((item as any).sellBy)) {
+      setWeighItem(item);
+      return;
+    }
     setModalItem(item);
   }
 
@@ -2864,6 +2931,10 @@ function OrderPage() {
     // cards become inert. The customer can still scroll the menu but
     // can't open the modifier sheet or drop anything in the cart.
     if (storefront?.closed) return;
+    if (normaliseSellBy((item as any).sellBy)) {
+      setWeighItem(item);
+      return;
+    }
     const hasMods = (item.modifierGroupLinks?.length ?? 0) > 0;
     const multiSku = !!item.hasMultipleSkus;
     if (hasMods || multiSku) {
@@ -3674,7 +3745,10 @@ function CartPanel(props: CartPanelProps) {
                     <p className="mt-1 text-xs text-zinc-500">
                       {money(l.unitPrice * l.quantity)}
                     </p>
-                    {isShop && !l.bogoOf && !l.freeItemOf && (
+                    {isShop && l.weightGrams ? (
+                      // Weighed lines are re-weighed, never swapped.
+                      <p className="mt-1 text-[11px] text-zinc-500">Weighed when picked — lighter is refunded</p>
+                    ) : isShop && !l.bogoOf && !l.freeItemOf && (
                       <label className="mt-1 flex items-center gap-1.5 text-[11px] text-zinc-600">
                         <input
                           type="checkbox"

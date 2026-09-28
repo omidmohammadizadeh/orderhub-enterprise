@@ -200,6 +200,7 @@ export class RetailCatalogService {
         basePrice: true,
         plu: true,
         imageUrl: true,
+        sellBy: true,
         productVariants: {
           orderBy: { sortOrder: "asc" },
           include: { stockLevels: { where: { locationId }, select: { quantity: true } } },
@@ -213,6 +214,8 @@ export class RetailCatalogService {
       basePrice: Number(it.basePrice),
       plu: it.plu,
       imageUrl: it.imageUrl,
+      /** Weighed products are stocked in grams. */
+      sellBy: it.sellBy,
       variants: it.productVariants.map((v) => this.variantView(v)),
     }));
     if (opts.lowOnly) {
@@ -611,6 +614,8 @@ export class RetailCatalogService {
           plu,
           menuIds: [menuId],
           ...(product.minAge ? { minAge: product.minAge } : {}),
+          ...(product.sellBy ? { sellBy: product.sellBy } : {}),
+          ...(product.scaleCode ? { scaleCode: product.scaleCode } : {}),
         },
         select: { id: true },
       });
@@ -626,8 +631,16 @@ export class RetailCatalogService {
       });
     }
     // An "Age" column only ever adds a restriction; a blank cell leaves it be.
-    if (product.minAge && !result.created) {
-      await this.prisma.menuItem.update({ where: { id: menuItemId }, data: { minAge: product.minAge } });
+    // So do "Sold by" and "Scale code": a blank cell never clears what's set.
+    if ((product.minAge || product.sellBy || product.scaleCode) && !result.created) {
+      await this.prisma.menuItem.update({
+        where: { id: menuItemId },
+        data: {
+          ...(product.minAge ? { minAge: product.minAge } : {}),
+          ...(product.sellBy ? { sellBy: product.sellBy } : {}),
+          ...(product.scaleCode ? { scaleCode: product.scaleCode } : {}),
+        },
+      });
     }
     // In the category (idempotent — the join's primary key is the pair).
     await this.prisma.menuItemOnCategory.createMany({

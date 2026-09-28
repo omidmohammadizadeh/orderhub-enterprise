@@ -9,9 +9,10 @@
 
 import { BadRequestException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
+import { gramsPerUnit, normaliseSellBy } from "@orderhub/shared";
 import { randomUUID } from "crypto";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
-import { isRetailType, resolveVariantForLine, type VariantRef } from "./retail.logic";
+import { isRetailType, resolveVariantForLine, stockUnitsFor, type VariantRef } from "./retail.logic";
 
 type MovementType =
   | "PURCHASE"
@@ -203,7 +204,7 @@ export class RetailStockService {
     const variants = await this.prisma.productVariant.findMany({
       where: { tenantId, isActive: true },
       include: {
-        menuItem: { select: { name: true, basePrice: true, locationId: true } },
+        menuItem: { select: { name: true, basePrice: true, locationId: true, sellBy: true } },
         stockLevels: { where: { locationId }, select: { quantity: true } },
       },
       orderBy: [{ menuItem: { name: "asc" } }, { sortOrder: "asc" }],
@@ -214,6 +215,9 @@ export class RetailStockService {
       .map((v) => {
         const quantity = v.stockLevels[0]?.quantity ?? 0;
         const cost = v.costPrice === null ? null : Number(v.costPrice);
+        // Weighed products are stocked in grams; their cost is per kg / 100 g.
+        const sellBy = normaliseSellBy(v.menuItem.sellBy);
+        const costUnits = sellBy ? Math.max(0, quantity) / gramsPerUnit(sellBy) : Math.max(0, quantity);
         return {
           variantId: v.id,
           product: v.menuItem.name,
@@ -221,9 +225,10 @@ export class RetailStockService {
           barcode: v.barcode,
           sku: v.sku,
           quantity,
+          unit: sellBy ? "g" : "each",
           price: Number(v.price ?? v.menuItem.basePrice),
           cost,
-          value: cost === null ? null : Math.round(cost * Math.max(0, quantity) * 100) / 100,
+          value: cost === null ? null : Math.round(cost * costUnits * 100) / 100,
           lowStockAt: v.lowStockAt,
           low: v.trackStock && quantity <= (v.lowStockAt ?? 0),
           trackStock: v.trackStock,
@@ -233,7 +238,8 @@ export class RetailStockService {
       rows,
       totals: {
         variants: rows.length,
-        units: rows.reduce((s, r) => s + Math.max(0, r.quantity), 0),
+        // Items on the shelf; weighed products (grams) aren't items.
+        units: rows.reduce((s, r) => s + (r.unit === "g" ? 0 : Math.max(0, r.quantity)), 0),
         valueAtCost: Math.round(rows.reduce((s, r) => s + (r.value ?? 0), 0) * 100) / 100,
         low: rows.filter((r) => r.low).length,
         uncosted: rows.filter((r) => r.cost === null).length,
@@ -335,7 +341,8 @@ export class RetailStockService {
           locationId: order.locationId,
           variantId: v.id,
           type: "SALE_DEDUCTION",
-          quantity: -line.quantity,
+          // Weighed products are stocked in grams.
+          quantity: -stockUnitsFor(line),
           orderId,
           dedupeKey: saleKey,
         });
@@ -345,7 +352,7 @@ export class RetailStockService {
           locationId: order.locationId,
           variantId: v.id,
           type: "ADJUSTMENT",
-          quantity: line.quantity,
+          quantity: stockUnitsFor(line),
           reason: "Sale cancelled",
           orderId,
           dedupeKey: `unsale:${line.id}`,

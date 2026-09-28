@@ -39569,6 +39569,8 @@ export namespace Prisma {
     calories: number | null
     prepTime: number | null
     minAge: number | null
+    sellBy: string | null
+    scaleCode: string | null
     hasMultipleSkus: boolean | null
     deliveryTax: Decimal | null
     takeawayTax: Decimal | null
@@ -39607,6 +39609,8 @@ export namespace Prisma {
     calories: number | null
     prepTime: number | null
     minAge: number | null
+    sellBy: string | null
+    scaleCode: string | null
     hasMultipleSkus: boolean | null
     deliveryTax: Decimal | null
     takeawayTax: Decimal | null
@@ -39648,6 +39652,8 @@ export namespace Prisma {
     calories: number
     prepTime: number
     minAge: number
+    sellBy: number
+    scaleCode: number
     metadata: number
     hasMultipleSkus: number
     productSkus: number
@@ -39718,6 +39724,8 @@ export namespace Prisma {
     calories?: true
     prepTime?: true
     minAge?: true
+    sellBy?: true
+    scaleCode?: true
     hasMultipleSkus?: true
     deliveryTax?: true
     takeawayTax?: true
@@ -39756,6 +39764,8 @@ export namespace Prisma {
     calories?: true
     prepTime?: true
     minAge?: true
+    sellBy?: true
+    scaleCode?: true
     hasMultipleSkus?: true
     deliveryTax?: true
     takeawayTax?: true
@@ -39797,6 +39807,8 @@ export namespace Prisma {
     calories?: true
     prepTime?: true
     minAge?: true
+    sellBy?: true
+    scaleCode?: true
     metadata?: true
     hasMultipleSkus?: true
     productSkus?: true
@@ -39931,6 +39943,8 @@ export namespace Prisma {
     calories: number | null
     prepTime: number | null
     minAge: number | null
+    sellBy: string | null
+    scaleCode: string | null
     metadata: JsonValue
     hasMultipleSkus: boolean
     productSkus: JsonValue
@@ -39997,6 +40011,8 @@ export namespace Prisma {
     calories?: boolean
     prepTime?: boolean
     minAge?: boolean
+    sellBy?: boolean
+    scaleCode?: boolean
     metadata?: boolean
     hasMultipleSkus?: boolean
     productSkus?: boolean
@@ -40053,6 +40069,8 @@ export namespace Prisma {
     calories?: boolean
     prepTime?: boolean
     minAge?: boolean
+    sellBy?: boolean
+    scaleCode?: boolean
     metadata?: boolean
     hasMultipleSkus?: boolean
     productSkus?: boolean
@@ -40100,6 +40118,8 @@ export namespace Prisma {
     calories?: boolean
     prepTime?: boolean
     minAge?: boolean
+    sellBy?: boolean
+    scaleCode?: boolean
     metadata?: boolean
     hasMultipleSkus?: boolean
     productSkus?: boolean
@@ -40172,6 +40192,8 @@ export namespace Prisma {
       calories: number | null
       prepTime: number | null
       minAge: number | null
+      sellBy: string | null
+      scaleCode: string | null
       metadata: Prisma.JsonValue
       hasMultipleSkus: boolean
       productSkus: Prisma.JsonValue
@@ -40617,6 +40639,8 @@ export namespace Prisma {
     readonly calories: FieldRef<"MenuItem", 'Int'>
     readonly prepTime: FieldRef<"MenuItem", 'Int'>
     readonly minAge: FieldRef<"MenuItem", 'Int'>
+    readonly sellBy: FieldRef<"MenuItem", 'String'>
+    readonly scaleCode: FieldRef<"MenuItem", 'String'>
     readonly metadata: FieldRef<"MenuItem", 'Json'>
     readonly hasMultipleSkus: FieldRef<"MenuItem", 'Boolean'>
     readonly productSkus: FieldRef<"MenuItem", 'Json'>
@@ -167809,6 +167833,8 @@ export namespace Prisma {
     calories: 'calories',
     prepTime: 'prepTime',
     minAge: 'minAge',
+    sellBy: 'sellBy',
+    scaleCode: 'scaleCode',
     metadata: 'metadata',
     hasMultipleSkus: 'hasMultipleSkus',
     productSkus: 'productSkus',
@@ -170470,6 +170496,8 @@ export namespace Prisma {
     plu: 'plu',
     allergens: 'allergens',
     dietaryTags: 'dietaryTags',
+    sellBy: 'sellBy',
+    scaleCode: 'scaleCode',
     menuIds: 'menuIds',
     brandIds: 'brandIds',
     platformSource: 'platformSource',
@@ -175461,6 +175489,8 @@ export namespace Prisma {
     calories?: IntNullableFilter<"MenuItem"> | number | null
     prepTime?: IntNullableFilter<"MenuItem"> | number | null
     minAge?: IntNullableFilter<"MenuItem"> | number | null
+    sellBy?: StringNullableFilter<"MenuItem"> | string | null
+    scaleCode?: StringNullableFilter<"MenuItem"> | string | null
     metadata?: JsonFilter<"MenuItem">
     hasMultipleSkus?: BoolFilter<"MenuItem"> | boolean
     productSkus?: JsonFilter<"MenuItem">
@@ -175516,6 +175546,8 @@ export namespace Prisma {
     calories?: SortOrderInput | SortOrder
     prepTime?: SortOrderInput | SortOrder
     minAge?: SortOrderInput | SortOrder
+    sellBy?: SortOrderInput | SortOrder
+    scaleCode?: SortOrderInput | SortOrder
     metadata?: SortOrder
     hasMultipleSkus?: SortOrder
     productSkus?: SortOrder
@@ -175575,6 +175607,8 @@ export namespace Prisma {
     calories?: IntNullableFilter<"MenuItem"> | number | null
     prepTime?: IntNullableFilter<"MenuItem"> | number | null
     minAge?: IntNullableFilter<"MenuItem"> | number | null
+    sellBy?: StringNullableFilter<"MenuItem"> | string | null
+    scaleCode?: StringNullableFilter<"MenuItem"> | string | null
     metadata?: JsonFilter<"MenuItem">
     hasMultipleSkus?: BoolFilter<"MenuItem"> | boolean
     productSkus?: JsonFilter<"MenuItem">
@@ -175630,6 +175664,8 @@ export namespace Prisma {
     calories?: SortOrderInput | SortOrder
     prepTime?: SortOrderInput | SortOrder
     minAge?: SortOrderInput | SortOrder
+    sellBy?: SortOrderInput | SortOrder
+    scaleCode?: SortOrderInput | SortOrder
     metadata?: SortOrder
     hasMultipleSkus?: SortOrder
     productSkus?: SortOrder
@@ -175685,6 +175721,8 @@ export namespace Prisma {
     calories?: IntNullableWithAggregatesFilter<"MenuItem"> | number | null
     prepTime?: IntNullableWithAggregatesFilter<"MenuItem"> | number | null
     minAge?: IntNullableWithAggregatesFilter<"MenuItem"> | number | null
+    sellBy?: StringNullableWithAggregatesFilter<"MenuItem"> | string | null
+    scaleCode?: StringNullableWithAggregatesFilter<"MenuItem"> | string | null
     metadata?: JsonWithAggregatesFilter<"MenuItem">
     hasMultipleSkus?: BoolWithAggregatesFilter<"MenuItem"> | boolean
     productSkus?: JsonWithAggregatesFilter<"MenuItem">
@@ -190690,6 +190728,8 @@ export namespace Prisma {
     calories?: number | null
     prepTime?: number | null
     minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -190745,6 +190785,8 @@ export namespace Prisma {
     calories?: number | null
     prepTime?: number | null
     minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -190800,6 +190842,8 @@ export namespace Prisma {
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -190855,6 +190899,8 @@ export namespace Prisma {
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -190910,6 +190956,8 @@ export namespace Prisma {
     calories?: number | null
     prepTime?: number | null
     minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -190957,6 +191005,8 @@ export namespace Prisma {
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -191004,6 +191054,8 @@ export namespace Prisma {
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -207201,6 +207253,8 @@ export namespace Prisma {
     calories?: SortOrder
     prepTime?: SortOrder
     minAge?: SortOrder
+    sellBy?: SortOrder
+    scaleCode?: SortOrder
     metadata?: SortOrder
     hasMultipleSkus?: SortOrder
     productSkus?: SortOrder
@@ -207257,6 +207311,8 @@ export namespace Prisma {
     calories?: SortOrder
     prepTime?: SortOrder
     minAge?: SortOrder
+    sellBy?: SortOrder
+    scaleCode?: SortOrder
     hasMultipleSkus?: SortOrder
     deliveryTax?: SortOrder
     takeawayTax?: SortOrder
@@ -207295,6 +207351,8 @@ export namespace Prisma {
     calories?: SortOrder
     prepTime?: SortOrder
     minAge?: SortOrder
+    sellBy?: SortOrder
+    scaleCode?: SortOrder
     hasMultipleSkus?: SortOrder
     deliveryTax?: SortOrder
     takeawayTax?: SortOrder
@@ -240447,6 +240505,8 @@ export namespace Prisma {
     calories?: number | null
     prepTime?: number | null
     minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -240501,6 +240561,8 @@ export namespace Prisma {
     calories?: number | null
     prepTime?: number | null
     minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -240766,6 +240828,8 @@ export namespace Prisma {
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -240820,6 +240884,8 @@ export namespace Prisma {
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -241132,6 +241198,8 @@ export namespace Prisma {
     calories?: number | null
     prepTime?: number | null
     minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -241186,6 +241254,8 @@ export namespace Prisma {
     calories?: number | null
     prepTime?: number | null
     minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -241319,6 +241389,8 @@ export namespace Prisma {
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -241373,6 +241445,8 @@ export namespace Prisma {
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -242639,6 +242713,8 @@ export namespace Prisma {
     calories?: number | null
     prepTime?: number | null
     minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -242693,6 +242769,8 @@ export namespace Prisma {
     calories?: number | null
     prepTime?: number | null
     minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -242832,6 +242910,8 @@ export namespace Prisma {
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -242886,6 +242966,8 @@ export namespace Prisma {
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -243015,6 +243097,8 @@ export namespace Prisma {
     calories?: number | null
     prepTime?: number | null
     minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -243069,6 +243153,8 @@ export namespace Prisma {
     calories?: number | null
     prepTime?: number | null
     minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -243139,6 +243225,8 @@ export namespace Prisma {
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -243193,6 +243281,8 @@ export namespace Prisma {
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -256518,6 +256608,8 @@ export namespace Prisma {
     calories?: number | null
     prepTime?: number | null
     minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -256572,6 +256664,8 @@ export namespace Prisma {
     calories?: number | null
     prepTime?: number | null
     minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -256683,6 +256777,8 @@ export namespace Prisma {
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -256737,6 +256833,8 @@ export namespace Prisma {
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -260045,6 +260143,8 @@ export namespace Prisma {
     calories?: number | null
     prepTime?: number | null
     minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -260099,6 +260199,8 @@ export namespace Prisma {
     calories?: number | null
     prepTime?: number | null
     minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -260231,6 +260333,8 @@ export namespace Prisma {
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -260285,6 +260389,8 @@ export namespace Prisma {
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -262095,6 +262201,8 @@ export namespace Prisma {
     calories?: number | null
     prepTime?: number | null
     minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -262149,6 +262257,8 @@ export namespace Prisma {
     calories?: number | null
     prepTime?: number | null
     minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -262241,6 +262351,8 @@ export namespace Prisma {
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -262295,6 +262407,8 @@ export namespace Prisma {
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -268586,6 +268700,8 @@ export namespace Prisma {
     calories?: number | null
     prepTime?: number | null
     minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -268640,6 +268756,8 @@ export namespace Prisma {
     calories?: number | null
     prepTime?: number | null
     minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -268979,6 +269097,8 @@ export namespace Prisma {
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -269033,6 +269153,8 @@ export namespace Prisma {
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue

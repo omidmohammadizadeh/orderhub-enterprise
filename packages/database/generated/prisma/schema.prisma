@@ -1061,6 +1061,12 @@ model MenuItem {
   // or 18. The till asks for ID, the storefront asks for confirmation and
   // online orders carry an ID CHECK note. See @orderhub/shared age-check.
   minAge              Int?
+  // Retail — sold by weight: null = each, "KG" / "100G" = basePrice is per
+  // that unit, order lines carry grams, stock is counted in grams.
+  // scaleCode is the product's number on the shop's label scale (the code
+  // inside "2…" barcodes). See @orderhub/shared weighed.
+  sellBy              String?
+  scaleCode           String?
   metadata            Json      @default("{}")
 
   // ── Multi-SKU pricing ──────────────────────────────────────────────────
@@ -2358,7 +2364,7 @@ model Table {
   qrToken   String? @unique
   qrEnabled Boolean @default(false)
 
-  // ── Current sitting ─────────────────────────────────────────────────
+  // ── Current sitting ──���──────────────────────────────────────────────
   covers     Int? // guests on the open tab, for spend-per-head
   serverId   String?
   serverName String?
@@ -2564,7 +2570,7 @@ model PrintJob {
   retryMetadata Json           @default("{}")
   printedAt     DateTime?
 
-  // Phase AS-1 — routing + lifecycle additions.
+  // Phase AS-1 �� routing + lifecycle additions.
   // stationId: which station this ticket belongs to (null for receipts).
   // trigger: which auto-print rule produced the job (or MANUAL_ONLY).
   // claimedByAgentId + claimedAt: held during the print window so two
@@ -2757,7 +2763,7 @@ model AgentPairCode {
   @@map("agent_pair_codes")
 }
 
-// ── Routing join tables ────────────────────────────────────────────────
+// ── Routing join tables ───────────────────────────────────────────────���
 // Phase AS-1. Most-specific-wins resolver walks these in order.
 model MenuItemStation {
   id         String         @id @default(cuid())
@@ -3159,7 +3165,7 @@ model Refund {
 
 // ══════════════════════════════════════════════════════════════════════════════
 // RETAIL R1 — BARCODED VARIANTS, PER-LOCATION STOCK, ITEM-LEVEL RETURNS
-// ══════════════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════��═════════════════════════════
 //
 // A retail product is still a MenuItem, so the till, the storefront and every
 // marketplace publish keep working unchanged. What retail adds is underneath

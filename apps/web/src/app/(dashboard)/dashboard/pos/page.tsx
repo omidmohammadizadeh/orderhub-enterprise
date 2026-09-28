@@ -42,7 +42,16 @@ import {
   type ProductSku,
   normaliseMinAge,
   type MultiBuyDeal,
+  gramsPerUnit,
+  normaliseScaleFormat,
+  normaliseSellBy,
+  parseScaleBarcode,
+  priceForWeight,
+  sameScaleCode,
+  weighedLineName,
+  type SellBy,
 } from "@orderhub/shared";
+import { WeighModal } from "@/components/retail/weigh-modal";
 import { AgeCheckModal, type AgePrompt } from "@/components/retail/age-check-modal";
 import { useRepeatOrder } from "@/hooks/use-repeat-order";
 import { ModifierSelectionModal } from "@/components/pos/modifier-selection-modal";
@@ -132,7 +141,7 @@ interface PersistedCart {
 
 export default function PosPage() {
   // Prices follow the selected location's currency, not a hardcoded pound.
-  const { money } = useCurrency();
+  const { money, symbol } = useCurrency();
   const selectedLocationId = useSelectedLocationStore(
     (s) => s.selectedLocationId,
   );
@@ -215,6 +224,8 @@ export default function PosPage() {
 
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
   const [modalItem, setModalItem] = useState<MenuItem | null>(null);
+  // Retail — a loose product waiting for its weight.
+  const [weighItem, setWeighItem] = useState<MenuItem | null>(null);
   const [cart, setCart] = useState<CartLine[]>([]);
   const [draft, setDraft] = useState<PartialDraft>({});
 
@@ -729,6 +740,8 @@ export default function PosPage() {
           sku: line.plu ?? undefined,
           // Retail R1 — which barcoded variant was scanned (stock + returns).
           ...(line.variantId ? { variantId: line.variantId } : {}),
+          // Retail — a weighed line: grams, price per kg/100 g, how it was weighed.
+          ...(line.weight ? { weight: line.weight } : {}),
           // KDS station routing (category/item rules) matches on this.
           menuItemId: line.menuItemId || undefined,
           modifiers: line.modifiers.map((m) => ({
@@ -1117,6 +1130,10 @@ export default function PosPage() {
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   const onProductClick = (item: MenuItem) => {
+    if (normaliseSellBy((item as any).sellBy)) {
+      setWeighItem(item);
+      return;
+    }
     const hasMods = (item.modifierGroupLinks?.length ?? 0) > 0;
     if (hasMods || item.hasMultipleSkus) {
       setModalItem(item);
@@ -1142,6 +1159,7 @@ export default function PosPage() {
     modifiers: SelectedModifier[];
     selectedSku?: ProductSku | null;
     notes?: string;
+    weight?: CartLine["weight"];
   }) => {
     gateAge(line.menuItemId, line.displayName, () =>
       setCart((prev) => [
@@ -1155,9 +1173,32 @@ export default function PosPage() {
           plu: line.plu ?? null,
           modifiers: line.modifiers.map(toOrderLineModifier),
           notes: line.notes,
+          ...(line.weight ? { weight: line.weight } : {}),
         },
       ]),
     );
+  };
+
+  /** A weighed product at a known weight — keyed in, or read off a scale label. */
+  const addWeighed = (
+    item: MenuItem,
+    grams: number,
+    source: "SCALE_LABEL" | "KEYED",
+    labelPrice?: number,
+  ) => {
+    const sellBy = normaliseSellBy((item as any).sellBy) as SellBy;
+    const pricePerUnit = Number(item.basePrice);
+    // A price label is the price; the weight on it is only for the ticket.
+    const unitPrice = labelPrice ?? priceForWeight(pricePerUnit, sellBy, grams);
+    addToCart({
+      menuItemId: item.id,
+      displayName: weighedLineName(item.name, grams, pricePerUnit, sellBy, symbol),
+      unitPrice,
+      quantity: 1,
+      plu: item.plu ?? null,
+      modifiers: [],
+      weight: { grams, sellBy, pricePerUnit, source },
+    });
   };
 
   const removeLine = useCallback((id: string) => {
@@ -1408,6 +1449,34 @@ export default function PosPage() {
         addScanned(entry);
         return;
       }
+      // A label from the shop's scale: "2…" with the product's scale code and
+      // the price or weight inside it.
+      const label = parseScaleBarcode(
+        code,
+        normaliseScaleFormat(((locationQuery.data as any)?.settings ?? {})?.scaleLabels?.format),
+      );
+      if (label) {
+        let item: MenuItem | undefined;
+        for (const c of categories)
+          for (const l of c.items ?? [])
+            if (!item && l.item && normaliseSellBy((l.item as any).sellBy) && sameScaleCode((l.item as any).scaleCode, label.itemCode))
+              item = l.item as MenuItem;
+        if (!item) {
+          notify("warn", `Scale label for item ${label.itemCode}, but no weighed product has that scale code.`);
+          return;
+        }
+        if (!sellableItemIds.has(item.id)) {
+          notify("warn", `${item.name} is switched off on this till (out of stock or hidden).`);
+          return;
+        }
+        const sellBy = normaliseSellBy((item as any).sellBy) as SellBy;
+        const perGram = Number(item.basePrice) / gramsPerUnit(sellBy);
+        const grams =
+          label.grams ?? (perGram > 0 ? Math.max(1, Math.round((label.price ?? 0) / perGram)) : 0);
+        addWeighed(item, grams, "SCALE_LABEL", label.price);
+        notify("ok", `${item.name} · ${money(label.price ?? priceForWeight(Number(item.basePrice), sellBy, grams))}`);
+        return;
+      }
       if (!online) {
         notify("warn", `No product with barcode ${code} on this till.`);
         return;
@@ -1424,11 +1493,14 @@ export default function PosPage() {
         notify("warn", `No product with barcode ${code} on this till.`);
       }
     },
-    [step, barcodeIndex, sellableItemIds, addScanned, notify, online, selectedLocationId],
+    // addWeighed is re-created each render; it only reads stable setters + the menu.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [step, barcodeIndex, sellableItemIds, addScanned, notify, online, selectedLocationId, categories, locationQuery.data, money],
   );
 
   const anyModalOpen =
     !!modalItem ||
+    !!weighItem ||
     !!agePrompt ||
     !!chargeOrder ||
     !!cashOrder ||
@@ -1878,6 +1950,12 @@ export default function PosPage() {
                       e.preventDefault();
                       setSearch("");
                       void handleScan(entry.barcode);
+                    } else if (/^2\d{12}$/.test(search.trim())) {
+                      // A label-scale barcode: price or weight is inside it.
+                      e.preventDefault();
+                      const code = search.trim();
+                      setSearch("");
+                      void handleScan(code);
                     }
                   }}
                   placeholder={isShop ? "Scan or search products…" : "Search the whole menu…"}
@@ -2109,6 +2187,21 @@ export default function PosPage() {
         onSave={(colours, size) => saveColours.mutate({ colours, size })}
         onClose={() => setColoursOpen(false)}
       />
+
+      {weighItem && (
+        <WeighModal
+          name={weighItem.name}
+          pricePerUnit={Number(weighItem.basePrice)}
+          sellBy={normaliseSellBy((weighItem as any).sellBy) as SellBy}
+          money={money}
+          onClose={() => setWeighItem(null)}
+          onAdd={(grams) => {
+            const item = weighItem;
+            setWeighItem(null);
+            addWeighed(item, grams, "KEYED");
+          }}
+        />
+      )}
 
       {agePrompt && (
         <AgeCheckModal

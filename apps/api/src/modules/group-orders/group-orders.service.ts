@@ -390,6 +390,7 @@ export class GroupOrdersService {
         unitPrice: Number(c.unitPrice ?? it.lineTotal / (it.quantity || 1)),
         ...(c.skuPlu ? { skuPlu: String(c.skuPlu) } : {}),
         ...(c.skuName ? { skuName: String(c.skuName) } : {}),
+        ...(c.weightGrams ? { weightGrams: Number(c.weightGrams) } : {}),
         ...(c.notes ? { notes: String(c.notes) } : {}),
         modifiers: Array.isArray(c.modifiers)
           ? c.modifiers.map((m: any) => ({

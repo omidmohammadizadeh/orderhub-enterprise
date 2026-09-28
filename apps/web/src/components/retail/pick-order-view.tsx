@@ -8,9 +8,10 @@
 // marks the order ready for the courier or for collection.
 
 import { useMemo, useState } from "react";
+import { formatWeight } from "@orderhub/shared";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { Ban, Check, Minus, Plus, Repeat, ScanBarcode, Truck } from "lucide-react";
+import { Ban, Check, Minus, Plus, Repeat, Scale, ScanBarcode, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBarcodeScanner } from "@/lib/pos/barcode-scanner";
 import { retailClient, type BarcodeEntry, type PickLine, type PickOrder, type PickSub } from "@/lib/api/retail.client";
@@ -42,10 +43,11 @@ export function PickOrderView({
   const ref = `#${order.orderNumber ?? order.displayId ?? order.id.slice(-6)}`;
 
   const setLine = useMutation({
-    mutationFn: (v: { line: PickLine; picked: number; sub?: PickSub | null }) =>
+    mutationFn: (v: { line: PickLine; picked: number; sub?: PickSub | null; grams?: number }) =>
       retailClient.pickLine(order.id, v.line.id, {
         picked: v.picked,
         sub: v.sub === undefined ? (v.line.pick?.sub ?? null) : v.sub,
+        ...(v.grams !== undefined ? { grams: v.grams } : {}),
       }),
     onSuccess: refresh,
     onError: (e) => toast.error(errMsg(e)),
@@ -69,13 +71,15 @@ export function PickOrderView({
     onError: (e) => toast.error(errMsg(e)),
   });
 
+  // A weighed line counts as picked once it has been weighed (grams > 0).
   const picked = (l: PickLine) => l.pick?.picked ?? 0;
   const subQty = (l: PickLine) => l.pick?.sub?.qty ?? 0;
   const left = (l: PickLine) => l.quantity - picked(l) - subQty(l);
 
   // A scan ticks the first line with that barcode that still needs one.
   useBarcodeScanner(!done && !subFor && !confirming && !dispatchOpen, (code) => {
-    const line = order.lines.find((l) => l.barcodes.includes(code) && left(l) > 0);
+    // Weighed lines are picked on the scale, not by scanning.
+    const line = order.lines.find((l) => !l.weightGrams && l.barcodes.includes(code) && left(l) > 0);
     if (line) {
       setLine.mutate({ line, picked: picked(line) + 1 });
       toast.success(`${line.name} ✓`, { duration: 1200 });
@@ -165,11 +169,19 @@ export function PickOrderView({
                           )}
                         </p>
                       )}
-                      {left(l) > 0 && (picked(l) > 0 || l.pick) && (
+                      {!l.weightGrams && left(l) > 0 && (picked(l) > 0 || l.pick) && (
                         <p className="mt-0.5 text-[11px] text-amber-700">{left(l)} not found</p>
                       )}
                     </div>
-                    {done ? (
+                    {l.weightGrams ? (
+                      <WeighLine
+                        line={l}
+                        done={done}
+                        busy={setLine.isPending}
+                        money={money}
+                        onWeigh={(grams) => setLine.mutate({ line: l, picked: 0, sub: null, grams })}
+                      />
+                    ) : done ? (
                       <span className="text-xs text-zinc-500">
                         {picked(l)} picked{subQty(l) ? `, ${subQty(l)} swapped` : ""}
                         {left(l) ? `, ${left(l)} missing` : ""}
@@ -279,5 +291,67 @@ export function PickOrderView({
         />
       )}
     </div>
+  );
+}
+
+/**
+ * A weighed line: put it on the scale and type what it reads. Lighter than
+ * ordered refunds the difference at finish; heavier costs the customer
+ * nothing; 0 means none could be found (refunded in full).
+ */
+function WeighLine({
+  line,
+  done,
+  busy,
+  money,
+  onWeigh,
+}: {
+  line: PickLine;
+  done: boolean;
+  busy: boolean;
+  money: (n: number) => string;
+  onWeigh: (grams: number) => void;
+}) {
+  const ordered = line.weightGrams ?? 0;
+  const weighed = line.pick?.grams ?? null;
+  const [entry, setEntry] = useState(weighed != null ? String(weighed) : "");
+  const light = weighed != null && weighed > 0 ? Math.max(0, ordered - weighed) : 0;
+  const perGram = ordered > 0 ? (line.unitPrice * line.quantity) / ordered : 0;
+  const summary =
+    weighed == null
+      ? `Ordered ${formatWeight(ordered)}`
+      : weighed === 0
+        ? "None found — refunded in full"
+        : light > 0
+          ? `${formatWeight(weighed)} · ${formatWeight(light)} light, about ${money(Math.round(light * perGram * 100) / 100)} back`
+          : `${formatWeight(weighed)} · ok`;
+  if (done) return <span className="text-xs text-zinc-500">{summary}</span>;
+  const grams = Math.round(Number(entry));
+  const valid = entry !== "" && Number.isFinite(grams) && grams >= 0 && grams <= ordered * 3;
+  return (
+    <form
+      className="flex w-full flex-wrap items-center gap-2 sm:w-auto"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (valid) onWeigh(grams);
+      }}
+    >
+      <p className={`text-[11px] ${weighed != null && light > 0 ? "text-amber-700" : "text-zinc-500"}`}>{summary}</p>
+      <label className="flex items-center gap-1 rounded-md border border-zinc-200 px-2">
+        <Scale className="h-3.5 w-3.5 text-zinc-400" aria-hidden />
+        <input
+          inputMode="numeric"
+          aria-label={`Weight of ${line.name} in grams`}
+          value={entry}
+          onChange={(e) => setEntry(e.target.value.replace(/\D/g, "").slice(0, 6))}
+          placeholder={String(ordered)}
+          className="h-8 w-16 bg-transparent text-right text-sm tabular-nums focus:outline-none"
+        />
+        <span className="text-xs text-zinc-500">g</span>
+      </label>
+      <Button size="sm" variant="outline" type="submit" disabled={!valid || busy}>
+        {weighed == null ? "Weighed" : "Update"}
+      </Button>
+    </form>
   );
 }

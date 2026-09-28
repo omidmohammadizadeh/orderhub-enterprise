@@ -50,6 +50,18 @@ export class OrderModifierDto {
   @ApiPropertyOptional() @IsOptional() @IsString() parentOptionId?: string;
 }
 
+/** Retail — a weighed line: how much, at what price per kg / 100 g, and how it was weighed. */
+export class OrderItemWeightDto {
+  @ApiProperty() @IsNumber() @Min(1) grams!: number;
+  @ApiProperty({ enum: ["KG", "100G"] }) @IsIn(["KG", "100G"]) sellBy!: "KG" | "100G";
+  @ApiProperty() @IsNumber() @Min(0) pricePerUnit!: number;
+  /** SCALE_LABEL: read from a label-scale barcode. KEYED: typed at the till.
+   *  ESTIMATE: an online amount, re-weighed at picking. */
+  @ApiProperty({ enum: ["SCALE_LABEL", "KEYED", "ESTIMATE"] })
+  @IsIn(["SCALE_LABEL", "KEYED", "ESTIMATE"])
+  source!: "SCALE_LABEL" | "KEYED" | "ESTIMATE";
+}
+
 export class CreateOrderItemDto {
   @ApiProperty() @IsString() name!: string;
   @ApiProperty() @IsNumber() @IsPositive() quantity!: number;
@@ -61,6 +73,12 @@ export class CreateOrderItemDto {
   @ApiPropertyOptional() @IsOptional() @IsString() variantId?: string;
   // Retail R3 — shop orders: BEST_MATCH | NONE if the line is out of stock at picking.
   @ApiPropertyOptional() @IsOptional() @IsIn(["BEST_MATCH", "NONE"]) substitution?: "BEST_MATCH" | "NONE";
+  // Retail — weighed products (loose veg, deli). Kept on OrderItem.metadata.weight.
+  @ApiPropertyOptional({ type: OrderItemWeightDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => OrderItemWeightDto)
+  weight?: OrderItemWeightDto;
   // KDS station routing matches items by MenuItem id (category/item rules).
   // POS sends it so kitchen screens with routing rules work for POS orders.
   @ApiPropertyOptional() @IsOptional() @IsString() menuItemId?: string;

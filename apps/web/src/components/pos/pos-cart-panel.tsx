@@ -43,6 +43,13 @@ export interface CartLine {
   variantId?: string;
   modifiers: Array<{ name: string; price: number }>;
   notes?: string;
+  /** Retail — a weighed line (grams per pack); unitPrice is that pack's price. */
+  weight?: {
+    grams: number;
+    sellBy: "KG" | "100G";
+    pricePerUnit: number;
+    source: "SCALE_LABEL" | "KEYED";
+  };
 }
 
 export type FulfillmentType = "PICKUP" | "DELIVERY";

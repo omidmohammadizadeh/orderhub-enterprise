@@ -17,6 +17,9 @@ import {
   applyMultiBuys,
   basketMinAge,
   ageCheckNote,
+  currencySymbol,
+  normaliseSellBy,
+  weighedLineName,
 } from "@orderhub/shared";
 import { OrdersService } from "../orders/orders.service";
 import { PromoCodesService } from "../promo-codes/promo-codes.service";
@@ -65,6 +68,8 @@ export interface CheckoutItemDto {
    *  exactly (checkout-pricing.ts). Absent from tabs opened before it. */
   skuPlu?: string | null;
   skuName?: string | null;
+  /** Retail — weighed products: grams per pack (an online option). */
+  weightGrams?: number | null;
 }
 
 export interface CheckoutDto {
@@ -1686,9 +1691,23 @@ export class OrderingService {
     );
     const afterDeals = round2(Math.max(0, serverSubtotal - multiBuy.savings));
 
+    // Retail — weighed lines are named and stamped by the server: "Bananas —
+    // 500 g @ £1.10/kg", an ESTIMATE the picker re-weighs.
+    const symbol = currencySymbol((location as any).currency ?? currencyForCountry((location as any).country));
+    const weighed = (item: CheckoutItemDto) => {
+      const it = pricing.items.get(item.menuItemId);
+      const sellBy = normaliseSellBy(it?.sellBy);
+      if (!it || !sellBy) return null;
+      const grams = Number(item.weightGrams);
+      const pricePerUnit = Number(it.basePrice ?? 0);
+      return {
+        name: weighedLineName(String(it.name ?? item.name), grams, pricePerUnit, sellBy, symbol),
+        weight: { grams, sellBy, pricePerUnit, source: "ESTIMATE" as const },
+      };
+    };
     const items = dto.items.map((item, i) => ({
       menuItemId: item.menuItemId,
-      name: item.name,
+      ...(weighed(item) ?? { name: item.name }),
       quantity: item.quantity,
       // Server-priced (checkout-pricing.ts), never the browser's figure.
       unitPrice: basket.lines[i]!.unitPrice,

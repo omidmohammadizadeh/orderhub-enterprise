@@ -22,6 +22,8 @@ export function ShopProductTile({
   onInc,
   onDec,
   onOpen,
+  unitSuffix,
+  deal,
 }: {
   name: string;
   imageUrl?: string | null;
@@ -37,6 +39,10 @@ export function ShopProductTile({
   onInc: () => void;
   onDec: () => void;
   onOpen: () => void;
+  /** Weighed products: "/kg" or "/100g" after the price. */
+  unitSuffix?: string | null;
+  /** A multi-buy this product counts towards: "3 for £2.00". */
+  deal?: string | null;
 }) {
   return (
     <div
@@ -59,11 +65,15 @@ export function ShopProductTile({
             {name}
           </span>
         )}
-        {soldOut && (
+        {soldOut ? (
           <span className="absolute left-2 top-2 rounded-full bg-zinc-900 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
             Sold out
           </span>
-        )}
+        ) : deal ? (
+          <span className="absolute left-2 top-2 max-w-[85%] truncate rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white">
+            {deal}
+          </span>
+        ) : null}
       </button>
       <div className="flex flex-1 flex-col gap-1 p-2.5">
         <p className="line-clamp-2 min-h-[2.5rem] text-sm font-medium leading-5 text-zinc-900">{name}</p>
@@ -71,6 +81,7 @@ export function ShopProductTile({
           <p className="text-sm font-bold text-zinc-900">
             {fromPrice && <span className="mr-0.5 text-[11px] font-normal text-zinc-500">from</span>}
             {price}
+            {unitSuffix && <span className="text-[11px] font-normal text-zinc-500">{unitSuffix}</span>}
             {wasPrice && (
               <span className="ml-1 text-[11px] font-normal text-zinc-400 line-through">{wasPrice}</span>
             )}

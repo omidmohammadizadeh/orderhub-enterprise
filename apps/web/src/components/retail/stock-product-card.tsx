@@ -8,6 +8,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Check, Minus, Plus, ScanBarcode } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
+import { formatWeight, sellByLabel } from "@orderhub/shared";
 import { retailClient, type RetailProduct, type RetailVariant } from "@/lib/api/retail.client";
 
 const errMsg = (e: any) => e?.response?.data?.message ?? e?.message ?? "Couldn't save";
@@ -44,7 +45,9 @@ export function StockProductCard({
           <p className="truncate text-sm font-semibold text-zinc-900">{product.name}</p>
           <p className="text-xs text-zinc-500">
             {money(product.basePrice)}
+            {product.sellBy ? sellByLabel(product.sellBy) : ""}
             {product.plu ? ` · ${product.plu}` : ""}
+            {product.sellBy ? " · stock in grams" : ""}
           </p>
         </div>
       </div>
@@ -65,6 +68,7 @@ export function StockProductCard({
               variant={v}
               basePrice={product.basePrice}
               single={product.variants.length === 1}
+              weighed={!!product.sellBy}
               locationId={locationId}
               canManage={canManage}
               money={money}
@@ -81,11 +85,14 @@ function VariantRow({
   variant: v,
   basePrice,
   single,
+  weighed,
   locationId,
   canManage,
   money,
   onChanged,
 }: {
+  /** Stocked in grams: counted, not stepped one at a time. */
+  weighed?: boolean;
   variant: RetailVariant;
   basePrice: number;
   single: boolean;
@@ -171,14 +178,25 @@ function VariantRow({
               value={count}
               onChange={(e) => setCount(e.target.value.replace(/\D/g, ""))}
               inputMode="numeric"
-              aria-label={`Counted quantity of ${v.name}`}
-              placeholder="On shelf"
+              aria-label={`Counted ${weighed ? "grams" : "quantity"} of ${v.name}`}
+              placeholder={weighed ? "Grams" : "On shelf"}
               className="w-20 rounded-md border border-zinc-300 px-2 py-1 text-xs"
             />
             <Button type="submit" size="icon-sm" variant="outline" aria-label="Save count" loading={adjust.isPending}>
               <Check className="h-3.5 w-3.5" />
             </Button>
           </form>
+        ) : weighed ? (
+          <button
+            type="button"
+            onClick={() => setCounting(true)}
+            title="Weigh what's left and enter it in grams"
+            className={`rounded-md px-2 py-1 text-sm font-semibold tabular-nums ${
+              low ? "bg-amber-100 text-amber-900" : "text-zinc-900 hover:bg-zinc-100"
+            }`}
+          >
+            {formatWeight(Math.max(0, v.stock))}
+          </button>
         ) : (
           <>
             <Button

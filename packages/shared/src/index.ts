@@ -25,3 +25,4 @@ export * from "./lib/dashboard-tabs";
 export * from "./lib/delivery-address";
 export * from "./lib/multi-buy";
 export * from "./lib/age-check";
+export * from "./lib/weighed";

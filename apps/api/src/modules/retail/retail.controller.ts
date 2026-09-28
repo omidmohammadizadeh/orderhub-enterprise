@@ -106,6 +106,8 @@ class PickSubDto {
 class PickLineBodyDto {
   @IsInt() @Min(0) picked!: number;
   @IsOptional() @ValidateNested() @Type(() => PickSubDto) sub?: PickSubDto | null;
+  /** Weighed lines: the actual weight picked, in grams. */
+  @IsOptional() @IsInt() @Min(0) grams?: number;
 }
 
 class PollReturnBodyDto {
@@ -284,7 +286,11 @@ export class RetailController {
     @Param("itemId") itemId: string,
     @Body() body: PickLineBodyDto,
   ) {
-    return this.picking.setLine(user, orderId, itemId, { picked: body.picked, sub: body.sub ?? null } as any);
+    return this.picking.setLine(user, orderId, itemId, {
+      picked: body.picked,
+      sub: body.sub ?? null,
+      ...(body.grams !== undefined ? { grams: body.grams } : {}),
+    } as any);
   }
 
   @Post("picking/:orderId/complete")

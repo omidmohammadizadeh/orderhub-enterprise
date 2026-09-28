@@ -21,7 +21,14 @@
 // Pure: no database, no Nest. OrderingService.checkout loads the storefront
 // and calls priceBasket.
 
-import { extractSizeKey, getModifierPrice, round2 } from "@orderhub/shared";
+import {
+  extractSizeKey,
+  getModifierPrice,
+  isOnlineWeight,
+  normaliseSellBy,
+  priceForWeight,
+  round2,
+} from "@orderhub/shared";
 
 /** A penny of slack for rounding between browser and server arithmetic. */
 const TOLERANCE = 0.01;
@@ -44,6 +51,8 @@ export interface BasketLine {
   /** The chosen size of a multi-size product (sent by current storefronts). */
   skuPlu?: string | null;
   skuName?: string | null;
+  /** Weighed products: grams per pack, one of onlineWeightOptions. */
+  weightGrams?: number | null;
 }
 
 export type LineKind = "PAID" | "BOGO" | "GIFT";
@@ -124,6 +133,13 @@ function listPrice(
   item: any,
   line: BasketLine,
 ): { unit: number; exact: boolean; modifiers: BasketModifier[] } {
+  // Sold by weight: the price of the chosen amount, no sizes or options.
+  const sellBy = normaliseSellBy(item.sellBy);
+  if (sellBy) {
+    const unit = priceForWeight(Number(item.basePrice ?? 0), sellBy, Number(line.weightGrams));
+    return { unit: withPromo(ctx, item.id, unit), exact: true, modifiers: [] };
+  }
+
   let exact = true;
   let base = Number(item.basePrice ?? 0);
   let sizeKey: string | null = null;
@@ -194,6 +210,11 @@ export function priceBasket(ctx: PricingContext, lines: BasketLine[]): { lines: 
     const item = ctx.items.get(line.menuItemId);
     if (!item) {
       problems.push(`${line.name} is no longer available`);
+      return;
+    }
+    const sellBy = normaliseSellBy(item.sellBy);
+    if (sellBy && !isOnlineWeight(sellBy, line.weightGrams)) {
+      problems.push(`choose how much ${line.name} you'd like`);
       return;
     }
     const list = listPrice(ctx, item, line);

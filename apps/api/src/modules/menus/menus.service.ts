@@ -31,6 +31,7 @@ import {
   CHANNEL_VARIANT_PRESETS,
   type PricingVariant,
   normaliseMinAge,
+  normaliseSellBy,
 } from "@orderhub/shared";
 import type {
   CreateMenuDto,
@@ -1591,6 +1592,8 @@ export class MenusService {
         allergens: dto.allergens ?? [],
         dietaryTags: (dto as any).dietaryTags ?? [],
         minAge: normaliseMinAge(dto.minAge),
+        sellBy: normaliseSellBy(dto.sellBy),
+        scaleCode: cleanScaleCode(dto.scaleCode),
         prepTime: (dto as any).prepTime ?? null,
         isInventoryTracked: (dto as any).isInventoryTracked ?? false,
         inventoryCount: (dto as any).inventoryCount ?? null,
@@ -1670,6 +1673,8 @@ export class MenusService {
         ...(dto.dietaryTags !== undefined && { dietaryTags: dto.dietaryTags }),
         // null clears it — so `!== undefined`, not truthiness.
         ...(dto.minAge !== undefined && { minAge: normaliseMinAge(dto.minAge) }),
+        ...(dto.sellBy !== undefined && { sellBy: normaliseSellBy(dto.sellBy) }),
+        ...(dto.scaleCode !== undefined && { scaleCode: cleanScaleCode(dto.scaleCode) }),
         ...((dto as any).prepTime !== undefined && { prepTime: (dto as any).prepTime }),
         ...((dto as any).isInventoryTracked !== undefined && { isInventoryTracked: (dto as any).isInventoryTracked }),
         ...((dto as any).inventoryCount !== undefined && { inventoryCount: (dto as any).inventoryCount }),
@@ -3649,4 +3654,10 @@ export class MenusService {
     return [...ids];
   }
 
+}
+
+/** A scale code is digits only; blank clears it. */
+function cleanScaleCode(v: string | null | undefined): string | null {
+  const d = String(v ?? "").replace(/\D/g, "").replace(/^0+/, "");
+  return d ? d.slice(0, 6) : null;
 }

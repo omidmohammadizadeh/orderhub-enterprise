@@ -37,6 +37,8 @@ export interface RetailProduct {
   basePrice: number;
   plu: string | null;
   imageUrl: string | null;
+  /** Weighed products: priced per kg / 100 g and stocked in grams. */
+  sellBy?: "KG" | "100G" | null;
   variants: RetailVariant[];
 }
 
@@ -143,7 +145,9 @@ export interface PickLine {
   barcodes: string[];
   variantId: string | null;
   substitution: "BEST_MATCH" | "NONE";
-  pick: { picked: number; sub?: PickSub | null } | null;
+  pick: { picked: number; sub?: PickSub | null; grams?: number | null } | null;
+  /** Weighed lines: total grams ordered; picked by weight, not count. */
+  weightGrams?: number | null;
 }
 
 export interface PickOrder {
@@ -255,7 +259,7 @@ export const retailClient = {
   pickList: (locationId: string) =>
     apiClient.get<{ orders: PickOrder[] }>(`${base(locationId)}/picking`).then((r) => r.data),
   startPicking: (orderId: string) => apiClient.post(`/v1/retail/picking/${orderId}/start`).then((r) => r.data),
-  pickLine: (orderId: string, itemId: string, body: { picked: number; sub?: PickSub | null }) =>
+  pickLine: (orderId: string, itemId: string, body: { picked: number; sub?: PickSub | null; grams?: number }) =>
     apiClient.patch(`/v1/retail/picking/${orderId}/lines/${itemId}`, body).then((r) => r.data),
   completePicking: (orderId: string) =>
     apiClient

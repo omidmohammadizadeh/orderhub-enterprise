@@ -28,6 +28,7 @@ import { PaymentsService } from "../payments/payments.service";
 import { RetailStockService, type StockMove } from "./retail-stock.service";
 import {
   normalizePick,
+  orderedGrams,
   priceShortfall,
   resolveVariantForLine,
   toMajor,
@@ -139,6 +140,8 @@ export class RetailPickingService {
             variantId: typeof meta.variantId === "string" ? meta.variantId : null,
             substitution: meta.substitution === "NONE" ? "NONE" : "BEST_MATCH",
             pick: (meta.pick as PickState | undefined) ?? null,
+            // Weighed lines are picked by weight: the total grams ordered.
+            weightGrams: orderedGrams(i),
           };
         });
         lines.sort((a: any, b: any) => a.aisleOrder - b.aisleOrder || a.aisle.localeCompare(b.aisle));
@@ -191,7 +194,7 @@ export class RetailPickingService {
     const meta = (item.metadata ?? {}) as Record<string, any>;
     let pick: PickState;
     try {
-      pick = normalizePick(item, input);
+      pick = normalizePick({ ...item, weightGrams: orderedGrams(item) }, input);
     } catch (err) {
       throw new BadRequestException((err as Error).message);
     }
@@ -227,6 +230,7 @@ export class RetailPickingService {
       quantity: i.quantity,
       totalMinor: toMinor(i.totalPrice),
       pick: ((i.metadata as any)?.pick as PickState | undefined) ?? null,
+      weightGrams: orderedGrams(i),
     }));
     const shortfall = priceShortfall({
       lines,
@@ -304,6 +308,23 @@ export class RetailPickingService {
                 recordedBy: user.userId,
               });
             }
+          }
+          // Weighed: the sale took the ordered grams off the books; what
+          // actually left the shelf is what was weighed. Book the difference.
+          const ordered = lines[idx]!.weightGrams;
+          const weighedGrams = item.metadata?.pick?.grams;
+          if (v?.trackStock && ordered && Number(weighedGrams) > 0 && Number(weighedGrams) !== ordered) {
+            moves.push({
+              tenantId: order.tenantId,
+              locationId: order.locationId,
+              variantId: v.id,
+              type: "ADJUSTMENT",
+              quantity: ordered - Number(weighedGrams),
+              reason: `Weighed at picking: ${Number(weighedGrams)} g of ${ordered} g`,
+              orderId: order.id,
+              recordedBy: user.userId,
+              dedupeKey: `reweigh:${item.id}`,
+            });
           }
           const sub = item.metadata?.pick?.sub;
           const sv = sub?.variantId ? subVariants.find((x) => x.id === sub.variantId) : null;
