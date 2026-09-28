@@ -1347,9 +1347,19 @@ export class VoiceService {
         } else if (slot === 'ADDRESS_CONFIRM') {
           say = await this.ai.confirmAddressAloud(ctx, state);
         } else {
-          say = this.ai.confirmOrderAloud(state);
-          next = 'PAYMENT';
+          // Challenge 25 comes before payment when the basket needs it.
+          const out = this.ai.afterOrderConfirmedAloud(ctx, state);
+          say = out.say;
+          next = out.next;
         }
+        break;
+      }
+      case 'AGE': {
+        const answer = parseYesNo(said);
+        if (!answer) return null;
+        const out = this.ai.answerAgeAloud(ctx, state, answer === 'YES');
+        say = out.say;
+        next = out.next;
         break;
       }
       case 'PAYMENT': {

@@ -7,6 +7,8 @@ import {
   areaZoneNames,
   postcodeRequiredFor,
   currencyName,
+  ageCheckNote,
+  basketMinAge,
 } from '@orderhub/shared';
 import { money } from '../whatsapp/whatsapp-cart';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
@@ -219,7 +221,9 @@ export interface VoiceState {
     /** Every choice made; offering them a note before it goes in the cart. */
     | 'ITEM_NOTE'
     /** Offered them last time's order; waiting on yes or no. */
-    | 'USUAL';
+    | 'USUAL'
+    /** Challenge 25: asked "are you 18 or over?" after the read-back. */
+    | 'AGE';
   /** The address being built up, one question at a time. `house` holds a
    *  number they gave BEFORE we could name the street, so it isn't asked for
    *  twice — "five signing their drive" is a five we already have. */
@@ -844,6 +848,68 @@ export class VoiceAiService {
   confirmOrderAloud(state: VoiceState): string {
     state.orderConfirmed = true;
     return 'How would you like to pay — cash, or card?';
+  }
+
+  // ── Challenge 25 ─────────────────────────────────────────────────────────
+  // An age-restricted item (MenuItem.minAge) needs the caller to say they're
+  // old enough before the order is placed; ID is checked on hand-over. Asked
+  // once, after the read-back, and enforced in placeOrder. The answer lives
+  // on the cart (WaCart.ageConfirmed), so it survives a reload.
+
+  /** The age the basket needs that the caller hasn't confirmed, or null. */
+  ageStillNeeded(ctx: VoiceContext, state: VoiceState): number | null {
+    const need = basketMinAge(state.cart.items.map((l) => ctx.itemIndex?.get(l.itemId)));
+    return need && (state.cart.ageConfirmed ?? 0) < need ? need : null;
+  }
+
+  ageQuestion(minAge: number): string {
+    return `Some of those items are ${minAge} plus — can you confirm you're ${minAge} or over? We'll check photo ID when it's handed over.`;
+  }
+
+  /** Record the caller's answer. No takes the restricted items out. Returns the tool result. */
+  confirmAge(ctx: VoiceContext, state: VoiceState, confirmed: boolean): string {
+    const need = this.ageStillNeeded(ctx, state);
+    if (!need) return 'No age check is needed for this order. Carry on.';
+    if (confirmed) {
+      state.cart.ageConfirmed = need;
+      return 'Age confirmed. Now ask how they would like to pay — cash, or card — and then place it.';
+    }
+    const removed = this.removeAgeRestricted(ctx, state);
+    return state.cart.items.length
+      ? `Removed ${removed} — they can't be sold without the age confirmation. Tell the caller, then call read_back_order and get a fresh yes for the order as it is now.`
+      : `Removed ${removed}, which leaves the order empty. Tell the caller and ask if they'd like anything else.`;
+  }
+
+  /** Take the age-restricted lines out; returns their names for the caller. */
+  private removeAgeRestricted(ctx: VoiceContext, state: VoiceState): string {
+    const gone = state.cart.items.filter((l) => ctx.itemIndex?.get(l.itemId)?.minAge);
+    state.cart.items = state.cart.items.filter((l) => !ctx.itemIndex?.get(l.itemId)?.minAge);
+    this.forgetConfirmation(state);
+    return gone.map((l) => this.spokenName(l.name)).join(', ') || 'those items';
+  }
+
+  /**
+   * After the caller's yes to the read-back, in code: the age question if the
+   * basket needs one, else straight to payment.
+   */
+  afterOrderConfirmedAloud(ctx: VoiceContext, state: VoiceState): { say: string; next: VoiceState['awaiting'] } {
+    const payment = this.confirmOrderAloud(state);
+    const need = this.ageStillNeeded(ctx, state);
+    return need ? { say: this.ageQuestion(need), next: 'AGE' } : { say: payment, next: 'PAYMENT' };
+  }
+
+  /** The caller's yes or no to the age question, in code. */
+  answerAgeAloud(ctx: VoiceContext, state: VoiceState, yes: boolean): { say: string; next: VoiceState['awaiting'] } {
+    if (yes) {
+      state.cart.ageConfirmed = this.ageStillNeeded(ctx, state) ?? state.cart.ageConfirmed;
+      return { say: 'Thanks. How would you like to pay — cash, or card?', next: 'PAYMENT' };
+    }
+    const removed = this.removeAgeRestricted(ctx, state);
+    if (!state.cart.items.length) {
+      return { say: `No problem — I've taken off ${removed}, so there's nothing left in the order. What else can I get you?`, next: undefined };
+    }
+    const back = this.readBackAloud(ctx, state);
+    return { say: `No problem — I've taken off ${removed}. ${back.say}`, next: back.next };
   }
 
   /**
@@ -1844,6 +1910,7 @@ TAKING AN ORDER
 
 BEFORE YOU PLACE ANYTHING
 Call read_back_order, then say exactly what it gives you back and wait for a yes. This is not optional and there is no version of this call where you skip it. A wrong order that reaches the kitchen is the worst thing you can do, and place_order will refuse until they have confirmed.
+Items marked (18+) or (16+) are age-restricted: after the yes, ask whether the caller is that age or over and call confirm_age — place_order refuses until you have.
 
 PAYING
 After they confirm the order, ask: "How would you like to pay — cash, or card?"
@@ -2019,6 +2086,16 @@ ${menu || '(no items available — apologise and transfer)'}`;
         description:
           'The caller has heard the whole order read back and said yes. Only call this after they have confirmed out loud.',
         input_schema: { type: 'object', properties: {} },
+      },
+      {
+        name: 'confirm_age',
+        description:
+          "Challenge 25. Only when a tool has told you the order has age-restricted items (18+ or 16+): after asking the caller whether they are that age or over, pass their answer. `confirmed: false` (or they won't say) removes those items from the order.",
+        input_schema: {
+          type: 'object',
+          properties: { confirmed: { type: 'boolean', description: 'true only if the caller clearly said they are that age or over' } },
+          required: ['confirmed'],
+        },
       },
       {
         name: 'check_delivery_area',
@@ -2461,11 +2538,19 @@ ${menu || '(no items available — apologise and transfer)'}`;
           // call kwPJfhWA — between a confirmed change and saving it.
           return this.amendOrder(ctx, state, input);
         }
+        const ageNeeded = this.ageStillNeeded(ctx, state);
+        if (ageNeeded) {
+          return {
+            result: `Confirmed. Before payment, an age check: this order has items only sold to people ${ageNeeded} or over. Ask exactly: "${this.ageQuestion(ageNeeded)}" Then call confirm_age with their answer, and after that ask how they would like to pay.`,
+          };
+        }
         return {
           result:
             'Confirmed. Now ask how they would like to pay — cash, or card — and then place it.',
         };
       }
+      case 'confirm_age':
+        return { result: this.confirmAge(ctx, state, input?.confirmed === true) };
       case 'check_delivery_area':
         return {
           result: this.checkArea(String(input?.area ?? input?.postcode ?? ''), ctx),
@@ -3405,7 +3490,8 @@ ${menu || '(no items available — apologise and transfer)'}`;
         const needs = variants.some((v) =>
           (v.modifierGroups ?? []).some((g: any) => mustChoose(g)),
         );
-        const star = needs ? ' *' : '';
+        const age = variants.reduce((m, v) => Math.max(m, Number(v.minAge ?? 0)), 0);
+        const star = (needs ? ' *' : '') + (age ? ` (${age}+)` : '');
         if (variants.length === 1) {
           const v = variants[0]!;
           lines.push(`- ${v.name} — ${money(v.price, ctx.currency)}${star}`);
@@ -3488,6 +3574,7 @@ CHANGING THEIR MIND
 BEFORE IT'S PLACED
 - Call read_back_order and say the script it gives you word for word, then stop and wait.
 - Only when the caller clearly agrees: call order_confirmed FIRST — before you say anything about payment — then ask cash or card, then place_order. If they change anything after the read-back, read it back again — a yes only counts for what they heard.
+- Items marked (18+) or (16+) on the menu are age-restricted. If order_confirmed says an age check is needed, ask the question it gives you, call confirm_age with the answer, and only then ask about payment.
 - place_order needs a name for the order. A caller you know needs no asking; otherwise ask for a first name, once, before you place it. Never make one up.
 ${delivery}
 - Read a new address back once, then confirm_delivery_address. Only use an address on file after they've said yes to it.${returning}
@@ -3581,6 +3668,10 @@ BOOKING A TABLE
         return out;
       }
       case 'order_confirmed': {
+        if (/^Confirmed\. Before payment, an age check/.test(out.result)) {
+          const age = this.ageStillNeeded(ctx, state);
+          return age ? { ...out, sayNow: this.ageQuestion(age) } : out;
+        }
         if (!/^Confirmed\. Now ask how they would like to pay/.test(out.result)) return out;
         if (!(ctx.acceptsCash && ctx.acceptsCard)) return out;
         return { ...out, sayNow: 'Lovely. How would you like to pay — cash, or card?' };
@@ -5630,6 +5721,14 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
           : 'You have not read the order back yet. Call read_back_order, say it, and get a yes before placing anything.',
       };
     }
+    // Challenge 25 — enforced here, not just asked for in the prompt.
+    const ageNeeded = this.ageStillNeeded(ctx, state);
+    if (ageNeeded) {
+      return {
+        result: `AGE CHECK NEEDED — this order has items only sold to people ${ageNeeded} or over. Do not place it yet. Ask: "${this.ageQuestion(ageNeeded)}" and call confirm_age with their answer.`,
+      };
+    }
+    const orderMinAge = basketMinAge(state.cart.items.map((l) => ctx.itemIndex?.get(l.itemId)));
     const isDelivery = state.cart.fulfillmentType === 'DELIVERY';
     // What counts as "we have an address" follows the shop, not the UK.
     const located =
@@ -5695,9 +5794,15 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
           subtotal,
           ...(deliveryFee > 0 ? { deliveryFee } : {}),
           total: round2(subtotal + deliveryFee),
-          specialInstructions: ['TAKEN BY AI PHONE LINE', input?.notes ? String(input.notes) : '']
+          specialInstructions: [
+            // Challenge 25: first, so every ticket and driver sees it.
+            orderMinAge ? ageCheckNote(orderMinAge) : '',
+            'TAKEN BY AI PHONE LINE',
+            input?.notes ? String(input.notes) : '',
+          ]
             .filter(Boolean)
             .join(' · '),
+          ...(orderMinAge ? { ageCheck: { minAge: orderMinAge, method: 'CUSTOMER_CONFIRMED' as const } } : {}),
           // PAYMENT_LINK, not CARD. The board's "Waiting for payment" column
           // matches PAYMENT_LINK / QR_CODE / CARD_TERMINAL, so a card order
           // marked plain CARD sat in New as though it were paid for, and the
