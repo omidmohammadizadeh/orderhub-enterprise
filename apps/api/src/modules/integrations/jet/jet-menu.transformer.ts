@@ -260,10 +260,15 @@ export function toJetAvailability(hours: unknown): JetAvailability {
   return out;
 }
 
+/** The widest window JET accepts for a day. Used wherever we hold no hours:
+ *  the menu must never be the narrower of menu-vs-service-times, because a menu
+ *  can be narrowed later and can never be widened. */
+export const ALL_DAY_WINDOW = "00:00 - 23:59";
+
 /** An all-day, every-day availability — the fallback when we hold no hours. */
 export function allDayAvailability(): JetAvailability {
   const out: JetAvailability = {};
-  for (const day of JET_DAYS) out[day] = ["00:00 - 23:59"];
+  for (const day of JET_DAYS) out[day] = [ALL_DAY_WINDOW];
   return out;
 }
 
@@ -309,15 +314,42 @@ export function buildJetMenus(args: {
     items: category.products.map((p) => buildItem(p, warnings)),
   }));
 
-  const availability = args.availability ?? allDayAvailability();
-  const openDays = JET_DAYS.filter((d) => (availability[d] ?? []).length > 0);
-  if (openDays.length === 0) {
+  // JET's menu availability requires EVERY day to carry at least one window.
+  // An empty array is rejected outright — "menus.0.availability.monday: Array
+  // must have at least 1 items" — and, unlike the service-times schema, a day
+  // cannot be omitted to mean "closed" either.
+  //
+  // So a shop that is shut on Mondays CANNOT say so here. It says so through
+  // service times, which do allow a day to be left out. A day we hold no hours
+  // for therefore publishes as all-day and lets the service times narrow it:
+  // real trading hours are the intersection of the two, and while service times
+  // can narrow a menu, nothing can ever widen one. Sending the empty day instead
+  // failed the whole publish and took the other six days down with it.
+  const source = args.availability ?? allDayAvailability();
+  const finalAvailability: JetAvailability = {};
+  const filled: string[] = [];
+  for (const day of JET_DAYS) {
+    const slots = source[day] ?? [];
+    if (slots.length > 0) {
+      finalAvailability[day] = slots;
+    } else {
+      finalAvailability[day] = [ALL_DAY_WINDOW];
+      filled.push(day);
+    }
+  }
+  if (filled.length === JET_DAYS.length) {
     warnings.push(
-      "availability is empty for every day — the menu would never be orderable; " +
-        "publishing all-day instead",
+      "no opening hours for any day — the menu publishes as all-day; " +
+        "set the shop's hours so Just Eat shows the right times",
+    );
+  } else if (filled.length > 0) {
+    warnings.push(
+      `no opening hours set for ${filled.join(", ")} — Just Eat will not accept an ` +
+        `empty day, so ${filled.length === 1 ? "it was" : "they were"} published as ` +
+        `all-day. Set the hours (or close ${filled.length === 1 ? "that day" : "those days"} ` +
+        `via service times), or the shop will look open then.`,
     );
   }
-  const finalAvailability = openDays.length ? availability : allDayAvailability();
 
   const menus = serviceTypes.map((type) => ({
     name: args.menuName,
