@@ -48,6 +48,7 @@ import {
   parseScaleBarcode,
   priceForWeight,
   sameScaleCode,
+  sellByLabel,
   weighedLineName,
   type SellBy,
 } from "@orderhub/shared";
@@ -2450,6 +2451,10 @@ function ProductCard({
         className={`mt-0.5 ${sizing.price} ${onDark ? "opacity-90" : "text-zinc-500"}`}
       >
         {formatDisplayPrice(product as any)}
+        {/* Weighed products: the price is per kg / per 100 g. */}
+        {normaliseSellBy((product as any).sellBy)
+          ? sellByLabel(normaliseSellBy((product as any).sellBy) as SellBy)
+          : ""}
       </span>
     </button>
   );

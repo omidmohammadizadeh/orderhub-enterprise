@@ -14,6 +14,8 @@ export interface BarcodeEntry {
   sku: string | null;
   /** Challenge 25 — 16 or 18 when the product is age-restricted. */
   minAge?: number | null;
+  /** Weighed products are stocked (and received) in grams. */
+  sellBy?: "KG" | "100G" | null;
 }
 
 export interface RetailVariant {

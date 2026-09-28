@@ -1295,6 +1295,10 @@ function OrderPage() {
       setGroupError(groupErrorFrom(err, "Couldn't close the basket.")),
   });
 
+  // Challenge 25 for a group basket: every guest's lines, looked up on the menu.
+  const groupMinAge = basketMinAge(
+    (basket?.items ?? []).map((i: any) => itemsById[String(i.cartItem?.menuItemId ?? "")] as any),
+  );
   const placeGroup = useMutation({
     mutationFn: () =>
       groupOrdersClient.place(String(groupToken), {
@@ -1327,6 +1331,7 @@ function OrderPage() {
         // Stable per basket: a double-tap on Place order can't become two
         // orders, and neither can a retry after a dropped connection.
         idempotencyKey: `group-${groupToken}`,
+        ...(groupMinAge ? { ageConfirmed } : {}),
       }),
     onSuccess: (order) => {
       if (order?.checkoutUrl && typeof window !== "undefined") {
@@ -2436,6 +2441,9 @@ function OrderPage() {
           shareUrl={groupOrdersClient.shareUrl(String(slug), basket.token)}
           onClose={() => setGroupPanelOpen(false)}
           onRemoveItem={(id) => removeFromGroup.mutate(id)}
+          minAge={groupMinAge}
+          ageConfirmed={ageConfirmed}
+          setAgeConfirmed={setAgeConfirmed}
           removingItemId={removingGroupItemId}
           onLock={() => lockGroup.mutate("lock")}
           onUnlock={() => lockGroup.mutate("unlock")}
@@ -2790,6 +2798,7 @@ function OrderPage() {
           symbol={symbol}
           tipBase={subtotal}
           brandName={storefront.brand?.name ?? storefront.location.name}
+          isShop={isShop}
           onBack={() => setTipOpen(false)}
           onContinue={(tip) => {
             setTipAmount(tip);

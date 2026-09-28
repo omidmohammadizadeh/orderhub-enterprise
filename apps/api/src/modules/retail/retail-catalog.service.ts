@@ -39,6 +39,8 @@ export interface BarcodeIndexEntry {
   sku: string | null;
   /** Age-restricted product (Challenge 25): 16 or 18, else null. */
   minAge: number | null;
+  /** Weighed product (stocked in grams): KG / 100G, else null. */
+  sellBy: string | null;
 }
 
 export interface VariantInput {
@@ -101,7 +103,7 @@ export class RetailCatalogService {
     if (!itemIds.length) return [];
     const variants = await this.prisma.productVariant.findMany({
       where: { tenantId, menuItemId: { in: itemIds }, isActive: true, barcode: { not: null } },
-      include: { menuItem: { select: { name: true, basePrice: true, minAge: true } } },
+      include: { menuItem: { select: { name: true, basePrice: true, minAge: true, sellBy: true } } },
       orderBy: [{ menuItemId: "asc" }, { sortOrder: "asc" }],
     });
     const perItem = new Map<string, number>();
@@ -118,6 +120,7 @@ export class RetailCatalogService {
         price: Number(v.price ?? v.menuItem.basePrice),
         sku: v.sku,
         minAge: v.menuItem.minAge ?? null,
+        sellBy: v.menuItem.sellBy ?? null,
       };
     });
   }

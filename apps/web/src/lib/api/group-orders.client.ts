@@ -175,6 +175,8 @@ export const groupOrdersClient = {
       paymentMethod?: string;
       paymentStatus?: string;
       idempotencyKey?: string;
+      /** Challenge 25 — required when the basket holds an age-restricted item. */
+      ageConfirmed?: boolean;
     },
   ) =>
     apiClient

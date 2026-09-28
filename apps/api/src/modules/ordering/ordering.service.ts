@@ -70,6 +70,8 @@ export interface CheckoutItemDto {
   skuName?: string | null;
   /** Retail — weighed products: grams per pack (an online option). */
   weightGrams?: number | null;
+  /** Group orders: whose line this is, kept on server-named (weighed) lines. */
+  forName?: string | null;
 }
 
 export interface CheckoutDto {
@@ -1701,7 +1703,9 @@ export class OrderingService {
       const grams = Number(item.weightGrams);
       const pricePerUnit = Number(it.basePrice ?? 0);
       return {
-        name: weighedLineName(String(it.name ?? item.name), grams, pricePerUnit, sellBy, symbol),
+        name:
+          weighedLineName(String(it.name ?? item.name), grams, pricePerUnit, sellBy, symbol) +
+          (item.forName ? ` (${String(item.forName).slice(0, 60)})` : ""),
         weight: { grams, sellBy, pricePerUnit, source: "ESTIMATE" as const },
       };
     };
