@@ -1058,7 +1058,7 @@ export class OrdersService {
 
   // ── Direct order creation (POS / staff) ──────────────
 
-  async create(dto: CreateOrderDto, tenantId: string): Promise<Order> {
+  async create(dto: CreateOrderDto, tenantId: string, actorUserId?: string): Promise<Order> {
     const location = await this.prisma.location.findFirst({
       where: { id: dto.locationId, brand: { tenantId } },
     });
@@ -1195,6 +1195,18 @@ export class OrdersService {
         paymentStatus: dto.paymentStatus,
         preparationMinutes: dto.preparationMinutes,
         isScheduled,
+        // Retail — the due-diligence record for an age-restricted sale:
+        // what was checked, how, and by whom, stamped by the server.
+        ...(dto.ageCheck
+          ? {
+              ageCheck: {
+                minAge: dto.ageCheck.minAge,
+                method: dto.ageCheck.method,
+                confirmedAt: new Date().toISOString(),
+                confirmedByUserId: dto.ageCheck.method === "TILL_ID_CHECK" ? (actorUserId ?? null) : null,
+              },
+            }
+          : {}),
       },
       // Phase AP-5 — thread the storefront customerAccountId through
       // to persistOrder so the Order row gets attributed and the

@@ -37,6 +37,8 @@ export interface BarcodeIndexEntry {
   variantName: string;
   price: number;
   sku: string | null;
+  /** Age-restricted product (Challenge 25): 16 or 18, else null. */
+  minAge: number | null;
 }
 
 export interface VariantInput {
@@ -99,7 +101,7 @@ export class RetailCatalogService {
     if (!itemIds.length) return [];
     const variants = await this.prisma.productVariant.findMany({
       where: { tenantId, menuItemId: { in: itemIds }, isActive: true, barcode: { not: null } },
-      include: { menuItem: { select: { name: true, basePrice: true } } },
+      include: { menuItem: { select: { name: true, basePrice: true, minAge: true } } },
       orderBy: [{ menuItemId: "asc" }, { sortOrder: "asc" }],
     });
     const perItem = new Map<string, number>();
@@ -115,6 +117,7 @@ export class RetailCatalogService {
         variantName: v.name,
         price: Number(v.price ?? v.menuItem.basePrice),
         sku: v.sku,
+        minAge: v.menuItem.minAge ?? null,
       };
     });
   }
@@ -607,6 +610,7 @@ export class RetailCatalogService {
           basePrice,
           plu,
           menuIds: [menuId],
+          ...(product.minAge ? { minAge: product.minAge } : {}),
         },
         select: { id: true },
       });
@@ -620,6 +624,10 @@ export class RetailCatalogService {
           ...(product.description ? { description: product.description } : {}),
         },
       });
+    }
+    // An "Age" column only ever adds a restriction; a blank cell leaves it be.
+    if (product.minAge && !result.created) {
+      await this.prisma.menuItem.update({ where: { id: menuItemId }, data: { minAge: product.minAge } });
     }
     // In the category (idempotent — the join's primary key is the pair).
     await this.prisma.menuItemOnCategory.createMany({

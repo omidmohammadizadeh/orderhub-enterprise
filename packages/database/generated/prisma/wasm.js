@@ -536,6 +536,7 @@ exports.Prisma.MenuItemScalarFieldEnum = {
   dietary: 'dietary',
   calories: 'calories',
   prepTime: 'prepTime',
+  minAge: 'minAge',
   metadata: 'metadata',
   hasMultipleSkus: 'hasMultipleSkus',
   productSkus: 'productSkus',
@@ -4095,7 +4096,8 @@ exports.CampaignType = exports.$Enums.CampaignType = {
   BOGO: 'BOGO',
   FREE_ITEM: 'FREE_ITEM',
   FREE_DELIVERY: 'FREE_DELIVERY',
-  HAPPY_HOUR: 'HAPPY_HOUR'
+  HAPPY_HOUR: 'HAPPY_HOUR',
+  MULTI_BUY: 'MULTI_BUY'
 };
 
 exports.CampaignStatus = exports.$Enums.CampaignStatus = {

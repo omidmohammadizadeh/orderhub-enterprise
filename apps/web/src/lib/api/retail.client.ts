@@ -1,5 +1,6 @@
 // Retail R1 — barcodes, stock and returns (apps/api/src/modules/retail).
 
+import type { MultiBuyDeal } from "@orderhub/shared";
 import { apiClient } from "./client";
 
 export interface BarcodeEntry {
@@ -11,6 +12,8 @@ export interface BarcodeEntry {
   variantName: string;
   price: number;
   sku: string | null;
+  /** Challenge 25 — 16 or 18 when the product is age-restricted. */
+  minAge?: number | null;
 }
 
 export interface RetailVariant {
@@ -195,6 +198,10 @@ const base = (locationId: string) => `/v1/retail/locations/${locationId}`;
 export const retailClient = {
   barcodes: (locationId: string) =>
     apiClient.get<BarcodeEntry[]>(`${base(locationId)}/barcodes`).then((r) => r.data),
+
+  /** Multi-buys live on this till (POS channel). */
+  deals: (locationId: string) =>
+    apiClient.get<{ multiBuys: MultiBuyDeal[] }>(`${base(locationId)}/deals`).then((r) => r.data),
 
   lookup: (locationId: string, code: string) =>
     apiClient

@@ -34,7 +34,14 @@ import {
 } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { formatMoney, currencySymbol } from "@orderhub/shared";
+import {
+  formatMoney,
+  currencySymbol,
+  applyMultiBuys,
+  basketMinAge,
+  type MultiBuyApplication,
+  type MultiBuyDeal,
+} from "@orderhub/shared";
 import axios from "axios";
 import { LoginModal } from "@/components/storefront/login-modal";
 import { FoodPlaceholder } from "@/components/storefront/food-placeholder";
@@ -556,6 +563,8 @@ function OrderPage() {
   const [customerEmail, setCustomerEmail] = useState("");
   // "Keep me updated by SMS" — ticked by default, customer can opt out.
   const [smsMarketingConsent, setSmsMarketingConsent] = useState(true);
+  // Challenge 25 — "I'm 18 or over", asked only when the basket needs it.
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [addrFlat, setAddrFlat] = useState(""); // Phase AP fix #3 — house/flat number
   const [addrLine1, setAddrLine1] = useState("");
   const [addrCity, setAddrCity] = useState("");
@@ -969,20 +978,37 @@ function OrderPage() {
       });
     }
   }, [cart, freeItem, eligibleSubtotal, chosenFreeItemId, itemsById, groupToken]);
+  // Retail — multi-buys ("3 for £2", meal deals) come off first, with the
+  // same engine the checkout charges by; the campaign or promo code then
+  // applies to what's left.
+  const multiBuyDeals: MultiBuyDeal[] = (storefront as any)?.multiBuys ?? [];
+  const multiBuy = useMemo(
+    () =>
+      applyMultiBuys(
+        cart.map((l) => ({ menuItemId: l.menuItemId, unitPrice: l.unitPrice, quantity: l.quantity })),
+        multiBuyDeals,
+      ),
+    [cart, multiBuyDeals],
+  );
+  const afterDeals = round2(Math.max(0, subtotal - multiBuy.savings));
   const campaignClears =
     storeCampaign &&
     (storeCampaign.minOrder == null ||
-      subtotal >= Number(storeCampaign.minOrder));
+      afterDeals >= Number(storeCampaign.minOrder));
   const campaignDiscount = !campaignClears
     ? 0
     : storeCampaign.percentageOff != null
-      ? Math.round(subtotal * Number(storeCampaign.percentageOff)) / 100
+      ? Math.round(afterDeals * Number(storeCampaign.percentageOff)) / 100
       : storeCampaign.amountOff != null
-        ? Math.min(subtotal, Number(storeCampaign.amountOff))
+        ? Math.min(afterDeals, Number(storeCampaign.amountOff))
         : 0;
-  // Effective discount is the larger of the promo code and the
-  // campaign — they don't stack.
-  const effectiveDiscount = Math.max(promoDiscount, campaignDiscount);
+  // The promo code and the campaign don't stack — the larger applies, on
+  // top of any multi-buy saving.
+  const effectiveDiscount = round2(
+    multiBuy.savings + Math.max(Math.min(promoDiscount, afterDeals), campaignDiscount),
+  );
+  // Challenge 25 — the highest age any product in the basket needs.
+  const cartMinAge = basketMinAge(cart.map((l) => itemsById[l.menuItemId] as any));
 
   // Phase AP-8 — visible service charge.
   // Only the fixed portion of the application fee surfaces to the
@@ -1412,6 +1438,8 @@ function OrderPage() {
         loyaltyRewardId: useLoyaltyReward ? (loyaltyReward?.id ?? undefined) : undefined,
         // "Keep me updated by SMS" checkbox → SMS-marketing consent.
         marketingConsent: smsMarketingConsent,
+        // Challenge 25 — the server refuses a restricted basket without it.
+        ...(cartMinAge ? { ageConfirmed } : {}),
       };
       return axios
         .post(`${API_BASE}/v1/ordering/store/${slug}/checkout`, payload, {
@@ -2556,6 +2584,10 @@ function OrderPage() {
           }}
           promoDiscount={promoDiscount}
           campaignDiscount={campaignDiscount}
+          multiBuyApplied={multiBuy.applied}
+          cartMinAge={cartMinAge}
+          ageConfirmed={ageConfirmed}
+          setAgeConfirmed={setAgeConfirmed}
           campaignName={storeCampaign?.name ?? null}
           freeItemPicker={
             freeItem
@@ -3398,6 +3430,10 @@ interface CartPanelProps {
   promoDiscount: number;
   campaignDiscount: number;
   campaignName: string | null;
+  multiBuyApplied: MultiBuyApplication[];
+  cartMinAge: number | null;
+  ageConfirmed: boolean;
+  setAgeConfirmed: (v: boolean) => void;
   freeDelivery: boolean;
   postcodeSuggestions: Array<{
     id: string;
@@ -3447,6 +3483,10 @@ function CartPanel(props: CartPanelProps) {
     promoDiscount,
     campaignDiscount,
     campaignName,
+    multiBuyApplied,
+    cartMinAge,
+    ageConfirmed,
+    setAgeConfirmed,
     freeDelivery,
     postcodeSuggestions,
     postcodeLookupNote,
@@ -3529,7 +3569,8 @@ function CartPanel(props: CartPanelProps) {
     (cart.length > 0 || rewardApplied) &&
     customerName.trim().length > 0 &&
     customerPhone.trim().length > 0 &&
-    (fulfillmentType === "PICKUP" || addressComplete);
+    (fulfillmentType === "PICKUP" || addressComplete) &&
+    (!cartMinAge || ageConfirmed);
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/40" onClick={onClose}>
@@ -3704,6 +3745,27 @@ function CartPanel(props: CartPanelProps) {
               <span>Keep me updated with offers &amp; news by SMS</span>
             </label>
           </Section>
+
+          {cartMinAge && (
+            <Section title={`Age check — ${cartMinAge}+`}>
+              <div className="rounded-md border border-amber-300 bg-amber-50 p-2.5">
+                <label className="flex cursor-pointer items-start gap-2 text-xs text-amber-950">
+                  <input
+                    type="checkbox"
+                    checked={ageConfirmed}
+                    onChange={(e) => setAgeConfirmed(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-amber-400"
+                  />
+                  <span>
+                    <span className="font-semibold">I&apos;m {cartMinAge} or over.</span> Your basket has
+                    age-restricted items. We&apos;ll ask for photo ID when you{" "}
+                    {fulfillmentType === "DELIVERY" ? "receive your order" : "collect"}, and won&apos;t hand it
+                    over without it.
+                  </span>
+                </label>
+              </div>
+            </Section>
+          )}
 
           {/* The loyalty reward, offered rather than applied.
               Opt IN, not out: someone may be saving it for a bigger order,
@@ -4046,6 +4108,13 @@ function CartPanel(props: CartPanelProps) {
         {/* Totals + place */}
         <footer className="border-t border-zinc-200 px-4 py-3 space-y-2">
           <Row label="Subtotal" value={`${money(subtotal)}`} />
+          {multiBuyApplied.map((a) => (
+            <Row
+              key={a.dealId}
+              label={`${a.name}${a.times > 1 ? ` ×${a.times}` : ""}`}
+              value={`-${money(a.saving)}`}
+            />
+          ))}
           {campaignDiscount >= promoDiscount && campaignDiscount > 0 && (
             <Row
               label={`Discount (${campaignName ?? "Promo"})`}

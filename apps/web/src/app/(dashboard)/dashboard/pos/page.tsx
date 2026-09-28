@@ -40,7 +40,10 @@ import {
   resolveDeliveryAddress,
   type SelectedModifier,
   type ProductSku,
+  normaliseMinAge,
+  type MultiBuyDeal,
 } from "@orderhub/shared";
+import { AgeCheckModal, type AgePrompt } from "@/components/retail/age-check-modal";
 import { useRepeatOrder } from "@/hooks/use-repeat-order";
 import { ModifierSelectionModal } from "@/components/pos/modifier-selection-modal";
 import {
@@ -750,6 +753,8 @@ export default function PosPage() {
         paymentStatus: payload.paymentStatus,
         isScheduled: payload.isScheduled,
         marketingConsent: payload.marketingConsent,
+        // Challenge 25 — the record that ID was checked for this sale.
+        ...(cartMinAge ? { ageCheck: { minAge: cartMinAge, method: "TILL_ID_CHECK" as const } } : {}),
       };
 
       // ── Table Tabs (dine-in): send this round to the kitchen ──
@@ -1138,19 +1143,21 @@ export default function PosPage() {
     selectedSku?: ProductSku | null;
     notes?: string;
   }) => {
-    setCart((prev) => [
-      ...prev,
-      {
-        id: Math.random().toString(36).slice(2),
-        menuItemId: line.menuItemId,
-        displayName: line.displayName,
-        unitPrice: line.unitPrice,
-        quantity: line.quantity,
-        plu: line.plu ?? null,
-        modifiers: line.modifiers.map(toOrderLineModifier),
-        notes: line.notes,
-      },
-    ]);
+    gateAge(line.menuItemId, line.displayName, () =>
+      setCart((prev) => [
+        ...prev,
+        {
+          id: Math.random().toString(36).slice(2),
+          menuItemId: line.menuItemId,
+          displayName: line.displayName,
+          unitPrice: line.unitPrice,
+          quantity: line.quantity,
+          plu: line.plu ?? null,
+          modifiers: line.modifiers.map(toOrderLineModifier),
+          notes: line.notes,
+        },
+      ]),
+    );
   };
 
   const removeLine = useCallback((id: string) => {
@@ -1287,6 +1294,59 @@ export default function PosPage() {
     return ids;
   }, [categories]);
 
+  // ── Challenge 25 ─────────────────────────────────────────────────────────
+  // An age-restricted product asks the cashier to check ID before it lands in
+  // the basket. One confirmation covers the rest of the sale up to that age;
+  // an emptied basket (a new customer) starts again.
+  const minAgeById = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const c of categories)
+      for (const l of c.items ?? []) {
+        const a = normaliseMinAge((l.item as any)?.minAge);
+        if (l.item?.id && a) m.set(l.item.id, a);
+      }
+    return m;
+  }, [categories]);
+  const [ageVerified, setAgeVerified] = useState(0);
+  const ageVerifiedRef = useRef(0);
+  ageVerifiedRef.current = ageVerified;
+  const [agePrompt, setAgePrompt] = useState<(AgePrompt & { run: () => void }) | null>(null);
+  useEffect(() => {
+    if (cart.length === 0) setAgeVerified(0);
+  }, [cart.length]);
+  const gateAge = useCallback(
+    (menuItemId: string, productName: string, run: () => void, hint?: unknown) => {
+      const need = minAgeById.get(menuItemId) ?? normaliseMinAge(hint);
+      if (need && need > ageVerifiedRef.current) setAgePrompt({ minAge: need, productName, run });
+      else run();
+    },
+    [minAgeById],
+  );
+  const cartMinAge = useMemo(
+    () => cart.reduce((max, l) => Math.max(max, minAgeById.get(l.menuItemId) ?? 0), 0),
+    [cart, minAgeById],
+  );
+
+  // ── Multi-buys on this till (cached for offline like the barcodes) ────────
+  const dealsQuery = useQuery({
+    queryKey: ["retail-deals", selectedLocationId],
+    queryFn: () => retailClient.deals(selectedLocationId!),
+    enabled: !!selectedLocationId,
+    staleTime: 60_000,
+    refetchInterval: 5 * 60_000,
+  });
+  const [cachedDeals, setCachedDeals] = useState<MultiBuyDeal[] | null>(null);
+  useEffect(() => {
+    if (!selectedLocationId) return;
+    const key = `deals:${selectedLocationId}`;
+    if (dealsQuery.data) {
+      void cacheMenu(key, dealsQuery.data.multiBuys);
+    } else if (dealsQuery.isError || !online) {
+      void getCachedMenu(key).then((row) => setCachedDeals((row?.menu as MultiBuyDeal[]) ?? null));
+    }
+  }, [selectedLocationId, dealsQuery.data, dealsQuery.isError, online]);
+  const multiBuys = dealsQuery.data?.multiBuys ?? cachedDeals ?? [];
+
   // A fresh sale at a shop is a walk-in at the counter — skip the "who is it
   // for" step. Going back to it still works: the draft then has a mode set.
   useEffect(() => {
@@ -1296,7 +1356,7 @@ export default function PosPage() {
     }
   }, [isShop, step, draft.fulfillmentType, tableId, editOrderId]);
 
-  const addScanned = useCallback(
+  const addScannedNow = useCallback(
     (entry: BarcodeEntry) => {
       setCart((prev) => {
         // Same variant, no add-ons → one line with a bigger quantity, the
@@ -1324,6 +1384,10 @@ export default function PosPage() {
       notify("ok", `${entry.name} · ${money(entry.price)}`);
     },
     [notify, money],
+  );
+  const addScanned = useCallback(
+    (entry: BarcodeEntry) => gateAge(entry.menuItemId, entry.name, () => addScannedNow(entry), entry.minAge),
+    [gateAge, addScannedNow],
   );
 
   const handleScan = useCallback(
@@ -1365,6 +1429,7 @@ export default function PosPage() {
 
   const anyModalOpen =
     !!modalItem ||
+    !!agePrompt ||
     !!chargeOrder ||
     !!cashOrder ||
     !!payLinkOrder ||
@@ -1980,8 +2045,18 @@ export default function PosPage() {
               onChangeQty={changeQty}
               onClearCart={clearCart}
               onPlaceOrder={async (p) => {
+                // A basket restored from a draft skipped the prompt — ask now.
+                if (cartMinAge > ageVerified) {
+                  setAgePrompt({
+                    minAge: cartMinAge,
+                    productName: "This basket",
+                    run: () => void submitMutation.mutateAsync(p).catch(() => {}),
+                  });
+                  return;
+                }
                 await submitMutation.mutateAsync(p);
               }}
+              multiBuys={multiBuys}
               submitting={submitMutation.isPending}
               submitButtonLabel={editOrderId ? "Save changes" : undefined}
               existingDeliveryFee={editOrderDeliveryFee ?? undefined}
@@ -2034,6 +2109,23 @@ export default function PosPage() {
         onSave={(colours, size) => saveColours.mutate({ colours, size })}
         onClose={() => setColoursOpen(false)}
       />
+
+      {agePrompt && (
+        <AgeCheckModal
+          prompt={agePrompt}
+          onConfirm={() => {
+            const p = agePrompt;
+            setAgeVerified((v) => Math.max(v, p.minAge));
+            ageVerifiedRef.current = Math.max(ageVerifiedRef.current, p.minAge);
+            setAgePrompt(null);
+            p.run();
+          }}
+          onRefuse={() => {
+            setAgePrompt(null);
+            notify("warn", `Sale refused — ${agePrompt.productName} not added`);
+          }}
+        />
+      )}
 
       {/* Retail R1 — returns and camera scanning (shops only). */}
       {returnsOpen && selectedLocationId && (

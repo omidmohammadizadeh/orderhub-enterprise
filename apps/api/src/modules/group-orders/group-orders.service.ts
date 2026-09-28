@@ -337,6 +337,7 @@ export class GroupOrdersService {
       deliveryFee?: number;
       specialInstructions?: string;
       paymentMethod?: string;
+      ageConfirmed?: boolean;
       paymentStatus?: string;
       idempotencyKey?: string;
       hostRef?: string;
@@ -423,6 +424,7 @@ export class GroupOrdersService {
           .filter(Boolean)
           .join(" · "),
         paymentMethod: isCard ? "CARD" : "CASH",
+        ageConfirmed: input.ageConfirmed === true,
       },
       basket.brandId ?? undefined,
     );

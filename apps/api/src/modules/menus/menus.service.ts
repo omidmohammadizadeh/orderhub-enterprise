@@ -30,6 +30,7 @@ import {
   brandChannelRef,
   CHANNEL_VARIANT_PRESETS,
   type PricingVariant,
+  normaliseMinAge,
 } from "@orderhub/shared";
 import type {
   CreateMenuDto,
@@ -1589,6 +1590,7 @@ export class MenusService {
         calories: dto.calories,
         allergens: dto.allergens ?? [],
         dietaryTags: (dto as any).dietaryTags ?? [],
+        minAge: normaliseMinAge(dto.minAge),
         prepTime: (dto as any).prepTime ?? null,
         isInventoryTracked: (dto as any).isInventoryTracked ?? false,
         inventoryCount: (dto as any).inventoryCount ?? null,
@@ -1666,6 +1668,8 @@ export class MenusService {
         ...(dto.menuIds !== undefined && { menuIds: dto.menuIds }),
         ...(dto.brandIds !== undefined && { brandIds: dto.brandIds }),
         ...(dto.dietaryTags !== undefined && { dietaryTags: dto.dietaryTags }),
+        // null clears it — so `!== undefined`, not truthiness.
+        ...(dto.minAge !== undefined && { minAge: normaliseMinAge(dto.minAge) }),
         ...((dto as any).prepTime !== undefined && { prepTime: (dto as any).prepTime }),
         ...((dto as any).isInventoryTracked !== undefined && { isInventoryTracked: (dto as any).isInventoryTracked }),
         ...((dto as any).inventoryCount !== undefined && { inventoryCount: (dto as any).inventoryCount }),

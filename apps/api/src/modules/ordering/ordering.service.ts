@@ -14,6 +14,9 @@ import {
   zoneMode,
   type ZoneLike,
   deliveryZoneScope as sharedDeliveryZoneScope,
+  applyMultiBuys,
+  basketMinAge,
+  ageCheckNote,
 } from "@orderhub/shared";
 import { OrdersService } from "../orders/orders.service";
 import { PromoCodesService } from "../promo-codes/promo-codes.service";
@@ -95,6 +98,9 @@ export interface CheckoutDto {
   promoCode?: string;
   /** Storefront "Send me offers by SMS" checkbox → SMS-marketing consent. */
   marketingConsent?: boolean;
+  /** Retail — the customer ticked "I'm 18 or over" (or 16). Required when the
+   *  basket holds an age-restricted product; ID is still checked on hand-over. */
+  ageConfirmed?: boolean;
   /**
    * Optional gratuity, in pounds. Goes to the RESTAURANT, not a courier —
    * it rides the order total into the brand's own Connect account like the
@@ -1057,6 +1063,14 @@ export class OrderingService {
       ["ALL", "NEW"],
       tz,
     );
+    // Retail — multi-buys ("3 for £2", meal deals). Several run at once;
+    // the shared engine prices them here, in the cart and at checkout.
+    const multiBuys = await this.marketing.resolveMultiBuys(
+      [menuBrandId],
+      "ONLINE",
+      ["ALL", "NEW"],
+      tz,
+    );
     const freeItemRaw = await this.marketing.resolveFreeItem(
       menuBrandId,
       ["ALL", "NEW"],
@@ -1115,6 +1129,7 @@ export class OrderingService {
       ...(bogo?.triggerItemIds ?? []),
       ...(freeItem?.freeItemIds ?? []),
       ...Object.keys(itemPromos ?? {}),
+      ...multiBuys.flatMap((d) => [...d.itemIds, ...d.slots.flatMap((sl) => sl.itemIds)]),
     ]);
     const remapIds = (ids: string[]): string[] =>
       Array.from(
@@ -1124,6 +1139,10 @@ export class OrderingService {
       );
     if (bogo) bogo.triggerItemIds = remapIds(bogo.triggerItemIds);
     if (freeItem) freeItem.freeItemIds = remapIds(freeItem.freeItemIds);
+    for (const d of multiBuys) {
+      d.itemIds = remapIds(d.itemIds);
+      d.slots = d.slots.map((sl) => ({ ...sl, itemIds: remapIds(sl.itemIds) }));
+    }
     const itemPromosAnchored: Record<string, any> = {};
     for (const [id, v] of Object.entries(itemPromos ?? {})) {
       const served = anchor.get(id);
@@ -1168,6 +1187,7 @@ export class OrderingService {
       bogo,
       freeDelivery,
       freeItem,
+      multiBuys,
       whatsapp,
       location: dedupeLogo(locationView, brandView),
       brand: brandView,
@@ -1630,9 +1650,10 @@ export class OrderingService {
     // The browser's unitPrice / subtotal / discount are no longer trusted —
     // see checkout-pricing.ts for how an honest basket prices identically.
     const served = await this.getStorefrontBySlug(slug, brandIdOverride, "ONLINE");
+    const pricing = buildPricingContext(served);
     let basket: ReturnType<typeof priceBasket>;
     try {
-      basket = priceBasket(buildPricingContext(served), dto.items as any);
+      basket = priceBasket(pricing, dto.items as any);
     } catch (err) {
       if (err instanceof BasketPriceError) {
         this.logger.warn(`Checkout refused for slug=${slug}: ${err.message}`);
@@ -1642,6 +1663,28 @@ export class OrderingService {
     }
     const serverSubtotal = basket.subtotal;
     if (shop) await this.assertShopBasket(location, dto, serverSubtotal);
+
+    // Retail — Challenge 25. An age-restricted product can only be ordered
+    // by a customer who says they're old enough, and the order carries an ID
+    // CHECK note so whoever hands it over checks photo ID.
+    const minAge = basketMinAge(dto.items.map((i) => pricing.items.get(i.menuItemId)));
+    if (minAge && dto.ageConfirmed !== true) {
+      throw new BadRequestException(
+        `Your basket has items you must be ${minAge} or over to buy. Please confirm your age to continue.`,
+      );
+    }
+
+    // Retail — multi-buys, on the server-priced lines. Taken off first; the
+    // campaign or promo code then applies to what's left.
+    const multiBuy = applyMultiBuys(
+      basket.lines.map((l) => ({
+        menuItemId: dto.items[l.index]!.menuItemId,
+        unitPrice: l.unitPrice,
+        quantity: dto.items[l.index]!.quantity,
+      })),
+      (served as any).multiBuys ?? [],
+    );
+    const afterDeals = round2(Math.max(0, serverSubtotal - multiBuy.savings));
 
     const items = dto.items.map((item, i) => ({
       menuItemId: item.menuItemId,
@@ -1737,13 +1780,13 @@ export class OrderingService {
       if (
         appliedCampaign &&
         (appliedCampaign.minOrder == null ||
-          serverSubtotal >= appliedCampaign.minOrder)
+          afterDeals >= appliedCampaign.minOrder)
       ) {
         if (appliedCampaign.percentageOff != null) {
           campaignDiscount =
-            Math.round(serverSubtotal * appliedCampaign.percentageOff) / 100;
+            Math.round(afterDeals * appliedCampaign.percentageOff) / 100;
         } else if (appliedCampaign.amountOff != null) {
-          campaignDiscount = Math.min(serverSubtotal, appliedCampaign.amountOff);
+          campaignDiscount = Math.min(afterDeals, appliedCampaign.amountOff);
         }
         if (campaignDiscount > 0) {
           appliedDiscountCampaign = { id: appliedCampaign.id };
@@ -1766,10 +1809,10 @@ export class OrderingService {
         const promo: any = await this.promoCodes.validate(location.brand.tenantId, {
           code: dto.promoCode.trim(),
           locationId: location.id,
-          subtotal: serverSubtotal,
+          subtotal: afterDeals,
         });
         if (promo?.valid) {
-          promoDiscount = Math.min(serverSubtotal, Math.max(0, Number(promo.discountAmount ?? 0)));
+          promoDiscount = Math.min(afterDeals, Math.max(0, Number(promo.discountAmount ?? 0)));
           promoFreeDelivery = !!promo.freeDelivery;
         }
       } catch (err) {
@@ -1891,7 +1934,8 @@ export class OrderingService {
     }
     // Campaign and promo don't stack — the better one applies, as on the
     // storefront. Both computed here; the browser's `discount` is ignored.
-    const serverDiscount = round2(Math.max(promoDiscount, campaignDiscount));
+    // Multi-buy savings stack underneath (they're shelf prices, not offers).
+    const serverDiscount = round2(multiBuy.savings + Math.max(promoDiscount, campaignDiscount));
     // Tax is never negative (nothing the storefront sends, today, anyway).
     const serverTax = round2(Math.max(0, Number(dto.taxAmount ?? 0) || 0));
     // Tip is customer-set, so it's an untrusted number that raises the
@@ -1944,7 +1988,10 @@ export class OrderingService {
         discount: serverDiscount,
         total: serverTotal,
         tipAmount: serverTip,
-        specialInstructions: dto.specialInstructions,
+        specialInstructions: minAge
+          ? [ageCheckNote(minAge), dto.specialInstructions?.trim()].filter(Boolean).join("\n")
+          : dto.specialInstructions,
+        ...(minAge ? { ageCheck: { minAge, method: "CUSTOMER_CONFIRMED" as const } } : {}),
         // Phase — thread the customer's chosen schedule through so the
         // order is actually saved as scheduled (was dropped here, which
         // made every scheduled storefront order show "ASAP").
@@ -1998,8 +2045,9 @@ export class OrderingService {
       customerAccountId: dto.customerAccountId ?? null,
       isNewCustomer,
       discountCampaignId: appliedDiscountCampaign?.id ?? null,
-      discountAmount: serverDiscount,
+      discountAmount: round2(serverDiscount - multiBuy.savings),
       freeDeliveryCampaignId: appliedFreeDeliveryCampaign?.campaignId ?? null,
+      multiBuys: multiBuy.applied.map((a) => ({ campaignId: a.dealId, discount: a.saving })),
     }).catch((err) =>
       this.logger.warn(
         `Campaign redemption recording failed for order ${order.id}: ${(err as Error).message}`,
@@ -2324,9 +2372,10 @@ export class OrderingService {
     discountCampaignId: string | null;
     discountAmount: number;
     freeDeliveryCampaignId: string | null;
+    multiBuys?: Array<{ campaignId: string; discount: number }>;
   }): Promise<void> {
     const orderTotal = Number(args.order.total ?? 0);
-    const targets: Array<{ campaignId: string; discount: number }> = [];
+    const targets: Array<{ campaignId: string; discount: number }> = [...(args.multiBuys ?? [])];
     if (args.discountCampaignId) {
       targets.push({
         campaignId: args.discountCampaignId,

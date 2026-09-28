@@ -235,6 +235,8 @@ export interface ImportProduct {
   name: string;
   category: string;
   description: string | null;
+  /** Challenge 25 from an "Age" column: 16 / 18, or undefined when blank. */
+  minAge?: 16 | 18;
   variants: ImportVariantRow[];
 }
 
@@ -281,7 +283,22 @@ const HEADER_ALIASES: Record<string, string> = {
   size: "size",
   colour: "colour",
   color: "colour",
+  age: "age",
+  minage: "age",
+  minimumage: "age",
+  agelimit: "age",
+  agerestriction: "age",
+  agerestricted: "age",
 };
+
+/** "18", "18+", "Yes", "Y" → 18; "16" → 16; blank or anything else → undefined. */
+export function parseImportAge(v: unknown): 16 | 18 | undefined {
+  const t = String(v ?? "").trim().toLowerCase();
+  if (!t) return undefined;
+  if (/^16\+?$/.test(t)) return 16;
+  if (/^18\+?$/.test(t) || t === "yes" || t === "y" || t === "true") return 18;
+  return undefined;
+}
 
 function headerKey(h: string): string | undefined {
   return HEADER_ALIASES[h.toLowerCase().replace(/[^a-z]/g, "")];
@@ -377,6 +394,8 @@ export function normalizeImportRows(
       };
       products.set(key, product);
     }
+    const age = parseImportAge(r.age);
+    if (age && (!product.minAge || age > product.minAge)) product.minAge = age;
     if (product.variants.some((v) => v.variantName.toLowerCase() === variantName.toLowerCase())) {
       errors.push({
         row,

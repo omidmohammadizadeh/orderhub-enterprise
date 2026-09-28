@@ -10,10 +10,21 @@ import {
   IsPositive,
   Min,
   IsIn,
+  MaxLength,
 } from "class-validator";
 import { Type } from "class-transformer";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import type { FulfillmentType, OrderSource } from "@orderhub/database";
+
+/** Retail — how the age of the buyer of a restricted product was checked. */
+export class OrderAgeCheckDto {
+  @ApiProperty({ enum: [16, 18] }) @IsIn([16, 18]) minAge!: number;
+  /** TILL_ID_CHECK: the cashier confirmed (Challenge 25). CUSTOMER_CONFIRMED:
+   *  an online customer said they're old enough; ID is checked on hand-over. */
+  @ApiProperty({ enum: ["TILL_ID_CHECK", "CUSTOMER_CONFIRMED"] })
+  @IsIn(["TILL_ID_CHECK", "CUSTOMER_CONFIRMED"])
+  method!: "TILL_ID_CHECK" | "CUSTOMER_CONFIRMED";
+}
 
 export class OrderModifierDto {
   @ApiProperty() @IsString() name!: string;
@@ -178,4 +189,10 @@ export class CreateOrderDto {
    *  SMS" box). true → opt the customer in; false → opt out. Undefined = not
    *  asked, leave marketing consent untouched. */
   @ApiPropertyOptional() @IsOptional() @IsBoolean() marketingConsent?: boolean;
+  /** Retail — Challenge 25 record for an order with age-restricted products. */
+  @ApiPropertyOptional({ type: OrderAgeCheckDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => OrderAgeCheckDto)
+  ageCheck?: OrderAgeCheckDto;
 }

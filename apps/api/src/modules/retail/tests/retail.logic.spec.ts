@@ -4,6 +4,7 @@ import {
   isValidGtin,
   normalizeBarcode,
   normalizeImportRows,
+  parseImportAge,
   parseMoney,
   parseReceiptScan,
   priceReturn,
@@ -158,6 +159,16 @@ describe("returns", () => {
 });
 
 describe("spreadsheet import", () => {
+  it("reads an Age column as a Challenge 25 restriction", () => {
+    expect([parseImportAge("18"), parseImportAge("18+"), parseImportAge("Yes"), parseImportAge("16")]).toEqual([18, 18, 18, 16]);
+    expect([parseImportAge(""), parseImportAge("no"), parseImportAge("21")]).toEqual([undefined, undefined, undefined]);
+    const { products } = normalizeImportRows([
+      { Name: "Lager 4x440ml", Price: "5.50", "Age restriction": "18+" },
+      { Name: "Crisps", Price: "1.00", Age: "" },
+    ]);
+    expect(products.map((p) => p.minAge)).toEqual([18, undefined]);
+  });
+
   it("reads common header spellings and money formats", () => {
     const { products, errors } = normalizeImportRows([
       { "Product Name": "Coke 330ml", "Selling Price (£)": "£1.25", EAN: "5000112637922", Qty: "24", Department: "Drinks" },

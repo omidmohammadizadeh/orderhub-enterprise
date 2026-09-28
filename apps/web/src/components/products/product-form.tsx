@@ -128,6 +128,8 @@ export function ProductForm({
   const [isAvailable, setIsAvailable] = useState(true);
   const [outOfStock, setOutOfStock] = useState(false);
   const [visibleToCustomers, setVisibleToCustomers] = useState(true);
+  // Challenge 25: "" = anyone, else the minimum age (16 / 18).
+  const [minAge, setMinAge] = useState<"" | "16" | "18">("");
   // Which service modes this product is sold in. All three on by default —
   // unticking one is the exception, not the setup step.
   const [availableCollection, setAvailableCollection] = useState(true);
@@ -198,6 +200,7 @@ export function ProductForm({
     setIsAvailable(existing.isAvailable);
     setOutOfStock(existing.outOfStock);
     setVisibleToCustomers(existing.visibleToCustomers);
+    setMinAge(existing.minAge === 16 || existing.minAge === 18 ? (String(existing.minAge) as "16" | "18") : "");
     // `!== false` rather than `?? true`: products saved before this existed
     // have the field absent, and they are sold everywhere.
     setAvailableCollection((existing as any).availableCollection !== false);
@@ -256,6 +259,7 @@ export function ProductForm({
         isAvailable,
         outOfStock,
         visibleToCustomers,
+        minAge: minAge ? Number(minAge) : null,
         availableCollection,
         availableDelivery,
         availableDineIn,
@@ -892,6 +896,26 @@ export function ProductForm({
                 onChange={setVisibleToCustomers}
               />
             </div>
+          </Card>
+
+          <Card className="p-5">
+            <label htmlFor="product-min-age" className="text-sm font-semibold text-zinc-900">
+              Age restriction
+            </label>
+            <p className="mt-1 mb-3 text-xs text-zinc-500">
+              Alcohol, tobacco, vapes and knives are 18+. The till asks staff to check ID (Challenge 25), and online
+              shoppers must confirm their age — the order is marked ID CHECK for hand-over.
+            </p>
+            <select
+              id="product-min-age"
+              value={minAge}
+              onChange={(e) => setMinAge(e.target.value as "" | "16" | "18")}
+              className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+            >
+              <option value="">No restriction</option>
+              <option value="16">16 and over</option>
+              <option value="18">18 and over</option>
+            </select>
           </Card>
 
           <Card title="How it can be ordered">

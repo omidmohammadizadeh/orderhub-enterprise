@@ -1057,6 +1057,10 @@ model MenuItem {
   dietary             Json      @default("[]")
   calories            Int?
   prepTime            Int?
+  // Retail — age-restricted product (Challenge 25): null = anyone, else 16
+  // or 18. The till asks for ID, the storefront asks for confirmation and
+  // online orders carry an ID CHECK note. See @orderhub/shared age-check.
+  minAge              Int?
   metadata            Json      @default("{}")
 
   // ── Multi-SKU pricing ──────────────────────────────────────────────────
@@ -1832,6 +1836,9 @@ enum CampaignType {
   FREE_ITEM
   FREE_DELIVERY
   HAPPY_HOUR
+  // "3 for £2" / "buy 3, cheapest free" / meal deal. Config on
+  // metadata.multiBuy; pricing in @orderhub/shared multi-buy.
+  MULTI_BUY
 }
 
 enum CampaignStatus {
@@ -4427,7 +4434,7 @@ enum ProviderCategory {
   PAYMENT
 }
 
-// ── AI Video Studio ────────────────────���─────────────────────────────────────
+// ── AI Video Studio ──────────────────────────────────────────────────────────
 // Paid add-on: merchants generate short marketing videos from a product photo
 // + description via an AI model (Replicate). Monetised with credits — an add-on
 // subscription grants a monthly allowance (resets each period) and extra videos
