@@ -10,7 +10,9 @@ import { STARTER_TEMPLATES } from "../starter-templates";
 
 const TENANT = "t1";
 
-function makeService(opts: { contract?: any; template?: any } = {}) {
+function makeService(
+  opts: { contract?: any; template?: any; checkoutResult?: any } = {},
+) {
   const contracts: any[] = [];
   const events: any[] = [];
   const setPlanCalls: any[] = [];
@@ -21,9 +23,9 @@ function makeService(opts: { contract?: any; template?: any } = {}) {
   svc.config = { get: () => "https://app.example.com" };
   svc.email = { send: async () => ({ id: "e1" }) };
   svc.subscriptions = {
-    setPlan: async (...args: any[]) => {
+    checkoutForContract: async (...args: any[]) => {
       setPlanCalls.push(args);
-      return { checkoutUrl: "https://checkout.stripe.com/x" };
+      return opts.checkoutResult ?? { checkoutUrl: "https://checkout.stripe.com/x" };
     },
   };
   svc.prisma = {
@@ -241,6 +243,24 @@ describe("subscribe button", () => {
     expect(tenantId).toBe(TENANT);
     expect(locationId).toBe("loc1");
     expect(amount).toBe(4900);
+  });
+
+  it("sends the signer back to the contract page if they leave Checkout", async () => {
+    const { svc, setPlanCalls } = makeService({ contract: signedContract() });
+    const res = await svc.startSubscription("tok");
+    expect(res.checkoutUrl).toBe("https://checkout.stripe.com/x");
+    expect(setPlanCalls[0][4]).toBe("https://app.example.com/contract/tok");
+  });
+
+  it("reports an already-paying shop instead of an empty checkout", async () => {
+    const { svc } = makeService({
+      contract: signedContract(),
+      checkoutResult: { checkoutUrl: null, alreadyActive: true },
+    });
+    await expect(svc.startSubscription("tok")).resolves.toEqual({
+      checkoutUrl: null,
+      alreadyActive: true,
+    });
   });
 
   it("refuses before the contract is signed", async () => {
@@ -627,7 +647,7 @@ describe("the SHIPPED agreement renders end to end", () => {
   it("fills the subscription and the notice period", async () => {
     const body = await create({});
     expect(body).toContain("£49.00 per month");
-    expect(body).toMatch(/one month's written notice/i);
+    expect(body).toMatch(/30 days' written notice/i);
   });
 });
 

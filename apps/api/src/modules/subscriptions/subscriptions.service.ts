@@ -209,6 +209,7 @@ export class SubscriptionsService {
     billingEmail?: string,
     userId?: string,
     role?: string,
+    urls?: { success: string; cancel: string },
   ) {
     await this.assertLocationAccess(tenantId, locationId, userId, role);
     if (!Number.isFinite(monthlyAmountPence) || monthlyAmountPence < 100) {
@@ -278,8 +279,12 @@ export class SubscriptionsService {
             mode: "subscription",
             customer: customer.id,
             line_items: [{ price: price.id, quantity: 1 }],
-            success_url: `${this.webBase()}/dashboard/subscription?status=success&location=${locationId}`,
-            cancel_url: `${this.webBase()}/dashboard/subscription?status=cancel&location=${locationId}`,
+            success_url:
+              urls?.success ??
+              `${this.webBase()}/dashboard/subscription?status=success&location=${locationId}`,
+            cancel_url:
+              urls?.cancel ??
+              `${this.webBase()}/dashboard/subscription?status=cancel&location=${locationId}`,
             metadata: { tenantId, locationId },
             subscription_data: { metadata: { tenantId, locationId } },
             // Smart retries + receipt emails handled on Stripe side.
@@ -566,6 +571,117 @@ export class SubscriptionsService {
       if (err instanceof BadRequestException) throw err;
       this.logger.error(
         `Shared-link checkout failed for ${locationId}: ${err.message}`,
+      );
+      throw new BadRequestException(`Stripe error: ${err.message}`);
+    }
+  }
+
+  /**
+   * The contract page's "Subscribe" button. Unlike setPlan this is safe to
+   * press twice: a second press must land on Stripe Checkout again, not
+   * re-price whatever subscription the first press left behind (setPlan's
+   * "already have a sub" branch swaps the price and returns no checkout URL,
+   * which the signer saw as "Couldn't start the subscription").
+   *
+   * Only ever called with values read off a signed contract row.
+   */
+  async checkoutForContract(
+    tenantId: string,
+    locationId: string,
+    monthlyAmountPence: number,
+    billingEmail: string | undefined,
+    contractUrl: string,
+  ): Promise<{ checkoutUrl: string | null; alreadyActive?: boolean }> {
+    const sub = await (this.prisma as any).merchantSubscription.findFirst({
+      where: { tenantId, locationId },
+    });
+    if (!sub) {
+      const created: any = await this.setPlan(
+        tenantId,
+        locationId,
+        monthlyAmountPence,
+        billingEmail,
+        undefined,
+        "PLATFORM_ADMIN",
+        { success: `${this.webBase()}/subscribe/done`, cancel: contractUrl },
+      );
+      return { checkoutUrl: created.checkoutUrl ?? null };
+    }
+
+    // Already paying — never send them through Checkout again, that would
+    // start a second subscription and bill them twice.
+    if (sub.status === "active" || sub.status === "trialing") {
+      return { checkoutUrl: null, alreadyActive: true };
+    }
+
+    if (!this.stripe) {
+      return {
+        checkoutUrl: `${this.webBase()}/dashboard/subscription?status=mock`,
+      };
+    }
+
+    const location = await this.prisma.location.findFirst({
+      where: { id: locationId, brand: { tenantId } },
+      select: { id: true, name: true, country: true, currency: true },
+    });
+    if (!location) throw new NotFoundException("Location not found");
+
+    try {
+      let customerId: string | null = sub.stripeCustomerId ?? null;
+      if (!customerId || customerId.startsWith("mock_")) {
+        const customer = await this.stripe.customers.create({
+          name: location.name,
+          email: billingEmail || undefined,
+          metadata: { tenantId, locationId },
+        });
+        customerId = customer.id;
+      }
+
+      // Reuse the existing Price when the amount is unchanged; otherwise the
+      // contract's amount wins, in the currency the row was opened in.
+      let priceId: string | null = sub.stripePriceId ?? null;
+      if (
+        !priceId ||
+        priceId.startsWith("mock_") ||
+        sub.monthlyAmountPence !== monthlyAmountPence
+      ) {
+        const price = await this.stripe.prices.create({
+          unit_amount: monthlyAmountPence,
+          currency: String(
+            sub.currency ?? subscriptionCurrency(location),
+          ).toLowerCase(),
+          recurring: { interval: "month" },
+          product_data: { name: `OrderHub subscription — ${location.name}` },
+          metadata: { tenantId, locationId },
+        });
+        priceId = price.id;
+      }
+
+      const session = await this.stripe.checkout.sessions.create({
+        mode: "subscription",
+        customer: customerId,
+        line_items: [{ price: priceId, quantity: 1 }],
+        success_url: `${this.webBase()}/subscribe/done`,
+        cancel_url: contractUrl,
+        metadata: { tenantId, locationId, via: "contract" },
+        subscription_data: { metadata: { tenantId, locationId } },
+        billing_address_collection: "auto",
+        customer_update: { address: "auto", name: "auto" },
+      });
+
+      await (this.prisma as any).merchantSubscription.update({
+        where: { id: sub.id },
+        data: {
+          stripeCustomerId: customerId,
+          stripePriceId: priceId,
+          stripeCheckoutId: session.id,
+          monthlyAmountPence,
+        },
+      });
+      return { checkoutUrl: session.url };
+    } catch (err: any) {
+      this.logger.error(
+        `Contract checkout failed for ${locationId}: ${err.message}`,
       );
       throw new BadRequestException(`Stripe error: ${err.message}`);
     }

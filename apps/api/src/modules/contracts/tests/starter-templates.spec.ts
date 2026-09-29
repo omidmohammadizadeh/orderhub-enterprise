@@ -185,10 +185,10 @@ describe("optional fee clauses in the shipped agreement", () => {
 describe("the shipped agreement covers what a client will ask about", () => {
   const saas = STARTER_TEMPLATES.find((t) => t.key === "saas-agreement")!;
 
-  it("states a ONE MONTH notice period", () => {
+  it("states a 30-day notice period", () => {
     // The single term a client checks first, and the one most likely to be
     // argued about later if it is vague.
-    expect(saas.bodyHtml).toMatch(/one month's written notice/i);
+    expect(saas.bodyHtml).toMatch(/30 days' written notice/i);
   });
 
   it("keeps the service running through the notice period", () => {
