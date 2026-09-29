@@ -50,7 +50,7 @@ const SAAS_AGREEMENT = `
 
 <p>1.1 We licence you to use the Order Hub platform (the "Platform") to take, manage and fulfil food and drink orders at your premises, on the terms set out below.</p>
 
-<p>1.2 This Agreement begins on the date above and continues monthly until either party ends it under clause 10.</p>
+<p>1.2 This Agreement begins on the date above and continues on a rolling monthly basis until either party ends it under clause 10. There is no minimum term.</p>
 
 <p>1.3 Nothing here makes either of us the other's partner, agent or employer. You run your business; we provide software to it.</p>
 
@@ -58,7 +58,7 @@ const SAAS_AGREEMENT = `
 
 <p>2.1 <strong>Order management.</strong> A single dashboard that receives, displays and tracks orders from every channel you connect, with real-time updates to your staff.</p>
 
-<p>2.2 <strong>Marketplace integrations.</strong> Connections to third-party ordering platforms including Uber Eats, Deliveroo, Just Eat and others we support from time to time, so their orders arrive in the same place as your own.</p>
+<p>2.2 <strong>Marketplace integrations.</strong> Connections to third-party ordering platforms including Uber Eats, Deliveroo, Just Eat and others we support from time to time, so their orders arrive in the same place as your own. These integrations are included in the subscription under clause 3.1; we charge no setup, connection, integration or per-order fee for them.</p>
 
 <p>2.3 <strong>Your own ordering channels.</strong> A branded online ordering storefront, optionally on your own domain; QR-code ordering at table; WhatsApp ordering; and a kiosk mode.</p>
 
@@ -80,7 +80,7 @@ const SAAS_AGREEMENT = `
 
 <h2>3. What it costs</h2>
 
-<p>3.1 <strong>Subscription.</strong> You will pay {{amount}} per month{{#locationWord}} for {{locationWord}}{{/locationWord}}, in advance, by continuous card authority. The first payment is taken when you activate your subscription and monthly thereafter on the same date.</p>
+<p>3.1 <strong>Subscription.</strong> You will pay {{amount}} per month{{#locationWord}} for {{locationWord}}{{/locationWord}}, in advance, by continuous card authority. The first payment is taken when you activate your subscription and monthly thereafter on the same date. There is no setup, onboarding, installation or integration fee, and no other mandatory subscription charge.</p>
 
 {{#commission}}
 <p>3.2 <strong>Order commission.</strong> In addition to the subscription, we charge commission of {{commission}} of the value of each order taken through your own ordering channels on the Platform &mdash; the online ordering website we design, build and host for you, and orders you take yourself through the Platform, such as the till, kiosk, phone line or your own app. Commission on card orders is deducted automatically from settlement before payout. Commission on cash orders accrues in the same way and is collected in arrears. Commission is calculated on the order value excluding delivery charges, tips and VAT.</p>
@@ -89,7 +89,7 @@ const SAAS_AGREEMENT = `
 {{/commission}}
 
 {{#serviceCharge}}
-<p>3.3 <strong>Customer service charge.</strong> A service charge of {{serviceCharge}} per order is added to the customer's total at checkout and shown to them before they pay. This charge is collected on your behalf and is retained by us as part of the fees for the Platform. It is not part of your revenue and is not commission on your sales.</p>
+<p>3.3 <strong>Customer service charge.</strong> A service charge of {{serviceCharge}} per order is added to the customer's total at checkout and shown to them before they pay. This charge is paid by the customer and is retained by us as part of the fees for the Platform. It is not part of your revenue and is not commission on your sales. It is never deducted from your sales, taken from your payouts or invoiced to you separately, and it is not added to orders you take in person at your premises.</p>
 {{/serviceCharge}}
 
 <p>3.4 <strong>Messaging.</strong> SMS is prepaid. You top up a messaging balance and we deduct the published rate per message segment sent. Unused balance is not refundable on termination but remains usable until then.</p>
@@ -98,11 +98,13 @@ const SAAS_AGREEMENT = `
 
 <p>3.6 <strong>Payment processing.</strong> Card processing fees are charged by our payment partner at their published rates and are separate from our fees.</p>
 
-<p>3.7 <strong>Price changes.</strong> We may change our fees on 30 days' written notice. If you do not accept a change you may terminate under clause 10.4 before it takes effect.</p>
+<p>3.7 <strong>Price changes.</strong> We may change our fees only by giving you at least 30 days' written notice. If you do not accept a change you may terminate under clause 10.4 before it takes effect, and the change will not apply to you.</p>
 
 <p>3.8 <strong>Late payment.</strong> If a payment fails we will retry and notify you. If an amount remains unpaid 14 days after it fell due we may suspend the Platform under clause 10.5. Overdue sums carry interest under the Late Payment of Commercial Debts (Interest) Act 1998.</p>
 
 <p>3.9 All fees are exclusive of VAT, which is charged at the prevailing rate.</p>
+
+<p>3.10 <strong>No other charges.</strong> The fees set out in this clause 3 are the only charges we will apply to your account. We will not add any other fee, commission or charge unless you have agreed to it in writing.</p>
 
 <h2>4. Terms of use</h2>
 
@@ -172,9 +174,9 @@ const SAAS_AGREEMENT = `
 
 <h2>10. Term and ending this Agreement</h2>
 
-<p>10.1 <strong>Notice period.</strong> Either party may end this Agreement by giving <strong>one month's written notice</strong>, expiring at the end of a billing month. Notice by email to the address each party has given in this Agreement is valid written notice.</p>
+<p>10.1 <strong>Notice period.</strong> This is a rolling monthly contract. Either party may end it at any time by giving <strong>30 days' written notice</strong>. Notice by email to the address each party has given in this Agreement is valid written notice.</p>
 
-<p>10.2 The subscription remains payable in full for the notice period, and the Platform remains available to you throughout it.</p>
+<p>10.2 <strong>No early termination fee.</strong> There is no minimum term and no early termination fee, cancellation fee or exit charge. The subscription remains payable for the 30-day notice period only, and the Platform remains available to you throughout it.</p>
 
 <p>10.3 We do not refund subscription paid for the current month if you cancel part-way through it.</p>
 
