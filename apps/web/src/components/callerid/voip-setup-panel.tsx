@@ -213,6 +213,36 @@ export function VoipSetupPanel({ locationId }: { locationId: string | null }) {
               rings. A different phone app will spell it differently (check its own help for
               the caller-number macro) and everything else stays the same.
             </p>
+
+            {/* These three are not decoration. Two of them put a caller on the
+                till who is not ringing, which is the exact fault this whole
+                feature was written to avoid. */}
+            <div className="rounded-md border border-amber-200 bg-amber-50 p-2.5 text-[11px] text-amber-900">
+              <strong className="flex items-center gap-1.5">
+                <AlertTriangle aria-hidden="true" className="h-3.5 w-3.5" />
+                Set these three in the same panel, or the till shows callers who aren&apos;t
+                calling
+              </strong>
+              <ul className="mt-1.5 list-disc space-y-1 pl-4">
+                <li>
+                  <strong>Pop up when the incoming call is RINGING</strong> — not &ldquo;when
+                  answered&rdquo;. Answered means the card lands after somebody has already
+                  picked up.
+                </li>
+                <li>
+                  <strong>&ldquo;Also when placing outbound calls&rdquo; must stay OFF.</strong>{" "}
+                  With it on, every time staff ring a customer that customer is pushed onto
+                  every till as though they were calling in. It is off by default — leave it.
+                </li>
+                <li>
+                  <strong>&ldquo;For internal calls&rdquo; off</strong>, and set the number
+                  format to <strong>E164</strong> (the <code className="rounded bg-amber-100 px-1">+44…</code> form) for a UK shop.
+                </li>
+              </ul>
+              <p className="mt-1.5">
+                Needs 8x8 Work for Desktop v7.10 or newer.
+              </p>
+            </div>
             <p className="text-[11px] text-zinc-500">
               Two things to know before you use this. The key travels in the address rather
               than a header, because a settings box that only takes a URL cannot send one —
@@ -223,8 +253,9 @@ export function VoipSetupPanel({ locationId }: { locationId: string | null }) {
             </p>
             <p className="text-[11px] text-zinc-500">
               It pops from the <strong>desk app of whoever is signed in</strong>, so it only
-              works while that app is running. A webhook (Route A) doesn&apos;t care what is
-              switched on; prefer it when the provider offers one.
+              works while that computer is on and that app is running — 8x8 documents this
+              for the DESKTOP app only, not the mobile one. A webhook (Route A) doesn&apos;t
+              care what is switched on; prefer it when the provider offers one.
             </p>
           </>
         ) : null}
