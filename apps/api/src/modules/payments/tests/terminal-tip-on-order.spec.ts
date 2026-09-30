@@ -36,6 +36,27 @@ function makeService(order: any) {
   return { svc, updates };
 }
 
+describe("an order settled on a card machine", () => {
+  it("stops calling itself cash", async () => {
+    const { svc } = makeService({ tipAmount: 0, metadata: {} });
+    svc.prisma.order.findUnique = jest.fn().mockResolvedValue({ paymentMethod: "CASH" });
+    await svc.markPaidOnCardMachine({ orderId: "ord-1" });
+    expect(svc.prisma.order.update).toHaveBeenCalledWith({
+      where: { id: "ord-1" },
+      data: { paymentMethod: "CARD_TERMINAL" },
+    });
+  });
+
+  it("leaves an order that already knows how it was paid alone", async () => {
+    for (const paymentMethod of ["CARD", "PAYMENT_LINK", "QR_CODE"]) {
+      const { svc } = makeService({ tipAmount: 0, metadata: {} });
+      svc.prisma.order.findUnique = jest.fn().mockResolvedValue({ paymentMethod });
+      await svc.markPaidOnCardMachine({ orderId: "ord-1" });
+      expect(svc.prisma.order.update).not.toHaveBeenCalled();
+    }
+  });
+});
+
 describe("a tip taken on the card machine", () => {
   const order = { tipAmount: 0, metadata: {} };
 

@@ -1,6 +1,6 @@
 /**
- * Put tips taken on a card machine onto the orders that never learned about
- * them.
+ * Repair what an order forgot about the card machine that paid it: the tip
+ * left on the terminal, and the fact that it was a card at all.
  *
  * Until 90fb2f12, a tip added by the customer ON the terminal was written to
  * the Payment row and stopped there — the order, the drawer and the printed
@@ -112,6 +112,53 @@ async function main() {
       ? `\nDone — ${changed} order(s) now show the tip left on the card machine.`
       : `\nDry run only. Re-run with APPLY=true to write these changes.`,
   );
+
+  await fixCashLabels();
+}
+
+/**
+ * A dine-in tab opens at the till as CASH and is often settled later on a card
+ * machine. Nothing moved it off CASH, so the board showed a green "Cash" chip
+ * on a table paid by card — and a refund against it showed no badge at all,
+ * because the cash chip has no refunded state.
+ */
+async function fixCashLabels() {
+  const orders = await (prisma as any).order.findMany({
+    where: {
+      paymentMethod: "CASH",
+      ...(ONLY_ORDER ? { id: ONLY_ORDER } : {}),
+      payments: {
+        some: { method: "CARD", status: { in: ["SUCCEEDED", "REFUNDED"] } },
+      },
+    },
+    select: {
+      id: true,
+      displayId: true,
+      total: true,
+      payments: {
+        where: { method: "CARD", status: { in: ["SUCCEEDED", "REFUNDED"] } },
+        select: { provider: true, amount: true },
+      },
+    },
+  });
+  if (!orders.length) {
+    console.log("\nNo order is calling a card payment cash.");
+    return;
+  }
+
+  console.log(`\n${orders.length} order(s) paid by card but still labelled CASH${APPLY ? "" : " — DRY RUN"}`);
+  for (const o of orders) {
+    const paid = o.payments.reduce((s: number, p: any) => s + minor(p.amount), 0);
+    console.log(
+      `  ${o.displayId ?? o.id.slice(-8)} (${o.id}) — ${money(paid)} on ${o.payments
+        .map((p: any) => p.provider)
+        .join(", ")} against a ${money(minor(o.total))} bill → CARD_TERMINAL`,
+    );
+    if (APPLY) {
+      await (prisma as any).order.update({ where: { id: o.id }, data: { paymentMethod: "CARD_TERMINAL" } });
+    }
+  }
+  if (!APPLY) console.log("Dry run only. Re-run with APPLY=true to write these changes.");
 }
 
 main()

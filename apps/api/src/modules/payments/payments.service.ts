@@ -1110,6 +1110,38 @@ export class PaymentsService {
     }
   }
 
+  /**
+   * An order paid on a card machine must stop calling itself cash.
+   *
+   * A dine-in tab is opened at the till as CASH and only later paid on a
+   * terminal — at the counter, or by the waiter at the table. Nothing was
+   * moving the order off CASH, so the board showed a green "Cash" chip on a
+   * table settled by card (Dojo certification, 2026-09-30), and a refund on it
+   * showed no badge at all, because the cash chip has no refunded state.
+   *
+   * Only ever CASH → CARD_TERMINAL, and only once the money is real: an order
+   * that was placed as a card order already says so, and one still waiting to
+   * be paid keeps whatever the till chose.
+   */
+  private async markPaidOnCardMachine(payment: any): Promise<void> {
+    try {
+      const order = await this.prisma.order.findUnique({
+        where: { id: payment.orderId },
+        select: { paymentMethod: true },
+      });
+      // No order, no correction — never write to a row we couldn't read.
+      if (!order) return;
+      if (order.paymentMethod && order.paymentMethod !== "CASH") return;
+      await this.prisma.order.update({
+        where: { id: payment.orderId },
+        data: { paymentMethod: "CARD_TERMINAL" as any },
+      });
+      this.logger.log(`Order ${payment.orderId} was settled on a card machine — no longer marked cash`);
+    } catch (err: any) {
+      this.logger.error(`Couldn't correct the payment method on order ${payment.orderId}: ${err?.message}`);
+    }
+  }
+
   async settleCardPresentPayment(payment: any, ref?: string): Promise<boolean> {
     if (payment.status === PaymentRecordStatus.SUCCEEDED) return false; // idempotent
 
@@ -1138,10 +1170,12 @@ export class PaymentsService {
     // order only flips once the banked parts actually cover the total.
     if ((payment.metadata as any)?.split) {
       await this.applyTerminalTip(payment);
+      await this.markPaidOnCardMachine(payment);
       await this.settleSplitPart(payment, pi);
       return true;
     }
     await this.applyTerminalTip(payment);
+    await this.markPaidOnCardMachine(payment);
 
     await this.prisma.$transaction([
       (this.prisma as any).payment.update({
