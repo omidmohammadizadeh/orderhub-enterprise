@@ -49,7 +49,6 @@ interface DispatchArgs {
   orderId: string;
   tenantId: string;
   userId?: string | null;
-  isAdmin: boolean;
 }
 
 /** JET's own bounds on deliveryDetails.preparationDuration. */
@@ -375,9 +374,14 @@ export class JetGoDispatchService {
       throw new BadRequestException("JET Go returned an estimate with no requestId.");
     }
 
+    // The fee comes out BEFORE the courier exists. Once JET has the delivery a
+    // courier is moving and the money is spent, so a wallet that cannot cover
+    // the fee refuses here rather than leaving us to chase it afterwards.
+    // debitForDispatch throws when the balance is short.
     const feeMinor = this.wallet.dispatchFeeMinor();
+    const waived = await this.wallet.isDispatchChargeWaived(order.locationId);
     let charged = false;
-    if (!args.isAdmin) {
+    if (!waived) {
       await this.wallet.debitForDispatch({
         tenantId: args.tenantId,
         locationId: order.locationId,
@@ -443,12 +447,12 @@ export class JetGoDispatchService {
         requestId: estimate.requestId,
         courierFeeMinor: estimate.dynamicDeliveryFee ?? null,
         feeRule: estimate.dynamicDeliveryFeeRule ?? null,
-        walletFeeMinor: args.isAdmin ? 0 : feeMinor,
+        walletFeeMinor: waived ? 0 : feeMinor,
       },
     });
 
     this.logger.log(
-      `JET Go dispatch OK order=${order.id} requestId=${estimate.requestId} courierFee=${estimate.dynamicDeliveryFee}p fee=${args.isAdmin ? "0 (admin bypass)" : `${feeMinor}p`}`,
+      `JET Go dispatch OK order=${order.id} requestId=${estimate.requestId} courierFee=${estimate.dynamicDeliveryFee}p fee=${waived ? "0 (charge waived for this location)" : `${feeMinor}p`}`,
     );
 
     return {
@@ -459,8 +463,8 @@ export class JetGoDispatchService {
       courierFeeMinor: estimate.dynamicDeliveryFee ?? null,
       collectBy: estimate.estimatedEarliestCollectTime ?? estimate.targetCollectTime ?? null,
       deliverBy: estimate.estimatedEarliestDeliverTime ?? estimate.targetDeliverTime ?? null,
-      feeChargedMinor: args.isAdmin ? 0 : feeMinor,
-      adminBypass: args.isAdmin,
+      feeChargedMinor: waived ? 0 : feeMinor,
+      chargeWaived: waived,
       warnings,
     };
   }

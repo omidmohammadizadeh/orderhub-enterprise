@@ -66,6 +66,9 @@ function svcWith(opts: {
   };
   const wallet = {
     dispatchFeeMinor: jest.fn(() => 50),
+    // Charging is the default; the per-location waiver is what turns it off,
+    // not the caller's role.
+    isDispatchChargeWaived: jest.fn().mockResolvedValue(false),
     assertCanAffordDispatch: jest.fn().mockResolvedValue(undefined),
     debitForDispatch: jest.fn().mockResolvedValue({}),
     refundDispatch: jest.fn().mockResolvedValue(undefined),
@@ -111,7 +114,7 @@ describe("Stuart bulk dispatch", () => {
       createJob: reversedJob,
     });
 
-    await s.dispatchBulk({ orderIds: ["a", "b", "c"], user: admin, isAdmin: true });
+    await s.dispatchBulk({ orderIds: ["a", "b", "c"], user: admin });
 
     for (const w of writes) {
       expect(w.data.courierJobId).toBe("555");
@@ -130,7 +133,7 @@ describe("Stuart bulk dispatch", () => {
       createJob: reversedJob,
     });
 
-    await s.dispatchBulk({ orderIds: ["a", "b"], user: admin, isAdmin: true });
+    await s.dispatchBulk({ orderIds: ["a", "b"], user: admin });
 
     const payload = client.createJob.mock.calls[0][1];
     expect(payload.job.pickups).toHaveLength(1);
@@ -139,13 +142,39 @@ describe("Stuart bulk dispatch", () => {
     expect(new Set(refs).size).toBe(2);
   });
 
+  it("runs the whole multi-drop free when the location is waived", async () => {
+    // The testing switch, so a sandbox run can be driven end to end without
+    // funding a wallet. It waives every leg, not just the first.
+    const { s, wallet } = svcWith({
+      orders: [order("a"), order("b"), order("c")],
+      createJob: reversedJob,
+    });
+    wallet.isDispatchChargeWaived.mockResolvedValue(true);
+
+    const res = await s.dispatchBulk({ orderIds: ["a", "b", "c"], user: manager });
+
+    expect(wallet.assertCanAffordDispatch).not.toHaveBeenCalled();
+    expect(wallet.debitForDispatch).not.toHaveBeenCalled();
+    expect(res.feeChargedMinor).toBe(0);
+    expect(res.chargeWaived).toBe(true);
+  });
+
+  it("asks about the waiver for the run's own shop", async () => {
+    const { s, wallet } = svcWith({
+      orders: [order("a"), order("b")],
+      createJob: reversedJob,
+    });
+    await s.dispatchBulk({ orderIds: ["a", "b"], user: manager });
+    expect(wallet.isDispatchChargeWaived).toHaveBeenCalledWith("loc-1");
+  });
+
   it("charges the fee once per order, after checking the whole run is affordable", async () => {
     const { s, wallet } = svcWith({
       orders: [order("a"), order("b"), order("c")],
       createJob: reversedJob,
     });
 
-    const res = await s.dispatchBulk({ orderIds: ["a", "b", "c"], user: manager, isAdmin: false });
+    const res = await s.dispatchBulk({ orderIds: ["a", "b", "c"], user: manager });
 
     expect(wallet.assertCanAffordDispatch).toHaveBeenCalledWith("t1", "loc-1", 150);
     expect(wallet.debitForDispatch).toHaveBeenCalledTimes(3);
@@ -161,7 +190,7 @@ describe("Stuart bulk dispatch", () => {
     });
 
     await expect(
-      s.dispatchBulk({ orderIds: ["a", "b"], user: manager, isAdmin: false }),
+      s.dispatchBulk({ orderIds: ["a", "b"], user: manager }),
     ).rejects.toThrow(/couldn't create the run/);
 
     expect(wallet.refundDispatch).toHaveBeenCalledTimes(2);
@@ -177,7 +206,7 @@ describe("Stuart bulk dispatch", () => {
       .mockRejectedValueOnce(new Error("Dispatch wallet balance is too low."));
 
     await expect(
-      s.dispatchBulk({ orderIds: ["a", "b", "c"], user: manager, isAdmin: false }),
+      s.dispatchBulk({ orderIds: ["a", "b", "c"], user: manager }),
     ).rejects.toThrow(/too low/);
 
     expect(wallet.refundDispatch).toHaveBeenCalledTimes(1);
@@ -189,7 +218,7 @@ describe("Stuart bulk dispatch", () => {
     const { s, client } = svcWith({ orders: ids.map((id) => order(id)) });
 
     await expect(
-      s.dispatchBulk({ orderIds: ids, user: admin, isAdmin: true }),
+      s.dispatchBulk({ orderIds: ids, user: admin }),
     ).rejects.toThrow(/up to 8/);
     expect(client.createJob).not.toHaveBeenCalled();
   });
@@ -200,7 +229,7 @@ describe("Stuart bulk dispatch", () => {
     });
 
     await expect(
-      s.dispatchBulk({ orderIds: ["a", "b"], user: admin, isAdmin: true }),
+      s.dispatchBulk({ orderIds: ["a", "b"], user: admin }),
     ).rejects.toThrow(/one shop/);
   });
 
@@ -210,7 +239,7 @@ describe("Stuart bulk dispatch", () => {
     });
 
     await expect(
-      s.dispatchBulk({ orderIds: ["a", "b"], user: manager, isAdmin: false }),
+      s.dispatchBulk({ orderIds: ["a", "b"], user: manager }),
     ).rejects.toThrow(/#B is already on a courier/);
     expect(wallet.debitForDispatch).not.toHaveBeenCalled();
   });
@@ -218,12 +247,12 @@ describe("Stuart bulk dispatch", () => {
   it("refuses a marketplace-rider order and one not yet accepted", async () => {
     const platform = svcWith({ orders: [order("a", { deliveryType: "PLATFORM" })] });
     await expect(
-      platform.s.dispatchBulk({ orderIds: ["a"], user: admin, isAdmin: true }),
+      platform.s.dispatchBulk({ orderIds: ["a"], user: admin }),
     ).rejects.toThrow(/marketplace's own rider/);
 
     const pending = svcWith({ orders: [order("a", { status: "PENDING" })] });
     await expect(
-      pending.s.dispatchBulk({ orderIds: ["a"], user: admin, isAdmin: true }),
+      pending.s.dispatchBulk({ orderIds: ["a"], user: admin }),
     ).rejects.toThrow(/only accepted, preparing or ready/);
   });
 
@@ -231,7 +260,7 @@ describe("Stuart bulk dispatch", () => {
     const { s } = svcWith({ orders: [order("a")], allowedLocations: ["loc-9"] });
 
     await expect(
-      s.dispatchBulk({ orderIds: ["a"], user: manager, isAdmin: false }),
+      s.dispatchBulk({ orderIds: ["a"], user: manager }),
     ).rejects.toThrow(/not in one of your locations|aren't in one of your locations/);
   });
 

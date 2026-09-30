@@ -219,7 +219,6 @@ export class JetGoController {
       orderId,
       tenantId: user.tenantId,
       userId: user.userId,
-      isAdmin: user.role === "PLATFORM_ADMIN",
     });
   }
 
