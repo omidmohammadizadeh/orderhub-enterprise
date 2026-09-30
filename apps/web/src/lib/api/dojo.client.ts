@@ -50,6 +50,10 @@ export type DojoTerminalRefundStatus =
       prompt?: string | null;
       done: boolean;
       failed: boolean;
+      /** The machine is asking us to check the signature — same as a sale. */
+      needsSignature?: boolean;
+      /** Expired session: Dojo never said whether the money went back. */
+      unconfirmed?: boolean;
       message?: string;
       full?: boolean;
       leftToRefund?: number;
@@ -138,4 +142,17 @@ export const dojoClient = {
 
   signature: (paymentIntentId: string, accepted: boolean) =>
     apiClient.post(`${base}/charge/signature`, { paymentIntentId, accepted }).then((r) => r.data),
+
+  refundSignature: (paymentIntentId: string, accepted: boolean) =>
+    apiClient.post(`${base}/charge/refund/signature`, { paymentIntentId, accepted }).then((r) => r.data),
+
+  // "The machine shows the refund went through" — for a session that expired
+  // without Dojo ever reporting an outcome.
+  recordUnconfirmedRefund: (paymentIntentId: string) =>
+    apiClient
+      .post<{ amount: number; full: boolean; leftToRefund: number; confirmedByDojo: boolean }>(
+        `${base}/charge/refund/record`,
+        { paymentIntentId },
+      )
+      .then((r) => r.data),
 };

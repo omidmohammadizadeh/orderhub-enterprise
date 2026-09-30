@@ -252,6 +252,28 @@ export class DojoController {
     return this.dojo.terminalRefundStatus(user.tenantId, paymentIntentId);
   }
 
+  // A refund asks for a signature exactly as a sale does, and the machine waits
+  // for an answer either way. Its own route rather than a flag on
+  // `charge/signature`, because money going back is manager-tier.
+  @Post("charge/refund/signature")
+  @Roles(...DOJO_ADMIN_ROLES)
+  @ApiOperation({ summary: "Accept or reject the signature on a card-machine refund" })
+  refundSignature(
+    @Body() body: { paymentIntentId: string; accepted: boolean },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.dojo.respondToRefundSignature(user.tenantId, body.paymentIntentId, body.accepted === true);
+  }
+
+  // The refund session expired without the machine reporting an outcome: the
+  // operator read the machine and is telling us the money went back.
+  @Post("charge/refund/record")
+  @Roles(...DOJO_ADMIN_ROLES)
+  @ApiOperation({ summary: "Record a card-machine refund the machine never confirmed" })
+  recordUnconfirmedRefund(@Body() body: { paymentIntentId: string }, @CurrentUser() user: AuthenticatedUser) {
+    return this.dojo.recordUnconfirmedRefund(user.tenantId, body.paymentIntentId, user.userId);
+  }
+
   // ── Webhook ───────────────────────────────────────────────────────────────
 
   /**

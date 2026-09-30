@@ -13,6 +13,7 @@ import { PaymentsService } from "../payments.service";
 import {
   DojoApiClient,
   DojoApiError,
+  type DojoItemLine,
   DojoPaymentIntent,
   DojoTerminalSessionStatus,
   dojoKeyEnvironment,
@@ -496,10 +497,71 @@ export class DojoService {
    * card machine. Same split semantics as TerminalService.chargeOrder: the
    * ceiling is what's still OWED, and a part only settles itself.
    */
+  /**
+   * Split a whole-bill charge the way Dojo prints it.
+   *
+   * Their `amount` is the goods ONLY — "excluding tipsAmount,
+   * serviceChargeAmount and cashbackAmount" — so passing the order total there
+   * charges the right money and then prints the tip and service charge as if
+   * they were food. `itemLines` is what turns a bare total into a breakdown
+   * the customer can read.
+   *
+   * The arithmetic is defensive: if the parts don't reconcile with the total
+   * we've been asked to charge (legacy orders, odd discounts), we send the
+   * amount alone rather than a receipt that doesn't add up. The money taken is
+   * identical either way — only the printing differs.
+   */
+  private receiptBreakdown(
+    order: {
+      total: unknown;
+      tipAmount?: unknown;
+      serviceCharge?: unknown;
+      items?: Array<{ name: string; quantity: number; totalPrice: unknown; modifiers?: unknown; menuItemId?: string | null; id?: string }>;
+    },
+    amountMinor: number,
+    currencyCode: string,
+  ): { amountMinor?: number; tipsMinor?: number; serviceChargeMinor?: number; itemLines?: DojoItemLine[] } {
+    const pence = (v: unknown) => Math.round(Number(v ?? 0) * 100);
+    const tipsMinor = pence(order.tipAmount);
+    const serviceChargeMinor = pence(order.serviceCharge);
+    const goodsMinor = amountMinor - tipsMinor - serviceChargeMinor;
+    if (goodsMinor <= 0) return {};
+
+    const lines: DojoItemLine[] = (order.items ?? []).map((it) => {
+      const mods = Array.isArray(it.modifiers) ? (it.modifiers as any[]) : [];
+      const names = mods.map((m) => m?.name).filter((n): n is string => typeof n === "string" && !!n.trim());
+      return {
+        // Modifiers ride in the name: Dojo documents the request-side modifier
+        // shape nowhere, and "VEGETARIAN (10\", deep pan)" reads correctly on
+        // a receipt without inventing a field.
+        name: names.length ? `${it.name} (${names.join(", ")})` : it.name,
+        quantity: Math.max(1, Number(it.quantity ?? 1)),
+        plu: it.menuItemId ?? it.id,
+        amountTotal: { value: pence(it.totalPrice), currencyCode },
+      };
+    });
+    const linesMinor = lines.reduce((sum, l) => sum + l.amountTotal.value, 0);
+    // A breakdown that doesn't sum to the goods is worse than none.
+    const itemLines = lines.length && linesMinor === goodsMinor ? lines : undefined;
+
+    return {
+      amountMinor: goodsMinor,
+      ...(tipsMinor > 0 ? { tipsMinor } : {}),
+      ...(serviceChargeMinor > 0 ? { serviceChargeMinor } : {}),
+      ...(itemLines ? { itemLines } : {}),
+    };
+  }
+
   async chargeOrder(args: { tenantId: string; orderId: string; terminalId: string; amount?: number }) {
     const order = await this.prisma.order.findFirst({
       where: { id: args.orderId, tenantId: args.tenantId },
-      select: { id: true, tenantId: true, locationId: true, displayId: true, total: true, paymentStatus: true },
+      select: {
+        id: true, tenantId: true, locationId: true, displayId: true, total: true, paymentStatus: true,
+        // For the customer's receipt: Dojo prints the goods, the tip and the
+        // service charge as separate lines, and itemises from `items`.
+        tipAmount: true, serviceCharge: true,
+        items: { select: { name: true, quantity: true, totalPrice: true, modifiers: true, menuItemId: true, id: true } },
+      },
     });
     if (!order) throw new NotFoundException("Order not found");
     if (order.paymentStatus === "PAID") throw new BadRequestException("Order is already paid");
@@ -534,10 +596,17 @@ export class DojoService {
     // same amount points a NEW session at the SAME intent instead of minting
     // a fresh one per attempt.
     const reusable = await this.reusableIntent(order.id, charge, isSplit, client);
+    // Only a WHOLE bill can be itemised. One share of a split isn't a set of
+    // items — telling Dojo that £10 of a £30 bill bought the burger would put
+    // a lie on someone's receipt — so a split sends the bare amount.
+    const receipt = isSplit
+      ? {}
+      : this.receiptBreakdown(order as any, amountMinor, currency);
     const pi =
       reusable?.pi ??
       (await client.createPaymentIntent({
-        amountMinor,
+        ...receipt,
+        amountMinor: receipt.amountMinor ?? amountMinor,
         currencyCode: currency,
         reference: order.displayId ? `Order ${order.displayId}` : `Order ${order.id.slice(-8)}`,
         description: loc.name,
@@ -898,6 +967,11 @@ export class DojoService {
       data: {
         metadata: {
           ...(payment.metadata as any),
+          // Starting a fresh refund IS the operator's answer to an earlier
+          // unconfirmed one ("it didn't go back, do it again") — otherwise the
+          // panel would go on offering to record money that's now been given
+          // back by this session instead.
+          refundUnconfirmed: null,
           refundSession: {
             id: session.id,
             terminalId,
@@ -941,7 +1015,42 @@ export class DojoService {
         userId: pending.userId ?? undefined,
       });
       this.logger.log(`Dojo matched refund done: ${done.amount.toFixed(2)} on ${payment.providerChargeId}`);
-      return { ...base, done: true, failed: false, ...done };
+      return { ...base, done: true, failed: false, needsSignature: false, unconfirmed: false, ...done };
+    }
+
+    if (status === "Expired") {
+      // The same hole as an expired SALE, and it has to be handled the same way
+      // (Dojo certification, Philip Wells 2026-09-30): the session died without
+      // the machine ever reporting an outcome, and Dojo gives us no way to ask
+      // whether the money went back — a part refund doesn't move the intent off
+      // "Captured". So we say plainly that it can't be confirmed, and REMEMBER
+      // the attempt on the payment row: whoever looks at the machine can record
+      // it, or try again, and the note survives a page refresh because an
+      // unconfirmed refund is exactly the thing that must not quietly vanish.
+      await (this.prisma as any).payment.update({
+        where: { id: payment.id },
+        data: {
+          metadata: {
+            ...(payment.metadata as any),
+            refundSession: null,
+            refundUnconfirmed: { ...pending, expiredAt: new Date().toISOString() },
+          },
+        },
+      });
+      this.logger.warn(
+        `Dojo matched refund unconfirmed: ${(Number(pending.amountMinor) / 100).toFixed(2)} on ` +
+          `${payment.providerChargeId} (session ${pending.id} expired)`,
+      );
+      return {
+        ...base,
+        done: false,
+        failed: true,
+        unconfirmed: true,
+        needsSignature: false,
+        message:
+          "The card machine didn't confirm the refund. Check the machine: if it shows the refund went " +
+          "through, record it here; otherwise try again.",
+      };
     }
 
     if (status && FAILED_SESSION.has(status)) {
@@ -954,15 +1063,73 @@ export class DojoService {
         ...base,
         done: false,
         failed: true,
+        unconfirmed: false,
+        needsSignature: false,
         message:
           status === "Declined"
             ? "The card machine declined the refund. Try again, or use a different card."
-            : status === "Expired"
-              ? "The card machine timed out before the card was presented."
+            : status === "SignatureVerificationRejected"
+              ? "Signature rejected — no money went back."
               : "The refund was cancelled on the card machine.",
       };
     }
-    return { ...base, done: false, failed: false };
+    return {
+      ...base,
+      done: false,
+      failed: false,
+      unconfirmed: false,
+      // A refund can ask for a signature just like a sale does, and until this
+      // is answered the machine sits there waiting. Same prompt, same buttons.
+      needsSignature: status === "SignatureVerificationRequired",
+    };
+  }
+
+  /** Accept or reject the signature on a refund running at the machine. */
+  async respondToRefundSignature(tenantId: string, paymentIntentId: string, accepted: boolean) {
+    const { payment, cfg } = await this.loadDojoPayment(tenantId, paymentIntentId);
+    const sessionId = (payment.metadata as any)?.refundSession?.id as string | undefined;
+    if (!sessionId) throw new BadRequestException("No refund is running on a card machine for this payment");
+    await this.clientFor(cfg).respondToSignature(sessionId, accepted === true);
+    return { ok: true };
+  }
+
+  /**
+   * "The machine shows the refund went through" — write the books for a refund
+   * whose session expired unconfirmed.
+   *
+   * Asks Dojo one more time first: a terminal that reports late (the sandbox
+   * captured a signature-rejected SALE 90s after the session died, 2026-09-23)
+   * means the operator's eyes are the second source, not the only one. Either
+   * way it goes through recordRefund with the SESSION's note, so a late webhook
+   * or poll can't book the same money twice.
+   */
+  async recordUnconfirmedRefund(tenantId: string, paymentIntentId: string, userId?: string) {
+    const { payment, cfg } = await this.loadDojoPayment(tenantId, paymentIntentId);
+    const pending = (payment.metadata as any)?.refundUnconfirmed;
+    if (!pending?.id) throw new BadRequestException("There's no unconfirmed refund on this payment");
+
+    let confirmedByDojo = false;
+    try {
+      const session = await this.clientFor(cfg).getTerminalSession(pending.id);
+      confirmedByDojo = session?.status === "Captured" || session?.status === "SignatureVerificationAccepted";
+    } catch (err: any) {
+      this.logger.warn(`Dojo refund session re-check failed for ${pending.id}: ${err?.message}`);
+    }
+
+    // Clearing the flag on the row we hand to recordRefund means it goes out in
+    // the SAME write as the refund itself — a second update would be a second
+    // chance to lose refundedMinor to a race.
+    payment.metadata = { ...((payment.metadata as any) ?? {}), refundUnconfirmed: null };
+    const done = await this.recordRefund(payment, Number(pending.amountMinor), {
+      note: `Dojo terminal refund ${pending.id}`,
+      reason: pending.reason ?? (confirmedByDojo ? undefined : "Recorded from the card machine (Dojo never confirmed it)"),
+      userId: userId ?? pending.userId ?? undefined,
+    });
+    this.logger.log(
+      `Dojo refund recorded ${confirmedByDojo ? "after Dojo confirmed it late" : "manually"}: ` +
+        `${done.amount.toFixed(2)} on ${payment.providerChargeId} (session ${pending.id})`,
+    );
+    return { ...done, confirmedByDojo };
   }
 
   /** How much is still owed back on this payment. */

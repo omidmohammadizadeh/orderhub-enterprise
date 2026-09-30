@@ -99,6 +99,22 @@ export function dojoKeyEnvironment(apiKey: string): "sandbox" | "production" | n
   return null;
 }
 
+/**
+ * One line on the customer's receipt.
+ *
+ * Deliberately minimal: Dojo documents these fields in its response examples
+ * but not in the request body, and the modifier shape isn't specified at all.
+ * So modifiers are folded into `name` ("VEGETARIAN (10\", deep pan)") and the
+ * price is the line total — which reads correctly on a receipt and can't be
+ * rejected for a field we guessed at.
+ */
+export interface DojoItemLine {
+  name: string;
+  quantity: number;
+  plu?: string;
+  amountTotal: { value: number; currencyCode: string };
+}
+
 export class DojoApiClient {
   constructor(
     private readonly apiKey: string,
@@ -127,7 +143,15 @@ export class DojoApiClient {
     if (this.partner.softwareHouseId) {
       headers["software-house-id"] = this.partner.softwareHouseId;
     }
-    if (this.partner.resellerId) headers["reseller-id"] = this.partner.resellerId;
+    // reseller-id belongs on /terminals only. Dojo asked us to drop it from
+    // payment intents and terminal sessions while KEEPING software-house-id on
+    // both (Philip Wells, 2026-09-30 certification call). Scoped by path rather
+    // than by an argument at each call site, because "remember to pass the flag"
+    // is how one endpoint quietly keeps sending it.
+    const resellerAllowed = !/^\/(payment-intents|terminal-sessions)\b/.test(path);
+    if (this.partner.resellerId && resellerAllowed) {
+      headers["reseller-id"] = this.partner.resellerId;
+    }
 
     const res = await this.fetchImpl(`${DOJO_API_BASE}${path}`, {
       method,
@@ -250,6 +274,16 @@ export class DojoApiClient {
 
   // ── Payment intents ─────────────────────────────────────────────────────
 
+  /**
+   * `amountMinor` is the goods only. Dojo defines `amount` as "the amount
+   * intended to be collected ... EXCLUDING tipsAmount, serviceChargeAmount and
+   * cashbackAmount", so a tip or a service charge folded into it would be
+   * charged correctly but printed as part of the food.
+   *
+   * `itemLines` is what puts a breakdown on the customer's receipt. Without it
+   * Dojo prints a bare total, which is what their certification flagged
+   * (2026-09-30).
+   */
   createPaymentIntent(args: {
     amountMinor: number;
     currencyCode: string;
@@ -257,15 +291,24 @@ export class DojoApiClient {
     description?: string;
     metadata?: Record<string, string>;
     idempotencyKey?: string;
+    tipsMinor?: number;
+    serviceChargeMinor?: number;
+    itemLines?: DojoItemLine[];
   }): Promise<DojoPaymentIntent> {
+    const money = (value: number) => ({ value, currencyCode: args.currencyCode });
     return this.request<DojoPaymentIntent>("POST", "/payment-intents", {
       idempotencyKey: args.idempotencyKey,
       body: {
-        amount: { value: args.amountMinor, currencyCode: args.currencyCode },
+        amount: money(args.amountMinor),
         // Dojo caps reference at 60 chars.
         reference: args.reference.slice(0, 60),
         description: args.description,
         captureMode: "Auto",
+        ...(args.tipsMinor ? { tipsAmount: money(args.tipsMinor) } : {}),
+        ...(args.serviceChargeMinor
+          ? { serviceChargeAmount: money(args.serviceChargeMinor) }
+          : {}),
+        ...(args.itemLines?.length ? { itemLines: args.itemLines } : {}),
         metadata: args.metadata,
       },
     });
