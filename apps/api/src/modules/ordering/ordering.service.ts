@@ -14,6 +14,12 @@ import {
   zoneMode,
   type ZoneLike,
   deliveryZoneScope as sharedDeliveryZoneScope,
+  applyMultiBuys,
+  basketMinAge,
+  ageCheckNote,
+  currencySymbol,
+  normaliseSellBy,
+  weighedLineName,
 } from "@orderhub/shared";
 import { OrdersService } from "../orders/orders.service";
 import { PromoCodesService } from "../promo-codes/promo-codes.service";
@@ -29,6 +35,10 @@ import { resolveNestedModifierGroups } from "../menus/nested-modifier-groups";
 import { PauseService } from "../pauses/pause.service";
 import { MarketingService } from "../marketing/marketing.service";
 import { DeliveryZonesService } from "../delivery-zones/delivery-zones.service";
+import { isShop, soldOutItemIds } from "../retail/retail-availability";
+import { parseSubstitutionPref, priceShortfall, toMinor } from "../retail/retail.logic";
+import { isCurrentlyOpen as isOpenAt } from "../../common/opening-hours.util";
+import { BasketPriceError, buildPricingContext, priceBasket } from "./checkout-pricing";
 
 export interface CheckoutItemDto {
   menuItemId: string;
@@ -44,11 +54,24 @@ export interface CheckoutItemDto {
   modifiers?: Array<{
     name: string;
     price: number;
+    /** The modifier option's id, for exact server-side pricing. */
+    optionId?: string | null;
     depth?: number;
     path?: string[];
     parentOptionId?: string | null;
   }>;
   notes?: string;
+  /** Retail R3 — shops only: what to do if this line is out of stock at
+   *  picking. BEST_MATCH (default) or NONE. Ignored for restaurants. */
+  substitution?: string;
+  /** The chosen size of a multi-size product — lets the server price it
+   *  exactly (checkout-pricing.ts). Absent from tabs opened before it. */
+  skuPlu?: string | null;
+  skuName?: string | null;
+  /** Retail — weighed products: grams per pack (an online option). */
+  weightGrams?: number | null;
+  /** Group orders: whose line this is, kept on server-named (weighed) lines. */
+  forName?: string | null;
 }
 
 export interface CheckoutDto {
@@ -82,6 +105,9 @@ export interface CheckoutDto {
   promoCode?: string;
   /** Storefront "Send me offers by SMS" checkbox → SMS-marketing consent. */
   marketingConsent?: boolean;
+  /** Retail — the customer ticked "I'm 18 or over" (or 16). Required when the
+   *  basket holds an age-restricted product; ID is still checked on hand-over. */
+  ageConfirmed?: boolean;
   /**
    * Optional gratuity, in pounds. Goes to the RESTAURANT, not a courier —
    * it rides the order total into the brand's own Connect account like the
@@ -749,6 +775,19 @@ export class OrderingService {
           );
         }
       }
+
+      // Retail R3 — a shop's storefront follows its stock count: a product
+      // whose counted stock has run out shows as sold out (greyed, not
+      // hidden — a shopper looking for it should learn it's gone, not
+      // wonder if they've misremembered). Restaurants are untouched.
+      if (isShop(location)) {
+        const soldOut = await soldOutItemIds(this.prisma, location.id, itemIds);
+        for (const cat of (menu as any).categories ?? []) {
+          for (const link of cat.items ?? []) {
+            if (link?.item && soldOut.has(link.item.id)) link.item.outOfStock = true;
+          }
+        }
+      }
     }
 
     // Phase AP fix #4 — also surface the brand's full modifier-group
@@ -907,6 +946,8 @@ export class OrderingService {
     const b = overrideBrand;
     const locationView = {
       id: location.id,
+      // Retail R3 — GROCERY/RETAIL switch the storefront to the shop layout.
+      businessType: (location as any).businessType ?? "RESTAURANT",
       name: b?.name ?? location.name,
       slug: location.onlineOrderingSlug ?? location.slug,
       phone: b?.phone ?? location.phone,
@@ -1029,6 +1070,14 @@ export class OrderingService {
       ["ALL", "NEW"],
       tz,
     );
+    // Retail — multi-buys ("3 for £2", meal deals). Several run at once;
+    // the shared engine prices them here, in the cart and at checkout.
+    const multiBuys = await this.marketing.resolveMultiBuys(
+      [menuBrandId],
+      "ONLINE",
+      ["ALL", "NEW"],
+      tz,
+    );
     const freeItemRaw = await this.marketing.resolveFreeItem(
       menuBrandId,
       ["ALL", "NEW"],
@@ -1087,6 +1136,7 @@ export class OrderingService {
       ...(bogo?.triggerItemIds ?? []),
       ...(freeItem?.freeItemIds ?? []),
       ...Object.keys(itemPromos ?? {}),
+      ...multiBuys.flatMap((d) => [...d.itemIds, ...d.slots.flatMap((sl) => sl.itemIds)]),
     ]);
     const remapIds = (ids: string[]): string[] =>
       Array.from(
@@ -1096,6 +1146,10 @@ export class OrderingService {
       );
     if (bogo) bogo.triggerItemIds = remapIds(bogo.triggerItemIds);
     if (freeItem) freeItem.freeItemIds = remapIds(freeItem.freeItemIds);
+    for (const d of multiBuys) {
+      d.itemIds = remapIds(d.itemIds);
+      d.slots = d.slots.map((sl) => ({ ...sl, itemIds: remapIds(sl.itemIds) }));
+    }
     const itemPromosAnchored: Record<string, any> = {};
     for (const [id, v] of Object.entries(itemPromos ?? {})) {
       const served = anchor.get(id);
@@ -1140,6 +1194,7 @@ export class OrderingService {
       bogo,
       freeDelivery,
       freeItem,
+      multiBuys,
       whatsapp,
       location: dedupeLogo(locationView, brandView),
       brand: brandView,
@@ -1514,8 +1569,23 @@ export class OrderingService {
     const checkoutHours = brandHoursConfigured
       ? pinnedBrandHours
       : location.openingHours;
+    const shop = isShop(location);
     if (!this.isCurrentlyOpen(checkoutHours as any, location.timezone)) {
-      throw new BadRequestException("Store is currently closed");
+      // Retail R3 — a shop takes orders for a later slot while it's shut
+      // (tonight's shop for tomorrow morning's delivery is the normal case for
+      // groceries). The slot itself must fall inside the opening hours.
+      const slot = dto.scheduledFor ? new Date(dto.scheduledFor) : null;
+      const slotOk =
+        shop &&
+        slot !== null &&
+        !Number.isNaN(slot.getTime()) &&
+        slot.getTime() > Date.now() &&
+        isOpenAt(checkoutHours as any, location.timezone, slot);
+      if (!slotOk) {
+        throw new BadRequestException(
+          shop ? "The shop is closed — choose a delivery or collection slot when it's open" : "Store is currently closed",
+        );
+      }
     }
 
     // Phase AW-15 — server-side defence against a customer reaching the
@@ -1583,11 +1653,68 @@ export class OrderingService {
       dto.fulfillmentType,
     );
 
-    const items = dto.items.map((item) => ({
+    // Price every line again from the storefront the customer ordered from.
+    // The browser's unitPrice / subtotal / discount are no longer trusted —
+    // see checkout-pricing.ts for how an honest basket prices identically.
+    const served = await this.getStorefrontBySlug(slug, brandIdOverride, "ONLINE");
+    const pricing = buildPricingContext(served);
+    let basket: ReturnType<typeof priceBasket>;
+    try {
+      basket = priceBasket(pricing, dto.items as any);
+    } catch (err) {
+      if (err instanceof BasketPriceError) {
+        this.logger.warn(`Checkout refused for slug=${slug}: ${err.message}`);
+        throw new BadRequestException(err.message);
+      }
+      throw err;
+    }
+    const serverSubtotal = basket.subtotal;
+    if (shop) await this.assertShopBasket(location, dto, serverSubtotal);
+
+    // Retail — Challenge 25. An age-restricted product can only be ordered
+    // by a customer who says they're old enough, and the order carries an ID
+    // CHECK note so whoever hands it over checks photo ID.
+    const minAge = basketMinAge(dto.items.map((i) => pricing.items.get(i.menuItemId)));
+    if (minAge && dto.ageConfirmed !== true) {
+      throw new BadRequestException(
+        `Your basket has items you must be ${minAge} or over to buy. Please confirm your age to continue.`,
+      );
+    }
+
+    // Retail — multi-buys, on the server-priced lines. Taken off first; the
+    // campaign or promo code then applies to what's left.
+    const multiBuy = applyMultiBuys(
+      basket.lines.map((l) => ({
+        menuItemId: dto.items[l.index]!.menuItemId,
+        unitPrice: l.unitPrice,
+        quantity: dto.items[l.index]!.quantity,
+      })),
+      (served as any).multiBuys ?? [],
+    );
+    const afterDeals = round2(Math.max(0, serverSubtotal - multiBuy.savings));
+
+    // Retail — weighed lines are named and stamped by the server: "Bananas —
+    // 500 g @ £1.10/kg", an ESTIMATE the picker re-weighs.
+    const symbol = currencySymbol((location as any).currency ?? currencyForCountry((location as any).country));
+    const weighed = (item: CheckoutItemDto) => {
+      const it = pricing.items.get(item.menuItemId);
+      const sellBy = normaliseSellBy(it?.sellBy);
+      if (!it || !sellBy) return null;
+      const grams = Number(item.weightGrams);
+      const pricePerUnit = Number(it.basePrice ?? 0);
+      return {
+        name:
+          weighedLineName(String(it.name ?? item.name), grams, pricePerUnit, sellBy, symbol) +
+          (item.forName ? ` (${String(item.forName).slice(0, 60)})` : ""),
+        weight: { grams, sellBy, pricePerUnit, source: "ESTIMATE" as const },
+      };
+    };
+    const items = dto.items.map((item, i) => ({
       menuItemId: item.menuItemId,
-      name: item.name,
+      ...(weighed(item) ?? { name: item.name }),
       quantity: item.quantity,
-      unitPrice: item.unitPrice,
+      // Server-priced (checkout-pricing.ts), never the browser's figure.
+      unitPrice: basket.lines[i]!.unitPrice,
       // unitPrice ALREADY includes the modifiers.
       //
       // calculateCartItem() returns basePrice + sum(modifiers), and that is
@@ -1601,9 +1728,12 @@ export class OrderingService {
       // £26.90 subtotal, the £3.00 gap being exactly its modifier total.
       // OrderItem.totalPrice is also what reporting sums, so the inflation
       // was not confined to paper.
-      totalPrice: round2(item.unitPrice * item.quantity),
-      modifiers: item.modifiers ?? [],
+      totalPrice: round2(basket.lines[i]!.unitPrice * item.quantity),
+      // Server-priced; the option id was only needed to price it.
+      modifiers: basket.lines[i]!.modifiers.map(({ optionId: _o, ...m }) => m),
       notes: item.notes,
+      // Retail R3 — shops only; carried to OrderItem.metadata for the picker.
+      ...(shop ? { substitution: parseSubstitutionPref(item.substitution) ?? "BEST_MATCH" } : {}),
     }));
 
     // Phase AW-19 — re-resolve the marketing campaign server-side so a
@@ -1673,13 +1803,13 @@ export class OrderingService {
       if (
         appliedCampaign &&
         (appliedCampaign.minOrder == null ||
-          dto.subtotal >= appliedCampaign.minOrder)
+          afterDeals >= appliedCampaign.minOrder)
       ) {
         if (appliedCampaign.percentageOff != null) {
           campaignDiscount =
-            Math.round(dto.subtotal * appliedCampaign.percentageOff) / 100;
+            Math.round(afterDeals * appliedCampaign.percentageOff) / 100;
         } else if (appliedCampaign.amountOff != null) {
-          campaignDiscount = Math.min(dto.subtotal, appliedCampaign.amountOff);
+          campaignDiscount = Math.min(afterDeals, appliedCampaign.amountOff);
         }
         if (campaignDiscount > 0) {
           appliedDiscountCampaign = { id: appliedCampaign.id };
@@ -1692,10 +1822,31 @@ export class OrderingService {
         `Campaign re-resolution failed for slug=${slug}: ${(err as Error).message}`,
       );
     }
+    // Promo code, validated here against the server subtotal. The browser's
+    // `discount` used to be taken as-is (whichever was larger of it and the
+    // campaign), so any number sent there came off the bill.
+    let promoDiscount = 0;
+    let promoFreeDelivery = false;
+    if (dto.promoCode?.trim()) {
+      try {
+        const promo: any = await this.promoCodes.validate(location.brand.tenantId, {
+          code: dto.promoCode.trim(),
+          locationId: location.id,
+          subtotal: afterDeals,
+        });
+        if (promo?.valid) {
+          promoDiscount = Math.min(afterDeals, Math.max(0, Number(promo.discountAmount ?? 0)));
+          promoFreeDelivery = !!promo.freeDelivery;
+        }
+      } catch (err) {
+        this.logger.warn(`Promo validation failed for slug=${slug}: ${(err as Error).message}`);
+      }
+    }
+
     // Phase AW-19 — server-side enforcement of FREE_DELIVERY so a
     // tampered cart can't charge the customer if the campaign is
     // active. Resolution failures fall back to dto.deliveryFee.
-    let serverDeliveryFee = dto.deliveryFee ?? 0;
+    let serverDeliveryFee = promoFreeDelivery && dto.fulfillmentType === "DELIVERY" ? 0 : (dto.deliveryFee ?? 0);
     try {
       const fd = await this.marketing.resolveFreeDelivery(
         campaignBrandId,
@@ -1770,7 +1921,7 @@ export class OrderingService {
           );
         }
         if (outcome.kind === "CHARGE") {
-          if (!appliedFreeDeliveryCampaign) serverDeliveryFee = outcome.fee;
+          if (!appliedFreeDeliveryCampaign && !promoFreeDelivery) serverDeliveryFee = outcome.fee;
         } else if (serverDeliveryFee <= 0) {
           // See resolveDeliveryFee — a delivery order can never end up
           // charged £0 unless a genuine FREE_DELIVERY campaign actually
@@ -1784,7 +1935,7 @@ export class OrderingService {
           const fallbackFee = resolveDeliveryFee({
             fulfillmentType: dto.fulfillmentType,
             requestedFee: serverDeliveryFee,
-            freeDeliveryApplied: !!appliedFreeDeliveryCampaign,
+            freeDeliveryApplied: !!appliedFreeDeliveryCampaign || promoFreeDelivery,
             zoneFees: zones.map((z) => Number(z.fee)),
           });
           if (fallbackFee !== serverDeliveryFee) {
@@ -1804,23 +1955,31 @@ export class OrderingService {
         );
       }
     }
-    const serverDiscount = round2(Math.max(dto.discount ?? 0, campaignDiscount));
+    // Campaign and promo don't stack — the better one applies, as on the
+    // storefront. Both computed here; the browser's `discount` is ignored.
+    // Multi-buy savings stack underneath (they're shelf prices, not offers).
+    const serverDiscount = round2(multiBuy.savings + Math.max(promoDiscount, campaignDiscount));
+    // Tax is never negative (nothing the storefront sends, today, anyway).
+    const serverTax = round2(Math.max(0, Number(dto.taxAmount ?? 0) || 0));
     // Tip is customer-set, so it's an untrusted number that raises the
     // charge. Floor at zero, and cap it against the basket rather than
     // accepting anything: a fat-fingered or tampered value should fail
     // safe at a generous ceiling, not bill someone hundreds.
-    const goods = round2(dto.subtotal - serverDiscount + serverDeliveryFee);
+    const goods = round2(serverSubtotal - serverDiscount + serverDeliveryFee);
     const tipCeiling = round2(Math.max(goods * 2, 50));
     const serverTip = round2(
       Math.min(Math.max(Number(dto.tipAmount ?? 0) || 0, 0), tipCeiling),
     );
     const serverTotal = round2(
-      dto.subtotal -
-        serverDiscount +
-        (dto.taxAmount ?? 0) +
-        serverDeliveryFee +
-        serverTip,
+      Math.max(0, serverSubtotal - serverDiscount) + serverTax + serverDeliveryFee + serverTip,
     );
+    if (Math.abs(serverTotal - Number(dto.total ?? 0)) > 0.05) {
+      // Not an error: a service charge, a stale promo figure or a price that
+      // dropped all legitimately differ. Logged so a real mismatch shows up.
+      this.logger.log(
+        `Checkout total for slug=${slug}: browser ${Number(dto.total ?? 0).toFixed(2)}, charged ${serverTotal.toFixed(2)}`,
+      );
+    }
 
     // The loyalty reward, added as a real order line at zero.
     //
@@ -1846,13 +2005,16 @@ export class OrderingService {
         customerInfo: dto.customerInfo,
         deliveryAddress: dto.deliveryAddress,
         items,
-        subtotal: dto.subtotal,
-        taxAmount: dto.taxAmount ?? 0,
+        subtotal: serverSubtotal,
+        taxAmount: serverTax,
         deliveryFee: serverDeliveryFee,
         discount: serverDiscount,
         total: serverTotal,
         tipAmount: serverTip,
-        specialInstructions: dto.specialInstructions,
+        specialInstructions: minAge
+          ? [ageCheckNote(minAge), dto.specialInstructions?.trim()].filter(Boolean).join("\n")
+          : dto.specialInstructions,
+        ...(minAge ? { ageCheck: { minAge, method: "CUSTOMER_CONFIRMED" as const } } : {}),
         // Phase — thread the customer's chosen schedule through so the
         // order is actually saved as scheduled (was dropped here, which
         // made every scheduled storefront order show "ASAP").
@@ -1906,8 +2068,9 @@ export class OrderingService {
       customerAccountId: dto.customerAccountId ?? null,
       isNewCustomer,
       discountCampaignId: appliedDiscountCampaign?.id ?? null,
-      discountAmount: serverDiscount,
+      discountAmount: round2(serverDiscount - multiBuy.savings),
       freeDeliveryCampaignId: appliedFreeDeliveryCampaign?.campaignId ?? null,
+      multiBuys: multiBuy.applied.map((a) => ({ campaignId: a.dealId, discount: a.saving })),
     }).catch((err) =>
       this.logger.warn(
         `Campaign redemption recording failed for order ${order.id}: ${(err as Error).message}`,
@@ -2003,6 +2166,40 @@ export class OrderingService {
     return order;
   }
 
+  /**
+   * Retail R3 — the checks a shop's basket must pass that a restaurant's
+   * never had: nothing sold out, and the delivery minimum met. Server-side
+   * because the basket is client-supplied and can be minutes stale.
+   */
+  private async assertShopBasket(location: any, dto: CheckoutDto, subtotal?: number) {
+    const soldOut = await soldOutItemIds(
+      this.prisma,
+      location.id,
+      dto.items.map((i) => i.menuItemId).filter(Boolean),
+    );
+    const gone = dto.items.filter((i) => soldOut.has(i.menuItemId)).map((i) => i.name);
+    if (gone.length) {
+      throw new BadRequestException(
+        `Sorry — ${gone.join(", ")} ${gone.length === 1 ? "has" : "have"} just sold out. Remove ${gone.length === 1 ? "it" : "them"} to continue.`,
+      );
+    }
+    if (dto.fulfillmentType === "DELIVERY") {
+      const cfg =
+        (await this.prisma.directOrderingConfig.findUnique({ where: { brandId: location.brandId } }).catch(() => null)) ??
+        (await this.prisma.directOrderingConfig.findUnique({ where: { locationId: location.id } }).catch(() => null));
+      const min = Number((cfg as any)?.minOrderForDelivery ?? 0);
+      // The server-priced subtotal when checkout has one; the sent prices
+      // otherwise (only the unit spec calls it that way).
+      const basket =
+        subtotal ?? dto.items.reduce((sum, i) => sum + Number(i.unitPrice) * Number(i.quantity), 0);
+      if (min > 0 && basket + 1e-9 < min) {
+        throw new BadRequestException(
+          `The minimum for delivery is ${min.toFixed(2)} — add ${(min - basket).toFixed(2)} more, or choose collection.`,
+        );
+      }
+    }
+  }
+
   async getOrderStatus(orderId: string) {
     // Phase AP follow-up: the customer-facing storefront polls this
     // endpoint while it shows the "waiting for restaurant" screen and
@@ -2066,7 +2263,8 @@ export class OrderingService {
         cancelledAt: true,
         cancelReason: true,
         total: true,
-        location: { select: { name: true } },
+        // currency: Retail R3 — the picking summary shows a refund amount.
+        location: { select: { name: true, currency: true, businessType: true } },
         // Phase AX-4 — live delivery tracking: destination + the assigned
         // driver's name/phone and last known GPS so the customer can watch
         // the driver approach, call them, or chat.
@@ -2095,8 +2293,12 @@ export class OrderingService {
             quantity: true,
             modifiers: true,
             notes: true,
+            totalPrice: true,
+            metadata: true,
           },
         },
+        subtotal: true,
+        discount: true,
       },
     });
     if (!order) throw new NotFoundException("Order not found");
@@ -2117,9 +2319,43 @@ export class OrderingService {
               : null,
           }
         : null;
-    const { driverAssignment: _ignored, ...rest } = order;
+    const { driverAssignment: _ignored, items: rawItems, subtotal: _s, discount: _d, ...rest } = order;
+    // Retail R3 — once a shop has picked the order, tell the customer what
+    // was unavailable or swapped and what went back to them. metadata stays
+    // server-side; only this summary leaves.
+    const picked = rawItems.some((i: any) => (i.metadata as any)?.pick);
+    const shortfall = picked
+      ? priceShortfall({
+          lines: rawItems.map((i: any) => ({
+            id: i.id,
+            name: i.name,
+            quantity: i.quantity,
+            totalMinor: toMinor(i.totalPrice),
+            pick: (i.metadata as any)?.pick ?? null,
+          })),
+          subtotalMinor: toMinor(order.subtotal),
+          discountMinor: toMinor(order.discount),
+        })
+      : null;
+    const picking = shortfall
+      ? {
+          complete: rawItems.some((i: any) => (i.metadata as any)?.pickCompletedAt),
+          refund: shortfall.refundMinor / 100,
+          unavailable: shortfall.lines
+            .filter((l) => l.missing > 0)
+            .map((l) => ({ name: rawItems.find((i: any) => i.id === l.id)!.name, quantity: l.missing })),
+          substituted: shortfall.lines
+            .filter((l) => l.substituted > 0)
+            .map((l) => {
+              const it: any = rawItems.find((i: any) => i.id === l.id);
+              return { name: it.name, with: it.metadata?.pick?.sub?.name ?? "", quantity: l.substituted };
+            }),
+        }
+      : null;
     return {
       ...rest,
+      items: rawItems.map(({ metadata: _m, totalPrice: _t, ...it }: any) => it),
+      picking,
       destination:
         order.deliveryLat != null && order.deliveryLng != null
           ? { lat: order.deliveryLat, lng: order.deliveryLng }
@@ -2159,9 +2395,10 @@ export class OrderingService {
     discountCampaignId: string | null;
     discountAmount: number;
     freeDeliveryCampaignId: string | null;
+    multiBuys?: Array<{ campaignId: string; discount: number }>;
   }): Promise<void> {
     const orderTotal = Number(args.order.total ?? 0);
-    const targets: Array<{ campaignId: string; discount: number }> = [];
+    const targets: Array<{ campaignId: string; discount: number }> = [...(args.multiBuys ?? [])];
     if (args.discountCampaignId) {
       targets.push({
         campaignId: args.discountCampaignId,

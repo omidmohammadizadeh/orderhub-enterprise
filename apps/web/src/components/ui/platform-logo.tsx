@@ -122,6 +122,20 @@ function StuartLogo({ size, rounded = true }: LogoProps) {
   );
 }
 
+function YangoLogo({ size, rounded = true }: LogoProps) {
+  // Yango Delivery — red tile with a white "Y" stub, same pattern as Stuart.
+  return (
+    <svg
+      viewBox="0 0 100 100"
+      style={tileStyle(size, rounded)}
+      aria-label="Yango Delivery"
+    >
+      <rect width="100" height="100" fill="#f5222d" />
+      <text x="50" y="72" textAnchor="middle" fontFamily="ui-sans-serif, system-ui, sans-serif" fontWeight="900" fontSize="62" fill="white">Y</text>
+    </svg>
+  );
+}
+
 function OrderHubLogo({ size, rounded = true }: LogoProps) {
   // POS / DIRECT fallback — bag silhouette with stacked wordmark.
   return (
@@ -241,6 +255,22 @@ function GlovoLogo({ size, rounded = true }: LogoProps) {
   );
 }
 
+function KeetaLogo({ size, rounded = true }: LogoProps) {
+  // Initial tile in Keeta's yellow with black text — the real mark is keeta.png.
+  return (
+    <svg viewBox="0 0 100 100" style={tileStyle(size, rounded)} aria-label="Keeta">
+      <rect width="100" height="100" fill="#FFE000" />
+      <text
+        x="50" y="50" fill="#000000" fontSize="58" fontWeight="700"
+        textAnchor="middle" dominantBaseline="central"
+        fontFamily="system-ui, sans-serif"
+      >
+        k
+      </text>
+    </svg>
+  );
+}
+
 // Map each canonical platform key to:
 //   slug  — the PNG filename the operator uploads at /brand-logos/{slug}.png
 //   bg    — brand background colour (sits behind the PNG; if the PNG has
@@ -256,6 +286,13 @@ const PLATFORM_META: Record<
   UBER_EATS:   { slug: "ubereats",   bg: "#000000", svg: (p) => <UberEatsLogo {...p} /> },
   UBER_DIRECT: { slug: "uberdirect", bg: "#000000", svg: (p) => <UberDirectLogo {...p} /> },
   STUART:      { slug: "stuart",     bg: "#ff5a1a", svg: (p) => <StuartLogo {...p} /> },
+  // JET Go is Just Eat's courier network, so it falls back to the Just Eat mark
+  // — but it keeps its own slug, because an operator who uploads a JET Go tile
+  // should not have it replace Just Eat's on the orders board.
+  JET_GO:      { slug: "jetgo",      bg: "#ff8000", svg: (p) => <JustEatLogo {...p} /> },
+  // Yango Delivery (UAE courier dispatch). No bundled mark — a lettered tile in
+  // Yango red until someone uploads /brand-logos/yango.png.
+  YANGO:       { slug: "yango",      bg: "#f5222d", svg: (p) => <YangoLogo {...p} /> },
   HUBRISE:     { slug: "hubrise",    bg: "#7c3aed", svg: (p) => <HubRiseLogo {...p} /> },
   POS:         { slug: "orderhub",   bg: "#0a0a0a", svg: (p) => <OrderHubLogo {...p} /> },
   DIRECT:      { slug: "orderhub",   bg: "#0a0a0a", svg: (p) => <OrderHubLogo {...p} /> },
@@ -263,6 +300,7 @@ const PLATFORM_META: Record<
   // UAE / GCC marketplaces.
   CAREEM:      { slug: "careem",     bg: "#00493E", svg: (p) => <CareemLogo {...p} /> },
   TALABAT:     { slug: "talabat",    bg: "#FF5A00", svg: (p) => <TalabatLogo {...p} /> },
+  KEETA:       { slug: "keeta",      bg: "#FFE000", svg: (p) => <KeetaLogo {...p} /> },
   // Southern & Eastern Europe, Central Asia, Africa.
   GLOVO:       { slug: "glovo",      bg: "#FFC244", svg: (p) => <GlovoLogo {...p} /> },
   // Phase AY — WhatsApp ordering channel.
@@ -289,10 +327,13 @@ const LABELS: Record<string, string> = {
   HUBRISE: "HubRise",
   STUART: "Stuart",
   UBER_DIRECT: "Uber Direct",
+  JET_GO: "JET Go",
+  YANGO: "Yango Delivery",
   DIRECT_ONLINE: "Direct online ordering",
   CAREEM: "Careem",
   TALABAT: "talabat",
   GLOVO: "Glovo",
+  KEETA: "Keeta",
 };
 
 interface Props {

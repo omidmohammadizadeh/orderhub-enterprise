@@ -9,7 +9,16 @@ export type CampaignType =
   | "BOGO"
   | "FREE_ITEM"
   | "FREE_DELIVERY"
-  | "HAPPY_HOUR";
+  | "HAPPY_HOUR"
+  | "MULTI_BUY";
+
+export type MultiBuyMode = "FIXED_PRICE" | "CHEAPEST_FREE" | "MEAL_DEAL";
+export interface MultiBuyConfig {
+  mode: MultiBuyMode;
+  quantity?: number;
+  price?: number;
+  slots?: Array<{ name: string; itemIds: string[] }>;
+}
 
 export type CampaignStatus = "DRAFT" | "ACTIVE" | "PAUSED" | "ENDED";
 export type CampaignAudience = "ALL" | "NEW" | "RETURNING" | "LAPSED";
@@ -65,6 +74,7 @@ export interface CreateCampaignInput {
   endsAt?: string;
   maxRedemptions?: number;
   perCustomerLimit?: number;
+  multiBuy?: MultiBuyConfig;
 }
 
 // Phase MK-INSIGHTS — per-campaign performance, keyed by campaign id.

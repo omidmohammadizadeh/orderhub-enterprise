@@ -3,7 +3,9 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  Optional,
 } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { ConfigService } from "@nestjs/config";
 import { createHash, randomBytes, timingSafeEqual } from "crypto";
 import { currencyForCountry } from "@orderhub/shared";
@@ -136,6 +138,8 @@ export class DojoService {
     private readonly prisma: PrismaService,
     private readonly payments: PaymentsService,
     private readonly crypto: CredentialEncryptionService,
+    // Optional so the unit specs that build this service by hand keep working.
+    @Optional() private readonly events?: EventEmitter2,
   ) {}
 
   // Overridable in tests.
@@ -946,8 +950,26 @@ export class DojoService {
     amount?: number;
     reason?: string;
     userId?: string;
+    /** Carried on the pending session and handed back once Dojo books the
+     *  refund — the retail returns flow keeps its lines here (Retail R1). */
+    context?: Record<string, unknown>;
   }) {
-    const { payment, cfg } = await this.loadDojoPayment(args.tenantId, args.paymentIntentId);
+    let { payment, cfg } = await this.loadDojoPayment(args.tenantId, args.paymentIntentId);
+    if ((payment.metadata as any)?.refundSession?.id) {
+      // A second session would overwrite the first one's record, and the
+      // first refund — if the customer then taps — would never be booked. Ask
+      // Dojo about the old one first: a declined/expired session is cleared
+      // by that check and we carry on; anything else must be finished first.
+      const prior = await this.terminalRefundStatus(args.tenantId, args.paymentIntentId);
+      if (prior.active && !prior.failed) {
+        throw new BadRequestException(
+          prior.done
+            ? "The previous refund on the card machine has just gone through — refresh before refunding again."
+            : "A refund is already waiting on the card machine for this payment.",
+        );
+      }
+      ({ payment, cfg } = await this.loadDojoPayment(args.tenantId, args.paymentIntentId));
+    }
     const { leftMinor, wantMinor } = this.refundAmounts(payment, args.amount);
     const terminalId = args.terminalId ?? cfg.terminals[0]?.id;
     if (!terminalId) {
@@ -979,6 +1001,7 @@ export class DojoService {
             reason: args.reason ?? null,
             userId: args.userId ?? null,
             startedAt: new Date().toISOString(),
+            ...(args.context ? { context: args.context } : {}),
           },
         },
       },
@@ -1015,6 +1038,21 @@ export class DojoService {
         userId: pending.userId ?? undefined,
       });
       this.logger.log(`Dojo matched refund done: ${done.amount.toFixed(2)} on ${payment.providerChargeId}`);
+      // Whoever polled this to completion — the till's Returns screen or the
+      // order drawer — a return's lines + restock must be booked with it.
+      // Awaited, so the caller's next read already sees them.
+      if (pending.context) {
+        await this.events
+          ?.emitAsync("dojo.terminal_refund_recorded", {
+            tenantId,
+            paymentId: payment.id,
+            orderId: payment.orderId,
+            session: pending,
+          })
+          .catch((e: any) =>
+            this.logger.error(`Booking the return for Dojo refund ${pending.id} failed: ${e?.message}`),
+          );
+      }
       return { ...base, done: true, failed: false, needsSignature: false, unconfirmed: false, ...done };
     }
 
@@ -1125,6 +1163,19 @@ export class DojoService {
       reason: pending.reason ?? (confirmedByDojo ? undefined : "Recorded from the card machine (Dojo never confirmed it)"),
       userId: userId ?? pending.userId ?? undefined,
     });
+    // A retail return books its lines and puts the stock back on the same event
+    // the poll fires — money recorded by hand is still money given back, and a
+    // return that never restocks is a shop counting goods it doesn't have.
+    if (pending.context) {
+      await this.events
+        ?.emitAsync("dojo.terminal_refund_recorded", {
+          tenantId,
+          paymentId: payment.id,
+          orderId: payment.orderId,
+          session: pending,
+        })
+        .catch((e: any) => this.logger.error(`Booking the return for Dojo refund ${pending.id} failed: ${e?.message}`));
+    }
     this.logger.log(
       `Dojo refund recorded ${confirmedByDojo ? "after Dojo confirmed it late" : "manually"}: ` +
         `${done.amount.toFixed(2)} on ${payment.providerChargeId} (session ${pending.id})`,

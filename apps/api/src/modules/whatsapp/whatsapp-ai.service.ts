@@ -8,6 +8,8 @@ import {
   areaZoneNames,
   matchAreaZone,
   postcodeRequiredFor,
+  ageCheckNote,
+  basketMinAge,
 } from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { OrdersService } from "../orders/orders.service";
@@ -304,7 +306,7 @@ export class WhatsAppAiService {
 
     // ── Delivery address capture (plain-text replies only) ────────────────
     const plainText =
-      !/^(fulfil:|item:|cat:|more:|catmore:|opt:|skip:|wizback|rm:|editcart|pay:|area:)/.test(text) &&
+      !/^(fulfil:|item:|cat:|more:|catmore:|opt:|skip:|wizback|rm:|editcart|pay:|area:|age:)/.test(text) &&
       !MENU_CMDS.has(cmd) &&
       !GREETING_CMDS.has(cmd);
     if (convo.state === "ASK_ADDRESS" && plainText) {
@@ -385,18 +387,48 @@ export class WhatsAppAiService {
       return;
     }
 
+    // ── Challenge 25 answer ─────────────────────────────────────────────
+    // "Yes" records the age and carries on to checkout; "No" takes the
+    // restricted items out rather than dead-ending the whole order.
+    let ageJustConfirmed = false;
+    if (cmd === "age:yes") {
+      cart.ageConfirmed = this.cartMinAge(cart, ctx) ?? cart.ageConfirmed;
+      await this.prisma.whatsAppConversation.update({
+        where: { id: convo.id },
+        data: { cart: cart as any, lastOutboundAt: new Date() },
+      });
+      ageJustConfirmed = true;
+    } else if (cmd === "age:no") {
+      const removed = cart.items.filter((l) => ctx.itemIndex?.get(l.itemId)?.minAge);
+      cart.items = cart.items.filter((l) => !ctx.itemIndex?.get(l.itemId)?.minAge);
+      await this.prisma.whatsAppConversation.update({
+        where: { id: convo.id },
+        data: { cart: cart as any, lastOutboundAt: new Date() },
+      });
+      await this.send.sendText(
+        phoneNumberId,
+        from,
+        `No problem — I've taken ${removed.map((l) => l.name).join(", ") || "those items"} out of your order. ` +
+          (cart.items.length ? "Reply *checkout* when you're ready." : "Reply *menu* to pick something else."),
+      );
+      return;
+    }
+
     // ── Payment method chosen from the chooser buttons ──────────────────
     if (cmd === "pay:cash") {
+      if (await this.askAgeIfNeeded(phoneNumberId, from, cart, ctx)) return;
       await this.handleCheckout(phoneNumberId, from, convo, cart, ctx, profileName, "CASH");
       return;
     }
     if (cmd === "pay:card") {
+      if (await this.askAgeIfNeeded(phoneNumberId, from, cart, ctx)) return;
       await this.handleCheckout(phoneNumberId, from, convo, cart, ctx, profileName, "CARD");
       return;
     }
 
     // ── Checkout → pick payment method (if cash enabled) else straight to card
-    if (text === "checkout" || CHECKOUT_CMDS.has(cmd)) {
+    if (ageJustConfirmed || text === "checkout" || CHECKOUT_CMDS.has(cmd)) {
+      if (await this.askAgeIfNeeded(phoneNumberId, from, cart, ctx)) return;
       if (ctx.allowCash && cart.items.length > 0) {
         // Location allows cash on WhatsApp — let the customer choose.
         await this.send.sendButtons(
@@ -1291,6 +1323,8 @@ export class WhatsAppAiService {
       await this.send.sendText(phoneNumberId, from, "I still need your delivery address — reply *start over* and choose Delivery.");
       return;
     }
+    // Never place a restricted basket without the age answer, whatever path got here.
+    if (await this.askAgeIfNeeded(phoneNumberId, from, cart, ctx)) return;
 
     // Closed / paused → don't place the order (defence — the start guard
     // usually catches this, but the shop may have closed mid-order).
@@ -1347,7 +1381,16 @@ export class WhatsAppAiService {
     let order: { id: string; displayId?: string | null };
     try {
       order = await this.orders.ingestCanonical(
-        this.cartToCanonical(cart, from, convo.customerName ?? profileName, deliveryFee, phoneNumberId, discount, paymentMethod),
+        this.cartToCanonical(
+          cart,
+          from,
+          convo.customerName ?? profileName,
+          deliveryFee,
+          phoneNumberId,
+          discount,
+          paymentMethod,
+          this.cartMinAge(cart, ctx),
+        ),
         ctx.tenantId,
         ctx.locationId,
       );
@@ -1439,6 +1482,36 @@ export class WhatsAppAiService {
   }
 
   /** Build a CanonicalOrder from the WhatsApp cart (card, unpaid). */
+  /** Challenge 25: the highest age any line in the cart needs, or null. */
+  private cartMinAge(cart: WaCart, ctx: WaMenuContext): number | null {
+    return basketMinAge(cart.items.map((l) => ctx.itemIndex?.get(l.itemId)));
+  }
+
+  /**
+   * Ask "are you 18 or over?" when the cart needs it and it hasn't been
+   * answered for that age. Returns true when it asked (the caller stops).
+   */
+  private async askAgeIfNeeded(
+    phoneNumberId: string,
+    from: string,
+    cart: WaCart,
+    ctx: WaMenuContext,
+  ): Promise<boolean> {
+    const minAge = this.cartMinAge(cart, ctx);
+    if (!minAge || (cart.ageConfirmed ?? 0) >= minAge) return false;
+    await this.send.sendButtons(
+      phoneNumberId,
+      from,
+      `🔞 Some items in your order can only be sold to people ${minAge} or over. Are you ${minAge} or over? ` +
+        `We'll ask for photo ID when we hand it over.`,
+      [
+        { id: "age:yes", title: `Yes, I'm ${minAge}+` },
+        { id: "age:no", title: "No — remove them" },
+      ],
+    );
+    return true;
+  }
+
   private cartToCanonical(
     cart: WaCart,
     waPhone: string,
@@ -1447,6 +1520,7 @@ export class WhatsAppAiService {
     phoneNumberId: string,
     discount = 0,
     paymentMethod: "CARD" | "CASH" = "CARD",
+    minAge: number | null = null,
   ): CanonicalOrder {
     const subtotal = cartSubtotal(cart);
     const total = round2(subtotal - discount + deliveryFee);
@@ -1489,12 +1563,17 @@ export class WhatsAppAiService {
       discount,
       total,
       idempotencyKey: `wa_${waPhone}_${Date.now()}`,
+      // Challenge 25: the note every ticket, picker and driver reads.
+      ...(minAge ? { specialInstructions: ageCheckNote(minAge) } : {}),
       metadata: {
         source: "whatsapp",
         waPhone,
         phoneNumberId,
         paymentMethod,
         paymentStatus: "PENDING",
+        ...(minAge
+          ? { ageCheck: { minAge, method: "CUSTOMER_CONFIRMED", confirmedAt: new Date().toISOString() } }
+          : {}),
       },
     } as CanonicalOrder;
   }
@@ -2217,6 +2296,12 @@ export class WhatsAppAiService {
           : [
               `- Addresses here do NOT have postcodes. Never ask for one — take the building/street and city.`,
             ]),
+      // Only when the menu has any: the checkout step asks, with buttons.
+      ...(ctx.items.some((i) => i.minAge)
+        ? [
+            "- Items marked (18+) or (16+) are age-restricted. Add them normally and don't ask the customer's age or for ID yourself — checkout asks them to confirm with a button, and ID is checked on hand-over.",
+          ]
+        : []),
       `- Confirm the running total in ${ctx.currency}, formatted exactly as the cart state shows it. Only state prices that come from the menu or cart state.`,
       "- Respond ONLY with the customer-facing message — no internal reasoning, no markdown headings.",
       "",

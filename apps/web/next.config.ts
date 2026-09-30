@@ -43,7 +43,13 @@ const nextConfig: NextConfig = {
           { key: "X-DNS-Prefetch-Control", value: "on" },
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
+            // camera=(self): the till's "Scan with camera" (Retail R1) needs
+            // it. With camera=() Chromium — Android Chrome AND the Android
+            // app's WebView — refuses getUserMedia outright, whatever the
+            // app's own camera permission says (iOS WebKit didn't enforce it,
+            // which hid this). `self` still blocks any embedded third-party
+            // frame from the camera.
+            value: "camera=(self), microphone=(), geolocation=()",
           },
         ],
       },

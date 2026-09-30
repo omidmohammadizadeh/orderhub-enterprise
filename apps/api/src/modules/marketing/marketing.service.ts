@@ -18,6 +18,8 @@ import {
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { UberEatsPromotionsService } from "../integrations/ubereats/ubereats-promotions.service";
 import { buildStorefrontQrUrl } from "./receipt-qr-url";
+import { parseMultiBuyDeal, validateMultiBuy, type MultiBuyDeal } from "@orderhub/shared";
+import type { MultiBuyConfigDto } from "./dto/campaign.dto";
 import type {
   CreateCampaignDto,
   UpdateCampaignDto,
@@ -500,6 +502,9 @@ export class MarketingService {
           ...(args.dto.daysOfWeek?.length
             ? { daysOfWeek: args.dto.daysOfWeek }
             : {}),
+          ...(args.dto.type === "MULTI_BUY" && args.dto.multiBuy
+            ? { multiBuy: multiBuyMeta(args.dto.multiBuy) }
+            : {}),
         },
         createdBy: args.userId ?? null,
       },
@@ -523,9 +528,10 @@ export class MarketingService {
 
   async update(id: string, tenantId: string, dto: UpdateCampaignDto) {
     const row = await this.findOne(id, tenantId);
-    if (dto.status === "ACTIVE") {
+    if (dto.status === "ACTIVE" || (row.type === "MULTI_BUY" && (dto.multiBuy || dto.itemIds))) {
       // Re-run type validation before going live — the operator may
-      // have created a row as DRAFT with a missing field.
+      // have created a row as DRAFT with a missing field. A multi-buy is
+      // checked on every edit of its deal, live or not.
       this.assertTypeFields(row.type, { ...row, ...dto });
     }
     const updated = await (this.prisma as any).marketingCampaign.update({
@@ -551,6 +557,9 @@ export class MarketingService {
         }),
         ...(dto.maxRedemptions !== undefined && { maxRedemptions: dto.maxRedemptions }),
         ...(dto.perCustomerLimit !== undefined && { perCustomerLimit: dto.perCustomerLimit }),
+        ...(dto.multiBuy && row.type === "MULTI_BUY" && {
+          metadata: { ...((row as any).metadata ?? {}), multiBuy: multiBuyMeta(dto.multiBuy) },
+        }),
       },
     });
     void this.uberPromotions
@@ -710,6 +719,29 @@ export class MarketingService {
   }
 
   /**
+   * Retail — every live MULTI_BUY deal for these brands on a channel
+   * (ONLINE for the storefront + checkout, POS for the till). Unlike BOGO,
+   * several run at once; the shared engine decides which units go where.
+   */
+  async resolveMultiBuys(
+    brandIds: string[],
+    channel: "ONLINE" | "POS",
+    audiences: Array<"ALL" | "NEW" | "RETURNING" | "LAPSED">,
+    timezone?: string,
+  ): Promise<MultiBuyDeal[]> {
+    const out: MultiBuyDeal[] = [];
+    for (const brandId of [...new Set(brandIds.filter(Boolean))]) {
+      const rows = await this.resolveActiveForBrandChannel(brandId, channel, timezone);
+      for (const r of rows as any[]) {
+        if (r.type !== "MULTI_BUY" || !audiences.includes(r.audience)) continue;
+        const deal = parseMultiBuyDeal(r);
+        if (deal) out.push(deal);
+      }
+    }
+    return out;
+  }
+
+  /**
    * Phase AW-19 — pick the active FREE_ITEM campaign for storefront.
    * Returns the gift threshold + the pool of items the customer can
    * pick from + categories that don't count toward the threshold.
@@ -811,6 +843,22 @@ export class MarketingService {
       case "FREE_DELIVERY":
         // Just brand/channels/audience/duration — no fields required.
         break;
+      case "MULTI_BUY": {
+        const cfg = fields.multiBuy ?? fields.metadata?.multiBuy;
+        if (!cfg) {
+          missing.push("multiBuy");
+          break;
+        }
+        const why = validateMultiBuy({
+          mode: cfg.mode,
+          quantity: Number(cfg.quantity ?? 0),
+          price: Number(cfg.price ?? 0),
+          itemIds: fields.itemIds ?? [],
+          slots: cfg.slots ?? [],
+        });
+        if (why) throw new BadRequestException(why);
+        break;
+      }
       case "HAPPY_HOUR":
         if (fields.percentageOff == null && fields.amountOff == null) {
           missing.push("percentageOff or amountOff");
@@ -844,4 +892,17 @@ export class MarketingService {
     }
     return t >= row.dailyStartTime || t < row.dailyEndTime;
   }
+}
+
+/** What a MULTI_BUY row keeps on metadata.multiBuy. */
+function multiBuyMeta(cfg: MultiBuyConfigDto) {
+  return {
+    mode: cfg.mode,
+    quantity: cfg.mode === "MEAL_DEAL" ? 1 : Math.trunc(Number(cfg.quantity ?? 0)),
+    price: cfg.mode === "CHEAPEST_FREE" ? 0 : Math.round(Number(cfg.price ?? 0) * 100) / 100,
+    slots:
+      cfg.mode === "MEAL_DEAL"
+        ? (cfg.slots ?? []).map((sl) => ({ name: sl.name.trim() || "Choice", itemIds: [...new Set(sl.itemIds)] }))
+        : [],
+  };
 }

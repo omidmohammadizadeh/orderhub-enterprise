@@ -1,4 +1,5 @@
 "use client";
+import { formatMoney } from "@orderhub/shared";
 
 // Phase AP-5 follow-up — standalone order-tracking page.
 //
@@ -49,7 +50,14 @@ interface StatusPayload {
   cancelReason?: string | null;
   estimatedReadyAt?: string | null;
   total?: number | null;
-  location?: { name?: string | null } | null;
+  location?: { name?: string | null; currency?: string | null; businessType?: string | null } | null;
+  /** Retail R3 — a shop's picking outcome, once the order has been picked. */
+  picking?: {
+    complete: boolean;
+    refund: number;
+    unavailable: Array<{ name: string; quantity: number }>;
+    substituted: Array<{ name: string; with: string; quantity: number }>;
+  } | null;
   destination?: { lat: number; lng: number } | null;
   driver?: {
     name?: string | null;
@@ -103,12 +111,14 @@ export default function OrderStatusPage() {
   const isComplete = data?.status === "COMPLETED";
 
   const isDelivery = data?.fulfillmentType === "DELIVERY";
+  // Retail R3 — a shop picks an order; it doesn't cook it.
+  const isShop = data?.location?.businessType === "GROCERY" || data?.location?.businessType === "RETAIL";
   const steps = useMemo(() => {
     if (!data) return [];
     return [
       { key: "RECEIVED", label: "Order received", at: data.receivedAt },
-      { key: "ACCEPTED", label: "Confirmed by restaurant", at: data.acceptedAt },
-      { key: "PREPARING", label: "Preparing your food", at: data.preparingAt },
+      { key: "ACCEPTED", label: isShop ? "Confirmed by the shop" : "Confirmed by restaurant", at: data.acceptedAt },
+      { key: "PREPARING", label: isShop ? "Picking your order" : "Preparing your food", at: data.preparingAt },
       {
         key: "READY",
         label: isDelivery ? "Ready for driver" : "Ready to collect",
@@ -125,7 +135,7 @@ export default function OrderStatusPage() {
           ]
         : [{ key: "COLLECTED", label: "Collected", at: data.deliveredAt }]),
     ];
-  }, [data, isDelivery]);
+  }, [data, isDelivery, isShop]);
 
   // Phase AW-30 — prefer the 5-char displayId so the tracker matches
   // the receipt + the orders board + the My Orders list. Falls back to
@@ -246,6 +256,32 @@ export default function OrderStatusPage() {
                 <CustomerDriverChat orderId={params.orderId} driverName={data.driver.name} />
               </div>
             )}
+
+            {data.picking?.complete &&
+              (data.picking.unavailable.length > 0 || data.picking.substituted.length > 0) && (
+                <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                  <p className="font-semibold">A few changes to your order</p>
+                  <ul className="mt-2 space-y-1 text-xs">
+                    {data.picking.unavailable.map((u) => (
+                      <li key={`u-${u.name}`}>
+                        {u.quantity} × {u.name} — out of stock
+                      </li>
+                    ))}
+                    {data.picking.substituted.map((sub) => (
+                      <li key={`s-${sub.name}`}>
+                        {sub.quantity} × {sub.name} — swapped for {sub.with}
+                      </li>
+                    ))}
+                  </ul>
+                  {data.picking.refund > 0 && (
+                    <p className="mt-2 text-xs">
+                      You won&apos;t pay for what was missing:{" "}
+                      <strong>{formatMoney(data.picking.refund, data.location?.currency ?? "GBP")}</strong>{" "}
+                      comes off your order.
+                    </p>
+                  )}
+                </div>
+              )}
 
             {isCancelled ? (
               <div className="mt-8 rounded-2xl border border-red-100 bg-red-50 p-6 text-center">

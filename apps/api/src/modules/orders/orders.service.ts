@@ -42,6 +42,7 @@ import {
 import type { CreateOrderDto } from "./dto/create-order.dto";
 import type { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
 import { activeDojoLock } from "../payments/dojo/dojo-lock";
+import { isRetailType } from "../retail/retail.logic";
 import type { CanonicalOrder } from "@orderhub/shared";
 
 // Phase AM — if the operator scheduled this order more than this many seconds
@@ -69,6 +70,8 @@ const ORDER_INCLUDE = {
       // orders side by side — formatting them all in the selected location's
       // currency would misprice half the screen.
       currency: true,
+      // Retail R1 — a shop's receipt carries a returns QR (see print-order.ts).
+      businessType: true,
       brand: { select: { id: true, name: true, logoUrl: true, phone: true, addressLine1: true, city: true, postcode: true } },
     },
   },
@@ -153,6 +156,7 @@ export const SIMULATABLE_PLATFORMS = [
   "CAREEM",
   "TALABAT",
   "GLOVO",
+  "KEETA",
   "ONLINE",
   "WHATSAPP",
   "VOICE",
@@ -365,10 +369,20 @@ export class OrdersService {
     try {
       const location = await this.prisma.location.findUnique({
         where: { id: locationId },
-        select: { settings: true },
+        select: { settings: true, businessType: true },
       });
       const settings = (location?.settings ?? {}) as Record<string, unknown>;
-      if (settings.autoAcceptOrders !== true) {
+      // Retail R1 — at a shop, a sale over the counter has nobody to accept
+      // it: the customer is standing there and has just paid. The toggle
+      // below is about whether incoming ONLINE/marketplace orders need a
+      // human, so it still governs everything else at a shop. The payment
+      // guards further down still hold an unpaid sale back.
+      const shopCounterSale =
+        isRetailType(location?.businessType) &&
+        (await this.prisma.order.count({
+          where: { id: orderId, orderSource: "POS", isWalkIn: true, tableId: null },
+        })) > 0;
+      if (settings.autoAcceptOrders !== true && !shopCounterSale) {
         this.logger.log(
           `Auto-accept OFF for location ${locationId} — order ${orderId} left PENDING`,
         );
@@ -728,8 +742,23 @@ export class OrdersService {
                 // re-price later — a repeat could not tell a 10" from a 12"
                 // and had to drop it. metadata is an existing column, so this
                 // costs no migration.
-                ...((item as any).sku
-                  ? { metadata: { sku: String((item as any).sku) } as Prisma.InputJsonValue }
+                ...((item as any).sku || (item as any).variantId || (item as any).substitution || (item as any).weight
+                  ? {
+                      metadata: {
+                        ...((item as any).sku ? { sku: String((item as any).sku) } : {}),
+                        // Retail R1 — which barcoded variant was sold.
+                        ...((item as any).variantId
+                          ? { variantId: String((item as any).variantId) }
+                          : {}),
+                        // Retail R3 — the shopper's substitution choice.
+                        ...((item as any).substitution
+                          ? { substitution: String((item as any).substitution) }
+                          : {}),
+                        // Retail — a weighed line (grams, price per kg/100 g,
+                        // how it was weighed). Stock and picking read grams.
+                        ...((item as any).weight ? { weight: (item as any).weight } : {}),
+                      } as Prisma.InputJsonValue,
+                    }
                   : {}),
               })),
             },
@@ -1032,7 +1061,7 @@ export class OrdersService {
 
   // ── Direct order creation (POS / staff) ──────────────
 
-  async create(dto: CreateOrderDto, tenantId: string): Promise<Order> {
+  async create(dto: CreateOrderDto, tenantId: string, actorUserId?: string): Promise<Order> {
     const location = await this.prisma.location.findFirst({
       where: { id: dto.locationId, brand: { tenantId } },
     });
@@ -1126,6 +1155,11 @@ export class OrdersService {
         totalPrice: i.totalPrice,
         notes: i.notes,
         sku: i.sku,
+        // Retail R1 — the scanned variant, so stock and returns know exactly
+        // which barcode was sold. Kept in OrderItem.metadata beside sku.
+        ...(i.variantId ? { variantId: i.variantId } : {}),
+        ...(i.substitution ? { substitution: i.substitution } : {}),
+        ...(i.weight ? { weight: { ...i.weight, grams: Math.round(i.weight.grams) } } : {}),
         // Carried through to OrderItem.menuItemId so KDS station rules
         // (category/item routing) can match POS lines.
         menuItemId: i.menuItemId,
@@ -1165,6 +1199,18 @@ export class OrdersService {
         paymentStatus: dto.paymentStatus,
         preparationMinutes: dto.preparationMinutes,
         isScheduled,
+        // Retail — the due-diligence record for an age-restricted sale:
+        // what was checked, how, and by whom, stamped by the server.
+        ...(dto.ageCheck
+          ? {
+              ageCheck: {
+                minAge: dto.ageCheck.minAge,
+                method: dto.ageCheck.method,
+                confirmedAt: new Date().toISOString(),
+                confirmedByUserId: dto.ageCheck.method === "TILL_ID_CHECK" ? (actorUserId ?? null) : null,
+              },
+            }
+          : {}),
       },
       // Phase AP-5 — thread the storefront customerAccountId through
       // to persistOrder so the Order row gets attributed and the
@@ -1813,20 +1859,87 @@ export class OrdersService {
       const customerPhoneUpdate =
         dto.customerInfo?.phone ?? order.customerPhone ?? null;
 
+      // An order carries its address twice: the blob and the structured
+      // columns. createOrder and switchFulfillment both write both; this
+      // path wrote only the blob, so a customer who rang to change where
+      // their food was going left the columns holding the old address —
+      // and dispatch prices the driver's fee straight off order.postcode
+      // (driver-earnings.service.ts, dispatch.service.ts). The delivery
+      // read fine while the money was computed from the previous house.
+      const addressChanged = dto.deliveryAddress !== undefined;
+      const addr = (dto.deliveryAddress ?? {}) as Record<string, any>;
+      const addressUpdate = addressChanged
+        ? {
+            deliveryAddress: dto.deliveryAddress as any,
+            addressLine1: addr.line1 ?? null,
+            addressLine2: addr.line2 ?? null,
+            city: addr.city ?? null,
+            postcode: addr.postcode ?? null,
+            // Coordinates belong to the OLD address. Keeping them is how a
+            // driver gets a correct address on the screen and a map pin at
+            // the previous door; they re-geocode from the new one.
+            deliveryLat: null,
+            deliveryLng: null,
+            geocodedAt: null,
+          }
+        : {};
+
+      // ── The bill ──────────────────────────────────────────────────────
+      //
+      // An omitted field meant ZERO here, so any caller that sent items
+      // without repeating the money wiped it: a £3.50 delivery fee became
+      // £0 because the amendment was about a missing drink.
+      //
+      // And the total was whatever the client said. The till computes
+      // `subtotal - discount + deliveryFee` and knows nothing about the
+      // service charge (createOrder adds that server-side) or the tip — so
+      // editing a dine-in order silently dropped both off the bill.
+      //
+      // Omitted now means UNCHANGED, and the arithmetic happens here.
+      // switchFulfillment already worked this way; the caller decides the
+      // fee, because zone rules live in the browser alongside the POS, but
+      // it does not get to decide what the parts add up to.
+      //
+      // `dto.total` is consequently ignored, and deliberately not checked
+      // against this one: the till and the voice agent each total an order
+      // their own way (the till leaves out the service charge and the tip,
+      // the agent puts both in), so a mismatch is the normal case and an
+      // alarm on it would only ever be noise.
+      const taxAmount = dto.taxAmount ?? Number(order.taxAmount ?? 0);
+      const discount = dto.discount ?? Number(order.discount ?? 0);
+      const deliveryFee = dto.deliveryFee ?? Number(order.deliveryFee ?? 0);
+      // Part of what is owed, and rebuilt from the order rather than carried
+      // inside the incoming total — or the second edit would charge the
+      // service charge twice. The service charge has no way in here at all
+      // (createOrder derives it from the location's own rule); the tip did,
+      // as a declared parameter that was then dropped on the floor.
+      const serviceCharge = Number(order.serviceCharge ?? 0);
+      const tipAmount = dto.tipAmount ?? Number(order.tipAmount ?? 0);
+      const newTotal = round2(
+        Math.max(
+          0,
+          dto.subtotal +
+            taxAmount +
+            deliveryFee -
+            discount +
+            serviceCharge +
+            tipAmount,
+        ),
+      );
+
       const u = await tx.order.update({
         where: { id: order.id },
         data: {
           subtotal: dto.subtotal,
-          taxAmount: dto.taxAmount ?? 0,
-          deliveryFee: dto.deliveryFee ?? 0,
-          discount: dto.discount ?? 0,
-          total: dto.total,
+          taxAmount,
+          deliveryFee,
+          discount,
+          tipAmount,
+          total: newTotal,
           customerInfo: customerInfoUpdate,
           customerName: customerNameUpdate,
           customerPhone: customerPhoneUpdate,
-          deliveryAddress: dto.deliveryAddress
-            ? (dto.deliveryAddress as any)
-            : order.deliveryAddress ?? undefined,
+          ...addressUpdate,
           specialInstructions:
             dto.specialInstructions ?? order.specialInstructions,
           updatedAt: new Date(),
@@ -1834,7 +1947,7 @@ export class OrdersService {
       });
 
       const beforeTotal = Number(order.total);
-      const afterTotal = dto.total;
+      const afterTotal = newTotal;
       const beforeCount = order.items.reduce((s, i) => s + i.quantity, 0);
       const afterCount = dto.items.reduce((s, i) => s + i.quantity, 0);
       await tx.orderStatusHistory.create({
@@ -2679,7 +2792,87 @@ export class OrdersService {
       })
       .catch(() => undefined);
 
+    // Retail R1 — a paid walk-in sale at a shop ends here. Accepting it was
+    // only ever the step that prints the receipt; there is no kitchen for it
+    // to climb through. Fire-and-forget so it never fails this transition.
+    if (newStatus === "ACCEPTED") {
+      void this.maybeCompleteRetailSale(orderId, tenantId).catch((e) =>
+        this.logger.warn(`Retail completion failed for ${orderId}: ${e?.message}`),
+      );
+    }
+
     return updated;
+  }
+
+  /**
+   * Retail R1 — finish a paid walk-in sale at a shop (GROCERY/RETAIL).
+   *
+   * Only a POS walk-in with no table, already PAID and already ACCEPTED (so
+   * the receipt has printed). Writes COMPLETED straight past the kitchen
+   * ladder, the same way completeAndFreeTable closes a settled tab, and emits
+   * the status event so stock, loyalty and the board all see it. The
+   * conditional update makes a double call harmless.
+   */
+  async maybeCompleteRetailSale(orderId: string, tenantId: string): Promise<boolean> {
+    const o = await this.prisma.order.findFirst({
+      where: { id: orderId, tenantId },
+      select: {
+        status: true,
+        orderSource: true,
+        isWalkIn: true,
+        tableId: true,
+        paymentStatus: true,
+        locationId: true,
+        location: { select: { businessType: true } },
+      },
+    });
+    if (!o || !isRetailType(o.location?.businessType)) return false;
+    if (o.orderSource !== "POS" || o.isWalkIn !== true || o.tableId) return false;
+    if (o.paymentStatus !== "PAID" || o.status !== "ACCEPTED") return false;
+
+    const { count } = await this.prisma.order.updateMany({
+      where: { id: orderId, status: "ACCEPTED" },
+      data: { status: "COMPLETED" },
+    });
+    if (count === 0) return false;
+    await this.prisma.orderStatusHistory.create({
+      data: {
+        orderId,
+        tenantId,
+        fromStatus: "ACCEPTED",
+        toStatus: "COMPLETED",
+        actorType: "SYSTEM",
+        changedBy: "system:retail-sale",
+        note: "Shop sale paid at the counter",
+      },
+    });
+    this.events.emit("order.status_changed", {
+      orderId,
+      tenantId,
+      locationId: o.locationId,
+      fromStatus: "ACCEPTED",
+      toStatus: "COMPLETED",
+      actorType: "SYSTEM",
+    });
+    const done = await this.prisma.order.findUnique({ where: { id: orderId } });
+    if (done?.locationId) {
+      this.socket.emitOrderUpdated(done.locationId, {
+        orderId,
+        tenantId,
+        locationId: done.locationId,
+        platform: done.platform,
+        orderSource: done.orderSource,
+        fulfillmentType: done.fulfillmentType,
+        displayId: done.displayId,
+        status: done.status,
+        total: Number(done.total),
+        itemCount: 0,
+        customerName: (done.customerInfo as any)?.name ?? "",
+        scheduledFor: done.scheduledFor?.toISOString() ?? null,
+        createdAt: done.createdAt.toISOString(),
+      });
+    }
+    return true;
   }
 
   /** The slug the customer-facing storefront lives under, so a notification

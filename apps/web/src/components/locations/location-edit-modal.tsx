@@ -24,10 +24,14 @@ import {
   type Location,
   type LocationStatus,
 } from '@/lib/api/locations.client';
+import type { BusinessType } from '@/lib/api/locations.client';
+import { BusinessTypePicker } from './business-type-picker';
 import { OpeningHoursEditor } from './opening-hours-editor';
 import { WhatsAppConnectionSection } from './whatsapp-connection-section';
 import { StuartConnectionSection } from './stuart-connection-section';
 import { UberDirectConnectionSection } from './uber-direct-connection-section';
+import { JetGoConnectionSection } from './jet-go-connection-section';
+import { YangoConnectionSection } from './yango-connection-section';
 import { ImageUploader } from '@/components/products/image-uploader';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { KITCHEN_LANGUAGES } from '@/lib/kitchen-languages';
@@ -157,6 +161,9 @@ function GeneralTab({
   // from the Brands section.
 
   const [name, setName] = useState(location?.name ?? '');
+  // Retail R1 — restaurant, grocery or retail shop. See BusinessTypePicker.
+  const savedBusinessType: BusinessType = location?.businessType ?? 'RESTAURANT';
+  const [businessType, setBusinessType] = useState<BusinessType>(savedBusinessType);
   const [line1, setLine1] = useState(location?.addressLine1 ?? '');
   const [line2, setLine2] = useState(location?.addressLine2 ?? '');
   const [city, setCity] = useState(location?.city ?? '');
@@ -340,6 +347,7 @@ function GeneralTab({
               }
             : undefined,
         phone: phone || undefined,
+        businessType,
       } as any);
 
       // CreateLocationDto on the API is intentionally minimal (name +
@@ -381,6 +389,9 @@ function GeneralTab({
         googleReviewUrl: googleReviewUrl || null,
         onlineOrderingSlug: slug || null,
         status,
+        // Only when it changed: the business type is owner-level, and sending
+        // it back unchanged would refuse a manager's unrelated save.
+        ...(businessType !== savedBusinessType ? { businessType } : {}),
         // Phase AU — HubRise. Only send the access token when the
         // operator typed a new one (so we don't accidentally clobber
         // a stored token with the empty input field). Catalog id is
@@ -466,6 +477,17 @@ function GeneralTab({
           is optional, fill in over time. Brands are added later from
           the Brands section so the create form stays a single short
           form. */}
+      <Field
+        label="What do you sell here?"
+        help={
+          isCreate
+            ? 'Sets up the till and stock for the way this shop trades. You can change it later.'
+            : 'Shops scan barcodes at the till and finish a paid counter sale straight away.'
+        }
+      >
+        <BusinessTypePicker value={businessType} onChange={setBusinessType} />
+      </Field>
+
       <Field label="Location name" help="Only field required to create.">
         <Input value={name} onChange={setName} placeholder="e.g. KLO Consett" />
       </Field>
@@ -721,6 +743,14 @@ function GeneralTab({
 
       {/* Phase BI — per-location Uber Direct courier dispatch. */}
       {location?.id && <UberDirectConnectionSection locationId={location.id} />}
+
+      {/* Phase BJ — per-location JET Go (Just Eat DaaS) courier dispatch. */}
+      {location?.id && <JetGoConnectionSection locationId={location.id} />}
+
+      {/* Phase BK — Yango Delivery courier dispatch. UAE shops only: the
+          section renders nothing for a location the API says isn't in the UAE
+          (unless it was already set up, so it can still be switched off). */}
+      {location?.id && <YangoConnectionSection locationId={location.id} />}
 
       {/* Phase AW — Stripe Connect + application fee live on the brand,
           not the location. A single kitchen running three virtual brands

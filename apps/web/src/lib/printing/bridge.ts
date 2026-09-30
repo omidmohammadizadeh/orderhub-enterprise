@@ -1435,7 +1435,9 @@ export async function renderReceiptBytes(
     const maxDots = paperWidth === 58 ? 360 : 512;
     logoBytes = await imageToRaster(String(payload.brandLogoUrl), maxDots);
   }
-  const qr = opts?.qrCode && payload?.qrData ? String(payload.qrData) : null;
+  // qrAlways: a code that is part of the receipt's job (a shop's returns QR,
+  // Retail R1), so the printer's marketing-QR toggle doesn't switch it off.
+  const qr = (opts?.qrCode || payload?.qrAlways) && payload?.qrData ? String(payload.qrData) : null;
   const qrCodeBytes = qr
     ? await qrCommandBytes(qr, paperWidth, opts?.qrDialect ?? "ESCPOS")
     : null;
@@ -1526,7 +1528,9 @@ export async function renderReceiptParts(
     const maxDots = paperWidth === 58 ? 360 : 512;
     logoBytes = await imageToRaster(String(payload.brandLogoUrl), maxDots);
   }
-  const qr = opts?.qrCode && payload?.qrData ? String(payload.qrData) : null;
+  // qrAlways: a code that is part of the receipt's job (a shop's returns QR,
+  // Retail R1), so the printer's marketing-QR toggle doesn't switch it off.
+  const qr = (opts?.qrCode || payload?.qrAlways) && payload?.qrData ? String(payload.qrData) : null;
   const receipt = buildOrderReceipt(payload, paperWidth, {
     logoBytes,
     qr: null,

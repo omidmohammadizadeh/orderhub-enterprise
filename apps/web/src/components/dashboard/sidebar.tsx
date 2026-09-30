@@ -46,6 +46,8 @@ import {
   MonitorSmartphone,
   Bot,
   ShieldCheck,
+  ScanBarcode,
+  ShoppingBasket,
   Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SidebarLocationSwitcher } from "./sidebar-location-switcher";
@@ -70,6 +72,8 @@ interface NavItem {
   roles?: string[];
   /** Hidden unless the selected location has dine-in table service on. */
   requiresTableService?: boolean;
+  /** Retail R1 — hidden unless the selected location is a shop. */
+  requiresShop?: boolean;
 }
 
 // Phase AR — every NavItem optionally declares which roles see it.
@@ -166,6 +170,11 @@ const primaryNav: NavItem[] = [
   { href: "/dashboard/reviews", label: "Reviews", icon: Star, roles: MANAGER_TIER },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3, roles: MANAGER_TIER_PLUS },
   { href: "/dashboard/inventory", label: "Inventory", icon: Package, roles: SHOP_FLOOR },
+  // Retail R1 — barcodes, counts and the spreadsheet import. Shop floor, like
+  // Inventory: whoever is on shift does the stock count.
+  { href: "/dashboard/stock", label: "Stock & barcodes", icon: ScanBarcode, roles: SHOP_FLOOR, requiresShop: true },
+  // Retail R3 — online orders are picked here, not on the KDS.
+  { href: "/dashboard/picking", label: "Picking", icon: ShoppingBasket, roles: SHOP_FLOOR, requiresShop: true },
   { href: "/dashboard/team", label: "Team Roles", icon: UserCog, roles: MANAGER_TIER },
   // Managers keep Printers: a jammed or offline printer is a mid-service
   // problem, and the person on shift is the one who has to clear it.
@@ -322,6 +331,8 @@ function _Sidebar() {
   });
   const tableServiceOn = !!(locationQuery.data as any)?.settings?.tableService
     ?.enabled;
+  const businessType = (locationQuery.data as any)?.businessType;
+  const isShop = businessType === "GROCERY" || businessType === "RETAIL";
 
   // Admin Dashboard → Dashboard access. A tab switched off for the selected
   // location is gone for everyone who works there, whatever their role — so
@@ -367,6 +378,7 @@ function _Sidebar() {
               (!item.roles ||
                 (user?.role && item.roles.includes(user.role))) &&
               (!item.requiresTableService || tableServiceOn) &&
+              (!item.requiresShop || isShop) &&
               tabVisible(item.href),
           )
           .map((item) => {

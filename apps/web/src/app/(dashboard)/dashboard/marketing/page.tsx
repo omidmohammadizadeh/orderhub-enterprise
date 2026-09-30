@@ -26,6 +26,7 @@ import { Users, Heart,
   Clock,
   Sparkles,
   Tag,
+  Layers,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import {
@@ -47,6 +48,7 @@ import { BogoCampaignForm } from "@/components/marketing/bogo-form";
 import { FreeItemCampaignForm } from "@/components/marketing/free-item-form";
 import { FreeDeliveryCampaignForm } from "@/components/marketing/free-delivery-form";
 import { HappyHourCampaignForm } from "@/components/marketing/happy-hour-form";
+import { MultiBuyCampaignForm } from "@/components/marketing/multi-buy-form";
 
 interface TypeTile {
   id: CampaignType;
@@ -108,6 +110,14 @@ const TYPE_TILES: TypeTile[] = [
     example: "Example: 20% off (14:00–17:00, Mon-Fri)",
     icon: Clock,
     wired: true,
+  },
+  {
+    id: "MULTI_BUY",
+    title: "Multi-buy",
+    example: "Example: 3 for £2, or a £3.50 meal deal",
+    icon: Layers,
+    wired: true,
+    badge: "Shops",
   },
 ];
 
@@ -355,6 +365,16 @@ export default function MarketingPage() {
 
       {formType === "PERCENT_OFF_ITEMS" && (
         <PercentOffItemsCampaignForm
+          onCancel={() => setFormType(null)}
+          onSaved={() => {
+            qc.invalidateQueries({ queryKey: ["marketing", "campaigns"] });
+            setFormType(null);
+          }}
+        />
+      )}
+
+      {formType === "MULTI_BUY" && (
+        <MultiBuyCampaignForm
           onCancel={() => setFormType(null)}
           onSaved={() => {
             qc.invalidateQueries({ queryKey: ["marketing", "campaigns"] });
@@ -848,6 +868,7 @@ function prettyType(t: CampaignType): string {
     FREE_ITEM: "Free item with purchase",
     FREE_DELIVERY: "Free delivery",
     HAPPY_HOUR: "Happy hour",
+    MULTI_BUY: "Multi-buy",
   };
   return map[t];
 }
@@ -871,6 +892,7 @@ function prettyChannel(c: string): string {
     DELIVEROO: "Deliveroo",
     WHATSAPP: "WhatsApp",
     HUBRISE: "HubRise",
+    KEETA: "Keeta",
   };
   return map[c] ?? c;
 }

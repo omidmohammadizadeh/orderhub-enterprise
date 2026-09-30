@@ -20,6 +20,7 @@ import { DeliverooConnectionService } from "../integrations/deliveroo/deliveroo-
 import { UberEatsConnectionService } from "../integrations/ubereats/ubereats-connection.service";
 import { JetStoreStatusService } from "../integrations/jet/jet-store-status.service";
 import { GlovoStoreStatusService } from "../integrations/glovo/glovo-store-status.service";
+import { KeetaStoreService } from "../integrations/keeta/keeta-store.service";
 import { ActivityLogService } from "../logs/activity-log.service";
 
 export type SupportedChannel =
@@ -30,7 +31,8 @@ export type SupportedChannel =
   | "DELIVEROO"
   | "WHATSAPP"
   | "HUBRISE"
-  | "GLOVO";
+  | "GLOVO"
+  | "KEETA";
 
 export type DurationPreset =
   | "1h"
@@ -78,6 +80,8 @@ export class PauseService {
     // Phase GL-5 — Glovo temporary closing. Last and optional so the specs
     // that construct this service positionally are unaffected.
     @Optional() private readonly glovo?: GlovoStoreStatusService,
+    // Phase KT-5 — Keeta suspend/reopen. Optional and last, as above.
+    @Optional() private readonly keeta?: KeetaStoreService,
   ) {}
 
   // ─── Reads ─────────────────────────────────────────────────────────
@@ -260,6 +264,7 @@ export class PauseService {
     void this.reconcileJustEat(args.scope, args.tenantId);
 
     void this.reconcileGlovo(args.scope, args.tenantId);
+    void this.reconcileKeeta(args.scope, args.tenantId);
 
     return row;
   }
@@ -316,6 +321,10 @@ export class PauseService {
         { locationId: row.locationId, brandId: row.brandId, channel: row.channel },
         args.tenantId,
       );
+      void this.reconcileKeeta(
+        { locationId: row.locationId, brandId: row.brandId, channel: row.channel },
+        args.tenantId,
+      );
       this.activity?.record({
         tenantId: args.tenantId,
         locationId: row.locationId,
@@ -342,6 +351,7 @@ export class PauseService {
     void this.reconcileJustEat(args.scope, args.tenantId);
 
     void this.reconcileGlovo(args.scope, args.tenantId);
+    void this.reconcileKeeta(args.scope, args.tenantId);
     this.activity?.record({
       tenantId: args.tenantId,
       locationId: args.scope.locationId,
@@ -534,6 +544,41 @@ export class PauseService {
       }
     } catch (e: any) {
       this.logger.warn(`Glovo pause reconcile failed: ${e?.message}`);
+    }
+  }
+
+  /**
+   * Mirror our pause state onto the brand's Keeta store(s).
+   *
+   * Keeta's only levers are suspend and reopen — no end time — so a timed
+   * pause closes Keeta now and relies on our own expiry to reopen it.
+   */
+  private async reconcileKeeta(scope: PauseScope, tenantId: string): Promise<void> {
+    try {
+      if (!this.keeta) return;
+      if (scope.channel && scope.channel !== "KEETA") return;
+      const conns = await this.prisma.brandPlatformConnection.findMany({
+        where: {
+          locationId: scope.locationId,
+          platform: "KEETA",
+          ...(scope.brandId ? { brandId: scope.brandId } : {}),
+          status: { in: ["connected", "suspended"] },
+        },
+        select: { brandId: true, tenantId: true },
+      });
+      for (const c of conns) {
+        const snap = await this.isPaused({ locationId: scope.locationId, brandId: c.brandId, channel: "KEETA" });
+        await this.keeta
+          .reconcile({
+            tenantId: c.tenantId ?? tenantId,
+            brandId: c.brandId,
+            locationId: scope.locationId,
+            paused: snap.paused,
+          })
+          .catch((e: any) => this.logger.warn(`Keeta pause reconcile failed: ${e?.message}`));
+      }
+    } catch (e: any) {
+      this.logger.warn(`Keeta pause reconcile failed: ${e?.message}`);
     }
   }
 

@@ -116,6 +116,7 @@ export class GroupOrdersController {
       deliveryFee?: number;
       specialInstructions?: string;
       paymentMethod?: string;
+      ageConfirmed?: boolean;
       paymentStatus?: string;
       idempotencyKey?: string;
       hostRef?: string;

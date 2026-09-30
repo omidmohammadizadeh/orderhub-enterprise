@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { OrdersModule } from "../orders/orders.module";
 import { PaymentsModule } from "../payments/payments.module";
 import { GroupOrdersController } from "./group-orders.controller";
+import { OrderingModule } from "../ordering/ordering.module";
 import { GroupOrdersService } from "./group-orders.service";
 
 // Group ordering — shared baskets. PrismaService is global, so this module
@@ -14,7 +15,9 @@ import { GroupOrdersService } from "./group-orders.service";
 // PaymentsModule is the same reason: a CARD group order gets an ordinary
 // hosted Stripe Checkout session rather than a second payment path.
 @Module({
-  imports: [OrdersModule, PaymentsModule],
+  // OrderingModule: a group basket is placed through the storefront checkout,
+  // so it is priced, zoned and paid for exactly like any online order.
+  imports: [OrdersModule, PaymentsModule, OrderingModule],
   controllers: [GroupOrdersController],
   providers: [GroupOrdersService],
   exports: [GroupOrdersService],

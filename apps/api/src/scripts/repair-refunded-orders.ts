@@ -41,7 +41,10 @@ const money = (m: number) => `£${(m / 100).toFixed(2)}`;
 async function main() {
   // Every payment that has a confirmed refund against it.
   const refunds = await (prisma as any).refund.findMany({
-    where: { status: "SUCCEEDED" },
+    // A retail cash return has no payment row (Refund.paymentId is null) —
+    // there is no provider state to repair, and a null key would poison the
+    // `id IN (...)` below.
+    where: { status: "SUCCEEDED", paymentId: { not: null } },
     select: { paymentId: true, amount: true },
   });
   const refundedByPayment = new Map<string, number>();

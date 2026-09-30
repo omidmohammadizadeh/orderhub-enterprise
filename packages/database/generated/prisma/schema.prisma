@@ -542,6 +542,7 @@ model Location {
   menuAssignments      MenuChannelAssignment[]
   itemChannelSnoozes   MenuItemChannelAvailability[]
   homeDrivers          Driver[]                      @relation("DriverHomeLocation")
+  productStockLevels   ProductStockLevel[]
 
   // Phase AS-1 — print routing defaults.
   //   defaultKitchenStation — every kitchen ticket that doesn't match
@@ -568,9 +569,17 @@ model Location {
   // shop has one till, one bank account and one currency. Backfilled from
   // `country` — see currencyForCountry in @orderhub/shared, which is also
   // what the "Add location" form uses to pick a default.
-  currency String  @default("GBP")
-  about    String?
-  logoUrl  String?
+  currency String @default("GBP")
+
+  // Retail R1 — what kind of business trades here. A PRESET, not a fork:
+  // it picks sensible defaults (the till opens in scan mode, a paid walk-in
+  // sale completes on the spot instead of climbing the kitchen ladder, stock
+  // is counted per barcoded variant) while every underlying feature stays
+  // available to every type. RESTAURANT is the default so every existing
+  // location behaves exactly as before.
+  businessType BusinessType @default(RESTAURANT)
+  about        String?
+  logoUrl      String?
 
   // Phase AN — online ordering presentation
   customDomain       String?
@@ -604,6 +613,10 @@ model Location {
   stuartConfig     StuartConfig?
   // Phase BI — Uber Direct courier config (per location).
   uberDirectConfig UberDirectConfig?
+  // Phase BJ — JET Go (Just Eat Delivery-as-a-Service) courier config.
+  jetGoConfig      JetGoConfig?
+  // Phase BK — Yango Delivery (UAE) courier config.
+  yangoConfig      YangoConfig?
 
   // Phase AN — Stripe Connect + application fee config
   stripeConnectedAccountId  String?
@@ -1044,6 +1057,16 @@ model MenuItem {
   dietary             Json      @default("[]")
   calories            Int?
   prepTime            Int?
+  // Retail — age-restricted product (Challenge 25): null = anyone, else 16
+  // or 18. The till asks for ID, the storefront asks for confirmation and
+  // online orders carry an ID CHECK note. See @orderhub/shared age-check.
+  minAge              Int?
+  // Retail — sold by weight: null = each, "KG" / "100G" = basePrice is per
+  // that unit, order lines carry grams, stock is counted in grams.
+  // scaleCode is the product's number on the shop's label scale (the code
+  // inside "2…" barcodes). See @orderhub/shared weighed.
+  sellBy              String?
+  scaleCode           String?
   metadata            Json      @default("{}")
 
   // ── Multi-SKU pricing ──────────────────────────────────────────────────
@@ -1104,6 +1127,8 @@ model MenuItem {
   categories          MenuItemOnCategory[]
   modifierGroupLinks  ModifierGroupOnItem[]
   variants            MenuItemVariant[]
+  // Retail R1 — the barcoded, stock-counted variants. See ProductVariant.
+  productVariants     ProductVariant[]
   recipe              Recipe?
   stationRoutes       MenuItemStation[]
   // Phase AW-14 — per-channel snooze records ("86" board). One row
@@ -1231,7 +1256,7 @@ model MenuItemOnCategory {
   @@map("menu_items_on_categories")
 }
 
-// ── Modifier Groups ─────────────────────────────────────────���─────────────────
+// ── Modifier Groups ───────────────────────────────────────────────────────────
 model ModifierGroup {
   id          String  @id @default(cuid())
   brandId     String
@@ -1817,6 +1842,9 @@ enum CampaignType {
   FREE_ITEM
   FREE_DELIVERY
   HAPPY_HOUR
+  // "3 for £2" / "buy 3, cheapest free" / meal deal. Config on
+  // metadata.multiBuy; pricing in @orderhub/shared multi-buy.
+  MULTI_BUY
 }
 
 enum CampaignStatus {
@@ -2163,6 +2191,9 @@ model OrderItem {
   notes      String?
   metadata   Json    @default("{}")
 
+  // Retail R1 — item-level returns against this line.
+  refundLines RefundLine[]
+
   createdAt DateTime @default(now())
 
   @@index([orderId])
@@ -2333,7 +2364,7 @@ model Table {
   qrToken   String? @unique
   qrEnabled Boolean @default(false)
 
-  // ── Current sitting ─────────────────────────────────────────────────
+  // ── Current sitting ──���──────────────────────────────────────────────
   covers     Int? // guests on the open tab, for spend-per-head
   serverId   String?
   serverName String?
@@ -2539,7 +2570,7 @@ model PrintJob {
   retryMetadata Json           @default("{}")
   printedAt     DateTime?
 
-  // Phase AS-1 — routing + lifecycle additions.
+  // Phase AS-1 �� routing + lifecycle additions.
   // stationId: which station this ticket belongs to (null for receipts).
   // trigger: which auto-print rule produced the job (or MANUAL_ONLY).
   // claimedByAgentId + claimedAt: held during the print window so two
@@ -2732,7 +2763,7 @@ model AgentPairCode {
   @@map("agent_pair_codes")
 }
 
-// ── Routing join tables ────────────────────────────────────────────────
+// ── Routing join tables ───────────────────────────────────────────────���
 // Phase AS-1. Most-specific-wins resolver walks these in order.
 model MenuItemStation {
   id         String         @id @default(cuid())
@@ -3103,8 +3134,15 @@ model PaymentMethod {
 model Refund {
   id             String       @id @default(cuid())
   tenantId       String
-  paymentId      String
-  payment        Payment      @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  // Nullable since Retail R1: a walk-in CASH sale never writes a Payment row
+  // (the till only flips Order.paymentStatus), so cash handed back over the
+  // counter has no payment to hang off. Every provider refund still sets it.
+  paymentId      String?
+  payment        Payment?     @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  // Retail R1 — the order the refund belongs to, and how the money went back
+  // (CASH | CARD). Set by the returns flow; older rows leave both null.
+  orderId        String?
+  method         String?
   stripeRefundId String?      @unique
   amount         Decimal      @db.Decimal(10, 2)
   reason         String?
@@ -3114,12 +3152,137 @@ model Refund {
   note           String?
 
   ledgerEntries LedgerEntry[]
+  // Retail R1 — which lines (and how many of each) this refund returned.
+  lines         RefundLine[]
 
   createdAt DateTime @default(now())
 
   @@index([tenantId])
   @@index([paymentId])
+  @@index([orderId])
   @@map("refunds")
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// RETAIL R1 — BARCODED VARIANTS, PER-LOCATION STOCK, ITEM-LEVEL RETURNS
+// ════════════════════════════════════════════════��═════════════════════════════
+//
+// A retail product is still a MenuItem, so the till, the storefront and every
+// marketplace publish keep working unchanged. What retail adds is underneath
+// it: one ProductVariant per thing with its own barcode (a can of Coke has
+// one; a T-shirt has one per size × colour), and a stock count per variant
+// per location. Stock is a ledger — ProductStockLevel is the running total
+// and ProductStockMovement is the audit trail that explains it.
+//
+// A product with more than one variant also mirrors them into
+// MenuItem.productSkus (variant.sku = productSkus[].plu), so every existing
+// size picker offers them with no new UI.
+
+// One sellable, scannable version of a product.
+model ProductVariant {
+  id         String   @id @default(cuid())
+  tenantId   String
+  // Denormalised from the MenuItem: barcodes are unique per BRAND, not per
+  // tenant — a tenant running two shop brands legitimately sells the same
+  // can of Coke (same EAN) under both.
+  brandId    String
+  menuItemId String
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  // "Default" for a single-variant product; "M / Black" for a garment.
+  name       String
+  // Free-form option values, e.g. { "size": "M", "colour": "Black" }.
+  options    Json     @default("{}")
+  // Our code for the variant. Equals the item PLU for a single-variant
+  // product and productSkus[].plu for a multi-variant one — the order line's
+  // `sku` is how a sale is traced back to its variant.
+  sku        String?
+  // EAN-13 / UPC-A / EAN-8 / Code 128 — whatever is printed on the pack.
+  barcode    String?
+  // Null = sell at the product's basePrice.
+  price      Decimal? @db.Decimal(10, 2)
+  costPrice  Decimal? @db.Decimal(10, 2)
+  // Off for things that are not counted (a service, a gift-wrap charge).
+  trackStock Boolean  @default(true)
+  // Warn when the count at a location falls to or below this.
+  lowStockAt Int?
+  isActive   Boolean  @default(true)
+  sortOrder  Int      @default(0)
+
+  stockLevels ProductStockLevel[]
+  movements   ProductStockMovement[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([brandId, barcode])
+  @@index([tenantId, barcode])
+  @@index([menuItemId])
+  @@map("product_variants")
+}
+
+// Running stock count of one variant at one location. May go negative: a
+// till must never refuse a sale because the books are behind the shelf.
+model ProductStockLevel {
+  id         String         @id @default(cuid())
+  variantId  String
+  variant    ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  locationId String
+  location   Location       @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  quantity   Int            @default(0)
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([variantId, locationId])
+  @@index([locationId])
+  @@map("product_stock_levels")
+}
+
+// Append-only log of every stock change. Never updated, never deleted.
+model ProductStockMovement {
+  id         String            @id @default(cuid())
+  tenantId   String
+  locationId String
+  variantId  String
+  variant    ProductVariant    @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  type       StockMovementType
+  // Signed: positive = into stock, negative = out.
+  quantity   Int
+  reason     String?
+  orderId    String?
+  refundId   String?
+  recordedBy String?
+  // Idempotency. A sale is deducted once however many times the status
+  // event fires ("sale:<orderItemId>"), a cancel restores it once
+  // ("unsale:<orderItemId>"), a return restocks once ("return:<lineId>").
+  // Written with ON CONFLICT DO NOTHING, and the running total only moves
+  // when the insert actually happened.
+  dedupeKey  String?           @unique
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId, locationId, createdAt(sort: Desc)])
+  @@index([variantId, createdAt(sort: Desc)])
+  @@index([orderId])
+  @@map("product_stock_movements")
+}
+
+// One returned line of a Refund: which order line, how many, how much.
+model RefundLine {
+  id          String    @id @default(cuid())
+  refundId    String
+  refund      Refund    @relation(fields: [refundId], references: [id], onDelete: Cascade)
+  orderItemId String
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  quantity    Int
+  amount      Decimal   @db.Decimal(10, 2)
+  // Back on the shelf (stock +quantity) or written off as damaged.
+  restock     Boolean   @default(true)
+
+  createdAt DateTime @default(now())
+
+  @@index([refundId])
+  @@index([orderItemId])
+  @@map("refund_lines")
 }
 
 // Append-only double-entry ledger — every financial event produces rows here
@@ -3918,6 +4081,7 @@ enum IntegrationPlatform {
   GRUBHUB
   CAREEM
   GLOVO
+  KEETA
   WHATSAPP
 }
 
@@ -3941,6 +4105,7 @@ enum OrderPlatform {
   GRUBHUB
   CAREEM
   GLOVO
+  KEETA
   WHATSAPP
   // The AI phone line. The voice module used to write "PHONE" here, which is
   // not a member of this enum — so Prisma rejected every completed call and
@@ -3961,6 +4126,7 @@ enum OrderSource {
   GRUBHUB
   CAREEM
   GLOVO
+  KEETA
   WHATSAPP
   // Taken over the phone by the AI voice line. Shown as "AI Voice".
   VOICE
@@ -4055,6 +4221,12 @@ enum PayoutStatus {
   PAID
   FAILED
   CANCELLED
+}
+
+enum BusinessType {
+  RESTAURANT
+  GROCERY
+  RETAIL
 }
 
 enum StockMovementType {
@@ -4627,6 +4799,117 @@ model UberDirectConfig {
   updatedAt DateTime @updatedAt
 
   @@map("uber_direct_configs")
+}
+
+// Per-location JET Go config. JET Go is Just Eat Takeaway's Delivery-as-a-Service
+// network (the API is SkipTheDishes' DaaS platform) — the same "we dispatch a
+// courier for YOUR order" product as Uber Direct and Stuart, so the money model
+// is identical: the restaurant's own JET Go account pays for the courier, and
+// OrderHub only takes a flat per-dispatch fee from the location wallet.
+//
+// Two things make it different from the other two networks:
+//
+//  1. `collectPointId`. JET Go doesn't take a pickup ADDRESS — it takes the id of
+//     a collect point JET has already onboarded, fetched from GET /collect-points.
+//     Without it there is nothing to estimate against, so dispatch is gated on it
+//     as much as on `active`.
+//
+//  2. `webhookToken` is shared, not per-location. JET Go allows exactly ONE
+//     notification config per client credential, so two locations that paste the
+//     same clientId MUST end up on one webhook URL — the second registration
+//     would otherwise overwrite the first and silently strand the first shop's
+//     courier updates. upsert() reuses the token of any sibling location already
+//     holding that clientId, which makes re-registering idempotent. Routing never
+//     depends on it: every webhook carries the requestId, which is unique across
+//     the whole platform, so the token only authenticates.
+model JetGoConfig {
+  id         String   @id @default(cuid())
+  tenantId   String
+  locationId String   @unique
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  // Which JET market the credentials belong to: UK | CA | AU | EU. This picks the
+  // API hostname, and it is not cosmetic — UK credentials against the CA host are
+  // simply unauthorized.
+  market           String  @default("UK")
+  // "sandbox" (staging hosts + the /simulate endpoint) | "production".
+  environment      String  @default("sandbox")
+  // Encrypted { clientId, clientSecret } envelope (CredentialEncryptionService).
+  credentials      Json
+  // The JET collect point this location collects from (a UUID from
+  // GET /v1/delivery/collect-points), plus its name for the settings screen.
+  collectPointId   String?
+  collectPointName String?
+  // The opaque id in our webhook PATH. Safe to show the operator — it is how
+  // JET addresses us, not how it proves who it is.
+  webhookToken     String
+  // The credential JET sends back on every webhook (x-api-key, or the password
+  // half of Basic). Deliberately a DIFFERENT value from webhookToken: the URL
+  // gets copied into dashboards, emails and support tickets, and if the path
+  // segment were also the secret then anyone who saw the URL could post fake
+  // courier updates. Never leaves the server except in the register call to JET.
+  webhookSecret    String  @default("")
+  // Master on/off for this location. Dispatch refuses when false.
+  active           Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([webhookToken])
+  @@map("jet_go_configs")
+}
+
+// Per-location Yango Delivery config (UAE). Yango Delivery is the international
+// brand of Yandex Delivery, and its B2B "express claims" API is Yandex's —
+// every call goes to b2b.taxi.yandex.net whatever the country. Same money model
+// as Stuart / Uber Direct / JET Go: the shop's OWN Yango business account pays
+// for the courier (the token below is that account's), OrderHub only takes the
+// flat per-dispatch wallet fee.
+//
+// Two things make it different:
+//
+//  1. There is NO sandbox. Accepting a claim sends a real courier and bills the
+//     shop. So `mode` defaults to "estimate_only": quotes work, dispatch refuses
+//     before anything is created. An operator has to switch to "live" on purpose.
+//
+//  2. Yango takes COORDINATES for the pickup, and Location has none. They are
+//     geocoded once when the config is saved and stored here, so every dispatch
+//     uses the same point (and the operator can correct it) instead of
+//     re-geocoding a shop address on every order.
+model YangoConfig {
+  id         String   @id @default(cuid())
+  tenantId   String
+  locationId String   @unique
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  // "estimate_only" (default — no claim is ever created) | "live".
+  mode         String  @default("estimate_only")
+  // Encrypted { token } envelope. The token is the static bearer token from the
+  // Yango business cabinet's Integration tab; it never expires on its own but
+  // dies when the cabinet password changes.
+  credentials  Json
+  // Yango tariff class: "courier" (bike/foot, <=10kg) | "express" (car, <=20kg).
+  taxiClass    String  @default("courier")
+  // Yango REQUIRES an email on the pickup contact.
+  contactEmail String?
+  // The pickup point, [lat, lng] here — Yango's own order is [lon, lat] and the
+  // client flips it at the edge.
+  pickupLat    Float?
+  pickupLng    Float?
+  // The opaque path segment of our callback URL. Yango's callback is unsigned
+  // and carries only claim_id, so it is treated purely as a nudge to re-read
+  // the claim from Yango — a forged one can cause a re-fetch, nothing more.
+  webhookToken String
+  // Master on/off for this location. Dispatch refuses when false.
+  active       Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([webhookToken])
+  @@map("yango_configs")
 }
 
 // Customer reviews of a completed order. Deliberately scalar-only (no Prisma
@@ -5269,4 +5552,44 @@ model Referral {
   @@index([tenantId])
   @@index([referrerAccountId, status])
   @@map("referrals")
+}
+
+// Phase KT — direct Keeta (Meituan) integration, Standard Keeta API.
+//
+// Keeta authorizes by BRAND, not by store: a chain's merchant approves our app
+// once and ONE access token then covers every store under that Keeta brand.
+// Each of our brand × location pairs still gets its own BrandPlatformConnection
+// (platform "KEETA", externalStoreId = Keeta shopId), but the token itself
+// lives here, once, because Keeta's refresh tokens are SINGLE-USE: copies on
+// several connection rows would each spend it, and every copy but the first
+// would be dead the moment one refreshed.
+//
+// accessToken / refreshToken hold CredentialEncryptionService envelopes
+// (serialised JSON), never plaintext outside a keyless dev box.
+model KeetaAuthorization {
+  id            String    @id @default(cuid())
+  tenantId      String
+  // Keeta's brand id and name from /base/authorized/resource/get.
+  keetaBrandId  String?
+  brandName     String?
+  keetaUserId   String?
+  accessToken   String
+  refreshToken  String
+  // Both tokens expire together, 90 days after issue.
+  expiresAt     DateTime
+  issuedAt      DateTime
+  // active | revoked | refresh_failed
+  status        String    @default("active")
+  // [{ id, name, address, latitude, longitude }] — the stores this token covers.
+  shops         Json      @default("[]")
+  lastRefreshAt DateTime?
+  lastError     String?
+  metadata      Json      @default("{}")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, keetaBrandId])
+  @@index([tenantId])
+  @@map("keeta_authorizations")
 }

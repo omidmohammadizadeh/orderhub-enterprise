@@ -14,6 +14,11 @@ export interface CatalogProduct {
   description: string | null;
   basePrice: string | number;
   imageUrl: string | null;
+  /** Challenge 25 — 16 or 18, null when anyone can buy it. */
+  minAge?: number | null;
+  /** Sold by weight: basePrice is per kg / per 100 g. */
+  sellBy?: "KG" | "100G" | null;
+  scaleCode?: string | null;
   plu: string | null;
   sku: string | null;
   isAvailable: boolean;

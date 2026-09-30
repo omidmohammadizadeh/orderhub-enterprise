@@ -51,11 +51,14 @@ import { IntegrationsModule } from "./modules/integrations/integrations.module";
 import { HubRiseModule } from "./modules/integrations/hubrise/hubrise.module";
 import { StuartModule } from "./modules/integrations/stuart/stuart.module";
 import { UberDirectModule } from "./modules/integrations/uber-direct/uber-direct.module";
+import { JetGoModule } from "./modules/integrations/jet-go/jet-go.module";
+import { YangoModule } from "./modules/integrations/yango/yango.module";
 import { DeliverooModule } from "./modules/integrations/deliveroo/deliveroo.module";
 import { UberEatsModule } from "./modules/integrations/ubereats/ubereats.module";
 import { JetModule } from "./modules/integrations/jet/jet.module";
 import { GlovoModule } from "./modules/integrations/glovo/glovo.module";
 import { CareemModule } from "./modules/integrations/careem/careem.module";
+import { KeetaModule } from "./modules/integrations/keeta/keeta.module";
 import { WebhooksModule } from "./modules/webhooks/webhooks.module";
 import { DispatchModule } from "./modules/dispatch/dispatch.module";
 import { DriverAppModule } from "./modules/driver-app/driver-app.module";
@@ -91,6 +94,7 @@ import { BrandingModule } from "./modules/branding/branding.module";
 import { ProviderRegistryModule } from "./modules/provider-registry/provider-registry.module";
 import { MobileModule } from "./modules/mobile/mobile.module";
 import { InventoryModule } from "./modules/inventory/inventory.module";
+import { RetailModule } from "./modules/retail/retail.module";
 import { MarketingModule } from "./modules/marketing/marketing.module";
 import { LoyaltyModule } from "./modules/loyalty/loyalty.module";
 import { PauseModule } from "./modules/pauses/pause.module";
@@ -262,8 +266,11 @@ function bullRedisOptions(raw: string | undefined): Record<string, unknown> {
     JetModule,
     GlovoModule,
     CareemModule,
+    KeetaModule,
     StuartModule,
     UberDirectModule,
+    JetGoModule,
+    YangoModule,
     WebhooksModule,
     DispatchModule,
     ExpoPushModule,
@@ -295,6 +302,8 @@ function bullRedisOptions(raw: string | undefined): Record<string, unknown> {
     ProviderRegistryModule,
     MobileModule,
     InventoryModule,
+    // Retail R1 — barcoded variants, per-location stock, item-level returns.
+    RetailModule,
     MarketingModule,
     LoyaltyModule,
     PauseModule,

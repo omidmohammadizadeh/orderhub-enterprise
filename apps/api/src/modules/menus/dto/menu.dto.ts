@@ -1,4 +1,5 @@
 import {
+  IsIn,
   IsString,
   IsOptional,
   IsBoolean,
@@ -201,6 +202,12 @@ export class CreateMenuItemDto {
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) calories?: number;
   @ApiPropertyOptional() @IsOptional() @IsArray() @IsString({ each: true }) allergens?: string[];
   @ApiPropertyOptional() @IsOptional() @IsArray() @IsString({ each: true }) dietaryTags?: string[];
+  // Age-restricted product (Challenge 25): null clears it, else 16 or 18.
+  @ApiPropertyOptional({ enum: [16, 18], nullable: true }) @IsOptional() @IsIn([16, 18, null]) minAge?: number | null;
+  // Sold by weight: null = each, else basePrice is per kg / per 100 g.
+  @ApiPropertyOptional({ enum: ["KG", "100G"], nullable: true }) @IsOptional() @IsIn(["KG", "100G", null]) sellBy?: string | null;
+  // The product's number on the shop's label scale.
+  @ApiPropertyOptional({ nullable: true }) @IsOptional() @IsString() @MaxLength(8) scaleCode?: string | null;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isAvailable?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() outOfStock?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() visibleToCustomers?: boolean;
@@ -250,6 +257,12 @@ export class UpdateMenuItemDto {
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) calories?: number;
   @ApiPropertyOptional() @IsOptional() @IsArray() @IsString({ each: true }) allergens?: string[];
   @ApiPropertyOptional() @IsOptional() @IsArray() @IsString({ each: true }) dietaryTags?: string[];
+  // Age-restricted product (Challenge 25): null clears it, else 16 or 18.
+  @ApiPropertyOptional({ enum: [16, 18], nullable: true }) @IsOptional() @IsIn([16, 18, null]) minAge?: number | null;
+  // Sold by weight: null = each, else basePrice is per kg / per 100 g.
+  @ApiPropertyOptional({ enum: ["KG", "100G"], nullable: true }) @IsOptional() @IsIn(["KG", "100G", null]) sellBy?: string | null;
+  // The product's number on the shop's label scale.
+  @ApiPropertyOptional({ nullable: true }) @IsOptional() @IsString() @MaxLength(8) scaleCode?: string | null;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isAvailable?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() outOfStock?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() visibleToCustomers?: boolean;

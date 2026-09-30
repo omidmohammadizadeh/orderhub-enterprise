@@ -37,6 +37,7 @@ interface ContractView {
   signerName: string | null;
   subscriptionStartedAt: string | null;
   canSubscribe: boolean;
+  subscriptionActive?: boolean;
 }
 
 export default function SignContractPage() {
@@ -112,6 +113,12 @@ export default function SignContractPage() {
         headers: { "Content-Type": "application/json" },
       });
       const data = await res.json().catch(() => ({}));
+      if (res.ok && data?.alreadyActive) {
+        setContract((c) =>
+          c ? { ...c, canSubscribe: false, subscriptionActive: true } : c,
+        );
+        return;
+      }
       if (!res.ok || !data?.checkoutUrl) {
         setSubError(data?.message ?? "Couldn't start the subscription.");
         return;
@@ -359,6 +366,11 @@ export default function SignContractPage() {
           <p className="mt-2 text-sm font-semibold text-zinc-900">
             All done — thank you
           </p>
+          {contract.subscriptionActive && (
+            <p className="mt-1 text-xs text-zinc-600">
+              Your subscription is active.
+            </p>
+          )}
           <p className="mt-1 text-xs text-zinc-600">
             A copy has been emailed to {contract.recipientEmail}.
           </p>

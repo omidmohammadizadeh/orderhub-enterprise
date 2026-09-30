@@ -75,6 +75,7 @@ const CHANNELS: Array<{ key: string; label: string }> = [
   { key: "CAREEM", label: "Careem" },
   { key: "TALABAT", label: "talabat" },
   { key: "GLOVO", label: "Glovo" },
+  { key: "KEETA", label: "Keeta" },
   { key: "HUBRISE", label: "HubRise" },
 ];
 const CHART_COLORS = [

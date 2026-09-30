@@ -19,6 +19,7 @@ export function TipStep({
   symbol,
   tipBase,
   brandName,
+  isShop,
   onBack,
   onContinue,
 }: {
@@ -29,6 +30,8 @@ export function TipStep({
   /** Food total the percentages are taken from — excludes delivery and tax. */
   tipBase: number;
   brandName: string;
+  /** Shops have a team, not a kitchen. */
+  isShop?: boolean;
   onBack: () => void;
   onContinue: (tip: number) => void;
 }) {
@@ -49,7 +52,7 @@ export function TipStep({
           Add a tip for {brandName}?
         </h2>
         <p className="mt-2 text-[14px] leading-relaxed text-zinc-500">
-          100% of your tip goes to the kitchen. It&rsquo;s optional — your order
+          100% of your tip goes to the {isShop ? "team" : "kitchen"}. It&rsquo;s optional — your order
           is exactly the same either way.
         </p>
 

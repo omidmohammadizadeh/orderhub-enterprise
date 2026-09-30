@@ -108,6 +108,24 @@ export function applyReceiptOffer(payload: any, offer: ReceiptOffer | null) {
   }
 }
 
+/** Retail R1 — must match RECEIPT_CODE_PREFIX in apps/api retail.logic.ts. */
+export const RETURNS_CODE_PREFIX = "OHR:";
+
+/**
+ * Retail R1 — a shop's own sale prints a QR of its order id, which the till's
+ * Returns screen scans to pull the sale back up. Replaces the marketing QR
+ * (a marketplace order keeps that: its refunds belong to the platform), and
+ * prints whatever the printer's QR toggle says. Call AFTER applyReceiptOffer.
+ */
+export function applyReturnsCode(payload: any, order: any) {
+  const type = order?.location?.businessType;
+  if (type !== "GROCERY" && type !== "RETAIL") return;
+  if (isMarketplaceOrder(order) || !order?.id) return;
+  payload.qrData = `${RETURNS_CODE_PREFIX}${order.id}`;
+  payload.qrCaption = "Keep for returns — scan at the till";
+  payload.qrAlways = true;
+}
+
 // Which command language to render for this printer. Star printers need
 // Star Line Mode; Epson / Sunmi / generic all use ESC/POS. Prefer the
 // explicit commandSet saved on the printer, fall back to the brand, then
@@ -250,6 +268,7 @@ export async function printOrderViaBridge(
   }
   const offer = await resolveReceiptOffer(order);
   applyReceiptOffer(payload, offer);
+  applyReturnsCode(payload, order);
   // Filled in per printer below and posted with markOrderPrinted. Every gate
   // the QR must pass lives in this file, so without reporting them a missing
   // code can only be guessed at from the server side.

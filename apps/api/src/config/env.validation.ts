@@ -170,6 +170,16 @@ const envSchema = z.object({
   GLOVO_ENV: z.enum(["stage", "production"]).default("stage"),
   GLOVO_API_BASE: z.string().url().optional(),
 
+  // Phase KT — direct Keeta (Standard Keeta API). All optional so deploys
+  // without Keeta still boot. See docs/keeta-integration.md.
+  KEETA_APP_ID: z.string().optional(),
+  KEETA_APP_SECRET: z.string().optional(),
+  KEETA_API_BASE: z.string().url().optional(),
+  KEETA_ENV: z.enum(["test", "production"]).default("test"),
+  KEETA_OAUTH_REDIRECT_URI: z.string().url().optional(),
+  KEETA_WEBHOOK_URL: z.string().url().optional(),
+  KEETA_WEBHOOK_SIG_MODE: z.enum(["observe", "enforce"]).default("observe"),
+
   // Phase AU — HubRise OAuth client credentials. Either the legacy
   // HUBRISE_APP_* names or the new HUBRISE_CLIENT_* names work; the
   // app config resolves whichever is set. Optional so deploys without

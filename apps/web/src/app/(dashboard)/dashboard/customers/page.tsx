@@ -671,6 +671,7 @@ const CHANNEL_OPTIONS = [
   { id: "CAREEM", label: "Careem" },
   { id: "TALABAT", label: "talabat" },
   { id: "GLOVO", label: "Glovo" },
+  { id: "KEETA", label: "Keeta" },
   { id: "HUBRISE", label: "HubRise" },
   { id: "WHATSAPP", label: "WhatsApp" },
   { id: "VOICE", label: "AI Voice" },
@@ -689,6 +690,7 @@ const CHANNEL_LABELS: Record<string, string> = {
   CAREEM: "Careem",
   TALABAT: "talabat",
   GLOVO: "Glovo",
+  KEETA: "Keeta",
 };
 
 function CrmListTab() {

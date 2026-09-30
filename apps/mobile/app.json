@@ -3,7 +3,7 @@
     "name": "Order Hub Solutions",
     "slug": "orderhub-pos",
     "scheme": "orderhub",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "newArchEnabled": false,
     "orientation": "default",
     "icon": "./assets/icon.png",
@@ -33,6 +33,7 @@
         "NSBluetoothPeripheralUsageDescription": "Order Hub connects to nearby Bluetooth card readers and receipt printers.",
         "NSLocalNetworkUsageDescription": "Order Hub discovers and connects to receipt printers on your local Wi-Fi network.",
         "NSLocationWhenInUseUsageDescription": "Location is required by the payments provider to accept card payments.",
+        "NSCameraUsageDescription": "Order Hub uses the camera to scan product barcodes and receipt QR codes at the till.",
         "UISupportedExternalAccessoryProtocols": []
       }
     },
@@ -54,11 +55,13 @@
         "BLUETOOTH_CONNECT",
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
-        "NFC"
+        "NFC",
+        "CAMERA"
       ]
     },
     "plugins": [
       "./plugins/withCometUsb",
+      "./plugins/withOptionalCamera",
       "expo-apple-authentication",
       "expo-secure-store",
       [

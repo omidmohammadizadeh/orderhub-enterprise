@@ -34,7 +34,19 @@ import {
 } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { formatMoney, currencySymbol } from "@orderhub/shared";
+import {
+  formatMoney,
+  currencySymbol,
+  applyMultiBuys,
+  basketMinAge,
+  describeMultiBuy,
+  normaliseSellBy,
+  sellByLabel,
+  weighedLineName,
+  type SellBy,
+  type MultiBuyApplication,
+  type MultiBuyDeal,
+} from "@orderhub/shared";
 import axios from "axios";
 import { LoginModal } from "@/components/storefront/login-modal";
 import { FoodPlaceholder } from "@/components/storefront/food-placeholder";
@@ -44,6 +56,8 @@ import { ReferralClaim } from "@/components/storefront/referral-claim";
 import { ReferAFriend } from "@/components/storefront/refer-a-friend";
 import { PlacingOrderSheet } from "@/components/storefront/placing-order-sheet";
 import { TipStep } from "@/components/storefront/tip-step";
+import { ShopProductTile } from "@/components/storefront/shop-product-tile";
+import { WeightSheet } from "@/components/storefront/weight-sheet";
 import {
   RatingPill,
   StorefrontReviews,
@@ -137,6 +151,8 @@ import type { SelectedModifier, ProductSku } from "@orderhub/shared";
 interface Storefront {
   location: {
     id: string;
+    /** Retail R3 — GROCERY / RETAIL get the shop layout. Absent on old payloads. */
+    businessType?: "RESTAURANT" | "GROCERY" | "RETAIL";
     name: string;
     slug: string;
     phone?: string;
@@ -223,6 +239,11 @@ interface CartLine {
   bogoOf?: string;
   // Phase AW-19 — FREE_ITEM gift marker (campaign id). Internal-only.
   freeItemOf?: string;
+  /** Retail R3 — shops only: may the picker swap this if it's out of stock?
+   *  Absent = yes (BEST_MATCH), the grocery norm. */
+  substitution?: "BEST_MATCH" | "NONE";
+  /** Retail — weighed products: grams per pack (the checkout re-prices it). */
+  weightGrams?: number;
 }
 
 type CartAction =
@@ -231,6 +252,7 @@ type CartAction =
   | { type: "DECREMENT"; id: string }
   | { type: "REMOVE"; id: string }
   | { type: "SET"; lines: CartLine[] }
+  | { type: "SET_SUBSTITUTION"; id: string; value: "BEST_MATCH" | "NONE" }
   | { type: "CLEAR" };
 
 /**
@@ -256,6 +278,7 @@ function cartLineKey(line: Omit<CartLine, "id">): string {
     line.plu ?? "",
     line.bogoOf ?? "",
     line.freeItemOf ?? "",
+    line.weightGrams ?? "",
     mods,
   ].join("\u0000");
 }
@@ -297,6 +320,8 @@ function cartReducer(state: CartLine[], action: CartAction): CartLine[] {
         .filter((l) => l.quantity > 0);
     case "REMOVE":
       return state.filter((l) => l.id !== action.id);
+    case "SET_SUBSTITUTION":
+      return state.map((l) => (l.id === action.id ? { ...l, substitution: action.value } : l));
     case "CLEAR":
       return [];
     default:
@@ -485,6 +510,8 @@ function OrderPage() {
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [scheduledFor, setScheduledFor] = useState<string | null>(null); // ISO
   const [modalItem, setModalItem] = useState<MenuItem | null>(null);
+  // Retail — a loose product waiting for the shopper to pick an amount.
+  const [weighItem, setWeighItem] = useState<MenuItem | null>(null);
   const [confirmedOrderId, setConfirmedOrderId] = useState<string | null>(null);
   // Set once an embedded CARD order has been created and is waiting to be
   // paid on-page. Non-null means the payment sheet is up.
@@ -547,6 +574,8 @@ function OrderPage() {
   const [customerEmail, setCustomerEmail] = useState("");
   // "Keep me updated by SMS" — ticked by default, customer can opt out.
   const [smsMarketingConsent, setSmsMarketingConsent] = useState(true);
+  // Challenge 25 — "I'm 18 or over", asked only when the basket needs it.
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [addrFlat, setAddrFlat] = useState(""); // Phase AP fix #3 — house/flat number
   const [addrLine1, setAddrLine1] = useState("");
   const [addrCity, setAddrCity] = useState("");
@@ -960,20 +989,47 @@ function OrderPage() {
       });
     }
   }, [cart, freeItem, eligibleSubtotal, chosenFreeItemId, itemsById, groupToken]);
+  // Retail — multi-buys ("3 for £2", meal deals) come off first, with the
+  // same engine the checkout charges by; the campaign or promo code then
+  // applies to what's left.
+  const multiBuyDeals: MultiBuyDeal[] = (storefront as any)?.multiBuys ?? [];
+  const multiBuy = useMemo(
+    () =>
+      applyMultiBuys(
+        cart.map((l) => ({ menuItemId: l.menuItemId, unitPrice: l.unitPrice, quantity: l.quantity })),
+        multiBuyDeals,
+      ),
+    [cart, multiBuyDeals],
+  );
+  const afterDeals = round2(Math.max(0, subtotal - multiBuy.savings));
+  // The first multi-buy each product counts towards, for its tile badge.
+  const dealLabelFor = useCallback(
+    (itemId: string): string | null => {
+      const d = multiBuyDeals.find((x) =>
+        x.mode === "MEAL_DEAL" ? x.slots.some((sl) => sl.itemIds.includes(itemId)) : x.itemIds.includes(itemId),
+      );
+      return d ? describeMultiBuy(d, currencySymbol(currency)) : null;
+    },
+    [multiBuyDeals, currency],
+  );
   const campaignClears =
     storeCampaign &&
     (storeCampaign.minOrder == null ||
-      subtotal >= Number(storeCampaign.minOrder));
+      afterDeals >= Number(storeCampaign.minOrder));
   const campaignDiscount = !campaignClears
     ? 0
     : storeCampaign.percentageOff != null
-      ? Math.round(subtotal * Number(storeCampaign.percentageOff)) / 100
+      ? Math.round(afterDeals * Number(storeCampaign.percentageOff)) / 100
       : storeCampaign.amountOff != null
-        ? Math.min(subtotal, Number(storeCampaign.amountOff))
+        ? Math.min(afterDeals, Number(storeCampaign.amountOff))
         : 0;
-  // Effective discount is the larger of the promo code and the
-  // campaign — they don't stack.
-  const effectiveDiscount = Math.max(promoDiscount, campaignDiscount);
+  // The promo code and the campaign don't stack — the larger applies, on
+  // top of any multi-buy saving.
+  const effectiveDiscount = round2(
+    multiBuy.savings + Math.max(Math.min(promoDiscount, afterDeals), campaignDiscount),
+  );
+  // Challenge 25 — the highest age any product in the basket needs.
+  const cartMinAge = basketMinAge(cart.map((l) => itemsById[l.menuItemId] as any));
 
   // Phase AP-8 — visible service charge.
   // Only the fixed portion of the application fee surfaces to the
@@ -1044,9 +1100,18 @@ function OrderPage() {
   // customer can't otherwise see how many they've already added without
   // opening the cart. Anything configurable still opens the sheet, because a
   // second "Large, no onions" is not the same line as the first.
+  // Retail R3 — a GROCERY/RETAIL location gets the shop layout: product tiles
+  // with steppers, stock-aware, per-line substitution in the basket.
+  const isShop =
+    storefront?.location?.businessType === "GROCERY" ||
+    storefront?.location?.businessType === "RETAIL";
+  const shopMinDelivery = isShop ? Number(cfg?.minOrderForDelivery ?? 0) || null : null;
+
   const isSimpleItem = useCallback(
     (item: MenuItem) =>
-      !(item.modifierGroupLinks?.length ?? 0) && !(item as any).hasMultipleSkus,
+      !(item.modifierGroupLinks?.length ?? 0) &&
+      !(item as any).hasMultipleSkus &&
+      !normaliseSellBy((item as any).sellBy),
     [],
   );
   // The plain line for an item: same item, no modifiers, no note. A line
@@ -1186,8 +1251,14 @@ function OrderPage() {
           unitPrice: line.unitPrice,
           menuItemId: line.menuItemId,
           notes: line.notes || undefined,
-          // Same shape the ordinary checkout sends: name + price only.
-          modifiers: line.modifiers.map(toOrderLineModifier),
+          // Same shape the ordinary checkout sends, including the size and
+          // option ids the server needs to price the line when the host places.
+          modifiers: line.modifiers.map((m) => ({
+            ...toOrderLineModifier(m),
+            ...(m.id ? { optionId: m.id } : {}),
+          })),
+          ...(line.selectedSku ? { skuPlu: line.selectedSku.plu ?? null, skuName: line.selectedSku.name } : {}),
+          ...(line.weightGrams ? { weightGrams: line.weightGrams } : {}),
         },
         quantity: line.quantity,
         // unitPrice is already modifier-inclusive — the same rule the local
@@ -1224,6 +1295,10 @@ function OrderPage() {
       setGroupError(groupErrorFrom(err, "Couldn't close the basket.")),
   });
 
+  // Challenge 25 for a group basket: every guest's lines, looked up on the menu.
+  const groupMinAge = basketMinAge(
+    (basket?.items ?? []).map((i: any) => itemsById[String(i.cartItem?.menuItemId ?? "")] as any),
+  );
   const placeGroup = useMutation({
     mutationFn: () =>
       groupOrdersClient.place(String(groupToken), {
@@ -1256,6 +1331,7 @@ function OrderPage() {
         // Stable per basket: a double-tap on Place order can't become two
         // orders, and neither can a retry after a dropped connection.
         idempotencyKey: `group-${groupToken}`,
+        ...(groupMinAge ? { ageConfirmed } : {}),
       }),
     onSuccess: (order) => {
       if (order?.checkoutUrl && typeof window !== "undefined") {
@@ -1323,8 +1399,17 @@ function OrderPage() {
         name: l.displayName,
         quantity: l.quantity,
         unitPrice: l.unitPrice,
-        modifiers: l.modifiers.map(toOrderLineModifier),
+        // The option id and the size let the server price the line exactly
+        // (it re-prices every line; unitPrice here is only a cross-check).
+        modifiers: l.modifiers.map((m) => ({
+          ...toOrderLineModifier(m),
+          ...(m.id ? { optionId: m.id } : {}),
+        })),
+        ...(l.selectedSku ? { skuPlu: l.selectedSku.plu ?? null, skuName: l.selectedSku.name } : {}),
+        ...(l.weightGrams ? { weightGrams: l.weightGrams } : {}),
         notes: l.notes,
+        // Retail R3 — ignored by the server for restaurants.
+        ...(l.substitution ? { substitution: l.substitution } : {}),
       }));
       const payload: any = {
         idempotencyKey: `direct-${Date.now()}-${Math.random()
@@ -1383,6 +1468,8 @@ function OrderPage() {
         loyaltyRewardId: useLoyaltyReward ? (loyaltyReward?.id ?? undefined) : undefined,
         // "Keep me updated by SMS" checkbox → SMS-marketing consent.
         marketingConsent: smsMarketingConsent,
+        // Challenge 25 — the server refuses a restricted basket without it.
+        ...(cartMinAge ? { ageConfirmed } : {}),
       };
       return axios
         .post(`${API_BASE}/v1/ordering/store/${slug}/checkout`, payload, {
@@ -2165,7 +2252,7 @@ function OrderPage() {
             <input
               value={search}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search for food…"
+              placeholder={isShop ? "Search products…" : "Search for food…"}
               className="w-full rounded-xl border border-zinc-200 bg-white px-9 py-3 text-sm focus:border-zinc-400 focus:outline-none"
             />
           </div>
@@ -2250,6 +2337,41 @@ function OrderPage() {
                     Nothing in {cat.name} yet — check back soon.
                   </p>
                 ) : (
+                  isShop ? (
+                    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
+                      {items.map((item) => {
+                        const { amount, from } = displayPrice(item as any);
+                        const promo = itemPromos[item.id] ?? null;
+                        const off = promo && promo.percentageOff > 0 ? promo.percentageOff : 0;
+                        const simple = isSimpleItem(item);
+                        return (
+                          <ShopProductTile
+                            key={item.id}
+                            name={item.name}
+                            imageUrl={(cfg?.showItemImages ?? true) ? (item as any).imageUrl : null}
+                            price={money(off ? Math.round(amount * (1 - off / 100) * 100) / 100 : amount)}
+                            wasPrice={off ? money(amount) : null}
+                            fromPrice={!!from}
+                            soldOut={!!(item as any).outOfStock}
+                            qty={simple ? (plainLineFor(item.id)?.quantity ?? 0) : 0}
+                            simple={simple}
+                            onInc={() => handleProductClick(item)}
+                            onDec={() => {
+                              const line = plainLineFor(item.id);
+                              if (line) dispatch({ type: "DECREMENT", id: line.id });
+                            }}
+                            onOpen={() => openItemSheet(item)}
+                            unitSuffix={
+                              normaliseSellBy((item as any).sellBy)
+                                ? sellByLabel(normaliseSellBy((item as any).sellBy) as SellBy)
+                                : null
+                            }
+                            deal={dealLabelFor(item.id)}
+                          />
+                        );
+                      })}
+                    </div>
+                  ) : (
                   <>
                     {/* Phones get a list, not a grid. A card per row wastes
                         most of a 375px screen on padding and image, so the
@@ -2295,6 +2417,7 @@ function OrderPage() {
                       ))}
                     </div>
                   </>
+                  )
                 )}
               </section>
             ))
@@ -2318,6 +2441,9 @@ function OrderPage() {
           shareUrl={groupOrdersClient.shareUrl(String(slug), basket.token)}
           onClose={() => setGroupPanelOpen(false)}
           onRemoveItem={(id) => removeFromGroup.mutate(id)}
+          minAge={groupMinAge}
+          ageConfirmed={ageConfirmed}
+          setAgeConfirmed={setAgeConfirmed}
           removingItemId={removingGroupItemId}
           onLock={() => lockGroup.mutate("lock")}
           onUnlock={() => lockGroup.mutate("unlock")}
@@ -2428,6 +2554,8 @@ function OrderPage() {
           onClose={() => setCartOpen(false)}
           cart={cart}
           dispatch={dispatch}
+          isShop={isShop}
+          minOrderForDelivery={shopMinDelivery}
           subtotal={subtotal}
           deliveryFee={deliveryFee}
           serviceCharge={serviceCharge}
@@ -2495,6 +2623,10 @@ function OrderPage() {
           }}
           promoDiscount={promoDiscount}
           campaignDiscount={campaignDiscount}
+          multiBuyApplied={multiBuy.applied}
+          cartMinAge={cartMinAge}
+          ageConfirmed={ageConfirmed}
+          setAgeConfirmed={setAgeConfirmed}
           campaignName={storeCampaign?.name ?? null}
           freeItemPicker={
             freeItem
@@ -2550,6 +2682,38 @@ function OrderPage() {
       {/* Modifier modal — reuses POS modal exactly. allModifierGroups
           is required for multi-SKU products (their per-SKU groups are
           stored as plain ID arrays, not FK-linked). */}
+      {weighItem && (
+        <WeightSheet
+          name={weighItem.name}
+          pricePerUnit={Number(weighItem.basePrice)}
+          sellBy={normaliseSellBy((weighItem as any).sellBy) as SellBy}
+          percentageOff={itemPromos[weighItem.id]?.percentageOff ?? 0}
+          money={money}
+          onClose={() => setWeighItem(null)}
+          onAdd={(grams, unitPrice, quantity) => {
+            const item = weighItem;
+            setWeighItem(null);
+            addLine({
+              menuItemId: item.id,
+              displayName: weighedLineName(
+                item.name,
+                grams,
+                Number(item.basePrice),
+                normaliseSellBy((item as any).sellBy) as SellBy,
+                currencySymbol(currency),
+              ),
+              unitPrice,
+              quantity,
+              modifiers: [],
+              selectedSku: null,
+              notes: "",
+              plu: item.plu ?? null,
+              weightGrams: grams,
+            });
+          }}
+        />
+      )}
+
       {modalItem && (
         <ModifierSelectionModal
           item={modalItem}
@@ -2634,6 +2798,7 @@ function OrderPage() {
           symbol={symbol}
           tipBase={subtotal}
           brandName={storefront.brand?.name ?? storefront.location.name}
+          isShop={isShop}
           onBack={() => setTipOpen(false)}
           onContinue={(tip) => {
             setTipAmount(tip);
@@ -2763,6 +2928,10 @@ function OrderPage() {
    */
   function openItemSheet(item: MenuItem) {
     if (storefront?.closed) return;
+    if (normaliseSellBy((item as any).sellBy)) {
+      setWeighItem(item);
+      return;
+    }
     setModalItem(item);
   }
 
@@ -2771,6 +2940,10 @@ function OrderPage() {
     // cards become inert. The customer can still scroll the menu but
     // can't open the modifier sheet or drop anything in the cart.
     if (storefront?.closed) return;
+    if (normaliseSellBy((item as any).sellBy)) {
+      setWeighItem(item);
+      return;
+    }
     const hasMods = (item.modifierGroupLinks?.length ?? 0) > 0;
     const multiSku = !!item.hasMultipleSkus;
     if (hasMods || multiSku) {
@@ -3265,6 +3438,9 @@ interface CartPanelProps {
   onClose: () => void;
   cart: CartLine[];
   dispatch: React.Dispatch<CartAction>;
+  /** Retail R3 — shop basket: per-line substitution, delivery minimum. */
+  isShop?: boolean;
+  minOrderForDelivery?: number | null;
   subtotal: number;
   deliveryFee: number;
   serviceCharge: number;
@@ -3334,6 +3510,10 @@ interface CartPanelProps {
   promoDiscount: number;
   campaignDiscount: number;
   campaignName: string | null;
+  multiBuyApplied: MultiBuyApplication[];
+  cartMinAge: number | null;
+  ageConfirmed: boolean;
+  setAgeConfirmed: (v: boolean) => void;
   freeDelivery: boolean;
   postcodeSuggestions: Array<{
     id: string;
@@ -3370,6 +3550,8 @@ function CartPanel(props: CartPanelProps) {
     money,
     onClose,
     cart,
+    isShop,
+    minOrderForDelivery,
     addrFlat,
     setAddrFlat,
     promoCode,
@@ -3381,6 +3563,10 @@ function CartPanel(props: CartPanelProps) {
     promoDiscount,
     campaignDiscount,
     campaignName,
+    multiBuyApplied,
+    cartMinAge,
+    ageConfirmed,
+    setAgeConfirmed,
     freeDelivery,
     postcodeSuggestions,
     postcodeLookupNote,
@@ -3455,11 +3641,16 @@ function CartPanel(props: CartPanelProps) {
   // without buying something else first — being made to add a drink to claim
   // a free chicken is the sort of small meanness people remember.
   const rewardApplied = !!loyaltyReward && useLoyaltyReward;
+  // Retail R3 — a shop's delivery minimum (the server enforces it too).
+  const belowShopMinimum =
+    !!isShop && fulfillmentType === "DELIVERY" && !!minOrderForDelivery && subtotal + 1e-9 < minOrderForDelivery;
   const canPlace =
+    !belowShopMinimum &&
     (cart.length > 0 || rewardApplied) &&
     customerName.trim().length > 0 &&
     customerPhone.trim().length > 0 &&
-    (fulfillmentType === "PICKUP" || addressComplete);
+    (fulfillmentType === "PICKUP" || addressComplete) &&
+    (!cartMinAge || ageConfirmed);
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/40" onClick={onClose}>
@@ -3563,6 +3754,25 @@ function CartPanel(props: CartPanelProps) {
                     <p className="mt-1 text-xs text-zinc-500">
                       {money(l.unitPrice * l.quantity)}
                     </p>
+                    {isShop && l.weightGrams ? (
+                      // Weighed lines are re-weighed, never swapped.
+                      <p className="mt-1 text-[11px] text-zinc-500">Weighed when picked — lighter is refunded</p>
+                    ) : isShop && !l.bogoOf && !l.freeItemOf && (
+                      <label className="mt-1 flex items-center gap-1.5 text-[11px] text-zinc-600">
+                        <input
+                          type="checkbox"
+                          checked={l.substitution !== "NONE"}
+                          onChange={(e) =>
+                            dispatch({
+                              type: "SET_SUBSTITUTION",
+                              id: l.id,
+                              value: e.target.checked ? "BEST_MATCH" : "NONE",
+                            })
+                          }
+                        />
+                        Swap for similar if out of stock
+                      </label>
+                    )}
                   </div>
                   <div className="flex items-center gap-1">
                     <button
@@ -3618,6 +3828,27 @@ function CartPanel(props: CartPanelProps) {
               <span>Keep me updated with offers &amp; news by SMS</span>
             </label>
           </Section>
+
+          {cartMinAge && (
+            <Section title={`Age check — ${cartMinAge}+`}>
+              <div className="rounded-md border border-amber-300 bg-amber-50 p-2.5">
+                <label className="flex cursor-pointer items-start gap-2 text-xs text-amber-950">
+                  <input
+                    type="checkbox"
+                    checked={ageConfirmed}
+                    onChange={(e) => setAgeConfirmed(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-amber-400"
+                  />
+                  <span>
+                    <span className="font-semibold">I&apos;m {cartMinAge} or over.</span> Your basket has
+                    age-restricted items. We&apos;ll ask for photo ID when you{" "}
+                    {fulfillmentType === "DELIVERY" ? "receive your order" : "collect"}, and won&apos;t hand it
+                    over without it.
+                  </span>
+                </label>
+              </div>
+            </Section>
+          )}
 
           {/* The loyalty reward, offered rather than applied.
               Opt IN, not out: someone may be saving it for a bigger order,
@@ -3960,6 +4191,13 @@ function CartPanel(props: CartPanelProps) {
         {/* Totals + place */}
         <footer className="border-t border-zinc-200 px-4 py-3 space-y-2">
           <Row label="Subtotal" value={`${money(subtotal)}`} />
+          {multiBuyApplied.map((a) => (
+            <Row
+              key={a.dealId}
+              label={`${a.name}${a.times > 1 ? ` ×${a.times}` : ""}`}
+              value={`-${money(a.saving)}`}
+            />
+          ))}
           {campaignDiscount >= promoDiscount && campaignDiscount > 0 && (
             <Row
               label={`Discount (${campaignName ?? "Promo"})`}
@@ -3991,6 +4229,12 @@ function CartPanel(props: CartPanelProps) {
             />
           )}
           <Row label="Total" value={`${money(total)}`} bold />
+          {belowShopMinimum && (
+            <p className="text-[11px] text-amber-700">
+              Delivery minimum is {money(minOrderForDelivery!)} — add{" "}
+              {money(minOrderForDelivery! - subtotal)} more, or choose collection.
+            </p>
+          )}
           {placeError && (
             <p className="text-[11px] text-red-600">{placeError}</p>
           )}

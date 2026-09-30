@@ -32,6 +32,7 @@ const CHANNELS: Array<{ id: string; label: string; wired: boolean }> = [
   { id: "DELIVEROO", label: "Deliveroo", wired: false },
   { id: "WHATSAPP", label: "WhatsApp", wired: false },
   { id: "HUBRISE", label: "HubRise", wired: false },
+  { id: "KEETA", label: "Keeta", wired: false },
 ];
 
 const AUDIENCES: Array<{ id: CampaignAudience; label: string; sub: string }> = [
@@ -365,7 +366,7 @@ export function BogoCampaignForm({ onCancel, onSaved }: Props) {
   );
 }
 
-function ItemPicker({
+export function ItemPicker({
   categories,
   loading,
   selected,
@@ -503,7 +504,7 @@ function ItemPicker({
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+export function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="rounded-md border border-zinc-200 p-4">
       <h3 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-700 mb-3">

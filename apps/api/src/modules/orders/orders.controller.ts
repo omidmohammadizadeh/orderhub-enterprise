@@ -123,7 +123,7 @@ export class OrdersController {
     @Body() dto: CreateOrderDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.orders.create(dto, user.tenantId);
+    return this.orders.create(dto, user.tenantId, user.userId);
   }
 
   // ── POST /api/v1/orders/test ──────────────────────────

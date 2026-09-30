@@ -394,6 +394,26 @@ export type PaymentMethod = $Result.DefaultSelection<Prisma.$PaymentMethodPayloa
  */
 export type Refund = $Result.DefaultSelection<Prisma.$RefundPayload>
 /**
+ * Model ProductVariant
+ * 
+ */
+export type ProductVariant = $Result.DefaultSelection<Prisma.$ProductVariantPayload>
+/**
+ * Model ProductStockLevel
+ * 
+ */
+export type ProductStockLevel = $Result.DefaultSelection<Prisma.$ProductStockLevelPayload>
+/**
+ * Model ProductStockMovement
+ * 
+ */
+export type ProductStockMovement = $Result.DefaultSelection<Prisma.$ProductStockMovementPayload>
+/**
+ * Model RefundLine
+ * 
+ */
+export type RefundLine = $Result.DefaultSelection<Prisma.$RefundLinePayload>
+/**
  * Model LedgerEntry
  * 
  */
@@ -609,6 +629,16 @@ export type StuartConfig = $Result.DefaultSelection<Prisma.$StuartConfigPayload>
  */
 export type UberDirectConfig = $Result.DefaultSelection<Prisma.$UberDirectConfigPayload>
 /**
+ * Model JetGoConfig
+ * 
+ */
+export type JetGoConfig = $Result.DefaultSelection<Prisma.$JetGoConfigPayload>
+/**
+ * Model YangoConfig
+ * 
+ */
+export type YangoConfig = $Result.DefaultSelection<Prisma.$YangoConfigPayload>
+/**
  * Model Review
  * 
  */
@@ -686,6 +716,11 @@ export type ReferralCode = $Result.DefaultSelection<Prisma.$ReferralCodePayload>
  * only ever be referred once, whoever gets there first.
  */
 export type Referral = $Result.DefaultSelection<Prisma.$ReferralPayload>
+/**
+ * Model KeetaAuthorization
+ * 
+ */
+export type KeetaAuthorization = $Result.DefaultSelection<Prisma.$KeetaAuthorizationPayload>
 
 /**
  * Enums
@@ -761,6 +796,15 @@ export const OAuthProvider: {
 export type OAuthProvider = (typeof OAuthProvider)[keyof typeof OAuthProvider]
 
 
+export const BusinessType: {
+  RESTAURANT: 'RESTAURANT',
+  GROCERY: 'GROCERY',
+  RETAIL: 'RETAIL'
+};
+
+export type BusinessType = (typeof BusinessType)[keyof typeof BusinessType]
+
+
 export const LocationGoLiveStatus: {
   DRAFT: 'DRAFT',
   CONFIGURING: 'CONFIGURING',
@@ -785,6 +829,7 @@ export const IntegrationPlatform: {
   GRUBHUB: 'GRUBHUB',
   CAREEM: 'CAREEM',
   GLOVO: 'GLOVO',
+  KEETA: 'KEETA',
   WHATSAPP: 'WHATSAPP'
 };
 
@@ -852,7 +897,8 @@ export const CampaignType: {
   BOGO: 'BOGO',
   FREE_ITEM: 'FREE_ITEM',
   FREE_DELIVERY: 'FREE_DELIVERY',
-  HAPPY_HOUR: 'HAPPY_HOUR'
+  HAPPY_HOUR: 'HAPPY_HOUR',
+  MULTI_BUY: 'MULTI_BUY'
 };
 
 export type CampaignType = (typeof CampaignType)[keyof typeof CampaignType]
@@ -891,6 +937,7 @@ export const OrderPlatform: {
   GRUBHUB: 'GRUBHUB',
   CAREEM: 'CAREEM',
   GLOVO: 'GLOVO',
+  KEETA: 'KEETA',
   WHATSAPP: 'WHATSAPP',
   VOICE: 'VOICE'
 };
@@ -911,6 +958,7 @@ export const OrderSource: {
   GRUBHUB: 'GRUBHUB',
   CAREEM: 'CAREEM',
   GLOVO: 'GLOVO',
+  KEETA: 'KEETA',
   WHATSAPP: 'WHATSAPP',
   VOICE: 'VOICE'
 };
@@ -1132,6 +1180,20 @@ export const RefundStatus: {
 export type RefundStatus = (typeof RefundStatus)[keyof typeof RefundStatus]
 
 
+export const StockMovementType: {
+  PURCHASE: 'PURCHASE',
+  SALE_DEDUCTION: 'SALE_DEDUCTION',
+  WASTE: 'WASTE',
+  ADJUSTMENT: 'ADJUSTMENT',
+  TRANSFER_IN: 'TRANSFER_IN',
+  TRANSFER_OUT: 'TRANSFER_OUT',
+  RETURN: 'RETURN',
+  COUNT_CORRECTION: 'COUNT_CORRECTION'
+};
+
+export type StockMovementType = (typeof StockMovementType)[keyof typeof StockMovementType]
+
+
 export const LedgerEntryType: {
   PAYMENT: 'PAYMENT',
   REFUND: 'REFUND',
@@ -1154,20 +1216,6 @@ export const PayoutStatus: {
 };
 
 export type PayoutStatus = (typeof PayoutStatus)[keyof typeof PayoutStatus]
-
-
-export const StockMovementType: {
-  PURCHASE: 'PURCHASE',
-  SALE_DEDUCTION: 'SALE_DEDUCTION',
-  WASTE: 'WASTE',
-  ADJUSTMENT: 'ADJUSTMENT',
-  TRANSFER_IN: 'TRANSFER_IN',
-  TRANSFER_OUT: 'TRANSFER_OUT',
-  RETURN: 'RETURN',
-  COUNT_CORRECTION: 'COUNT_CORRECTION'
-};
-
-export type StockMovementType = (typeof StockMovementType)[keyof typeof StockMovementType]
 
 
 export const PurchaseOrderStatus: {
@@ -1325,6 +1373,10 @@ export type OAuthProvider = $Enums.OAuthProvider
 
 export const OAuthProvider: typeof $Enums.OAuthProvider
 
+export type BusinessType = $Enums.BusinessType
+
+export const BusinessType: typeof $Enums.BusinessType
+
 export type LocationGoLiveStatus = $Enums.LocationGoLiveStatus
 
 export const LocationGoLiveStatus: typeof $Enums.LocationGoLiveStatus
@@ -1449,6 +1501,10 @@ export type RefundStatus = $Enums.RefundStatus
 
 export const RefundStatus: typeof $Enums.RefundStatus
 
+export type StockMovementType = $Enums.StockMovementType
+
+export const StockMovementType: typeof $Enums.StockMovementType
+
 export type LedgerEntryType = $Enums.LedgerEntryType
 
 export const LedgerEntryType: typeof $Enums.LedgerEntryType
@@ -1456,10 +1512,6 @@ export const LedgerEntryType: typeof $Enums.LedgerEntryType
 export type PayoutStatus = $Enums.PayoutStatus
 
 export const PayoutStatus: typeof $Enums.PayoutStatus
-
-export type StockMovementType = $Enums.StockMovementType
-
-export const StockMovementType: typeof $Enums.StockMovementType
 
 export type PurchaseOrderStatus = $Enums.PurchaseOrderStatus
 
@@ -2390,6 +2442,46 @@ export class PrismaClient<
   get refund(): Prisma.RefundDelegate<ExtArgs>;
 
   /**
+   * `prisma.productVariant`: Exposes CRUD operations for the **ProductVariant** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ProductVariants
+    * const productVariants = await prisma.productVariant.findMany()
+    * ```
+    */
+  get productVariant(): Prisma.ProductVariantDelegate<ExtArgs>;
+
+  /**
+   * `prisma.productStockLevel`: Exposes CRUD operations for the **ProductStockLevel** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ProductStockLevels
+    * const productStockLevels = await prisma.productStockLevel.findMany()
+    * ```
+    */
+  get productStockLevel(): Prisma.ProductStockLevelDelegate<ExtArgs>;
+
+  /**
+   * `prisma.productStockMovement`: Exposes CRUD operations for the **ProductStockMovement** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ProductStockMovements
+    * const productStockMovements = await prisma.productStockMovement.findMany()
+    * ```
+    */
+  get productStockMovement(): Prisma.ProductStockMovementDelegate<ExtArgs>;
+
+  /**
+   * `prisma.refundLine`: Exposes CRUD operations for the **RefundLine** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more RefundLines
+    * const refundLines = await prisma.refundLine.findMany()
+    * ```
+    */
+  get refundLine(): Prisma.RefundLineDelegate<ExtArgs>;
+
+  /**
    * `prisma.ledgerEntry`: Exposes CRUD operations for the **LedgerEntry** model.
     * Example usage:
     * ```ts
@@ -2820,6 +2912,26 @@ export class PrismaClient<
   get uberDirectConfig(): Prisma.UberDirectConfigDelegate<ExtArgs>;
 
   /**
+   * `prisma.jetGoConfig`: Exposes CRUD operations for the **JetGoConfig** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more JetGoConfigs
+    * const jetGoConfigs = await prisma.jetGoConfig.findMany()
+    * ```
+    */
+  get jetGoConfig(): Prisma.JetGoConfigDelegate<ExtArgs>;
+
+  /**
+   * `prisma.yangoConfig`: Exposes CRUD operations for the **YangoConfig** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more YangoConfigs
+    * const yangoConfigs = await prisma.yangoConfig.findMany()
+    * ```
+    */
+  get yangoConfig(): Prisma.YangoConfigDelegate<ExtArgs>;
+
+  /**
    * `prisma.review`: Exposes CRUD operations for the **Review** model.
     * Example usage:
     * ```ts
@@ -2968,6 +3080,16 @@ export class PrismaClient<
     * ```
     */
   get referral(): Prisma.ReferralDelegate<ExtArgs>;
+
+  /**
+   * `prisma.keetaAuthorization`: Exposes CRUD operations for the **KeetaAuthorization** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more KeetaAuthorizations
+    * const keetaAuthorizations = await prisma.keetaAuthorization.findMany()
+    * ```
+    */
+  get keetaAuthorization(): Prisma.KeetaAuthorizationDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -3484,6 +3606,10 @@ export namespace Prisma {
     Payment: 'Payment',
     PaymentMethod: 'PaymentMethod',
     Refund: 'Refund',
+    ProductVariant: 'ProductVariant',
+    ProductStockLevel: 'ProductStockLevel',
+    ProductStockMovement: 'ProductStockMovement',
+    RefundLine: 'RefundLine',
     LedgerEntry: 'LedgerEntry',
     Payout: 'Payout',
     Supplier: 'Supplier',
@@ -3527,6 +3653,8 @@ export namespace Prisma {
     WalletTransaction: 'WalletTransaction',
     StuartConfig: 'StuartConfig',
     UberDirectConfig: 'UberDirectConfig',
+    JetGoConfig: 'JetGoConfig',
+    YangoConfig: 'YangoConfig',
     Review: 'Review',
     VoiceCall: 'VoiceCall',
     GroupOrder: 'GroupOrder',
@@ -3541,7 +3669,8 @@ export namespace Prisma {
     LoyaltyReward: 'LoyaltyReward',
     ReferralProgram: 'ReferralProgram',
     ReferralCode: 'ReferralCode',
-    Referral: 'Referral'
+    Referral: 'Referral',
+    KeetaAuthorization: 'KeetaAuthorization'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -3557,7 +3686,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "referralProgram" | "referralCode" | "referral"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "productVariant" | "productStockLevel" | "productStockMovement" | "refundLine" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "yangoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "referralProgram" | "referralCode" | "referral" | "keetaAuthorization"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -8811,6 +8940,286 @@ export namespace Prisma {
           }
         }
       }
+      ProductVariant: {
+        payload: Prisma.$ProductVariantPayload<ExtArgs>
+        fields: Prisma.ProductVariantFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ProductVariantFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductVariantPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ProductVariantFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductVariantPayload>
+          }
+          findFirst: {
+            args: Prisma.ProductVariantFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductVariantPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ProductVariantFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductVariantPayload>
+          }
+          findMany: {
+            args: Prisma.ProductVariantFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductVariantPayload>[]
+          }
+          create: {
+            args: Prisma.ProductVariantCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductVariantPayload>
+          }
+          createMany: {
+            args: Prisma.ProductVariantCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ProductVariantCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductVariantPayload>[]
+          }
+          delete: {
+            args: Prisma.ProductVariantDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductVariantPayload>
+          }
+          update: {
+            args: Prisma.ProductVariantUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductVariantPayload>
+          }
+          deleteMany: {
+            args: Prisma.ProductVariantDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ProductVariantUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.ProductVariantUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductVariantPayload>
+          }
+          aggregate: {
+            args: Prisma.ProductVariantAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateProductVariant>
+          }
+          groupBy: {
+            args: Prisma.ProductVariantGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ProductVariantGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ProductVariantCountArgs<ExtArgs>
+            result: $Utils.Optional<ProductVariantCountAggregateOutputType> | number
+          }
+        }
+      }
+      ProductStockLevel: {
+        payload: Prisma.$ProductStockLevelPayload<ExtArgs>
+        fields: Prisma.ProductStockLevelFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ProductStockLevelFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductStockLevelPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ProductStockLevelFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductStockLevelPayload>
+          }
+          findFirst: {
+            args: Prisma.ProductStockLevelFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductStockLevelPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ProductStockLevelFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductStockLevelPayload>
+          }
+          findMany: {
+            args: Prisma.ProductStockLevelFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductStockLevelPayload>[]
+          }
+          create: {
+            args: Prisma.ProductStockLevelCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductStockLevelPayload>
+          }
+          createMany: {
+            args: Prisma.ProductStockLevelCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ProductStockLevelCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductStockLevelPayload>[]
+          }
+          delete: {
+            args: Prisma.ProductStockLevelDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductStockLevelPayload>
+          }
+          update: {
+            args: Prisma.ProductStockLevelUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductStockLevelPayload>
+          }
+          deleteMany: {
+            args: Prisma.ProductStockLevelDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ProductStockLevelUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.ProductStockLevelUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductStockLevelPayload>
+          }
+          aggregate: {
+            args: Prisma.ProductStockLevelAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateProductStockLevel>
+          }
+          groupBy: {
+            args: Prisma.ProductStockLevelGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ProductStockLevelGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ProductStockLevelCountArgs<ExtArgs>
+            result: $Utils.Optional<ProductStockLevelCountAggregateOutputType> | number
+          }
+        }
+      }
+      ProductStockMovement: {
+        payload: Prisma.$ProductStockMovementPayload<ExtArgs>
+        fields: Prisma.ProductStockMovementFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ProductStockMovementFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductStockMovementPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ProductStockMovementFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductStockMovementPayload>
+          }
+          findFirst: {
+            args: Prisma.ProductStockMovementFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductStockMovementPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ProductStockMovementFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductStockMovementPayload>
+          }
+          findMany: {
+            args: Prisma.ProductStockMovementFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductStockMovementPayload>[]
+          }
+          create: {
+            args: Prisma.ProductStockMovementCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductStockMovementPayload>
+          }
+          createMany: {
+            args: Prisma.ProductStockMovementCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ProductStockMovementCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductStockMovementPayload>[]
+          }
+          delete: {
+            args: Prisma.ProductStockMovementDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductStockMovementPayload>
+          }
+          update: {
+            args: Prisma.ProductStockMovementUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductStockMovementPayload>
+          }
+          deleteMany: {
+            args: Prisma.ProductStockMovementDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ProductStockMovementUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.ProductStockMovementUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductStockMovementPayload>
+          }
+          aggregate: {
+            args: Prisma.ProductStockMovementAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateProductStockMovement>
+          }
+          groupBy: {
+            args: Prisma.ProductStockMovementGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ProductStockMovementGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ProductStockMovementCountArgs<ExtArgs>
+            result: $Utils.Optional<ProductStockMovementCountAggregateOutputType> | number
+          }
+        }
+      }
+      RefundLine: {
+        payload: Prisma.$RefundLinePayload<ExtArgs>
+        fields: Prisma.RefundLineFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.RefundLineFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RefundLinePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.RefundLineFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RefundLinePayload>
+          }
+          findFirst: {
+            args: Prisma.RefundLineFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RefundLinePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.RefundLineFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RefundLinePayload>
+          }
+          findMany: {
+            args: Prisma.RefundLineFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RefundLinePayload>[]
+          }
+          create: {
+            args: Prisma.RefundLineCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RefundLinePayload>
+          }
+          createMany: {
+            args: Prisma.RefundLineCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.RefundLineCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RefundLinePayload>[]
+          }
+          delete: {
+            args: Prisma.RefundLineDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RefundLinePayload>
+          }
+          update: {
+            args: Prisma.RefundLineUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RefundLinePayload>
+          }
+          deleteMany: {
+            args: Prisma.RefundLineDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.RefundLineUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.RefundLineUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RefundLinePayload>
+          }
+          aggregate: {
+            args: Prisma.RefundLineAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateRefundLine>
+          }
+          groupBy: {
+            args: Prisma.RefundLineGroupByArgs<ExtArgs>
+            result: $Utils.Optional<RefundLineGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.RefundLineCountArgs<ExtArgs>
+            result: $Utils.Optional<RefundLineCountAggregateOutputType> | number
+          }
+        }
+      }
       LedgerEntry: {
         payload: Prisma.$LedgerEntryPayload<ExtArgs>
         fields: Prisma.LedgerEntryFieldRefs
@@ -11821,6 +12230,146 @@ export namespace Prisma {
           }
         }
       }
+      JetGoConfig: {
+        payload: Prisma.$JetGoConfigPayload<ExtArgs>
+        fields: Prisma.JetGoConfigFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.JetGoConfigFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JetGoConfigPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.JetGoConfigFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JetGoConfigPayload>
+          }
+          findFirst: {
+            args: Prisma.JetGoConfigFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JetGoConfigPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.JetGoConfigFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JetGoConfigPayload>
+          }
+          findMany: {
+            args: Prisma.JetGoConfigFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JetGoConfigPayload>[]
+          }
+          create: {
+            args: Prisma.JetGoConfigCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JetGoConfigPayload>
+          }
+          createMany: {
+            args: Prisma.JetGoConfigCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.JetGoConfigCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JetGoConfigPayload>[]
+          }
+          delete: {
+            args: Prisma.JetGoConfigDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JetGoConfigPayload>
+          }
+          update: {
+            args: Prisma.JetGoConfigUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JetGoConfigPayload>
+          }
+          deleteMany: {
+            args: Prisma.JetGoConfigDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.JetGoConfigUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.JetGoConfigUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JetGoConfigPayload>
+          }
+          aggregate: {
+            args: Prisma.JetGoConfigAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateJetGoConfig>
+          }
+          groupBy: {
+            args: Prisma.JetGoConfigGroupByArgs<ExtArgs>
+            result: $Utils.Optional<JetGoConfigGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.JetGoConfigCountArgs<ExtArgs>
+            result: $Utils.Optional<JetGoConfigCountAggregateOutputType> | number
+          }
+        }
+      }
+      YangoConfig: {
+        payload: Prisma.$YangoConfigPayload<ExtArgs>
+        fields: Prisma.YangoConfigFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.YangoConfigFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$YangoConfigPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.YangoConfigFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$YangoConfigPayload>
+          }
+          findFirst: {
+            args: Prisma.YangoConfigFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$YangoConfigPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.YangoConfigFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$YangoConfigPayload>
+          }
+          findMany: {
+            args: Prisma.YangoConfigFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$YangoConfigPayload>[]
+          }
+          create: {
+            args: Prisma.YangoConfigCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$YangoConfigPayload>
+          }
+          createMany: {
+            args: Prisma.YangoConfigCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.YangoConfigCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$YangoConfigPayload>[]
+          }
+          delete: {
+            args: Prisma.YangoConfigDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$YangoConfigPayload>
+          }
+          update: {
+            args: Prisma.YangoConfigUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$YangoConfigPayload>
+          }
+          deleteMany: {
+            args: Prisma.YangoConfigDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.YangoConfigUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.YangoConfigUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$YangoConfigPayload>
+          }
+          aggregate: {
+            args: Prisma.YangoConfigAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateYangoConfig>
+          }
+          groupBy: {
+            args: Prisma.YangoConfigGroupByArgs<ExtArgs>
+            result: $Utils.Optional<YangoConfigGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.YangoConfigCountArgs<ExtArgs>
+            result: $Utils.Optional<YangoConfigCountAggregateOutputType> | number
+          }
+        }
+      }
       Review: {
         payload: Prisma.$ReviewPayload<ExtArgs>
         fields: Prisma.ReviewFieldRefs
@@ -12871,6 +13420,76 @@ export namespace Prisma {
           }
         }
       }
+      KeetaAuthorization: {
+        payload: Prisma.$KeetaAuthorizationPayload<ExtArgs>
+        fields: Prisma.KeetaAuthorizationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.KeetaAuthorizationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KeetaAuthorizationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.KeetaAuthorizationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KeetaAuthorizationPayload>
+          }
+          findFirst: {
+            args: Prisma.KeetaAuthorizationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KeetaAuthorizationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.KeetaAuthorizationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KeetaAuthorizationPayload>
+          }
+          findMany: {
+            args: Prisma.KeetaAuthorizationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KeetaAuthorizationPayload>[]
+          }
+          create: {
+            args: Prisma.KeetaAuthorizationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KeetaAuthorizationPayload>
+          }
+          createMany: {
+            args: Prisma.KeetaAuthorizationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.KeetaAuthorizationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KeetaAuthorizationPayload>[]
+          }
+          delete: {
+            args: Prisma.KeetaAuthorizationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KeetaAuthorizationPayload>
+          }
+          update: {
+            args: Prisma.KeetaAuthorizationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KeetaAuthorizationPayload>
+          }
+          deleteMany: {
+            args: Prisma.KeetaAuthorizationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.KeetaAuthorizationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.KeetaAuthorizationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KeetaAuthorizationPayload>
+          }
+          aggregate: {
+            args: Prisma.KeetaAuthorizationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateKeetaAuthorization>
+          }
+          groupBy: {
+            args: Prisma.KeetaAuthorizationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<KeetaAuthorizationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.KeetaAuthorizationCountArgs<ExtArgs>
+            result: $Utils.Optional<KeetaAuthorizationCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -13552,6 +14171,7 @@ export namespace Prisma {
     menuAssignments: number
     itemChannelSnoozes: number
     homeDrivers: number
+    productStockLevels: number
     loyaltyRewards: number
   }
 
@@ -13574,6 +14194,7 @@ export namespace Prisma {
     menuAssignments?: boolean | LocationCountOutputTypeCountMenuAssignmentsArgs
     itemChannelSnoozes?: boolean | LocationCountOutputTypeCountItemChannelSnoozesArgs
     homeDrivers?: boolean | LocationCountOutputTypeCountHomeDriversArgs
+    productStockLevels?: boolean | LocationCountOutputTypeCountProductStockLevelsArgs
     loyaltyRewards?: boolean | LocationCountOutputTypeCountLoyaltyRewardsArgs
   }
 
@@ -13717,6 +14338,13 @@ export namespace Prisma {
   /**
    * LocationCountOutputType without action
    */
+  export type LocationCountOutputTypeCountProductStockLevelsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ProductStockLevelWhereInput
+  }
+
+  /**
+   * LocationCountOutputType without action
+   */
   export type LocationCountOutputTypeCountLoyaltyRewardsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: LoyaltyRewardWhereInput
   }
@@ -13828,6 +14456,7 @@ export namespace Prisma {
     categories: number
     modifierGroupLinks: number
     variants: number
+    productVariants: number
     stationRoutes: number
     channelAvailability: number
     loyaltyCards: number
@@ -13837,6 +14466,7 @@ export namespace Prisma {
     categories?: boolean | MenuItemCountOutputTypeCountCategoriesArgs
     modifierGroupLinks?: boolean | MenuItemCountOutputTypeCountModifierGroupLinksArgs
     variants?: boolean | MenuItemCountOutputTypeCountVariantsArgs
+    productVariants?: boolean | MenuItemCountOutputTypeCountProductVariantsArgs
     stationRoutes?: boolean | MenuItemCountOutputTypeCountStationRoutesArgs
     channelAvailability?: boolean | MenuItemCountOutputTypeCountChannelAvailabilityArgs
     loyaltyCards?: boolean | MenuItemCountOutputTypeCountLoyaltyCardsArgs
@@ -13872,6 +14502,13 @@ export namespace Prisma {
    */
   export type MenuItemCountOutputTypeCountVariantsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: MenuItemVariantWhereInput
+  }
+
+  /**
+   * MenuItemCountOutputType without action
+   */
+  export type MenuItemCountOutputTypeCountProductVariantsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ProductVariantWhereInput
   }
 
   /**
@@ -14147,6 +14784,37 @@ export namespace Prisma {
    */
   export type OrderCountOutputTypeCountCampaignRedemptionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: CampaignRedemptionWhereInput
+  }
+
+
+  /**
+   * Count Type OrderItemCountOutputType
+   */
+
+  export type OrderItemCountOutputType = {
+    refundLines: number
+  }
+
+  export type OrderItemCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    refundLines?: boolean | OrderItemCountOutputTypeCountRefundLinesArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * OrderItemCountOutputType without action
+   */
+  export type OrderItemCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrderItemCountOutputType
+     */
+    select?: OrderItemCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * OrderItemCountOutputType without action
+   */
+  export type OrderItemCountOutputTypeCountRefundLinesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: RefundLineWhereInput
   }
 
 
@@ -14543,10 +15211,12 @@ export namespace Prisma {
 
   export type RefundCountOutputType = {
     ledgerEntries: number
+    lines: number
   }
 
   export type RefundCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     ledgerEntries?: boolean | RefundCountOutputTypeCountLedgerEntriesArgs
+    lines?: boolean | RefundCountOutputTypeCountLinesArgs
   }
 
   // Custom InputTypes
@@ -14565,6 +15235,53 @@ export namespace Prisma {
    */
   export type RefundCountOutputTypeCountLedgerEntriesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: LedgerEntryWhereInput
+  }
+
+  /**
+   * RefundCountOutputType without action
+   */
+  export type RefundCountOutputTypeCountLinesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: RefundLineWhereInput
+  }
+
+
+  /**
+   * Count Type ProductVariantCountOutputType
+   */
+
+  export type ProductVariantCountOutputType = {
+    stockLevels: number
+    movements: number
+  }
+
+  export type ProductVariantCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    stockLevels?: boolean | ProductVariantCountOutputTypeCountStockLevelsArgs
+    movements?: boolean | ProductVariantCountOutputTypeCountMovementsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ProductVariantCountOutputType without action
+   */
+  export type ProductVariantCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductVariantCountOutputType
+     */
+    select?: ProductVariantCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ProductVariantCountOutputType without action
+   */
+  export type ProductVariantCountOutputTypeCountStockLevelsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ProductStockLevelWhereInput
+  }
+
+  /**
+   * ProductVariantCountOutputType without action
+   */
+  export type ProductVariantCountOutputTypeCountMovementsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ProductStockMovementWhereInput
   }
 
 
@@ -29786,6 +30503,7 @@ export namespace Prisma {
     postcode: string | null
     country: string | null
     currency: string | null
+    businessType: $Enums.BusinessType | null
     about: string | null
     logoUrl: string | null
     customDomain: string | null
@@ -29845,6 +30563,7 @@ export namespace Prisma {
     postcode: string | null
     country: string | null
     currency: string | null
+    businessType: $Enums.BusinessType | null
     about: string | null
     logoUrl: string | null
     customDomain: string | null
@@ -29907,6 +30626,7 @@ export namespace Prisma {
     postcode: number
     country: number
     currency: number
+    businessType: number
     about: number
     logoUrl: number
     customDomain: number
@@ -30004,6 +30724,7 @@ export namespace Prisma {
     postcode?: true
     country?: true
     currency?: true
+    businessType?: true
     about?: true
     logoUrl?: true
     customDomain?: true
@@ -30063,6 +30784,7 @@ export namespace Prisma {
     postcode?: true
     country?: true
     currency?: true
+    businessType?: true
     about?: true
     logoUrl?: true
     customDomain?: true
@@ -30125,6 +30847,7 @@ export namespace Prisma {
     postcode?: true
     country?: true
     currency?: true
+    businessType?: true
     about?: true
     logoUrl?: true
     customDomain?: true
@@ -30278,6 +31001,7 @@ export namespace Prisma {
     postcode: string | null
     country: string
     currency: string
+    businessType: $Enums.BusinessType
     about: string | null
     logoUrl: string | null
     customDomain: string | null
@@ -30363,6 +31087,7 @@ export namespace Prisma {
     postcode?: boolean
     country?: boolean
     currency?: boolean
+    businessType?: boolean
     about?: boolean
     logoUrl?: boolean
     customDomain?: boolean
@@ -30428,11 +31153,14 @@ export namespace Prisma {
     menuAssignments?: boolean | Location$menuAssignmentsArgs<ExtArgs>
     itemChannelSnoozes?: boolean | Location$itemChannelSnoozesArgs<ExtArgs>
     homeDrivers?: boolean | Location$homeDriversArgs<ExtArgs>
+    productStockLevels?: boolean | Location$productStockLevelsArgs<ExtArgs>
     defaultKitchenStation?: boolean | Location$defaultKitchenStationArgs<ExtArgs>
     receiptPrinter?: boolean | Location$receiptPrinterArgs<ExtArgs>
     dispatchPrinter?: boolean | Location$dispatchPrinterArgs<ExtArgs>
     stuartConfig?: boolean | Location$stuartConfigArgs<ExtArgs>
     uberDirectConfig?: boolean | Location$uberDirectConfigArgs<ExtArgs>
+    jetGoConfig?: boolean | Location$jetGoConfigArgs<ExtArgs>
+    yangoConfig?: boolean | Location$yangoConfigArgs<ExtArgs>
     loyaltyCard?: boolean | Location$loyaltyCardArgs<ExtArgs>
     referralProgram?: boolean | Location$referralProgramArgs<ExtArgs>
     loyaltyRewards?: boolean | Location$loyaltyRewardsArgs<ExtArgs>
@@ -30460,6 +31188,7 @@ export namespace Prisma {
     postcode?: boolean
     country?: boolean
     currency?: boolean
+    businessType?: boolean
     about?: boolean
     logoUrl?: boolean
     customDomain?: boolean
@@ -30530,6 +31259,7 @@ export namespace Prisma {
     postcode?: boolean
     country?: boolean
     currency?: boolean
+    businessType?: boolean
     about?: boolean
     logoUrl?: boolean
     customDomain?: boolean
@@ -30598,11 +31328,14 @@ export namespace Prisma {
     menuAssignments?: boolean | Location$menuAssignmentsArgs<ExtArgs>
     itemChannelSnoozes?: boolean | Location$itemChannelSnoozesArgs<ExtArgs>
     homeDrivers?: boolean | Location$homeDriversArgs<ExtArgs>
+    productStockLevels?: boolean | Location$productStockLevelsArgs<ExtArgs>
     defaultKitchenStation?: boolean | Location$defaultKitchenStationArgs<ExtArgs>
     receiptPrinter?: boolean | Location$receiptPrinterArgs<ExtArgs>
     dispatchPrinter?: boolean | Location$dispatchPrinterArgs<ExtArgs>
     stuartConfig?: boolean | Location$stuartConfigArgs<ExtArgs>
     uberDirectConfig?: boolean | Location$uberDirectConfigArgs<ExtArgs>
+    jetGoConfig?: boolean | Location$jetGoConfigArgs<ExtArgs>
+    yangoConfig?: boolean | Location$yangoConfigArgs<ExtArgs>
     loyaltyCard?: boolean | Location$loyaltyCardArgs<ExtArgs>
     referralProgram?: boolean | Location$referralProgramArgs<ExtArgs>
     loyaltyRewards?: boolean | Location$loyaltyRewardsArgs<ExtArgs>
@@ -30640,11 +31373,14 @@ export namespace Prisma {
       menuAssignments: Prisma.$MenuChannelAssignmentPayload<ExtArgs>[]
       itemChannelSnoozes: Prisma.$MenuItemChannelAvailabilityPayload<ExtArgs>[]
       homeDrivers: Prisma.$DriverPayload<ExtArgs>[]
+      productStockLevels: Prisma.$ProductStockLevelPayload<ExtArgs>[]
       defaultKitchenStation: Prisma.$PrinterStationPayload<ExtArgs> | null
       receiptPrinter: Prisma.$PrinterPayload<ExtArgs> | null
       dispatchPrinter: Prisma.$PrinterPayload<ExtArgs> | null
       stuartConfig: Prisma.$StuartConfigPayload<ExtArgs> | null
       uberDirectConfig: Prisma.$UberDirectConfigPayload<ExtArgs> | null
+      jetGoConfig: Prisma.$JetGoConfigPayload<ExtArgs> | null
+      yangoConfig: Prisma.$YangoConfigPayload<ExtArgs> | null
       loyaltyCard: Prisma.$LoyaltyCardPayload<ExtArgs> | null
       referralProgram: Prisma.$ReferralProgramPayload<ExtArgs> | null
       loyaltyRewards: Prisma.$LoyaltyRewardPayload<ExtArgs>[]
@@ -30670,6 +31406,7 @@ export namespace Prisma {
       postcode: string | null
       country: string
       currency: string
+      businessType: $Enums.BusinessType
       about: string | null
       logoUrl: string | null
       customDomain: string | null
@@ -31103,11 +31840,14 @@ export namespace Prisma {
     menuAssignments<T extends Location$menuAssignmentsArgs<ExtArgs> = {}>(args?: Subset<T, Location$menuAssignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuChannelAssignmentPayload<ExtArgs>, T, "findMany"> | Null>
     itemChannelSnoozes<T extends Location$itemChannelSnoozesArgs<ExtArgs> = {}>(args?: Subset<T, Location$itemChannelSnoozesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuItemChannelAvailabilityPayload<ExtArgs>, T, "findMany"> | Null>
     homeDrivers<T extends Location$homeDriversArgs<ExtArgs> = {}>(args?: Subset<T, Location$homeDriversArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DriverPayload<ExtArgs>, T, "findMany"> | Null>
+    productStockLevels<T extends Location$productStockLevelsArgs<ExtArgs> = {}>(args?: Subset<T, Location$productStockLevelsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProductStockLevelPayload<ExtArgs>, T, "findMany"> | Null>
     defaultKitchenStation<T extends Location$defaultKitchenStationArgs<ExtArgs> = {}>(args?: Subset<T, Location$defaultKitchenStationArgs<ExtArgs>>): Prisma__PrinterStationClient<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     receiptPrinter<T extends Location$receiptPrinterArgs<ExtArgs> = {}>(args?: Subset<T, Location$receiptPrinterArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     dispatchPrinter<T extends Location$dispatchPrinterArgs<ExtArgs> = {}>(args?: Subset<T, Location$dispatchPrinterArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     stuartConfig<T extends Location$stuartConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$stuartConfigArgs<ExtArgs>>): Prisma__StuartConfigClient<$Result.GetResult<Prisma.$StuartConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     uberDirectConfig<T extends Location$uberDirectConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$uberDirectConfigArgs<ExtArgs>>): Prisma__UberDirectConfigClient<$Result.GetResult<Prisma.$UberDirectConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    jetGoConfig<T extends Location$jetGoConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$jetGoConfigArgs<ExtArgs>>): Prisma__JetGoConfigClient<$Result.GetResult<Prisma.$JetGoConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    yangoConfig<T extends Location$yangoConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$yangoConfigArgs<ExtArgs>>): Prisma__YangoConfigClient<$Result.GetResult<Prisma.$YangoConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     loyaltyCard<T extends Location$loyaltyCardArgs<ExtArgs> = {}>(args?: Subset<T, Location$loyaltyCardArgs<ExtArgs>>): Prisma__LoyaltyCardClient<$Result.GetResult<Prisma.$LoyaltyCardPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     referralProgram<T extends Location$referralProgramArgs<ExtArgs> = {}>(args?: Subset<T, Location$referralProgramArgs<ExtArgs>>): Prisma__ReferralProgramClient<$Result.GetResult<Prisma.$ReferralProgramPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     loyaltyRewards<T extends Location$loyaltyRewardsArgs<ExtArgs> = {}>(args?: Subset<T, Location$loyaltyRewardsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LoyaltyRewardPayload<ExtArgs>, T, "findMany"> | Null>
@@ -31160,6 +31900,7 @@ export namespace Prisma {
     readonly postcode: FieldRef<"Location", 'String'>
     readonly country: FieldRef<"Location", 'String'>
     readonly currency: FieldRef<"Location", 'String'>
+    readonly businessType: FieldRef<"Location", 'BusinessType'>
     readonly about: FieldRef<"Location", 'String'>
     readonly logoUrl: FieldRef<"Location", 'String'>
     readonly customDomain: FieldRef<"Location", 'String'>
@@ -31926,6 +32667,26 @@ export namespace Prisma {
   }
 
   /**
+   * Location.productStockLevels
+   */
+  export type Location$productStockLevelsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductStockLevel
+     */
+    select?: ProductStockLevelSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductStockLevelInclude<ExtArgs> | null
+    where?: ProductStockLevelWhereInput
+    orderBy?: ProductStockLevelOrderByWithRelationInput | ProductStockLevelOrderByWithRelationInput[]
+    cursor?: ProductStockLevelWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ProductStockLevelScalarFieldEnum | ProductStockLevelScalarFieldEnum[]
+  }
+
+  /**
    * Location.defaultKitchenStation
    */
   export type Location$defaultKitchenStationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -31998,6 +32759,36 @@ export namespace Prisma {
      */
     include?: UberDirectConfigInclude<ExtArgs> | null
     where?: UberDirectConfigWhereInput
+  }
+
+  /**
+   * Location.jetGoConfig
+   */
+  export type Location$jetGoConfigArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JetGoConfig
+     */
+    select?: JetGoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JetGoConfigInclude<ExtArgs> | null
+    where?: JetGoConfigWhereInput
+  }
+
+  /**
+   * Location.yangoConfig
+   */
+  export type Location$yangoConfigArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the YangoConfig
+     */
+    select?: YangoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: YangoConfigInclude<ExtArgs> | null
+    where?: YangoConfigWhereInput
   }
 
   /**
@@ -38737,6 +39528,7 @@ export namespace Prisma {
     basePrice: Decimal | null
     calories: number | null
     prepTime: number | null
+    minAge: number | null
     deliveryTax: Decimal | null
     takeawayTax: Decimal | null
     eatInTax: Decimal | null
@@ -38748,6 +39540,7 @@ export namespace Prisma {
     basePrice: Decimal | null
     calories: number | null
     prepTime: number | null
+    minAge: number | null
     deliveryTax: Decimal | null
     takeawayTax: Decimal | null
     eatInTax: Decimal | null
@@ -38775,6 +39568,9 @@ export namespace Prisma {
     availableRestoreAt: Date | null
     calories: number | null
     prepTime: number | null
+    minAge: number | null
+    sellBy: string | null
+    scaleCode: string | null
     hasMultipleSkus: boolean | null
     deliveryTax: Decimal | null
     takeawayTax: Decimal | null
@@ -38812,6 +39608,9 @@ export namespace Prisma {
     availableRestoreAt: Date | null
     calories: number | null
     prepTime: number | null
+    minAge: number | null
+    sellBy: string | null
+    scaleCode: string | null
     hasMultipleSkus: boolean | null
     deliveryTax: Decimal | null
     takeawayTax: Decimal | null
@@ -38852,6 +39651,9 @@ export namespace Prisma {
     dietary: number
     calories: number
     prepTime: number
+    minAge: number
+    sellBy: number
+    scaleCode: number
     metadata: number
     hasMultipleSkus: number
     productSkus: number
@@ -38881,6 +39683,7 @@ export namespace Prisma {
     basePrice?: true
     calories?: true
     prepTime?: true
+    minAge?: true
     deliveryTax?: true
     takeawayTax?: true
     eatInTax?: true
@@ -38892,6 +39695,7 @@ export namespace Prisma {
     basePrice?: true
     calories?: true
     prepTime?: true
+    minAge?: true
     deliveryTax?: true
     takeawayTax?: true
     eatInTax?: true
@@ -38919,6 +39723,9 @@ export namespace Prisma {
     availableRestoreAt?: true
     calories?: true
     prepTime?: true
+    minAge?: true
+    sellBy?: true
+    scaleCode?: true
     hasMultipleSkus?: true
     deliveryTax?: true
     takeawayTax?: true
@@ -38956,6 +39763,9 @@ export namespace Prisma {
     availableRestoreAt?: true
     calories?: true
     prepTime?: true
+    minAge?: true
+    sellBy?: true
+    scaleCode?: true
     hasMultipleSkus?: true
     deliveryTax?: true
     takeawayTax?: true
@@ -38996,6 +39806,9 @@ export namespace Prisma {
     dietary?: true
     calories?: true
     prepTime?: true
+    minAge?: true
+    sellBy?: true
+    scaleCode?: true
     metadata?: true
     hasMultipleSkus?: true
     productSkus?: true
@@ -39129,6 +39942,9 @@ export namespace Prisma {
     dietary: JsonValue
     calories: number | null
     prepTime: number | null
+    minAge: number | null
+    sellBy: string | null
+    scaleCode: string | null
     metadata: JsonValue
     hasMultipleSkus: boolean
     productSkus: JsonValue
@@ -39194,6 +40010,9 @@ export namespace Prisma {
     dietary?: boolean
     calories?: boolean
     prepTime?: boolean
+    minAge?: boolean
+    sellBy?: boolean
+    scaleCode?: boolean
     metadata?: boolean
     hasMultipleSkus?: boolean
     productSkus?: boolean
@@ -39218,6 +40037,7 @@ export namespace Prisma {
     categories?: boolean | MenuItem$categoriesArgs<ExtArgs>
     modifierGroupLinks?: boolean | MenuItem$modifierGroupLinksArgs<ExtArgs>
     variants?: boolean | MenuItem$variantsArgs<ExtArgs>
+    productVariants?: boolean | MenuItem$productVariantsArgs<ExtArgs>
     recipe?: boolean | MenuItem$recipeArgs<ExtArgs>
     stationRoutes?: boolean | MenuItem$stationRoutesArgs<ExtArgs>
     channelAvailability?: boolean | MenuItem$channelAvailabilityArgs<ExtArgs>
@@ -39248,6 +40068,9 @@ export namespace Prisma {
     dietary?: boolean
     calories?: boolean
     prepTime?: boolean
+    minAge?: boolean
+    sellBy?: boolean
+    scaleCode?: boolean
     metadata?: boolean
     hasMultipleSkus?: boolean
     productSkus?: boolean
@@ -39294,6 +40117,9 @@ export namespace Prisma {
     dietary?: boolean
     calories?: boolean
     prepTime?: boolean
+    minAge?: boolean
+    sellBy?: boolean
+    scaleCode?: boolean
     metadata?: boolean
     hasMultipleSkus?: boolean
     productSkus?: boolean
@@ -39321,6 +40147,7 @@ export namespace Prisma {
     categories?: boolean | MenuItem$categoriesArgs<ExtArgs>
     modifierGroupLinks?: boolean | MenuItem$modifierGroupLinksArgs<ExtArgs>
     variants?: boolean | MenuItem$variantsArgs<ExtArgs>
+    productVariants?: boolean | MenuItem$productVariantsArgs<ExtArgs>
     recipe?: boolean | MenuItem$recipeArgs<ExtArgs>
     stationRoutes?: boolean | MenuItem$stationRoutesArgs<ExtArgs>
     channelAvailability?: boolean | MenuItem$channelAvailabilityArgs<ExtArgs>
@@ -39335,6 +40162,7 @@ export namespace Prisma {
       categories: Prisma.$MenuItemOnCategoryPayload<ExtArgs>[]
       modifierGroupLinks: Prisma.$ModifierGroupOnItemPayload<ExtArgs>[]
       variants: Prisma.$MenuItemVariantPayload<ExtArgs>[]
+      productVariants: Prisma.$ProductVariantPayload<ExtArgs>[]
       recipe: Prisma.$RecipePayload<ExtArgs> | null
       stationRoutes: Prisma.$MenuItemStationPayload<ExtArgs>[]
       channelAvailability: Prisma.$MenuItemChannelAvailabilityPayload<ExtArgs>[]
@@ -39363,6 +40191,9 @@ export namespace Prisma {
       dietary: Prisma.JsonValue
       calories: number | null
       prepTime: number | null
+      minAge: number | null
+      sellBy: string | null
+      scaleCode: string | null
       metadata: Prisma.JsonValue
       hasMultipleSkus: boolean
       productSkus: Prisma.JsonValue
@@ -39751,6 +40582,7 @@ export namespace Prisma {
     categories<T extends MenuItem$categoriesArgs<ExtArgs> = {}>(args?: Subset<T, MenuItem$categoriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuItemOnCategoryPayload<ExtArgs>, T, "findMany"> | Null>
     modifierGroupLinks<T extends MenuItem$modifierGroupLinksArgs<ExtArgs> = {}>(args?: Subset<T, MenuItem$modifierGroupLinksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ModifierGroupOnItemPayload<ExtArgs>, T, "findMany"> | Null>
     variants<T extends MenuItem$variantsArgs<ExtArgs> = {}>(args?: Subset<T, MenuItem$variantsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuItemVariantPayload<ExtArgs>, T, "findMany"> | Null>
+    productVariants<T extends MenuItem$productVariantsArgs<ExtArgs> = {}>(args?: Subset<T, MenuItem$productVariantsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProductVariantPayload<ExtArgs>, T, "findMany"> | Null>
     recipe<T extends MenuItem$recipeArgs<ExtArgs> = {}>(args?: Subset<T, MenuItem$recipeArgs<ExtArgs>>): Prisma__RecipeClient<$Result.GetResult<Prisma.$RecipePayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     stationRoutes<T extends MenuItem$stationRoutesArgs<ExtArgs> = {}>(args?: Subset<T, MenuItem$stationRoutesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuItemStationPayload<ExtArgs>, T, "findMany"> | Null>
     channelAvailability<T extends MenuItem$channelAvailabilityArgs<ExtArgs> = {}>(args?: Subset<T, MenuItem$channelAvailabilityArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuItemChannelAvailabilityPayload<ExtArgs>, T, "findMany"> | Null>
@@ -39806,6 +40638,9 @@ export namespace Prisma {
     readonly dietary: FieldRef<"MenuItem", 'Json'>
     readonly calories: FieldRef<"MenuItem", 'Int'>
     readonly prepTime: FieldRef<"MenuItem", 'Int'>
+    readonly minAge: FieldRef<"MenuItem", 'Int'>
+    readonly sellBy: FieldRef<"MenuItem", 'String'>
+    readonly scaleCode: FieldRef<"MenuItem", 'String'>
     readonly metadata: FieldRef<"MenuItem", 'Json'>
     readonly hasMultipleSkus: FieldRef<"MenuItem", 'Boolean'>
     readonly productSkus: FieldRef<"MenuItem", 'Json'>
@@ -40198,6 +41033,26 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: MenuItemVariantScalarFieldEnum | MenuItemVariantScalarFieldEnum[]
+  }
+
+  /**
+   * MenuItem.productVariants
+   */
+  export type MenuItem$productVariantsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductVariant
+     */
+    select?: ProductVariantSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductVariantInclude<ExtArgs> | null
+    where?: ProductVariantWhereInput
+    orderBy?: ProductVariantOrderByWithRelationInput | ProductVariantOrderByWithRelationInput[]
+    cursor?: ProductVariantWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ProductVariantScalarFieldEnum | ProductVariantScalarFieldEnum[]
   }
 
   /**
@@ -65274,6 +66129,8 @@ export namespace Prisma {
     metadata?: boolean
     createdAt?: boolean
     order?: boolean | OrderDefaultArgs<ExtArgs>
+    refundLines?: boolean | OrderItem$refundLinesArgs<ExtArgs>
+    _count?: boolean | OrderItemCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["orderItem"]>
 
   export type OrderItemSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -65307,6 +66164,8 @@ export namespace Prisma {
 
   export type OrderItemInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     order?: boolean | OrderDefaultArgs<ExtArgs>
+    refundLines?: boolean | OrderItem$refundLinesArgs<ExtArgs>
+    _count?: boolean | OrderItemCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type OrderItemIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     order?: boolean | OrderDefaultArgs<ExtArgs>
@@ -65316,6 +66175,7 @@ export namespace Prisma {
     name: "OrderItem"
     objects: {
       order: Prisma.$OrderPayload<ExtArgs>
+      refundLines: Prisma.$RefundLinePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -65694,6 +66554,7 @@ export namespace Prisma {
   export interface Prisma__OrderItemClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     order<T extends OrderDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrderDefaultArgs<ExtArgs>>): Prisma__OrderClient<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    refundLines<T extends OrderItem$refundLinesArgs<ExtArgs> = {}>(args?: Subset<T, OrderItem$refundLinesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RefundLinePayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -66049,6 +66910,26 @@ export namespace Prisma {
      * Filter which OrderItems to delete
      */
     where?: OrderItemWhereInput
+  }
+
+  /**
+   * OrderItem.refundLines
+   */
+  export type OrderItem$refundLinesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RefundLine
+     */
+    select?: RefundLineSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RefundLineInclude<ExtArgs> | null
+    where?: RefundLineWhereInput
+    orderBy?: RefundLineOrderByWithRelationInput | RefundLineOrderByWithRelationInput[]
+    cursor?: RefundLineWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: RefundLineScalarFieldEnum | RefundLineScalarFieldEnum[]
   }
 
   /**
@@ -97885,6 +98766,8 @@ export namespace Prisma {
     id: string | null
     tenantId: string | null
     paymentId: string | null
+    orderId: string | null
+    method: string | null
     stripeRefundId: string | null
     amount: Decimal | null
     reason: string | null
@@ -97899,6 +98782,8 @@ export namespace Prisma {
     id: string | null
     tenantId: string | null
     paymentId: string | null
+    orderId: string | null
+    method: string | null
     stripeRefundId: string | null
     amount: Decimal | null
     reason: string | null
@@ -97913,6 +98798,8 @@ export namespace Prisma {
     id: number
     tenantId: number
     paymentId: number
+    orderId: number
+    method: number
     stripeRefundId: number
     amount: number
     reason: number
@@ -97937,6 +98824,8 @@ export namespace Prisma {
     id?: true
     tenantId?: true
     paymentId?: true
+    orderId?: true
+    method?: true
     stripeRefundId?: true
     amount?: true
     reason?: true
@@ -97951,6 +98840,8 @@ export namespace Prisma {
     id?: true
     tenantId?: true
     paymentId?: true
+    orderId?: true
+    method?: true
     stripeRefundId?: true
     amount?: true
     reason?: true
@@ -97965,6 +98856,8 @@ export namespace Prisma {
     id?: true
     tenantId?: true
     paymentId?: true
+    orderId?: true
+    method?: true
     stripeRefundId?: true
     amount?: true
     reason?: true
@@ -98065,7 +98958,9 @@ export namespace Prisma {
   export type RefundGroupByOutputType = {
     id: string
     tenantId: string
-    paymentId: string
+    paymentId: string | null
+    orderId: string | null
+    method: string | null
     stripeRefundId: string | null
     amount: Decimal
     reason: string | null
@@ -98099,6 +98994,8 @@ export namespace Prisma {
     id?: boolean
     tenantId?: boolean
     paymentId?: boolean
+    orderId?: boolean
+    method?: boolean
     stripeRefundId?: boolean
     amount?: boolean
     reason?: boolean
@@ -98107,8 +99004,9 @@ export namespace Prisma {
     processedBy?: boolean
     note?: boolean
     createdAt?: boolean
-    payment?: boolean | PaymentDefaultArgs<ExtArgs>
+    payment?: boolean | Refund$paymentArgs<ExtArgs>
     ledgerEntries?: boolean | Refund$ledgerEntriesArgs<ExtArgs>
+    lines?: boolean | Refund$linesArgs<ExtArgs>
     _count?: boolean | RefundCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["refund"]>
 
@@ -98116,6 +99014,8 @@ export namespace Prisma {
     id?: boolean
     tenantId?: boolean
     paymentId?: boolean
+    orderId?: boolean
+    method?: boolean
     stripeRefundId?: boolean
     amount?: boolean
     reason?: boolean
@@ -98124,13 +99024,15 @@ export namespace Prisma {
     processedBy?: boolean
     note?: boolean
     createdAt?: boolean
-    payment?: boolean | PaymentDefaultArgs<ExtArgs>
+    payment?: boolean | Refund$paymentArgs<ExtArgs>
   }, ExtArgs["result"]["refund"]>
 
   export type RefundSelectScalar = {
     id?: boolean
     tenantId?: boolean
     paymentId?: boolean
+    orderId?: boolean
+    method?: boolean
     stripeRefundId?: boolean
     amount?: boolean
     reason?: boolean
@@ -98142,24 +99044,28 @@ export namespace Prisma {
   }
 
   export type RefundInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    payment?: boolean | PaymentDefaultArgs<ExtArgs>
+    payment?: boolean | Refund$paymentArgs<ExtArgs>
     ledgerEntries?: boolean | Refund$ledgerEntriesArgs<ExtArgs>
+    lines?: boolean | Refund$linesArgs<ExtArgs>
     _count?: boolean | RefundCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type RefundIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    payment?: boolean | PaymentDefaultArgs<ExtArgs>
+    payment?: boolean | Refund$paymentArgs<ExtArgs>
   }
 
   export type $RefundPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Refund"
     objects: {
-      payment: Prisma.$PaymentPayload<ExtArgs>
+      payment: Prisma.$PaymentPayload<ExtArgs> | null
       ledgerEntries: Prisma.$LedgerEntryPayload<ExtArgs>[]
+      lines: Prisma.$RefundLinePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       tenantId: string
-      paymentId: string
+      paymentId: string | null
+      orderId: string | null
+      method: string | null
       stripeRefundId: string | null
       amount: Prisma.Decimal
       reason: string | null
@@ -98532,8 +99438,9 @@ export namespace Prisma {
    */
   export interface Prisma__RefundClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    payment<T extends PaymentDefaultArgs<ExtArgs> = {}>(args?: Subset<T, PaymentDefaultArgs<ExtArgs>>): Prisma__PaymentClient<$Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    payment<T extends Refund$paymentArgs<ExtArgs> = {}>(args?: Subset<T, Refund$paymentArgs<ExtArgs>>): Prisma__PaymentClient<$Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     ledgerEntries<T extends Refund$ledgerEntriesArgs<ExtArgs> = {}>(args?: Subset<T, Refund$ledgerEntriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LedgerEntryPayload<ExtArgs>, T, "findMany"> | Null>
+    lines<T extends Refund$linesArgs<ExtArgs> = {}>(args?: Subset<T, Refund$linesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RefundLinePayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -98566,6 +99473,8 @@ export namespace Prisma {
     readonly id: FieldRef<"Refund", 'String'>
     readonly tenantId: FieldRef<"Refund", 'String'>
     readonly paymentId: FieldRef<"Refund", 'String'>
+    readonly orderId: FieldRef<"Refund", 'String'>
+    readonly method: FieldRef<"Refund", 'String'>
     readonly stripeRefundId: FieldRef<"Refund", 'String'>
     readonly amount: FieldRef<"Refund", 'Decimal'>
     readonly reason: FieldRef<"Refund", 'String'>
@@ -98892,6 +99801,21 @@ export namespace Prisma {
   }
 
   /**
+   * Refund.payment
+   */
+  export type Refund$paymentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Payment
+     */
+    select?: PaymentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PaymentInclude<ExtArgs> | null
+    where?: PaymentWhereInput
+  }
+
+  /**
    * Refund.ledgerEntries
    */
   export type Refund$ledgerEntriesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -98912,6 +99836,26 @@ export namespace Prisma {
   }
 
   /**
+   * Refund.lines
+   */
+  export type Refund$linesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RefundLine
+     */
+    select?: RefundLineSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RefundLineInclude<ExtArgs> | null
+    where?: RefundLineWhereInput
+    orderBy?: RefundLineOrderByWithRelationInput | RefundLineOrderByWithRelationInput[]
+    cursor?: RefundLineWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: RefundLineScalarFieldEnum | RefundLineScalarFieldEnum[]
+  }
+
+  /**
    * Refund without action
    */
   export type RefundDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -98923,6 +99867,4188 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: RefundInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ProductVariant
+   */
+
+  export type AggregateProductVariant = {
+    _count: ProductVariantCountAggregateOutputType | null
+    _avg: ProductVariantAvgAggregateOutputType | null
+    _sum: ProductVariantSumAggregateOutputType | null
+    _min: ProductVariantMinAggregateOutputType | null
+    _max: ProductVariantMaxAggregateOutputType | null
+  }
+
+  export type ProductVariantAvgAggregateOutputType = {
+    price: Decimal | null
+    costPrice: Decimal | null
+    lowStockAt: number | null
+    sortOrder: number | null
+  }
+
+  export type ProductVariantSumAggregateOutputType = {
+    price: Decimal | null
+    costPrice: Decimal | null
+    lowStockAt: number | null
+    sortOrder: number | null
+  }
+
+  export type ProductVariantMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    brandId: string | null
+    menuItemId: string | null
+    name: string | null
+    sku: string | null
+    barcode: string | null
+    price: Decimal | null
+    costPrice: Decimal | null
+    trackStock: boolean | null
+    lowStockAt: number | null
+    isActive: boolean | null
+    sortOrder: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ProductVariantMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    brandId: string | null
+    menuItemId: string | null
+    name: string | null
+    sku: string | null
+    barcode: string | null
+    price: Decimal | null
+    costPrice: Decimal | null
+    trackStock: boolean | null
+    lowStockAt: number | null
+    isActive: boolean | null
+    sortOrder: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ProductVariantCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    brandId: number
+    menuItemId: number
+    name: number
+    options: number
+    sku: number
+    barcode: number
+    price: number
+    costPrice: number
+    trackStock: number
+    lowStockAt: number
+    isActive: number
+    sortOrder: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type ProductVariantAvgAggregateInputType = {
+    price?: true
+    costPrice?: true
+    lowStockAt?: true
+    sortOrder?: true
+  }
+
+  export type ProductVariantSumAggregateInputType = {
+    price?: true
+    costPrice?: true
+    lowStockAt?: true
+    sortOrder?: true
+  }
+
+  export type ProductVariantMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    brandId?: true
+    menuItemId?: true
+    name?: true
+    sku?: true
+    barcode?: true
+    price?: true
+    costPrice?: true
+    trackStock?: true
+    lowStockAt?: true
+    isActive?: true
+    sortOrder?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ProductVariantMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    brandId?: true
+    menuItemId?: true
+    name?: true
+    sku?: true
+    barcode?: true
+    price?: true
+    costPrice?: true
+    trackStock?: true
+    lowStockAt?: true
+    isActive?: true
+    sortOrder?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ProductVariantCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    brandId?: true
+    menuItemId?: true
+    name?: true
+    options?: true
+    sku?: true
+    barcode?: true
+    price?: true
+    costPrice?: true
+    trackStock?: true
+    lowStockAt?: true
+    isActive?: true
+    sortOrder?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type ProductVariantAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ProductVariant to aggregate.
+     */
+    where?: ProductVariantWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProductVariants to fetch.
+     */
+    orderBy?: ProductVariantOrderByWithRelationInput | ProductVariantOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ProductVariantWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProductVariants from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProductVariants.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ProductVariants
+    **/
+    _count?: true | ProductVariantCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ProductVariantAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ProductVariantSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ProductVariantMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ProductVariantMaxAggregateInputType
+  }
+
+  export type GetProductVariantAggregateType<T extends ProductVariantAggregateArgs> = {
+        [P in keyof T & keyof AggregateProductVariant]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateProductVariant[P]>
+      : GetScalarType<T[P], AggregateProductVariant[P]>
+  }
+
+
+
+
+  export type ProductVariantGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ProductVariantWhereInput
+    orderBy?: ProductVariantOrderByWithAggregationInput | ProductVariantOrderByWithAggregationInput[]
+    by: ProductVariantScalarFieldEnum[] | ProductVariantScalarFieldEnum
+    having?: ProductVariantScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ProductVariantCountAggregateInputType | true
+    _avg?: ProductVariantAvgAggregateInputType
+    _sum?: ProductVariantSumAggregateInputType
+    _min?: ProductVariantMinAggregateInputType
+    _max?: ProductVariantMaxAggregateInputType
+  }
+
+  export type ProductVariantGroupByOutputType = {
+    id: string
+    tenantId: string
+    brandId: string
+    menuItemId: string
+    name: string
+    options: JsonValue
+    sku: string | null
+    barcode: string | null
+    price: Decimal | null
+    costPrice: Decimal | null
+    trackStock: boolean
+    lowStockAt: number | null
+    isActive: boolean
+    sortOrder: number
+    createdAt: Date
+    updatedAt: Date
+    _count: ProductVariantCountAggregateOutputType | null
+    _avg: ProductVariantAvgAggregateOutputType | null
+    _sum: ProductVariantSumAggregateOutputType | null
+    _min: ProductVariantMinAggregateOutputType | null
+    _max: ProductVariantMaxAggregateOutputType | null
+  }
+
+  type GetProductVariantGroupByPayload<T extends ProductVariantGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ProductVariantGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ProductVariantGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ProductVariantGroupByOutputType[P]>
+            : GetScalarType<T[P], ProductVariantGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ProductVariantSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    brandId?: boolean
+    menuItemId?: boolean
+    name?: boolean
+    options?: boolean
+    sku?: boolean
+    barcode?: boolean
+    price?: boolean
+    costPrice?: boolean
+    trackStock?: boolean
+    lowStockAt?: boolean
+    isActive?: boolean
+    sortOrder?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    menuItem?: boolean | MenuItemDefaultArgs<ExtArgs>
+    stockLevels?: boolean | ProductVariant$stockLevelsArgs<ExtArgs>
+    movements?: boolean | ProductVariant$movementsArgs<ExtArgs>
+    _count?: boolean | ProductVariantCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["productVariant"]>
+
+  export type ProductVariantSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    brandId?: boolean
+    menuItemId?: boolean
+    name?: boolean
+    options?: boolean
+    sku?: boolean
+    barcode?: boolean
+    price?: boolean
+    costPrice?: boolean
+    trackStock?: boolean
+    lowStockAt?: boolean
+    isActive?: boolean
+    sortOrder?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    menuItem?: boolean | MenuItemDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["productVariant"]>
+
+  export type ProductVariantSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    brandId?: boolean
+    menuItemId?: boolean
+    name?: boolean
+    options?: boolean
+    sku?: boolean
+    barcode?: boolean
+    price?: boolean
+    costPrice?: boolean
+    trackStock?: boolean
+    lowStockAt?: boolean
+    isActive?: boolean
+    sortOrder?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type ProductVariantInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    menuItem?: boolean | MenuItemDefaultArgs<ExtArgs>
+    stockLevels?: boolean | ProductVariant$stockLevelsArgs<ExtArgs>
+    movements?: boolean | ProductVariant$movementsArgs<ExtArgs>
+    _count?: boolean | ProductVariantCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type ProductVariantIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    menuItem?: boolean | MenuItemDefaultArgs<ExtArgs>
+  }
+
+  export type $ProductVariantPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ProductVariant"
+    objects: {
+      menuItem: Prisma.$MenuItemPayload<ExtArgs>
+      stockLevels: Prisma.$ProductStockLevelPayload<ExtArgs>[]
+      movements: Prisma.$ProductStockMovementPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      brandId: string
+      menuItemId: string
+      name: string
+      options: Prisma.JsonValue
+      sku: string | null
+      barcode: string | null
+      price: Prisma.Decimal | null
+      costPrice: Prisma.Decimal | null
+      trackStock: boolean
+      lowStockAt: number | null
+      isActive: boolean
+      sortOrder: number
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["productVariant"]>
+    composites: {}
+  }
+
+  type ProductVariantGetPayload<S extends boolean | null | undefined | ProductVariantDefaultArgs> = $Result.GetResult<Prisma.$ProductVariantPayload, S>
+
+  type ProductVariantCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<ProductVariantFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: ProductVariantCountAggregateInputType | true
+    }
+
+  export interface ProductVariantDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ProductVariant'], meta: { name: 'ProductVariant' } }
+    /**
+     * Find zero or one ProductVariant that matches the filter.
+     * @param {ProductVariantFindUniqueArgs} args - Arguments to find a ProductVariant
+     * @example
+     * // Get one ProductVariant
+     * const productVariant = await prisma.productVariant.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ProductVariantFindUniqueArgs>(args: SelectSubset<T, ProductVariantFindUniqueArgs<ExtArgs>>): Prisma__ProductVariantClient<$Result.GetResult<Prisma.$ProductVariantPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one ProductVariant that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {ProductVariantFindUniqueOrThrowArgs} args - Arguments to find a ProductVariant
+     * @example
+     * // Get one ProductVariant
+     * const productVariant = await prisma.productVariant.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ProductVariantFindUniqueOrThrowArgs>(args: SelectSubset<T, ProductVariantFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ProductVariantClient<$Result.GetResult<Prisma.$ProductVariantPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first ProductVariant that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductVariantFindFirstArgs} args - Arguments to find a ProductVariant
+     * @example
+     * // Get one ProductVariant
+     * const productVariant = await prisma.productVariant.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ProductVariantFindFirstArgs>(args?: SelectSubset<T, ProductVariantFindFirstArgs<ExtArgs>>): Prisma__ProductVariantClient<$Result.GetResult<Prisma.$ProductVariantPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first ProductVariant that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductVariantFindFirstOrThrowArgs} args - Arguments to find a ProductVariant
+     * @example
+     * // Get one ProductVariant
+     * const productVariant = await prisma.productVariant.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ProductVariantFindFirstOrThrowArgs>(args?: SelectSubset<T, ProductVariantFindFirstOrThrowArgs<ExtArgs>>): Prisma__ProductVariantClient<$Result.GetResult<Prisma.$ProductVariantPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more ProductVariants that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductVariantFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ProductVariants
+     * const productVariants = await prisma.productVariant.findMany()
+     * 
+     * // Get first 10 ProductVariants
+     * const productVariants = await prisma.productVariant.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const productVariantWithIdOnly = await prisma.productVariant.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ProductVariantFindManyArgs>(args?: SelectSubset<T, ProductVariantFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProductVariantPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a ProductVariant.
+     * @param {ProductVariantCreateArgs} args - Arguments to create a ProductVariant.
+     * @example
+     * // Create one ProductVariant
+     * const ProductVariant = await prisma.productVariant.create({
+     *   data: {
+     *     // ... data to create a ProductVariant
+     *   }
+     * })
+     * 
+     */
+    create<T extends ProductVariantCreateArgs>(args: SelectSubset<T, ProductVariantCreateArgs<ExtArgs>>): Prisma__ProductVariantClient<$Result.GetResult<Prisma.$ProductVariantPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many ProductVariants.
+     * @param {ProductVariantCreateManyArgs} args - Arguments to create many ProductVariants.
+     * @example
+     * // Create many ProductVariants
+     * const productVariant = await prisma.productVariant.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ProductVariantCreateManyArgs>(args?: SelectSubset<T, ProductVariantCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ProductVariants and returns the data saved in the database.
+     * @param {ProductVariantCreateManyAndReturnArgs} args - Arguments to create many ProductVariants.
+     * @example
+     * // Create many ProductVariants
+     * const productVariant = await prisma.productVariant.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ProductVariants and only return the `id`
+     * const productVariantWithIdOnly = await prisma.productVariant.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ProductVariantCreateManyAndReturnArgs>(args?: SelectSubset<T, ProductVariantCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProductVariantPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a ProductVariant.
+     * @param {ProductVariantDeleteArgs} args - Arguments to delete one ProductVariant.
+     * @example
+     * // Delete one ProductVariant
+     * const ProductVariant = await prisma.productVariant.delete({
+     *   where: {
+     *     // ... filter to delete one ProductVariant
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ProductVariantDeleteArgs>(args: SelectSubset<T, ProductVariantDeleteArgs<ExtArgs>>): Prisma__ProductVariantClient<$Result.GetResult<Prisma.$ProductVariantPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one ProductVariant.
+     * @param {ProductVariantUpdateArgs} args - Arguments to update one ProductVariant.
+     * @example
+     * // Update one ProductVariant
+     * const productVariant = await prisma.productVariant.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ProductVariantUpdateArgs>(args: SelectSubset<T, ProductVariantUpdateArgs<ExtArgs>>): Prisma__ProductVariantClient<$Result.GetResult<Prisma.$ProductVariantPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more ProductVariants.
+     * @param {ProductVariantDeleteManyArgs} args - Arguments to filter ProductVariants to delete.
+     * @example
+     * // Delete a few ProductVariants
+     * const { count } = await prisma.productVariant.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ProductVariantDeleteManyArgs>(args?: SelectSubset<T, ProductVariantDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ProductVariants.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductVariantUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ProductVariants
+     * const productVariant = await prisma.productVariant.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ProductVariantUpdateManyArgs>(args: SelectSubset<T, ProductVariantUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one ProductVariant.
+     * @param {ProductVariantUpsertArgs} args - Arguments to update or create a ProductVariant.
+     * @example
+     * // Update or create a ProductVariant
+     * const productVariant = await prisma.productVariant.upsert({
+     *   create: {
+     *     // ... data to create a ProductVariant
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ProductVariant we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ProductVariantUpsertArgs>(args: SelectSubset<T, ProductVariantUpsertArgs<ExtArgs>>): Prisma__ProductVariantClient<$Result.GetResult<Prisma.$ProductVariantPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of ProductVariants.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductVariantCountArgs} args - Arguments to filter ProductVariants to count.
+     * @example
+     * // Count the number of ProductVariants
+     * const count = await prisma.productVariant.count({
+     *   where: {
+     *     // ... the filter for the ProductVariants we want to count
+     *   }
+     * })
+    **/
+    count<T extends ProductVariantCountArgs>(
+      args?: Subset<T, ProductVariantCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ProductVariantCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ProductVariant.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductVariantAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ProductVariantAggregateArgs>(args: Subset<T, ProductVariantAggregateArgs>): Prisma.PrismaPromise<GetProductVariantAggregateType<T>>
+
+    /**
+     * Group by ProductVariant.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductVariantGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ProductVariantGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ProductVariantGroupByArgs['orderBy'] }
+        : { orderBy?: ProductVariantGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ProductVariantGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetProductVariantGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ProductVariant model
+   */
+  readonly fields: ProductVariantFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ProductVariant.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ProductVariantClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    menuItem<T extends MenuItemDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MenuItemDefaultArgs<ExtArgs>>): Prisma__MenuItemClient<$Result.GetResult<Prisma.$MenuItemPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    stockLevels<T extends ProductVariant$stockLevelsArgs<ExtArgs> = {}>(args?: Subset<T, ProductVariant$stockLevelsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProductStockLevelPayload<ExtArgs>, T, "findMany"> | Null>
+    movements<T extends ProductVariant$movementsArgs<ExtArgs> = {}>(args?: Subset<T, ProductVariant$movementsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProductStockMovementPayload<ExtArgs>, T, "findMany"> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ProductVariant model
+   */ 
+  interface ProductVariantFieldRefs {
+    readonly id: FieldRef<"ProductVariant", 'String'>
+    readonly tenantId: FieldRef<"ProductVariant", 'String'>
+    readonly brandId: FieldRef<"ProductVariant", 'String'>
+    readonly menuItemId: FieldRef<"ProductVariant", 'String'>
+    readonly name: FieldRef<"ProductVariant", 'String'>
+    readonly options: FieldRef<"ProductVariant", 'Json'>
+    readonly sku: FieldRef<"ProductVariant", 'String'>
+    readonly barcode: FieldRef<"ProductVariant", 'String'>
+    readonly price: FieldRef<"ProductVariant", 'Decimal'>
+    readonly costPrice: FieldRef<"ProductVariant", 'Decimal'>
+    readonly trackStock: FieldRef<"ProductVariant", 'Boolean'>
+    readonly lowStockAt: FieldRef<"ProductVariant", 'Int'>
+    readonly isActive: FieldRef<"ProductVariant", 'Boolean'>
+    readonly sortOrder: FieldRef<"ProductVariant", 'Int'>
+    readonly createdAt: FieldRef<"ProductVariant", 'DateTime'>
+    readonly updatedAt: FieldRef<"ProductVariant", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ProductVariant findUnique
+   */
+  export type ProductVariantFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductVariant
+     */
+    select?: ProductVariantSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductVariantInclude<ExtArgs> | null
+    /**
+     * Filter, which ProductVariant to fetch.
+     */
+    where: ProductVariantWhereUniqueInput
+  }
+
+  /**
+   * ProductVariant findUniqueOrThrow
+   */
+  export type ProductVariantFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductVariant
+     */
+    select?: ProductVariantSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductVariantInclude<ExtArgs> | null
+    /**
+     * Filter, which ProductVariant to fetch.
+     */
+    where: ProductVariantWhereUniqueInput
+  }
+
+  /**
+   * ProductVariant findFirst
+   */
+  export type ProductVariantFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductVariant
+     */
+    select?: ProductVariantSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductVariantInclude<ExtArgs> | null
+    /**
+     * Filter, which ProductVariant to fetch.
+     */
+    where?: ProductVariantWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProductVariants to fetch.
+     */
+    orderBy?: ProductVariantOrderByWithRelationInput | ProductVariantOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ProductVariants.
+     */
+    cursor?: ProductVariantWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProductVariants from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProductVariants.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ProductVariants.
+     */
+    distinct?: ProductVariantScalarFieldEnum | ProductVariantScalarFieldEnum[]
+  }
+
+  /**
+   * ProductVariant findFirstOrThrow
+   */
+  export type ProductVariantFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductVariant
+     */
+    select?: ProductVariantSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductVariantInclude<ExtArgs> | null
+    /**
+     * Filter, which ProductVariant to fetch.
+     */
+    where?: ProductVariantWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProductVariants to fetch.
+     */
+    orderBy?: ProductVariantOrderByWithRelationInput | ProductVariantOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ProductVariants.
+     */
+    cursor?: ProductVariantWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProductVariants from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProductVariants.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ProductVariants.
+     */
+    distinct?: ProductVariantScalarFieldEnum | ProductVariantScalarFieldEnum[]
+  }
+
+  /**
+   * ProductVariant findMany
+   */
+  export type ProductVariantFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductVariant
+     */
+    select?: ProductVariantSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductVariantInclude<ExtArgs> | null
+    /**
+     * Filter, which ProductVariants to fetch.
+     */
+    where?: ProductVariantWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProductVariants to fetch.
+     */
+    orderBy?: ProductVariantOrderByWithRelationInput | ProductVariantOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ProductVariants.
+     */
+    cursor?: ProductVariantWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProductVariants from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProductVariants.
+     */
+    skip?: number
+    distinct?: ProductVariantScalarFieldEnum | ProductVariantScalarFieldEnum[]
+  }
+
+  /**
+   * ProductVariant create
+   */
+  export type ProductVariantCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductVariant
+     */
+    select?: ProductVariantSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductVariantInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ProductVariant.
+     */
+    data: XOR<ProductVariantCreateInput, ProductVariantUncheckedCreateInput>
+  }
+
+  /**
+   * ProductVariant createMany
+   */
+  export type ProductVariantCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ProductVariants.
+     */
+    data: ProductVariantCreateManyInput | ProductVariantCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ProductVariant createManyAndReturn
+   */
+  export type ProductVariantCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductVariant
+     */
+    select?: ProductVariantSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many ProductVariants.
+     */
+    data: ProductVariantCreateManyInput | ProductVariantCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductVariantIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ProductVariant update
+   */
+  export type ProductVariantUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductVariant
+     */
+    select?: ProductVariantSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductVariantInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ProductVariant.
+     */
+    data: XOR<ProductVariantUpdateInput, ProductVariantUncheckedUpdateInput>
+    /**
+     * Choose, which ProductVariant to update.
+     */
+    where: ProductVariantWhereUniqueInput
+  }
+
+  /**
+   * ProductVariant updateMany
+   */
+  export type ProductVariantUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ProductVariants.
+     */
+    data: XOR<ProductVariantUpdateManyMutationInput, ProductVariantUncheckedUpdateManyInput>
+    /**
+     * Filter which ProductVariants to update
+     */
+    where?: ProductVariantWhereInput
+  }
+
+  /**
+   * ProductVariant upsert
+   */
+  export type ProductVariantUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductVariant
+     */
+    select?: ProductVariantSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductVariantInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ProductVariant to update in case it exists.
+     */
+    where: ProductVariantWhereUniqueInput
+    /**
+     * In case the ProductVariant found by the `where` argument doesn't exist, create a new ProductVariant with this data.
+     */
+    create: XOR<ProductVariantCreateInput, ProductVariantUncheckedCreateInput>
+    /**
+     * In case the ProductVariant was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ProductVariantUpdateInput, ProductVariantUncheckedUpdateInput>
+  }
+
+  /**
+   * ProductVariant delete
+   */
+  export type ProductVariantDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductVariant
+     */
+    select?: ProductVariantSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductVariantInclude<ExtArgs> | null
+    /**
+     * Filter which ProductVariant to delete.
+     */
+    where: ProductVariantWhereUniqueInput
+  }
+
+  /**
+   * ProductVariant deleteMany
+   */
+  export type ProductVariantDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ProductVariants to delete
+     */
+    where?: ProductVariantWhereInput
+  }
+
+  /**
+   * ProductVariant.stockLevels
+   */
+  export type ProductVariant$stockLevelsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductStockLevel
+     */
+    select?: ProductStockLevelSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductStockLevelInclude<ExtArgs> | null
+    where?: ProductStockLevelWhereInput
+    orderBy?: ProductStockLevelOrderByWithRelationInput | ProductStockLevelOrderByWithRelationInput[]
+    cursor?: ProductStockLevelWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ProductStockLevelScalarFieldEnum | ProductStockLevelScalarFieldEnum[]
+  }
+
+  /**
+   * ProductVariant.movements
+   */
+  export type ProductVariant$movementsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductStockMovement
+     */
+    select?: ProductStockMovementSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductStockMovementInclude<ExtArgs> | null
+    where?: ProductStockMovementWhereInput
+    orderBy?: ProductStockMovementOrderByWithRelationInput | ProductStockMovementOrderByWithRelationInput[]
+    cursor?: ProductStockMovementWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ProductStockMovementScalarFieldEnum | ProductStockMovementScalarFieldEnum[]
+  }
+
+  /**
+   * ProductVariant without action
+   */
+  export type ProductVariantDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductVariant
+     */
+    select?: ProductVariantSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductVariantInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ProductStockLevel
+   */
+
+  export type AggregateProductStockLevel = {
+    _count: ProductStockLevelCountAggregateOutputType | null
+    _avg: ProductStockLevelAvgAggregateOutputType | null
+    _sum: ProductStockLevelSumAggregateOutputType | null
+    _min: ProductStockLevelMinAggregateOutputType | null
+    _max: ProductStockLevelMaxAggregateOutputType | null
+  }
+
+  export type ProductStockLevelAvgAggregateOutputType = {
+    quantity: number | null
+  }
+
+  export type ProductStockLevelSumAggregateOutputType = {
+    quantity: number | null
+  }
+
+  export type ProductStockLevelMinAggregateOutputType = {
+    id: string | null
+    variantId: string | null
+    locationId: string | null
+    quantity: number | null
+    updatedAt: Date | null
+  }
+
+  export type ProductStockLevelMaxAggregateOutputType = {
+    id: string | null
+    variantId: string | null
+    locationId: string | null
+    quantity: number | null
+    updatedAt: Date | null
+  }
+
+  export type ProductStockLevelCountAggregateOutputType = {
+    id: number
+    variantId: number
+    locationId: number
+    quantity: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type ProductStockLevelAvgAggregateInputType = {
+    quantity?: true
+  }
+
+  export type ProductStockLevelSumAggregateInputType = {
+    quantity?: true
+  }
+
+  export type ProductStockLevelMinAggregateInputType = {
+    id?: true
+    variantId?: true
+    locationId?: true
+    quantity?: true
+    updatedAt?: true
+  }
+
+  export type ProductStockLevelMaxAggregateInputType = {
+    id?: true
+    variantId?: true
+    locationId?: true
+    quantity?: true
+    updatedAt?: true
+  }
+
+  export type ProductStockLevelCountAggregateInputType = {
+    id?: true
+    variantId?: true
+    locationId?: true
+    quantity?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type ProductStockLevelAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ProductStockLevel to aggregate.
+     */
+    where?: ProductStockLevelWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProductStockLevels to fetch.
+     */
+    orderBy?: ProductStockLevelOrderByWithRelationInput | ProductStockLevelOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ProductStockLevelWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProductStockLevels from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProductStockLevels.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ProductStockLevels
+    **/
+    _count?: true | ProductStockLevelCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ProductStockLevelAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ProductStockLevelSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ProductStockLevelMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ProductStockLevelMaxAggregateInputType
+  }
+
+  export type GetProductStockLevelAggregateType<T extends ProductStockLevelAggregateArgs> = {
+        [P in keyof T & keyof AggregateProductStockLevel]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateProductStockLevel[P]>
+      : GetScalarType<T[P], AggregateProductStockLevel[P]>
+  }
+
+
+
+
+  export type ProductStockLevelGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ProductStockLevelWhereInput
+    orderBy?: ProductStockLevelOrderByWithAggregationInput | ProductStockLevelOrderByWithAggregationInput[]
+    by: ProductStockLevelScalarFieldEnum[] | ProductStockLevelScalarFieldEnum
+    having?: ProductStockLevelScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ProductStockLevelCountAggregateInputType | true
+    _avg?: ProductStockLevelAvgAggregateInputType
+    _sum?: ProductStockLevelSumAggregateInputType
+    _min?: ProductStockLevelMinAggregateInputType
+    _max?: ProductStockLevelMaxAggregateInputType
+  }
+
+  export type ProductStockLevelGroupByOutputType = {
+    id: string
+    variantId: string
+    locationId: string
+    quantity: number
+    updatedAt: Date
+    _count: ProductStockLevelCountAggregateOutputType | null
+    _avg: ProductStockLevelAvgAggregateOutputType | null
+    _sum: ProductStockLevelSumAggregateOutputType | null
+    _min: ProductStockLevelMinAggregateOutputType | null
+    _max: ProductStockLevelMaxAggregateOutputType | null
+  }
+
+  type GetProductStockLevelGroupByPayload<T extends ProductStockLevelGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ProductStockLevelGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ProductStockLevelGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ProductStockLevelGroupByOutputType[P]>
+            : GetScalarType<T[P], ProductStockLevelGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ProductStockLevelSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    variantId?: boolean
+    locationId?: boolean
+    quantity?: boolean
+    updatedAt?: boolean
+    variant?: boolean | ProductVariantDefaultArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["productStockLevel"]>
+
+  export type ProductStockLevelSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    variantId?: boolean
+    locationId?: boolean
+    quantity?: boolean
+    updatedAt?: boolean
+    variant?: boolean | ProductVariantDefaultArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["productStockLevel"]>
+
+  export type ProductStockLevelSelectScalar = {
+    id?: boolean
+    variantId?: boolean
+    locationId?: boolean
+    quantity?: boolean
+    updatedAt?: boolean
+  }
+
+  export type ProductStockLevelInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    variant?: boolean | ProductVariantDefaultArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+  export type ProductStockLevelIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    variant?: boolean | ProductVariantDefaultArgs<ExtArgs>
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+
+  export type $ProductStockLevelPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ProductStockLevel"
+    objects: {
+      variant: Prisma.$ProductVariantPayload<ExtArgs>
+      location: Prisma.$LocationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      variantId: string
+      locationId: string
+      quantity: number
+      updatedAt: Date
+    }, ExtArgs["result"]["productStockLevel"]>
+    composites: {}
+  }
+
+  type ProductStockLevelGetPayload<S extends boolean | null | undefined | ProductStockLevelDefaultArgs> = $Result.GetResult<Prisma.$ProductStockLevelPayload, S>
+
+  type ProductStockLevelCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<ProductStockLevelFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: ProductStockLevelCountAggregateInputType | true
+    }
+
+  export interface ProductStockLevelDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ProductStockLevel'], meta: { name: 'ProductStockLevel' } }
+    /**
+     * Find zero or one ProductStockLevel that matches the filter.
+     * @param {ProductStockLevelFindUniqueArgs} args - Arguments to find a ProductStockLevel
+     * @example
+     * // Get one ProductStockLevel
+     * const productStockLevel = await prisma.productStockLevel.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ProductStockLevelFindUniqueArgs>(args: SelectSubset<T, ProductStockLevelFindUniqueArgs<ExtArgs>>): Prisma__ProductStockLevelClient<$Result.GetResult<Prisma.$ProductStockLevelPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one ProductStockLevel that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {ProductStockLevelFindUniqueOrThrowArgs} args - Arguments to find a ProductStockLevel
+     * @example
+     * // Get one ProductStockLevel
+     * const productStockLevel = await prisma.productStockLevel.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ProductStockLevelFindUniqueOrThrowArgs>(args: SelectSubset<T, ProductStockLevelFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ProductStockLevelClient<$Result.GetResult<Prisma.$ProductStockLevelPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first ProductStockLevel that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductStockLevelFindFirstArgs} args - Arguments to find a ProductStockLevel
+     * @example
+     * // Get one ProductStockLevel
+     * const productStockLevel = await prisma.productStockLevel.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ProductStockLevelFindFirstArgs>(args?: SelectSubset<T, ProductStockLevelFindFirstArgs<ExtArgs>>): Prisma__ProductStockLevelClient<$Result.GetResult<Prisma.$ProductStockLevelPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first ProductStockLevel that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductStockLevelFindFirstOrThrowArgs} args - Arguments to find a ProductStockLevel
+     * @example
+     * // Get one ProductStockLevel
+     * const productStockLevel = await prisma.productStockLevel.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ProductStockLevelFindFirstOrThrowArgs>(args?: SelectSubset<T, ProductStockLevelFindFirstOrThrowArgs<ExtArgs>>): Prisma__ProductStockLevelClient<$Result.GetResult<Prisma.$ProductStockLevelPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more ProductStockLevels that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductStockLevelFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ProductStockLevels
+     * const productStockLevels = await prisma.productStockLevel.findMany()
+     * 
+     * // Get first 10 ProductStockLevels
+     * const productStockLevels = await prisma.productStockLevel.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const productStockLevelWithIdOnly = await prisma.productStockLevel.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ProductStockLevelFindManyArgs>(args?: SelectSubset<T, ProductStockLevelFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProductStockLevelPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a ProductStockLevel.
+     * @param {ProductStockLevelCreateArgs} args - Arguments to create a ProductStockLevel.
+     * @example
+     * // Create one ProductStockLevel
+     * const ProductStockLevel = await prisma.productStockLevel.create({
+     *   data: {
+     *     // ... data to create a ProductStockLevel
+     *   }
+     * })
+     * 
+     */
+    create<T extends ProductStockLevelCreateArgs>(args: SelectSubset<T, ProductStockLevelCreateArgs<ExtArgs>>): Prisma__ProductStockLevelClient<$Result.GetResult<Prisma.$ProductStockLevelPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many ProductStockLevels.
+     * @param {ProductStockLevelCreateManyArgs} args - Arguments to create many ProductStockLevels.
+     * @example
+     * // Create many ProductStockLevels
+     * const productStockLevel = await prisma.productStockLevel.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ProductStockLevelCreateManyArgs>(args?: SelectSubset<T, ProductStockLevelCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ProductStockLevels and returns the data saved in the database.
+     * @param {ProductStockLevelCreateManyAndReturnArgs} args - Arguments to create many ProductStockLevels.
+     * @example
+     * // Create many ProductStockLevels
+     * const productStockLevel = await prisma.productStockLevel.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ProductStockLevels and only return the `id`
+     * const productStockLevelWithIdOnly = await prisma.productStockLevel.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ProductStockLevelCreateManyAndReturnArgs>(args?: SelectSubset<T, ProductStockLevelCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProductStockLevelPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a ProductStockLevel.
+     * @param {ProductStockLevelDeleteArgs} args - Arguments to delete one ProductStockLevel.
+     * @example
+     * // Delete one ProductStockLevel
+     * const ProductStockLevel = await prisma.productStockLevel.delete({
+     *   where: {
+     *     // ... filter to delete one ProductStockLevel
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ProductStockLevelDeleteArgs>(args: SelectSubset<T, ProductStockLevelDeleteArgs<ExtArgs>>): Prisma__ProductStockLevelClient<$Result.GetResult<Prisma.$ProductStockLevelPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one ProductStockLevel.
+     * @param {ProductStockLevelUpdateArgs} args - Arguments to update one ProductStockLevel.
+     * @example
+     * // Update one ProductStockLevel
+     * const productStockLevel = await prisma.productStockLevel.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ProductStockLevelUpdateArgs>(args: SelectSubset<T, ProductStockLevelUpdateArgs<ExtArgs>>): Prisma__ProductStockLevelClient<$Result.GetResult<Prisma.$ProductStockLevelPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more ProductStockLevels.
+     * @param {ProductStockLevelDeleteManyArgs} args - Arguments to filter ProductStockLevels to delete.
+     * @example
+     * // Delete a few ProductStockLevels
+     * const { count } = await prisma.productStockLevel.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ProductStockLevelDeleteManyArgs>(args?: SelectSubset<T, ProductStockLevelDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ProductStockLevels.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductStockLevelUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ProductStockLevels
+     * const productStockLevel = await prisma.productStockLevel.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ProductStockLevelUpdateManyArgs>(args: SelectSubset<T, ProductStockLevelUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one ProductStockLevel.
+     * @param {ProductStockLevelUpsertArgs} args - Arguments to update or create a ProductStockLevel.
+     * @example
+     * // Update or create a ProductStockLevel
+     * const productStockLevel = await prisma.productStockLevel.upsert({
+     *   create: {
+     *     // ... data to create a ProductStockLevel
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ProductStockLevel we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ProductStockLevelUpsertArgs>(args: SelectSubset<T, ProductStockLevelUpsertArgs<ExtArgs>>): Prisma__ProductStockLevelClient<$Result.GetResult<Prisma.$ProductStockLevelPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of ProductStockLevels.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductStockLevelCountArgs} args - Arguments to filter ProductStockLevels to count.
+     * @example
+     * // Count the number of ProductStockLevels
+     * const count = await prisma.productStockLevel.count({
+     *   where: {
+     *     // ... the filter for the ProductStockLevels we want to count
+     *   }
+     * })
+    **/
+    count<T extends ProductStockLevelCountArgs>(
+      args?: Subset<T, ProductStockLevelCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ProductStockLevelCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ProductStockLevel.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductStockLevelAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ProductStockLevelAggregateArgs>(args: Subset<T, ProductStockLevelAggregateArgs>): Prisma.PrismaPromise<GetProductStockLevelAggregateType<T>>
+
+    /**
+     * Group by ProductStockLevel.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductStockLevelGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ProductStockLevelGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ProductStockLevelGroupByArgs['orderBy'] }
+        : { orderBy?: ProductStockLevelGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ProductStockLevelGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetProductStockLevelGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ProductStockLevel model
+   */
+  readonly fields: ProductStockLevelFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ProductStockLevel.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ProductStockLevelClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    variant<T extends ProductVariantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ProductVariantDefaultArgs<ExtArgs>>): Prisma__ProductVariantClient<$Result.GetResult<Prisma.$ProductVariantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ProductStockLevel model
+   */ 
+  interface ProductStockLevelFieldRefs {
+    readonly id: FieldRef<"ProductStockLevel", 'String'>
+    readonly variantId: FieldRef<"ProductStockLevel", 'String'>
+    readonly locationId: FieldRef<"ProductStockLevel", 'String'>
+    readonly quantity: FieldRef<"ProductStockLevel", 'Int'>
+    readonly updatedAt: FieldRef<"ProductStockLevel", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ProductStockLevel findUnique
+   */
+  export type ProductStockLevelFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductStockLevel
+     */
+    select?: ProductStockLevelSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductStockLevelInclude<ExtArgs> | null
+    /**
+     * Filter, which ProductStockLevel to fetch.
+     */
+    where: ProductStockLevelWhereUniqueInput
+  }
+
+  /**
+   * ProductStockLevel findUniqueOrThrow
+   */
+  export type ProductStockLevelFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductStockLevel
+     */
+    select?: ProductStockLevelSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductStockLevelInclude<ExtArgs> | null
+    /**
+     * Filter, which ProductStockLevel to fetch.
+     */
+    where: ProductStockLevelWhereUniqueInput
+  }
+
+  /**
+   * ProductStockLevel findFirst
+   */
+  export type ProductStockLevelFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductStockLevel
+     */
+    select?: ProductStockLevelSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductStockLevelInclude<ExtArgs> | null
+    /**
+     * Filter, which ProductStockLevel to fetch.
+     */
+    where?: ProductStockLevelWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProductStockLevels to fetch.
+     */
+    orderBy?: ProductStockLevelOrderByWithRelationInput | ProductStockLevelOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ProductStockLevels.
+     */
+    cursor?: ProductStockLevelWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProductStockLevels from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProductStockLevels.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ProductStockLevels.
+     */
+    distinct?: ProductStockLevelScalarFieldEnum | ProductStockLevelScalarFieldEnum[]
+  }
+
+  /**
+   * ProductStockLevel findFirstOrThrow
+   */
+  export type ProductStockLevelFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductStockLevel
+     */
+    select?: ProductStockLevelSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductStockLevelInclude<ExtArgs> | null
+    /**
+     * Filter, which ProductStockLevel to fetch.
+     */
+    where?: ProductStockLevelWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProductStockLevels to fetch.
+     */
+    orderBy?: ProductStockLevelOrderByWithRelationInput | ProductStockLevelOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ProductStockLevels.
+     */
+    cursor?: ProductStockLevelWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProductStockLevels from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProductStockLevels.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ProductStockLevels.
+     */
+    distinct?: ProductStockLevelScalarFieldEnum | ProductStockLevelScalarFieldEnum[]
+  }
+
+  /**
+   * ProductStockLevel findMany
+   */
+  export type ProductStockLevelFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductStockLevel
+     */
+    select?: ProductStockLevelSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductStockLevelInclude<ExtArgs> | null
+    /**
+     * Filter, which ProductStockLevels to fetch.
+     */
+    where?: ProductStockLevelWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProductStockLevels to fetch.
+     */
+    orderBy?: ProductStockLevelOrderByWithRelationInput | ProductStockLevelOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ProductStockLevels.
+     */
+    cursor?: ProductStockLevelWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProductStockLevels from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProductStockLevels.
+     */
+    skip?: number
+    distinct?: ProductStockLevelScalarFieldEnum | ProductStockLevelScalarFieldEnum[]
+  }
+
+  /**
+   * ProductStockLevel create
+   */
+  export type ProductStockLevelCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductStockLevel
+     */
+    select?: ProductStockLevelSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductStockLevelInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ProductStockLevel.
+     */
+    data: XOR<ProductStockLevelCreateInput, ProductStockLevelUncheckedCreateInput>
+  }
+
+  /**
+   * ProductStockLevel createMany
+   */
+  export type ProductStockLevelCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ProductStockLevels.
+     */
+    data: ProductStockLevelCreateManyInput | ProductStockLevelCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ProductStockLevel createManyAndReturn
+   */
+  export type ProductStockLevelCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductStockLevel
+     */
+    select?: ProductStockLevelSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many ProductStockLevels.
+     */
+    data: ProductStockLevelCreateManyInput | ProductStockLevelCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductStockLevelIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ProductStockLevel update
+   */
+  export type ProductStockLevelUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductStockLevel
+     */
+    select?: ProductStockLevelSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductStockLevelInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ProductStockLevel.
+     */
+    data: XOR<ProductStockLevelUpdateInput, ProductStockLevelUncheckedUpdateInput>
+    /**
+     * Choose, which ProductStockLevel to update.
+     */
+    where: ProductStockLevelWhereUniqueInput
+  }
+
+  /**
+   * ProductStockLevel updateMany
+   */
+  export type ProductStockLevelUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ProductStockLevels.
+     */
+    data: XOR<ProductStockLevelUpdateManyMutationInput, ProductStockLevelUncheckedUpdateManyInput>
+    /**
+     * Filter which ProductStockLevels to update
+     */
+    where?: ProductStockLevelWhereInput
+  }
+
+  /**
+   * ProductStockLevel upsert
+   */
+  export type ProductStockLevelUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductStockLevel
+     */
+    select?: ProductStockLevelSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductStockLevelInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ProductStockLevel to update in case it exists.
+     */
+    where: ProductStockLevelWhereUniqueInput
+    /**
+     * In case the ProductStockLevel found by the `where` argument doesn't exist, create a new ProductStockLevel with this data.
+     */
+    create: XOR<ProductStockLevelCreateInput, ProductStockLevelUncheckedCreateInput>
+    /**
+     * In case the ProductStockLevel was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ProductStockLevelUpdateInput, ProductStockLevelUncheckedUpdateInput>
+  }
+
+  /**
+   * ProductStockLevel delete
+   */
+  export type ProductStockLevelDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductStockLevel
+     */
+    select?: ProductStockLevelSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductStockLevelInclude<ExtArgs> | null
+    /**
+     * Filter which ProductStockLevel to delete.
+     */
+    where: ProductStockLevelWhereUniqueInput
+  }
+
+  /**
+   * ProductStockLevel deleteMany
+   */
+  export type ProductStockLevelDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ProductStockLevels to delete
+     */
+    where?: ProductStockLevelWhereInput
+  }
+
+  /**
+   * ProductStockLevel without action
+   */
+  export type ProductStockLevelDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductStockLevel
+     */
+    select?: ProductStockLevelSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductStockLevelInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ProductStockMovement
+   */
+
+  export type AggregateProductStockMovement = {
+    _count: ProductStockMovementCountAggregateOutputType | null
+    _avg: ProductStockMovementAvgAggregateOutputType | null
+    _sum: ProductStockMovementSumAggregateOutputType | null
+    _min: ProductStockMovementMinAggregateOutputType | null
+    _max: ProductStockMovementMaxAggregateOutputType | null
+  }
+
+  export type ProductStockMovementAvgAggregateOutputType = {
+    quantity: number | null
+  }
+
+  export type ProductStockMovementSumAggregateOutputType = {
+    quantity: number | null
+  }
+
+  export type ProductStockMovementMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    variantId: string | null
+    type: $Enums.StockMovementType | null
+    quantity: number | null
+    reason: string | null
+    orderId: string | null
+    refundId: string | null
+    recordedBy: string | null
+    dedupeKey: string | null
+    createdAt: Date | null
+  }
+
+  export type ProductStockMovementMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    variantId: string | null
+    type: $Enums.StockMovementType | null
+    quantity: number | null
+    reason: string | null
+    orderId: string | null
+    refundId: string | null
+    recordedBy: string | null
+    dedupeKey: string | null
+    createdAt: Date | null
+  }
+
+  export type ProductStockMovementCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    variantId: number
+    type: number
+    quantity: number
+    reason: number
+    orderId: number
+    refundId: number
+    recordedBy: number
+    dedupeKey: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type ProductStockMovementAvgAggregateInputType = {
+    quantity?: true
+  }
+
+  export type ProductStockMovementSumAggregateInputType = {
+    quantity?: true
+  }
+
+  export type ProductStockMovementMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    variantId?: true
+    type?: true
+    quantity?: true
+    reason?: true
+    orderId?: true
+    refundId?: true
+    recordedBy?: true
+    dedupeKey?: true
+    createdAt?: true
+  }
+
+  export type ProductStockMovementMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    variantId?: true
+    type?: true
+    quantity?: true
+    reason?: true
+    orderId?: true
+    refundId?: true
+    recordedBy?: true
+    dedupeKey?: true
+    createdAt?: true
+  }
+
+  export type ProductStockMovementCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    variantId?: true
+    type?: true
+    quantity?: true
+    reason?: true
+    orderId?: true
+    refundId?: true
+    recordedBy?: true
+    dedupeKey?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type ProductStockMovementAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ProductStockMovement to aggregate.
+     */
+    where?: ProductStockMovementWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProductStockMovements to fetch.
+     */
+    orderBy?: ProductStockMovementOrderByWithRelationInput | ProductStockMovementOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ProductStockMovementWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProductStockMovements from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProductStockMovements.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ProductStockMovements
+    **/
+    _count?: true | ProductStockMovementCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ProductStockMovementAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ProductStockMovementSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ProductStockMovementMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ProductStockMovementMaxAggregateInputType
+  }
+
+  export type GetProductStockMovementAggregateType<T extends ProductStockMovementAggregateArgs> = {
+        [P in keyof T & keyof AggregateProductStockMovement]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateProductStockMovement[P]>
+      : GetScalarType<T[P], AggregateProductStockMovement[P]>
+  }
+
+
+
+
+  export type ProductStockMovementGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ProductStockMovementWhereInput
+    orderBy?: ProductStockMovementOrderByWithAggregationInput | ProductStockMovementOrderByWithAggregationInput[]
+    by: ProductStockMovementScalarFieldEnum[] | ProductStockMovementScalarFieldEnum
+    having?: ProductStockMovementScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ProductStockMovementCountAggregateInputType | true
+    _avg?: ProductStockMovementAvgAggregateInputType
+    _sum?: ProductStockMovementSumAggregateInputType
+    _min?: ProductStockMovementMinAggregateInputType
+    _max?: ProductStockMovementMaxAggregateInputType
+  }
+
+  export type ProductStockMovementGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string
+    variantId: string
+    type: $Enums.StockMovementType
+    quantity: number
+    reason: string | null
+    orderId: string | null
+    refundId: string | null
+    recordedBy: string | null
+    dedupeKey: string | null
+    createdAt: Date
+    _count: ProductStockMovementCountAggregateOutputType | null
+    _avg: ProductStockMovementAvgAggregateOutputType | null
+    _sum: ProductStockMovementSumAggregateOutputType | null
+    _min: ProductStockMovementMinAggregateOutputType | null
+    _max: ProductStockMovementMaxAggregateOutputType | null
+  }
+
+  type GetProductStockMovementGroupByPayload<T extends ProductStockMovementGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ProductStockMovementGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ProductStockMovementGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ProductStockMovementGroupByOutputType[P]>
+            : GetScalarType<T[P], ProductStockMovementGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ProductStockMovementSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    variantId?: boolean
+    type?: boolean
+    quantity?: boolean
+    reason?: boolean
+    orderId?: boolean
+    refundId?: boolean
+    recordedBy?: boolean
+    dedupeKey?: boolean
+    createdAt?: boolean
+    variant?: boolean | ProductVariantDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["productStockMovement"]>
+
+  export type ProductStockMovementSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    variantId?: boolean
+    type?: boolean
+    quantity?: boolean
+    reason?: boolean
+    orderId?: boolean
+    refundId?: boolean
+    recordedBy?: boolean
+    dedupeKey?: boolean
+    createdAt?: boolean
+    variant?: boolean | ProductVariantDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["productStockMovement"]>
+
+  export type ProductStockMovementSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    variantId?: boolean
+    type?: boolean
+    quantity?: boolean
+    reason?: boolean
+    orderId?: boolean
+    refundId?: boolean
+    recordedBy?: boolean
+    dedupeKey?: boolean
+    createdAt?: boolean
+  }
+
+  export type ProductStockMovementInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    variant?: boolean | ProductVariantDefaultArgs<ExtArgs>
+  }
+  export type ProductStockMovementIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    variant?: boolean | ProductVariantDefaultArgs<ExtArgs>
+  }
+
+  export type $ProductStockMovementPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ProductStockMovement"
+    objects: {
+      variant: Prisma.$ProductVariantPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string
+      variantId: string
+      type: $Enums.StockMovementType
+      quantity: number
+      reason: string | null
+      orderId: string | null
+      refundId: string | null
+      recordedBy: string | null
+      dedupeKey: string | null
+      createdAt: Date
+    }, ExtArgs["result"]["productStockMovement"]>
+    composites: {}
+  }
+
+  type ProductStockMovementGetPayload<S extends boolean | null | undefined | ProductStockMovementDefaultArgs> = $Result.GetResult<Prisma.$ProductStockMovementPayload, S>
+
+  type ProductStockMovementCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<ProductStockMovementFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: ProductStockMovementCountAggregateInputType | true
+    }
+
+  export interface ProductStockMovementDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ProductStockMovement'], meta: { name: 'ProductStockMovement' } }
+    /**
+     * Find zero or one ProductStockMovement that matches the filter.
+     * @param {ProductStockMovementFindUniqueArgs} args - Arguments to find a ProductStockMovement
+     * @example
+     * // Get one ProductStockMovement
+     * const productStockMovement = await prisma.productStockMovement.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ProductStockMovementFindUniqueArgs>(args: SelectSubset<T, ProductStockMovementFindUniqueArgs<ExtArgs>>): Prisma__ProductStockMovementClient<$Result.GetResult<Prisma.$ProductStockMovementPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one ProductStockMovement that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {ProductStockMovementFindUniqueOrThrowArgs} args - Arguments to find a ProductStockMovement
+     * @example
+     * // Get one ProductStockMovement
+     * const productStockMovement = await prisma.productStockMovement.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ProductStockMovementFindUniqueOrThrowArgs>(args: SelectSubset<T, ProductStockMovementFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ProductStockMovementClient<$Result.GetResult<Prisma.$ProductStockMovementPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first ProductStockMovement that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductStockMovementFindFirstArgs} args - Arguments to find a ProductStockMovement
+     * @example
+     * // Get one ProductStockMovement
+     * const productStockMovement = await prisma.productStockMovement.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ProductStockMovementFindFirstArgs>(args?: SelectSubset<T, ProductStockMovementFindFirstArgs<ExtArgs>>): Prisma__ProductStockMovementClient<$Result.GetResult<Prisma.$ProductStockMovementPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first ProductStockMovement that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductStockMovementFindFirstOrThrowArgs} args - Arguments to find a ProductStockMovement
+     * @example
+     * // Get one ProductStockMovement
+     * const productStockMovement = await prisma.productStockMovement.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ProductStockMovementFindFirstOrThrowArgs>(args?: SelectSubset<T, ProductStockMovementFindFirstOrThrowArgs<ExtArgs>>): Prisma__ProductStockMovementClient<$Result.GetResult<Prisma.$ProductStockMovementPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more ProductStockMovements that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductStockMovementFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ProductStockMovements
+     * const productStockMovements = await prisma.productStockMovement.findMany()
+     * 
+     * // Get first 10 ProductStockMovements
+     * const productStockMovements = await prisma.productStockMovement.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const productStockMovementWithIdOnly = await prisma.productStockMovement.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ProductStockMovementFindManyArgs>(args?: SelectSubset<T, ProductStockMovementFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProductStockMovementPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a ProductStockMovement.
+     * @param {ProductStockMovementCreateArgs} args - Arguments to create a ProductStockMovement.
+     * @example
+     * // Create one ProductStockMovement
+     * const ProductStockMovement = await prisma.productStockMovement.create({
+     *   data: {
+     *     // ... data to create a ProductStockMovement
+     *   }
+     * })
+     * 
+     */
+    create<T extends ProductStockMovementCreateArgs>(args: SelectSubset<T, ProductStockMovementCreateArgs<ExtArgs>>): Prisma__ProductStockMovementClient<$Result.GetResult<Prisma.$ProductStockMovementPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many ProductStockMovements.
+     * @param {ProductStockMovementCreateManyArgs} args - Arguments to create many ProductStockMovements.
+     * @example
+     * // Create many ProductStockMovements
+     * const productStockMovement = await prisma.productStockMovement.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ProductStockMovementCreateManyArgs>(args?: SelectSubset<T, ProductStockMovementCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ProductStockMovements and returns the data saved in the database.
+     * @param {ProductStockMovementCreateManyAndReturnArgs} args - Arguments to create many ProductStockMovements.
+     * @example
+     * // Create many ProductStockMovements
+     * const productStockMovement = await prisma.productStockMovement.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ProductStockMovements and only return the `id`
+     * const productStockMovementWithIdOnly = await prisma.productStockMovement.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ProductStockMovementCreateManyAndReturnArgs>(args?: SelectSubset<T, ProductStockMovementCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProductStockMovementPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a ProductStockMovement.
+     * @param {ProductStockMovementDeleteArgs} args - Arguments to delete one ProductStockMovement.
+     * @example
+     * // Delete one ProductStockMovement
+     * const ProductStockMovement = await prisma.productStockMovement.delete({
+     *   where: {
+     *     // ... filter to delete one ProductStockMovement
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ProductStockMovementDeleteArgs>(args: SelectSubset<T, ProductStockMovementDeleteArgs<ExtArgs>>): Prisma__ProductStockMovementClient<$Result.GetResult<Prisma.$ProductStockMovementPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one ProductStockMovement.
+     * @param {ProductStockMovementUpdateArgs} args - Arguments to update one ProductStockMovement.
+     * @example
+     * // Update one ProductStockMovement
+     * const productStockMovement = await prisma.productStockMovement.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ProductStockMovementUpdateArgs>(args: SelectSubset<T, ProductStockMovementUpdateArgs<ExtArgs>>): Prisma__ProductStockMovementClient<$Result.GetResult<Prisma.$ProductStockMovementPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more ProductStockMovements.
+     * @param {ProductStockMovementDeleteManyArgs} args - Arguments to filter ProductStockMovements to delete.
+     * @example
+     * // Delete a few ProductStockMovements
+     * const { count } = await prisma.productStockMovement.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ProductStockMovementDeleteManyArgs>(args?: SelectSubset<T, ProductStockMovementDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ProductStockMovements.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductStockMovementUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ProductStockMovements
+     * const productStockMovement = await prisma.productStockMovement.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ProductStockMovementUpdateManyArgs>(args: SelectSubset<T, ProductStockMovementUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one ProductStockMovement.
+     * @param {ProductStockMovementUpsertArgs} args - Arguments to update or create a ProductStockMovement.
+     * @example
+     * // Update or create a ProductStockMovement
+     * const productStockMovement = await prisma.productStockMovement.upsert({
+     *   create: {
+     *     // ... data to create a ProductStockMovement
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ProductStockMovement we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ProductStockMovementUpsertArgs>(args: SelectSubset<T, ProductStockMovementUpsertArgs<ExtArgs>>): Prisma__ProductStockMovementClient<$Result.GetResult<Prisma.$ProductStockMovementPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of ProductStockMovements.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductStockMovementCountArgs} args - Arguments to filter ProductStockMovements to count.
+     * @example
+     * // Count the number of ProductStockMovements
+     * const count = await prisma.productStockMovement.count({
+     *   where: {
+     *     // ... the filter for the ProductStockMovements we want to count
+     *   }
+     * })
+    **/
+    count<T extends ProductStockMovementCountArgs>(
+      args?: Subset<T, ProductStockMovementCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ProductStockMovementCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ProductStockMovement.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductStockMovementAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ProductStockMovementAggregateArgs>(args: Subset<T, ProductStockMovementAggregateArgs>): Prisma.PrismaPromise<GetProductStockMovementAggregateType<T>>
+
+    /**
+     * Group by ProductStockMovement.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductStockMovementGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ProductStockMovementGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ProductStockMovementGroupByArgs['orderBy'] }
+        : { orderBy?: ProductStockMovementGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ProductStockMovementGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetProductStockMovementGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ProductStockMovement model
+   */
+  readonly fields: ProductStockMovementFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ProductStockMovement.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ProductStockMovementClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    variant<T extends ProductVariantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ProductVariantDefaultArgs<ExtArgs>>): Prisma__ProductVariantClient<$Result.GetResult<Prisma.$ProductVariantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ProductStockMovement model
+   */ 
+  interface ProductStockMovementFieldRefs {
+    readonly id: FieldRef<"ProductStockMovement", 'String'>
+    readonly tenantId: FieldRef<"ProductStockMovement", 'String'>
+    readonly locationId: FieldRef<"ProductStockMovement", 'String'>
+    readonly variantId: FieldRef<"ProductStockMovement", 'String'>
+    readonly type: FieldRef<"ProductStockMovement", 'StockMovementType'>
+    readonly quantity: FieldRef<"ProductStockMovement", 'Int'>
+    readonly reason: FieldRef<"ProductStockMovement", 'String'>
+    readonly orderId: FieldRef<"ProductStockMovement", 'String'>
+    readonly refundId: FieldRef<"ProductStockMovement", 'String'>
+    readonly recordedBy: FieldRef<"ProductStockMovement", 'String'>
+    readonly dedupeKey: FieldRef<"ProductStockMovement", 'String'>
+    readonly createdAt: FieldRef<"ProductStockMovement", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ProductStockMovement findUnique
+   */
+  export type ProductStockMovementFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductStockMovement
+     */
+    select?: ProductStockMovementSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductStockMovementInclude<ExtArgs> | null
+    /**
+     * Filter, which ProductStockMovement to fetch.
+     */
+    where: ProductStockMovementWhereUniqueInput
+  }
+
+  /**
+   * ProductStockMovement findUniqueOrThrow
+   */
+  export type ProductStockMovementFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductStockMovement
+     */
+    select?: ProductStockMovementSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductStockMovementInclude<ExtArgs> | null
+    /**
+     * Filter, which ProductStockMovement to fetch.
+     */
+    where: ProductStockMovementWhereUniqueInput
+  }
+
+  /**
+   * ProductStockMovement findFirst
+   */
+  export type ProductStockMovementFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductStockMovement
+     */
+    select?: ProductStockMovementSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductStockMovementInclude<ExtArgs> | null
+    /**
+     * Filter, which ProductStockMovement to fetch.
+     */
+    where?: ProductStockMovementWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProductStockMovements to fetch.
+     */
+    orderBy?: ProductStockMovementOrderByWithRelationInput | ProductStockMovementOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ProductStockMovements.
+     */
+    cursor?: ProductStockMovementWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProductStockMovements from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProductStockMovements.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ProductStockMovements.
+     */
+    distinct?: ProductStockMovementScalarFieldEnum | ProductStockMovementScalarFieldEnum[]
+  }
+
+  /**
+   * ProductStockMovement findFirstOrThrow
+   */
+  export type ProductStockMovementFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductStockMovement
+     */
+    select?: ProductStockMovementSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductStockMovementInclude<ExtArgs> | null
+    /**
+     * Filter, which ProductStockMovement to fetch.
+     */
+    where?: ProductStockMovementWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProductStockMovements to fetch.
+     */
+    orderBy?: ProductStockMovementOrderByWithRelationInput | ProductStockMovementOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ProductStockMovements.
+     */
+    cursor?: ProductStockMovementWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProductStockMovements from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProductStockMovements.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ProductStockMovements.
+     */
+    distinct?: ProductStockMovementScalarFieldEnum | ProductStockMovementScalarFieldEnum[]
+  }
+
+  /**
+   * ProductStockMovement findMany
+   */
+  export type ProductStockMovementFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductStockMovement
+     */
+    select?: ProductStockMovementSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductStockMovementInclude<ExtArgs> | null
+    /**
+     * Filter, which ProductStockMovements to fetch.
+     */
+    where?: ProductStockMovementWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProductStockMovements to fetch.
+     */
+    orderBy?: ProductStockMovementOrderByWithRelationInput | ProductStockMovementOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ProductStockMovements.
+     */
+    cursor?: ProductStockMovementWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProductStockMovements from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProductStockMovements.
+     */
+    skip?: number
+    distinct?: ProductStockMovementScalarFieldEnum | ProductStockMovementScalarFieldEnum[]
+  }
+
+  /**
+   * ProductStockMovement create
+   */
+  export type ProductStockMovementCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductStockMovement
+     */
+    select?: ProductStockMovementSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductStockMovementInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ProductStockMovement.
+     */
+    data: XOR<ProductStockMovementCreateInput, ProductStockMovementUncheckedCreateInput>
+  }
+
+  /**
+   * ProductStockMovement createMany
+   */
+  export type ProductStockMovementCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ProductStockMovements.
+     */
+    data: ProductStockMovementCreateManyInput | ProductStockMovementCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ProductStockMovement createManyAndReturn
+   */
+  export type ProductStockMovementCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductStockMovement
+     */
+    select?: ProductStockMovementSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many ProductStockMovements.
+     */
+    data: ProductStockMovementCreateManyInput | ProductStockMovementCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductStockMovementIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ProductStockMovement update
+   */
+  export type ProductStockMovementUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductStockMovement
+     */
+    select?: ProductStockMovementSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductStockMovementInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ProductStockMovement.
+     */
+    data: XOR<ProductStockMovementUpdateInput, ProductStockMovementUncheckedUpdateInput>
+    /**
+     * Choose, which ProductStockMovement to update.
+     */
+    where: ProductStockMovementWhereUniqueInput
+  }
+
+  /**
+   * ProductStockMovement updateMany
+   */
+  export type ProductStockMovementUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ProductStockMovements.
+     */
+    data: XOR<ProductStockMovementUpdateManyMutationInput, ProductStockMovementUncheckedUpdateManyInput>
+    /**
+     * Filter which ProductStockMovements to update
+     */
+    where?: ProductStockMovementWhereInput
+  }
+
+  /**
+   * ProductStockMovement upsert
+   */
+  export type ProductStockMovementUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductStockMovement
+     */
+    select?: ProductStockMovementSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductStockMovementInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ProductStockMovement to update in case it exists.
+     */
+    where: ProductStockMovementWhereUniqueInput
+    /**
+     * In case the ProductStockMovement found by the `where` argument doesn't exist, create a new ProductStockMovement with this data.
+     */
+    create: XOR<ProductStockMovementCreateInput, ProductStockMovementUncheckedCreateInput>
+    /**
+     * In case the ProductStockMovement was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ProductStockMovementUpdateInput, ProductStockMovementUncheckedUpdateInput>
+  }
+
+  /**
+   * ProductStockMovement delete
+   */
+  export type ProductStockMovementDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductStockMovement
+     */
+    select?: ProductStockMovementSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductStockMovementInclude<ExtArgs> | null
+    /**
+     * Filter which ProductStockMovement to delete.
+     */
+    where: ProductStockMovementWhereUniqueInput
+  }
+
+  /**
+   * ProductStockMovement deleteMany
+   */
+  export type ProductStockMovementDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ProductStockMovements to delete
+     */
+    where?: ProductStockMovementWhereInput
+  }
+
+  /**
+   * ProductStockMovement without action
+   */
+  export type ProductStockMovementDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductStockMovement
+     */
+    select?: ProductStockMovementSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductStockMovementInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model RefundLine
+   */
+
+  export type AggregateRefundLine = {
+    _count: RefundLineCountAggregateOutputType | null
+    _avg: RefundLineAvgAggregateOutputType | null
+    _sum: RefundLineSumAggregateOutputType | null
+    _min: RefundLineMinAggregateOutputType | null
+    _max: RefundLineMaxAggregateOutputType | null
+  }
+
+  export type RefundLineAvgAggregateOutputType = {
+    quantity: number | null
+    amount: Decimal | null
+  }
+
+  export type RefundLineSumAggregateOutputType = {
+    quantity: number | null
+    amount: Decimal | null
+  }
+
+  export type RefundLineMinAggregateOutputType = {
+    id: string | null
+    refundId: string | null
+    orderItemId: string | null
+    quantity: number | null
+    amount: Decimal | null
+    restock: boolean | null
+    createdAt: Date | null
+  }
+
+  export type RefundLineMaxAggregateOutputType = {
+    id: string | null
+    refundId: string | null
+    orderItemId: string | null
+    quantity: number | null
+    amount: Decimal | null
+    restock: boolean | null
+    createdAt: Date | null
+  }
+
+  export type RefundLineCountAggregateOutputType = {
+    id: number
+    refundId: number
+    orderItemId: number
+    quantity: number
+    amount: number
+    restock: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type RefundLineAvgAggregateInputType = {
+    quantity?: true
+    amount?: true
+  }
+
+  export type RefundLineSumAggregateInputType = {
+    quantity?: true
+    amount?: true
+  }
+
+  export type RefundLineMinAggregateInputType = {
+    id?: true
+    refundId?: true
+    orderItemId?: true
+    quantity?: true
+    amount?: true
+    restock?: true
+    createdAt?: true
+  }
+
+  export type RefundLineMaxAggregateInputType = {
+    id?: true
+    refundId?: true
+    orderItemId?: true
+    quantity?: true
+    amount?: true
+    restock?: true
+    createdAt?: true
+  }
+
+  export type RefundLineCountAggregateInputType = {
+    id?: true
+    refundId?: true
+    orderItemId?: true
+    quantity?: true
+    amount?: true
+    restock?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type RefundLineAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which RefundLine to aggregate.
+     */
+    where?: RefundLineWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of RefundLines to fetch.
+     */
+    orderBy?: RefundLineOrderByWithRelationInput | RefundLineOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: RefundLineWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` RefundLines from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` RefundLines.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned RefundLines
+    **/
+    _count?: true | RefundLineCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: RefundLineAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: RefundLineSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: RefundLineMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: RefundLineMaxAggregateInputType
+  }
+
+  export type GetRefundLineAggregateType<T extends RefundLineAggregateArgs> = {
+        [P in keyof T & keyof AggregateRefundLine]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateRefundLine[P]>
+      : GetScalarType<T[P], AggregateRefundLine[P]>
+  }
+
+
+
+
+  export type RefundLineGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: RefundLineWhereInput
+    orderBy?: RefundLineOrderByWithAggregationInput | RefundLineOrderByWithAggregationInput[]
+    by: RefundLineScalarFieldEnum[] | RefundLineScalarFieldEnum
+    having?: RefundLineScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: RefundLineCountAggregateInputType | true
+    _avg?: RefundLineAvgAggregateInputType
+    _sum?: RefundLineSumAggregateInputType
+    _min?: RefundLineMinAggregateInputType
+    _max?: RefundLineMaxAggregateInputType
+  }
+
+  export type RefundLineGroupByOutputType = {
+    id: string
+    refundId: string
+    orderItemId: string
+    quantity: number
+    amount: Decimal
+    restock: boolean
+    createdAt: Date
+    _count: RefundLineCountAggregateOutputType | null
+    _avg: RefundLineAvgAggregateOutputType | null
+    _sum: RefundLineSumAggregateOutputType | null
+    _min: RefundLineMinAggregateOutputType | null
+    _max: RefundLineMaxAggregateOutputType | null
+  }
+
+  type GetRefundLineGroupByPayload<T extends RefundLineGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<RefundLineGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof RefundLineGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], RefundLineGroupByOutputType[P]>
+            : GetScalarType<T[P], RefundLineGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type RefundLineSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    refundId?: boolean
+    orderItemId?: boolean
+    quantity?: boolean
+    amount?: boolean
+    restock?: boolean
+    createdAt?: boolean
+    refund?: boolean | RefundDefaultArgs<ExtArgs>
+    orderItem?: boolean | OrderItemDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["refundLine"]>
+
+  export type RefundLineSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    refundId?: boolean
+    orderItemId?: boolean
+    quantity?: boolean
+    amount?: boolean
+    restock?: boolean
+    createdAt?: boolean
+    refund?: boolean | RefundDefaultArgs<ExtArgs>
+    orderItem?: boolean | OrderItemDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["refundLine"]>
+
+  export type RefundLineSelectScalar = {
+    id?: boolean
+    refundId?: boolean
+    orderItemId?: boolean
+    quantity?: boolean
+    amount?: boolean
+    restock?: boolean
+    createdAt?: boolean
+  }
+
+  export type RefundLineInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    refund?: boolean | RefundDefaultArgs<ExtArgs>
+    orderItem?: boolean | OrderItemDefaultArgs<ExtArgs>
+  }
+  export type RefundLineIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    refund?: boolean | RefundDefaultArgs<ExtArgs>
+    orderItem?: boolean | OrderItemDefaultArgs<ExtArgs>
+  }
+
+  export type $RefundLinePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "RefundLine"
+    objects: {
+      refund: Prisma.$RefundPayload<ExtArgs>
+      orderItem: Prisma.$OrderItemPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      refundId: string
+      orderItemId: string
+      quantity: number
+      amount: Prisma.Decimal
+      restock: boolean
+      createdAt: Date
+    }, ExtArgs["result"]["refundLine"]>
+    composites: {}
+  }
+
+  type RefundLineGetPayload<S extends boolean | null | undefined | RefundLineDefaultArgs> = $Result.GetResult<Prisma.$RefundLinePayload, S>
+
+  type RefundLineCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<RefundLineFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: RefundLineCountAggregateInputType | true
+    }
+
+  export interface RefundLineDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['RefundLine'], meta: { name: 'RefundLine' } }
+    /**
+     * Find zero or one RefundLine that matches the filter.
+     * @param {RefundLineFindUniqueArgs} args - Arguments to find a RefundLine
+     * @example
+     * // Get one RefundLine
+     * const refundLine = await prisma.refundLine.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends RefundLineFindUniqueArgs>(args: SelectSubset<T, RefundLineFindUniqueArgs<ExtArgs>>): Prisma__RefundLineClient<$Result.GetResult<Prisma.$RefundLinePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one RefundLine that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {RefundLineFindUniqueOrThrowArgs} args - Arguments to find a RefundLine
+     * @example
+     * // Get one RefundLine
+     * const refundLine = await prisma.refundLine.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends RefundLineFindUniqueOrThrowArgs>(args: SelectSubset<T, RefundLineFindUniqueOrThrowArgs<ExtArgs>>): Prisma__RefundLineClient<$Result.GetResult<Prisma.$RefundLinePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first RefundLine that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RefundLineFindFirstArgs} args - Arguments to find a RefundLine
+     * @example
+     * // Get one RefundLine
+     * const refundLine = await prisma.refundLine.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends RefundLineFindFirstArgs>(args?: SelectSubset<T, RefundLineFindFirstArgs<ExtArgs>>): Prisma__RefundLineClient<$Result.GetResult<Prisma.$RefundLinePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first RefundLine that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RefundLineFindFirstOrThrowArgs} args - Arguments to find a RefundLine
+     * @example
+     * // Get one RefundLine
+     * const refundLine = await prisma.refundLine.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends RefundLineFindFirstOrThrowArgs>(args?: SelectSubset<T, RefundLineFindFirstOrThrowArgs<ExtArgs>>): Prisma__RefundLineClient<$Result.GetResult<Prisma.$RefundLinePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more RefundLines that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RefundLineFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all RefundLines
+     * const refundLines = await prisma.refundLine.findMany()
+     * 
+     * // Get first 10 RefundLines
+     * const refundLines = await prisma.refundLine.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const refundLineWithIdOnly = await prisma.refundLine.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends RefundLineFindManyArgs>(args?: SelectSubset<T, RefundLineFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RefundLinePayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a RefundLine.
+     * @param {RefundLineCreateArgs} args - Arguments to create a RefundLine.
+     * @example
+     * // Create one RefundLine
+     * const RefundLine = await prisma.refundLine.create({
+     *   data: {
+     *     // ... data to create a RefundLine
+     *   }
+     * })
+     * 
+     */
+    create<T extends RefundLineCreateArgs>(args: SelectSubset<T, RefundLineCreateArgs<ExtArgs>>): Prisma__RefundLineClient<$Result.GetResult<Prisma.$RefundLinePayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many RefundLines.
+     * @param {RefundLineCreateManyArgs} args - Arguments to create many RefundLines.
+     * @example
+     * // Create many RefundLines
+     * const refundLine = await prisma.refundLine.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends RefundLineCreateManyArgs>(args?: SelectSubset<T, RefundLineCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many RefundLines and returns the data saved in the database.
+     * @param {RefundLineCreateManyAndReturnArgs} args - Arguments to create many RefundLines.
+     * @example
+     * // Create many RefundLines
+     * const refundLine = await prisma.refundLine.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many RefundLines and only return the `id`
+     * const refundLineWithIdOnly = await prisma.refundLine.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends RefundLineCreateManyAndReturnArgs>(args?: SelectSubset<T, RefundLineCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RefundLinePayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a RefundLine.
+     * @param {RefundLineDeleteArgs} args - Arguments to delete one RefundLine.
+     * @example
+     * // Delete one RefundLine
+     * const RefundLine = await prisma.refundLine.delete({
+     *   where: {
+     *     // ... filter to delete one RefundLine
+     *   }
+     * })
+     * 
+     */
+    delete<T extends RefundLineDeleteArgs>(args: SelectSubset<T, RefundLineDeleteArgs<ExtArgs>>): Prisma__RefundLineClient<$Result.GetResult<Prisma.$RefundLinePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one RefundLine.
+     * @param {RefundLineUpdateArgs} args - Arguments to update one RefundLine.
+     * @example
+     * // Update one RefundLine
+     * const refundLine = await prisma.refundLine.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends RefundLineUpdateArgs>(args: SelectSubset<T, RefundLineUpdateArgs<ExtArgs>>): Prisma__RefundLineClient<$Result.GetResult<Prisma.$RefundLinePayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more RefundLines.
+     * @param {RefundLineDeleteManyArgs} args - Arguments to filter RefundLines to delete.
+     * @example
+     * // Delete a few RefundLines
+     * const { count } = await prisma.refundLine.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends RefundLineDeleteManyArgs>(args?: SelectSubset<T, RefundLineDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more RefundLines.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RefundLineUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many RefundLines
+     * const refundLine = await prisma.refundLine.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends RefundLineUpdateManyArgs>(args: SelectSubset<T, RefundLineUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one RefundLine.
+     * @param {RefundLineUpsertArgs} args - Arguments to update or create a RefundLine.
+     * @example
+     * // Update or create a RefundLine
+     * const refundLine = await prisma.refundLine.upsert({
+     *   create: {
+     *     // ... data to create a RefundLine
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the RefundLine we want to update
+     *   }
+     * })
+     */
+    upsert<T extends RefundLineUpsertArgs>(args: SelectSubset<T, RefundLineUpsertArgs<ExtArgs>>): Prisma__RefundLineClient<$Result.GetResult<Prisma.$RefundLinePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of RefundLines.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RefundLineCountArgs} args - Arguments to filter RefundLines to count.
+     * @example
+     * // Count the number of RefundLines
+     * const count = await prisma.refundLine.count({
+     *   where: {
+     *     // ... the filter for the RefundLines we want to count
+     *   }
+     * })
+    **/
+    count<T extends RefundLineCountArgs>(
+      args?: Subset<T, RefundLineCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], RefundLineCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a RefundLine.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RefundLineAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends RefundLineAggregateArgs>(args: Subset<T, RefundLineAggregateArgs>): Prisma.PrismaPromise<GetRefundLineAggregateType<T>>
+
+    /**
+     * Group by RefundLine.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RefundLineGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends RefundLineGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: RefundLineGroupByArgs['orderBy'] }
+        : { orderBy?: RefundLineGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, RefundLineGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetRefundLineGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the RefundLine model
+   */
+  readonly fields: RefundLineFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for RefundLine.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__RefundLineClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    refund<T extends RefundDefaultArgs<ExtArgs> = {}>(args?: Subset<T, RefundDefaultArgs<ExtArgs>>): Prisma__RefundClient<$Result.GetResult<Prisma.$RefundPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    orderItem<T extends OrderItemDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrderItemDefaultArgs<ExtArgs>>): Prisma__OrderItemClient<$Result.GetResult<Prisma.$OrderItemPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the RefundLine model
+   */ 
+  interface RefundLineFieldRefs {
+    readonly id: FieldRef<"RefundLine", 'String'>
+    readonly refundId: FieldRef<"RefundLine", 'String'>
+    readonly orderItemId: FieldRef<"RefundLine", 'String'>
+    readonly quantity: FieldRef<"RefundLine", 'Int'>
+    readonly amount: FieldRef<"RefundLine", 'Decimal'>
+    readonly restock: FieldRef<"RefundLine", 'Boolean'>
+    readonly createdAt: FieldRef<"RefundLine", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * RefundLine findUnique
+   */
+  export type RefundLineFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RefundLine
+     */
+    select?: RefundLineSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RefundLineInclude<ExtArgs> | null
+    /**
+     * Filter, which RefundLine to fetch.
+     */
+    where: RefundLineWhereUniqueInput
+  }
+
+  /**
+   * RefundLine findUniqueOrThrow
+   */
+  export type RefundLineFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RefundLine
+     */
+    select?: RefundLineSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RefundLineInclude<ExtArgs> | null
+    /**
+     * Filter, which RefundLine to fetch.
+     */
+    where: RefundLineWhereUniqueInput
+  }
+
+  /**
+   * RefundLine findFirst
+   */
+  export type RefundLineFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RefundLine
+     */
+    select?: RefundLineSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RefundLineInclude<ExtArgs> | null
+    /**
+     * Filter, which RefundLine to fetch.
+     */
+    where?: RefundLineWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of RefundLines to fetch.
+     */
+    orderBy?: RefundLineOrderByWithRelationInput | RefundLineOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for RefundLines.
+     */
+    cursor?: RefundLineWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` RefundLines from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` RefundLines.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of RefundLines.
+     */
+    distinct?: RefundLineScalarFieldEnum | RefundLineScalarFieldEnum[]
+  }
+
+  /**
+   * RefundLine findFirstOrThrow
+   */
+  export type RefundLineFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RefundLine
+     */
+    select?: RefundLineSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RefundLineInclude<ExtArgs> | null
+    /**
+     * Filter, which RefundLine to fetch.
+     */
+    where?: RefundLineWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of RefundLines to fetch.
+     */
+    orderBy?: RefundLineOrderByWithRelationInput | RefundLineOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for RefundLines.
+     */
+    cursor?: RefundLineWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` RefundLines from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` RefundLines.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of RefundLines.
+     */
+    distinct?: RefundLineScalarFieldEnum | RefundLineScalarFieldEnum[]
+  }
+
+  /**
+   * RefundLine findMany
+   */
+  export type RefundLineFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RefundLine
+     */
+    select?: RefundLineSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RefundLineInclude<ExtArgs> | null
+    /**
+     * Filter, which RefundLines to fetch.
+     */
+    where?: RefundLineWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of RefundLines to fetch.
+     */
+    orderBy?: RefundLineOrderByWithRelationInput | RefundLineOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing RefundLines.
+     */
+    cursor?: RefundLineWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` RefundLines from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` RefundLines.
+     */
+    skip?: number
+    distinct?: RefundLineScalarFieldEnum | RefundLineScalarFieldEnum[]
+  }
+
+  /**
+   * RefundLine create
+   */
+  export type RefundLineCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RefundLine
+     */
+    select?: RefundLineSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RefundLineInclude<ExtArgs> | null
+    /**
+     * The data needed to create a RefundLine.
+     */
+    data: XOR<RefundLineCreateInput, RefundLineUncheckedCreateInput>
+  }
+
+  /**
+   * RefundLine createMany
+   */
+  export type RefundLineCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many RefundLines.
+     */
+    data: RefundLineCreateManyInput | RefundLineCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * RefundLine createManyAndReturn
+   */
+  export type RefundLineCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RefundLine
+     */
+    select?: RefundLineSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many RefundLines.
+     */
+    data: RefundLineCreateManyInput | RefundLineCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RefundLineIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * RefundLine update
+   */
+  export type RefundLineUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RefundLine
+     */
+    select?: RefundLineSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RefundLineInclude<ExtArgs> | null
+    /**
+     * The data needed to update a RefundLine.
+     */
+    data: XOR<RefundLineUpdateInput, RefundLineUncheckedUpdateInput>
+    /**
+     * Choose, which RefundLine to update.
+     */
+    where: RefundLineWhereUniqueInput
+  }
+
+  /**
+   * RefundLine updateMany
+   */
+  export type RefundLineUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update RefundLines.
+     */
+    data: XOR<RefundLineUpdateManyMutationInput, RefundLineUncheckedUpdateManyInput>
+    /**
+     * Filter which RefundLines to update
+     */
+    where?: RefundLineWhereInput
+  }
+
+  /**
+   * RefundLine upsert
+   */
+  export type RefundLineUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RefundLine
+     */
+    select?: RefundLineSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RefundLineInclude<ExtArgs> | null
+    /**
+     * The filter to search for the RefundLine to update in case it exists.
+     */
+    where: RefundLineWhereUniqueInput
+    /**
+     * In case the RefundLine found by the `where` argument doesn't exist, create a new RefundLine with this data.
+     */
+    create: XOR<RefundLineCreateInput, RefundLineUncheckedCreateInput>
+    /**
+     * In case the RefundLine was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<RefundLineUpdateInput, RefundLineUncheckedUpdateInput>
+  }
+
+  /**
+   * RefundLine delete
+   */
+  export type RefundLineDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RefundLine
+     */
+    select?: RefundLineSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RefundLineInclude<ExtArgs> | null
+    /**
+     * Filter which RefundLine to delete.
+     */
+    where: RefundLineWhereUniqueInput
+  }
+
+  /**
+   * RefundLine deleteMany
+   */
+  export type RefundLineDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which RefundLines to delete
+     */
+    where?: RefundLineWhereInput
+  }
+
+  /**
+   * RefundLine without action
+   */
+  export type RefundLineDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RefundLine
+     */
+    select?: RefundLineSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RefundLineInclude<ExtArgs> | null
   }
 
 
@@ -142989,6 +148115,2094 @@ export namespace Prisma {
 
 
   /**
+   * Model JetGoConfig
+   */
+
+  export type AggregateJetGoConfig = {
+    _count: JetGoConfigCountAggregateOutputType | null
+    _min: JetGoConfigMinAggregateOutputType | null
+    _max: JetGoConfigMaxAggregateOutputType | null
+  }
+
+  export type JetGoConfigMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    market: string | null
+    environment: string | null
+    collectPointId: string | null
+    collectPointName: string | null
+    webhookToken: string | null
+    webhookSecret: string | null
+    active: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type JetGoConfigMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    market: string | null
+    environment: string | null
+    collectPointId: string | null
+    collectPointName: string | null
+    webhookToken: string | null
+    webhookSecret: string | null
+    active: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type JetGoConfigCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    market: number
+    environment: number
+    credentials: number
+    collectPointId: number
+    collectPointName: number
+    webhookToken: number
+    webhookSecret: number
+    active: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type JetGoConfigMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    market?: true
+    environment?: true
+    collectPointId?: true
+    collectPointName?: true
+    webhookToken?: true
+    webhookSecret?: true
+    active?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type JetGoConfigMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    market?: true
+    environment?: true
+    collectPointId?: true
+    collectPointName?: true
+    webhookToken?: true
+    webhookSecret?: true
+    active?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type JetGoConfigCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    market?: true
+    environment?: true
+    credentials?: true
+    collectPointId?: true
+    collectPointName?: true
+    webhookToken?: true
+    webhookSecret?: true
+    active?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type JetGoConfigAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which JetGoConfig to aggregate.
+     */
+    where?: JetGoConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of JetGoConfigs to fetch.
+     */
+    orderBy?: JetGoConfigOrderByWithRelationInput | JetGoConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: JetGoConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` JetGoConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` JetGoConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned JetGoConfigs
+    **/
+    _count?: true | JetGoConfigCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: JetGoConfigMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: JetGoConfigMaxAggregateInputType
+  }
+
+  export type GetJetGoConfigAggregateType<T extends JetGoConfigAggregateArgs> = {
+        [P in keyof T & keyof AggregateJetGoConfig]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateJetGoConfig[P]>
+      : GetScalarType<T[P], AggregateJetGoConfig[P]>
+  }
+
+
+
+
+  export type JetGoConfigGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: JetGoConfigWhereInput
+    orderBy?: JetGoConfigOrderByWithAggregationInput | JetGoConfigOrderByWithAggregationInput[]
+    by: JetGoConfigScalarFieldEnum[] | JetGoConfigScalarFieldEnum
+    having?: JetGoConfigScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: JetGoConfigCountAggregateInputType | true
+    _min?: JetGoConfigMinAggregateInputType
+    _max?: JetGoConfigMaxAggregateInputType
+  }
+
+  export type JetGoConfigGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string
+    market: string
+    environment: string
+    credentials: JsonValue
+    collectPointId: string | null
+    collectPointName: string | null
+    webhookToken: string
+    webhookSecret: string
+    active: boolean
+    createdAt: Date
+    updatedAt: Date
+    _count: JetGoConfigCountAggregateOutputType | null
+    _min: JetGoConfigMinAggregateOutputType | null
+    _max: JetGoConfigMaxAggregateOutputType | null
+  }
+
+  type GetJetGoConfigGroupByPayload<T extends JetGoConfigGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<JetGoConfigGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof JetGoConfigGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], JetGoConfigGroupByOutputType[P]>
+            : GetScalarType<T[P], JetGoConfigGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type JetGoConfigSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    market?: boolean
+    environment?: boolean
+    credentials?: boolean
+    collectPointId?: boolean
+    collectPointName?: boolean
+    webhookToken?: boolean
+    webhookSecret?: boolean
+    active?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["jetGoConfig"]>
+
+  export type JetGoConfigSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    market?: boolean
+    environment?: boolean
+    credentials?: boolean
+    collectPointId?: boolean
+    collectPointName?: boolean
+    webhookToken?: boolean
+    webhookSecret?: boolean
+    active?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["jetGoConfig"]>
+
+  export type JetGoConfigSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    market?: boolean
+    environment?: boolean
+    credentials?: boolean
+    collectPointId?: boolean
+    collectPointName?: boolean
+    webhookToken?: boolean
+    webhookSecret?: boolean
+    active?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type JetGoConfigInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+  export type JetGoConfigIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+
+  export type $JetGoConfigPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "JetGoConfig"
+    objects: {
+      location: Prisma.$LocationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string
+      market: string
+      environment: string
+      credentials: Prisma.JsonValue
+      collectPointId: string | null
+      collectPointName: string | null
+      webhookToken: string
+      webhookSecret: string
+      active: boolean
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["jetGoConfig"]>
+    composites: {}
+  }
+
+  type JetGoConfigGetPayload<S extends boolean | null | undefined | JetGoConfigDefaultArgs> = $Result.GetResult<Prisma.$JetGoConfigPayload, S>
+
+  type JetGoConfigCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<JetGoConfigFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: JetGoConfigCountAggregateInputType | true
+    }
+
+  export interface JetGoConfigDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['JetGoConfig'], meta: { name: 'JetGoConfig' } }
+    /**
+     * Find zero or one JetGoConfig that matches the filter.
+     * @param {JetGoConfigFindUniqueArgs} args - Arguments to find a JetGoConfig
+     * @example
+     * // Get one JetGoConfig
+     * const jetGoConfig = await prisma.jetGoConfig.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends JetGoConfigFindUniqueArgs>(args: SelectSubset<T, JetGoConfigFindUniqueArgs<ExtArgs>>): Prisma__JetGoConfigClient<$Result.GetResult<Prisma.$JetGoConfigPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one JetGoConfig that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {JetGoConfigFindUniqueOrThrowArgs} args - Arguments to find a JetGoConfig
+     * @example
+     * // Get one JetGoConfig
+     * const jetGoConfig = await prisma.jetGoConfig.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends JetGoConfigFindUniqueOrThrowArgs>(args: SelectSubset<T, JetGoConfigFindUniqueOrThrowArgs<ExtArgs>>): Prisma__JetGoConfigClient<$Result.GetResult<Prisma.$JetGoConfigPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first JetGoConfig that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {JetGoConfigFindFirstArgs} args - Arguments to find a JetGoConfig
+     * @example
+     * // Get one JetGoConfig
+     * const jetGoConfig = await prisma.jetGoConfig.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends JetGoConfigFindFirstArgs>(args?: SelectSubset<T, JetGoConfigFindFirstArgs<ExtArgs>>): Prisma__JetGoConfigClient<$Result.GetResult<Prisma.$JetGoConfigPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first JetGoConfig that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {JetGoConfigFindFirstOrThrowArgs} args - Arguments to find a JetGoConfig
+     * @example
+     * // Get one JetGoConfig
+     * const jetGoConfig = await prisma.jetGoConfig.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends JetGoConfigFindFirstOrThrowArgs>(args?: SelectSubset<T, JetGoConfigFindFirstOrThrowArgs<ExtArgs>>): Prisma__JetGoConfigClient<$Result.GetResult<Prisma.$JetGoConfigPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more JetGoConfigs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {JetGoConfigFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all JetGoConfigs
+     * const jetGoConfigs = await prisma.jetGoConfig.findMany()
+     * 
+     * // Get first 10 JetGoConfigs
+     * const jetGoConfigs = await prisma.jetGoConfig.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const jetGoConfigWithIdOnly = await prisma.jetGoConfig.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends JetGoConfigFindManyArgs>(args?: SelectSubset<T, JetGoConfigFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$JetGoConfigPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a JetGoConfig.
+     * @param {JetGoConfigCreateArgs} args - Arguments to create a JetGoConfig.
+     * @example
+     * // Create one JetGoConfig
+     * const JetGoConfig = await prisma.jetGoConfig.create({
+     *   data: {
+     *     // ... data to create a JetGoConfig
+     *   }
+     * })
+     * 
+     */
+    create<T extends JetGoConfigCreateArgs>(args: SelectSubset<T, JetGoConfigCreateArgs<ExtArgs>>): Prisma__JetGoConfigClient<$Result.GetResult<Prisma.$JetGoConfigPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many JetGoConfigs.
+     * @param {JetGoConfigCreateManyArgs} args - Arguments to create many JetGoConfigs.
+     * @example
+     * // Create many JetGoConfigs
+     * const jetGoConfig = await prisma.jetGoConfig.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends JetGoConfigCreateManyArgs>(args?: SelectSubset<T, JetGoConfigCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many JetGoConfigs and returns the data saved in the database.
+     * @param {JetGoConfigCreateManyAndReturnArgs} args - Arguments to create many JetGoConfigs.
+     * @example
+     * // Create many JetGoConfigs
+     * const jetGoConfig = await prisma.jetGoConfig.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many JetGoConfigs and only return the `id`
+     * const jetGoConfigWithIdOnly = await prisma.jetGoConfig.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends JetGoConfigCreateManyAndReturnArgs>(args?: SelectSubset<T, JetGoConfigCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$JetGoConfigPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a JetGoConfig.
+     * @param {JetGoConfigDeleteArgs} args - Arguments to delete one JetGoConfig.
+     * @example
+     * // Delete one JetGoConfig
+     * const JetGoConfig = await prisma.jetGoConfig.delete({
+     *   where: {
+     *     // ... filter to delete one JetGoConfig
+     *   }
+     * })
+     * 
+     */
+    delete<T extends JetGoConfigDeleteArgs>(args: SelectSubset<T, JetGoConfigDeleteArgs<ExtArgs>>): Prisma__JetGoConfigClient<$Result.GetResult<Prisma.$JetGoConfigPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one JetGoConfig.
+     * @param {JetGoConfigUpdateArgs} args - Arguments to update one JetGoConfig.
+     * @example
+     * // Update one JetGoConfig
+     * const jetGoConfig = await prisma.jetGoConfig.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends JetGoConfigUpdateArgs>(args: SelectSubset<T, JetGoConfigUpdateArgs<ExtArgs>>): Prisma__JetGoConfigClient<$Result.GetResult<Prisma.$JetGoConfigPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more JetGoConfigs.
+     * @param {JetGoConfigDeleteManyArgs} args - Arguments to filter JetGoConfigs to delete.
+     * @example
+     * // Delete a few JetGoConfigs
+     * const { count } = await prisma.jetGoConfig.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends JetGoConfigDeleteManyArgs>(args?: SelectSubset<T, JetGoConfigDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more JetGoConfigs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {JetGoConfigUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many JetGoConfigs
+     * const jetGoConfig = await prisma.jetGoConfig.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends JetGoConfigUpdateManyArgs>(args: SelectSubset<T, JetGoConfigUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one JetGoConfig.
+     * @param {JetGoConfigUpsertArgs} args - Arguments to update or create a JetGoConfig.
+     * @example
+     * // Update or create a JetGoConfig
+     * const jetGoConfig = await prisma.jetGoConfig.upsert({
+     *   create: {
+     *     // ... data to create a JetGoConfig
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the JetGoConfig we want to update
+     *   }
+     * })
+     */
+    upsert<T extends JetGoConfigUpsertArgs>(args: SelectSubset<T, JetGoConfigUpsertArgs<ExtArgs>>): Prisma__JetGoConfigClient<$Result.GetResult<Prisma.$JetGoConfigPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of JetGoConfigs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {JetGoConfigCountArgs} args - Arguments to filter JetGoConfigs to count.
+     * @example
+     * // Count the number of JetGoConfigs
+     * const count = await prisma.jetGoConfig.count({
+     *   where: {
+     *     // ... the filter for the JetGoConfigs we want to count
+     *   }
+     * })
+    **/
+    count<T extends JetGoConfigCountArgs>(
+      args?: Subset<T, JetGoConfigCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], JetGoConfigCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a JetGoConfig.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {JetGoConfigAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends JetGoConfigAggregateArgs>(args: Subset<T, JetGoConfigAggregateArgs>): Prisma.PrismaPromise<GetJetGoConfigAggregateType<T>>
+
+    /**
+     * Group by JetGoConfig.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {JetGoConfigGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends JetGoConfigGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: JetGoConfigGroupByArgs['orderBy'] }
+        : { orderBy?: JetGoConfigGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, JetGoConfigGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetJetGoConfigGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the JetGoConfig model
+   */
+  readonly fields: JetGoConfigFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for JetGoConfig.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__JetGoConfigClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the JetGoConfig model
+   */ 
+  interface JetGoConfigFieldRefs {
+    readonly id: FieldRef<"JetGoConfig", 'String'>
+    readonly tenantId: FieldRef<"JetGoConfig", 'String'>
+    readonly locationId: FieldRef<"JetGoConfig", 'String'>
+    readonly market: FieldRef<"JetGoConfig", 'String'>
+    readonly environment: FieldRef<"JetGoConfig", 'String'>
+    readonly credentials: FieldRef<"JetGoConfig", 'Json'>
+    readonly collectPointId: FieldRef<"JetGoConfig", 'String'>
+    readonly collectPointName: FieldRef<"JetGoConfig", 'String'>
+    readonly webhookToken: FieldRef<"JetGoConfig", 'String'>
+    readonly webhookSecret: FieldRef<"JetGoConfig", 'String'>
+    readonly active: FieldRef<"JetGoConfig", 'Boolean'>
+    readonly createdAt: FieldRef<"JetGoConfig", 'DateTime'>
+    readonly updatedAt: FieldRef<"JetGoConfig", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * JetGoConfig findUnique
+   */
+  export type JetGoConfigFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JetGoConfig
+     */
+    select?: JetGoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JetGoConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which JetGoConfig to fetch.
+     */
+    where: JetGoConfigWhereUniqueInput
+  }
+
+  /**
+   * JetGoConfig findUniqueOrThrow
+   */
+  export type JetGoConfigFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JetGoConfig
+     */
+    select?: JetGoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JetGoConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which JetGoConfig to fetch.
+     */
+    where: JetGoConfigWhereUniqueInput
+  }
+
+  /**
+   * JetGoConfig findFirst
+   */
+  export type JetGoConfigFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JetGoConfig
+     */
+    select?: JetGoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JetGoConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which JetGoConfig to fetch.
+     */
+    where?: JetGoConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of JetGoConfigs to fetch.
+     */
+    orderBy?: JetGoConfigOrderByWithRelationInput | JetGoConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for JetGoConfigs.
+     */
+    cursor?: JetGoConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` JetGoConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` JetGoConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of JetGoConfigs.
+     */
+    distinct?: JetGoConfigScalarFieldEnum | JetGoConfigScalarFieldEnum[]
+  }
+
+  /**
+   * JetGoConfig findFirstOrThrow
+   */
+  export type JetGoConfigFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JetGoConfig
+     */
+    select?: JetGoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JetGoConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which JetGoConfig to fetch.
+     */
+    where?: JetGoConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of JetGoConfigs to fetch.
+     */
+    orderBy?: JetGoConfigOrderByWithRelationInput | JetGoConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for JetGoConfigs.
+     */
+    cursor?: JetGoConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` JetGoConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` JetGoConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of JetGoConfigs.
+     */
+    distinct?: JetGoConfigScalarFieldEnum | JetGoConfigScalarFieldEnum[]
+  }
+
+  /**
+   * JetGoConfig findMany
+   */
+  export type JetGoConfigFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JetGoConfig
+     */
+    select?: JetGoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JetGoConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which JetGoConfigs to fetch.
+     */
+    where?: JetGoConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of JetGoConfigs to fetch.
+     */
+    orderBy?: JetGoConfigOrderByWithRelationInput | JetGoConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing JetGoConfigs.
+     */
+    cursor?: JetGoConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` JetGoConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` JetGoConfigs.
+     */
+    skip?: number
+    distinct?: JetGoConfigScalarFieldEnum | JetGoConfigScalarFieldEnum[]
+  }
+
+  /**
+   * JetGoConfig create
+   */
+  export type JetGoConfigCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JetGoConfig
+     */
+    select?: JetGoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JetGoConfigInclude<ExtArgs> | null
+    /**
+     * The data needed to create a JetGoConfig.
+     */
+    data: XOR<JetGoConfigCreateInput, JetGoConfigUncheckedCreateInput>
+  }
+
+  /**
+   * JetGoConfig createMany
+   */
+  export type JetGoConfigCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many JetGoConfigs.
+     */
+    data: JetGoConfigCreateManyInput | JetGoConfigCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * JetGoConfig createManyAndReturn
+   */
+  export type JetGoConfigCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JetGoConfig
+     */
+    select?: JetGoConfigSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many JetGoConfigs.
+     */
+    data: JetGoConfigCreateManyInput | JetGoConfigCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JetGoConfigIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * JetGoConfig update
+   */
+  export type JetGoConfigUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JetGoConfig
+     */
+    select?: JetGoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JetGoConfigInclude<ExtArgs> | null
+    /**
+     * The data needed to update a JetGoConfig.
+     */
+    data: XOR<JetGoConfigUpdateInput, JetGoConfigUncheckedUpdateInput>
+    /**
+     * Choose, which JetGoConfig to update.
+     */
+    where: JetGoConfigWhereUniqueInput
+  }
+
+  /**
+   * JetGoConfig updateMany
+   */
+  export type JetGoConfigUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update JetGoConfigs.
+     */
+    data: XOR<JetGoConfigUpdateManyMutationInput, JetGoConfigUncheckedUpdateManyInput>
+    /**
+     * Filter which JetGoConfigs to update
+     */
+    where?: JetGoConfigWhereInput
+  }
+
+  /**
+   * JetGoConfig upsert
+   */
+  export type JetGoConfigUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JetGoConfig
+     */
+    select?: JetGoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JetGoConfigInclude<ExtArgs> | null
+    /**
+     * The filter to search for the JetGoConfig to update in case it exists.
+     */
+    where: JetGoConfigWhereUniqueInput
+    /**
+     * In case the JetGoConfig found by the `where` argument doesn't exist, create a new JetGoConfig with this data.
+     */
+    create: XOR<JetGoConfigCreateInput, JetGoConfigUncheckedCreateInput>
+    /**
+     * In case the JetGoConfig was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<JetGoConfigUpdateInput, JetGoConfigUncheckedUpdateInput>
+  }
+
+  /**
+   * JetGoConfig delete
+   */
+  export type JetGoConfigDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JetGoConfig
+     */
+    select?: JetGoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JetGoConfigInclude<ExtArgs> | null
+    /**
+     * Filter which JetGoConfig to delete.
+     */
+    where: JetGoConfigWhereUniqueInput
+  }
+
+  /**
+   * JetGoConfig deleteMany
+   */
+  export type JetGoConfigDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which JetGoConfigs to delete
+     */
+    where?: JetGoConfigWhereInput
+  }
+
+  /**
+   * JetGoConfig without action
+   */
+  export type JetGoConfigDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JetGoConfig
+     */
+    select?: JetGoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JetGoConfigInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model YangoConfig
+   */
+
+  export type AggregateYangoConfig = {
+    _count: YangoConfigCountAggregateOutputType | null
+    _avg: YangoConfigAvgAggregateOutputType | null
+    _sum: YangoConfigSumAggregateOutputType | null
+    _min: YangoConfigMinAggregateOutputType | null
+    _max: YangoConfigMaxAggregateOutputType | null
+  }
+
+  export type YangoConfigAvgAggregateOutputType = {
+    pickupLat: number | null
+    pickupLng: number | null
+  }
+
+  export type YangoConfigSumAggregateOutputType = {
+    pickupLat: number | null
+    pickupLng: number | null
+  }
+
+  export type YangoConfigMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    mode: string | null
+    taxiClass: string | null
+    contactEmail: string | null
+    pickupLat: number | null
+    pickupLng: number | null
+    webhookToken: string | null
+    active: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type YangoConfigMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    mode: string | null
+    taxiClass: string | null
+    contactEmail: string | null
+    pickupLat: number | null
+    pickupLng: number | null
+    webhookToken: string | null
+    active: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type YangoConfigCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    mode: number
+    credentials: number
+    taxiClass: number
+    contactEmail: number
+    pickupLat: number
+    pickupLng: number
+    webhookToken: number
+    active: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type YangoConfigAvgAggregateInputType = {
+    pickupLat?: true
+    pickupLng?: true
+  }
+
+  export type YangoConfigSumAggregateInputType = {
+    pickupLat?: true
+    pickupLng?: true
+  }
+
+  export type YangoConfigMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    mode?: true
+    taxiClass?: true
+    contactEmail?: true
+    pickupLat?: true
+    pickupLng?: true
+    webhookToken?: true
+    active?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type YangoConfigMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    mode?: true
+    taxiClass?: true
+    contactEmail?: true
+    pickupLat?: true
+    pickupLng?: true
+    webhookToken?: true
+    active?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type YangoConfigCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    mode?: true
+    credentials?: true
+    taxiClass?: true
+    contactEmail?: true
+    pickupLat?: true
+    pickupLng?: true
+    webhookToken?: true
+    active?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type YangoConfigAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which YangoConfig to aggregate.
+     */
+    where?: YangoConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of YangoConfigs to fetch.
+     */
+    orderBy?: YangoConfigOrderByWithRelationInput | YangoConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: YangoConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` YangoConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` YangoConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned YangoConfigs
+    **/
+    _count?: true | YangoConfigCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: YangoConfigAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: YangoConfigSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: YangoConfigMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: YangoConfigMaxAggregateInputType
+  }
+
+  export type GetYangoConfigAggregateType<T extends YangoConfigAggregateArgs> = {
+        [P in keyof T & keyof AggregateYangoConfig]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateYangoConfig[P]>
+      : GetScalarType<T[P], AggregateYangoConfig[P]>
+  }
+
+
+
+
+  export type YangoConfigGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: YangoConfigWhereInput
+    orderBy?: YangoConfigOrderByWithAggregationInput | YangoConfigOrderByWithAggregationInput[]
+    by: YangoConfigScalarFieldEnum[] | YangoConfigScalarFieldEnum
+    having?: YangoConfigScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: YangoConfigCountAggregateInputType | true
+    _avg?: YangoConfigAvgAggregateInputType
+    _sum?: YangoConfigSumAggregateInputType
+    _min?: YangoConfigMinAggregateInputType
+    _max?: YangoConfigMaxAggregateInputType
+  }
+
+  export type YangoConfigGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string
+    mode: string
+    credentials: JsonValue
+    taxiClass: string
+    contactEmail: string | null
+    pickupLat: number | null
+    pickupLng: number | null
+    webhookToken: string
+    active: boolean
+    createdAt: Date
+    updatedAt: Date
+    _count: YangoConfigCountAggregateOutputType | null
+    _avg: YangoConfigAvgAggregateOutputType | null
+    _sum: YangoConfigSumAggregateOutputType | null
+    _min: YangoConfigMinAggregateOutputType | null
+    _max: YangoConfigMaxAggregateOutputType | null
+  }
+
+  type GetYangoConfigGroupByPayload<T extends YangoConfigGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<YangoConfigGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof YangoConfigGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], YangoConfigGroupByOutputType[P]>
+            : GetScalarType<T[P], YangoConfigGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type YangoConfigSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    mode?: boolean
+    credentials?: boolean
+    taxiClass?: boolean
+    contactEmail?: boolean
+    pickupLat?: boolean
+    pickupLng?: boolean
+    webhookToken?: boolean
+    active?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["yangoConfig"]>
+
+  export type YangoConfigSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    mode?: boolean
+    credentials?: boolean
+    taxiClass?: boolean
+    contactEmail?: boolean
+    pickupLat?: boolean
+    pickupLng?: boolean
+    webhookToken?: boolean
+    active?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["yangoConfig"]>
+
+  export type YangoConfigSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    mode?: boolean
+    credentials?: boolean
+    taxiClass?: boolean
+    contactEmail?: boolean
+    pickupLat?: boolean
+    pickupLng?: boolean
+    webhookToken?: boolean
+    active?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type YangoConfigInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+  export type YangoConfigIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+
+  export type $YangoConfigPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "YangoConfig"
+    objects: {
+      location: Prisma.$LocationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string
+      mode: string
+      credentials: Prisma.JsonValue
+      taxiClass: string
+      contactEmail: string | null
+      pickupLat: number | null
+      pickupLng: number | null
+      webhookToken: string
+      active: boolean
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["yangoConfig"]>
+    composites: {}
+  }
+
+  type YangoConfigGetPayload<S extends boolean | null | undefined | YangoConfigDefaultArgs> = $Result.GetResult<Prisma.$YangoConfigPayload, S>
+
+  type YangoConfigCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<YangoConfigFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: YangoConfigCountAggregateInputType | true
+    }
+
+  export interface YangoConfigDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['YangoConfig'], meta: { name: 'YangoConfig' } }
+    /**
+     * Find zero or one YangoConfig that matches the filter.
+     * @param {YangoConfigFindUniqueArgs} args - Arguments to find a YangoConfig
+     * @example
+     * // Get one YangoConfig
+     * const yangoConfig = await prisma.yangoConfig.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends YangoConfigFindUniqueArgs>(args: SelectSubset<T, YangoConfigFindUniqueArgs<ExtArgs>>): Prisma__YangoConfigClient<$Result.GetResult<Prisma.$YangoConfigPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one YangoConfig that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {YangoConfigFindUniqueOrThrowArgs} args - Arguments to find a YangoConfig
+     * @example
+     * // Get one YangoConfig
+     * const yangoConfig = await prisma.yangoConfig.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends YangoConfigFindUniqueOrThrowArgs>(args: SelectSubset<T, YangoConfigFindUniqueOrThrowArgs<ExtArgs>>): Prisma__YangoConfigClient<$Result.GetResult<Prisma.$YangoConfigPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first YangoConfig that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {YangoConfigFindFirstArgs} args - Arguments to find a YangoConfig
+     * @example
+     * // Get one YangoConfig
+     * const yangoConfig = await prisma.yangoConfig.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends YangoConfigFindFirstArgs>(args?: SelectSubset<T, YangoConfigFindFirstArgs<ExtArgs>>): Prisma__YangoConfigClient<$Result.GetResult<Prisma.$YangoConfigPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first YangoConfig that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {YangoConfigFindFirstOrThrowArgs} args - Arguments to find a YangoConfig
+     * @example
+     * // Get one YangoConfig
+     * const yangoConfig = await prisma.yangoConfig.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends YangoConfigFindFirstOrThrowArgs>(args?: SelectSubset<T, YangoConfigFindFirstOrThrowArgs<ExtArgs>>): Prisma__YangoConfigClient<$Result.GetResult<Prisma.$YangoConfigPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more YangoConfigs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {YangoConfigFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all YangoConfigs
+     * const yangoConfigs = await prisma.yangoConfig.findMany()
+     * 
+     * // Get first 10 YangoConfigs
+     * const yangoConfigs = await prisma.yangoConfig.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const yangoConfigWithIdOnly = await prisma.yangoConfig.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends YangoConfigFindManyArgs>(args?: SelectSubset<T, YangoConfigFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$YangoConfigPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a YangoConfig.
+     * @param {YangoConfigCreateArgs} args - Arguments to create a YangoConfig.
+     * @example
+     * // Create one YangoConfig
+     * const YangoConfig = await prisma.yangoConfig.create({
+     *   data: {
+     *     // ... data to create a YangoConfig
+     *   }
+     * })
+     * 
+     */
+    create<T extends YangoConfigCreateArgs>(args: SelectSubset<T, YangoConfigCreateArgs<ExtArgs>>): Prisma__YangoConfigClient<$Result.GetResult<Prisma.$YangoConfigPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many YangoConfigs.
+     * @param {YangoConfigCreateManyArgs} args - Arguments to create many YangoConfigs.
+     * @example
+     * // Create many YangoConfigs
+     * const yangoConfig = await prisma.yangoConfig.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends YangoConfigCreateManyArgs>(args?: SelectSubset<T, YangoConfigCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many YangoConfigs and returns the data saved in the database.
+     * @param {YangoConfigCreateManyAndReturnArgs} args - Arguments to create many YangoConfigs.
+     * @example
+     * // Create many YangoConfigs
+     * const yangoConfig = await prisma.yangoConfig.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many YangoConfigs and only return the `id`
+     * const yangoConfigWithIdOnly = await prisma.yangoConfig.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends YangoConfigCreateManyAndReturnArgs>(args?: SelectSubset<T, YangoConfigCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$YangoConfigPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a YangoConfig.
+     * @param {YangoConfigDeleteArgs} args - Arguments to delete one YangoConfig.
+     * @example
+     * // Delete one YangoConfig
+     * const YangoConfig = await prisma.yangoConfig.delete({
+     *   where: {
+     *     // ... filter to delete one YangoConfig
+     *   }
+     * })
+     * 
+     */
+    delete<T extends YangoConfigDeleteArgs>(args: SelectSubset<T, YangoConfigDeleteArgs<ExtArgs>>): Prisma__YangoConfigClient<$Result.GetResult<Prisma.$YangoConfigPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one YangoConfig.
+     * @param {YangoConfigUpdateArgs} args - Arguments to update one YangoConfig.
+     * @example
+     * // Update one YangoConfig
+     * const yangoConfig = await prisma.yangoConfig.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends YangoConfigUpdateArgs>(args: SelectSubset<T, YangoConfigUpdateArgs<ExtArgs>>): Prisma__YangoConfigClient<$Result.GetResult<Prisma.$YangoConfigPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more YangoConfigs.
+     * @param {YangoConfigDeleteManyArgs} args - Arguments to filter YangoConfigs to delete.
+     * @example
+     * // Delete a few YangoConfigs
+     * const { count } = await prisma.yangoConfig.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends YangoConfigDeleteManyArgs>(args?: SelectSubset<T, YangoConfigDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more YangoConfigs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {YangoConfigUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many YangoConfigs
+     * const yangoConfig = await prisma.yangoConfig.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends YangoConfigUpdateManyArgs>(args: SelectSubset<T, YangoConfigUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one YangoConfig.
+     * @param {YangoConfigUpsertArgs} args - Arguments to update or create a YangoConfig.
+     * @example
+     * // Update or create a YangoConfig
+     * const yangoConfig = await prisma.yangoConfig.upsert({
+     *   create: {
+     *     // ... data to create a YangoConfig
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the YangoConfig we want to update
+     *   }
+     * })
+     */
+    upsert<T extends YangoConfigUpsertArgs>(args: SelectSubset<T, YangoConfigUpsertArgs<ExtArgs>>): Prisma__YangoConfigClient<$Result.GetResult<Prisma.$YangoConfigPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of YangoConfigs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {YangoConfigCountArgs} args - Arguments to filter YangoConfigs to count.
+     * @example
+     * // Count the number of YangoConfigs
+     * const count = await prisma.yangoConfig.count({
+     *   where: {
+     *     // ... the filter for the YangoConfigs we want to count
+     *   }
+     * })
+    **/
+    count<T extends YangoConfigCountArgs>(
+      args?: Subset<T, YangoConfigCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], YangoConfigCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a YangoConfig.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {YangoConfigAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends YangoConfigAggregateArgs>(args: Subset<T, YangoConfigAggregateArgs>): Prisma.PrismaPromise<GetYangoConfigAggregateType<T>>
+
+    /**
+     * Group by YangoConfig.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {YangoConfigGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends YangoConfigGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: YangoConfigGroupByArgs['orderBy'] }
+        : { orderBy?: YangoConfigGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, YangoConfigGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetYangoConfigGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the YangoConfig model
+   */
+  readonly fields: YangoConfigFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for YangoConfig.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__YangoConfigClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the YangoConfig model
+   */ 
+  interface YangoConfigFieldRefs {
+    readonly id: FieldRef<"YangoConfig", 'String'>
+    readonly tenantId: FieldRef<"YangoConfig", 'String'>
+    readonly locationId: FieldRef<"YangoConfig", 'String'>
+    readonly mode: FieldRef<"YangoConfig", 'String'>
+    readonly credentials: FieldRef<"YangoConfig", 'Json'>
+    readonly taxiClass: FieldRef<"YangoConfig", 'String'>
+    readonly contactEmail: FieldRef<"YangoConfig", 'String'>
+    readonly pickupLat: FieldRef<"YangoConfig", 'Float'>
+    readonly pickupLng: FieldRef<"YangoConfig", 'Float'>
+    readonly webhookToken: FieldRef<"YangoConfig", 'String'>
+    readonly active: FieldRef<"YangoConfig", 'Boolean'>
+    readonly createdAt: FieldRef<"YangoConfig", 'DateTime'>
+    readonly updatedAt: FieldRef<"YangoConfig", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * YangoConfig findUnique
+   */
+  export type YangoConfigFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the YangoConfig
+     */
+    select?: YangoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: YangoConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which YangoConfig to fetch.
+     */
+    where: YangoConfigWhereUniqueInput
+  }
+
+  /**
+   * YangoConfig findUniqueOrThrow
+   */
+  export type YangoConfigFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the YangoConfig
+     */
+    select?: YangoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: YangoConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which YangoConfig to fetch.
+     */
+    where: YangoConfigWhereUniqueInput
+  }
+
+  /**
+   * YangoConfig findFirst
+   */
+  export type YangoConfigFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the YangoConfig
+     */
+    select?: YangoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: YangoConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which YangoConfig to fetch.
+     */
+    where?: YangoConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of YangoConfigs to fetch.
+     */
+    orderBy?: YangoConfigOrderByWithRelationInput | YangoConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for YangoConfigs.
+     */
+    cursor?: YangoConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` YangoConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` YangoConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of YangoConfigs.
+     */
+    distinct?: YangoConfigScalarFieldEnum | YangoConfigScalarFieldEnum[]
+  }
+
+  /**
+   * YangoConfig findFirstOrThrow
+   */
+  export type YangoConfigFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the YangoConfig
+     */
+    select?: YangoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: YangoConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which YangoConfig to fetch.
+     */
+    where?: YangoConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of YangoConfigs to fetch.
+     */
+    orderBy?: YangoConfigOrderByWithRelationInput | YangoConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for YangoConfigs.
+     */
+    cursor?: YangoConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` YangoConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` YangoConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of YangoConfigs.
+     */
+    distinct?: YangoConfigScalarFieldEnum | YangoConfigScalarFieldEnum[]
+  }
+
+  /**
+   * YangoConfig findMany
+   */
+  export type YangoConfigFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the YangoConfig
+     */
+    select?: YangoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: YangoConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which YangoConfigs to fetch.
+     */
+    where?: YangoConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of YangoConfigs to fetch.
+     */
+    orderBy?: YangoConfigOrderByWithRelationInput | YangoConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing YangoConfigs.
+     */
+    cursor?: YangoConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` YangoConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` YangoConfigs.
+     */
+    skip?: number
+    distinct?: YangoConfigScalarFieldEnum | YangoConfigScalarFieldEnum[]
+  }
+
+  /**
+   * YangoConfig create
+   */
+  export type YangoConfigCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the YangoConfig
+     */
+    select?: YangoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: YangoConfigInclude<ExtArgs> | null
+    /**
+     * The data needed to create a YangoConfig.
+     */
+    data: XOR<YangoConfigCreateInput, YangoConfigUncheckedCreateInput>
+  }
+
+  /**
+   * YangoConfig createMany
+   */
+  export type YangoConfigCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many YangoConfigs.
+     */
+    data: YangoConfigCreateManyInput | YangoConfigCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * YangoConfig createManyAndReturn
+   */
+  export type YangoConfigCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the YangoConfig
+     */
+    select?: YangoConfigSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many YangoConfigs.
+     */
+    data: YangoConfigCreateManyInput | YangoConfigCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: YangoConfigIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * YangoConfig update
+   */
+  export type YangoConfigUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the YangoConfig
+     */
+    select?: YangoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: YangoConfigInclude<ExtArgs> | null
+    /**
+     * The data needed to update a YangoConfig.
+     */
+    data: XOR<YangoConfigUpdateInput, YangoConfigUncheckedUpdateInput>
+    /**
+     * Choose, which YangoConfig to update.
+     */
+    where: YangoConfigWhereUniqueInput
+  }
+
+  /**
+   * YangoConfig updateMany
+   */
+  export type YangoConfigUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update YangoConfigs.
+     */
+    data: XOR<YangoConfigUpdateManyMutationInput, YangoConfigUncheckedUpdateManyInput>
+    /**
+     * Filter which YangoConfigs to update
+     */
+    where?: YangoConfigWhereInput
+  }
+
+  /**
+   * YangoConfig upsert
+   */
+  export type YangoConfigUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the YangoConfig
+     */
+    select?: YangoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: YangoConfigInclude<ExtArgs> | null
+    /**
+     * The filter to search for the YangoConfig to update in case it exists.
+     */
+    where: YangoConfigWhereUniqueInput
+    /**
+     * In case the YangoConfig found by the `where` argument doesn't exist, create a new YangoConfig with this data.
+     */
+    create: XOR<YangoConfigCreateInput, YangoConfigUncheckedCreateInput>
+    /**
+     * In case the YangoConfig was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<YangoConfigUpdateInput, YangoConfigUncheckedUpdateInput>
+  }
+
+  /**
+   * YangoConfig delete
+   */
+  export type YangoConfigDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the YangoConfig
+     */
+    select?: YangoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: YangoConfigInclude<ExtArgs> | null
+    /**
+     * Filter which YangoConfig to delete.
+     */
+    where: YangoConfigWhereUniqueInput
+  }
+
+  /**
+   * YangoConfig deleteMany
+   */
+  export type YangoConfigDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which YangoConfigs to delete
+     */
+    where?: YangoConfigWhereInput
+  }
+
+  /**
+   * YangoConfig without action
+   */
+  export type YangoConfigDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the YangoConfig
+     */
+    select?: YangoConfigSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: YangoConfigInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Model Review
    */
 
@@ -159129,6 +166343,1008 @@ export namespace Prisma {
 
 
   /**
+   * Model KeetaAuthorization
+   */
+
+  export type AggregateKeetaAuthorization = {
+    _count: KeetaAuthorizationCountAggregateOutputType | null
+    _min: KeetaAuthorizationMinAggregateOutputType | null
+    _max: KeetaAuthorizationMaxAggregateOutputType | null
+  }
+
+  export type KeetaAuthorizationMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    keetaBrandId: string | null
+    brandName: string | null
+    keetaUserId: string | null
+    accessToken: string | null
+    refreshToken: string | null
+    expiresAt: Date | null
+    issuedAt: Date | null
+    status: string | null
+    lastRefreshAt: Date | null
+    lastError: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type KeetaAuthorizationMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    keetaBrandId: string | null
+    brandName: string | null
+    keetaUserId: string | null
+    accessToken: string | null
+    refreshToken: string | null
+    expiresAt: Date | null
+    issuedAt: Date | null
+    status: string | null
+    lastRefreshAt: Date | null
+    lastError: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type KeetaAuthorizationCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    keetaBrandId: number
+    brandName: number
+    keetaUserId: number
+    accessToken: number
+    refreshToken: number
+    expiresAt: number
+    issuedAt: number
+    status: number
+    shops: number
+    lastRefreshAt: number
+    lastError: number
+    metadata: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type KeetaAuthorizationMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    keetaBrandId?: true
+    brandName?: true
+    keetaUserId?: true
+    accessToken?: true
+    refreshToken?: true
+    expiresAt?: true
+    issuedAt?: true
+    status?: true
+    lastRefreshAt?: true
+    lastError?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type KeetaAuthorizationMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    keetaBrandId?: true
+    brandName?: true
+    keetaUserId?: true
+    accessToken?: true
+    refreshToken?: true
+    expiresAt?: true
+    issuedAt?: true
+    status?: true
+    lastRefreshAt?: true
+    lastError?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type KeetaAuthorizationCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    keetaBrandId?: true
+    brandName?: true
+    keetaUserId?: true
+    accessToken?: true
+    refreshToken?: true
+    expiresAt?: true
+    issuedAt?: true
+    status?: true
+    shops?: true
+    lastRefreshAt?: true
+    lastError?: true
+    metadata?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type KeetaAuthorizationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which KeetaAuthorization to aggregate.
+     */
+    where?: KeetaAuthorizationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KeetaAuthorizations to fetch.
+     */
+    orderBy?: KeetaAuthorizationOrderByWithRelationInput | KeetaAuthorizationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: KeetaAuthorizationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KeetaAuthorizations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KeetaAuthorizations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned KeetaAuthorizations
+    **/
+    _count?: true | KeetaAuthorizationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: KeetaAuthorizationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: KeetaAuthorizationMaxAggregateInputType
+  }
+
+  export type GetKeetaAuthorizationAggregateType<T extends KeetaAuthorizationAggregateArgs> = {
+        [P in keyof T & keyof AggregateKeetaAuthorization]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateKeetaAuthorization[P]>
+      : GetScalarType<T[P], AggregateKeetaAuthorization[P]>
+  }
+
+
+
+
+  export type KeetaAuthorizationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: KeetaAuthorizationWhereInput
+    orderBy?: KeetaAuthorizationOrderByWithAggregationInput | KeetaAuthorizationOrderByWithAggregationInput[]
+    by: KeetaAuthorizationScalarFieldEnum[] | KeetaAuthorizationScalarFieldEnum
+    having?: KeetaAuthorizationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: KeetaAuthorizationCountAggregateInputType | true
+    _min?: KeetaAuthorizationMinAggregateInputType
+    _max?: KeetaAuthorizationMaxAggregateInputType
+  }
+
+  export type KeetaAuthorizationGroupByOutputType = {
+    id: string
+    tenantId: string
+    keetaBrandId: string | null
+    brandName: string | null
+    keetaUserId: string | null
+    accessToken: string
+    refreshToken: string
+    expiresAt: Date
+    issuedAt: Date
+    status: string
+    shops: JsonValue
+    lastRefreshAt: Date | null
+    lastError: string | null
+    metadata: JsonValue
+    createdAt: Date
+    updatedAt: Date
+    _count: KeetaAuthorizationCountAggregateOutputType | null
+    _min: KeetaAuthorizationMinAggregateOutputType | null
+    _max: KeetaAuthorizationMaxAggregateOutputType | null
+  }
+
+  type GetKeetaAuthorizationGroupByPayload<T extends KeetaAuthorizationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<KeetaAuthorizationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof KeetaAuthorizationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], KeetaAuthorizationGroupByOutputType[P]>
+            : GetScalarType<T[P], KeetaAuthorizationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type KeetaAuthorizationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    keetaBrandId?: boolean
+    brandName?: boolean
+    keetaUserId?: boolean
+    accessToken?: boolean
+    refreshToken?: boolean
+    expiresAt?: boolean
+    issuedAt?: boolean
+    status?: boolean
+    shops?: boolean
+    lastRefreshAt?: boolean
+    lastError?: boolean
+    metadata?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["keetaAuthorization"]>
+
+  export type KeetaAuthorizationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    keetaBrandId?: boolean
+    brandName?: boolean
+    keetaUserId?: boolean
+    accessToken?: boolean
+    refreshToken?: boolean
+    expiresAt?: boolean
+    issuedAt?: boolean
+    status?: boolean
+    shops?: boolean
+    lastRefreshAt?: boolean
+    lastError?: boolean
+    metadata?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["keetaAuthorization"]>
+
+  export type KeetaAuthorizationSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    keetaBrandId?: boolean
+    brandName?: boolean
+    keetaUserId?: boolean
+    accessToken?: boolean
+    refreshToken?: boolean
+    expiresAt?: boolean
+    issuedAt?: boolean
+    status?: boolean
+    shops?: boolean
+    lastRefreshAt?: boolean
+    lastError?: boolean
+    metadata?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+
+  export type $KeetaAuthorizationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "KeetaAuthorization"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      keetaBrandId: string | null
+      brandName: string | null
+      keetaUserId: string | null
+      accessToken: string
+      refreshToken: string
+      expiresAt: Date
+      issuedAt: Date
+      status: string
+      shops: Prisma.JsonValue
+      lastRefreshAt: Date | null
+      lastError: string | null
+      metadata: Prisma.JsonValue
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["keetaAuthorization"]>
+    composites: {}
+  }
+
+  type KeetaAuthorizationGetPayload<S extends boolean | null | undefined | KeetaAuthorizationDefaultArgs> = $Result.GetResult<Prisma.$KeetaAuthorizationPayload, S>
+
+  type KeetaAuthorizationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<KeetaAuthorizationFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: KeetaAuthorizationCountAggregateInputType | true
+    }
+
+  export interface KeetaAuthorizationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['KeetaAuthorization'], meta: { name: 'KeetaAuthorization' } }
+    /**
+     * Find zero or one KeetaAuthorization that matches the filter.
+     * @param {KeetaAuthorizationFindUniqueArgs} args - Arguments to find a KeetaAuthorization
+     * @example
+     * // Get one KeetaAuthorization
+     * const keetaAuthorization = await prisma.keetaAuthorization.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends KeetaAuthorizationFindUniqueArgs>(args: SelectSubset<T, KeetaAuthorizationFindUniqueArgs<ExtArgs>>): Prisma__KeetaAuthorizationClient<$Result.GetResult<Prisma.$KeetaAuthorizationPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one KeetaAuthorization that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {KeetaAuthorizationFindUniqueOrThrowArgs} args - Arguments to find a KeetaAuthorization
+     * @example
+     * // Get one KeetaAuthorization
+     * const keetaAuthorization = await prisma.keetaAuthorization.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends KeetaAuthorizationFindUniqueOrThrowArgs>(args: SelectSubset<T, KeetaAuthorizationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__KeetaAuthorizationClient<$Result.GetResult<Prisma.$KeetaAuthorizationPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first KeetaAuthorization that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KeetaAuthorizationFindFirstArgs} args - Arguments to find a KeetaAuthorization
+     * @example
+     * // Get one KeetaAuthorization
+     * const keetaAuthorization = await prisma.keetaAuthorization.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends KeetaAuthorizationFindFirstArgs>(args?: SelectSubset<T, KeetaAuthorizationFindFirstArgs<ExtArgs>>): Prisma__KeetaAuthorizationClient<$Result.GetResult<Prisma.$KeetaAuthorizationPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first KeetaAuthorization that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KeetaAuthorizationFindFirstOrThrowArgs} args - Arguments to find a KeetaAuthorization
+     * @example
+     * // Get one KeetaAuthorization
+     * const keetaAuthorization = await prisma.keetaAuthorization.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends KeetaAuthorizationFindFirstOrThrowArgs>(args?: SelectSubset<T, KeetaAuthorizationFindFirstOrThrowArgs<ExtArgs>>): Prisma__KeetaAuthorizationClient<$Result.GetResult<Prisma.$KeetaAuthorizationPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more KeetaAuthorizations that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KeetaAuthorizationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all KeetaAuthorizations
+     * const keetaAuthorizations = await prisma.keetaAuthorization.findMany()
+     * 
+     * // Get first 10 KeetaAuthorizations
+     * const keetaAuthorizations = await prisma.keetaAuthorization.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const keetaAuthorizationWithIdOnly = await prisma.keetaAuthorization.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends KeetaAuthorizationFindManyArgs>(args?: SelectSubset<T, KeetaAuthorizationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KeetaAuthorizationPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a KeetaAuthorization.
+     * @param {KeetaAuthorizationCreateArgs} args - Arguments to create a KeetaAuthorization.
+     * @example
+     * // Create one KeetaAuthorization
+     * const KeetaAuthorization = await prisma.keetaAuthorization.create({
+     *   data: {
+     *     // ... data to create a KeetaAuthorization
+     *   }
+     * })
+     * 
+     */
+    create<T extends KeetaAuthorizationCreateArgs>(args: SelectSubset<T, KeetaAuthorizationCreateArgs<ExtArgs>>): Prisma__KeetaAuthorizationClient<$Result.GetResult<Prisma.$KeetaAuthorizationPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many KeetaAuthorizations.
+     * @param {KeetaAuthorizationCreateManyArgs} args - Arguments to create many KeetaAuthorizations.
+     * @example
+     * // Create many KeetaAuthorizations
+     * const keetaAuthorization = await prisma.keetaAuthorization.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends KeetaAuthorizationCreateManyArgs>(args?: SelectSubset<T, KeetaAuthorizationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many KeetaAuthorizations and returns the data saved in the database.
+     * @param {KeetaAuthorizationCreateManyAndReturnArgs} args - Arguments to create many KeetaAuthorizations.
+     * @example
+     * // Create many KeetaAuthorizations
+     * const keetaAuthorization = await prisma.keetaAuthorization.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many KeetaAuthorizations and only return the `id`
+     * const keetaAuthorizationWithIdOnly = await prisma.keetaAuthorization.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends KeetaAuthorizationCreateManyAndReturnArgs>(args?: SelectSubset<T, KeetaAuthorizationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KeetaAuthorizationPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a KeetaAuthorization.
+     * @param {KeetaAuthorizationDeleteArgs} args - Arguments to delete one KeetaAuthorization.
+     * @example
+     * // Delete one KeetaAuthorization
+     * const KeetaAuthorization = await prisma.keetaAuthorization.delete({
+     *   where: {
+     *     // ... filter to delete one KeetaAuthorization
+     *   }
+     * })
+     * 
+     */
+    delete<T extends KeetaAuthorizationDeleteArgs>(args: SelectSubset<T, KeetaAuthorizationDeleteArgs<ExtArgs>>): Prisma__KeetaAuthorizationClient<$Result.GetResult<Prisma.$KeetaAuthorizationPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one KeetaAuthorization.
+     * @param {KeetaAuthorizationUpdateArgs} args - Arguments to update one KeetaAuthorization.
+     * @example
+     * // Update one KeetaAuthorization
+     * const keetaAuthorization = await prisma.keetaAuthorization.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends KeetaAuthorizationUpdateArgs>(args: SelectSubset<T, KeetaAuthorizationUpdateArgs<ExtArgs>>): Prisma__KeetaAuthorizationClient<$Result.GetResult<Prisma.$KeetaAuthorizationPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more KeetaAuthorizations.
+     * @param {KeetaAuthorizationDeleteManyArgs} args - Arguments to filter KeetaAuthorizations to delete.
+     * @example
+     * // Delete a few KeetaAuthorizations
+     * const { count } = await prisma.keetaAuthorization.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends KeetaAuthorizationDeleteManyArgs>(args?: SelectSubset<T, KeetaAuthorizationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more KeetaAuthorizations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KeetaAuthorizationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many KeetaAuthorizations
+     * const keetaAuthorization = await prisma.keetaAuthorization.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends KeetaAuthorizationUpdateManyArgs>(args: SelectSubset<T, KeetaAuthorizationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one KeetaAuthorization.
+     * @param {KeetaAuthorizationUpsertArgs} args - Arguments to update or create a KeetaAuthorization.
+     * @example
+     * // Update or create a KeetaAuthorization
+     * const keetaAuthorization = await prisma.keetaAuthorization.upsert({
+     *   create: {
+     *     // ... data to create a KeetaAuthorization
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the KeetaAuthorization we want to update
+     *   }
+     * })
+     */
+    upsert<T extends KeetaAuthorizationUpsertArgs>(args: SelectSubset<T, KeetaAuthorizationUpsertArgs<ExtArgs>>): Prisma__KeetaAuthorizationClient<$Result.GetResult<Prisma.$KeetaAuthorizationPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of KeetaAuthorizations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KeetaAuthorizationCountArgs} args - Arguments to filter KeetaAuthorizations to count.
+     * @example
+     * // Count the number of KeetaAuthorizations
+     * const count = await prisma.keetaAuthorization.count({
+     *   where: {
+     *     // ... the filter for the KeetaAuthorizations we want to count
+     *   }
+     * })
+    **/
+    count<T extends KeetaAuthorizationCountArgs>(
+      args?: Subset<T, KeetaAuthorizationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], KeetaAuthorizationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a KeetaAuthorization.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KeetaAuthorizationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends KeetaAuthorizationAggregateArgs>(args: Subset<T, KeetaAuthorizationAggregateArgs>): Prisma.PrismaPromise<GetKeetaAuthorizationAggregateType<T>>
+
+    /**
+     * Group by KeetaAuthorization.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KeetaAuthorizationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends KeetaAuthorizationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: KeetaAuthorizationGroupByArgs['orderBy'] }
+        : { orderBy?: KeetaAuthorizationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, KeetaAuthorizationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetKeetaAuthorizationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the KeetaAuthorization model
+   */
+  readonly fields: KeetaAuthorizationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for KeetaAuthorization.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__KeetaAuthorizationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the KeetaAuthorization model
+   */ 
+  interface KeetaAuthorizationFieldRefs {
+    readonly id: FieldRef<"KeetaAuthorization", 'String'>
+    readonly tenantId: FieldRef<"KeetaAuthorization", 'String'>
+    readonly keetaBrandId: FieldRef<"KeetaAuthorization", 'String'>
+    readonly brandName: FieldRef<"KeetaAuthorization", 'String'>
+    readonly keetaUserId: FieldRef<"KeetaAuthorization", 'String'>
+    readonly accessToken: FieldRef<"KeetaAuthorization", 'String'>
+    readonly refreshToken: FieldRef<"KeetaAuthorization", 'String'>
+    readonly expiresAt: FieldRef<"KeetaAuthorization", 'DateTime'>
+    readonly issuedAt: FieldRef<"KeetaAuthorization", 'DateTime'>
+    readonly status: FieldRef<"KeetaAuthorization", 'String'>
+    readonly shops: FieldRef<"KeetaAuthorization", 'Json'>
+    readonly lastRefreshAt: FieldRef<"KeetaAuthorization", 'DateTime'>
+    readonly lastError: FieldRef<"KeetaAuthorization", 'String'>
+    readonly metadata: FieldRef<"KeetaAuthorization", 'Json'>
+    readonly createdAt: FieldRef<"KeetaAuthorization", 'DateTime'>
+    readonly updatedAt: FieldRef<"KeetaAuthorization", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * KeetaAuthorization findUnique
+   */
+  export type KeetaAuthorizationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeetaAuthorization
+     */
+    select?: KeetaAuthorizationSelect<ExtArgs> | null
+    /**
+     * Filter, which KeetaAuthorization to fetch.
+     */
+    where: KeetaAuthorizationWhereUniqueInput
+  }
+
+  /**
+   * KeetaAuthorization findUniqueOrThrow
+   */
+  export type KeetaAuthorizationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeetaAuthorization
+     */
+    select?: KeetaAuthorizationSelect<ExtArgs> | null
+    /**
+     * Filter, which KeetaAuthorization to fetch.
+     */
+    where: KeetaAuthorizationWhereUniqueInput
+  }
+
+  /**
+   * KeetaAuthorization findFirst
+   */
+  export type KeetaAuthorizationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeetaAuthorization
+     */
+    select?: KeetaAuthorizationSelect<ExtArgs> | null
+    /**
+     * Filter, which KeetaAuthorization to fetch.
+     */
+    where?: KeetaAuthorizationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KeetaAuthorizations to fetch.
+     */
+    orderBy?: KeetaAuthorizationOrderByWithRelationInput | KeetaAuthorizationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for KeetaAuthorizations.
+     */
+    cursor?: KeetaAuthorizationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KeetaAuthorizations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KeetaAuthorizations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of KeetaAuthorizations.
+     */
+    distinct?: KeetaAuthorizationScalarFieldEnum | KeetaAuthorizationScalarFieldEnum[]
+  }
+
+  /**
+   * KeetaAuthorization findFirstOrThrow
+   */
+  export type KeetaAuthorizationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeetaAuthorization
+     */
+    select?: KeetaAuthorizationSelect<ExtArgs> | null
+    /**
+     * Filter, which KeetaAuthorization to fetch.
+     */
+    where?: KeetaAuthorizationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KeetaAuthorizations to fetch.
+     */
+    orderBy?: KeetaAuthorizationOrderByWithRelationInput | KeetaAuthorizationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for KeetaAuthorizations.
+     */
+    cursor?: KeetaAuthorizationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KeetaAuthorizations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KeetaAuthorizations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of KeetaAuthorizations.
+     */
+    distinct?: KeetaAuthorizationScalarFieldEnum | KeetaAuthorizationScalarFieldEnum[]
+  }
+
+  /**
+   * KeetaAuthorization findMany
+   */
+  export type KeetaAuthorizationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeetaAuthorization
+     */
+    select?: KeetaAuthorizationSelect<ExtArgs> | null
+    /**
+     * Filter, which KeetaAuthorizations to fetch.
+     */
+    where?: KeetaAuthorizationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KeetaAuthorizations to fetch.
+     */
+    orderBy?: KeetaAuthorizationOrderByWithRelationInput | KeetaAuthorizationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing KeetaAuthorizations.
+     */
+    cursor?: KeetaAuthorizationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KeetaAuthorizations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KeetaAuthorizations.
+     */
+    skip?: number
+    distinct?: KeetaAuthorizationScalarFieldEnum | KeetaAuthorizationScalarFieldEnum[]
+  }
+
+  /**
+   * KeetaAuthorization create
+   */
+  export type KeetaAuthorizationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeetaAuthorization
+     */
+    select?: KeetaAuthorizationSelect<ExtArgs> | null
+    /**
+     * The data needed to create a KeetaAuthorization.
+     */
+    data: XOR<KeetaAuthorizationCreateInput, KeetaAuthorizationUncheckedCreateInput>
+  }
+
+  /**
+   * KeetaAuthorization createMany
+   */
+  export type KeetaAuthorizationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many KeetaAuthorizations.
+     */
+    data: KeetaAuthorizationCreateManyInput | KeetaAuthorizationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * KeetaAuthorization createManyAndReturn
+   */
+  export type KeetaAuthorizationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeetaAuthorization
+     */
+    select?: KeetaAuthorizationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many KeetaAuthorizations.
+     */
+    data: KeetaAuthorizationCreateManyInput | KeetaAuthorizationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * KeetaAuthorization update
+   */
+  export type KeetaAuthorizationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeetaAuthorization
+     */
+    select?: KeetaAuthorizationSelect<ExtArgs> | null
+    /**
+     * The data needed to update a KeetaAuthorization.
+     */
+    data: XOR<KeetaAuthorizationUpdateInput, KeetaAuthorizationUncheckedUpdateInput>
+    /**
+     * Choose, which KeetaAuthorization to update.
+     */
+    where: KeetaAuthorizationWhereUniqueInput
+  }
+
+  /**
+   * KeetaAuthorization updateMany
+   */
+  export type KeetaAuthorizationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update KeetaAuthorizations.
+     */
+    data: XOR<KeetaAuthorizationUpdateManyMutationInput, KeetaAuthorizationUncheckedUpdateManyInput>
+    /**
+     * Filter which KeetaAuthorizations to update
+     */
+    where?: KeetaAuthorizationWhereInput
+  }
+
+  /**
+   * KeetaAuthorization upsert
+   */
+  export type KeetaAuthorizationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeetaAuthorization
+     */
+    select?: KeetaAuthorizationSelect<ExtArgs> | null
+    /**
+     * The filter to search for the KeetaAuthorization to update in case it exists.
+     */
+    where: KeetaAuthorizationWhereUniqueInput
+    /**
+     * In case the KeetaAuthorization found by the `where` argument doesn't exist, create a new KeetaAuthorization with this data.
+     */
+    create: XOR<KeetaAuthorizationCreateInput, KeetaAuthorizationUncheckedCreateInput>
+    /**
+     * In case the KeetaAuthorization was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<KeetaAuthorizationUpdateInput, KeetaAuthorizationUncheckedUpdateInput>
+  }
+
+  /**
+   * KeetaAuthorization delete
+   */
+  export type KeetaAuthorizationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeetaAuthorization
+     */
+    select?: KeetaAuthorizationSelect<ExtArgs> | null
+    /**
+     * Filter which KeetaAuthorization to delete.
+     */
+    where: KeetaAuthorizationWhereUniqueInput
+  }
+
+  /**
+   * KeetaAuthorization deleteMany
+   */
+  export type KeetaAuthorizationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which KeetaAuthorizations to delete
+     */
+    where?: KeetaAuthorizationWhereInput
+  }
+
+  /**
+   * KeetaAuthorization without action
+   */
+  export type KeetaAuthorizationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeetaAuthorization
+     */
+    select?: KeetaAuthorizationSelect<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -159405,6 +167621,7 @@ export namespace Prisma {
     postcode: 'postcode',
     country: 'country',
     currency: 'currency',
+    businessType: 'businessType',
     about: 'about',
     logoUrl: 'logoUrl',
     customDomain: 'customDomain',
@@ -159615,6 +167832,9 @@ export namespace Prisma {
     dietary: 'dietary',
     calories: 'calories',
     prepTime: 'prepTime',
+    minAge: 'minAge',
+    sellBy: 'sellBy',
+    scaleCode: 'scaleCode',
     metadata: 'metadata',
     hasMultipleSkus: 'hasMultipleSkus',
     productSkus: 'productSkus',
@@ -160719,6 +168939,8 @@ export namespace Prisma {
     id: 'id',
     tenantId: 'tenantId',
     paymentId: 'paymentId',
+    orderId: 'orderId',
+    method: 'method',
     stripeRefundId: 'stripeRefundId',
     amount: 'amount',
     reason: 'reason',
@@ -160730,6 +168952,70 @@ export namespace Prisma {
   };
 
   export type RefundScalarFieldEnum = (typeof RefundScalarFieldEnum)[keyof typeof RefundScalarFieldEnum]
+
+
+  export const ProductVariantScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    brandId: 'brandId',
+    menuItemId: 'menuItemId',
+    name: 'name',
+    options: 'options',
+    sku: 'sku',
+    barcode: 'barcode',
+    price: 'price',
+    costPrice: 'costPrice',
+    trackStock: 'trackStock',
+    lowStockAt: 'lowStockAt',
+    isActive: 'isActive',
+    sortOrder: 'sortOrder',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type ProductVariantScalarFieldEnum = (typeof ProductVariantScalarFieldEnum)[keyof typeof ProductVariantScalarFieldEnum]
+
+
+  export const ProductStockLevelScalarFieldEnum: {
+    id: 'id',
+    variantId: 'variantId',
+    locationId: 'locationId',
+    quantity: 'quantity',
+    updatedAt: 'updatedAt'
+  };
+
+  export type ProductStockLevelScalarFieldEnum = (typeof ProductStockLevelScalarFieldEnum)[keyof typeof ProductStockLevelScalarFieldEnum]
+
+
+  export const ProductStockMovementScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    variantId: 'variantId',
+    type: 'type',
+    quantity: 'quantity',
+    reason: 'reason',
+    orderId: 'orderId',
+    refundId: 'refundId',
+    recordedBy: 'recordedBy',
+    dedupeKey: 'dedupeKey',
+    createdAt: 'createdAt'
+  };
+
+  export type ProductStockMovementScalarFieldEnum = (typeof ProductStockMovementScalarFieldEnum)[keyof typeof ProductStockMovementScalarFieldEnum]
+
+
+  export const RefundLineScalarFieldEnum: {
+    id: 'id',
+    refundId: 'refundId',
+    orderItemId: 'orderItemId',
+    quantity: 'quantity',
+    amount: 'amount',
+    restock: 'restock',
+    createdAt: 'createdAt'
+  };
+
+  export type RefundLineScalarFieldEnum = (typeof RefundLineScalarFieldEnum)[keyof typeof RefundLineScalarFieldEnum]
 
 
   export const LedgerEntryScalarFieldEnum: {
@@ -161487,6 +169773,44 @@ export namespace Prisma {
   export type UberDirectConfigScalarFieldEnum = (typeof UberDirectConfigScalarFieldEnum)[keyof typeof UberDirectConfigScalarFieldEnum]
 
 
+  export const JetGoConfigScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    market: 'market',
+    environment: 'environment',
+    credentials: 'credentials',
+    collectPointId: 'collectPointId',
+    collectPointName: 'collectPointName',
+    webhookToken: 'webhookToken',
+    webhookSecret: 'webhookSecret',
+    active: 'active',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type JetGoConfigScalarFieldEnum = (typeof JetGoConfigScalarFieldEnum)[keyof typeof JetGoConfigScalarFieldEnum]
+
+
+  export const YangoConfigScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    mode: 'mode',
+    credentials: 'credentials',
+    taxiClass: 'taxiClass',
+    contactEmail: 'contactEmail',
+    pickupLat: 'pickupLat',
+    pickupLng: 'pickupLng',
+    webhookToken: 'webhookToken',
+    active: 'active',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type YangoConfigScalarFieldEnum = (typeof YangoConfigScalarFieldEnum)[keyof typeof YangoConfigScalarFieldEnum]
+
+
   export const ReviewScalarFieldEnum: {
     id: 'id',
     tenantId: 'tenantId',
@@ -161782,6 +170106,28 @@ export namespace Prisma {
   };
 
   export type ReferralScalarFieldEnum = (typeof ReferralScalarFieldEnum)[keyof typeof ReferralScalarFieldEnum]
+
+
+  export const KeetaAuthorizationScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    keetaBrandId: 'keetaBrandId',
+    brandName: 'brandName',
+    keetaUserId: 'keetaUserId',
+    accessToken: 'accessToken',
+    refreshToken: 'refreshToken',
+    expiresAt: 'expiresAt',
+    issuedAt: 'issuedAt',
+    status: 'status',
+    shops: 'shops',
+    lastRefreshAt: 'lastRefreshAt',
+    lastError: 'lastError',
+    metadata: 'metadata',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type KeetaAuthorizationScalarFieldEnum = (typeof KeetaAuthorizationScalarFieldEnum)[keyof typeof KeetaAuthorizationScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -162150,6 +170496,8 @@ export namespace Prisma {
     plu: 'plu',
     allergens: 'allergens',
     dietaryTags: 'dietaryTags',
+    sellBy: 'sellBy',
+    scaleCode: 'scaleCode',
     menuIds: 'menuIds',
     brandIds: 'brandIds',
     platformSource: 'platformSource',
@@ -162855,6 +171203,8 @@ export namespace Prisma {
     id: 'id',
     tenantId: 'tenantId',
     paymentId: 'paymentId',
+    orderId: 'orderId',
+    method: 'method',
     stripeRefundId: 'stripeRefundId',
     reason: 'reason',
     processedBy: 'processedBy',
@@ -162862,6 +171212,52 @@ export namespace Prisma {
   };
 
   export type RefundOrderByRelevanceFieldEnum = (typeof RefundOrderByRelevanceFieldEnum)[keyof typeof RefundOrderByRelevanceFieldEnum]
+
+
+  export const ProductVariantOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    brandId: 'brandId',
+    menuItemId: 'menuItemId',
+    name: 'name',
+    sku: 'sku',
+    barcode: 'barcode'
+  };
+
+  export type ProductVariantOrderByRelevanceFieldEnum = (typeof ProductVariantOrderByRelevanceFieldEnum)[keyof typeof ProductVariantOrderByRelevanceFieldEnum]
+
+
+  export const ProductStockLevelOrderByRelevanceFieldEnum: {
+    id: 'id',
+    variantId: 'variantId',
+    locationId: 'locationId'
+  };
+
+  export type ProductStockLevelOrderByRelevanceFieldEnum = (typeof ProductStockLevelOrderByRelevanceFieldEnum)[keyof typeof ProductStockLevelOrderByRelevanceFieldEnum]
+
+
+  export const ProductStockMovementOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    variantId: 'variantId',
+    reason: 'reason',
+    orderId: 'orderId',
+    refundId: 'refundId',
+    recordedBy: 'recordedBy',
+    dedupeKey: 'dedupeKey'
+  };
+
+  export type ProductStockMovementOrderByRelevanceFieldEnum = (typeof ProductStockMovementOrderByRelevanceFieldEnum)[keyof typeof ProductStockMovementOrderByRelevanceFieldEnum]
+
+
+  export const RefundLineOrderByRelevanceFieldEnum: {
+    id: 'id',
+    refundId: 'refundId',
+    orderItemId: 'orderItemId'
+  };
+
+  export type RefundLineOrderByRelevanceFieldEnum = (typeof RefundLineOrderByRelevanceFieldEnum)[keyof typeof RefundLineOrderByRelevanceFieldEnum]
 
 
   export const LedgerEntryOrderByRelevanceFieldEnum: {
@@ -163407,6 +171803,34 @@ export namespace Prisma {
   export type UberDirectConfigOrderByRelevanceFieldEnum = (typeof UberDirectConfigOrderByRelevanceFieldEnum)[keyof typeof UberDirectConfigOrderByRelevanceFieldEnum]
 
 
+  export const JetGoConfigOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    market: 'market',
+    environment: 'environment',
+    collectPointId: 'collectPointId',
+    collectPointName: 'collectPointName',
+    webhookToken: 'webhookToken',
+    webhookSecret: 'webhookSecret'
+  };
+
+  export type JetGoConfigOrderByRelevanceFieldEnum = (typeof JetGoConfigOrderByRelevanceFieldEnum)[keyof typeof JetGoConfigOrderByRelevanceFieldEnum]
+
+
+  export const YangoConfigOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    mode: 'mode',
+    taxiClass: 'taxiClass',
+    contactEmail: 'contactEmail',
+    webhookToken: 'webhookToken'
+  };
+
+  export type YangoConfigOrderByRelevanceFieldEnum = (typeof YangoConfigOrderByRelevanceFieldEnum)[keyof typeof YangoConfigOrderByRelevanceFieldEnum]
+
+
   export const ReviewOrderByRelevanceFieldEnum: {
     id: 'id',
     tenantId: 'tenantId',
@@ -163630,6 +172054,21 @@ export namespace Prisma {
   export type ReferralOrderByRelevanceFieldEnum = (typeof ReferralOrderByRelevanceFieldEnum)[keyof typeof ReferralOrderByRelevanceFieldEnum]
 
 
+  export const KeetaAuthorizationOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    keetaBrandId: 'keetaBrandId',
+    brandName: 'brandName',
+    keetaUserId: 'keetaUserId',
+    accessToken: 'accessToken',
+    refreshToken: 'refreshToken',
+    status: 'status',
+    lastError: 'lastError'
+  };
+
+  export type KeetaAuthorizationOrderByRelevanceFieldEnum = (typeof KeetaAuthorizationOrderByRelevanceFieldEnum)[keyof typeof KeetaAuthorizationOrderByRelevanceFieldEnum]
+
+
   /**
    * Field references 
    */
@@ -163786,6 +172225,20 @@ export namespace Prisma {
    * Reference to a field of type 'Int[]'
    */
   export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'BusinessType'
+   */
+  export type EnumBusinessTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BusinessType'>
+    
+
+
+  /**
+   * Reference to a field of type 'BusinessType[]'
+   */
+  export type ListEnumBusinessTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BusinessType[]'>
     
 
 
@@ -164238,6 +172691,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'StockMovementType'
+   */
+  export type EnumStockMovementTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'StockMovementType'>
+    
+
+
+  /**
+   * Reference to a field of type 'StockMovementType[]'
+   */
+  export type ListEnumStockMovementTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'StockMovementType[]'>
+    
+
+
+  /**
    * Reference to a field of type 'LedgerEntryType'
    */
   export type EnumLedgerEntryTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LedgerEntryType'>
@@ -164262,20 +172729,6 @@ export namespace Prisma {
    * Reference to a field of type 'PayoutStatus[]'
    */
   export type ListEnumPayoutStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PayoutStatus[]'>
-    
-
-
-  /**
-   * Reference to a field of type 'StockMovementType'
-   */
-  export type EnumStockMovementTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'StockMovementType'>
-    
-
-
-  /**
-   * Reference to a field of type 'StockMovementType[]'
-   */
-  export type ListEnumStockMovementTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'StockMovementType[]'>
     
 
 
@@ -165848,6 +174301,7 @@ export namespace Prisma {
     postcode?: StringNullableFilter<"Location"> | string | null
     country?: StringFilter<"Location"> | string
     currency?: StringFilter<"Location"> | string
+    businessType?: EnumBusinessTypeFilter<"Location"> | $Enums.BusinessType
     about?: StringNullableFilter<"Location"> | string | null
     logoUrl?: StringNullableFilter<"Location"> | string | null
     customDomain?: StringNullableFilter<"Location"> | string | null
@@ -165913,11 +174367,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentListRelationFilter
     itemChannelSnoozes?: MenuItemChannelAvailabilityListRelationFilter
     homeDrivers?: DriverListRelationFilter
+    productStockLevels?: ProductStockLevelListRelationFilter
     defaultKitchenStation?: XOR<PrinterStationNullableRelationFilter, PrinterStationWhereInput> | null
     receiptPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
     dispatchPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
     stuartConfig?: XOR<StuartConfigNullableRelationFilter, StuartConfigWhereInput> | null
     uberDirectConfig?: XOR<UberDirectConfigNullableRelationFilter, UberDirectConfigWhereInput> | null
+    jetGoConfig?: XOR<JetGoConfigNullableRelationFilter, JetGoConfigWhereInput> | null
+    yangoConfig?: XOR<YangoConfigNullableRelationFilter, YangoConfigWhereInput> | null
     loyaltyCard?: XOR<LoyaltyCardNullableRelationFilter, LoyaltyCardWhereInput> | null
     referralProgram?: XOR<ReferralProgramNullableRelationFilter, ReferralProgramWhereInput> | null
     loyaltyRewards?: LoyaltyRewardListRelationFilter
@@ -165944,6 +174401,7 @@ export namespace Prisma {
     postcode?: SortOrderInput | SortOrder
     country?: SortOrder
     currency?: SortOrder
+    businessType?: SortOrder
     about?: SortOrderInput | SortOrder
     logoUrl?: SortOrderInput | SortOrder
     customDomain?: SortOrderInput | SortOrder
@@ -166009,11 +174467,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentOrderByRelationAggregateInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityOrderByRelationAggregateInput
     homeDrivers?: DriverOrderByRelationAggregateInput
+    productStockLevels?: ProductStockLevelOrderByRelationAggregateInput
     defaultKitchenStation?: PrinterStationOrderByWithRelationInput
     receiptPrinter?: PrinterOrderByWithRelationInput
     dispatchPrinter?: PrinterOrderByWithRelationInput
     stuartConfig?: StuartConfigOrderByWithRelationInput
     uberDirectConfig?: UberDirectConfigOrderByWithRelationInput
+    jetGoConfig?: JetGoConfigOrderByWithRelationInput
+    yangoConfig?: YangoConfigOrderByWithRelationInput
     loyaltyCard?: LoyaltyCardOrderByWithRelationInput
     referralProgram?: ReferralProgramOrderByWithRelationInput
     loyaltyRewards?: LoyaltyRewardOrderByRelationAggregateInput
@@ -166048,6 +174509,7 @@ export namespace Prisma {
     postcode?: StringNullableFilter<"Location"> | string | null
     country?: StringFilter<"Location"> | string
     currency?: StringFilter<"Location"> | string
+    businessType?: EnumBusinessTypeFilter<"Location"> | $Enums.BusinessType
     about?: StringNullableFilter<"Location"> | string | null
     logoUrl?: StringNullableFilter<"Location"> | string | null
     customDomain?: StringNullableFilter<"Location"> | string | null
@@ -166109,11 +174571,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentListRelationFilter
     itemChannelSnoozes?: MenuItemChannelAvailabilityListRelationFilter
     homeDrivers?: DriverListRelationFilter
+    productStockLevels?: ProductStockLevelListRelationFilter
     defaultKitchenStation?: XOR<PrinterStationNullableRelationFilter, PrinterStationWhereInput> | null
     receiptPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
     dispatchPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
     stuartConfig?: XOR<StuartConfigNullableRelationFilter, StuartConfigWhereInput> | null
     uberDirectConfig?: XOR<UberDirectConfigNullableRelationFilter, UberDirectConfigWhereInput> | null
+    jetGoConfig?: XOR<JetGoConfigNullableRelationFilter, JetGoConfigWhereInput> | null
+    yangoConfig?: XOR<YangoConfigNullableRelationFilter, YangoConfigWhereInput> | null
     loyaltyCard?: XOR<LoyaltyCardNullableRelationFilter, LoyaltyCardWhereInput> | null
     referralProgram?: XOR<ReferralProgramNullableRelationFilter, ReferralProgramWhereInput> | null
     loyaltyRewards?: LoyaltyRewardListRelationFilter
@@ -166140,6 +174605,7 @@ export namespace Prisma {
     postcode?: SortOrderInput | SortOrder
     country?: SortOrder
     currency?: SortOrder
+    businessType?: SortOrder
     about?: SortOrderInput | SortOrder
     logoUrl?: SortOrderInput | SortOrder
     customDomain?: SortOrderInput | SortOrder
@@ -166214,6 +174680,7 @@ export namespace Prisma {
     postcode?: StringNullableWithAggregatesFilter<"Location"> | string | null
     country?: StringWithAggregatesFilter<"Location"> | string
     currency?: StringWithAggregatesFilter<"Location"> | string
+    businessType?: EnumBusinessTypeWithAggregatesFilter<"Location"> | $Enums.BusinessType
     about?: StringNullableWithAggregatesFilter<"Location"> | string | null
     logoUrl?: StringNullableWithAggregatesFilter<"Location"> | string | null
     customDomain?: StringNullableWithAggregatesFilter<"Location"> | string | null
@@ -167021,6 +175488,9 @@ export namespace Prisma {
     dietary?: JsonFilter<"MenuItem">
     calories?: IntNullableFilter<"MenuItem"> | number | null
     prepTime?: IntNullableFilter<"MenuItem"> | number | null
+    minAge?: IntNullableFilter<"MenuItem"> | number | null
+    sellBy?: StringNullableFilter<"MenuItem"> | string | null
+    scaleCode?: StringNullableFilter<"MenuItem"> | string | null
     metadata?: JsonFilter<"MenuItem">
     hasMultipleSkus?: BoolFilter<"MenuItem"> | boolean
     productSkus?: JsonFilter<"MenuItem">
@@ -167045,6 +175515,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryListRelationFilter
     modifierGroupLinks?: ModifierGroupOnItemListRelationFilter
     variants?: MenuItemVariantListRelationFilter
+    productVariants?: ProductVariantListRelationFilter
     recipe?: XOR<RecipeNullableRelationFilter, RecipeWhereInput> | null
     stationRoutes?: MenuItemStationListRelationFilter
     channelAvailability?: MenuItemChannelAvailabilityListRelationFilter
@@ -167074,6 +175545,9 @@ export namespace Prisma {
     dietary?: SortOrder
     calories?: SortOrderInput | SortOrder
     prepTime?: SortOrderInput | SortOrder
+    minAge?: SortOrderInput | SortOrder
+    sellBy?: SortOrderInput | SortOrder
+    scaleCode?: SortOrderInput | SortOrder
     metadata?: SortOrder
     hasMultipleSkus?: SortOrder
     productSkus?: SortOrder
@@ -167098,6 +175572,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryOrderByRelationAggregateInput
     modifierGroupLinks?: ModifierGroupOnItemOrderByRelationAggregateInput
     variants?: MenuItemVariantOrderByRelationAggregateInput
+    productVariants?: ProductVariantOrderByRelationAggregateInput
     recipe?: RecipeOrderByWithRelationInput
     stationRoutes?: MenuItemStationOrderByRelationAggregateInput
     channelAvailability?: MenuItemChannelAvailabilityOrderByRelationAggregateInput
@@ -167131,6 +175606,9 @@ export namespace Prisma {
     dietary?: JsonFilter<"MenuItem">
     calories?: IntNullableFilter<"MenuItem"> | number | null
     prepTime?: IntNullableFilter<"MenuItem"> | number | null
+    minAge?: IntNullableFilter<"MenuItem"> | number | null
+    sellBy?: StringNullableFilter<"MenuItem"> | string | null
+    scaleCode?: StringNullableFilter<"MenuItem"> | string | null
     metadata?: JsonFilter<"MenuItem">
     hasMultipleSkus?: BoolFilter<"MenuItem"> | boolean
     productSkus?: JsonFilter<"MenuItem">
@@ -167155,6 +175633,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryListRelationFilter
     modifierGroupLinks?: ModifierGroupOnItemListRelationFilter
     variants?: MenuItemVariantListRelationFilter
+    productVariants?: ProductVariantListRelationFilter
     recipe?: XOR<RecipeNullableRelationFilter, RecipeWhereInput> | null
     stationRoutes?: MenuItemStationListRelationFilter
     channelAvailability?: MenuItemChannelAvailabilityListRelationFilter
@@ -167184,6 +175663,9 @@ export namespace Prisma {
     dietary?: SortOrder
     calories?: SortOrderInput | SortOrder
     prepTime?: SortOrderInput | SortOrder
+    minAge?: SortOrderInput | SortOrder
+    sellBy?: SortOrderInput | SortOrder
+    scaleCode?: SortOrderInput | SortOrder
     metadata?: SortOrder
     hasMultipleSkus?: SortOrder
     productSkus?: SortOrder
@@ -167238,6 +175720,9 @@ export namespace Prisma {
     dietary?: JsonWithAggregatesFilter<"MenuItem">
     calories?: IntNullableWithAggregatesFilter<"MenuItem"> | number | null
     prepTime?: IntNullableWithAggregatesFilter<"MenuItem"> | number | null
+    minAge?: IntNullableWithAggregatesFilter<"MenuItem"> | number | null
+    sellBy?: StringNullableWithAggregatesFilter<"MenuItem"> | string | null
+    scaleCode?: StringNullableWithAggregatesFilter<"MenuItem"> | string | null
     metadata?: JsonWithAggregatesFilter<"MenuItem">
     hasMultipleSkus?: BoolWithAggregatesFilter<"MenuItem"> | boolean
     productSkus?: JsonWithAggregatesFilter<"MenuItem">
@@ -169872,6 +178357,7 @@ export namespace Prisma {
     metadata?: JsonFilter<"OrderItem">
     createdAt?: DateTimeFilter<"OrderItem"> | Date | string
     order?: XOR<OrderRelationFilter, OrderWhereInput>
+    refundLines?: RefundLineListRelationFilter
   }
 
   export type OrderItemOrderByWithRelationInput = {
@@ -169887,6 +178373,7 @@ export namespace Prisma {
     metadata?: SortOrder
     createdAt?: SortOrder
     order?: OrderOrderByWithRelationInput
+    refundLines?: RefundLineOrderByRelationAggregateInput
     _relevance?: OrderItemOrderByRelevanceInput
   }
 
@@ -169906,6 +178393,7 @@ export namespace Prisma {
     metadata?: JsonFilter<"OrderItem">
     createdAt?: DateTimeFilter<"OrderItem"> | Date | string
     order?: XOR<OrderRelationFilter, OrderWhereInput>
+    refundLines?: RefundLineListRelationFilter
   }, "id">
 
   export type OrderItemOrderByWithAggregationInput = {
@@ -172966,7 +181454,9 @@ export namespace Prisma {
     NOT?: RefundWhereInput | RefundWhereInput[]
     id?: StringFilter<"Refund"> | string
     tenantId?: StringFilter<"Refund"> | string
-    paymentId?: StringFilter<"Refund"> | string
+    paymentId?: StringNullableFilter<"Refund"> | string | null
+    orderId?: StringNullableFilter<"Refund"> | string | null
+    method?: StringNullableFilter<"Refund"> | string | null
     stripeRefundId?: StringNullableFilter<"Refund"> | string | null
     amount?: DecimalFilter<"Refund"> | Decimal | DecimalJsLike | number | string
     reason?: StringNullableFilter<"Refund"> | string | null
@@ -172975,14 +181465,17 @@ export namespace Prisma {
     processedBy?: StringNullableFilter<"Refund"> | string | null
     note?: StringNullableFilter<"Refund"> | string | null
     createdAt?: DateTimeFilter<"Refund"> | Date | string
-    payment?: XOR<PaymentRelationFilter, PaymentWhereInput>
+    payment?: XOR<PaymentNullableRelationFilter, PaymentWhereInput> | null
     ledgerEntries?: LedgerEntryListRelationFilter
+    lines?: RefundLineListRelationFilter
   }
 
   export type RefundOrderByWithRelationInput = {
     id?: SortOrder
     tenantId?: SortOrder
-    paymentId?: SortOrder
+    paymentId?: SortOrderInput | SortOrder
+    orderId?: SortOrderInput | SortOrder
+    method?: SortOrderInput | SortOrder
     stripeRefundId?: SortOrderInput | SortOrder
     amount?: SortOrder
     reason?: SortOrderInput | SortOrder
@@ -172993,6 +181486,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     payment?: PaymentOrderByWithRelationInput
     ledgerEntries?: LedgerEntryOrderByRelationAggregateInput
+    lines?: RefundLineOrderByRelationAggregateInput
     _relevance?: RefundOrderByRelevanceInput
   }
 
@@ -173003,7 +181497,9 @@ export namespace Prisma {
     OR?: RefundWhereInput[]
     NOT?: RefundWhereInput | RefundWhereInput[]
     tenantId?: StringFilter<"Refund"> | string
-    paymentId?: StringFilter<"Refund"> | string
+    paymentId?: StringNullableFilter<"Refund"> | string | null
+    orderId?: StringNullableFilter<"Refund"> | string | null
+    method?: StringNullableFilter<"Refund"> | string | null
     amount?: DecimalFilter<"Refund"> | Decimal | DecimalJsLike | number | string
     reason?: StringNullableFilter<"Refund"> | string | null
     status?: EnumRefundStatusFilter<"Refund"> | $Enums.RefundStatus
@@ -173011,14 +181507,17 @@ export namespace Prisma {
     processedBy?: StringNullableFilter<"Refund"> | string | null
     note?: StringNullableFilter<"Refund"> | string | null
     createdAt?: DateTimeFilter<"Refund"> | Date | string
-    payment?: XOR<PaymentRelationFilter, PaymentWhereInput>
+    payment?: XOR<PaymentNullableRelationFilter, PaymentWhereInput> | null
     ledgerEntries?: LedgerEntryListRelationFilter
+    lines?: RefundLineListRelationFilter
   }, "id" | "stripeRefundId">
 
   export type RefundOrderByWithAggregationInput = {
     id?: SortOrder
     tenantId?: SortOrder
-    paymentId?: SortOrder
+    paymentId?: SortOrderInput | SortOrder
+    orderId?: SortOrderInput | SortOrder
+    method?: SortOrderInput | SortOrder
     stripeRefundId?: SortOrderInput | SortOrder
     amount?: SortOrder
     reason?: SortOrderInput | SortOrder
@@ -173040,7 +181539,9 @@ export namespace Prisma {
     NOT?: RefundScalarWhereWithAggregatesInput | RefundScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Refund"> | string
     tenantId?: StringWithAggregatesFilter<"Refund"> | string
-    paymentId?: StringWithAggregatesFilter<"Refund"> | string
+    paymentId?: StringNullableWithAggregatesFilter<"Refund"> | string | null
+    orderId?: StringNullableWithAggregatesFilter<"Refund"> | string | null
+    method?: StringNullableWithAggregatesFilter<"Refund"> | string | null
     stripeRefundId?: StringNullableWithAggregatesFilter<"Refund"> | string | null
     amount?: DecimalWithAggregatesFilter<"Refund"> | Decimal | DecimalJsLike | number | string
     reason?: StringNullableWithAggregatesFilter<"Refund"> | string | null
@@ -173049,6 +181550,352 @@ export namespace Prisma {
     processedBy?: StringNullableWithAggregatesFilter<"Refund"> | string | null
     note?: StringNullableWithAggregatesFilter<"Refund"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Refund"> | Date | string
+  }
+
+  export type ProductVariantWhereInput = {
+    AND?: ProductVariantWhereInput | ProductVariantWhereInput[]
+    OR?: ProductVariantWhereInput[]
+    NOT?: ProductVariantWhereInput | ProductVariantWhereInput[]
+    id?: StringFilter<"ProductVariant"> | string
+    tenantId?: StringFilter<"ProductVariant"> | string
+    brandId?: StringFilter<"ProductVariant"> | string
+    menuItemId?: StringFilter<"ProductVariant"> | string
+    name?: StringFilter<"ProductVariant"> | string
+    options?: JsonFilter<"ProductVariant">
+    sku?: StringNullableFilter<"ProductVariant"> | string | null
+    barcode?: StringNullableFilter<"ProductVariant"> | string | null
+    price?: DecimalNullableFilter<"ProductVariant"> | Decimal | DecimalJsLike | number | string | null
+    costPrice?: DecimalNullableFilter<"ProductVariant"> | Decimal | DecimalJsLike | number | string | null
+    trackStock?: BoolFilter<"ProductVariant"> | boolean
+    lowStockAt?: IntNullableFilter<"ProductVariant"> | number | null
+    isActive?: BoolFilter<"ProductVariant"> | boolean
+    sortOrder?: IntFilter<"ProductVariant"> | number
+    createdAt?: DateTimeFilter<"ProductVariant"> | Date | string
+    updatedAt?: DateTimeFilter<"ProductVariant"> | Date | string
+    menuItem?: XOR<MenuItemRelationFilter, MenuItemWhereInput>
+    stockLevels?: ProductStockLevelListRelationFilter
+    movements?: ProductStockMovementListRelationFilter
+  }
+
+  export type ProductVariantOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    menuItemId?: SortOrder
+    name?: SortOrder
+    options?: SortOrder
+    sku?: SortOrderInput | SortOrder
+    barcode?: SortOrderInput | SortOrder
+    price?: SortOrderInput | SortOrder
+    costPrice?: SortOrderInput | SortOrder
+    trackStock?: SortOrder
+    lowStockAt?: SortOrderInput | SortOrder
+    isActive?: SortOrder
+    sortOrder?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    menuItem?: MenuItemOrderByWithRelationInput
+    stockLevels?: ProductStockLevelOrderByRelationAggregateInput
+    movements?: ProductStockMovementOrderByRelationAggregateInput
+    _relevance?: ProductVariantOrderByRelevanceInput
+  }
+
+  export type ProductVariantWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    brandId_barcode?: ProductVariantBrandIdBarcodeCompoundUniqueInput
+    AND?: ProductVariantWhereInput | ProductVariantWhereInput[]
+    OR?: ProductVariantWhereInput[]
+    NOT?: ProductVariantWhereInput | ProductVariantWhereInput[]
+    tenantId?: StringFilter<"ProductVariant"> | string
+    brandId?: StringFilter<"ProductVariant"> | string
+    menuItemId?: StringFilter<"ProductVariant"> | string
+    name?: StringFilter<"ProductVariant"> | string
+    options?: JsonFilter<"ProductVariant">
+    sku?: StringNullableFilter<"ProductVariant"> | string | null
+    barcode?: StringNullableFilter<"ProductVariant"> | string | null
+    price?: DecimalNullableFilter<"ProductVariant"> | Decimal | DecimalJsLike | number | string | null
+    costPrice?: DecimalNullableFilter<"ProductVariant"> | Decimal | DecimalJsLike | number | string | null
+    trackStock?: BoolFilter<"ProductVariant"> | boolean
+    lowStockAt?: IntNullableFilter<"ProductVariant"> | number | null
+    isActive?: BoolFilter<"ProductVariant"> | boolean
+    sortOrder?: IntFilter<"ProductVariant"> | number
+    createdAt?: DateTimeFilter<"ProductVariant"> | Date | string
+    updatedAt?: DateTimeFilter<"ProductVariant"> | Date | string
+    menuItem?: XOR<MenuItemRelationFilter, MenuItemWhereInput>
+    stockLevels?: ProductStockLevelListRelationFilter
+    movements?: ProductStockMovementListRelationFilter
+  }, "id" | "brandId_barcode">
+
+  export type ProductVariantOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    menuItemId?: SortOrder
+    name?: SortOrder
+    options?: SortOrder
+    sku?: SortOrderInput | SortOrder
+    barcode?: SortOrderInput | SortOrder
+    price?: SortOrderInput | SortOrder
+    costPrice?: SortOrderInput | SortOrder
+    trackStock?: SortOrder
+    lowStockAt?: SortOrderInput | SortOrder
+    isActive?: SortOrder
+    sortOrder?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: ProductVariantCountOrderByAggregateInput
+    _avg?: ProductVariantAvgOrderByAggregateInput
+    _max?: ProductVariantMaxOrderByAggregateInput
+    _min?: ProductVariantMinOrderByAggregateInput
+    _sum?: ProductVariantSumOrderByAggregateInput
+  }
+
+  export type ProductVariantScalarWhereWithAggregatesInput = {
+    AND?: ProductVariantScalarWhereWithAggregatesInput | ProductVariantScalarWhereWithAggregatesInput[]
+    OR?: ProductVariantScalarWhereWithAggregatesInput[]
+    NOT?: ProductVariantScalarWhereWithAggregatesInput | ProductVariantScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ProductVariant"> | string
+    tenantId?: StringWithAggregatesFilter<"ProductVariant"> | string
+    brandId?: StringWithAggregatesFilter<"ProductVariant"> | string
+    menuItemId?: StringWithAggregatesFilter<"ProductVariant"> | string
+    name?: StringWithAggregatesFilter<"ProductVariant"> | string
+    options?: JsonWithAggregatesFilter<"ProductVariant">
+    sku?: StringNullableWithAggregatesFilter<"ProductVariant"> | string | null
+    barcode?: StringNullableWithAggregatesFilter<"ProductVariant"> | string | null
+    price?: DecimalNullableWithAggregatesFilter<"ProductVariant"> | Decimal | DecimalJsLike | number | string | null
+    costPrice?: DecimalNullableWithAggregatesFilter<"ProductVariant"> | Decimal | DecimalJsLike | number | string | null
+    trackStock?: BoolWithAggregatesFilter<"ProductVariant"> | boolean
+    lowStockAt?: IntNullableWithAggregatesFilter<"ProductVariant"> | number | null
+    isActive?: BoolWithAggregatesFilter<"ProductVariant"> | boolean
+    sortOrder?: IntWithAggregatesFilter<"ProductVariant"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"ProductVariant"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"ProductVariant"> | Date | string
+  }
+
+  export type ProductStockLevelWhereInput = {
+    AND?: ProductStockLevelWhereInput | ProductStockLevelWhereInput[]
+    OR?: ProductStockLevelWhereInput[]
+    NOT?: ProductStockLevelWhereInput | ProductStockLevelWhereInput[]
+    id?: StringFilter<"ProductStockLevel"> | string
+    variantId?: StringFilter<"ProductStockLevel"> | string
+    locationId?: StringFilter<"ProductStockLevel"> | string
+    quantity?: IntFilter<"ProductStockLevel"> | number
+    updatedAt?: DateTimeFilter<"ProductStockLevel"> | Date | string
+    variant?: XOR<ProductVariantRelationFilter, ProductVariantWhereInput>
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }
+
+  export type ProductStockLevelOrderByWithRelationInput = {
+    id?: SortOrder
+    variantId?: SortOrder
+    locationId?: SortOrder
+    quantity?: SortOrder
+    updatedAt?: SortOrder
+    variant?: ProductVariantOrderByWithRelationInput
+    location?: LocationOrderByWithRelationInput
+    _relevance?: ProductStockLevelOrderByRelevanceInput
+  }
+
+  export type ProductStockLevelWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    variantId_locationId?: ProductStockLevelVariantIdLocationIdCompoundUniqueInput
+    AND?: ProductStockLevelWhereInput | ProductStockLevelWhereInput[]
+    OR?: ProductStockLevelWhereInput[]
+    NOT?: ProductStockLevelWhereInput | ProductStockLevelWhereInput[]
+    variantId?: StringFilter<"ProductStockLevel"> | string
+    locationId?: StringFilter<"ProductStockLevel"> | string
+    quantity?: IntFilter<"ProductStockLevel"> | number
+    updatedAt?: DateTimeFilter<"ProductStockLevel"> | Date | string
+    variant?: XOR<ProductVariantRelationFilter, ProductVariantWhereInput>
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }, "id" | "variantId_locationId">
+
+  export type ProductStockLevelOrderByWithAggregationInput = {
+    id?: SortOrder
+    variantId?: SortOrder
+    locationId?: SortOrder
+    quantity?: SortOrder
+    updatedAt?: SortOrder
+    _count?: ProductStockLevelCountOrderByAggregateInput
+    _avg?: ProductStockLevelAvgOrderByAggregateInput
+    _max?: ProductStockLevelMaxOrderByAggregateInput
+    _min?: ProductStockLevelMinOrderByAggregateInput
+    _sum?: ProductStockLevelSumOrderByAggregateInput
+  }
+
+  export type ProductStockLevelScalarWhereWithAggregatesInput = {
+    AND?: ProductStockLevelScalarWhereWithAggregatesInput | ProductStockLevelScalarWhereWithAggregatesInput[]
+    OR?: ProductStockLevelScalarWhereWithAggregatesInput[]
+    NOT?: ProductStockLevelScalarWhereWithAggregatesInput | ProductStockLevelScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ProductStockLevel"> | string
+    variantId?: StringWithAggregatesFilter<"ProductStockLevel"> | string
+    locationId?: StringWithAggregatesFilter<"ProductStockLevel"> | string
+    quantity?: IntWithAggregatesFilter<"ProductStockLevel"> | number
+    updatedAt?: DateTimeWithAggregatesFilter<"ProductStockLevel"> | Date | string
+  }
+
+  export type ProductStockMovementWhereInput = {
+    AND?: ProductStockMovementWhereInput | ProductStockMovementWhereInput[]
+    OR?: ProductStockMovementWhereInput[]
+    NOT?: ProductStockMovementWhereInput | ProductStockMovementWhereInput[]
+    id?: StringFilter<"ProductStockMovement"> | string
+    tenantId?: StringFilter<"ProductStockMovement"> | string
+    locationId?: StringFilter<"ProductStockMovement"> | string
+    variantId?: StringFilter<"ProductStockMovement"> | string
+    type?: EnumStockMovementTypeFilter<"ProductStockMovement"> | $Enums.StockMovementType
+    quantity?: IntFilter<"ProductStockMovement"> | number
+    reason?: StringNullableFilter<"ProductStockMovement"> | string | null
+    orderId?: StringNullableFilter<"ProductStockMovement"> | string | null
+    refundId?: StringNullableFilter<"ProductStockMovement"> | string | null
+    recordedBy?: StringNullableFilter<"ProductStockMovement"> | string | null
+    dedupeKey?: StringNullableFilter<"ProductStockMovement"> | string | null
+    createdAt?: DateTimeFilter<"ProductStockMovement"> | Date | string
+    variant?: XOR<ProductVariantRelationFilter, ProductVariantWhereInput>
+  }
+
+  export type ProductStockMovementOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    variantId?: SortOrder
+    type?: SortOrder
+    quantity?: SortOrder
+    reason?: SortOrderInput | SortOrder
+    orderId?: SortOrderInput | SortOrder
+    refundId?: SortOrderInput | SortOrder
+    recordedBy?: SortOrderInput | SortOrder
+    dedupeKey?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    variant?: ProductVariantOrderByWithRelationInput
+    _relevance?: ProductStockMovementOrderByRelevanceInput
+  }
+
+  export type ProductStockMovementWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    dedupeKey?: string
+    AND?: ProductStockMovementWhereInput | ProductStockMovementWhereInput[]
+    OR?: ProductStockMovementWhereInput[]
+    NOT?: ProductStockMovementWhereInput | ProductStockMovementWhereInput[]
+    tenantId?: StringFilter<"ProductStockMovement"> | string
+    locationId?: StringFilter<"ProductStockMovement"> | string
+    variantId?: StringFilter<"ProductStockMovement"> | string
+    type?: EnumStockMovementTypeFilter<"ProductStockMovement"> | $Enums.StockMovementType
+    quantity?: IntFilter<"ProductStockMovement"> | number
+    reason?: StringNullableFilter<"ProductStockMovement"> | string | null
+    orderId?: StringNullableFilter<"ProductStockMovement"> | string | null
+    refundId?: StringNullableFilter<"ProductStockMovement"> | string | null
+    recordedBy?: StringNullableFilter<"ProductStockMovement"> | string | null
+    createdAt?: DateTimeFilter<"ProductStockMovement"> | Date | string
+    variant?: XOR<ProductVariantRelationFilter, ProductVariantWhereInput>
+  }, "id" | "dedupeKey">
+
+  export type ProductStockMovementOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    variantId?: SortOrder
+    type?: SortOrder
+    quantity?: SortOrder
+    reason?: SortOrderInput | SortOrder
+    orderId?: SortOrderInput | SortOrder
+    refundId?: SortOrderInput | SortOrder
+    recordedBy?: SortOrderInput | SortOrder
+    dedupeKey?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: ProductStockMovementCountOrderByAggregateInput
+    _avg?: ProductStockMovementAvgOrderByAggregateInput
+    _max?: ProductStockMovementMaxOrderByAggregateInput
+    _min?: ProductStockMovementMinOrderByAggregateInput
+    _sum?: ProductStockMovementSumOrderByAggregateInput
+  }
+
+  export type ProductStockMovementScalarWhereWithAggregatesInput = {
+    AND?: ProductStockMovementScalarWhereWithAggregatesInput | ProductStockMovementScalarWhereWithAggregatesInput[]
+    OR?: ProductStockMovementScalarWhereWithAggregatesInput[]
+    NOT?: ProductStockMovementScalarWhereWithAggregatesInput | ProductStockMovementScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ProductStockMovement"> | string
+    tenantId?: StringWithAggregatesFilter<"ProductStockMovement"> | string
+    locationId?: StringWithAggregatesFilter<"ProductStockMovement"> | string
+    variantId?: StringWithAggregatesFilter<"ProductStockMovement"> | string
+    type?: EnumStockMovementTypeWithAggregatesFilter<"ProductStockMovement"> | $Enums.StockMovementType
+    quantity?: IntWithAggregatesFilter<"ProductStockMovement"> | number
+    reason?: StringNullableWithAggregatesFilter<"ProductStockMovement"> | string | null
+    orderId?: StringNullableWithAggregatesFilter<"ProductStockMovement"> | string | null
+    refundId?: StringNullableWithAggregatesFilter<"ProductStockMovement"> | string | null
+    recordedBy?: StringNullableWithAggregatesFilter<"ProductStockMovement"> | string | null
+    dedupeKey?: StringNullableWithAggregatesFilter<"ProductStockMovement"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"ProductStockMovement"> | Date | string
+  }
+
+  export type RefundLineWhereInput = {
+    AND?: RefundLineWhereInput | RefundLineWhereInput[]
+    OR?: RefundLineWhereInput[]
+    NOT?: RefundLineWhereInput | RefundLineWhereInput[]
+    id?: StringFilter<"RefundLine"> | string
+    refundId?: StringFilter<"RefundLine"> | string
+    orderItemId?: StringFilter<"RefundLine"> | string
+    quantity?: IntFilter<"RefundLine"> | number
+    amount?: DecimalFilter<"RefundLine"> | Decimal | DecimalJsLike | number | string
+    restock?: BoolFilter<"RefundLine"> | boolean
+    createdAt?: DateTimeFilter<"RefundLine"> | Date | string
+    refund?: XOR<RefundRelationFilter, RefundWhereInput>
+    orderItem?: XOR<OrderItemRelationFilter, OrderItemWhereInput>
+  }
+
+  export type RefundLineOrderByWithRelationInput = {
+    id?: SortOrder
+    refundId?: SortOrder
+    orderItemId?: SortOrder
+    quantity?: SortOrder
+    amount?: SortOrder
+    restock?: SortOrder
+    createdAt?: SortOrder
+    refund?: RefundOrderByWithRelationInput
+    orderItem?: OrderItemOrderByWithRelationInput
+    _relevance?: RefundLineOrderByRelevanceInput
+  }
+
+  export type RefundLineWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: RefundLineWhereInput | RefundLineWhereInput[]
+    OR?: RefundLineWhereInput[]
+    NOT?: RefundLineWhereInput | RefundLineWhereInput[]
+    refundId?: StringFilter<"RefundLine"> | string
+    orderItemId?: StringFilter<"RefundLine"> | string
+    quantity?: IntFilter<"RefundLine"> | number
+    amount?: DecimalFilter<"RefundLine"> | Decimal | DecimalJsLike | number | string
+    restock?: BoolFilter<"RefundLine"> | boolean
+    createdAt?: DateTimeFilter<"RefundLine"> | Date | string
+    refund?: XOR<RefundRelationFilter, RefundWhereInput>
+    orderItem?: XOR<OrderItemRelationFilter, OrderItemWhereInput>
+  }, "id">
+
+  export type RefundLineOrderByWithAggregationInput = {
+    id?: SortOrder
+    refundId?: SortOrder
+    orderItemId?: SortOrder
+    quantity?: SortOrder
+    amount?: SortOrder
+    restock?: SortOrder
+    createdAt?: SortOrder
+    _count?: RefundLineCountOrderByAggregateInput
+    _avg?: RefundLineAvgOrderByAggregateInput
+    _max?: RefundLineMaxOrderByAggregateInput
+    _min?: RefundLineMinOrderByAggregateInput
+    _sum?: RefundLineSumOrderByAggregateInput
+  }
+
+  export type RefundLineScalarWhereWithAggregatesInput = {
+    AND?: RefundLineScalarWhereWithAggregatesInput | RefundLineScalarWhereWithAggregatesInput[]
+    OR?: RefundLineScalarWhereWithAggregatesInput[]
+    NOT?: RefundLineScalarWhereWithAggregatesInput | RefundLineScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"RefundLine"> | string
+    refundId?: StringWithAggregatesFilter<"RefundLine"> | string
+    orderItemId?: StringWithAggregatesFilter<"RefundLine"> | string
+    quantity?: IntWithAggregatesFilter<"RefundLine"> | number
+    amount?: DecimalWithAggregatesFilter<"RefundLine"> | Decimal | DecimalJsLike | number | string
+    restock?: BoolWithAggregatesFilter<"RefundLine"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"RefundLine"> | Date | string
   }
 
   export type LedgerEntryWhereInput = {
@@ -176939,6 +185786,200 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"UberDirectConfig"> | Date | string
   }
 
+  export type JetGoConfigWhereInput = {
+    AND?: JetGoConfigWhereInput | JetGoConfigWhereInput[]
+    OR?: JetGoConfigWhereInput[]
+    NOT?: JetGoConfigWhereInput | JetGoConfigWhereInput[]
+    id?: StringFilter<"JetGoConfig"> | string
+    tenantId?: StringFilter<"JetGoConfig"> | string
+    locationId?: StringFilter<"JetGoConfig"> | string
+    market?: StringFilter<"JetGoConfig"> | string
+    environment?: StringFilter<"JetGoConfig"> | string
+    credentials?: JsonFilter<"JetGoConfig">
+    collectPointId?: StringNullableFilter<"JetGoConfig"> | string | null
+    collectPointName?: StringNullableFilter<"JetGoConfig"> | string | null
+    webhookToken?: StringFilter<"JetGoConfig"> | string
+    webhookSecret?: StringFilter<"JetGoConfig"> | string
+    active?: BoolFilter<"JetGoConfig"> | boolean
+    createdAt?: DateTimeFilter<"JetGoConfig"> | Date | string
+    updatedAt?: DateTimeFilter<"JetGoConfig"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }
+
+  export type JetGoConfigOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    market?: SortOrder
+    environment?: SortOrder
+    credentials?: SortOrder
+    collectPointId?: SortOrderInput | SortOrder
+    collectPointName?: SortOrderInput | SortOrder
+    webhookToken?: SortOrder
+    webhookSecret?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    location?: LocationOrderByWithRelationInput
+    _relevance?: JetGoConfigOrderByRelevanceInput
+  }
+
+  export type JetGoConfigWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    locationId?: string
+    AND?: JetGoConfigWhereInput | JetGoConfigWhereInput[]
+    OR?: JetGoConfigWhereInput[]
+    NOT?: JetGoConfigWhereInput | JetGoConfigWhereInput[]
+    tenantId?: StringFilter<"JetGoConfig"> | string
+    market?: StringFilter<"JetGoConfig"> | string
+    environment?: StringFilter<"JetGoConfig"> | string
+    credentials?: JsonFilter<"JetGoConfig">
+    collectPointId?: StringNullableFilter<"JetGoConfig"> | string | null
+    collectPointName?: StringNullableFilter<"JetGoConfig"> | string | null
+    webhookToken?: StringFilter<"JetGoConfig"> | string
+    webhookSecret?: StringFilter<"JetGoConfig"> | string
+    active?: BoolFilter<"JetGoConfig"> | boolean
+    createdAt?: DateTimeFilter<"JetGoConfig"> | Date | string
+    updatedAt?: DateTimeFilter<"JetGoConfig"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }, "id" | "locationId">
+
+  export type JetGoConfigOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    market?: SortOrder
+    environment?: SortOrder
+    credentials?: SortOrder
+    collectPointId?: SortOrderInput | SortOrder
+    collectPointName?: SortOrderInput | SortOrder
+    webhookToken?: SortOrder
+    webhookSecret?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: JetGoConfigCountOrderByAggregateInput
+    _max?: JetGoConfigMaxOrderByAggregateInput
+    _min?: JetGoConfigMinOrderByAggregateInput
+  }
+
+  export type JetGoConfigScalarWhereWithAggregatesInput = {
+    AND?: JetGoConfigScalarWhereWithAggregatesInput | JetGoConfigScalarWhereWithAggregatesInput[]
+    OR?: JetGoConfigScalarWhereWithAggregatesInput[]
+    NOT?: JetGoConfigScalarWhereWithAggregatesInput | JetGoConfigScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"JetGoConfig"> | string
+    tenantId?: StringWithAggregatesFilter<"JetGoConfig"> | string
+    locationId?: StringWithAggregatesFilter<"JetGoConfig"> | string
+    market?: StringWithAggregatesFilter<"JetGoConfig"> | string
+    environment?: StringWithAggregatesFilter<"JetGoConfig"> | string
+    credentials?: JsonWithAggregatesFilter<"JetGoConfig">
+    collectPointId?: StringNullableWithAggregatesFilter<"JetGoConfig"> | string | null
+    collectPointName?: StringNullableWithAggregatesFilter<"JetGoConfig"> | string | null
+    webhookToken?: StringWithAggregatesFilter<"JetGoConfig"> | string
+    webhookSecret?: StringWithAggregatesFilter<"JetGoConfig"> | string
+    active?: BoolWithAggregatesFilter<"JetGoConfig"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"JetGoConfig"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"JetGoConfig"> | Date | string
+  }
+
+  export type YangoConfigWhereInput = {
+    AND?: YangoConfigWhereInput | YangoConfigWhereInput[]
+    OR?: YangoConfigWhereInput[]
+    NOT?: YangoConfigWhereInput | YangoConfigWhereInput[]
+    id?: StringFilter<"YangoConfig"> | string
+    tenantId?: StringFilter<"YangoConfig"> | string
+    locationId?: StringFilter<"YangoConfig"> | string
+    mode?: StringFilter<"YangoConfig"> | string
+    credentials?: JsonFilter<"YangoConfig">
+    taxiClass?: StringFilter<"YangoConfig"> | string
+    contactEmail?: StringNullableFilter<"YangoConfig"> | string | null
+    pickupLat?: FloatNullableFilter<"YangoConfig"> | number | null
+    pickupLng?: FloatNullableFilter<"YangoConfig"> | number | null
+    webhookToken?: StringFilter<"YangoConfig"> | string
+    active?: BoolFilter<"YangoConfig"> | boolean
+    createdAt?: DateTimeFilter<"YangoConfig"> | Date | string
+    updatedAt?: DateTimeFilter<"YangoConfig"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }
+
+  export type YangoConfigOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    mode?: SortOrder
+    credentials?: SortOrder
+    taxiClass?: SortOrder
+    contactEmail?: SortOrderInput | SortOrder
+    pickupLat?: SortOrderInput | SortOrder
+    pickupLng?: SortOrderInput | SortOrder
+    webhookToken?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    location?: LocationOrderByWithRelationInput
+    _relevance?: YangoConfigOrderByRelevanceInput
+  }
+
+  export type YangoConfigWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    locationId?: string
+    AND?: YangoConfigWhereInput | YangoConfigWhereInput[]
+    OR?: YangoConfigWhereInput[]
+    NOT?: YangoConfigWhereInput | YangoConfigWhereInput[]
+    tenantId?: StringFilter<"YangoConfig"> | string
+    mode?: StringFilter<"YangoConfig"> | string
+    credentials?: JsonFilter<"YangoConfig">
+    taxiClass?: StringFilter<"YangoConfig"> | string
+    contactEmail?: StringNullableFilter<"YangoConfig"> | string | null
+    pickupLat?: FloatNullableFilter<"YangoConfig"> | number | null
+    pickupLng?: FloatNullableFilter<"YangoConfig"> | number | null
+    webhookToken?: StringFilter<"YangoConfig"> | string
+    active?: BoolFilter<"YangoConfig"> | boolean
+    createdAt?: DateTimeFilter<"YangoConfig"> | Date | string
+    updatedAt?: DateTimeFilter<"YangoConfig"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }, "id" | "locationId">
+
+  export type YangoConfigOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    mode?: SortOrder
+    credentials?: SortOrder
+    taxiClass?: SortOrder
+    contactEmail?: SortOrderInput | SortOrder
+    pickupLat?: SortOrderInput | SortOrder
+    pickupLng?: SortOrderInput | SortOrder
+    webhookToken?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: YangoConfigCountOrderByAggregateInput
+    _avg?: YangoConfigAvgOrderByAggregateInput
+    _max?: YangoConfigMaxOrderByAggregateInput
+    _min?: YangoConfigMinOrderByAggregateInput
+    _sum?: YangoConfigSumOrderByAggregateInput
+  }
+
+  export type YangoConfigScalarWhereWithAggregatesInput = {
+    AND?: YangoConfigScalarWhereWithAggregatesInput | YangoConfigScalarWhereWithAggregatesInput[]
+    OR?: YangoConfigScalarWhereWithAggregatesInput[]
+    NOT?: YangoConfigScalarWhereWithAggregatesInput | YangoConfigScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"YangoConfig"> | string
+    tenantId?: StringWithAggregatesFilter<"YangoConfig"> | string
+    locationId?: StringWithAggregatesFilter<"YangoConfig"> | string
+    mode?: StringWithAggregatesFilter<"YangoConfig"> | string
+    credentials?: JsonWithAggregatesFilter<"YangoConfig">
+    taxiClass?: StringWithAggregatesFilter<"YangoConfig"> | string
+    contactEmail?: StringNullableWithAggregatesFilter<"YangoConfig"> | string | null
+    pickupLat?: FloatNullableWithAggregatesFilter<"YangoConfig"> | number | null
+    pickupLng?: FloatNullableWithAggregatesFilter<"YangoConfig"> | number | null
+    webhookToken?: StringWithAggregatesFilter<"YangoConfig"> | string
+    active?: BoolWithAggregatesFilter<"YangoConfig"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"YangoConfig"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"YangoConfig"> | Date | string
+  }
+
   export type ReviewWhereInput = {
     AND?: ReviewWhereInput | ReviewWhereInput[]
     OR?: ReviewWhereInput[]
@@ -178499,6 +187540,115 @@ export namespace Prisma {
     qualifyingOrderId?: StringNullableWithAggregatesFilter<"Referral"> | string | null
     qualifiedAt?: DateTimeNullableWithAggregatesFilter<"Referral"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Referral"> | Date | string
+  }
+
+  export type KeetaAuthorizationWhereInput = {
+    AND?: KeetaAuthorizationWhereInput | KeetaAuthorizationWhereInput[]
+    OR?: KeetaAuthorizationWhereInput[]
+    NOT?: KeetaAuthorizationWhereInput | KeetaAuthorizationWhereInput[]
+    id?: StringFilter<"KeetaAuthorization"> | string
+    tenantId?: StringFilter<"KeetaAuthorization"> | string
+    keetaBrandId?: StringNullableFilter<"KeetaAuthorization"> | string | null
+    brandName?: StringNullableFilter<"KeetaAuthorization"> | string | null
+    keetaUserId?: StringNullableFilter<"KeetaAuthorization"> | string | null
+    accessToken?: StringFilter<"KeetaAuthorization"> | string
+    refreshToken?: StringFilter<"KeetaAuthorization"> | string
+    expiresAt?: DateTimeFilter<"KeetaAuthorization"> | Date | string
+    issuedAt?: DateTimeFilter<"KeetaAuthorization"> | Date | string
+    status?: StringFilter<"KeetaAuthorization"> | string
+    shops?: JsonFilter<"KeetaAuthorization">
+    lastRefreshAt?: DateTimeNullableFilter<"KeetaAuthorization"> | Date | string | null
+    lastError?: StringNullableFilter<"KeetaAuthorization"> | string | null
+    metadata?: JsonFilter<"KeetaAuthorization">
+    createdAt?: DateTimeFilter<"KeetaAuthorization"> | Date | string
+    updatedAt?: DateTimeFilter<"KeetaAuthorization"> | Date | string
+  }
+
+  export type KeetaAuthorizationOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    keetaBrandId?: SortOrderInput | SortOrder
+    brandName?: SortOrderInput | SortOrder
+    keetaUserId?: SortOrderInput | SortOrder
+    accessToken?: SortOrder
+    refreshToken?: SortOrder
+    expiresAt?: SortOrder
+    issuedAt?: SortOrder
+    status?: SortOrder
+    shops?: SortOrder
+    lastRefreshAt?: SortOrderInput | SortOrder
+    lastError?: SortOrderInput | SortOrder
+    metadata?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _relevance?: KeetaAuthorizationOrderByRelevanceInput
+  }
+
+  export type KeetaAuthorizationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    tenantId_keetaBrandId?: KeetaAuthorizationTenantIdKeetaBrandIdCompoundUniqueInput
+    AND?: KeetaAuthorizationWhereInput | KeetaAuthorizationWhereInput[]
+    OR?: KeetaAuthorizationWhereInput[]
+    NOT?: KeetaAuthorizationWhereInput | KeetaAuthorizationWhereInput[]
+    tenantId?: StringFilter<"KeetaAuthorization"> | string
+    keetaBrandId?: StringNullableFilter<"KeetaAuthorization"> | string | null
+    brandName?: StringNullableFilter<"KeetaAuthorization"> | string | null
+    keetaUserId?: StringNullableFilter<"KeetaAuthorization"> | string | null
+    accessToken?: StringFilter<"KeetaAuthorization"> | string
+    refreshToken?: StringFilter<"KeetaAuthorization"> | string
+    expiresAt?: DateTimeFilter<"KeetaAuthorization"> | Date | string
+    issuedAt?: DateTimeFilter<"KeetaAuthorization"> | Date | string
+    status?: StringFilter<"KeetaAuthorization"> | string
+    shops?: JsonFilter<"KeetaAuthorization">
+    lastRefreshAt?: DateTimeNullableFilter<"KeetaAuthorization"> | Date | string | null
+    lastError?: StringNullableFilter<"KeetaAuthorization"> | string | null
+    metadata?: JsonFilter<"KeetaAuthorization">
+    createdAt?: DateTimeFilter<"KeetaAuthorization"> | Date | string
+    updatedAt?: DateTimeFilter<"KeetaAuthorization"> | Date | string
+  }, "id" | "tenantId_keetaBrandId">
+
+  export type KeetaAuthorizationOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    keetaBrandId?: SortOrderInput | SortOrder
+    brandName?: SortOrderInput | SortOrder
+    keetaUserId?: SortOrderInput | SortOrder
+    accessToken?: SortOrder
+    refreshToken?: SortOrder
+    expiresAt?: SortOrder
+    issuedAt?: SortOrder
+    status?: SortOrder
+    shops?: SortOrder
+    lastRefreshAt?: SortOrderInput | SortOrder
+    lastError?: SortOrderInput | SortOrder
+    metadata?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: KeetaAuthorizationCountOrderByAggregateInput
+    _max?: KeetaAuthorizationMaxOrderByAggregateInput
+    _min?: KeetaAuthorizationMinOrderByAggregateInput
+  }
+
+  export type KeetaAuthorizationScalarWhereWithAggregatesInput = {
+    AND?: KeetaAuthorizationScalarWhereWithAggregatesInput | KeetaAuthorizationScalarWhereWithAggregatesInput[]
+    OR?: KeetaAuthorizationScalarWhereWithAggregatesInput[]
+    NOT?: KeetaAuthorizationScalarWhereWithAggregatesInput | KeetaAuthorizationScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"KeetaAuthorization"> | string
+    tenantId?: StringWithAggregatesFilter<"KeetaAuthorization"> | string
+    keetaBrandId?: StringNullableWithAggregatesFilter<"KeetaAuthorization"> | string | null
+    brandName?: StringNullableWithAggregatesFilter<"KeetaAuthorization"> | string | null
+    keetaUserId?: StringNullableWithAggregatesFilter<"KeetaAuthorization"> | string | null
+    accessToken?: StringWithAggregatesFilter<"KeetaAuthorization"> | string
+    refreshToken?: StringWithAggregatesFilter<"KeetaAuthorization"> | string
+    expiresAt?: DateTimeWithAggregatesFilter<"KeetaAuthorization"> | Date | string
+    issuedAt?: DateTimeWithAggregatesFilter<"KeetaAuthorization"> | Date | string
+    status?: StringWithAggregatesFilter<"KeetaAuthorization"> | string
+    shops?: JsonWithAggregatesFilter<"KeetaAuthorization">
+    lastRefreshAt?: DateTimeNullableWithAggregatesFilter<"KeetaAuthorization"> | Date | string | null
+    lastError?: StringNullableWithAggregatesFilter<"KeetaAuthorization"> | string | null
+    metadata?: JsonWithAggregatesFilter<"KeetaAuthorization">
+    createdAt?: DateTimeWithAggregatesFilter<"KeetaAuthorization"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"KeetaAuthorization"> | Date | string
   }
 
   export type TenantCreateInput = {
@@ -180128,6 +189278,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -180193,11 +189344,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -180224,6 +189378,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -180288,8 +189443,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -180312,6 +189470,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -180377,11 +189536,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -180408,6 +189570,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -180472,8 +189635,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -180500,6 +189666,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -180562,6 +189729,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -180628,6 +189796,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -181558,6 +190727,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: number | null
     prepTime?: number | null
+    minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -181582,6 +190754,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryCreateNestedManyWithoutItemInput
     modifierGroupLinks?: ModifierGroupOnItemCreateNestedManyWithoutItemInput
     variants?: MenuItemVariantCreateNestedManyWithoutItemInput
+    productVariants?: ProductVariantCreateNestedManyWithoutMenuItemInput
     recipe?: RecipeCreateNestedOneWithoutMenuItemInput
     stationRoutes?: MenuItemStationCreateNestedManyWithoutMenuItemInput
     channelAvailability?: MenuItemChannelAvailabilityCreateNestedManyWithoutItemInput
@@ -181611,6 +190784,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: number | null
     prepTime?: number | null
+    minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -181635,6 +190811,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryUncheckedCreateNestedManyWithoutItemInput
     modifierGroupLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutItemInput
     variants?: MenuItemVariantUncheckedCreateNestedManyWithoutItemInput
+    productVariants?: ProductVariantUncheckedCreateNestedManyWithoutMenuItemInput
     recipe?: RecipeUncheckedCreateNestedOneWithoutMenuItemInput
     stationRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutMenuItemInput
     channelAvailability?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutItemInput
@@ -181664,6 +190841,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -181688,6 +190868,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryUpdateManyWithoutItemNestedInput
     modifierGroupLinks?: ModifierGroupOnItemUpdateManyWithoutItemNestedInput
     variants?: MenuItemVariantUpdateManyWithoutItemNestedInput
+    productVariants?: ProductVariantUpdateManyWithoutMenuItemNestedInput
     recipe?: RecipeUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUpdateManyWithoutMenuItemNestedInput
     channelAvailability?: MenuItemChannelAvailabilityUpdateManyWithoutItemNestedInput
@@ -181717,6 +190898,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -181741,6 +190925,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryUncheckedUpdateManyWithoutItemNestedInput
     modifierGroupLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutItemNestedInput
     variants?: MenuItemVariantUncheckedUpdateManyWithoutItemNestedInput
+    productVariants?: ProductVariantUncheckedUpdateManyWithoutMenuItemNestedInput
     recipe?: RecipeUncheckedUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUncheckedUpdateManyWithoutMenuItemNestedInput
     channelAvailability?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutItemNestedInput
@@ -181770,6 +190955,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: number | null
     prepTime?: number | null
+    minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -181816,6 +191004,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -181862,6 +191053,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -184879,6 +194073,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     order: OrderCreateNestedOneWithoutItemsInput
+    refundLines?: RefundLineCreateNestedManyWithoutOrderItemInput
   }
 
   export type OrderItemUncheckedCreateInput = {
@@ -184893,6 +194088,7 @@ export namespace Prisma {
     notes?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
+    refundLines?: RefundLineUncheckedCreateNestedManyWithoutOrderItemInput
   }
 
   export type OrderItemUpdateInput = {
@@ -184907,6 +194103,7 @@ export namespace Prisma {
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     order?: OrderUpdateOneRequiredWithoutItemsNestedInput
+    refundLines?: RefundLineUpdateManyWithoutOrderItemNestedInput
   }
 
   export type OrderItemUncheckedUpdateInput = {
@@ -184921,6 +194118,7 @@ export namespace Prisma {
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    refundLines?: RefundLineUncheckedUpdateManyWithoutOrderItemNestedInput
   }
 
   export type OrderItemCreateManyInput = {
@@ -188383,6 +197581,8 @@ export namespace Prisma {
   export type RefundCreateInput = {
     id?: string
     tenantId: string
+    orderId?: string | null
+    method?: string | null
     stripeRefundId?: string | null
     amount: Decimal | DecimalJsLike | number | string
     reason?: string | null
@@ -188391,14 +197591,17 @@ export namespace Prisma {
     processedBy?: string | null
     note?: string | null
     createdAt?: Date | string
-    payment: PaymentCreateNestedOneWithoutRefundsInput
+    payment?: PaymentCreateNestedOneWithoutRefundsInput
     ledgerEntries?: LedgerEntryCreateNestedManyWithoutRefundInput
+    lines?: RefundLineCreateNestedManyWithoutRefundInput
   }
 
   export type RefundUncheckedCreateInput = {
     id?: string
     tenantId: string
-    paymentId: string
+    paymentId?: string | null
+    orderId?: string | null
+    method?: string | null
     stripeRefundId?: string | null
     amount: Decimal | DecimalJsLike | number | string
     reason?: string | null
@@ -188408,11 +197611,14 @@ export namespace Prisma {
     note?: string | null
     createdAt?: Date | string
     ledgerEntries?: LedgerEntryUncheckedCreateNestedManyWithoutRefundInput
+    lines?: RefundLineUncheckedCreateNestedManyWithoutRefundInput
   }
 
   export type RefundUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    method?: NullableStringFieldUpdateOperationsInput | string | null
     stripeRefundId?: NullableStringFieldUpdateOperationsInput | string | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     reason?: NullableStringFieldUpdateOperationsInput | string | null
@@ -188421,14 +197627,17 @@ export namespace Prisma {
     processedBy?: NullableStringFieldUpdateOperationsInput | string | null
     note?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    payment?: PaymentUpdateOneRequiredWithoutRefundsNestedInput
+    payment?: PaymentUpdateOneWithoutRefundsNestedInput
     ledgerEntries?: LedgerEntryUpdateManyWithoutRefundNestedInput
+    lines?: RefundLineUpdateManyWithoutRefundNestedInput
   }
 
   export type RefundUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
-    paymentId?: StringFieldUpdateOperationsInput | string
+    paymentId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    method?: NullableStringFieldUpdateOperationsInput | string | null
     stripeRefundId?: NullableStringFieldUpdateOperationsInput | string | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     reason?: NullableStringFieldUpdateOperationsInput | string | null
@@ -188438,12 +197647,15 @@ export namespace Prisma {
     note?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ledgerEntries?: LedgerEntryUncheckedUpdateManyWithoutRefundNestedInput
+    lines?: RefundLineUncheckedUpdateManyWithoutRefundNestedInput
   }
 
   export type RefundCreateManyInput = {
     id?: string
     tenantId: string
-    paymentId: string
+    paymentId?: string | null
+    orderId?: string | null
+    method?: string | null
     stripeRefundId?: string | null
     amount: Decimal | DecimalJsLike | number | string
     reason?: string | null
@@ -188457,6 +197669,8 @@ export namespace Prisma {
   export type RefundUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    method?: NullableStringFieldUpdateOperationsInput | string | null
     stripeRefundId?: NullableStringFieldUpdateOperationsInput | string | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     reason?: NullableStringFieldUpdateOperationsInput | string | null
@@ -188470,7 +197684,9 @@ export namespace Prisma {
   export type RefundUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
-    paymentId?: StringFieldUpdateOperationsInput | string
+    paymentId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    method?: NullableStringFieldUpdateOperationsInput | string | null
     stripeRefundId?: NullableStringFieldUpdateOperationsInput | string | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     reason?: NullableStringFieldUpdateOperationsInput | string | null
@@ -188478,6 +197694,372 @@ export namespace Prisma {
     isPartial?: BoolFieldUpdateOperationsInput | boolean
     processedBy?: NullableStringFieldUpdateOperationsInput | string | null
     note?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProductVariantCreateInput = {
+    id?: string
+    tenantId: string
+    brandId: string
+    name: string
+    options?: JsonNullValueInput | InputJsonValue
+    sku?: string | null
+    barcode?: string | null
+    price?: Decimal | DecimalJsLike | number | string | null
+    costPrice?: Decimal | DecimalJsLike | number | string | null
+    trackStock?: boolean
+    lowStockAt?: number | null
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    menuItem: MenuItemCreateNestedOneWithoutProductVariantsInput
+    stockLevels?: ProductStockLevelCreateNestedManyWithoutVariantInput
+    movements?: ProductStockMovementCreateNestedManyWithoutVariantInput
+  }
+
+  export type ProductVariantUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    brandId: string
+    menuItemId: string
+    name: string
+    options?: JsonNullValueInput | InputJsonValue
+    sku?: string | null
+    barcode?: string | null
+    price?: Decimal | DecimalJsLike | number | string | null
+    costPrice?: Decimal | DecimalJsLike | number | string | null
+    trackStock?: boolean
+    lowStockAt?: number | null
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    stockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutVariantInput
+    movements?: ProductStockMovementUncheckedCreateNestedManyWithoutVariantInput
+  }
+
+  export type ProductVariantUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    options?: JsonNullValueInput | InputJsonValue
+    sku?: NullableStringFieldUpdateOperationsInput | string | null
+    barcode?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    costPrice?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    trackStock?: BoolFieldUpdateOperationsInput | boolean
+    lowStockAt?: NullableIntFieldUpdateOperationsInput | number | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    menuItem?: MenuItemUpdateOneRequiredWithoutProductVariantsNestedInput
+    stockLevels?: ProductStockLevelUpdateManyWithoutVariantNestedInput
+    movements?: ProductStockMovementUpdateManyWithoutVariantNestedInput
+  }
+
+  export type ProductVariantUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    menuItemId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    options?: JsonNullValueInput | InputJsonValue
+    sku?: NullableStringFieldUpdateOperationsInput | string | null
+    barcode?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    costPrice?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    trackStock?: BoolFieldUpdateOperationsInput | boolean
+    lowStockAt?: NullableIntFieldUpdateOperationsInput | number | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    stockLevels?: ProductStockLevelUncheckedUpdateManyWithoutVariantNestedInput
+    movements?: ProductStockMovementUncheckedUpdateManyWithoutVariantNestedInput
+  }
+
+  export type ProductVariantCreateManyInput = {
+    id?: string
+    tenantId: string
+    brandId: string
+    menuItemId: string
+    name: string
+    options?: JsonNullValueInput | InputJsonValue
+    sku?: string | null
+    barcode?: string | null
+    price?: Decimal | DecimalJsLike | number | string | null
+    costPrice?: Decimal | DecimalJsLike | number | string | null
+    trackStock?: boolean
+    lowStockAt?: number | null
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ProductVariantUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    options?: JsonNullValueInput | InputJsonValue
+    sku?: NullableStringFieldUpdateOperationsInput | string | null
+    barcode?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    costPrice?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    trackStock?: BoolFieldUpdateOperationsInput | boolean
+    lowStockAt?: NullableIntFieldUpdateOperationsInput | number | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProductVariantUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    menuItemId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    options?: JsonNullValueInput | InputJsonValue
+    sku?: NullableStringFieldUpdateOperationsInput | string | null
+    barcode?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    costPrice?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    trackStock?: BoolFieldUpdateOperationsInput | boolean
+    lowStockAt?: NullableIntFieldUpdateOperationsInput | number | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProductStockLevelCreateInput = {
+    id?: string
+    quantity?: number
+    updatedAt?: Date | string
+    variant: ProductVariantCreateNestedOneWithoutStockLevelsInput
+    location: LocationCreateNestedOneWithoutProductStockLevelsInput
+  }
+
+  export type ProductStockLevelUncheckedCreateInput = {
+    id?: string
+    variantId: string
+    locationId: string
+    quantity?: number
+    updatedAt?: Date | string
+  }
+
+  export type ProductStockLevelUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    variant?: ProductVariantUpdateOneRequiredWithoutStockLevelsNestedInput
+    location?: LocationUpdateOneRequiredWithoutProductStockLevelsNestedInput
+  }
+
+  export type ProductStockLevelUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    variantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProductStockLevelCreateManyInput = {
+    id?: string
+    variantId: string
+    locationId: string
+    quantity?: number
+    updatedAt?: Date | string
+  }
+
+  export type ProductStockLevelUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProductStockLevelUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    variantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProductStockMovementCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    type: $Enums.StockMovementType
+    quantity: number
+    reason?: string | null
+    orderId?: string | null
+    refundId?: string | null
+    recordedBy?: string | null
+    dedupeKey?: string | null
+    createdAt?: Date | string
+    variant: ProductVariantCreateNestedOneWithoutMovementsInput
+  }
+
+  export type ProductStockMovementUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    variantId: string
+    type: $Enums.StockMovementType
+    quantity: number
+    reason?: string | null
+    orderId?: string | null
+    refundId?: string | null
+    recordedBy?: string | null
+    dedupeKey?: string | null
+    createdAt?: Date | string
+  }
+
+  export type ProductStockMovementUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    type?: EnumStockMovementTypeFieldUpdateOperationsInput | $Enums.StockMovementType
+    quantity?: IntFieldUpdateOperationsInput | number
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    refundId?: NullableStringFieldUpdateOperationsInput | string | null
+    recordedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    dedupeKey?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    variant?: ProductVariantUpdateOneRequiredWithoutMovementsNestedInput
+  }
+
+  export type ProductStockMovementUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    variantId?: StringFieldUpdateOperationsInput | string
+    type?: EnumStockMovementTypeFieldUpdateOperationsInput | $Enums.StockMovementType
+    quantity?: IntFieldUpdateOperationsInput | number
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    refundId?: NullableStringFieldUpdateOperationsInput | string | null
+    recordedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    dedupeKey?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProductStockMovementCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    variantId: string
+    type: $Enums.StockMovementType
+    quantity: number
+    reason?: string | null
+    orderId?: string | null
+    refundId?: string | null
+    recordedBy?: string | null
+    dedupeKey?: string | null
+    createdAt?: Date | string
+  }
+
+  export type ProductStockMovementUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    type?: EnumStockMovementTypeFieldUpdateOperationsInput | $Enums.StockMovementType
+    quantity?: IntFieldUpdateOperationsInput | number
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    refundId?: NullableStringFieldUpdateOperationsInput | string | null
+    recordedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    dedupeKey?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProductStockMovementUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    variantId?: StringFieldUpdateOperationsInput | string
+    type?: EnumStockMovementTypeFieldUpdateOperationsInput | $Enums.StockMovementType
+    quantity?: IntFieldUpdateOperationsInput | number
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    refundId?: NullableStringFieldUpdateOperationsInput | string | null
+    recordedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    dedupeKey?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RefundLineCreateInput = {
+    id?: string
+    quantity: number
+    amount: Decimal | DecimalJsLike | number | string
+    restock?: boolean
+    createdAt?: Date | string
+    refund: RefundCreateNestedOneWithoutLinesInput
+    orderItem: OrderItemCreateNestedOneWithoutRefundLinesInput
+  }
+
+  export type RefundLineUncheckedCreateInput = {
+    id?: string
+    refundId: string
+    orderItemId: string
+    quantity: number
+    amount: Decimal | DecimalJsLike | number | string
+    restock?: boolean
+    createdAt?: Date | string
+  }
+
+  export type RefundLineUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    restock?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    refund?: RefundUpdateOneRequiredWithoutLinesNestedInput
+    orderItem?: OrderItemUpdateOneRequiredWithoutRefundLinesNestedInput
+  }
+
+  export type RefundLineUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    refundId?: StringFieldUpdateOperationsInput | string
+    orderItemId?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    restock?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RefundLineCreateManyInput = {
+    id?: string
+    refundId: string
+    orderItemId: string
+    quantity: number
+    amount: Decimal | DecimalJsLike | number | string
+    restock?: boolean
+    createdAt?: Date | string
+  }
+
+  export type RefundLineUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    restock?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RefundLineUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    refundId?: StringFieldUpdateOperationsInput | string
+    orderItemId?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    restock?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -192892,6 +202474,228 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type JetGoConfigCreateInput = {
+    id?: string
+    tenantId: string
+    market?: string
+    environment?: string
+    credentials: JsonNullValueInput | InputJsonValue
+    collectPointId?: string | null
+    collectPointName?: string | null
+    webhookToken: string
+    webhookSecret?: string
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutJetGoConfigInput
+  }
+
+  export type JetGoConfigUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    market?: string
+    environment?: string
+    credentials: JsonNullValueInput | InputJsonValue
+    collectPointId?: string | null
+    collectPointName?: string | null
+    webhookToken: string
+    webhookSecret?: string
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type JetGoConfigUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    market?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    collectPointId?: NullableStringFieldUpdateOperationsInput | string | null
+    collectPointName?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookToken?: StringFieldUpdateOperationsInput | string
+    webhookSecret?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutJetGoConfigNestedInput
+  }
+
+  export type JetGoConfigUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    market?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    collectPointId?: NullableStringFieldUpdateOperationsInput | string | null
+    collectPointName?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookToken?: StringFieldUpdateOperationsInput | string
+    webhookSecret?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type JetGoConfigCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    market?: string
+    environment?: string
+    credentials: JsonNullValueInput | InputJsonValue
+    collectPointId?: string | null
+    collectPointName?: string | null
+    webhookToken: string
+    webhookSecret?: string
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type JetGoConfigUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    market?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    collectPointId?: NullableStringFieldUpdateOperationsInput | string | null
+    collectPointName?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookToken?: StringFieldUpdateOperationsInput | string
+    webhookSecret?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type JetGoConfigUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    market?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    collectPointId?: NullableStringFieldUpdateOperationsInput | string | null
+    collectPointName?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookToken?: StringFieldUpdateOperationsInput | string
+    webhookSecret?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type YangoConfigCreateInput = {
+    id?: string
+    tenantId: string
+    mode?: string
+    credentials: JsonNullValueInput | InputJsonValue
+    taxiClass?: string
+    contactEmail?: string | null
+    pickupLat?: number | null
+    pickupLng?: number | null
+    webhookToken: string
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutYangoConfigInput
+  }
+
+  export type YangoConfigUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    mode?: string
+    credentials: JsonNullValueInput | InputJsonValue
+    taxiClass?: string
+    contactEmail?: string | null
+    pickupLat?: number | null
+    pickupLng?: number | null
+    webhookToken: string
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type YangoConfigUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    mode?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    taxiClass?: StringFieldUpdateOperationsInput | string
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    pickupLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    pickupLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    webhookToken?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutYangoConfigNestedInput
+  }
+
+  export type YangoConfigUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    mode?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    taxiClass?: StringFieldUpdateOperationsInput | string
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    pickupLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    pickupLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    webhookToken?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type YangoConfigCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    mode?: string
+    credentials: JsonNullValueInput | InputJsonValue
+    taxiClass?: string
+    contactEmail?: string | null
+    pickupLat?: number | null
+    pickupLng?: number | null
+    webhookToken: string
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type YangoConfigUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    mode?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    taxiClass?: StringFieldUpdateOperationsInput | string
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    pickupLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    pickupLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    webhookToken?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type YangoConfigUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    mode?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    taxiClass?: StringFieldUpdateOperationsInput | string
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    pickupLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    pickupLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    webhookToken?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type ReviewCreateInput = {
     id?: string
     tenantId: string
@@ -194667,6 +204471,139 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type KeetaAuthorizationCreateInput = {
+    id?: string
+    tenantId: string
+    keetaBrandId?: string | null
+    brandName?: string | null
+    keetaUserId?: string | null
+    accessToken: string
+    refreshToken: string
+    expiresAt: Date | string
+    issuedAt: Date | string
+    status?: string
+    shops?: JsonNullValueInput | InputJsonValue
+    lastRefreshAt?: Date | string | null
+    lastError?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type KeetaAuthorizationUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    keetaBrandId?: string | null
+    brandName?: string | null
+    keetaUserId?: string | null
+    accessToken: string
+    refreshToken: string
+    expiresAt: Date | string
+    issuedAt: Date | string
+    status?: string
+    shops?: JsonNullValueInput | InputJsonValue
+    lastRefreshAt?: Date | string | null
+    lastError?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type KeetaAuthorizationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    keetaBrandId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandName?: NullableStringFieldUpdateOperationsInput | string | null
+    keetaUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    accessToken?: StringFieldUpdateOperationsInput | string
+    refreshToken?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    issuedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    shops?: JsonNullValueInput | InputJsonValue
+    lastRefreshAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type KeetaAuthorizationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    keetaBrandId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandName?: NullableStringFieldUpdateOperationsInput | string | null
+    keetaUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    accessToken?: StringFieldUpdateOperationsInput | string
+    refreshToken?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    issuedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    shops?: JsonNullValueInput | InputJsonValue
+    lastRefreshAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type KeetaAuthorizationCreateManyInput = {
+    id?: string
+    tenantId: string
+    keetaBrandId?: string | null
+    brandName?: string | null
+    keetaUserId?: string | null
+    accessToken: string
+    refreshToken: string
+    expiresAt: Date | string
+    issuedAt: Date | string
+    status?: string
+    shops?: JsonNullValueInput | InputJsonValue
+    lastRefreshAt?: Date | string | null
+    lastError?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type KeetaAuthorizationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    keetaBrandId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandName?: NullableStringFieldUpdateOperationsInput | string | null
+    keetaUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    accessToken?: StringFieldUpdateOperationsInput | string
+    refreshToken?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    issuedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    shops?: JsonNullValueInput | InputJsonValue
+    lastRefreshAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type KeetaAuthorizationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    keetaBrandId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandName?: NullableStringFieldUpdateOperationsInput | string | null
+    keetaUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    accessToken?: StringFieldUpdateOperationsInput | string
+    refreshToken?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    issuedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    shops?: JsonNullValueInput | InputJsonValue
+    lastRefreshAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -196221,6 +206158,13 @@ export namespace Prisma {
     _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
+  export type EnumBusinessTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.BusinessType | EnumBusinessTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.BusinessType[] | ListEnumBusinessTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BusinessType[] | ListEnumBusinessTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumBusinessTypeFilter<$PrismaModel> | $Enums.BusinessType
+  }
+
   export type IntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -196314,6 +206258,12 @@ export namespace Prisma {
     none?: MenuItemChannelAvailabilityWhereInput
   }
 
+  export type ProductStockLevelListRelationFilter = {
+    every?: ProductStockLevelWhereInput
+    some?: ProductStockLevelWhereInput
+    none?: ProductStockLevelWhereInput
+  }
+
   export type PrinterNullableRelationFilter = {
     is?: PrinterWhereInput | null
     isNot?: PrinterWhereInput | null
@@ -196327,6 +206277,16 @@ export namespace Prisma {
   export type UberDirectConfigNullableRelationFilter = {
     is?: UberDirectConfigWhereInput | null
     isNot?: UberDirectConfigWhereInput | null
+  }
+
+  export type JetGoConfigNullableRelationFilter = {
+    is?: JetGoConfigWhereInput | null
+    isNot?: JetGoConfigWhereInput | null
+  }
+
+  export type YangoConfigNullableRelationFilter = {
+    is?: YangoConfigWhereInput | null
+    isNot?: YangoConfigWhereInput | null
   }
 
   export type LoyaltyCardNullableRelationFilter = {
@@ -196375,6 +206335,10 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
+  export type ProductStockLevelOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type LocationOrderByRelevanceInput = {
     fields: LocationOrderByRelevanceFieldEnum | LocationOrderByRelevanceFieldEnum[]
     sort: SortOrder
@@ -196402,6 +206366,7 @@ export namespace Prisma {
     postcode?: SortOrder
     country?: SortOrder
     currency?: SortOrder
+    businessType?: SortOrder
     about?: SortOrder
     logoUrl?: SortOrder
     customDomain?: SortOrder
@@ -196481,6 +206446,7 @@ export namespace Prisma {
     postcode?: SortOrder
     country?: SortOrder
     currency?: SortOrder
+    businessType?: SortOrder
     about?: SortOrder
     logoUrl?: SortOrder
     customDomain?: SortOrder
@@ -196540,6 +206506,7 @@ export namespace Prisma {
     postcode?: SortOrder
     country?: SortOrder
     currency?: SortOrder
+    businessType?: SortOrder
     about?: SortOrder
     logoUrl?: SortOrder
     customDomain?: SortOrder
@@ -196595,6 +206562,16 @@ export namespace Prisma {
     throttleLimit?: SortOrder
     latitude?: SortOrder
     longitude?: SortOrder
+  }
+
+  export type EnumBusinessTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.BusinessType | EnumBusinessTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.BusinessType[] | ListEnumBusinessTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BusinessType[] | ListEnumBusinessTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumBusinessTypeWithAggregatesFilter<$PrismaModel> | $Enums.BusinessType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumBusinessTypeFilter<$PrismaModel>
+    _max?: NestedEnumBusinessTypeFilter<$PrismaModel>
   }
 
   export type IntWithAggregatesFilter<$PrismaModel = never> = {
@@ -197203,6 +207180,12 @@ export namespace Prisma {
     none?: MenuItemVariantWhereInput
   }
 
+  export type ProductVariantListRelationFilter = {
+    every?: ProductVariantWhereInput
+    some?: ProductVariantWhereInput
+    none?: ProductVariantWhereInput
+  }
+
   export type RecipeNullableRelationFilter = {
     is?: RecipeWhereInput | null
     isNot?: RecipeWhereInput | null
@@ -197225,6 +207208,10 @@ export namespace Prisma {
   }
 
   export type MenuItemVariantOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ProductVariantOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -197265,6 +207252,9 @@ export namespace Prisma {
     dietary?: SortOrder
     calories?: SortOrder
     prepTime?: SortOrder
+    minAge?: SortOrder
+    sellBy?: SortOrder
+    scaleCode?: SortOrder
     metadata?: SortOrder
     hasMultipleSkus?: SortOrder
     productSkus?: SortOrder
@@ -197292,6 +207282,7 @@ export namespace Prisma {
     basePrice?: SortOrder
     calories?: SortOrder
     prepTime?: SortOrder
+    minAge?: SortOrder
     deliveryTax?: SortOrder
     takeawayTax?: SortOrder
     eatInTax?: SortOrder
@@ -197319,6 +207310,9 @@ export namespace Prisma {
     availableRestoreAt?: SortOrder
     calories?: SortOrder
     prepTime?: SortOrder
+    minAge?: SortOrder
+    sellBy?: SortOrder
+    scaleCode?: SortOrder
     hasMultipleSkus?: SortOrder
     deliveryTax?: SortOrder
     takeawayTax?: SortOrder
@@ -197356,6 +207350,9 @@ export namespace Prisma {
     availableRestoreAt?: SortOrder
     calories?: SortOrder
     prepTime?: SortOrder
+    minAge?: SortOrder
+    sellBy?: SortOrder
+    scaleCode?: SortOrder
     hasMultipleSkus?: SortOrder
     deliveryTax?: SortOrder
     takeawayTax?: SortOrder
@@ -197377,6 +207374,7 @@ export namespace Prisma {
     basePrice?: SortOrder
     calories?: SortOrder
     prepTime?: SortOrder
+    minAge?: SortOrder
     deliveryTax?: SortOrder
     takeawayTax?: SortOrder
     eatInTax?: SortOrder
@@ -199387,6 +209385,16 @@ export namespace Prisma {
 
   export type OrderNumberSequenceSumOrderByAggregateInput = {
     nextValue?: SortOrder
+  }
+
+  export type RefundLineListRelationFilter = {
+    every?: RefundLineWhereInput
+    some?: RefundLineWhereInput
+    none?: RefundLineWhereInput
+  }
+
+  export type RefundLineOrderByRelationAggregateInput = {
+    _count?: SortOrder
   }
 
   export type OrderItemOrderByRelevanceInput = {
@@ -201625,9 +211633,9 @@ export namespace Prisma {
     not?: NestedEnumRefundStatusFilter<$PrismaModel> | $Enums.RefundStatus
   }
 
-  export type PaymentRelationFilter = {
-    is?: PaymentWhereInput
-    isNot?: PaymentWhereInput
+  export type PaymentNullableRelationFilter = {
+    is?: PaymentWhereInput | null
+    isNot?: PaymentWhereInput | null
   }
 
   export type RefundOrderByRelevanceInput = {
@@ -201640,6 +211648,8 @@ export namespace Prisma {
     id?: SortOrder
     tenantId?: SortOrder
     paymentId?: SortOrder
+    orderId?: SortOrder
+    method?: SortOrder
     stripeRefundId?: SortOrder
     amount?: SortOrder
     reason?: SortOrder
@@ -201658,6 +211668,8 @@ export namespace Prisma {
     id?: SortOrder
     tenantId?: SortOrder
     paymentId?: SortOrder
+    orderId?: SortOrder
+    method?: SortOrder
     stripeRefundId?: SortOrder
     amount?: SortOrder
     reason?: SortOrder
@@ -201672,6 +211684,8 @@ export namespace Prisma {
     id?: SortOrder
     tenantId?: SortOrder
     paymentId?: SortOrder
+    orderId?: SortOrder
+    method?: SortOrder
     stripeRefundId?: SortOrder
     amount?: SortOrder
     reason?: SortOrder
@@ -201696,16 +211710,281 @@ export namespace Prisma {
     _max?: NestedEnumRefundStatusFilter<$PrismaModel>
   }
 
+  export type ProductStockMovementListRelationFilter = {
+    every?: ProductStockMovementWhereInput
+    some?: ProductStockMovementWhereInput
+    none?: ProductStockMovementWhereInput
+  }
+
+  export type ProductStockMovementOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ProductVariantOrderByRelevanceInput = {
+    fields: ProductVariantOrderByRelevanceFieldEnum | ProductVariantOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type ProductVariantBrandIdBarcodeCompoundUniqueInput = {
+    brandId: string
+    barcode: string
+  }
+
+  export type ProductVariantCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    menuItemId?: SortOrder
+    name?: SortOrder
+    options?: SortOrder
+    sku?: SortOrder
+    barcode?: SortOrder
+    price?: SortOrder
+    costPrice?: SortOrder
+    trackStock?: SortOrder
+    lowStockAt?: SortOrder
+    isActive?: SortOrder
+    sortOrder?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ProductVariantAvgOrderByAggregateInput = {
+    price?: SortOrder
+    costPrice?: SortOrder
+    lowStockAt?: SortOrder
+    sortOrder?: SortOrder
+  }
+
+  export type ProductVariantMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    menuItemId?: SortOrder
+    name?: SortOrder
+    sku?: SortOrder
+    barcode?: SortOrder
+    price?: SortOrder
+    costPrice?: SortOrder
+    trackStock?: SortOrder
+    lowStockAt?: SortOrder
+    isActive?: SortOrder
+    sortOrder?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ProductVariantMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    menuItemId?: SortOrder
+    name?: SortOrder
+    sku?: SortOrder
+    barcode?: SortOrder
+    price?: SortOrder
+    costPrice?: SortOrder
+    trackStock?: SortOrder
+    lowStockAt?: SortOrder
+    isActive?: SortOrder
+    sortOrder?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ProductVariantSumOrderByAggregateInput = {
+    price?: SortOrder
+    costPrice?: SortOrder
+    lowStockAt?: SortOrder
+    sortOrder?: SortOrder
+  }
+
+  export type ProductVariantRelationFilter = {
+    is?: ProductVariantWhereInput
+    isNot?: ProductVariantWhereInput
+  }
+
+  export type ProductStockLevelOrderByRelevanceInput = {
+    fields: ProductStockLevelOrderByRelevanceFieldEnum | ProductStockLevelOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type ProductStockLevelVariantIdLocationIdCompoundUniqueInput = {
+    variantId: string
+    locationId: string
+  }
+
+  export type ProductStockLevelCountOrderByAggregateInput = {
+    id?: SortOrder
+    variantId?: SortOrder
+    locationId?: SortOrder
+    quantity?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ProductStockLevelAvgOrderByAggregateInput = {
+    quantity?: SortOrder
+  }
+
+  export type ProductStockLevelMaxOrderByAggregateInput = {
+    id?: SortOrder
+    variantId?: SortOrder
+    locationId?: SortOrder
+    quantity?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ProductStockLevelMinOrderByAggregateInput = {
+    id?: SortOrder
+    variantId?: SortOrder
+    locationId?: SortOrder
+    quantity?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ProductStockLevelSumOrderByAggregateInput = {
+    quantity?: SortOrder
+  }
+
+  export type EnumStockMovementTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.StockMovementType | EnumStockMovementTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.StockMovementType[] | ListEnumStockMovementTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.StockMovementType[] | ListEnumStockMovementTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumStockMovementTypeFilter<$PrismaModel> | $Enums.StockMovementType
+  }
+
+  export type ProductStockMovementOrderByRelevanceInput = {
+    fields: ProductStockMovementOrderByRelevanceFieldEnum | ProductStockMovementOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type ProductStockMovementCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    variantId?: SortOrder
+    type?: SortOrder
+    quantity?: SortOrder
+    reason?: SortOrder
+    orderId?: SortOrder
+    refundId?: SortOrder
+    recordedBy?: SortOrder
+    dedupeKey?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ProductStockMovementAvgOrderByAggregateInput = {
+    quantity?: SortOrder
+  }
+
+  export type ProductStockMovementMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    variantId?: SortOrder
+    type?: SortOrder
+    quantity?: SortOrder
+    reason?: SortOrder
+    orderId?: SortOrder
+    refundId?: SortOrder
+    recordedBy?: SortOrder
+    dedupeKey?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ProductStockMovementMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    variantId?: SortOrder
+    type?: SortOrder
+    quantity?: SortOrder
+    reason?: SortOrder
+    orderId?: SortOrder
+    refundId?: SortOrder
+    recordedBy?: SortOrder
+    dedupeKey?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ProductStockMovementSumOrderByAggregateInput = {
+    quantity?: SortOrder
+  }
+
+  export type EnumStockMovementTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.StockMovementType | EnumStockMovementTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.StockMovementType[] | ListEnumStockMovementTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.StockMovementType[] | ListEnumStockMovementTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumStockMovementTypeWithAggregatesFilter<$PrismaModel> | $Enums.StockMovementType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumStockMovementTypeFilter<$PrismaModel>
+    _max?: NestedEnumStockMovementTypeFilter<$PrismaModel>
+  }
+
+  export type RefundRelationFilter = {
+    is?: RefundWhereInput
+    isNot?: RefundWhereInput
+  }
+
+  export type OrderItemRelationFilter = {
+    is?: OrderItemWhereInput
+    isNot?: OrderItemWhereInput
+  }
+
+  export type RefundLineOrderByRelevanceInput = {
+    fields: RefundLineOrderByRelevanceFieldEnum | RefundLineOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type RefundLineCountOrderByAggregateInput = {
+    id?: SortOrder
+    refundId?: SortOrder
+    orderItemId?: SortOrder
+    quantity?: SortOrder
+    amount?: SortOrder
+    restock?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type RefundLineAvgOrderByAggregateInput = {
+    quantity?: SortOrder
+    amount?: SortOrder
+  }
+
+  export type RefundLineMaxOrderByAggregateInput = {
+    id?: SortOrder
+    refundId?: SortOrder
+    orderItemId?: SortOrder
+    quantity?: SortOrder
+    amount?: SortOrder
+    restock?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type RefundLineMinOrderByAggregateInput = {
+    id?: SortOrder
+    refundId?: SortOrder
+    orderItemId?: SortOrder
+    quantity?: SortOrder
+    amount?: SortOrder
+    restock?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type RefundLineSumOrderByAggregateInput = {
+    quantity?: SortOrder
+    amount?: SortOrder
+  }
+
   export type EnumLedgerEntryTypeFilter<$PrismaModel = never> = {
     equals?: $Enums.LedgerEntryType | EnumLedgerEntryTypeFieldRefInput<$PrismaModel>
     in?: $Enums.LedgerEntryType[] | ListEnumLedgerEntryTypeFieldRefInput<$PrismaModel>
     notIn?: $Enums.LedgerEntryType[] | ListEnumLedgerEntryTypeFieldRefInput<$PrismaModel>
     not?: NestedEnumLedgerEntryTypeFilter<$PrismaModel> | $Enums.LedgerEntryType
-  }
-
-  export type PaymentNullableRelationFilter = {
-    is?: PaymentWhereInput | null
-    isNot?: PaymentWhereInput | null
   }
 
   export type RefundNullableRelationFilter = {
@@ -202147,13 +212426,6 @@ export namespace Prisma {
     quantity?: SortOrder
   }
 
-  export type EnumStockMovementTypeFilter<$PrismaModel = never> = {
-    equals?: $Enums.StockMovementType | EnumStockMovementTypeFieldRefInput<$PrismaModel>
-    in?: $Enums.StockMovementType[] | ListEnumStockMovementTypeFieldRefInput<$PrismaModel>
-    notIn?: $Enums.StockMovementType[] | ListEnumStockMovementTypeFieldRefInput<$PrismaModel>
-    not?: NestedEnumStockMovementTypeFilter<$PrismaModel> | $Enums.StockMovementType
-  }
-
   export type StockMovementOrderByRelevanceInput = {
     fields: StockMovementOrderByRelevanceFieldEnum | StockMovementOrderByRelevanceFieldEnum[]
     sort: SortOrder
@@ -202209,16 +212481,6 @@ export namespace Prisma {
 
   export type StockMovementSumOrderByAggregateInput = {
     quantity?: SortOrder
-  }
-
-  export type EnumStockMovementTypeWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.StockMovementType | EnumStockMovementTypeFieldRefInput<$PrismaModel>
-    in?: $Enums.StockMovementType[] | ListEnumStockMovementTypeFieldRefInput<$PrismaModel>
-    notIn?: $Enums.StockMovementType[] | ListEnumStockMovementTypeFieldRefInput<$PrismaModel>
-    not?: NestedEnumStockMovementTypeWithAggregatesFilter<$PrismaModel> | $Enums.StockMovementType
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumStockMovementTypeFilter<$PrismaModel>
-    _max?: NestedEnumStockMovementTypeFilter<$PrismaModel>
   }
 
   export type EnumPurchaseOrderStatusFilter<$PrismaModel = never> = {
@@ -204551,6 +214813,120 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type JetGoConfigOrderByRelevanceInput = {
+    fields: JetGoConfigOrderByRelevanceFieldEnum | JetGoConfigOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type JetGoConfigCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    market?: SortOrder
+    environment?: SortOrder
+    credentials?: SortOrder
+    collectPointId?: SortOrder
+    collectPointName?: SortOrder
+    webhookToken?: SortOrder
+    webhookSecret?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type JetGoConfigMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    market?: SortOrder
+    environment?: SortOrder
+    collectPointId?: SortOrder
+    collectPointName?: SortOrder
+    webhookToken?: SortOrder
+    webhookSecret?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type JetGoConfigMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    market?: SortOrder
+    environment?: SortOrder
+    collectPointId?: SortOrder
+    collectPointName?: SortOrder
+    webhookToken?: SortOrder
+    webhookSecret?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type YangoConfigOrderByRelevanceInput = {
+    fields: YangoConfigOrderByRelevanceFieldEnum | YangoConfigOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type YangoConfigCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    mode?: SortOrder
+    credentials?: SortOrder
+    taxiClass?: SortOrder
+    contactEmail?: SortOrder
+    pickupLat?: SortOrder
+    pickupLng?: SortOrder
+    webhookToken?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type YangoConfigAvgOrderByAggregateInput = {
+    pickupLat?: SortOrder
+    pickupLng?: SortOrder
+  }
+
+  export type YangoConfigMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    mode?: SortOrder
+    taxiClass?: SortOrder
+    contactEmail?: SortOrder
+    pickupLat?: SortOrder
+    pickupLng?: SortOrder
+    webhookToken?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type YangoConfigMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    mode?: SortOrder
+    taxiClass?: SortOrder
+    contactEmail?: SortOrder
+    pickupLat?: SortOrder
+    pickupLng?: SortOrder
+    webhookToken?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type YangoConfigSumOrderByAggregateInput = {
+    pickupLat?: SortOrder
+    pickupLng?: SortOrder
+  }
+
   export type ReviewOrderByRelevanceInput = {
     fields: ReviewOrderByRelevanceFieldEnum | ReviewOrderByRelevanceFieldEnum[]
     sort: SortOrder
@@ -205551,6 +215927,70 @@ export namespace Prisma {
     qualifyingOrderId?: SortOrder
     qualifiedAt?: SortOrder
     createdAt?: SortOrder
+  }
+
+  export type KeetaAuthorizationOrderByRelevanceInput = {
+    fields: KeetaAuthorizationOrderByRelevanceFieldEnum | KeetaAuthorizationOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type KeetaAuthorizationTenantIdKeetaBrandIdCompoundUniqueInput = {
+    tenantId: string
+    keetaBrandId: string
+  }
+
+  export type KeetaAuthorizationCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    keetaBrandId?: SortOrder
+    brandName?: SortOrder
+    keetaUserId?: SortOrder
+    accessToken?: SortOrder
+    refreshToken?: SortOrder
+    expiresAt?: SortOrder
+    issuedAt?: SortOrder
+    status?: SortOrder
+    shops?: SortOrder
+    lastRefreshAt?: SortOrder
+    lastError?: SortOrder
+    metadata?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type KeetaAuthorizationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    keetaBrandId?: SortOrder
+    brandName?: SortOrder
+    keetaUserId?: SortOrder
+    accessToken?: SortOrder
+    refreshToken?: SortOrder
+    expiresAt?: SortOrder
+    issuedAt?: SortOrder
+    status?: SortOrder
+    lastRefreshAt?: SortOrder
+    lastError?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type KeetaAuthorizationMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    keetaBrandId?: SortOrder
+    brandName?: SortOrder
+    keetaUserId?: SortOrder
+    accessToken?: SortOrder
+    refreshToken?: SortOrder
+    expiresAt?: SortOrder
+    issuedAt?: SortOrder
+    status?: SortOrder
+    lastRefreshAt?: SortOrder
+    lastError?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type BrandCreateNestedManyWithoutTenantInput = {
@@ -208118,6 +218558,13 @@ export namespace Prisma {
     connect?: DriverWhereUniqueInput | DriverWhereUniqueInput[]
   }
 
+  export type ProductStockLevelCreateNestedManyWithoutLocationInput = {
+    create?: XOR<ProductStockLevelCreateWithoutLocationInput, ProductStockLevelUncheckedCreateWithoutLocationInput> | ProductStockLevelCreateWithoutLocationInput[] | ProductStockLevelUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: ProductStockLevelCreateOrConnectWithoutLocationInput | ProductStockLevelCreateOrConnectWithoutLocationInput[]
+    createMany?: ProductStockLevelCreateManyLocationInputEnvelope
+    connect?: ProductStockLevelWhereUniqueInput | ProductStockLevelWhereUniqueInput[]
+  }
+
   export type PrinterStationCreateNestedOneWithoutLocationDefaultsInput = {
     create?: XOR<PrinterStationCreateWithoutLocationDefaultsInput, PrinterStationUncheckedCreateWithoutLocationDefaultsInput>
     connectOrCreate?: PrinterStationCreateOrConnectWithoutLocationDefaultsInput
@@ -208146,6 +218593,18 @@ export namespace Prisma {
     create?: XOR<UberDirectConfigCreateWithoutLocationInput, UberDirectConfigUncheckedCreateWithoutLocationInput>
     connectOrCreate?: UberDirectConfigCreateOrConnectWithoutLocationInput
     connect?: UberDirectConfigWhereUniqueInput
+  }
+
+  export type JetGoConfigCreateNestedOneWithoutLocationInput = {
+    create?: XOR<JetGoConfigCreateWithoutLocationInput, JetGoConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: JetGoConfigCreateOrConnectWithoutLocationInput
+    connect?: JetGoConfigWhereUniqueInput
+  }
+
+  export type YangoConfigCreateNestedOneWithoutLocationInput = {
+    create?: XOR<YangoConfigCreateWithoutLocationInput, YangoConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: YangoConfigCreateOrConnectWithoutLocationInput
+    connect?: YangoConfigWhereUniqueInput
   }
 
   export type LoyaltyCardCreateNestedOneWithoutLocationInput = {
@@ -208311,6 +218770,13 @@ export namespace Prisma {
     connect?: DriverWhereUniqueInput | DriverWhereUniqueInput[]
   }
 
+  export type ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput = {
+    create?: XOR<ProductStockLevelCreateWithoutLocationInput, ProductStockLevelUncheckedCreateWithoutLocationInput> | ProductStockLevelCreateWithoutLocationInput[] | ProductStockLevelUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: ProductStockLevelCreateOrConnectWithoutLocationInput | ProductStockLevelCreateOrConnectWithoutLocationInput[]
+    createMany?: ProductStockLevelCreateManyLocationInputEnvelope
+    connect?: ProductStockLevelWhereUniqueInput | ProductStockLevelWhereUniqueInput[]
+  }
+
   export type StuartConfigUncheckedCreateNestedOneWithoutLocationInput = {
     create?: XOR<StuartConfigCreateWithoutLocationInput, StuartConfigUncheckedCreateWithoutLocationInput>
     connectOrCreate?: StuartConfigCreateOrConnectWithoutLocationInput
@@ -208321,6 +218787,18 @@ export namespace Prisma {
     create?: XOR<UberDirectConfigCreateWithoutLocationInput, UberDirectConfigUncheckedCreateWithoutLocationInput>
     connectOrCreate?: UberDirectConfigCreateOrConnectWithoutLocationInput
     connect?: UberDirectConfigWhereUniqueInput
+  }
+
+  export type JetGoConfigUncheckedCreateNestedOneWithoutLocationInput = {
+    create?: XOR<JetGoConfigCreateWithoutLocationInput, JetGoConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: JetGoConfigCreateOrConnectWithoutLocationInput
+    connect?: JetGoConfigWhereUniqueInput
+  }
+
+  export type YangoConfigUncheckedCreateNestedOneWithoutLocationInput = {
+    create?: XOR<YangoConfigCreateWithoutLocationInput, YangoConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: YangoConfigCreateOrConnectWithoutLocationInput
+    connect?: YangoConfigWhereUniqueInput
   }
 
   export type LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput = {
@@ -208340,6 +218818,10 @@ export namespace Prisma {
     connectOrCreate?: LoyaltyRewardCreateOrConnectWithoutLocationInput | LoyaltyRewardCreateOrConnectWithoutLocationInput[]
     createMany?: LoyaltyRewardCreateManyLocationInputEnvelope
     connect?: LoyaltyRewardWhereUniqueInput | LoyaltyRewardWhereUniqueInput[]
+  }
+
+  export type EnumBusinessTypeFieldUpdateOperationsInput = {
+    set?: $Enums.BusinessType
   }
 
   export type IntFieldUpdateOperationsInput = {
@@ -208652,6 +219134,20 @@ export namespace Prisma {
     deleteMany?: DriverScalarWhereInput | DriverScalarWhereInput[]
   }
 
+  export type ProductStockLevelUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<ProductStockLevelCreateWithoutLocationInput, ProductStockLevelUncheckedCreateWithoutLocationInput> | ProductStockLevelCreateWithoutLocationInput[] | ProductStockLevelUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: ProductStockLevelCreateOrConnectWithoutLocationInput | ProductStockLevelCreateOrConnectWithoutLocationInput[]
+    upsert?: ProductStockLevelUpsertWithWhereUniqueWithoutLocationInput | ProductStockLevelUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: ProductStockLevelCreateManyLocationInputEnvelope
+    set?: ProductStockLevelWhereUniqueInput | ProductStockLevelWhereUniqueInput[]
+    disconnect?: ProductStockLevelWhereUniqueInput | ProductStockLevelWhereUniqueInput[]
+    delete?: ProductStockLevelWhereUniqueInput | ProductStockLevelWhereUniqueInput[]
+    connect?: ProductStockLevelWhereUniqueInput | ProductStockLevelWhereUniqueInput[]
+    update?: ProductStockLevelUpdateWithWhereUniqueWithoutLocationInput | ProductStockLevelUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: ProductStockLevelUpdateManyWithWhereWithoutLocationInput | ProductStockLevelUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: ProductStockLevelScalarWhereInput | ProductStockLevelScalarWhereInput[]
+  }
+
   export type PrinterStationUpdateOneWithoutLocationDefaultsNestedInput = {
     create?: XOR<PrinterStationCreateWithoutLocationDefaultsInput, PrinterStationUncheckedCreateWithoutLocationDefaultsInput>
     connectOrCreate?: PrinterStationCreateOrConnectWithoutLocationDefaultsInput
@@ -208700,6 +219196,26 @@ export namespace Prisma {
     delete?: UberDirectConfigWhereInput | boolean
     connect?: UberDirectConfigWhereUniqueInput
     update?: XOR<XOR<UberDirectConfigUpdateToOneWithWhereWithoutLocationInput, UberDirectConfigUpdateWithoutLocationInput>, UberDirectConfigUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type JetGoConfigUpdateOneWithoutLocationNestedInput = {
+    create?: XOR<JetGoConfigCreateWithoutLocationInput, JetGoConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: JetGoConfigCreateOrConnectWithoutLocationInput
+    upsert?: JetGoConfigUpsertWithoutLocationInput
+    disconnect?: JetGoConfigWhereInput | boolean
+    delete?: JetGoConfigWhereInput | boolean
+    connect?: JetGoConfigWhereUniqueInput
+    update?: XOR<XOR<JetGoConfigUpdateToOneWithWhereWithoutLocationInput, JetGoConfigUpdateWithoutLocationInput>, JetGoConfigUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type YangoConfigUpdateOneWithoutLocationNestedInput = {
+    create?: XOR<YangoConfigCreateWithoutLocationInput, YangoConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: YangoConfigCreateOrConnectWithoutLocationInput
+    upsert?: YangoConfigUpsertWithoutLocationInput
+    disconnect?: YangoConfigWhereInput | boolean
+    delete?: YangoConfigWhereInput | boolean
+    connect?: YangoConfigWhereUniqueInput
+    update?: XOR<XOR<YangoConfigUpdateToOneWithWhereWithoutLocationInput, YangoConfigUpdateWithoutLocationInput>, YangoConfigUncheckedUpdateWithoutLocationInput>
   }
 
   export type LoyaltyCardUpdateOneWithoutLocationNestedInput = {
@@ -209018,6 +219534,20 @@ export namespace Prisma {
     deleteMany?: DriverScalarWhereInput | DriverScalarWhereInput[]
   }
 
+  export type ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<ProductStockLevelCreateWithoutLocationInput, ProductStockLevelUncheckedCreateWithoutLocationInput> | ProductStockLevelCreateWithoutLocationInput[] | ProductStockLevelUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: ProductStockLevelCreateOrConnectWithoutLocationInput | ProductStockLevelCreateOrConnectWithoutLocationInput[]
+    upsert?: ProductStockLevelUpsertWithWhereUniqueWithoutLocationInput | ProductStockLevelUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: ProductStockLevelCreateManyLocationInputEnvelope
+    set?: ProductStockLevelWhereUniqueInput | ProductStockLevelWhereUniqueInput[]
+    disconnect?: ProductStockLevelWhereUniqueInput | ProductStockLevelWhereUniqueInput[]
+    delete?: ProductStockLevelWhereUniqueInput | ProductStockLevelWhereUniqueInput[]
+    connect?: ProductStockLevelWhereUniqueInput | ProductStockLevelWhereUniqueInput[]
+    update?: ProductStockLevelUpdateWithWhereUniqueWithoutLocationInput | ProductStockLevelUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: ProductStockLevelUpdateManyWithWhereWithoutLocationInput | ProductStockLevelUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: ProductStockLevelScalarWhereInput | ProductStockLevelScalarWhereInput[]
+  }
+
   export type StuartConfigUncheckedUpdateOneWithoutLocationNestedInput = {
     create?: XOR<StuartConfigCreateWithoutLocationInput, StuartConfigUncheckedCreateWithoutLocationInput>
     connectOrCreate?: StuartConfigCreateOrConnectWithoutLocationInput
@@ -209036,6 +219566,26 @@ export namespace Prisma {
     delete?: UberDirectConfigWhereInput | boolean
     connect?: UberDirectConfigWhereUniqueInput
     update?: XOR<XOR<UberDirectConfigUpdateToOneWithWhereWithoutLocationInput, UberDirectConfigUpdateWithoutLocationInput>, UberDirectConfigUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput = {
+    create?: XOR<JetGoConfigCreateWithoutLocationInput, JetGoConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: JetGoConfigCreateOrConnectWithoutLocationInput
+    upsert?: JetGoConfigUpsertWithoutLocationInput
+    disconnect?: JetGoConfigWhereInput | boolean
+    delete?: JetGoConfigWhereInput | boolean
+    connect?: JetGoConfigWhereUniqueInput
+    update?: XOR<XOR<JetGoConfigUpdateToOneWithWhereWithoutLocationInput, JetGoConfigUpdateWithoutLocationInput>, JetGoConfigUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type YangoConfigUncheckedUpdateOneWithoutLocationNestedInput = {
+    create?: XOR<YangoConfigCreateWithoutLocationInput, YangoConfigUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: YangoConfigCreateOrConnectWithoutLocationInput
+    upsert?: YangoConfigUpsertWithoutLocationInput
+    disconnect?: YangoConfigWhereInput | boolean
+    delete?: YangoConfigWhereInput | boolean
+    connect?: YangoConfigWhereUniqueInput
+    update?: XOR<XOR<YangoConfigUpdateToOneWithWhereWithoutLocationInput, YangoConfigUpdateWithoutLocationInput>, YangoConfigUncheckedUpdateWithoutLocationInput>
   }
 
   export type LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput = {
@@ -209525,6 +220075,13 @@ export namespace Prisma {
     connect?: MenuItemVariantWhereUniqueInput | MenuItemVariantWhereUniqueInput[]
   }
 
+  export type ProductVariantCreateNestedManyWithoutMenuItemInput = {
+    create?: XOR<ProductVariantCreateWithoutMenuItemInput, ProductVariantUncheckedCreateWithoutMenuItemInput> | ProductVariantCreateWithoutMenuItemInput[] | ProductVariantUncheckedCreateWithoutMenuItemInput[]
+    connectOrCreate?: ProductVariantCreateOrConnectWithoutMenuItemInput | ProductVariantCreateOrConnectWithoutMenuItemInput[]
+    createMany?: ProductVariantCreateManyMenuItemInputEnvelope
+    connect?: ProductVariantWhereUniqueInput | ProductVariantWhereUniqueInput[]
+  }
+
   export type RecipeCreateNestedOneWithoutMenuItemInput = {
     create?: XOR<RecipeCreateWithoutMenuItemInput, RecipeUncheckedCreateWithoutMenuItemInput>
     connectOrCreate?: RecipeCreateOrConnectWithoutMenuItemInput
@@ -209571,6 +220128,13 @@ export namespace Prisma {
     connectOrCreate?: MenuItemVariantCreateOrConnectWithoutItemInput | MenuItemVariantCreateOrConnectWithoutItemInput[]
     createMany?: MenuItemVariantCreateManyItemInputEnvelope
     connect?: MenuItemVariantWhereUniqueInput | MenuItemVariantWhereUniqueInput[]
+  }
+
+  export type ProductVariantUncheckedCreateNestedManyWithoutMenuItemInput = {
+    create?: XOR<ProductVariantCreateWithoutMenuItemInput, ProductVariantUncheckedCreateWithoutMenuItemInput> | ProductVariantCreateWithoutMenuItemInput[] | ProductVariantUncheckedCreateWithoutMenuItemInput[]
+    connectOrCreate?: ProductVariantCreateOrConnectWithoutMenuItemInput | ProductVariantCreateOrConnectWithoutMenuItemInput[]
+    createMany?: ProductVariantCreateManyMenuItemInputEnvelope
+    connect?: ProductVariantWhereUniqueInput | ProductVariantWhereUniqueInput[]
   }
 
   export type RecipeUncheckedCreateNestedOneWithoutMenuItemInput = {
@@ -209670,6 +220234,20 @@ export namespace Prisma {
     deleteMany?: MenuItemVariantScalarWhereInput | MenuItemVariantScalarWhereInput[]
   }
 
+  export type ProductVariantUpdateManyWithoutMenuItemNestedInput = {
+    create?: XOR<ProductVariantCreateWithoutMenuItemInput, ProductVariantUncheckedCreateWithoutMenuItemInput> | ProductVariantCreateWithoutMenuItemInput[] | ProductVariantUncheckedCreateWithoutMenuItemInput[]
+    connectOrCreate?: ProductVariantCreateOrConnectWithoutMenuItemInput | ProductVariantCreateOrConnectWithoutMenuItemInput[]
+    upsert?: ProductVariantUpsertWithWhereUniqueWithoutMenuItemInput | ProductVariantUpsertWithWhereUniqueWithoutMenuItemInput[]
+    createMany?: ProductVariantCreateManyMenuItemInputEnvelope
+    set?: ProductVariantWhereUniqueInput | ProductVariantWhereUniqueInput[]
+    disconnect?: ProductVariantWhereUniqueInput | ProductVariantWhereUniqueInput[]
+    delete?: ProductVariantWhereUniqueInput | ProductVariantWhereUniqueInput[]
+    connect?: ProductVariantWhereUniqueInput | ProductVariantWhereUniqueInput[]
+    update?: ProductVariantUpdateWithWhereUniqueWithoutMenuItemInput | ProductVariantUpdateWithWhereUniqueWithoutMenuItemInput[]
+    updateMany?: ProductVariantUpdateManyWithWhereWithoutMenuItemInput | ProductVariantUpdateManyWithWhereWithoutMenuItemInput[]
+    deleteMany?: ProductVariantScalarWhereInput | ProductVariantScalarWhereInput[]
+  }
+
   export type RecipeUpdateOneWithoutMenuItemNestedInput = {
     create?: XOR<RecipeCreateWithoutMenuItemInput, RecipeUncheckedCreateWithoutMenuItemInput>
     connectOrCreate?: RecipeCreateOrConnectWithoutMenuItemInput
@@ -209762,6 +220340,20 @@ export namespace Prisma {
     update?: MenuItemVariantUpdateWithWhereUniqueWithoutItemInput | MenuItemVariantUpdateWithWhereUniqueWithoutItemInput[]
     updateMany?: MenuItemVariantUpdateManyWithWhereWithoutItemInput | MenuItemVariantUpdateManyWithWhereWithoutItemInput[]
     deleteMany?: MenuItemVariantScalarWhereInput | MenuItemVariantScalarWhereInput[]
+  }
+
+  export type ProductVariantUncheckedUpdateManyWithoutMenuItemNestedInput = {
+    create?: XOR<ProductVariantCreateWithoutMenuItemInput, ProductVariantUncheckedCreateWithoutMenuItemInput> | ProductVariantCreateWithoutMenuItemInput[] | ProductVariantUncheckedCreateWithoutMenuItemInput[]
+    connectOrCreate?: ProductVariantCreateOrConnectWithoutMenuItemInput | ProductVariantCreateOrConnectWithoutMenuItemInput[]
+    upsert?: ProductVariantUpsertWithWhereUniqueWithoutMenuItemInput | ProductVariantUpsertWithWhereUniqueWithoutMenuItemInput[]
+    createMany?: ProductVariantCreateManyMenuItemInputEnvelope
+    set?: ProductVariantWhereUniqueInput | ProductVariantWhereUniqueInput[]
+    disconnect?: ProductVariantWhereUniqueInput | ProductVariantWhereUniqueInput[]
+    delete?: ProductVariantWhereUniqueInput | ProductVariantWhereUniqueInput[]
+    connect?: ProductVariantWhereUniqueInput | ProductVariantWhereUniqueInput[]
+    update?: ProductVariantUpdateWithWhereUniqueWithoutMenuItemInput | ProductVariantUpdateWithWhereUniqueWithoutMenuItemInput[]
+    updateMany?: ProductVariantUpdateManyWithWhereWithoutMenuItemInput | ProductVariantUpdateManyWithWhereWithoutMenuItemInput[]
+    deleteMany?: ProductVariantScalarWhereInput | ProductVariantScalarWhereInput[]
   }
 
   export type RecipeUncheckedUpdateOneWithoutMenuItemNestedInput = {
@@ -211245,12 +221837,54 @@ export namespace Prisma {
     connect?: OrderWhereUniqueInput
   }
 
+  export type RefundLineCreateNestedManyWithoutOrderItemInput = {
+    create?: XOR<RefundLineCreateWithoutOrderItemInput, RefundLineUncheckedCreateWithoutOrderItemInput> | RefundLineCreateWithoutOrderItemInput[] | RefundLineUncheckedCreateWithoutOrderItemInput[]
+    connectOrCreate?: RefundLineCreateOrConnectWithoutOrderItemInput | RefundLineCreateOrConnectWithoutOrderItemInput[]
+    createMany?: RefundLineCreateManyOrderItemInputEnvelope
+    connect?: RefundLineWhereUniqueInput | RefundLineWhereUniqueInput[]
+  }
+
+  export type RefundLineUncheckedCreateNestedManyWithoutOrderItemInput = {
+    create?: XOR<RefundLineCreateWithoutOrderItemInput, RefundLineUncheckedCreateWithoutOrderItemInput> | RefundLineCreateWithoutOrderItemInput[] | RefundLineUncheckedCreateWithoutOrderItemInput[]
+    connectOrCreate?: RefundLineCreateOrConnectWithoutOrderItemInput | RefundLineCreateOrConnectWithoutOrderItemInput[]
+    createMany?: RefundLineCreateManyOrderItemInputEnvelope
+    connect?: RefundLineWhereUniqueInput | RefundLineWhereUniqueInput[]
+  }
+
   export type OrderUpdateOneRequiredWithoutItemsNestedInput = {
     create?: XOR<OrderCreateWithoutItemsInput, OrderUncheckedCreateWithoutItemsInput>
     connectOrCreate?: OrderCreateOrConnectWithoutItemsInput
     upsert?: OrderUpsertWithoutItemsInput
     connect?: OrderWhereUniqueInput
     update?: XOR<XOR<OrderUpdateToOneWithWhereWithoutItemsInput, OrderUpdateWithoutItemsInput>, OrderUncheckedUpdateWithoutItemsInput>
+  }
+
+  export type RefundLineUpdateManyWithoutOrderItemNestedInput = {
+    create?: XOR<RefundLineCreateWithoutOrderItemInput, RefundLineUncheckedCreateWithoutOrderItemInput> | RefundLineCreateWithoutOrderItemInput[] | RefundLineUncheckedCreateWithoutOrderItemInput[]
+    connectOrCreate?: RefundLineCreateOrConnectWithoutOrderItemInput | RefundLineCreateOrConnectWithoutOrderItemInput[]
+    upsert?: RefundLineUpsertWithWhereUniqueWithoutOrderItemInput | RefundLineUpsertWithWhereUniqueWithoutOrderItemInput[]
+    createMany?: RefundLineCreateManyOrderItemInputEnvelope
+    set?: RefundLineWhereUniqueInput | RefundLineWhereUniqueInput[]
+    disconnect?: RefundLineWhereUniqueInput | RefundLineWhereUniqueInput[]
+    delete?: RefundLineWhereUniqueInput | RefundLineWhereUniqueInput[]
+    connect?: RefundLineWhereUniqueInput | RefundLineWhereUniqueInput[]
+    update?: RefundLineUpdateWithWhereUniqueWithoutOrderItemInput | RefundLineUpdateWithWhereUniqueWithoutOrderItemInput[]
+    updateMany?: RefundLineUpdateManyWithWhereWithoutOrderItemInput | RefundLineUpdateManyWithWhereWithoutOrderItemInput[]
+    deleteMany?: RefundLineScalarWhereInput | RefundLineScalarWhereInput[]
+  }
+
+  export type RefundLineUncheckedUpdateManyWithoutOrderItemNestedInput = {
+    create?: XOR<RefundLineCreateWithoutOrderItemInput, RefundLineUncheckedCreateWithoutOrderItemInput> | RefundLineCreateWithoutOrderItemInput[] | RefundLineUncheckedCreateWithoutOrderItemInput[]
+    connectOrCreate?: RefundLineCreateOrConnectWithoutOrderItemInput | RefundLineCreateOrConnectWithoutOrderItemInput[]
+    upsert?: RefundLineUpsertWithWhereUniqueWithoutOrderItemInput | RefundLineUpsertWithWhereUniqueWithoutOrderItemInput[]
+    createMany?: RefundLineCreateManyOrderItemInputEnvelope
+    set?: RefundLineWhereUniqueInput | RefundLineWhereUniqueInput[]
+    disconnect?: RefundLineWhereUniqueInput | RefundLineWhereUniqueInput[]
+    delete?: RefundLineWhereUniqueInput | RefundLineWhereUniqueInput[]
+    connect?: RefundLineWhereUniqueInput | RefundLineWhereUniqueInput[]
+    update?: RefundLineUpdateWithWhereUniqueWithoutOrderItemInput | RefundLineUpdateWithWhereUniqueWithoutOrderItemInput[]
+    updateMany?: RefundLineUpdateManyWithWhereWithoutOrderItemInput | RefundLineUpdateManyWithWhereWithoutOrderItemInput[]
+    deleteMany?: RefundLineScalarWhereInput | RefundLineScalarWhereInput[]
   }
 
   export type OrderCreateNestedOneWithoutStatusHistoryInput = {
@@ -212819,6 +223453,13 @@ export namespace Prisma {
     connect?: LedgerEntryWhereUniqueInput | LedgerEntryWhereUniqueInput[]
   }
 
+  export type RefundLineCreateNestedManyWithoutRefundInput = {
+    create?: XOR<RefundLineCreateWithoutRefundInput, RefundLineUncheckedCreateWithoutRefundInput> | RefundLineCreateWithoutRefundInput[] | RefundLineUncheckedCreateWithoutRefundInput[]
+    connectOrCreate?: RefundLineCreateOrConnectWithoutRefundInput | RefundLineCreateOrConnectWithoutRefundInput[]
+    createMany?: RefundLineCreateManyRefundInputEnvelope
+    connect?: RefundLineWhereUniqueInput | RefundLineWhereUniqueInput[]
+  }
+
   export type LedgerEntryUncheckedCreateNestedManyWithoutRefundInput = {
     create?: XOR<LedgerEntryCreateWithoutRefundInput, LedgerEntryUncheckedCreateWithoutRefundInput> | LedgerEntryCreateWithoutRefundInput[] | LedgerEntryUncheckedCreateWithoutRefundInput[]
     connectOrCreate?: LedgerEntryCreateOrConnectWithoutRefundInput | LedgerEntryCreateOrConnectWithoutRefundInput[]
@@ -212826,14 +223467,23 @@ export namespace Prisma {
     connect?: LedgerEntryWhereUniqueInput | LedgerEntryWhereUniqueInput[]
   }
 
+  export type RefundLineUncheckedCreateNestedManyWithoutRefundInput = {
+    create?: XOR<RefundLineCreateWithoutRefundInput, RefundLineUncheckedCreateWithoutRefundInput> | RefundLineCreateWithoutRefundInput[] | RefundLineUncheckedCreateWithoutRefundInput[]
+    connectOrCreate?: RefundLineCreateOrConnectWithoutRefundInput | RefundLineCreateOrConnectWithoutRefundInput[]
+    createMany?: RefundLineCreateManyRefundInputEnvelope
+    connect?: RefundLineWhereUniqueInput | RefundLineWhereUniqueInput[]
+  }
+
   export type EnumRefundStatusFieldUpdateOperationsInput = {
     set?: $Enums.RefundStatus
   }
 
-  export type PaymentUpdateOneRequiredWithoutRefundsNestedInput = {
+  export type PaymentUpdateOneWithoutRefundsNestedInput = {
     create?: XOR<PaymentCreateWithoutRefundsInput, PaymentUncheckedCreateWithoutRefundsInput>
     connectOrCreate?: PaymentCreateOrConnectWithoutRefundsInput
     upsert?: PaymentUpsertWithoutRefundsInput
+    disconnect?: PaymentWhereInput | boolean
+    delete?: PaymentWhereInput | boolean
     connect?: PaymentWhereUniqueInput
     update?: XOR<XOR<PaymentUpdateToOneWithWhereWithoutRefundsInput, PaymentUpdateWithoutRefundsInput>, PaymentUncheckedUpdateWithoutRefundsInput>
   }
@@ -212852,6 +223502,20 @@ export namespace Prisma {
     deleteMany?: LedgerEntryScalarWhereInput | LedgerEntryScalarWhereInput[]
   }
 
+  export type RefundLineUpdateManyWithoutRefundNestedInput = {
+    create?: XOR<RefundLineCreateWithoutRefundInput, RefundLineUncheckedCreateWithoutRefundInput> | RefundLineCreateWithoutRefundInput[] | RefundLineUncheckedCreateWithoutRefundInput[]
+    connectOrCreate?: RefundLineCreateOrConnectWithoutRefundInput | RefundLineCreateOrConnectWithoutRefundInput[]
+    upsert?: RefundLineUpsertWithWhereUniqueWithoutRefundInput | RefundLineUpsertWithWhereUniqueWithoutRefundInput[]
+    createMany?: RefundLineCreateManyRefundInputEnvelope
+    set?: RefundLineWhereUniqueInput | RefundLineWhereUniqueInput[]
+    disconnect?: RefundLineWhereUniqueInput | RefundLineWhereUniqueInput[]
+    delete?: RefundLineWhereUniqueInput | RefundLineWhereUniqueInput[]
+    connect?: RefundLineWhereUniqueInput | RefundLineWhereUniqueInput[]
+    update?: RefundLineUpdateWithWhereUniqueWithoutRefundInput | RefundLineUpdateWithWhereUniqueWithoutRefundInput[]
+    updateMany?: RefundLineUpdateManyWithWhereWithoutRefundInput | RefundLineUpdateManyWithWhereWithoutRefundInput[]
+    deleteMany?: RefundLineScalarWhereInput | RefundLineScalarWhereInput[]
+  }
+
   export type LedgerEntryUncheckedUpdateManyWithoutRefundNestedInput = {
     create?: XOR<LedgerEntryCreateWithoutRefundInput, LedgerEntryUncheckedCreateWithoutRefundInput> | LedgerEntryCreateWithoutRefundInput[] | LedgerEntryUncheckedCreateWithoutRefundInput[]
     connectOrCreate?: LedgerEntryCreateOrConnectWithoutRefundInput | LedgerEntryCreateOrConnectWithoutRefundInput[]
@@ -212864,6 +223528,192 @@ export namespace Prisma {
     update?: LedgerEntryUpdateWithWhereUniqueWithoutRefundInput | LedgerEntryUpdateWithWhereUniqueWithoutRefundInput[]
     updateMany?: LedgerEntryUpdateManyWithWhereWithoutRefundInput | LedgerEntryUpdateManyWithWhereWithoutRefundInput[]
     deleteMany?: LedgerEntryScalarWhereInput | LedgerEntryScalarWhereInput[]
+  }
+
+  export type RefundLineUncheckedUpdateManyWithoutRefundNestedInput = {
+    create?: XOR<RefundLineCreateWithoutRefundInput, RefundLineUncheckedCreateWithoutRefundInput> | RefundLineCreateWithoutRefundInput[] | RefundLineUncheckedCreateWithoutRefundInput[]
+    connectOrCreate?: RefundLineCreateOrConnectWithoutRefundInput | RefundLineCreateOrConnectWithoutRefundInput[]
+    upsert?: RefundLineUpsertWithWhereUniqueWithoutRefundInput | RefundLineUpsertWithWhereUniqueWithoutRefundInput[]
+    createMany?: RefundLineCreateManyRefundInputEnvelope
+    set?: RefundLineWhereUniqueInput | RefundLineWhereUniqueInput[]
+    disconnect?: RefundLineWhereUniqueInput | RefundLineWhereUniqueInput[]
+    delete?: RefundLineWhereUniqueInput | RefundLineWhereUniqueInput[]
+    connect?: RefundLineWhereUniqueInput | RefundLineWhereUniqueInput[]
+    update?: RefundLineUpdateWithWhereUniqueWithoutRefundInput | RefundLineUpdateWithWhereUniqueWithoutRefundInput[]
+    updateMany?: RefundLineUpdateManyWithWhereWithoutRefundInput | RefundLineUpdateManyWithWhereWithoutRefundInput[]
+    deleteMany?: RefundLineScalarWhereInput | RefundLineScalarWhereInput[]
+  }
+
+  export type MenuItemCreateNestedOneWithoutProductVariantsInput = {
+    create?: XOR<MenuItemCreateWithoutProductVariantsInput, MenuItemUncheckedCreateWithoutProductVariantsInput>
+    connectOrCreate?: MenuItemCreateOrConnectWithoutProductVariantsInput
+    connect?: MenuItemWhereUniqueInput
+  }
+
+  export type ProductStockLevelCreateNestedManyWithoutVariantInput = {
+    create?: XOR<ProductStockLevelCreateWithoutVariantInput, ProductStockLevelUncheckedCreateWithoutVariantInput> | ProductStockLevelCreateWithoutVariantInput[] | ProductStockLevelUncheckedCreateWithoutVariantInput[]
+    connectOrCreate?: ProductStockLevelCreateOrConnectWithoutVariantInput | ProductStockLevelCreateOrConnectWithoutVariantInput[]
+    createMany?: ProductStockLevelCreateManyVariantInputEnvelope
+    connect?: ProductStockLevelWhereUniqueInput | ProductStockLevelWhereUniqueInput[]
+  }
+
+  export type ProductStockMovementCreateNestedManyWithoutVariantInput = {
+    create?: XOR<ProductStockMovementCreateWithoutVariantInput, ProductStockMovementUncheckedCreateWithoutVariantInput> | ProductStockMovementCreateWithoutVariantInput[] | ProductStockMovementUncheckedCreateWithoutVariantInput[]
+    connectOrCreate?: ProductStockMovementCreateOrConnectWithoutVariantInput | ProductStockMovementCreateOrConnectWithoutVariantInput[]
+    createMany?: ProductStockMovementCreateManyVariantInputEnvelope
+    connect?: ProductStockMovementWhereUniqueInput | ProductStockMovementWhereUniqueInput[]
+  }
+
+  export type ProductStockLevelUncheckedCreateNestedManyWithoutVariantInput = {
+    create?: XOR<ProductStockLevelCreateWithoutVariantInput, ProductStockLevelUncheckedCreateWithoutVariantInput> | ProductStockLevelCreateWithoutVariantInput[] | ProductStockLevelUncheckedCreateWithoutVariantInput[]
+    connectOrCreate?: ProductStockLevelCreateOrConnectWithoutVariantInput | ProductStockLevelCreateOrConnectWithoutVariantInput[]
+    createMany?: ProductStockLevelCreateManyVariantInputEnvelope
+    connect?: ProductStockLevelWhereUniqueInput | ProductStockLevelWhereUniqueInput[]
+  }
+
+  export type ProductStockMovementUncheckedCreateNestedManyWithoutVariantInput = {
+    create?: XOR<ProductStockMovementCreateWithoutVariantInput, ProductStockMovementUncheckedCreateWithoutVariantInput> | ProductStockMovementCreateWithoutVariantInput[] | ProductStockMovementUncheckedCreateWithoutVariantInput[]
+    connectOrCreate?: ProductStockMovementCreateOrConnectWithoutVariantInput | ProductStockMovementCreateOrConnectWithoutVariantInput[]
+    createMany?: ProductStockMovementCreateManyVariantInputEnvelope
+    connect?: ProductStockMovementWhereUniqueInput | ProductStockMovementWhereUniqueInput[]
+  }
+
+  export type MenuItemUpdateOneRequiredWithoutProductVariantsNestedInput = {
+    create?: XOR<MenuItemCreateWithoutProductVariantsInput, MenuItemUncheckedCreateWithoutProductVariantsInput>
+    connectOrCreate?: MenuItemCreateOrConnectWithoutProductVariantsInput
+    upsert?: MenuItemUpsertWithoutProductVariantsInput
+    connect?: MenuItemWhereUniqueInput
+    update?: XOR<XOR<MenuItemUpdateToOneWithWhereWithoutProductVariantsInput, MenuItemUpdateWithoutProductVariantsInput>, MenuItemUncheckedUpdateWithoutProductVariantsInput>
+  }
+
+  export type ProductStockLevelUpdateManyWithoutVariantNestedInput = {
+    create?: XOR<ProductStockLevelCreateWithoutVariantInput, ProductStockLevelUncheckedCreateWithoutVariantInput> | ProductStockLevelCreateWithoutVariantInput[] | ProductStockLevelUncheckedCreateWithoutVariantInput[]
+    connectOrCreate?: ProductStockLevelCreateOrConnectWithoutVariantInput | ProductStockLevelCreateOrConnectWithoutVariantInput[]
+    upsert?: ProductStockLevelUpsertWithWhereUniqueWithoutVariantInput | ProductStockLevelUpsertWithWhereUniqueWithoutVariantInput[]
+    createMany?: ProductStockLevelCreateManyVariantInputEnvelope
+    set?: ProductStockLevelWhereUniqueInput | ProductStockLevelWhereUniqueInput[]
+    disconnect?: ProductStockLevelWhereUniqueInput | ProductStockLevelWhereUniqueInput[]
+    delete?: ProductStockLevelWhereUniqueInput | ProductStockLevelWhereUniqueInput[]
+    connect?: ProductStockLevelWhereUniqueInput | ProductStockLevelWhereUniqueInput[]
+    update?: ProductStockLevelUpdateWithWhereUniqueWithoutVariantInput | ProductStockLevelUpdateWithWhereUniqueWithoutVariantInput[]
+    updateMany?: ProductStockLevelUpdateManyWithWhereWithoutVariantInput | ProductStockLevelUpdateManyWithWhereWithoutVariantInput[]
+    deleteMany?: ProductStockLevelScalarWhereInput | ProductStockLevelScalarWhereInput[]
+  }
+
+  export type ProductStockMovementUpdateManyWithoutVariantNestedInput = {
+    create?: XOR<ProductStockMovementCreateWithoutVariantInput, ProductStockMovementUncheckedCreateWithoutVariantInput> | ProductStockMovementCreateWithoutVariantInput[] | ProductStockMovementUncheckedCreateWithoutVariantInput[]
+    connectOrCreate?: ProductStockMovementCreateOrConnectWithoutVariantInput | ProductStockMovementCreateOrConnectWithoutVariantInput[]
+    upsert?: ProductStockMovementUpsertWithWhereUniqueWithoutVariantInput | ProductStockMovementUpsertWithWhereUniqueWithoutVariantInput[]
+    createMany?: ProductStockMovementCreateManyVariantInputEnvelope
+    set?: ProductStockMovementWhereUniqueInput | ProductStockMovementWhereUniqueInput[]
+    disconnect?: ProductStockMovementWhereUniqueInput | ProductStockMovementWhereUniqueInput[]
+    delete?: ProductStockMovementWhereUniqueInput | ProductStockMovementWhereUniqueInput[]
+    connect?: ProductStockMovementWhereUniqueInput | ProductStockMovementWhereUniqueInput[]
+    update?: ProductStockMovementUpdateWithWhereUniqueWithoutVariantInput | ProductStockMovementUpdateWithWhereUniqueWithoutVariantInput[]
+    updateMany?: ProductStockMovementUpdateManyWithWhereWithoutVariantInput | ProductStockMovementUpdateManyWithWhereWithoutVariantInput[]
+    deleteMany?: ProductStockMovementScalarWhereInput | ProductStockMovementScalarWhereInput[]
+  }
+
+  export type ProductStockLevelUncheckedUpdateManyWithoutVariantNestedInput = {
+    create?: XOR<ProductStockLevelCreateWithoutVariantInput, ProductStockLevelUncheckedCreateWithoutVariantInput> | ProductStockLevelCreateWithoutVariantInput[] | ProductStockLevelUncheckedCreateWithoutVariantInput[]
+    connectOrCreate?: ProductStockLevelCreateOrConnectWithoutVariantInput | ProductStockLevelCreateOrConnectWithoutVariantInput[]
+    upsert?: ProductStockLevelUpsertWithWhereUniqueWithoutVariantInput | ProductStockLevelUpsertWithWhereUniqueWithoutVariantInput[]
+    createMany?: ProductStockLevelCreateManyVariantInputEnvelope
+    set?: ProductStockLevelWhereUniqueInput | ProductStockLevelWhereUniqueInput[]
+    disconnect?: ProductStockLevelWhereUniqueInput | ProductStockLevelWhereUniqueInput[]
+    delete?: ProductStockLevelWhereUniqueInput | ProductStockLevelWhereUniqueInput[]
+    connect?: ProductStockLevelWhereUniqueInput | ProductStockLevelWhereUniqueInput[]
+    update?: ProductStockLevelUpdateWithWhereUniqueWithoutVariantInput | ProductStockLevelUpdateWithWhereUniqueWithoutVariantInput[]
+    updateMany?: ProductStockLevelUpdateManyWithWhereWithoutVariantInput | ProductStockLevelUpdateManyWithWhereWithoutVariantInput[]
+    deleteMany?: ProductStockLevelScalarWhereInput | ProductStockLevelScalarWhereInput[]
+  }
+
+  export type ProductStockMovementUncheckedUpdateManyWithoutVariantNestedInput = {
+    create?: XOR<ProductStockMovementCreateWithoutVariantInput, ProductStockMovementUncheckedCreateWithoutVariantInput> | ProductStockMovementCreateWithoutVariantInput[] | ProductStockMovementUncheckedCreateWithoutVariantInput[]
+    connectOrCreate?: ProductStockMovementCreateOrConnectWithoutVariantInput | ProductStockMovementCreateOrConnectWithoutVariantInput[]
+    upsert?: ProductStockMovementUpsertWithWhereUniqueWithoutVariantInput | ProductStockMovementUpsertWithWhereUniqueWithoutVariantInput[]
+    createMany?: ProductStockMovementCreateManyVariantInputEnvelope
+    set?: ProductStockMovementWhereUniqueInput | ProductStockMovementWhereUniqueInput[]
+    disconnect?: ProductStockMovementWhereUniqueInput | ProductStockMovementWhereUniqueInput[]
+    delete?: ProductStockMovementWhereUniqueInput | ProductStockMovementWhereUniqueInput[]
+    connect?: ProductStockMovementWhereUniqueInput | ProductStockMovementWhereUniqueInput[]
+    update?: ProductStockMovementUpdateWithWhereUniqueWithoutVariantInput | ProductStockMovementUpdateWithWhereUniqueWithoutVariantInput[]
+    updateMany?: ProductStockMovementUpdateManyWithWhereWithoutVariantInput | ProductStockMovementUpdateManyWithWhereWithoutVariantInput[]
+    deleteMany?: ProductStockMovementScalarWhereInput | ProductStockMovementScalarWhereInput[]
+  }
+
+  export type ProductVariantCreateNestedOneWithoutStockLevelsInput = {
+    create?: XOR<ProductVariantCreateWithoutStockLevelsInput, ProductVariantUncheckedCreateWithoutStockLevelsInput>
+    connectOrCreate?: ProductVariantCreateOrConnectWithoutStockLevelsInput
+    connect?: ProductVariantWhereUniqueInput
+  }
+
+  export type LocationCreateNestedOneWithoutProductStockLevelsInput = {
+    create?: XOR<LocationCreateWithoutProductStockLevelsInput, LocationUncheckedCreateWithoutProductStockLevelsInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutProductStockLevelsInput
+    connect?: LocationWhereUniqueInput
+  }
+
+  export type ProductVariantUpdateOneRequiredWithoutStockLevelsNestedInput = {
+    create?: XOR<ProductVariantCreateWithoutStockLevelsInput, ProductVariantUncheckedCreateWithoutStockLevelsInput>
+    connectOrCreate?: ProductVariantCreateOrConnectWithoutStockLevelsInput
+    upsert?: ProductVariantUpsertWithoutStockLevelsInput
+    connect?: ProductVariantWhereUniqueInput
+    update?: XOR<XOR<ProductVariantUpdateToOneWithWhereWithoutStockLevelsInput, ProductVariantUpdateWithoutStockLevelsInput>, ProductVariantUncheckedUpdateWithoutStockLevelsInput>
+  }
+
+  export type LocationUpdateOneRequiredWithoutProductStockLevelsNestedInput = {
+    create?: XOR<LocationCreateWithoutProductStockLevelsInput, LocationUncheckedCreateWithoutProductStockLevelsInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutProductStockLevelsInput
+    upsert?: LocationUpsertWithoutProductStockLevelsInput
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutProductStockLevelsInput, LocationUpdateWithoutProductStockLevelsInput>, LocationUncheckedUpdateWithoutProductStockLevelsInput>
+  }
+
+  export type ProductVariantCreateNestedOneWithoutMovementsInput = {
+    create?: XOR<ProductVariantCreateWithoutMovementsInput, ProductVariantUncheckedCreateWithoutMovementsInput>
+    connectOrCreate?: ProductVariantCreateOrConnectWithoutMovementsInput
+    connect?: ProductVariantWhereUniqueInput
+  }
+
+  export type EnumStockMovementTypeFieldUpdateOperationsInput = {
+    set?: $Enums.StockMovementType
+  }
+
+  export type ProductVariantUpdateOneRequiredWithoutMovementsNestedInput = {
+    create?: XOR<ProductVariantCreateWithoutMovementsInput, ProductVariantUncheckedCreateWithoutMovementsInput>
+    connectOrCreate?: ProductVariantCreateOrConnectWithoutMovementsInput
+    upsert?: ProductVariantUpsertWithoutMovementsInput
+    connect?: ProductVariantWhereUniqueInput
+    update?: XOR<XOR<ProductVariantUpdateToOneWithWhereWithoutMovementsInput, ProductVariantUpdateWithoutMovementsInput>, ProductVariantUncheckedUpdateWithoutMovementsInput>
+  }
+
+  export type RefundCreateNestedOneWithoutLinesInput = {
+    create?: XOR<RefundCreateWithoutLinesInput, RefundUncheckedCreateWithoutLinesInput>
+    connectOrCreate?: RefundCreateOrConnectWithoutLinesInput
+    connect?: RefundWhereUniqueInput
+  }
+
+  export type OrderItemCreateNestedOneWithoutRefundLinesInput = {
+    create?: XOR<OrderItemCreateWithoutRefundLinesInput, OrderItemUncheckedCreateWithoutRefundLinesInput>
+    connectOrCreate?: OrderItemCreateOrConnectWithoutRefundLinesInput
+    connect?: OrderItemWhereUniqueInput
+  }
+
+  export type RefundUpdateOneRequiredWithoutLinesNestedInput = {
+    create?: XOR<RefundCreateWithoutLinesInput, RefundUncheckedCreateWithoutLinesInput>
+    connectOrCreate?: RefundCreateOrConnectWithoutLinesInput
+    upsert?: RefundUpsertWithoutLinesInput
+    connect?: RefundWhereUniqueInput
+    update?: XOR<XOR<RefundUpdateToOneWithWhereWithoutLinesInput, RefundUpdateWithoutLinesInput>, RefundUncheckedUpdateWithoutLinesInput>
+  }
+
+  export type OrderItemUpdateOneRequiredWithoutRefundLinesNestedInput = {
+    create?: XOR<OrderItemCreateWithoutRefundLinesInput, OrderItemUncheckedCreateWithoutRefundLinesInput>
+    connectOrCreate?: OrderItemCreateOrConnectWithoutRefundLinesInput
+    upsert?: OrderItemUpsertWithoutRefundLinesInput
+    connect?: OrderItemWhereUniqueInput
+    update?: XOR<XOR<OrderItemUpdateToOneWithWhereWithoutRefundLinesInput, OrderItemUpdateWithoutRefundLinesInput>, OrderItemUncheckedUpdateWithoutRefundLinesInput>
   }
 
   export type PaymentCreateNestedOneWithoutLedgerEntriesInput = {
@@ -213306,10 +224156,6 @@ export namespace Prisma {
     create?: XOR<IngredientCreateWithoutMovementsInput, IngredientUncheckedCreateWithoutMovementsInput>
     connectOrCreate?: IngredientCreateOrConnectWithoutMovementsInput
     connect?: IngredientWhereUniqueInput
-  }
-
-  export type EnumStockMovementTypeFieldUpdateOperationsInput = {
-    set?: $Enums.StockMovementType
   }
 
   export type IngredientUpdateOneRequiredWithoutMovementsNestedInput = {
@@ -214001,6 +224847,34 @@ export namespace Prisma {
     upsert?: LocationUpsertWithoutUberDirectConfigInput
     connect?: LocationWhereUniqueInput
     update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutUberDirectConfigInput, LocationUpdateWithoutUberDirectConfigInput>, LocationUncheckedUpdateWithoutUberDirectConfigInput>
+  }
+
+  export type LocationCreateNestedOneWithoutJetGoConfigInput = {
+    create?: XOR<LocationCreateWithoutJetGoConfigInput, LocationUncheckedCreateWithoutJetGoConfigInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutJetGoConfigInput
+    connect?: LocationWhereUniqueInput
+  }
+
+  export type LocationUpdateOneRequiredWithoutJetGoConfigNestedInput = {
+    create?: XOR<LocationCreateWithoutJetGoConfigInput, LocationUncheckedCreateWithoutJetGoConfigInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutJetGoConfigInput
+    upsert?: LocationUpsertWithoutJetGoConfigInput
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutJetGoConfigInput, LocationUpdateWithoutJetGoConfigInput>, LocationUncheckedUpdateWithoutJetGoConfigInput>
+  }
+
+  export type LocationCreateNestedOneWithoutYangoConfigInput = {
+    create?: XOR<LocationCreateWithoutYangoConfigInput, LocationUncheckedCreateWithoutYangoConfigInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutYangoConfigInput
+    connect?: LocationWhereUniqueInput
+  }
+
+  export type LocationUpdateOneRequiredWithoutYangoConfigNestedInput = {
+    create?: XOR<LocationCreateWithoutYangoConfigInput, LocationUncheckedCreateWithoutYangoConfigInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutYangoConfigInput
+    upsert?: LocationUpsertWithoutYangoConfigInput
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutYangoConfigInput, LocationUpdateWithoutYangoConfigInput>, LocationUncheckedUpdateWithoutYangoConfigInput>
   }
 
   export type CustomerPushOrderCreateNestedManyWithoutSubscriptionInput = {
@@ -214992,11 +225866,28 @@ export namespace Prisma {
     not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
 
+  export type NestedEnumBusinessTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.BusinessType | EnumBusinessTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.BusinessType[] | ListEnumBusinessTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BusinessType[] | ListEnumBusinessTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumBusinessTypeFilter<$PrismaModel> | $Enums.BusinessType
+  }
+
   export type NestedEnumLocationGoLiveStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.LocationGoLiveStatus | EnumLocationGoLiveStatusFieldRefInput<$PrismaModel>
     in?: $Enums.LocationGoLiveStatus[] | ListEnumLocationGoLiveStatusFieldRefInput<$PrismaModel>
     notIn?: $Enums.LocationGoLiveStatus[] | ListEnumLocationGoLiveStatusFieldRefInput<$PrismaModel>
     not?: NestedEnumLocationGoLiveStatusFilter<$PrismaModel> | $Enums.LocationGoLiveStatus
+  }
+
+  export type NestedEnumBusinessTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.BusinessType | EnumBusinessTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.BusinessType[] | ListEnumBusinessTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BusinessType[] | ListEnumBusinessTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumBusinessTypeWithAggregatesFilter<$PrismaModel> | $Enums.BusinessType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumBusinessTypeFilter<$PrismaModel>
+    _max?: NestedEnumBusinessTypeFilter<$PrismaModel>
   }
 
   export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
@@ -215622,6 +226513,23 @@ export namespace Prisma {
     _max?: NestedEnumRefundStatusFilter<$PrismaModel>
   }
 
+  export type NestedEnumStockMovementTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.StockMovementType | EnumStockMovementTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.StockMovementType[] | ListEnumStockMovementTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.StockMovementType[] | ListEnumStockMovementTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumStockMovementTypeFilter<$PrismaModel> | $Enums.StockMovementType
+  }
+
+  export type NestedEnumStockMovementTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.StockMovementType | EnumStockMovementTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.StockMovementType[] | ListEnumStockMovementTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.StockMovementType[] | ListEnumStockMovementTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumStockMovementTypeWithAggregatesFilter<$PrismaModel> | $Enums.StockMovementType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumStockMovementTypeFilter<$PrismaModel>
+    _max?: NestedEnumStockMovementTypeFilter<$PrismaModel>
+  }
+
   export type NestedEnumLedgerEntryTypeFilter<$PrismaModel = never> = {
     equals?: $Enums.LedgerEntryType | EnumLedgerEntryTypeFieldRefInput<$PrismaModel>
     in?: $Enums.LedgerEntryType[] | ListEnumLedgerEntryTypeFieldRefInput<$PrismaModel>
@@ -215654,23 +226562,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumPayoutStatusFilter<$PrismaModel>
     _max?: NestedEnumPayoutStatusFilter<$PrismaModel>
-  }
-
-  export type NestedEnumStockMovementTypeFilter<$PrismaModel = never> = {
-    equals?: $Enums.StockMovementType | EnumStockMovementTypeFieldRefInput<$PrismaModel>
-    in?: $Enums.StockMovementType[] | ListEnumStockMovementTypeFieldRefInput<$PrismaModel>
-    notIn?: $Enums.StockMovementType[] | ListEnumStockMovementTypeFieldRefInput<$PrismaModel>
-    not?: NestedEnumStockMovementTypeFilter<$PrismaModel> | $Enums.StockMovementType
-  }
-
-  export type NestedEnumStockMovementTypeWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.StockMovementType | EnumStockMovementTypeFieldRefInput<$PrismaModel>
-    in?: $Enums.StockMovementType[] | ListEnumStockMovementTypeFieldRefInput<$PrismaModel>
-    notIn?: $Enums.StockMovementType[] | ListEnumStockMovementTypeFieldRefInput<$PrismaModel>
-    not?: NestedEnumStockMovementTypeWithAggregatesFilter<$PrismaModel> | $Enums.StockMovementType
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumStockMovementTypeFilter<$PrismaModel>
-    _max?: NestedEnumStockMovementTypeFilter<$PrismaModel>
   }
 
   export type NestedEnumPurchaseOrderStatusFilter<$PrismaModel = never> = {
@@ -218978,6 +229869,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -219042,11 +229934,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -219073,6 +229968,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -219136,8 +230032,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -219241,6 +230140,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -219305,11 +230205,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -219336,6 +230239,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -219399,8 +230303,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -221476,6 +232383,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -221540,11 +232448,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -221570,6 +232481,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -221634,8 +232546,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -222550,6 +233465,7 @@ export namespace Prisma {
     postcode?: StringNullableFilter<"Location"> | string | null
     country?: StringFilter<"Location"> | string
     currency?: StringFilter<"Location"> | string
+    businessType?: EnumBusinessTypeFilter<"Location"> | $Enums.BusinessType
     about?: StringNullableFilter<"Location"> | string | null
     logoUrl?: StringNullableFilter<"Location"> | string | null
     customDomain?: StringNullableFilter<"Location"> | string | null
@@ -224246,6 +235162,30 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type ProductStockLevelCreateWithoutLocationInput = {
+    id?: string
+    quantity?: number
+    updatedAt?: Date | string
+    variant: ProductVariantCreateNestedOneWithoutStockLevelsInput
+  }
+
+  export type ProductStockLevelUncheckedCreateWithoutLocationInput = {
+    id?: string
+    variantId: string
+    quantity?: number
+    updatedAt?: Date | string
+  }
+
+  export type ProductStockLevelCreateOrConnectWithoutLocationInput = {
+    where: ProductStockLevelWhereUniqueInput
+    create: XOR<ProductStockLevelCreateWithoutLocationInput, ProductStockLevelUncheckedCreateWithoutLocationInput>
+  }
+
+  export type ProductStockLevelCreateManyLocationInputEnvelope = {
+    data: ProductStockLevelCreateManyLocationInput | ProductStockLevelCreateManyLocationInput[]
+    skipDuplicates?: boolean
+  }
+
   export type PrinterStationCreateWithoutLocationDefaultsInput = {
     id?: string
     name: string
@@ -224511,6 +235451,76 @@ export namespace Prisma {
   export type UberDirectConfigCreateOrConnectWithoutLocationInput = {
     where: UberDirectConfigWhereUniqueInput
     create: XOR<UberDirectConfigCreateWithoutLocationInput, UberDirectConfigUncheckedCreateWithoutLocationInput>
+  }
+
+  export type JetGoConfigCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    market?: string
+    environment?: string
+    credentials: JsonNullValueInput | InputJsonValue
+    collectPointId?: string | null
+    collectPointName?: string | null
+    webhookToken: string
+    webhookSecret?: string
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type JetGoConfigUncheckedCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    market?: string
+    environment?: string
+    credentials: JsonNullValueInput | InputJsonValue
+    collectPointId?: string | null
+    collectPointName?: string | null
+    webhookToken: string
+    webhookSecret?: string
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type JetGoConfigCreateOrConnectWithoutLocationInput = {
+    where: JetGoConfigWhereUniqueInput
+    create: XOR<JetGoConfigCreateWithoutLocationInput, JetGoConfigUncheckedCreateWithoutLocationInput>
+  }
+
+  export type YangoConfigCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    mode?: string
+    credentials: JsonNullValueInput | InputJsonValue
+    taxiClass?: string
+    contactEmail?: string | null
+    pickupLat?: number | null
+    pickupLng?: number | null
+    webhookToken: string
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type YangoConfigUncheckedCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    mode?: string
+    credentials: JsonNullValueInput | InputJsonValue
+    taxiClass?: string
+    contactEmail?: string | null
+    pickupLat?: number | null
+    pickupLng?: number | null
+    webhookToken: string
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type YangoConfigCreateOrConnectWithoutLocationInput = {
+    where: YangoConfigWhereUniqueInput
+    create: XOR<YangoConfigCreateWithoutLocationInput, YangoConfigUncheckedCreateWithoutLocationInput>
   }
 
   export type LoyaltyCardCreateWithoutLocationInput = {
@@ -225366,6 +236376,33 @@ export namespace Prisma {
     data: XOR<DriverUpdateManyMutationInput, DriverUncheckedUpdateManyWithoutLocationInput>
   }
 
+  export type ProductStockLevelUpsertWithWhereUniqueWithoutLocationInput = {
+    where: ProductStockLevelWhereUniqueInput
+    update: XOR<ProductStockLevelUpdateWithoutLocationInput, ProductStockLevelUncheckedUpdateWithoutLocationInput>
+    create: XOR<ProductStockLevelCreateWithoutLocationInput, ProductStockLevelUncheckedCreateWithoutLocationInput>
+  }
+
+  export type ProductStockLevelUpdateWithWhereUniqueWithoutLocationInput = {
+    where: ProductStockLevelWhereUniqueInput
+    data: XOR<ProductStockLevelUpdateWithoutLocationInput, ProductStockLevelUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type ProductStockLevelUpdateManyWithWhereWithoutLocationInput = {
+    where: ProductStockLevelScalarWhereInput
+    data: XOR<ProductStockLevelUpdateManyMutationInput, ProductStockLevelUncheckedUpdateManyWithoutLocationInput>
+  }
+
+  export type ProductStockLevelScalarWhereInput = {
+    AND?: ProductStockLevelScalarWhereInput | ProductStockLevelScalarWhereInput[]
+    OR?: ProductStockLevelScalarWhereInput[]
+    NOT?: ProductStockLevelScalarWhereInput | ProductStockLevelScalarWhereInput[]
+    id?: StringFilter<"ProductStockLevel"> | string
+    variantId?: StringFilter<"ProductStockLevel"> | string
+    locationId?: StringFilter<"ProductStockLevel"> | string
+    quantity?: IntFilter<"ProductStockLevel"> | number
+    updatedAt?: DateTimeFilter<"ProductStockLevel"> | Date | string
+  }
+
   export type PrinterStationUpsertWithoutLocationDefaultsInput = {
     update: XOR<PrinterStationUpdateWithoutLocationDefaultsInput, PrinterStationUncheckedUpdateWithoutLocationDefaultsInput>
     create: XOR<PrinterStationCreateWithoutLocationDefaultsInput, PrinterStationUncheckedCreateWithoutLocationDefaultsInput>
@@ -225663,6 +236700,88 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type JetGoConfigUpsertWithoutLocationInput = {
+    update: XOR<JetGoConfigUpdateWithoutLocationInput, JetGoConfigUncheckedUpdateWithoutLocationInput>
+    create: XOR<JetGoConfigCreateWithoutLocationInput, JetGoConfigUncheckedCreateWithoutLocationInput>
+    where?: JetGoConfigWhereInput
+  }
+
+  export type JetGoConfigUpdateToOneWithWhereWithoutLocationInput = {
+    where?: JetGoConfigWhereInput
+    data: XOR<JetGoConfigUpdateWithoutLocationInput, JetGoConfigUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type JetGoConfigUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    market?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    collectPointId?: NullableStringFieldUpdateOperationsInput | string | null
+    collectPointName?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookToken?: StringFieldUpdateOperationsInput | string
+    webhookSecret?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type JetGoConfigUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    market?: StringFieldUpdateOperationsInput | string
+    environment?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    collectPointId?: NullableStringFieldUpdateOperationsInput | string | null
+    collectPointName?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookToken?: StringFieldUpdateOperationsInput | string
+    webhookSecret?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type YangoConfigUpsertWithoutLocationInput = {
+    update: XOR<YangoConfigUpdateWithoutLocationInput, YangoConfigUncheckedUpdateWithoutLocationInput>
+    create: XOR<YangoConfigCreateWithoutLocationInput, YangoConfigUncheckedCreateWithoutLocationInput>
+    where?: YangoConfigWhereInput
+  }
+
+  export type YangoConfigUpdateToOneWithWhereWithoutLocationInput = {
+    where?: YangoConfigWhereInput
+    data: XOR<YangoConfigUpdateWithoutLocationInput, YangoConfigUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type YangoConfigUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    mode?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    taxiClass?: StringFieldUpdateOperationsInput | string
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    pickupLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    pickupLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    webhookToken?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type YangoConfigUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    mode?: StringFieldUpdateOperationsInput | string
+    credentials?: JsonNullValueInput | InputJsonValue
+    taxiClass?: StringFieldUpdateOperationsInput | string
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    pickupLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    pickupLng?: NullableFloatFieldUpdateOperationsInput | number | null
+    webhookToken?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type LoyaltyCardUpsertWithoutLocationInput = {
     update: XOR<LoyaltyCardUpdateWithoutLocationInput, LoyaltyCardUncheckedUpdateWithoutLocationInput>
     create: XOR<LoyaltyCardCreateWithoutLocationInput, LoyaltyCardUncheckedCreateWithoutLocationInput>
@@ -225887,6 +237006,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -225951,11 +237071,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -225982,6 +237105,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -226045,8 +237169,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -226200,6 +237327,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -226264,11 +237392,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -226295,6 +237426,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -226358,8 +237490,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -226382,6 +237517,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -226446,11 +237582,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -226477,6 +237616,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -226540,8 +237680,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -226580,6 +237723,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -226644,11 +237788,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -226675,6 +237822,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -226738,8 +237886,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -227328,6 +238479,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -227392,11 +238544,14 @@ export namespace Prisma {
     contracts?: ContractCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -227423,6 +238578,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -227486,8 +238642,11 @@ export namespace Prisma {
     contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -227617,6 +238776,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -227681,11 +238841,14 @@ export namespace Prisma {
     contracts?: ContractUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -227712,6 +238875,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -227775,8 +238939,11 @@ export namespace Prisma {
     contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -228533,6 +239700,56 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type ProductVariantCreateWithoutMenuItemInput = {
+    id?: string
+    tenantId: string
+    brandId: string
+    name: string
+    options?: JsonNullValueInput | InputJsonValue
+    sku?: string | null
+    barcode?: string | null
+    price?: Decimal | DecimalJsLike | number | string | null
+    costPrice?: Decimal | DecimalJsLike | number | string | null
+    trackStock?: boolean
+    lowStockAt?: number | null
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    stockLevels?: ProductStockLevelCreateNestedManyWithoutVariantInput
+    movements?: ProductStockMovementCreateNestedManyWithoutVariantInput
+  }
+
+  export type ProductVariantUncheckedCreateWithoutMenuItemInput = {
+    id?: string
+    tenantId: string
+    brandId: string
+    name: string
+    options?: JsonNullValueInput | InputJsonValue
+    sku?: string | null
+    barcode?: string | null
+    price?: Decimal | DecimalJsLike | number | string | null
+    costPrice?: Decimal | DecimalJsLike | number | string | null
+    trackStock?: boolean
+    lowStockAt?: number | null
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    stockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutVariantInput
+    movements?: ProductStockMovementUncheckedCreateNestedManyWithoutVariantInput
+  }
+
+  export type ProductVariantCreateOrConnectWithoutMenuItemInput = {
+    where: ProductVariantWhereUniqueInput
+    create: XOR<ProductVariantCreateWithoutMenuItemInput, ProductVariantUncheckedCreateWithoutMenuItemInput>
+  }
+
+  export type ProductVariantCreateManyMenuItemInputEnvelope = {
+    data: ProductVariantCreateManyMenuItemInput | ProductVariantCreateManyMenuItemInput[]
+    skipDuplicates?: boolean
+  }
+
   export type RecipeCreateWithoutMenuItemInput = {
     id?: string
     tenantId: string
@@ -228726,6 +239943,44 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"MenuItemVariant"> | Date | string
   }
 
+  export type ProductVariantUpsertWithWhereUniqueWithoutMenuItemInput = {
+    where: ProductVariantWhereUniqueInput
+    update: XOR<ProductVariantUpdateWithoutMenuItemInput, ProductVariantUncheckedUpdateWithoutMenuItemInput>
+    create: XOR<ProductVariantCreateWithoutMenuItemInput, ProductVariantUncheckedCreateWithoutMenuItemInput>
+  }
+
+  export type ProductVariantUpdateWithWhereUniqueWithoutMenuItemInput = {
+    where: ProductVariantWhereUniqueInput
+    data: XOR<ProductVariantUpdateWithoutMenuItemInput, ProductVariantUncheckedUpdateWithoutMenuItemInput>
+  }
+
+  export type ProductVariantUpdateManyWithWhereWithoutMenuItemInput = {
+    where: ProductVariantScalarWhereInput
+    data: XOR<ProductVariantUpdateManyMutationInput, ProductVariantUncheckedUpdateManyWithoutMenuItemInput>
+  }
+
+  export type ProductVariantScalarWhereInput = {
+    AND?: ProductVariantScalarWhereInput | ProductVariantScalarWhereInput[]
+    OR?: ProductVariantScalarWhereInput[]
+    NOT?: ProductVariantScalarWhereInput | ProductVariantScalarWhereInput[]
+    id?: StringFilter<"ProductVariant"> | string
+    tenantId?: StringFilter<"ProductVariant"> | string
+    brandId?: StringFilter<"ProductVariant"> | string
+    menuItemId?: StringFilter<"ProductVariant"> | string
+    name?: StringFilter<"ProductVariant"> | string
+    options?: JsonFilter<"ProductVariant">
+    sku?: StringNullableFilter<"ProductVariant"> | string | null
+    barcode?: StringNullableFilter<"ProductVariant"> | string | null
+    price?: DecimalNullableFilter<"ProductVariant"> | Decimal | DecimalJsLike | number | string | null
+    costPrice?: DecimalNullableFilter<"ProductVariant"> | Decimal | DecimalJsLike | number | string | null
+    trackStock?: BoolFilter<"ProductVariant"> | boolean
+    lowStockAt?: IntNullableFilter<"ProductVariant"> | number | null
+    isActive?: BoolFilter<"ProductVariant"> | boolean
+    sortOrder?: IntFilter<"ProductVariant"> | number
+    createdAt?: DateTimeFilter<"ProductVariant"> | Date | string
+    updatedAt?: DateTimeFilter<"ProductVariant"> | Date | string
+  }
+
   export type RecipeUpsertWithoutMenuItemInput = {
     update: XOR<RecipeUpdateWithoutMenuItemInput, RecipeUncheckedUpdateWithoutMenuItemInput>
     create: XOR<RecipeCreateWithoutMenuItemInput, RecipeUncheckedCreateWithoutMenuItemInput>
@@ -228847,6 +240102,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -228911,11 +240167,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -228942,6 +240201,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -229005,8 +240265,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -229045,6 +240308,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -229109,11 +240373,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -229140,6 +240407,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -229203,8 +240471,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -229233,6 +240504,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: number | null
     prepTime?: number | null
+    minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -229257,6 +240531,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryCreateNestedManyWithoutItemInput
     modifierGroupLinks?: ModifierGroupOnItemCreateNestedManyWithoutItemInput
     variants?: MenuItemVariantCreateNestedManyWithoutItemInput
+    productVariants?: ProductVariantCreateNestedManyWithoutMenuItemInput
     recipe?: RecipeCreateNestedOneWithoutMenuItemInput
     stationRoutes?: MenuItemStationCreateNestedManyWithoutMenuItemInput
     loyaltyCards?: LoyaltyCardCreateNestedManyWithoutRewardItemInput
@@ -229285,6 +240560,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: number | null
     prepTime?: number | null
+    minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -229309,6 +240587,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryUncheckedCreateNestedManyWithoutItemInput
     modifierGroupLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutItemInput
     variants?: MenuItemVariantUncheckedCreateNestedManyWithoutItemInput
+    productVariants?: ProductVariantUncheckedCreateNestedManyWithoutMenuItemInput
     recipe?: RecipeUncheckedCreateNestedOneWithoutMenuItemInput
     stationRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutMenuItemInput
     loyaltyCards?: LoyaltyCardUncheckedCreateNestedManyWithoutRewardItemInput
@@ -229336,6 +240615,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -229400,11 +240680,14 @@ export namespace Prisma {
     contracts?: ContractCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -229431,6 +240714,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -229494,8 +240778,11 @@ export namespace Prisma {
     contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -229540,6 +240827,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -229564,6 +240854,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryUpdateManyWithoutItemNestedInput
     modifierGroupLinks?: ModifierGroupOnItemUpdateManyWithoutItemNestedInput
     variants?: MenuItemVariantUpdateManyWithoutItemNestedInput
+    productVariants?: ProductVariantUpdateManyWithoutMenuItemNestedInput
     recipe?: RecipeUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUpdateManyWithoutMenuItemNestedInput
     loyaltyCards?: LoyaltyCardUpdateManyWithoutRewardItemNestedInput
@@ -229592,6 +240883,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -229616,6 +240910,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryUncheckedUpdateManyWithoutItemNestedInput
     modifierGroupLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutItemNestedInput
     variants?: MenuItemVariantUncheckedUpdateManyWithoutItemNestedInput
+    productVariants?: ProductVariantUncheckedUpdateManyWithoutMenuItemNestedInput
     recipe?: RecipeUncheckedUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUncheckedUpdateManyWithoutMenuItemNestedInput
     loyaltyCards?: LoyaltyCardUncheckedUpdateManyWithoutRewardItemNestedInput
@@ -229649,6 +240944,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -229713,11 +241009,14 @@ export namespace Prisma {
     contracts?: ContractUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -229744,6 +241043,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -229807,8 +241107,11 @@ export namespace Prisma {
     contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -229894,6 +241197,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: number | null
     prepTime?: number | null
+    minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -229917,6 +241223,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     modifierGroupLinks?: ModifierGroupOnItemCreateNestedManyWithoutItemInput
     variants?: MenuItemVariantCreateNestedManyWithoutItemInput
+    productVariants?: ProductVariantCreateNestedManyWithoutMenuItemInput
     recipe?: RecipeCreateNestedOneWithoutMenuItemInput
     stationRoutes?: MenuItemStationCreateNestedManyWithoutMenuItemInput
     channelAvailability?: MenuItemChannelAvailabilityCreateNestedManyWithoutItemInput
@@ -229946,6 +241253,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: number | null
     prepTime?: number | null
+    minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -229969,6 +241279,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     modifierGroupLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutItemInput
     variants?: MenuItemVariantUncheckedCreateNestedManyWithoutItemInput
+    productVariants?: ProductVariantUncheckedCreateNestedManyWithoutMenuItemInput
     recipe?: RecipeUncheckedCreateNestedOneWithoutMenuItemInput
     stationRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutMenuItemInput
     channelAvailability?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutItemInput
@@ -230077,6 +241388,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -230100,6 +241414,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     modifierGroupLinks?: ModifierGroupOnItemUpdateManyWithoutItemNestedInput
     variants?: MenuItemVariantUpdateManyWithoutItemNestedInput
+    productVariants?: ProductVariantUpdateManyWithoutMenuItemNestedInput
     recipe?: RecipeUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUpdateManyWithoutMenuItemNestedInput
     channelAvailability?: MenuItemChannelAvailabilityUpdateManyWithoutItemNestedInput
@@ -230129,6 +241444,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -230152,6 +241470,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     modifierGroupLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutItemNestedInput
     variants?: MenuItemVariantUncheckedUpdateManyWithoutItemNestedInput
+    productVariants?: ProductVariantUncheckedUpdateManyWithoutMenuItemNestedInput
     recipe?: RecipeUncheckedUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUncheckedUpdateManyWithoutMenuItemNestedInput
     channelAvailability?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutItemNestedInput
@@ -231393,6 +242712,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: number | null
     prepTime?: number | null
+    minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -231416,6 +242738,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     categories?: MenuItemOnCategoryCreateNestedManyWithoutItemInput
     variants?: MenuItemVariantCreateNestedManyWithoutItemInput
+    productVariants?: ProductVariantCreateNestedManyWithoutMenuItemInput
     recipe?: RecipeCreateNestedOneWithoutMenuItemInput
     stationRoutes?: MenuItemStationCreateNestedManyWithoutMenuItemInput
     channelAvailability?: MenuItemChannelAvailabilityCreateNestedManyWithoutItemInput
@@ -231445,6 +242768,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: number | null
     prepTime?: number | null
+    minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -231468,6 +242794,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     categories?: MenuItemOnCategoryUncheckedCreateNestedManyWithoutItemInput
     variants?: MenuItemVariantUncheckedCreateNestedManyWithoutItemInput
+    productVariants?: ProductVariantUncheckedCreateNestedManyWithoutMenuItemInput
     recipe?: RecipeUncheckedCreateNestedOneWithoutMenuItemInput
     stationRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutMenuItemInput
     channelAvailability?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutItemInput
@@ -231582,6 +242909,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -231605,6 +242935,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     categories?: MenuItemOnCategoryUpdateManyWithoutItemNestedInput
     variants?: MenuItemVariantUpdateManyWithoutItemNestedInput
+    productVariants?: ProductVariantUpdateManyWithoutMenuItemNestedInput
     recipe?: RecipeUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUpdateManyWithoutMenuItemNestedInput
     channelAvailability?: MenuItemChannelAvailabilityUpdateManyWithoutItemNestedInput
@@ -231634,6 +242965,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -231657,6 +242991,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     categories?: MenuItemOnCategoryUncheckedUpdateManyWithoutItemNestedInput
     variants?: MenuItemVariantUncheckedUpdateManyWithoutItemNestedInput
+    productVariants?: ProductVariantUncheckedUpdateManyWithoutMenuItemNestedInput
     recipe?: RecipeUncheckedUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUncheckedUpdateManyWithoutMenuItemNestedInput
     channelAvailability?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutItemNestedInput
@@ -231761,6 +243096,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: number | null
     prepTime?: number | null
+    minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -231784,6 +243122,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     categories?: MenuItemOnCategoryCreateNestedManyWithoutItemInput
     modifierGroupLinks?: ModifierGroupOnItemCreateNestedManyWithoutItemInput
+    productVariants?: ProductVariantCreateNestedManyWithoutMenuItemInput
     recipe?: RecipeCreateNestedOneWithoutMenuItemInput
     stationRoutes?: MenuItemStationCreateNestedManyWithoutMenuItemInput
     channelAvailability?: MenuItemChannelAvailabilityCreateNestedManyWithoutItemInput
@@ -231813,6 +243152,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: number | null
     prepTime?: number | null
+    minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -231836,6 +243178,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     categories?: MenuItemOnCategoryUncheckedCreateNestedManyWithoutItemInput
     modifierGroupLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutItemInput
+    productVariants?: ProductVariantUncheckedCreateNestedManyWithoutMenuItemInput
     recipe?: RecipeUncheckedCreateNestedOneWithoutMenuItemInput
     stationRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutMenuItemInput
     channelAvailability?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutItemInput
@@ -231881,6 +243224,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -231904,6 +243250,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     categories?: MenuItemOnCategoryUpdateManyWithoutItemNestedInput
     modifierGroupLinks?: ModifierGroupOnItemUpdateManyWithoutItemNestedInput
+    productVariants?: ProductVariantUpdateManyWithoutMenuItemNestedInput
     recipe?: RecipeUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUpdateManyWithoutMenuItemNestedInput
     channelAvailability?: MenuItemChannelAvailabilityUpdateManyWithoutItemNestedInput
@@ -231933,6 +243280,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -231956,6 +243306,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     categories?: MenuItemOnCategoryUncheckedUpdateManyWithoutItemNestedInput
     modifierGroupLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutItemNestedInput
+    productVariants?: ProductVariantUncheckedUpdateManyWithoutMenuItemNestedInput
     recipe?: RecipeUncheckedUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUncheckedUpdateManyWithoutMenuItemNestedInput
     channelAvailability?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutItemNestedInput
@@ -233154,6 +244505,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -233218,11 +244570,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -233249,6 +244604,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -233312,8 +244668,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -233461,6 +244820,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -233525,11 +244885,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -233556,6 +244919,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -233619,8 +244983,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -235039,6 +246406,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -235103,11 +246471,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -235134,6 +246505,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -235197,8 +246569,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -235346,6 +246721,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -235410,11 +246786,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -235441,6 +246820,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -235504,8 +246884,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -235643,6 +247026,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -235707,11 +247091,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -235738,6 +247125,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -235801,8 +247189,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -235841,6 +247232,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -235905,11 +247297,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -235936,6 +247331,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -235999,8 +247395,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -236092,6 +247491,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -236156,11 +247556,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -236187,6 +247590,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -236250,8 +247654,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -236476,6 +247883,7 @@ export namespace Prisma {
     notes?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
+    refundLines?: RefundLineCreateNestedManyWithoutOrderItemInput
   }
 
   export type OrderItemUncheckedCreateWithoutOrderInput = {
@@ -236489,6 +247897,7 @@ export namespace Prisma {
     notes?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
+    refundLines?: RefundLineUncheckedCreateNestedManyWithoutOrderItemInput
   }
 
   export type OrderItemCreateOrConnectWithoutOrderInput = {
@@ -236876,6 +248285,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -236940,11 +248350,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -236971,6 +248384,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -237034,8 +248448,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -237681,6 +249098,34 @@ export namespace Prisma {
     create: XOR<OrderCreateWithoutItemsInput, OrderUncheckedCreateWithoutItemsInput>
   }
 
+  export type RefundLineCreateWithoutOrderItemInput = {
+    id?: string
+    quantity: number
+    amount: Decimal | DecimalJsLike | number | string
+    restock?: boolean
+    createdAt?: Date | string
+    refund: RefundCreateNestedOneWithoutLinesInput
+  }
+
+  export type RefundLineUncheckedCreateWithoutOrderItemInput = {
+    id?: string
+    refundId: string
+    quantity: number
+    amount: Decimal | DecimalJsLike | number | string
+    restock?: boolean
+    createdAt?: Date | string
+  }
+
+  export type RefundLineCreateOrConnectWithoutOrderItemInput = {
+    where: RefundLineWhereUniqueInput
+    create: XOR<RefundLineCreateWithoutOrderItemInput, RefundLineUncheckedCreateWithoutOrderItemInput>
+  }
+
+  export type RefundLineCreateManyOrderItemInputEnvelope = {
+    data: RefundLineCreateManyOrderItemInput | RefundLineCreateManyOrderItemInput[]
+    skipDuplicates?: boolean
+  }
+
   export type OrderUpsertWithoutItemsInput = {
     update: XOR<OrderUpdateWithoutItemsInput, OrderUncheckedUpdateWithoutItemsInput>
     create: XOR<OrderCreateWithoutItemsInput, OrderUncheckedCreateWithoutItemsInput>
@@ -237872,6 +249317,35 @@ export namespace Prisma {
     payments?: PaymentUncheckedUpdateManyWithoutOrderNestedInput
     campaignRedemptions?: CampaignRedemptionUncheckedUpdateManyWithoutOrderNestedInput
     loyaltyStamp?: LoyaltyStampUncheckedUpdateOneWithoutOrderNestedInput
+  }
+
+  export type RefundLineUpsertWithWhereUniqueWithoutOrderItemInput = {
+    where: RefundLineWhereUniqueInput
+    update: XOR<RefundLineUpdateWithoutOrderItemInput, RefundLineUncheckedUpdateWithoutOrderItemInput>
+    create: XOR<RefundLineCreateWithoutOrderItemInput, RefundLineUncheckedCreateWithoutOrderItemInput>
+  }
+
+  export type RefundLineUpdateWithWhereUniqueWithoutOrderItemInput = {
+    where: RefundLineWhereUniqueInput
+    data: XOR<RefundLineUpdateWithoutOrderItemInput, RefundLineUncheckedUpdateWithoutOrderItemInput>
+  }
+
+  export type RefundLineUpdateManyWithWhereWithoutOrderItemInput = {
+    where: RefundLineScalarWhereInput
+    data: XOR<RefundLineUpdateManyMutationInput, RefundLineUncheckedUpdateManyWithoutOrderItemInput>
+  }
+
+  export type RefundLineScalarWhereInput = {
+    AND?: RefundLineScalarWhereInput | RefundLineScalarWhereInput[]
+    OR?: RefundLineScalarWhereInput[]
+    NOT?: RefundLineScalarWhereInput | RefundLineScalarWhereInput[]
+    id?: StringFilter<"RefundLine"> | string
+    refundId?: StringFilter<"RefundLine"> | string
+    orderItemId?: StringFilter<"RefundLine"> | string
+    quantity?: IntFilter<"RefundLine"> | number
+    amount?: DecimalFilter<"RefundLine"> | Decimal | DecimalJsLike | number | string
+    restock?: BoolFilter<"RefundLine"> | boolean
+    createdAt?: DateTimeFilter<"RefundLine"> | Date | string
   }
 
   export type OrderCreateWithoutStatusHistoryInput = {
@@ -238271,6 +249745,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -238335,11 +249810,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -238366,6 +249844,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -238429,8 +249908,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -238497,6 +249979,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -238561,11 +250044,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -238592,6 +250078,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -238655,8 +250142,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -238695,6 +250185,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -238759,11 +250250,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -238790,6 +250284,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -238853,8 +250348,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -239002,6 +250500,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -239066,11 +250565,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -239097,6 +250599,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -239160,8 +250663,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -239299,6 +250805,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -239363,11 +250870,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -239394,6 +250904,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -239457,8 +250968,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -239549,6 +251063,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -239613,11 +251128,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -239644,6 +251162,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -239707,8 +251226,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -239747,6 +251269,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -239811,11 +251334,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -239842,6 +251368,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -239905,8 +251432,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -239945,6 +251475,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -240009,11 +251540,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -240040,6 +251574,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -240103,8 +251638,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -240127,6 +251665,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -240191,11 +251730,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -240222,6 +251764,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -240285,8 +251828,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -240388,6 +251934,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -240452,11 +251999,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -240483,6 +252033,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -240546,8 +252097,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -241083,6 +252637,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -241147,11 +252702,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -241178,6 +252736,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -241241,8 +252800,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -241431,6 +252993,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -241496,10 +253059,13 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -241525,6 +253091,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -241589,8 +253156,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -241623,6 +253193,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -241688,10 +253259,13 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -241717,6 +253291,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -241781,8 +253356,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -241826,6 +253404,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -241890,11 +253469,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -241921,6 +253503,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -241984,8 +253567,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -243092,6 +254678,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -243156,11 +254743,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -243187,6 +254777,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -243250,8 +254841,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -243546,6 +255140,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -243611,10 +255206,13 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -243640,6 +255238,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -243704,8 +255303,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -243890,6 +255492,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -243954,11 +255557,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -243985,6 +255591,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -244048,8 +255655,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -244330,6 +255940,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -244394,11 +256005,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -244425,6 +256039,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -244488,8 +256103,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -244761,6 +256379,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -244825,11 +256444,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -244856,6 +256478,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -244919,8 +256542,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -244981,6 +256607,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: number | null
     prepTime?: number | null
+    minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -245005,6 +256634,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryCreateNestedManyWithoutItemInput
     modifierGroupLinks?: ModifierGroupOnItemCreateNestedManyWithoutItemInput
     variants?: MenuItemVariantCreateNestedManyWithoutItemInput
+    productVariants?: ProductVariantCreateNestedManyWithoutMenuItemInput
     recipe?: RecipeCreateNestedOneWithoutMenuItemInput
     channelAvailability?: MenuItemChannelAvailabilityCreateNestedManyWithoutItemInput
     loyaltyCards?: LoyaltyCardCreateNestedManyWithoutRewardItemInput
@@ -245033,6 +256663,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: number | null
     prepTime?: number | null
+    minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -245057,6 +256690,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryUncheckedCreateNestedManyWithoutItemInput
     modifierGroupLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutItemInput
     variants?: MenuItemVariantUncheckedCreateNestedManyWithoutItemInput
+    productVariants?: ProductVariantUncheckedCreateNestedManyWithoutMenuItemInput
     recipe?: RecipeUncheckedCreateNestedOneWithoutMenuItemInput
     channelAvailability?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutItemInput
     loyaltyCards?: LoyaltyCardUncheckedCreateNestedManyWithoutRewardItemInput
@@ -245142,6 +256776,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -245166,6 +256803,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryUpdateManyWithoutItemNestedInput
     modifierGroupLinks?: ModifierGroupOnItemUpdateManyWithoutItemNestedInput
     variants?: MenuItemVariantUpdateManyWithoutItemNestedInput
+    productVariants?: ProductVariantUpdateManyWithoutMenuItemNestedInput
     recipe?: RecipeUpdateOneWithoutMenuItemNestedInput
     channelAvailability?: MenuItemChannelAvailabilityUpdateManyWithoutItemNestedInput
     loyaltyCards?: LoyaltyCardUpdateManyWithoutRewardItemNestedInput
@@ -245194,6 +256832,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -245218,6 +256859,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryUncheckedUpdateManyWithoutItemNestedInput
     modifierGroupLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutItemNestedInput
     variants?: MenuItemVariantUncheckedUpdateManyWithoutItemNestedInput
+    productVariants?: ProductVariantUncheckedUpdateManyWithoutMenuItemNestedInput
     recipe?: RecipeUncheckedUpdateOneWithoutMenuItemNestedInput
     channelAvailability?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutItemNestedInput
     loyaltyCards?: LoyaltyCardUncheckedUpdateManyWithoutRewardItemNestedInput
@@ -245796,6 +257438,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -245860,11 +257503,14 @@ export namespace Prisma {
     contracts?: ContractCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -245891,6 +257537,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -245954,8 +257601,11 @@ export namespace Prisma {
     contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -246188,6 +257838,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -246252,11 +257903,14 @@ export namespace Prisma {
     contracts?: ContractUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -246283,6 +257937,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -246346,8 +258001,11 @@ export namespace Prisma {
     contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -247780,6 +259438,8 @@ export namespace Prisma {
   export type RefundCreateWithoutPaymentInput = {
     id?: string
     tenantId: string
+    orderId?: string | null
+    method?: string | null
     stripeRefundId?: string | null
     amount: Decimal | DecimalJsLike | number | string
     reason?: string | null
@@ -247789,11 +259449,14 @@ export namespace Prisma {
     note?: string | null
     createdAt?: Date | string
     ledgerEntries?: LedgerEntryCreateNestedManyWithoutRefundInput
+    lines?: RefundLineCreateNestedManyWithoutRefundInput
   }
 
   export type RefundUncheckedCreateWithoutPaymentInput = {
     id?: string
     tenantId: string
+    orderId?: string | null
+    method?: string | null
     stripeRefundId?: string | null
     amount: Decimal | DecimalJsLike | number | string
     reason?: string | null
@@ -247803,6 +259466,7 @@ export namespace Prisma {
     note?: string | null
     createdAt?: Date | string
     ledgerEntries?: LedgerEntryUncheckedCreateNestedManyWithoutRefundInput
+    lines?: RefundLineUncheckedCreateNestedManyWithoutRefundInput
   }
 
   export type RefundCreateOrConnectWithoutPaymentInput = {
@@ -248113,7 +259777,9 @@ export namespace Prisma {
     NOT?: RefundScalarWhereInput | RefundScalarWhereInput[]
     id?: StringFilter<"Refund"> | string
     tenantId?: StringFilter<"Refund"> | string
-    paymentId?: StringFilter<"Refund"> | string
+    paymentId?: StringNullableFilter<"Refund"> | string | null
+    orderId?: StringNullableFilter<"Refund"> | string | null
+    method?: StringNullableFilter<"Refund"> | string | null
     stripeRefundId?: StringNullableFilter<"Refund"> | string | null
     amount?: DecimalFilter<"Refund"> | Decimal | DecimalJsLike | number | string
     reason?: StringNullableFilter<"Refund"> | string | null
@@ -248338,6 +260004,34 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type RefundLineCreateWithoutRefundInput = {
+    id?: string
+    quantity: number
+    amount: Decimal | DecimalJsLike | number | string
+    restock?: boolean
+    createdAt?: Date | string
+    orderItem: OrderItemCreateNestedOneWithoutRefundLinesInput
+  }
+
+  export type RefundLineUncheckedCreateWithoutRefundInput = {
+    id?: string
+    orderItemId: string
+    quantity: number
+    amount: Decimal | DecimalJsLike | number | string
+    restock?: boolean
+    createdAt?: Date | string
+  }
+
+  export type RefundLineCreateOrConnectWithoutRefundInput = {
+    where: RefundLineWhereUniqueInput
+    create: XOR<RefundLineCreateWithoutRefundInput, RefundLineUncheckedCreateWithoutRefundInput>
+  }
+
+  export type RefundLineCreateManyRefundInputEnvelope = {
+    data: RefundLineCreateManyRefundInput | RefundLineCreateManyRefundInput[]
+    skipDuplicates?: boolean
+  }
+
   export type PaymentUpsertWithoutRefundsInput = {
     update: XOR<PaymentUpdateWithoutRefundsInput, PaymentUncheckedUpdateWithoutRefundsInput>
     create: XOR<PaymentCreateWithoutRefundsInput, PaymentUncheckedCreateWithoutRefundsInput>
@@ -248409,6 +260103,1118 @@ export namespace Prisma {
     data: XOR<LedgerEntryUpdateManyMutationInput, LedgerEntryUncheckedUpdateManyWithoutRefundInput>
   }
 
+  export type RefundLineUpsertWithWhereUniqueWithoutRefundInput = {
+    where: RefundLineWhereUniqueInput
+    update: XOR<RefundLineUpdateWithoutRefundInput, RefundLineUncheckedUpdateWithoutRefundInput>
+    create: XOR<RefundLineCreateWithoutRefundInput, RefundLineUncheckedCreateWithoutRefundInput>
+  }
+
+  export type RefundLineUpdateWithWhereUniqueWithoutRefundInput = {
+    where: RefundLineWhereUniqueInput
+    data: XOR<RefundLineUpdateWithoutRefundInput, RefundLineUncheckedUpdateWithoutRefundInput>
+  }
+
+  export type RefundLineUpdateManyWithWhereWithoutRefundInput = {
+    where: RefundLineScalarWhereInput
+    data: XOR<RefundLineUpdateManyMutationInput, RefundLineUncheckedUpdateManyWithoutRefundInput>
+  }
+
+  export type MenuItemCreateWithoutProductVariantsInput = {
+    id?: string
+    brandId: string
+    locationId?: string | null
+    name: string
+    description?: string | null
+    secondLanguageName?: string | null
+    basePrice: Decimal | DecimalJsLike | number | string
+    imageUrl?: string | null
+    sku?: string | null
+    plu?: string | null
+    isAvailable?: boolean
+    visibleToCustomers?: boolean
+    outOfStock?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
+    availableRestoreAt?: Date | string | null
+    allergens?: MenuItemCreateallergensInput | string[]
+    dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
+    calories?: number | null
+    prepTime?: number | null
+    minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemCreatemenuIdsInput | string[]
+    brandIds?: MenuItemCreatebrandIdsInput | string[]
+    sortOrder?: number
+    isInventoryTracked?: boolean
+    inventoryCount?: number | null
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    categories?: MenuItemOnCategoryCreateNestedManyWithoutItemInput
+    modifierGroupLinks?: ModifierGroupOnItemCreateNestedManyWithoutItemInput
+    variants?: MenuItemVariantCreateNestedManyWithoutItemInput
+    recipe?: RecipeCreateNestedOneWithoutMenuItemInput
+    stationRoutes?: MenuItemStationCreateNestedManyWithoutMenuItemInput
+    channelAvailability?: MenuItemChannelAvailabilityCreateNestedManyWithoutItemInput
+    loyaltyCards?: LoyaltyCardCreateNestedManyWithoutRewardItemInput
+  }
+
+  export type MenuItemUncheckedCreateWithoutProductVariantsInput = {
+    id?: string
+    brandId: string
+    locationId?: string | null
+    name: string
+    description?: string | null
+    secondLanguageName?: string | null
+    basePrice: Decimal | DecimalJsLike | number | string
+    imageUrl?: string | null
+    sku?: string | null
+    plu?: string | null
+    isAvailable?: boolean
+    visibleToCustomers?: boolean
+    outOfStock?: boolean
+    availableCollection?: boolean
+    availableDelivery?: boolean
+    availableDineIn?: boolean
+    availableRestoreAt?: Date | string | null
+    allergens?: MenuItemCreateallergensInput | string[]
+    dietaryTags?: MenuItemCreatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
+    calories?: number | null
+    prepTime?: number | null
+    minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: Decimal | DecimalJsLike | number | string
+    takeawayTax?: Decimal | DecimalJsLike | number | string
+    eatInTax?: Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemCreatemenuIdsInput | string[]
+    brandIds?: MenuItemCreatebrandIdsInput | string[]
+    sortOrder?: number
+    isInventoryTracked?: boolean
+    inventoryCount?: number | null
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    categories?: MenuItemOnCategoryUncheckedCreateNestedManyWithoutItemInput
+    modifierGroupLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutItemInput
+    variants?: MenuItemVariantUncheckedCreateNestedManyWithoutItemInput
+    recipe?: RecipeUncheckedCreateNestedOneWithoutMenuItemInput
+    stationRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutMenuItemInput
+    channelAvailability?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutItemInput
+    loyaltyCards?: LoyaltyCardUncheckedCreateNestedManyWithoutRewardItemInput
+  }
+
+  export type MenuItemCreateOrConnectWithoutProductVariantsInput = {
+    where: MenuItemWhereUniqueInput
+    create: XOR<MenuItemCreateWithoutProductVariantsInput, MenuItemUncheckedCreateWithoutProductVariantsInput>
+  }
+
+  export type ProductStockLevelCreateWithoutVariantInput = {
+    id?: string
+    quantity?: number
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutProductStockLevelsInput
+  }
+
+  export type ProductStockLevelUncheckedCreateWithoutVariantInput = {
+    id?: string
+    locationId: string
+    quantity?: number
+    updatedAt?: Date | string
+  }
+
+  export type ProductStockLevelCreateOrConnectWithoutVariantInput = {
+    where: ProductStockLevelWhereUniqueInput
+    create: XOR<ProductStockLevelCreateWithoutVariantInput, ProductStockLevelUncheckedCreateWithoutVariantInput>
+  }
+
+  export type ProductStockLevelCreateManyVariantInputEnvelope = {
+    data: ProductStockLevelCreateManyVariantInput | ProductStockLevelCreateManyVariantInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ProductStockMovementCreateWithoutVariantInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    type: $Enums.StockMovementType
+    quantity: number
+    reason?: string | null
+    orderId?: string | null
+    refundId?: string | null
+    recordedBy?: string | null
+    dedupeKey?: string | null
+    createdAt?: Date | string
+  }
+
+  export type ProductStockMovementUncheckedCreateWithoutVariantInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    type: $Enums.StockMovementType
+    quantity: number
+    reason?: string | null
+    orderId?: string | null
+    refundId?: string | null
+    recordedBy?: string | null
+    dedupeKey?: string | null
+    createdAt?: Date | string
+  }
+
+  export type ProductStockMovementCreateOrConnectWithoutVariantInput = {
+    where: ProductStockMovementWhereUniqueInput
+    create: XOR<ProductStockMovementCreateWithoutVariantInput, ProductStockMovementUncheckedCreateWithoutVariantInput>
+  }
+
+  export type ProductStockMovementCreateManyVariantInputEnvelope = {
+    data: ProductStockMovementCreateManyVariantInput | ProductStockMovementCreateManyVariantInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type MenuItemUpsertWithoutProductVariantsInput = {
+    update: XOR<MenuItemUpdateWithoutProductVariantsInput, MenuItemUncheckedUpdateWithoutProductVariantsInput>
+    create: XOR<MenuItemCreateWithoutProductVariantsInput, MenuItemUncheckedCreateWithoutProductVariantsInput>
+    where?: MenuItemWhereInput
+  }
+
+  export type MenuItemUpdateToOneWithWhereWithoutProductVariantsInput = {
+    where?: MenuItemWhereInput
+    data: XOR<MenuItemUpdateWithoutProductVariantsInput, MenuItemUncheckedUpdateWithoutProductVariantsInput>
+  }
+
+  export type MenuItemUpdateWithoutProductVariantsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
+    basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    sku?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    allergens?: MenuItemUpdateallergensInput | string[]
+    dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
+    calories?: NullableIntFieldUpdateOperationsInput | number | null
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemUpdatemenuIdsInput | string[]
+    brandIds?: MenuItemUpdatebrandIdsInput | string[]
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    isInventoryTracked?: BoolFieldUpdateOperationsInput | boolean
+    inventoryCount?: NullableIntFieldUpdateOperationsInput | number | null
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    categories?: MenuItemOnCategoryUpdateManyWithoutItemNestedInput
+    modifierGroupLinks?: ModifierGroupOnItemUpdateManyWithoutItemNestedInput
+    variants?: MenuItemVariantUpdateManyWithoutItemNestedInput
+    recipe?: RecipeUpdateOneWithoutMenuItemNestedInput
+    stationRoutes?: MenuItemStationUpdateManyWithoutMenuItemNestedInput
+    channelAvailability?: MenuItemChannelAvailabilityUpdateManyWithoutItemNestedInput
+    loyaltyCards?: LoyaltyCardUpdateManyWithoutRewardItemNestedInput
+  }
+
+  export type MenuItemUncheckedUpdateWithoutProductVariantsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    secondLanguageName?: NullableStringFieldUpdateOperationsInput | string | null
+    basePrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    sku?: NullableStringFieldUpdateOperationsInput | string | null
+    plu?: NullableStringFieldUpdateOperationsInput | string | null
+    isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    visibleToCustomers?: BoolFieldUpdateOperationsInput | boolean
+    outOfStock?: BoolFieldUpdateOperationsInput | boolean
+    availableCollection?: BoolFieldUpdateOperationsInput | boolean
+    availableDelivery?: BoolFieldUpdateOperationsInput | boolean
+    availableDineIn?: BoolFieldUpdateOperationsInput | boolean
+    availableRestoreAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    allergens?: MenuItemUpdateallergensInput | string[]
+    dietaryTags?: MenuItemUpdatedietaryTagsInput | string[]
+    dietary?: JsonNullValueInput | InputJsonValue
+    calories?: NullableIntFieldUpdateOperationsInput | number | null
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
+    productSkus?: JsonNullValueInput | InputJsonValue
+    deliveryTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    takeawayTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    eatInTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    menuIds?: MenuItemUpdatemenuIdsInput | string[]
+    brandIds?: MenuItemUpdatebrandIdsInput | string[]
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    isInventoryTracked?: BoolFieldUpdateOperationsInput | boolean
+    inventoryCount?: NullableIntFieldUpdateOperationsInput | number | null
+    platformPricingOverrides?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    rawModifierGroupIds?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    categories?: MenuItemOnCategoryUncheckedUpdateManyWithoutItemNestedInput
+    modifierGroupLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutItemNestedInput
+    variants?: MenuItemVariantUncheckedUpdateManyWithoutItemNestedInput
+    recipe?: RecipeUncheckedUpdateOneWithoutMenuItemNestedInput
+    stationRoutes?: MenuItemStationUncheckedUpdateManyWithoutMenuItemNestedInput
+    channelAvailability?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutItemNestedInput
+    loyaltyCards?: LoyaltyCardUncheckedUpdateManyWithoutRewardItemNestedInput
+  }
+
+  export type ProductStockLevelUpsertWithWhereUniqueWithoutVariantInput = {
+    where: ProductStockLevelWhereUniqueInput
+    update: XOR<ProductStockLevelUpdateWithoutVariantInput, ProductStockLevelUncheckedUpdateWithoutVariantInput>
+    create: XOR<ProductStockLevelCreateWithoutVariantInput, ProductStockLevelUncheckedCreateWithoutVariantInput>
+  }
+
+  export type ProductStockLevelUpdateWithWhereUniqueWithoutVariantInput = {
+    where: ProductStockLevelWhereUniqueInput
+    data: XOR<ProductStockLevelUpdateWithoutVariantInput, ProductStockLevelUncheckedUpdateWithoutVariantInput>
+  }
+
+  export type ProductStockLevelUpdateManyWithWhereWithoutVariantInput = {
+    where: ProductStockLevelScalarWhereInput
+    data: XOR<ProductStockLevelUpdateManyMutationInput, ProductStockLevelUncheckedUpdateManyWithoutVariantInput>
+  }
+
+  export type ProductStockMovementUpsertWithWhereUniqueWithoutVariantInput = {
+    where: ProductStockMovementWhereUniqueInput
+    update: XOR<ProductStockMovementUpdateWithoutVariantInput, ProductStockMovementUncheckedUpdateWithoutVariantInput>
+    create: XOR<ProductStockMovementCreateWithoutVariantInput, ProductStockMovementUncheckedCreateWithoutVariantInput>
+  }
+
+  export type ProductStockMovementUpdateWithWhereUniqueWithoutVariantInput = {
+    where: ProductStockMovementWhereUniqueInput
+    data: XOR<ProductStockMovementUpdateWithoutVariantInput, ProductStockMovementUncheckedUpdateWithoutVariantInput>
+  }
+
+  export type ProductStockMovementUpdateManyWithWhereWithoutVariantInput = {
+    where: ProductStockMovementScalarWhereInput
+    data: XOR<ProductStockMovementUpdateManyMutationInput, ProductStockMovementUncheckedUpdateManyWithoutVariantInput>
+  }
+
+  export type ProductStockMovementScalarWhereInput = {
+    AND?: ProductStockMovementScalarWhereInput | ProductStockMovementScalarWhereInput[]
+    OR?: ProductStockMovementScalarWhereInput[]
+    NOT?: ProductStockMovementScalarWhereInput | ProductStockMovementScalarWhereInput[]
+    id?: StringFilter<"ProductStockMovement"> | string
+    tenantId?: StringFilter<"ProductStockMovement"> | string
+    locationId?: StringFilter<"ProductStockMovement"> | string
+    variantId?: StringFilter<"ProductStockMovement"> | string
+    type?: EnumStockMovementTypeFilter<"ProductStockMovement"> | $Enums.StockMovementType
+    quantity?: IntFilter<"ProductStockMovement"> | number
+    reason?: StringNullableFilter<"ProductStockMovement"> | string | null
+    orderId?: StringNullableFilter<"ProductStockMovement"> | string | null
+    refundId?: StringNullableFilter<"ProductStockMovement"> | string | null
+    recordedBy?: StringNullableFilter<"ProductStockMovement"> | string | null
+    dedupeKey?: StringNullableFilter<"ProductStockMovement"> | string | null
+    createdAt?: DateTimeFilter<"ProductStockMovement"> | Date | string
+  }
+
+  export type ProductVariantCreateWithoutStockLevelsInput = {
+    id?: string
+    tenantId: string
+    brandId: string
+    name: string
+    options?: JsonNullValueInput | InputJsonValue
+    sku?: string | null
+    barcode?: string | null
+    price?: Decimal | DecimalJsLike | number | string | null
+    costPrice?: Decimal | DecimalJsLike | number | string | null
+    trackStock?: boolean
+    lowStockAt?: number | null
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    menuItem: MenuItemCreateNestedOneWithoutProductVariantsInput
+    movements?: ProductStockMovementCreateNestedManyWithoutVariantInput
+  }
+
+  export type ProductVariantUncheckedCreateWithoutStockLevelsInput = {
+    id?: string
+    tenantId: string
+    brandId: string
+    menuItemId: string
+    name: string
+    options?: JsonNullValueInput | InputJsonValue
+    sku?: string | null
+    barcode?: string | null
+    price?: Decimal | DecimalJsLike | number | string | null
+    costPrice?: Decimal | DecimalJsLike | number | string | null
+    trackStock?: boolean
+    lowStockAt?: number | null
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    movements?: ProductStockMovementUncheckedCreateNestedManyWithoutVariantInput
+  }
+
+  export type ProductVariantCreateOrConnectWithoutStockLevelsInput = {
+    where: ProductVariantWhereUniqueInput
+    create: XOR<ProductVariantCreateWithoutStockLevelsInput, ProductVariantUncheckedCreateWithoutStockLevelsInput>
+  }
+
+  export type LocationCreateWithoutProductStockLevelsInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    currency?: string
+    businessType?: $Enums.BusinessType
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
+    tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationUncheckedCreateWithoutProductStockLevelsInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    currency?: string
+    businessType?: $Enums.BusinessType
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
+    tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutProductStockLevelsInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutProductStockLevelsInput, LocationUncheckedCreateWithoutProductStockLevelsInput>
+  }
+
+  export type ProductVariantUpsertWithoutStockLevelsInput = {
+    update: XOR<ProductVariantUpdateWithoutStockLevelsInput, ProductVariantUncheckedUpdateWithoutStockLevelsInput>
+    create: XOR<ProductVariantCreateWithoutStockLevelsInput, ProductVariantUncheckedCreateWithoutStockLevelsInput>
+    where?: ProductVariantWhereInput
+  }
+
+  export type ProductVariantUpdateToOneWithWhereWithoutStockLevelsInput = {
+    where?: ProductVariantWhereInput
+    data: XOR<ProductVariantUpdateWithoutStockLevelsInput, ProductVariantUncheckedUpdateWithoutStockLevelsInput>
+  }
+
+  export type ProductVariantUpdateWithoutStockLevelsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    options?: JsonNullValueInput | InputJsonValue
+    sku?: NullableStringFieldUpdateOperationsInput | string | null
+    barcode?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    costPrice?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    trackStock?: BoolFieldUpdateOperationsInput | boolean
+    lowStockAt?: NullableIntFieldUpdateOperationsInput | number | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    menuItem?: MenuItemUpdateOneRequiredWithoutProductVariantsNestedInput
+    movements?: ProductStockMovementUpdateManyWithoutVariantNestedInput
+  }
+
+  export type ProductVariantUncheckedUpdateWithoutStockLevelsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    menuItemId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    options?: JsonNullValueInput | InputJsonValue
+    sku?: NullableStringFieldUpdateOperationsInput | string | null
+    barcode?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    costPrice?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    trackStock?: BoolFieldUpdateOperationsInput | boolean
+    lowStockAt?: NullableIntFieldUpdateOperationsInput | number | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    movements?: ProductStockMovementUncheckedUpdateManyWithoutVariantNestedInput
+  }
+
+  export type LocationUpsertWithoutProductStockLevelsInput = {
+    update: XOR<LocationUpdateWithoutProductStockLevelsInput, LocationUncheckedUpdateWithoutProductStockLevelsInput>
+    create: XOR<LocationCreateWithoutProductStockLevelsInput, LocationUncheckedCreateWithoutProductStockLevelsInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutProductStockLevelsInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutProductStockLevelsInput, LocationUncheckedUpdateWithoutProductStockLevelsInput>
+  }
+
+  export type LocationUpdateWithoutProductStockLevelsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
+    tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutProductStockLevelsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
+    tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
+  }
+
+  export type ProductVariantCreateWithoutMovementsInput = {
+    id?: string
+    tenantId: string
+    brandId: string
+    name: string
+    options?: JsonNullValueInput | InputJsonValue
+    sku?: string | null
+    barcode?: string | null
+    price?: Decimal | DecimalJsLike | number | string | null
+    costPrice?: Decimal | DecimalJsLike | number | string | null
+    trackStock?: boolean
+    lowStockAt?: number | null
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    menuItem: MenuItemCreateNestedOneWithoutProductVariantsInput
+    stockLevels?: ProductStockLevelCreateNestedManyWithoutVariantInput
+  }
+
+  export type ProductVariantUncheckedCreateWithoutMovementsInput = {
+    id?: string
+    tenantId: string
+    brandId: string
+    menuItemId: string
+    name: string
+    options?: JsonNullValueInput | InputJsonValue
+    sku?: string | null
+    barcode?: string | null
+    price?: Decimal | DecimalJsLike | number | string | null
+    costPrice?: Decimal | DecimalJsLike | number | string | null
+    trackStock?: boolean
+    lowStockAt?: number | null
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    stockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutVariantInput
+  }
+
+  export type ProductVariantCreateOrConnectWithoutMovementsInput = {
+    where: ProductVariantWhereUniqueInput
+    create: XOR<ProductVariantCreateWithoutMovementsInput, ProductVariantUncheckedCreateWithoutMovementsInput>
+  }
+
+  export type ProductVariantUpsertWithoutMovementsInput = {
+    update: XOR<ProductVariantUpdateWithoutMovementsInput, ProductVariantUncheckedUpdateWithoutMovementsInput>
+    create: XOR<ProductVariantCreateWithoutMovementsInput, ProductVariantUncheckedCreateWithoutMovementsInput>
+    where?: ProductVariantWhereInput
+  }
+
+  export type ProductVariantUpdateToOneWithWhereWithoutMovementsInput = {
+    where?: ProductVariantWhereInput
+    data: XOR<ProductVariantUpdateWithoutMovementsInput, ProductVariantUncheckedUpdateWithoutMovementsInput>
+  }
+
+  export type ProductVariantUpdateWithoutMovementsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    options?: JsonNullValueInput | InputJsonValue
+    sku?: NullableStringFieldUpdateOperationsInput | string | null
+    barcode?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    costPrice?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    trackStock?: BoolFieldUpdateOperationsInput | boolean
+    lowStockAt?: NullableIntFieldUpdateOperationsInput | number | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    menuItem?: MenuItemUpdateOneRequiredWithoutProductVariantsNestedInput
+    stockLevels?: ProductStockLevelUpdateManyWithoutVariantNestedInput
+  }
+
+  export type ProductVariantUncheckedUpdateWithoutMovementsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    menuItemId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    options?: JsonNullValueInput | InputJsonValue
+    sku?: NullableStringFieldUpdateOperationsInput | string | null
+    barcode?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    costPrice?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    trackStock?: BoolFieldUpdateOperationsInput | boolean
+    lowStockAt?: NullableIntFieldUpdateOperationsInput | number | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    stockLevels?: ProductStockLevelUncheckedUpdateManyWithoutVariantNestedInput
+  }
+
+  export type RefundCreateWithoutLinesInput = {
+    id?: string
+    tenantId: string
+    orderId?: string | null
+    method?: string | null
+    stripeRefundId?: string | null
+    amount: Decimal | DecimalJsLike | number | string
+    reason?: string | null
+    status: $Enums.RefundStatus
+    isPartial?: boolean
+    processedBy?: string | null
+    note?: string | null
+    createdAt?: Date | string
+    payment?: PaymentCreateNestedOneWithoutRefundsInput
+    ledgerEntries?: LedgerEntryCreateNestedManyWithoutRefundInput
+  }
+
+  export type RefundUncheckedCreateWithoutLinesInput = {
+    id?: string
+    tenantId: string
+    paymentId?: string | null
+    orderId?: string | null
+    method?: string | null
+    stripeRefundId?: string | null
+    amount: Decimal | DecimalJsLike | number | string
+    reason?: string | null
+    status: $Enums.RefundStatus
+    isPartial?: boolean
+    processedBy?: string | null
+    note?: string | null
+    createdAt?: Date | string
+    ledgerEntries?: LedgerEntryUncheckedCreateNestedManyWithoutRefundInput
+  }
+
+  export type RefundCreateOrConnectWithoutLinesInput = {
+    where: RefundWhereUniqueInput
+    create: XOR<RefundCreateWithoutLinesInput, RefundUncheckedCreateWithoutLinesInput>
+  }
+
+  export type OrderItemCreateWithoutRefundLinesInput = {
+    id?: string
+    menuItemId?: string | null
+    name: string
+    quantity: number
+    unitPrice: Decimal | DecimalJsLike | number | string
+    totalPrice: Decimal | DecimalJsLike | number | string
+    modifiers?: JsonNullValueInput | InputJsonValue
+    notes?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    order: OrderCreateNestedOneWithoutItemsInput
+  }
+
+  export type OrderItemUncheckedCreateWithoutRefundLinesInput = {
+    id?: string
+    orderId: string
+    menuItemId?: string | null
+    name: string
+    quantity: number
+    unitPrice: Decimal | DecimalJsLike | number | string
+    totalPrice: Decimal | DecimalJsLike | number | string
+    modifiers?: JsonNullValueInput | InputJsonValue
+    notes?: string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+  }
+
+  export type OrderItemCreateOrConnectWithoutRefundLinesInput = {
+    where: OrderItemWhereUniqueInput
+    create: XOR<OrderItemCreateWithoutRefundLinesInput, OrderItemUncheckedCreateWithoutRefundLinesInput>
+  }
+
+  export type RefundUpsertWithoutLinesInput = {
+    update: XOR<RefundUpdateWithoutLinesInput, RefundUncheckedUpdateWithoutLinesInput>
+    create: XOR<RefundCreateWithoutLinesInput, RefundUncheckedCreateWithoutLinesInput>
+    where?: RefundWhereInput
+  }
+
+  export type RefundUpdateToOneWithWhereWithoutLinesInput = {
+    where?: RefundWhereInput
+    data: XOR<RefundUpdateWithoutLinesInput, RefundUncheckedUpdateWithoutLinesInput>
+  }
+
+  export type RefundUpdateWithoutLinesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    method?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeRefundId?: NullableStringFieldUpdateOperationsInput | string | null
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumRefundStatusFieldUpdateOperationsInput | $Enums.RefundStatus
+    isPartial?: BoolFieldUpdateOperationsInput | boolean
+    processedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    payment?: PaymentUpdateOneWithoutRefundsNestedInput
+    ledgerEntries?: LedgerEntryUpdateManyWithoutRefundNestedInput
+  }
+
+  export type RefundUncheckedUpdateWithoutLinesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    paymentId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    method?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeRefundId?: NullableStringFieldUpdateOperationsInput | string | null
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumRefundStatusFieldUpdateOperationsInput | $Enums.RefundStatus
+    isPartial?: BoolFieldUpdateOperationsInput | boolean
+    processedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ledgerEntries?: LedgerEntryUncheckedUpdateManyWithoutRefundNestedInput
+  }
+
+  export type OrderItemUpsertWithoutRefundLinesInput = {
+    update: XOR<OrderItemUpdateWithoutRefundLinesInput, OrderItemUncheckedUpdateWithoutRefundLinesInput>
+    create: XOR<OrderItemCreateWithoutRefundLinesInput, OrderItemUncheckedCreateWithoutRefundLinesInput>
+    where?: OrderItemWhereInput
+  }
+
+  export type OrderItemUpdateToOneWithWhereWithoutRefundLinesInput = {
+    where?: OrderItemWhereInput
+    data: XOR<OrderItemUpdateWithoutRefundLinesInput, OrderItemUncheckedUpdateWithoutRefundLinesInput>
+  }
+
+  export type OrderItemUpdateWithoutRefundLinesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    menuItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    unitPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    totalPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    modifiers?: JsonNullValueInput | InputJsonValue
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    order?: OrderUpdateOneRequiredWithoutItemsNestedInput
+  }
+
+  export type OrderItemUncheckedUpdateWithoutRefundLinesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    menuItemId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    unitPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    totalPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    modifiers?: JsonNullValueInput | InputJsonValue
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type PaymentCreateWithoutLedgerEntriesInput = {
     id?: string
     tenantId: string
@@ -248461,6 +261267,8 @@ export namespace Prisma {
   export type RefundCreateWithoutLedgerEntriesInput = {
     id?: string
     tenantId: string
+    orderId?: string | null
+    method?: string | null
     stripeRefundId?: string | null
     amount: Decimal | DecimalJsLike | number | string
     reason?: string | null
@@ -248469,13 +261277,16 @@ export namespace Prisma {
     processedBy?: string | null
     note?: string | null
     createdAt?: Date | string
-    payment: PaymentCreateNestedOneWithoutRefundsInput
+    payment?: PaymentCreateNestedOneWithoutRefundsInput
+    lines?: RefundLineCreateNestedManyWithoutRefundInput
   }
 
   export type RefundUncheckedCreateWithoutLedgerEntriesInput = {
     id?: string
     tenantId: string
-    paymentId: string
+    paymentId?: string | null
+    orderId?: string | null
+    method?: string | null
     stripeRefundId?: string | null
     amount: Decimal | DecimalJsLike | number | string
     reason?: string | null
@@ -248484,6 +261295,7 @@ export namespace Prisma {
     processedBy?: string | null
     note?: string | null
     createdAt?: Date | string
+    lines?: RefundLineUncheckedCreateNestedManyWithoutRefundInput
   }
 
   export type RefundCreateOrConnectWithoutLedgerEntriesInput = {
@@ -248560,6 +261372,8 @@ export namespace Prisma {
   export type RefundUpdateWithoutLedgerEntriesInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    method?: NullableStringFieldUpdateOperationsInput | string | null
     stripeRefundId?: NullableStringFieldUpdateOperationsInput | string | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     reason?: NullableStringFieldUpdateOperationsInput | string | null
@@ -248568,13 +261382,16 @@ export namespace Prisma {
     processedBy?: NullableStringFieldUpdateOperationsInput | string | null
     note?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    payment?: PaymentUpdateOneRequiredWithoutRefundsNestedInput
+    payment?: PaymentUpdateOneWithoutRefundsNestedInput
+    lines?: RefundLineUpdateManyWithoutRefundNestedInput
   }
 
   export type RefundUncheckedUpdateWithoutLedgerEntriesInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
-    paymentId?: StringFieldUpdateOperationsInput | string
+    paymentId?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    method?: NullableStringFieldUpdateOperationsInput | string | null
     stripeRefundId?: NullableStringFieldUpdateOperationsInput | string | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     reason?: NullableStringFieldUpdateOperationsInput | string | null
@@ -248583,6 +261400,7 @@ export namespace Prisma {
     processedBy?: NullableStringFieldUpdateOperationsInput | string | null
     note?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lines?: RefundLineUncheckedUpdateManyWithoutRefundNestedInput
   }
 
   export type StripeConnectAccountCreateWithoutPayoutsInput = {
@@ -249382,6 +262200,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: number | null
     prepTime?: number | null
+    minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -249406,6 +262227,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryCreateNestedManyWithoutItemInput
     modifierGroupLinks?: ModifierGroupOnItemCreateNestedManyWithoutItemInput
     variants?: MenuItemVariantCreateNestedManyWithoutItemInput
+    productVariants?: ProductVariantCreateNestedManyWithoutMenuItemInput
     stationRoutes?: MenuItemStationCreateNestedManyWithoutMenuItemInput
     channelAvailability?: MenuItemChannelAvailabilityCreateNestedManyWithoutItemInput
     loyaltyCards?: LoyaltyCardCreateNestedManyWithoutRewardItemInput
@@ -249434,6 +262256,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: number | null
     prepTime?: number | null
+    minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -249458,6 +262283,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryUncheckedCreateNestedManyWithoutItemInput
     modifierGroupLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutItemInput
     variants?: MenuItemVariantUncheckedCreateNestedManyWithoutItemInput
+    productVariants?: ProductVariantUncheckedCreateNestedManyWithoutMenuItemInput
     stationRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutMenuItemInput
     channelAvailability?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutItemInput
     loyaltyCards?: LoyaltyCardUncheckedCreateNestedManyWithoutRewardItemInput
@@ -249524,6 +262350,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -249548,6 +262377,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryUpdateManyWithoutItemNestedInput
     modifierGroupLinks?: ModifierGroupOnItemUpdateManyWithoutItemNestedInput
     variants?: MenuItemVariantUpdateManyWithoutItemNestedInput
+    productVariants?: ProductVariantUpdateManyWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUpdateManyWithoutMenuItemNestedInput
     channelAvailability?: MenuItemChannelAvailabilityUpdateManyWithoutItemNestedInput
     loyaltyCards?: LoyaltyCardUpdateManyWithoutRewardItemNestedInput
@@ -249576,6 +262406,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -249600,6 +262433,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryUncheckedUpdateManyWithoutItemNestedInput
     modifierGroupLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutItemNestedInput
     variants?: MenuItemVariantUncheckedUpdateManyWithoutItemNestedInput
+    productVariants?: ProductVariantUncheckedUpdateManyWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUncheckedUpdateManyWithoutMenuItemNestedInput
     channelAvailability?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutItemNestedInput
     loyaltyCards?: LoyaltyCardUncheckedUpdateManyWithoutRewardItemNestedInput
@@ -251119,6 +263953,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -251183,11 +264018,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -251214,6 +264052,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -251277,8 +264116,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -251392,6 +264234,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -251456,11 +264299,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -251487,6 +264333,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -251550,8 +264397,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -252816,6 +265666,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -252881,10 +265732,13 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -252911,6 +265765,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -252975,7 +265830,10 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -253014,6 +265872,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -253079,10 +265938,13 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -253109,6 +265971,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -253173,7 +266036,10 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -253196,6 +266062,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -253261,10 +266128,13 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -253291,6 +266161,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -253355,7 +266226,10 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -253394,6 +266268,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -253459,10 +266334,13 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -253489,6 +266367,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -253553,7 +266432,802 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
+  }
+
+  export type LocationCreateWithoutJetGoConfigInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    currency?: string
+    businessType?: $Enums.BusinessType
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
+    tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationUncheckedCreateWithoutJetGoConfigInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    currency?: string
+    businessType?: $Enums.BusinessType
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
+    tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutJetGoConfigInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutJetGoConfigInput, LocationUncheckedCreateWithoutJetGoConfigInput>
+  }
+
+  export type LocationUpsertWithoutJetGoConfigInput = {
+    update: XOR<LocationUpdateWithoutJetGoConfigInput, LocationUncheckedUpdateWithoutJetGoConfigInput>
+    create: XOR<LocationCreateWithoutJetGoConfigInput, LocationUncheckedCreateWithoutJetGoConfigInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutJetGoConfigInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutJetGoConfigInput, LocationUncheckedUpdateWithoutJetGoConfigInput>
+  }
+
+  export type LocationUpdateWithoutJetGoConfigInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
+    tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutJetGoConfigInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
+    tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
+  }
+
+  export type LocationCreateWithoutYangoConfigInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    currency?: string
+    businessType?: $Enums.BusinessType
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
+    tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationUncheckedCreateWithoutYangoConfigInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    currency?: string
+    businessType?: $Enums.BusinessType
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
+    tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutYangoConfigInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutYangoConfigInput, LocationUncheckedCreateWithoutYangoConfigInput>
+  }
+
+  export type LocationUpsertWithoutYangoConfigInput = {
+    update: XOR<LocationUpdateWithoutYangoConfigInput, LocationUncheckedUpdateWithoutYangoConfigInput>
+    create: XOR<LocationCreateWithoutYangoConfigInput, LocationUncheckedCreateWithoutYangoConfigInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutYangoConfigInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutYangoConfigInput, LocationUncheckedUpdateWithoutYangoConfigInput>
+  }
+
+  export type LocationUpdateWithoutYangoConfigInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
+    tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutYangoConfigInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
+    tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -254073,6 +267747,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -254137,11 +267812,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -254168,6 +267846,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -254231,8 +267910,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -254417,6 +268099,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -254481,11 +268164,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -254512,6 +268198,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -254575,8 +268262,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -254808,6 +268498,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -254873,11 +268564,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
@@ -254903,6 +268597,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -254967,8 +268662,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
@@ -255001,6 +268699,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: number | null
     prepTime?: number | null
+    minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -255025,6 +268726,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryCreateNestedManyWithoutItemInput
     modifierGroupLinks?: ModifierGroupOnItemCreateNestedManyWithoutItemInput
     variants?: MenuItemVariantCreateNestedManyWithoutItemInput
+    productVariants?: ProductVariantCreateNestedManyWithoutMenuItemInput
     recipe?: RecipeCreateNestedOneWithoutMenuItemInput
     stationRoutes?: MenuItemStationCreateNestedManyWithoutMenuItemInput
     channelAvailability?: MenuItemChannelAvailabilityCreateNestedManyWithoutItemInput
@@ -255053,6 +268755,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: number | null
     prepTime?: number | null
+    minAge?: number | null
+    sellBy?: string | null
+    scaleCode?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -255077,6 +268782,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryUncheckedCreateNestedManyWithoutItemInput
     modifierGroupLinks?: ModifierGroupOnItemUncheckedCreateNestedManyWithoutItemInput
     variants?: MenuItemVariantUncheckedCreateNestedManyWithoutItemInput
+    productVariants?: ProductVariantUncheckedCreateNestedManyWithoutMenuItemInput
     recipe?: RecipeUncheckedCreateNestedOneWithoutMenuItemInput
     stationRoutes?: MenuItemStationUncheckedCreateNestedManyWithoutMenuItemInput
     channelAvailability?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutItemInput
@@ -255183,6 +268889,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -255248,11 +268955,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
@@ -255278,6 +268988,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -255342,8 +269053,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
@@ -255382,6 +269096,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -255406,6 +269123,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryUpdateManyWithoutItemNestedInput
     modifierGroupLinks?: ModifierGroupOnItemUpdateManyWithoutItemNestedInput
     variants?: MenuItemVariantUpdateManyWithoutItemNestedInput
+    productVariants?: ProductVariantUpdateManyWithoutMenuItemNestedInput
     recipe?: RecipeUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUpdateManyWithoutMenuItemNestedInput
     channelAvailability?: MenuItemChannelAvailabilityUpdateManyWithoutItemNestedInput
@@ -255434,6 +269152,9 @@ export namespace Prisma {
     dietary?: JsonNullValueInput | InputJsonValue
     calories?: NullableIntFieldUpdateOperationsInput | number | null
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    minAge?: NullableIntFieldUpdateOperationsInput | number | null
+    sellBy?: NullableStringFieldUpdateOperationsInput | string | null
+    scaleCode?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     hasMultipleSkus?: BoolFieldUpdateOperationsInput | boolean
     productSkus?: JsonNullValueInput | InputJsonValue
@@ -255458,6 +269179,7 @@ export namespace Prisma {
     categories?: MenuItemOnCategoryUncheckedUpdateManyWithoutItemNestedInput
     modifierGroupLinks?: ModifierGroupOnItemUncheckedUpdateManyWithoutItemNestedInput
     variants?: MenuItemVariantUncheckedUpdateManyWithoutItemNestedInput
+    productVariants?: ProductVariantUncheckedUpdateManyWithoutMenuItemNestedInput
     recipe?: RecipeUncheckedUpdateOneWithoutMenuItemNestedInput
     stationRoutes?: MenuItemStationUncheckedUpdateManyWithoutMenuItemNestedInput
     channelAvailability?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutItemNestedInput
@@ -256107,6 +269829,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -256172,11 +269895,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
   }
@@ -256202,6 +269928,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -256266,8 +269993,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
   }
@@ -256395,6 +270125,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -256460,11 +270191,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
   }
@@ -256490,6 +270224,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -256554,8 +270289,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
   }
@@ -256632,6 +270370,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -256697,11 +270436,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
@@ -256727,6 +270469,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -256791,8 +270534,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
@@ -256902,6 +270648,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -256967,11 +270714,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
@@ -256997,6 +270747,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -257061,8 +270812,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
@@ -260587,6 +274341,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -260923,6 +274678,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -260987,11 +274743,14 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -261017,6 +274776,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -261081,8 +274841,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -261108,6 +274871,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -262399,6 +276163,13 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type ProductStockLevelCreateManyLocationInput = {
+    id?: string
+    variantId: string
+    quantity?: number
+    updatedAt?: Date | string
+  }
+
   export type LoyaltyRewardCreateManyLocationInput = {
     id?: string
     tenantId: string
@@ -263630,6 +277401,27 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type ProductStockLevelUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    variant?: ProductVariantUpdateOneRequiredWithoutStockLevelsNestedInput
+  }
+
+  export type ProductStockLevelUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    variantId?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProductStockLevelUncheckedUpdateManyWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    variantId?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type LoyaltyRewardUpdateWithoutLocationInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
@@ -263970,6 +277762,24 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type ProductVariantCreateManyMenuItemInput = {
+    id?: string
+    tenantId: string
+    brandId: string
+    name: string
+    options?: JsonNullValueInput | InputJsonValue
+    sku?: string | null
+    barcode?: string | null
+    price?: Decimal | DecimalJsLike | number | string | null
+    costPrice?: Decimal | DecimalJsLike | number | string | null
+    trackStock?: boolean
+    lowStockAt?: number | null
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type MenuItemStationCreateManyMenuItemInput = {
     id?: string
     stationId: string
@@ -264067,6 +277877,64 @@ export namespace Prisma {
     price?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     sortOrder?: IntFieldUpdateOperationsInput | number
     isAvailable?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProductVariantUpdateWithoutMenuItemInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    options?: JsonNullValueInput | InputJsonValue
+    sku?: NullableStringFieldUpdateOperationsInput | string | null
+    barcode?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    costPrice?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    trackStock?: BoolFieldUpdateOperationsInput | boolean
+    lowStockAt?: NullableIntFieldUpdateOperationsInput | number | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    stockLevels?: ProductStockLevelUpdateManyWithoutVariantNestedInput
+    movements?: ProductStockMovementUpdateManyWithoutVariantNestedInput
+  }
+
+  export type ProductVariantUncheckedUpdateWithoutMenuItemInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    options?: JsonNullValueInput | InputJsonValue
+    sku?: NullableStringFieldUpdateOperationsInput | string | null
+    barcode?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    costPrice?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    trackStock?: BoolFieldUpdateOperationsInput | boolean
+    lowStockAt?: NullableIntFieldUpdateOperationsInput | number | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    stockLevels?: ProductStockLevelUncheckedUpdateManyWithoutVariantNestedInput
+    movements?: ProductStockMovementUncheckedUpdateManyWithoutVariantNestedInput
+  }
+
+  export type ProductVariantUncheckedUpdateManyWithoutMenuItemInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    options?: JsonNullValueInput | InputJsonValue
+    sku?: NullableStringFieldUpdateOperationsInput | string | null
+    barcode?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    costPrice?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    trackStock?: BoolFieldUpdateOperationsInput | boolean
+    lowStockAt?: NullableIntFieldUpdateOperationsInput | number | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -265145,6 +279013,7 @@ export namespace Prisma {
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    refundLines?: RefundLineUpdateManyWithoutOrderItemNestedInput
   }
 
   export type OrderItemUncheckedUpdateWithoutOrderInput = {
@@ -265158,6 +279027,7 @@ export namespace Prisma {
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    refundLines?: RefundLineUncheckedUpdateManyWithoutOrderItemNestedInput
   }
 
   export type OrderItemUncheckedUpdateManyWithoutOrderInput = {
@@ -265423,6 +279293,42 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type RefundLineCreateManyOrderItemInput = {
+    id?: string
+    refundId: string
+    quantity: number
+    amount: Decimal | DecimalJsLike | number | string
+    restock?: boolean
+    createdAt?: Date | string
+  }
+
+  export type RefundLineUpdateWithoutOrderItemInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    restock?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    refund?: RefundUpdateOneRequiredWithoutLinesNestedInput
+  }
+
+  export type RefundLineUncheckedUpdateWithoutOrderItemInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    refundId?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    restock?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RefundLineUncheckedUpdateManyWithoutOrderItemInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    refundId?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    restock?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type KdsTicketCreateManyScreenInput = {
     id?: string
     orderId: string
@@ -265603,6 +279509,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -265668,6 +279575,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -265862,6 +279770,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -265927,10 +279836,13 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -265956,6 +279868,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -266020,8 +279933,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -266047,6 +279963,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -266109,6 +280026,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -266174,10 +280092,13 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -266203,6 +280124,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -266267,8 +280189,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -266294,6 +280219,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -266416,6 +280342,7 @@ export namespace Prisma {
     postcode?: string | null
     country?: string
     currency?: string
+    businessType?: $Enums.BusinessType
     about?: string | null
     logoUrl?: string | null
     customDomain?: string | null
@@ -266703,6 +280630,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -266768,10 +280696,13 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -266797,6 +280728,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -266861,8 +280793,11 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -266888,6 +280823,7 @@ export namespace Prisma {
     postcode?: NullableStringFieldUpdateOperationsInput | string | null
     country?: StringFieldUpdateOperationsInput | string
     currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
     about?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     customDomain?: NullableStringFieldUpdateOperationsInput | string | null
@@ -267586,6 +281522,8 @@ export namespace Prisma {
   export type RefundCreateManyPaymentInput = {
     id?: string
     tenantId: string
+    orderId?: string | null
+    method?: string | null
     stripeRefundId?: string | null
     amount: Decimal | DecimalJsLike | number | string
     reason?: string | null
@@ -267612,6 +281550,8 @@ export namespace Prisma {
   export type RefundUpdateWithoutPaymentInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    method?: NullableStringFieldUpdateOperationsInput | string | null
     stripeRefundId?: NullableStringFieldUpdateOperationsInput | string | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     reason?: NullableStringFieldUpdateOperationsInput | string | null
@@ -267621,11 +281561,14 @@ export namespace Prisma {
     note?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ledgerEntries?: LedgerEntryUpdateManyWithoutRefundNestedInput
+    lines?: RefundLineUpdateManyWithoutRefundNestedInput
   }
 
   export type RefundUncheckedUpdateWithoutPaymentInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    method?: NullableStringFieldUpdateOperationsInput | string | null
     stripeRefundId?: NullableStringFieldUpdateOperationsInput | string | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     reason?: NullableStringFieldUpdateOperationsInput | string | null
@@ -267635,11 +281578,14 @@ export namespace Prisma {
     note?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ledgerEntries?: LedgerEntryUncheckedUpdateManyWithoutRefundNestedInput
+    lines?: RefundLineUncheckedUpdateManyWithoutRefundNestedInput
   }
 
   export type RefundUncheckedUpdateManyWithoutPaymentInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    method?: NullableStringFieldUpdateOperationsInput | string | null
     stripeRefundId?: NullableStringFieldUpdateOperationsInput | string | null
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     reason?: NullableStringFieldUpdateOperationsInput | string | null
@@ -267702,6 +281648,15 @@ export namespace Prisma {
     createdAt?: Date | string
   }
 
+  export type RefundLineCreateManyRefundInput = {
+    id?: string
+    orderItemId: string
+    quantity: number
+    amount: Decimal | DecimalJsLike | number | string
+    restock?: boolean
+    createdAt?: Date | string
+  }
+
   export type LedgerEntryUpdateWithoutRefundInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
@@ -267738,6 +281693,117 @@ export namespace Prisma {
     description?: StringFieldUpdateOperationsInput | string
     reference?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RefundLineUpdateWithoutRefundInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    restock?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    orderItem?: OrderItemUpdateOneRequiredWithoutRefundLinesNestedInput
+  }
+
+  export type RefundLineUncheckedUpdateWithoutRefundInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderItemId?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    restock?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RefundLineUncheckedUpdateManyWithoutRefundInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderItemId?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    restock?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProductStockLevelCreateManyVariantInput = {
+    id?: string
+    locationId: string
+    quantity?: number
+    updatedAt?: Date | string
+  }
+
+  export type ProductStockMovementCreateManyVariantInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    type: $Enums.StockMovementType
+    quantity: number
+    reason?: string | null
+    orderId?: string | null
+    refundId?: string | null
+    recordedBy?: string | null
+    dedupeKey?: string | null
+    createdAt?: Date | string
+  }
+
+  export type ProductStockLevelUpdateWithoutVariantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutProductStockLevelsNestedInput
+  }
+
+  export type ProductStockLevelUncheckedUpdateWithoutVariantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProductStockLevelUncheckedUpdateManyWithoutVariantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProductStockMovementUpdateWithoutVariantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    type?: EnumStockMovementTypeFieldUpdateOperationsInput | $Enums.StockMovementType
+    quantity?: IntFieldUpdateOperationsInput | number
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    refundId?: NullableStringFieldUpdateOperationsInput | string | null
+    recordedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    dedupeKey?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProductStockMovementUncheckedUpdateWithoutVariantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    type?: EnumStockMovementTypeFieldUpdateOperationsInput | $Enums.StockMovementType
+    quantity?: IntFieldUpdateOperationsInput | number
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    refundId?: NullableStringFieldUpdateOperationsInput | string | null
+    recordedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    dedupeKey?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProductStockMovementUncheckedUpdateManyWithoutVariantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    type?: EnumStockMovementTypeFieldUpdateOperationsInput | $Enums.StockMovementType
+    quantity?: IntFieldUpdateOperationsInput | number
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    refundId?: NullableStringFieldUpdateOperationsInput | string | null
+    recordedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    dedupeKey?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -269031,6 +283097,10 @@ export namespace Prisma {
      */
     export type OrderCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = OrderCountOutputTypeDefaultArgs<ExtArgs>
     /**
+     * @deprecated Use OrderItemCountOutputTypeDefaultArgs instead
+     */
+    export type OrderItemCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = OrderItemCountOutputTypeDefaultArgs<ExtArgs>
+    /**
      * @deprecated Use KdsScreenCountOutputTypeDefaultArgs instead
      */
     export type KdsScreenCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = KdsScreenCountOutputTypeDefaultArgs<ExtArgs>
@@ -269070,6 +283140,10 @@ export namespace Prisma {
      * @deprecated Use RefundCountOutputTypeDefaultArgs instead
      */
     export type RefundCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = RefundCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use ProductVariantCountOutputTypeDefaultArgs instead
+     */
+    export type ProductVariantCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ProductVariantCountOutputTypeDefaultArgs<ExtArgs>
     /**
      * @deprecated Use SupplierCountOutputTypeDefaultArgs instead
      */
@@ -269435,6 +283509,22 @@ export namespace Prisma {
      */
     export type RefundArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = RefundDefaultArgs<ExtArgs>
     /**
+     * @deprecated Use ProductVariantDefaultArgs instead
+     */
+    export type ProductVariantArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ProductVariantDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use ProductStockLevelDefaultArgs instead
+     */
+    export type ProductStockLevelArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ProductStockLevelDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use ProductStockMovementDefaultArgs instead
+     */
+    export type ProductStockMovementArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ProductStockMovementDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use RefundLineDefaultArgs instead
+     */
+    export type RefundLineArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = RefundLineDefaultArgs<ExtArgs>
+    /**
      * @deprecated Use LedgerEntryDefaultArgs instead
      */
     export type LedgerEntryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = LedgerEntryDefaultArgs<ExtArgs>
@@ -269607,6 +283697,14 @@ export namespace Prisma {
      */
     export type UberDirectConfigArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = UberDirectConfigDefaultArgs<ExtArgs>
     /**
+     * @deprecated Use JetGoConfigDefaultArgs instead
+     */
+    export type JetGoConfigArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = JetGoConfigDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use YangoConfigDefaultArgs instead
+     */
+    export type YangoConfigArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = YangoConfigDefaultArgs<ExtArgs>
+    /**
      * @deprecated Use ReviewDefaultArgs instead
      */
     export type ReviewArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ReviewDefaultArgs<ExtArgs>
@@ -269666,6 +283764,10 @@ export namespace Prisma {
      * @deprecated Use ReferralDefaultArgs instead
      */
     export type ReferralArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ReferralDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use KeetaAuthorizationDefaultArgs instead
+     */
+    export type KeetaAuthorizationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = KeetaAuthorizationDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

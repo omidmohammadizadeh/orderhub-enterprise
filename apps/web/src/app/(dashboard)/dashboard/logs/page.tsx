@@ -58,6 +58,7 @@ const CHANNEL_FILTERS: Array<{ value: string; label: string }> = [
   { value: "UBER_EATS", label: "Uber Eats" },
   { value: "DELIVEROO", label: "Deliveroo" },
   { value: "JUST_EAT", label: "Just Eat" },
+  { value: "KEETA", label: "Keeta" },
   { value: "HUBRISE", label: "HubRise" },
   { value: "ONLINE,DIRECT", label: "Online ordering" },
   { value: "POS", label: "POS" },
@@ -66,6 +67,8 @@ const CHANNEL_FILTERS: Array<{ value: string; label: string }> = [
   { value: "STRIPE", label: "Stripe" },
   { value: "STUART", label: "Stuart" },
   { value: "UBER_DIRECT", label: "Uber Direct" },
+  { value: "JET_GO", label: "JET Go" },
+  { value: "YANGO", label: "Yango Delivery" },
 ];
 
 const CHANNEL_LABEL: Record<string, string> = {
@@ -73,6 +76,7 @@ const CHANNEL_LABEL: Record<string, string> = {
   DELIVEROO: "Deliveroo",
   HUBRISE: "HubRise",
   JUST_EAT: "Just Eat",
+  KEETA: "Keeta",
   DIRECT: "Direct",
   ONLINE: "Online",
   POS: "POS",
@@ -80,6 +84,8 @@ const CHANNEL_LABEL: Record<string, string> = {
   STRIPE: "Stripe",
   STUART: "Stuart",
   UBER_DIRECT: "Uber Direct",
+  JET_GO: "JET Go",
+  YANGO: "Yango Delivery",
   ALL: "All channels",
 };
 
@@ -88,6 +94,7 @@ const CHANNEL_COLOR: Record<string, string> = {
   DELIVEROO: "bg-cyan-100 text-cyan-700",
   HUBRISE: "bg-violet-100 text-violet-700",
   JUST_EAT: "bg-orange-100 text-orange-700",
+  KEETA: "bg-yellow-100 text-yellow-800",
   DIRECT: "bg-blue-100 text-blue-700",
   ONLINE: "bg-blue-100 text-blue-700",
   POS: "bg-zinc-200 text-zinc-700",
@@ -95,6 +102,8 @@ const CHANNEL_COLOR: Record<string, string> = {
   STRIPE: "bg-indigo-100 text-indigo-700",
   STUART: "bg-sky-100 text-sky-700",
   UBER_DIRECT: "bg-zinc-200 text-zinc-700",
+  JET_GO: "bg-orange-100 text-orange-700",
+  YANGO: "bg-red-100 text-red-700",
 };
 
 function statusBadge(status: LogEntry["status"]) {

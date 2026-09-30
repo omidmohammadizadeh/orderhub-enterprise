@@ -76,6 +76,7 @@ const INTEGRATIONS: MenuItem[] = [
   { label: "Careem", href: "/integrations/careem", brand: "careem" },
   { label: "talabat", href: "/integrations/talabat", brand: "talabat" },
   { label: "Glovo (coming soon)", href: "/integrations/glovo", brand: "glovo" },
+  { label: "Keeta (coming soon)", href: "/integrations/keeta", brand: "keeta" },
   { label: "WhatsApp", href: "/integrations/whatsapp", brand: "whatsapp" },
   { label: "Order Hub POS", href: "/integrations/orderhub", brand: "orderhub" },
   { label: "Stripe", href: "/integrations/stripe", brand: "stripe" },

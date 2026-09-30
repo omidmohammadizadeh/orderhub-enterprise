@@ -31,9 +31,11 @@ import { UberEatsManageModal } from "@/components/locations/ubereats-manage-moda
 import { DeliverooManageModal } from "@/components/locations/deliveroo-manage-modal";
 import { JustEatManageModal } from "@/components/locations/justeat-manage-modal";
 import { GlovoManageModal } from "@/components/locations/glovo-manage-modal";
+import { KeetaManageModal } from "@/components/locations/keeta-manage-modal";
 import { deliverooClient } from "@/lib/api/deliveroo.client";
 import { justEatClient } from "@/lib/api/justeat.client";
 import { glovoClient } from "@/lib/api/glovo.client";
+import { keetaClient } from "@/lib/api/keeta.client";
 import { apiClient } from "@/lib/api/client";
 import { StorePickerModal } from "@/components/locations/store-picker-modal";
 import toast from "react-hot-toast";
@@ -191,6 +193,21 @@ export function BrandPlatformGrid({ brand, locationId, country }: Props) {
           if (platform === "GLOVO") {
             return (
               <GlovoRow
+                key={platform}
+                brandId={brandId}
+                locationId={locationId}
+                connection={conn ?? null}
+                onChanged={() =>
+                  qc.invalidateQueries({ queryKey: ["brand-connections", brandId] })
+                }
+              />
+            );
+          }
+          // Keeta authorizes by BRAND on Keeta's own site; connecting a
+          // location is then picking which authorized Keeta store it is.
+          if (platform === "KEETA") {
+            return (
+              <KeetaRow
                 key={platform}
                 brandId={brandId}
                 locationId={locationId}
@@ -896,6 +913,177 @@ function GlovoRow({
           brandId={brandId}
           locationId={locationId}
           storeId={(connection?.externalStoreId as string) ?? null}
+          open={manageOpen}
+          onClose={() => setManageOpen(false)}
+          onChanged={onChanged}
+        />
+      )}
+    </li>
+  );
+}
+
+/**
+ * Keeta — OAuth by brand, then a store pick.
+ *
+ * "Authorize with Keeta" sends the merchant to Keeta's own consent page; they
+ * come back here with `?keeta=…` on the URL. If Keeta covered exactly one
+ * store and we started from this location, the server has already connected
+ * it. Otherwise the stores that authorization covers are offered below, and
+ * a store authorized earlier (for another location of the same chain) can be
+ * picked without going round Keeta again.
+ */
+function KeetaRow({
+  brandId,
+  locationId,
+  connection,
+  onChanged,
+}: {
+  brandId: string;
+  locationId: string;
+  connection: BrandPlatformConnection | null;
+  onChanged: () => void;
+}) {
+  const connected =
+    connection?.status === "connected" || connection?.status === "suspended";
+  const [manageOpen, setManageOpen] = useState(false);
+  const [pick, setPick] = useState("");
+
+  const auths = useQuery({
+    queryKey: ["keeta-authorizations"],
+    queryFn: () => keetaClient.authorizations(),
+    enabled: !connected,
+  });
+
+  // Back from Keeta's consent page. Read once, report, and clean the URL so a
+  // refresh doesn't repeat the toast.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    const outcome = url.searchParams.get("keeta");
+    if (!outcome) return;
+    const forBrand = url.searchParams.get("brandId");
+    if (forBrand && forBrand !== brandId) return;
+    if (outcome === "connected") {
+      toast.success("Keeta connected. Publish the menu next.", { duration: 6000 });
+      onChanged();
+    } else if (outcome === "authorized") {
+      toast.success("Keeta authorized — now pick which Keeta store this location is.", { duration: 7000 });
+      auths.refetch();
+    } else if (outcome === "error") {
+      toast.error(url.searchParams.get("keetaError") ?? "Keeta authorization failed", { duration: 9000 });
+    }
+    for (const k of ["keeta", "keetaAuthorizationId", "keetaError", "brandId"]) url.searchParams.delete(k);
+    window.history.replaceState(null, "", url.toString());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const authorize = useMutation({
+    mutationFn: () => keetaClient.authorize({ brandId, locationId }),
+    onSuccess: ({ url }) => {
+      window.location.href = url;
+    },
+    onError: (e: any) =>
+      toast.error(e?.response?.data?.message ?? e?.message ?? "Keeta request failed"),
+  });
+
+  const options = (auths.data ?? [])
+    .filter((a) => a.status !== "revoked")
+    .flatMap((a) =>
+      a.shops.map((s) => ({
+        value: `${a.id}|${s.id}`,
+        label: `${s.name ?? "Store"} — ${s.id}${s.address ? ` · ${s.address}` : ""}${a.brandName ? ` (${a.brandName})` : ""}`,
+      })),
+    );
+
+  const connect = useMutation({
+    mutationFn: () => {
+      const [authorizationId, shopId] = pick.split("|");
+      return keetaClient.connect({ brandId, locationId, authorizationId: authorizationId!, shopId: shopId! });
+    },
+    onSuccess: (res) => {
+      toast.success(`Keeta connected — ${res.shopName ?? `store ${res.shopId}`}. Publish the menu next.`, {
+        duration: 7000,
+      });
+      setPick("");
+      onChanged();
+    },
+    onError: (e: any) =>
+      toast.error(e?.response?.data?.message ?? e?.message ?? "Keeta request failed"),
+  });
+
+  return (
+    <li className="rounded-md border border-zinc-200 px-3 py-2">
+      <div className="flex items-start gap-3">
+        <PlatformLogo platform="KEETA" size={44} />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-zinc-900">Keeta</span>
+            <StatusChip status={connection?.status ?? "not_connected"} />
+          </div>
+
+          {!connected ? (
+            <div className="mt-1.5 space-y-1.5">
+              {options.length > 0 && (
+                <div className="flex gap-1.5">
+                  <select
+                    value={pick}
+                    onChange={(e) => setPick(e.target.value)}
+                    aria-label="Keeta store"
+                    className="w-full min-w-0 rounded-md border border-zinc-200 bg-white px-2 py-1 text-xs focus:border-zinc-900 focus:outline-none"
+                  >
+                    <option value="">Pick the Keeta store for this location…</option>
+                    {options.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={() => connect.mutate()}
+                    disabled={!pick || connect.isPending}
+                    className="flex-shrink-0 rounded-md bg-zinc-900 px-2 py-1 text-[10px] font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+                  >
+                    {connect.isPending ? "Connecting…" : "Connect"}
+                  </button>
+                </div>
+              )}
+              <button
+                onClick={() => authorize.mutate()}
+                disabled={authorize.isPending}
+                className={
+                  options.length
+                    ? "rounded-md border border-zinc-300 px-2 py-1 text-[10px] font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
+                    : "rounded-md bg-zinc-900 px-2 py-1 text-[10px] font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+                }
+              >
+                {authorize.isPending ? "Opening Keeta…" : options.length ? "Authorize another Keeta brand" : "Authorize with Keeta"}
+              </button>
+              <p className="text-[10px] text-zinc-400">
+                Sign in to the Keeta merchant portal and approve OrderHub for your stores. You&apos;ll come
+                straight back here.
+              </p>
+            </div>
+          ) : (
+            <p className="text-[10px] text-zinc-500">
+              {connection?.metadata?.keetaShopName ?? "Keeta store"} · {connection?.externalStoreId ?? "—"}
+            </p>
+          )}
+        </div>
+
+        {connected && (
+          <button
+            onClick={() => setManageOpen(true)}
+            className="flex-shrink-0 rounded-md bg-zinc-900 px-3 py-1.5 text-[10px] font-medium text-white hover:bg-zinc-800"
+          >
+            Manage
+          </button>
+        )}
+      </div>
+      {connected && (
+        <KeetaManageModal
+          connectionId={connection!.id as string}
+          brandId={brandId}
+          locationId={locationId}
           open={manageOpen}
           onClose={() => setManageOpen(false)}
           onChanged={onChanged}

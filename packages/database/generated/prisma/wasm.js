@@ -346,6 +346,7 @@ exports.Prisma.LocationScalarFieldEnum = {
   postcode: 'postcode',
   country: 'country',
   currency: 'currency',
+  businessType: 'businessType',
   about: 'about',
   logoUrl: 'logoUrl',
   customDomain: 'customDomain',
@@ -535,6 +536,9 @@ exports.Prisma.MenuItemScalarFieldEnum = {
   dietary: 'dietary',
   calories: 'calories',
   prepTime: 'prepTime',
+  minAge: 'minAge',
+  sellBy: 'sellBy',
+  scaleCode: 'scaleCode',
   metadata: 'metadata',
   hasMultipleSkus: 'hasMultipleSkus',
   productSkus: 'productSkus',
@@ -1477,6 +1481,8 @@ exports.Prisma.RefundScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
   paymentId: 'paymentId',
+  orderId: 'orderId',
+  method: 'method',
   stripeRefundId: 'stripeRefundId',
   amount: 'amount',
   reason: 'reason',
@@ -1484,6 +1490,58 @@ exports.Prisma.RefundScalarFieldEnum = {
   isPartial: 'isPartial',
   processedBy: 'processedBy',
   note: 'note',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.ProductVariantScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  brandId: 'brandId',
+  menuItemId: 'menuItemId',
+  name: 'name',
+  options: 'options',
+  sku: 'sku',
+  barcode: 'barcode',
+  price: 'price',
+  costPrice: 'costPrice',
+  trackStock: 'trackStock',
+  lowStockAt: 'lowStockAt',
+  isActive: 'isActive',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ProductStockLevelScalarFieldEnum = {
+  id: 'id',
+  variantId: 'variantId',
+  locationId: 'locationId',
+  quantity: 'quantity',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ProductStockMovementScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  variantId: 'variantId',
+  type: 'type',
+  quantity: 'quantity',
+  reason: 'reason',
+  orderId: 'orderId',
+  refundId: 'refundId',
+  recordedBy: 'recordedBy',
+  dedupeKey: 'dedupeKey',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.RefundLineScalarFieldEnum = {
+  id: 'id',
+  refundId: 'refundId',
+  orderItemId: 'orderItemId',
+  quantity: 'quantity',
+  amount: 'amount',
+  restock: 'restock',
   createdAt: 'createdAt'
 };
 
@@ -2113,6 +2171,38 @@ exports.Prisma.UberDirectConfigScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.JetGoConfigScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  market: 'market',
+  environment: 'environment',
+  credentials: 'credentials',
+  collectPointId: 'collectPointId',
+  collectPointName: 'collectPointName',
+  webhookToken: 'webhookToken',
+  webhookSecret: 'webhookSecret',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.YangoConfigScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  mode: 'mode',
+  credentials: 'credentials',
+  taxiClass: 'taxiClass',
+  contactEmail: 'contactEmail',
+  pickupLat: 'pickupLat',
+  pickupLng: 'pickupLng',
+  webhookToken: 'webhookToken',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.ReviewScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -2363,6 +2453,25 @@ exports.Prisma.ReferralScalarFieldEnum = {
   qualifyingOrderId: 'qualifyingOrderId',
   qualifiedAt: 'qualifiedAt',
   createdAt: 'createdAt'
+};
+
+exports.Prisma.KeetaAuthorizationScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  keetaBrandId: 'keetaBrandId',
+  brandName: 'brandName',
+  keetaUserId: 'keetaUserId',
+  accessToken: 'accessToken',
+  refreshToken: 'refreshToken',
+  expiresAt: 'expiresAt',
+  issuedAt: 'issuedAt',
+  status: 'status',
+  shops: 'shops',
+  lastRefreshAt: 'lastRefreshAt',
+  lastError: 'lastError',
+  metadata: 'metadata',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.SortOrder = {
@@ -2653,6 +2762,8 @@ exports.Prisma.MenuItemOrderByRelevanceFieldEnum = {
   plu: 'plu',
   allergens: 'allergens',
   dietaryTags: 'dietaryTags',
+  sellBy: 'sellBy',
+  scaleCode: 'scaleCode',
   menuIds: 'menuIds',
   brandIds: 'brandIds',
   platformSource: 'platformSource',
@@ -3196,10 +3307,46 @@ exports.Prisma.RefundOrderByRelevanceFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
   paymentId: 'paymentId',
+  orderId: 'orderId',
+  method: 'method',
   stripeRefundId: 'stripeRefundId',
   reason: 'reason',
   processedBy: 'processedBy',
   note: 'note'
+};
+
+exports.Prisma.ProductVariantOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  brandId: 'brandId',
+  menuItemId: 'menuItemId',
+  name: 'name',
+  sku: 'sku',
+  barcode: 'barcode'
+};
+
+exports.Prisma.ProductStockLevelOrderByRelevanceFieldEnum = {
+  id: 'id',
+  variantId: 'variantId',
+  locationId: 'locationId'
+};
+
+exports.Prisma.ProductStockMovementOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  variantId: 'variantId',
+  reason: 'reason',
+  orderId: 'orderId',
+  refundId: 'refundId',
+  recordedBy: 'recordedBy',
+  dedupeKey: 'dedupeKey'
+};
+
+exports.Prisma.RefundLineOrderByRelevanceFieldEnum = {
+  id: 'id',
+  refundId: 'refundId',
+  orderItemId: 'orderItemId'
 };
 
 exports.Prisma.LedgerEntryOrderByRelevanceFieldEnum = {
@@ -3616,6 +3763,28 @@ exports.Prisma.UberDirectConfigOrderByRelevanceFieldEnum = {
   environment: 'environment'
 };
 
+exports.Prisma.JetGoConfigOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  market: 'market',
+  environment: 'environment',
+  collectPointId: 'collectPointId',
+  collectPointName: 'collectPointName',
+  webhookToken: 'webhookToken',
+  webhookSecret: 'webhookSecret'
+};
+
+exports.Prisma.YangoConfigOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  mode: 'mode',
+  taxiClass: 'taxiClass',
+  contactEmail: 'contactEmail',
+  webhookToken: 'webhookToken'
+};
+
 exports.Prisma.ReviewOrderByRelevanceFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -3793,6 +3962,18 @@ exports.Prisma.ReferralOrderByRelevanceFieldEnum = {
   verifiedPhone: 'verifiedPhone',
   qualifyingOrderId: 'qualifyingOrderId'
 };
+
+exports.Prisma.KeetaAuthorizationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  keetaBrandId: 'keetaBrandId',
+  brandName: 'brandName',
+  keetaUserId: 'keetaUserId',
+  accessToken: 'accessToken',
+  refreshToken: 'refreshToken',
+  status: 'status',
+  lastError: 'lastError'
+};
 exports.TenantPlan = exports.$Enums.TenantPlan = {
   STARTER: 'STARTER',
   PROFESSIONAL: 'PROFESSIONAL',
@@ -3845,6 +4026,12 @@ exports.OAuthProvider = exports.$Enums.OAuthProvider = {
   JUST_EAT: 'JUST_EAT'
 };
 
+exports.BusinessType = exports.$Enums.BusinessType = {
+  RESTAURANT: 'RESTAURANT',
+  GROCERY: 'GROCERY',
+  RETAIL: 'RETAIL'
+};
+
 exports.LocationGoLiveStatus = exports.$Enums.LocationGoLiveStatus = {
   DRAFT: 'DRAFT',
   CONFIGURING: 'CONFIGURING',
@@ -3866,6 +4053,7 @@ exports.IntegrationPlatform = exports.$Enums.IntegrationPlatform = {
   GRUBHUB: 'GRUBHUB',
   CAREEM: 'CAREEM',
   GLOVO: 'GLOVO',
+  KEETA: 'KEETA',
   WHATSAPP: 'WHATSAPP'
 };
 
@@ -3912,7 +4100,8 @@ exports.CampaignType = exports.$Enums.CampaignType = {
   BOGO: 'BOGO',
   FREE_ITEM: 'FREE_ITEM',
   FREE_DELIVERY: 'FREE_DELIVERY',
-  HAPPY_HOUR: 'HAPPY_HOUR'
+  HAPPY_HOUR: 'HAPPY_HOUR',
+  MULTI_BUY: 'MULTI_BUY'
 };
 
 exports.CampaignStatus = exports.$Enums.CampaignStatus = {
@@ -3942,6 +4131,7 @@ exports.OrderPlatform = exports.$Enums.OrderPlatform = {
   GRUBHUB: 'GRUBHUB',
   CAREEM: 'CAREEM',
   GLOVO: 'GLOVO',
+  KEETA: 'KEETA',
   WHATSAPP: 'WHATSAPP',
   VOICE: 'VOICE'
 };
@@ -3959,6 +4149,7 @@ exports.OrderSource = exports.$Enums.OrderSource = {
   GRUBHUB: 'GRUBHUB',
   CAREEM: 'CAREEM',
   GLOVO: 'GLOVO',
+  KEETA: 'KEETA',
   WHATSAPP: 'WHATSAPP',
   VOICE: 'VOICE'
 };
@@ -4123,6 +4314,17 @@ exports.RefundStatus = exports.$Enums.RefundStatus = {
   CANCELLED: 'CANCELLED'
 };
 
+exports.StockMovementType = exports.$Enums.StockMovementType = {
+  PURCHASE: 'PURCHASE',
+  SALE_DEDUCTION: 'SALE_DEDUCTION',
+  WASTE: 'WASTE',
+  ADJUSTMENT: 'ADJUSTMENT',
+  TRANSFER_IN: 'TRANSFER_IN',
+  TRANSFER_OUT: 'TRANSFER_OUT',
+  RETURN: 'RETURN',
+  COUNT_CORRECTION: 'COUNT_CORRECTION'
+};
+
 exports.LedgerEntryType = exports.$Enums.LedgerEntryType = {
   PAYMENT: 'PAYMENT',
   REFUND: 'REFUND',
@@ -4139,17 +4341,6 @@ exports.PayoutStatus = exports.$Enums.PayoutStatus = {
   PAID: 'PAID',
   FAILED: 'FAILED',
   CANCELLED: 'CANCELLED'
-};
-
-exports.StockMovementType = exports.$Enums.StockMovementType = {
-  PURCHASE: 'PURCHASE',
-  SALE_DEDUCTION: 'SALE_DEDUCTION',
-  WASTE: 'WASTE',
-  ADJUSTMENT: 'ADJUSTMENT',
-  TRANSFER_IN: 'TRANSFER_IN',
-  TRANSFER_OUT: 'TRANSFER_OUT',
-  RETURN: 'RETURN',
-  COUNT_CORRECTION: 'COUNT_CORRECTION'
 };
 
 exports.PurchaseOrderStatus = exports.$Enums.PurchaseOrderStatus = {
@@ -4325,6 +4516,10 @@ exports.Prisma.ModelName = {
   Payment: 'Payment',
   PaymentMethod: 'PaymentMethod',
   Refund: 'Refund',
+  ProductVariant: 'ProductVariant',
+  ProductStockLevel: 'ProductStockLevel',
+  ProductStockMovement: 'ProductStockMovement',
+  RefundLine: 'RefundLine',
   LedgerEntry: 'LedgerEntry',
   Payout: 'Payout',
   Supplier: 'Supplier',
@@ -4368,6 +4563,8 @@ exports.Prisma.ModelName = {
   WalletTransaction: 'WalletTransaction',
   StuartConfig: 'StuartConfig',
   UberDirectConfig: 'UberDirectConfig',
+  JetGoConfig: 'JetGoConfig',
+  YangoConfig: 'YangoConfig',
   Review: 'Review',
   VoiceCall: 'VoiceCall',
   GroupOrder: 'GroupOrder',
@@ -4382,7 +4579,8 @@ exports.Prisma.ModelName = {
   LoyaltyReward: 'LoyaltyReward',
   ReferralProgram: 'ReferralProgram',
   ReferralCode: 'ReferralCode',
-  Referral: 'Referral'
+  Referral: 'Referral',
+  KeetaAuthorization: 'KeetaAuthorization'
 };
 
 /**

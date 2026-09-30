@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { currencyForCountry } from "@orderhub/shared";
+import { currencyForCountry, normaliseMinAge } from "@orderhub/shared";
 import { money } from "./whatsapp-cart";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { MenuAssignmentsService } from "../menus/menu-assignments.service";
@@ -46,6 +46,8 @@ export interface WaMenuItem {
   imageUrl?: string;
   categoryName: string;
   modifierGroups: WaMenuModifierGroup[];
+  /** Challenge 25: 16 / 18 for an age-restricted product, else absent. */
+  minAge?: number | null;
 }
 
 export interface WaMenuContext {
@@ -393,6 +395,7 @@ export class WhatsAppMenuService {
               imageUrl: item.imageUrl ?? undefined,
               categoryName: category.name,
               modifierGroups: toWaGroups(groups, waId),
+              minAge: normaliseMinAge(item.minAge),
             });
           });
         } else {
@@ -409,6 +412,7 @@ export class WhatsAppMenuService {
             imageUrl: item.imageUrl ?? undefined,
             categoryName: category.name,
             modifierGroups: toWaGroups(groups, item.id),
+            minAge: normaliseMinAge(item.minAge),
           });
         }
       }
@@ -492,8 +496,8 @@ export class WhatsAppMenuService {
       for (const item of catItems) {
         lines.push(
           `- ${item.name} — ${money(item.price, ctx.currency)} [id:${item.id}]${
-            item.description ? ` — ${item.description}` : ""
-          }`,
+            item.minAge ? ` (${item.minAge}+)` : ""
+          }${item.description ? ` — ${item.description}` : ""}`,
         );
         for (const g of item.modifierGroups) {
           const rule = g.required

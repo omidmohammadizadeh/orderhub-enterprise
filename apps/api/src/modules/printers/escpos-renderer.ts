@@ -446,6 +446,7 @@ function friendlySource(
     UBER_EATS: "UBER EATS",
     DELIVEROO: "DELIVEROO",
     JUST_EAT: "JUST EAT",
+    KEETA: "KEETA",
   };
   return map[s] ?? s.replace(/_/g, " ");
 }

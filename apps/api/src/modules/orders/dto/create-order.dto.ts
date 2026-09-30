@@ -9,10 +9,22 @@ import {
   ValidateNested,
   IsPositive,
   Min,
+  IsIn,
+  MaxLength,
 } from "class-validator";
 import { Type } from "class-transformer";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import type { FulfillmentType, OrderSource } from "@orderhub/database";
+
+/** Retail — how the age of the buyer of a restricted product was checked. */
+export class OrderAgeCheckDto {
+  @ApiProperty({ enum: [16, 18] }) @IsIn([16, 18]) minAge!: number;
+  /** TILL_ID_CHECK: the cashier confirmed (Challenge 25). CUSTOMER_CONFIRMED:
+   *  an online customer said they're old enough; ID is checked on hand-over. */
+  @ApiProperty({ enum: ["TILL_ID_CHECK", "CUSTOMER_CONFIRMED"] })
+  @IsIn(["TILL_ID_CHECK", "CUSTOMER_CONFIRMED"])
+  method!: "TILL_ID_CHECK" | "CUSTOMER_CONFIRMED";
+}
 
 export class OrderModifierDto {
   @ApiProperty() @IsString() name!: string;
@@ -38,6 +50,18 @@ export class OrderModifierDto {
   @ApiPropertyOptional() @IsOptional() @IsString() parentOptionId?: string;
 }
 
+/** Retail — a weighed line: how much, at what price per kg / 100 g, and how it was weighed. */
+export class OrderItemWeightDto {
+  @ApiProperty() @IsNumber() @Min(1) grams!: number;
+  @ApiProperty({ enum: ["KG", "100G"] }) @IsIn(["KG", "100G"]) sellBy!: "KG" | "100G";
+  @ApiProperty() @IsNumber() @Min(0) pricePerUnit!: number;
+  /** SCALE_LABEL: read from a label-scale barcode. KEYED: typed at the till.
+   *  ESTIMATE: an online amount, re-weighed at picking. */
+  @ApiProperty({ enum: ["SCALE_LABEL", "KEYED", "ESTIMATE"] })
+  @IsIn(["SCALE_LABEL", "KEYED", "ESTIMATE"])
+  source!: "SCALE_LABEL" | "KEYED" | "ESTIMATE";
+}
+
 export class CreateOrderItemDto {
   @ApiProperty() @IsString() name!: string;
   @ApiProperty() @IsNumber() @IsPositive() quantity!: number;
@@ -45,6 +69,16 @@ export class CreateOrderItemDto {
   @ApiProperty() @IsNumber() @Min(0) totalPrice!: number;
   @ApiPropertyOptional() @IsOptional() @IsString() notes?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() sku?: string;
+  // Retail R1 — the ProductVariant a scanned line sold (stock + returns).
+  @ApiPropertyOptional() @IsOptional() @IsString() variantId?: string;
+  // Retail R3 — shop orders: BEST_MATCH | NONE if the line is out of stock at picking.
+  @ApiPropertyOptional() @IsOptional() @IsIn(["BEST_MATCH", "NONE"]) substitution?: "BEST_MATCH" | "NONE";
+  // Retail — weighed products (loose veg, deli). Kept on OrderItem.metadata.weight.
+  @ApiPropertyOptional({ type: OrderItemWeightDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => OrderItemWeightDto)
+  weight?: OrderItemWeightDto;
   // KDS station routing matches items by MenuItem id (category/item rules).
   // POS sends it so kitchen screens with routing rules work for POS orders.
   @ApiPropertyOptional() @IsOptional() @IsString() menuItemId?: string;
@@ -173,4 +207,10 @@ export class CreateOrderDto {
    *  SMS" box). true → opt the customer in; false → opt out. Undefined = not
    *  asked, leave marketing consent untouched. */
   @ApiPropertyOptional() @IsOptional() @IsBoolean() marketingConsent?: boolean;
+  /** Retail — Challenge 25 record for an order with age-restricted products. */
+  @ApiPropertyOptional({ type: OrderAgeCheckDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => OrderAgeCheckDto)
+  ageCheck?: OrderAgeCheckDto;
 }

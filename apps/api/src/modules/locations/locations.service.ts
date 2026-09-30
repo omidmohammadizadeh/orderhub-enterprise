@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ConflictException,
   ForbiddenException,
+  BadRequestException,
 } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import {
@@ -13,6 +14,7 @@ import {
 import { CredentialEncryptionService } from "../integrations/credential-encryption.service";
 import { SupabaseStorageService } from "../uploads/supabase-storage.service";
 import { rehostImageIfInline } from "../uploads/rehost-image";
+import { isBusinessType, type BusinessType } from "../retail/retail.logic";
 
 // Phase AN — Locations service: full general-tab CRUD + opening-hours +
 // busy-mode + Stripe-fee setters + slug generator. Brand and platform-
@@ -38,10 +40,14 @@ export interface CreateLocationDto {
   address?: AddressInput;
   phone?: string;
   timezone?: string;
+  /** Retail R1 — RESTAURANT (default) | GROCERY | RETAIL. */
+  businessType?: string;
 }
 
 export interface UpdateLocationDto {
   name?: string;
+  /** Retail R1 — RESTAURANT | GROCERY | RETAIL. Owner-level (see below). */
+  businessType?: string;
   addressLine1?: string;
   addressLine2?: string | null;
   city?: string;
@@ -249,6 +255,18 @@ export function isOpenAt(hours: OpeningHours | null | undefined, at: Date): bool
  *
  *  Returns the offending field names so the caller can say which, instead of
  *  a blanket "forbidden" the operator can't act on. */
+/** Retail R1 — the DTOs here are interfaces, so the global ValidationPipe
+ *  never sees them: an unknown business type must be refused by hand, or
+ *  Prisma answers it with a 500. Undefined/empty means "not provided". */
+export function parseBusinessType(v: unknown): BusinessType | undefined {
+  if (v === undefined || v === null || v === "") return undefined;
+  const t = String(v).toUpperCase();
+  if (!isBusinessType(t)) {
+    throw new BadRequestException("Business type must be RESTAURANT, GROCERY or RETAIL");
+  }
+  return t;
+}
+
 export function managerForbiddenLocationFields(dto: {
   settings?: Record<string, unknown> | null;
   [k: string]: unknown;
@@ -265,6 +283,9 @@ export function managerForbiddenLocationFields(dto: {
     "posTerminalApplicationFeeFixedMinor",
   ];
   const offending = MONEY_FIELDS.filter((f) => dto[f] !== undefined);
+  // Retail R1 — the business type changes how the till finishes a sale and
+  // how stock is counted: a decision about the business, not the shift.
+  if (dto.businessType !== undefined) offending.push("businessType");
   // The dine-in switch and the booking rules share one settings key:
   // settings.tableService.enabled is the toggle, .reservations the rules. One
   // check covers both.
@@ -427,6 +448,7 @@ export class LocationsService {
     // brand on this tenant, or seed a default "Main" brand when the
     // tenant has none. Operators add real brands later from the Brands
     // section so the create flow stays a single short form.
+    const businessType = parseBusinessType(dto.businessType);
     const brandId = await this.resolveOrCreateDefaultBrand(tenantId, dto.brandId);
 
     const addr = dto.address ?? {};
@@ -459,6 +481,7 @@ export class LocationsService {
         timezone: dto.timezone ?? timezoneForCountry(addr.country),
         currency: (dto as any).currency ?? currencyForCountry(addr.country),
         openingHours: openingHours as any,
+        ...(businessType && { businessType }),
       },
     });
   }
@@ -584,6 +607,9 @@ export class LocationsService {
       where: { id: locationId },
       data: {
         ...(dto.name && { name: dto.name }),
+        ...(dto.businessType !== undefined && {
+          businessType: parseBusinessType(dto.businessType) ?? "RESTAURANT",
+        }),
         ...(dto.addressLine1 !== undefined && { addressLine1: dto.addressLine1 }),
         ...(dto.addressLine2 !== undefined && { addressLine2: dto.addressLine2 }),
         ...(dto.city !== undefined && { city: dto.city }),

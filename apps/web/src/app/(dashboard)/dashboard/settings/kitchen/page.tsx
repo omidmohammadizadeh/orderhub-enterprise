@@ -66,6 +66,7 @@ const CHANNELS = [
   ["TALABAT", "Talabat"],
   ["CAREEM", "Careem"],
   ["GLOVO", "Glovo"],
+  ["KEETA", "Keeta"],
   ["DOORDASH", "DoorDash"],
   ["GRUBHUB", "Grubhub"],
   ["DIRECT", "Direct"],

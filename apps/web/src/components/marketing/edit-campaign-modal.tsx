@@ -38,6 +38,7 @@ const CHANNELS: Array<{ id: string; label: string; wired: boolean }> = [
   { id: "DELIVEROO", label: "Deliveroo", wired: false },
   { id: "WHATSAPP", label: "WhatsApp", wired: false },
   { id: "HUBRISE", label: "HubRise", wired: false },
+  { id: "KEETA", label: "Keeta", wired: false },
 ];
 
 const AUDIENCES: Array<{ id: CampaignAudience; label: string; sub: string }> = [
@@ -62,7 +63,7 @@ const HAS_MIN_ORDER = new Set([
   "FREE_DELIVERY",
   "HAPPY_HOUR",
 ]);
-const ITEM_BASED = new Set(["PERCENT_OFF_ITEMS", "BOGO", "FREE_ITEM"]);
+const ITEM_BASED = new Set(["PERCENT_OFF_ITEMS", "BOGO", "FREE_ITEM", "MULTI_BUY"]);
 
 const toDateInput = (s: string | null) => (s ? String(s).slice(0, 10) : "");
 const numOrNull = (v: number | string | null): number | null =>
@@ -422,6 +423,7 @@ function prettyType(t: string): string {
     FREE_ITEM: "Free item with purchase",
     FREE_DELIVERY: "Free delivery",
     HAPPY_HOUR: "Happy hour",
+    MULTI_BUY: "Multi-buy",
   };
   return map[t] ?? t;
 }

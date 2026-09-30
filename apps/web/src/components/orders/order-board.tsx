@@ -7,7 +7,6 @@ import {
   ChefHat,
   CheckCircle2,
   Bike,
-  AlertCircle,
   Send,
   UserCheck,
   Truck,
@@ -29,6 +28,7 @@ import { OrderDetailDrawer } from "./order-detail-drawer";
 import { useLiveOrders } from "../../hooks/use-live-orders";
 import type { Order } from "../../lib/api/orders.client";
 import { isAwaitingOurPayment } from "@/lib/orders/awaiting-payment";
+import { OrdersFeedBanner, OrdersFeedError } from "./feed-status";
 
 // ── Board column model ──────────────────────────────────────────────────────
 //
@@ -211,7 +211,8 @@ interface Props {
 export function OrderBoard({ locationId }: Props) {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [platformFilter, setPlatformFilter] = useState<string>("ALL");
-  const { orders, isLoading, error } = useLiveOrders(locationId);
+  const { orders, isLoading, error, isFetching, refetch, hasSnapshot } =
+    useLiveOrders(locationId);
 
   // Deep link from the incoming-call popup: a customer ringing about an order
   // already in the kitchen lands on that order's drawer, not on a board of
@@ -288,17 +289,29 @@ export function OrderBoard({ locationId }: Props) {
     );
   }
 
-  if (error) {
+  // Only surrender the screen when there is genuinely nothing to show. With
+  // tickets already on the board a failed refetch gets a warning strip (see
+  // feed-status.tsx) — blanking a live kitchen over one bad request was the
+  // actual harm here, not the request.
+  if (error && !hasSnapshot) {
     return (
-      <div className="flex h-64 items-center justify-center gap-2 text-sm text-red-500">
-        <AlertCircle className="h-4 w-4" />
-        Failed to load orders
-      </div>
+      <OrdersFeedError
+        error={error}
+        isRetrying={isFetching}
+        onRetry={() => void refetch()}
+      />
     );
   }
 
   return (
     <>
+      {error && (
+        <OrdersFeedBanner
+          error={error}
+          isRetrying={isFetching}
+          onRetry={() => void refetch()}
+        />
+      )}
       {deepLinkMiss && (
         <div
           role="status"

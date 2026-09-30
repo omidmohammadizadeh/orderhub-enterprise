@@ -28,15 +28,32 @@ import {
   SlidersHorizontal,
   ChevronLeft,
   Paintbrush,
+  ScanBarcode,
+  RotateCcw,
+  Camera,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   round2,
   toOrderLineModifier,
   categoryItemAllowsFulfillment,
+  resolveDeliveryAddress,
   type SelectedModifier,
   type ProductSku,
+  normaliseMinAge,
+  type MultiBuyDeal,
+  gramsPerUnit,
+  normaliseScaleFormat,
+  normaliseSellBy,
+  parseScaleBarcode,
+  priceForWeight,
+  sameScaleCode,
+  sellByLabel,
+  weighedLineName,
+  type SellBy,
 } from "@orderhub/shared";
+import { WeighModal } from "@/components/retail/weigh-modal";
+import { AgeCheckModal, type AgePrompt } from "@/components/retail/age-check-modal";
 import { useRepeatOrder } from "@/hooks/use-repeat-order";
 import { ModifierSelectionModal } from "@/components/pos/modifier-selection-modal";
 import {
@@ -112,6 +129,11 @@ import {
 import { hasNativeBridge } from "@/lib/printing/bridge";
 import { formatDisplayPrice } from "@/lib/menu/display-price";
 import { isAwaitingOurPayment } from "@/lib/orders/awaiting-payment";
+import { retailClient, type BarcodeEntry } from "@/lib/api/retail.client";
+import { findByBarcode, useBarcodeScanner } from "@/lib/pos/barcode-scanner";
+import { isShopType } from "@/components/locations/business-type-picker";
+import { RetailReturnsModal } from "@/components/pos/retail-returns-modal";
+import { CameraScanModal, isCameraScanSupported } from "@/components/pos/camera-scan-modal";
 
 interface PersistedCart {
   cart: CartLine[];
@@ -120,7 +142,7 @@ interface PersistedCart {
 
 export default function PosPage() {
   // Prices follow the selected location's currency, not a hardcoded pound.
-  const { money } = useCurrency();
+  const { money, symbol } = useCurrency();
   const selectedLocationId = useSelectedLocationStore(
     (s) => s.selectedLocationId,
   );
@@ -203,6 +225,8 @@ export default function PosPage() {
 
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
   const [modalItem, setModalItem] = useState<MenuItem | null>(null);
+  // Retail — a loose product waiting for its weight.
+  const [weighItem, setWeighItem] = useState<MenuItem | null>(null);
   const [cart, setCart] = useState<CartLine[]>([]);
   const [draft, setDraft] = useState<PartialDraft>({});
 
@@ -391,6 +415,9 @@ export default function PosPage() {
   const router = useRouter();
   const [editOrderId, setEditOrderId] = useState<string | null>(null);
   const [editOrderNumber, setEditOrderNumber] = useState<string | null>(null);
+  const [editOrderDeliveryFee, setEditOrderDeliveryFee] = useState<number | null>(
+    null,
+  );
   const [editHydrated, setEditHydrated] = useState(false);
 
   useEffect(() => {
@@ -426,17 +453,35 @@ export default function PosPage() {
           notes: it.notes ?? "",
         }));
         setCart(lines);
+        const addr = resolveDeliveryAddress(order);
         setDraft({
           customerName: order.customerName ?? order.customerInfo?.name ?? "",
           customerPhone: order.customerPhone ?? order.customerInfo?.phone ?? "",
           fulfillmentType:
             order.fulfillmentType === "DELIVERY" ? "DELIVERY" : "PICKUP",
-          addressLine1: order.deliveryAddress?.line1 ?? "",
-          addressLine2: order.deliveryAddress?.line2 ?? "",
-          city: order.deliveryAddress?.city ?? "",
-          postcode: order.deliveryAddress?.postcode ?? "",
+          // Read the same way the driver app reads it. An order keeps its
+          // address in a JSON blob whose keys differ per marketplace AND in
+          // structured columns, and only sometimes in both — reading the blob
+          // alone showed an empty address form for anything that arrived
+          // through ingestCanonical, which is every online and marketplace
+          // order. The operator then could neither see where it was going
+          // nor save, because a delivery with no line 1 fails validation.
+          addressLine1: addr.line1 ?? "",
+          addressLine2: addr.line2 ?? "",
+          city: addr.city ?? "",
+          postcode: addr.postcode ?? "",
+          // Where a shop prices by area rather than postcode, this IS the
+          // zone key. Dropping it left the fee unpriced and "Delivery area
+          // required" on screen with no field to answer it.
+          area: addr.area ?? "",
           notes: order.specialInstructions ?? "",
         });
+        // Not part of the draft — see existingDeliveryFee on the cart panel.
+        // The panel re-derives the fee from a zone lookup on every mount, so
+        // without this an amendment whose lookup didn't come back submitted
+        // £0.00 and took the delivery charge off a bill the customer had
+        // already been quoted.
+        setEditOrderDeliveryFee(Number(order.deliveryFee ?? 0));
         setEditOrderNumber(
           order.orderNumber ? `#${order.orderNumber}` : `#${order.id.slice(-6)}`,
         );
@@ -462,6 +507,7 @@ export default function PosPage() {
   function exitEditMode() {
     setEditOrderId(null);
     setEditOrderNumber(null);
+    setEditOrderDeliveryFee(null);
     setEditHydrated(false);
     setCart([]);
     setDraft({});
@@ -631,7 +677,10 @@ export default function PosPage() {
         if (!categoryItemAllowsFulfillment(c, it, draft.fulfillmentType)) continue;
         if (
           it.name.toLowerCase().includes(q) ||
-          (it.description ?? "").toLowerCase().includes(q)
+          (it.description ?? "").toLowerCase().includes(q) ||
+          // Retail R1 — shop staff search by product code as often as by name.
+          (it.plu ?? "").toLowerCase() === q ||
+          ((it as any).sku ?? "").toLowerCase() === q
         ) {
           out.push({ item: it, categoryId: c.id, categoryName: c.name });
         }
@@ -690,6 +739,10 @@ export default function PosPage() {
           totalPrice: round2(line.unitPrice * line.quantity),
           notes: line.notes,
           sku: line.plu ?? undefined,
+          // Retail R1 — which barcoded variant was scanned (stock + returns).
+          ...(line.variantId ? { variantId: line.variantId } : {}),
+          // Retail — a weighed line: grams, price per kg/100 g, how it was weighed.
+          ...(line.weight ? { weight: line.weight } : {}),
           // KDS station routing (category/item rules) matches on this.
           menuItemId: line.menuItemId || undefined,
           modifiers: line.modifiers.map((m) => ({
@@ -714,6 +767,8 @@ export default function PosPage() {
         paymentStatus: payload.paymentStatus,
         isScheduled: payload.isScheduled,
         marketingConsent: payload.marketingConsent,
+        // Challenge 25 — the record that ID was checked for this sale.
+        ...(cartMinAge ? { ageCheck: { minAge: cartMinAge, method: "TILL_ID_CHECK" as const } } : {}),
       };
 
       // ── Table Tabs (dine-in): send this round to the kitchen ──
@@ -885,7 +940,9 @@ export default function PosPage() {
           });
         } catch (err: any) {
           const msg = String(err?.response?.data?.message ?? "");
-          if (!/ACCEPTED\s*(→|->|to)\s*ACCEPTED|already/i.test(msg)) {
+          // A shop's counter sale can be accepted AND completed server-side
+          // before this lands (Retail R1) — that is the same "already done".
+          if (!/(ACCEPTED|COMPLETED)\s*(→|->|to)\s*ACCEPTED|already/i.test(msg)) {
             throw err;
           }
           // Already accepted (location auto-accept) — nothing to do.
@@ -1074,6 +1131,10 @@ export default function PosPage() {
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   const onProductClick = (item: MenuItem) => {
+    if (normaliseSellBy((item as any).sellBy)) {
+      setWeighItem(item);
+      return;
+    }
     const hasMods = (item.modifierGroupLinks?.length ?? 0) > 0;
     if (hasMods || item.hasMultipleSkus) {
       setModalItem(item);
@@ -1099,20 +1160,46 @@ export default function PosPage() {
     modifiers: SelectedModifier[];
     selectedSku?: ProductSku | null;
     notes?: string;
+    weight?: CartLine["weight"];
   }) => {
-    setCart((prev) => [
-      ...prev,
-      {
-        id: Math.random().toString(36).slice(2),
-        menuItemId: line.menuItemId,
-        displayName: line.displayName,
-        unitPrice: line.unitPrice,
-        quantity: line.quantity,
-        plu: line.plu ?? null,
-        modifiers: line.modifiers.map(toOrderLineModifier),
-        notes: line.notes,
-      },
-    ]);
+    gateAge(line.menuItemId, line.displayName, () =>
+      setCart((prev) => [
+        ...prev,
+        {
+          id: Math.random().toString(36).slice(2),
+          menuItemId: line.menuItemId,
+          displayName: line.displayName,
+          unitPrice: line.unitPrice,
+          quantity: line.quantity,
+          plu: line.plu ?? null,
+          modifiers: line.modifiers.map(toOrderLineModifier),
+          notes: line.notes,
+          ...(line.weight ? { weight: line.weight } : {}),
+        },
+      ]),
+    );
+  };
+
+  /** A weighed product at a known weight — keyed in, or read off a scale label. */
+  const addWeighed = (
+    item: MenuItem,
+    grams: number,
+    source: "SCALE_LABEL" | "KEYED",
+    labelPrice?: number,
+  ) => {
+    const sellBy = normaliseSellBy((item as any).sellBy) as SellBy;
+    const pricePerUnit = Number(item.basePrice);
+    // A price label is the price; the weight on it is only for the ticket.
+    const unitPrice = labelPrice ?? priceForWeight(pricePerUnit, sellBy, grams);
+    addToCart({
+      menuItemId: item.id,
+      displayName: weighedLineName(item.name, grams, pricePerUnit, sellBy, symbol),
+      unitPrice,
+      quantity: 1,
+      plu: item.plu ?? null,
+      modifiers: [],
+      weight: { grams, sellBy, pricePerUnit, source },
+    });
   };
 
   const removeLine = useCallback((id: string) => {
@@ -1202,6 +1289,236 @@ export default function PosPage() {
     [categories],
   );
 
+  // ── Retail R1 — barcode scanning at a shop ─────────────────────────────
+  //
+  // At a GROCERY/RETAIL location the till scans. The barcode index is fetched
+  // with the menu and cached beside it in IndexedDB (same store, prefixed
+  // key — no DB version bump for an open tab to block), so scanning keeps
+  // working when the internet drops, exactly like the menu does.
+  const isShop = isShopType((locationQuery.data as any)?.businessType);
+  const [returnsOpen, setReturnsOpen] = useState(false);
+  const [returnsCode, setReturnsCode] = useState<string | undefined>(undefined);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [scanNotice, setScanNotice] = useState<{ tone: "ok" | "warn"; text: string } | null>(null);
+  const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const notify = useCallback((tone: "ok" | "warn", text: string) => {
+    setScanNotice({ tone, text });
+    if (noticeTimer.current) clearTimeout(noticeTimer.current);
+    noticeTimer.current = setTimeout(() => setScanNotice(null), tone === "ok" ? 1800 : 5000);
+  }, []);
+
+  const barcodeQuery = useQuery({
+    queryKey: ["retail-barcodes", selectedLocationId],
+    queryFn: () => retailClient.barcodes(selectedLocationId!),
+    enabled: !!selectedLocationId && isShop,
+    staleTime: 60_000,
+    // Re-read when the menu is refetched (a product added mid-shift).
+    refetchInterval: 5 * 60_000,
+  });
+  const [cachedBarcodes, setCachedBarcodes] = useState<BarcodeEntry[] | null>(null);
+  useEffect(() => {
+    if (!selectedLocationId || !isShop) return;
+    const key = `barcodes:${selectedLocationId}`;
+    if (barcodeQuery.data) {
+      void cacheMenu(key, barcodeQuery.data);
+    } else if (barcodeQuery.isError || !online) {
+      void getCachedMenu(key).then((row) => setCachedBarcodes((row?.menu as BarcodeEntry[]) ?? null));
+    }
+  }, [selectedLocationId, isShop, barcodeQuery.data, barcodeQuery.isError, online]);
+  const barcodeIndex = useMemo(
+    () => new Map((barcodeQuery.data ?? cachedBarcodes ?? []).map((e) => [e.barcode, e])),
+    [barcodeQuery.data, cachedBarcodes],
+  );
+  /** Items the till may sell right now (the menu already drops 86'd ones). */
+  const sellableItemIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const c of categories) for (const l of c.items ?? []) if (l.item?.isAvailable) ids.add(l.item.id);
+    return ids;
+  }, [categories]);
+
+  // ── Challenge 25 ─────────────────────────────────────────────────────────
+  // An age-restricted product asks the cashier to check ID before it lands in
+  // the basket. One confirmation covers the rest of the sale up to that age;
+  // an emptied basket (a new customer) starts again.
+  const minAgeById = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const c of categories)
+      for (const l of c.items ?? []) {
+        const a = normaliseMinAge((l.item as any)?.minAge);
+        if (l.item?.id && a) m.set(l.item.id, a);
+      }
+    return m;
+  }, [categories]);
+  const [ageVerified, setAgeVerified] = useState(0);
+  const ageVerifiedRef = useRef(0);
+  ageVerifiedRef.current = ageVerified;
+  const [agePrompt, setAgePrompt] = useState<(AgePrompt & { run: () => void }) | null>(null);
+  useEffect(() => {
+    if (cart.length === 0) setAgeVerified(0);
+  }, [cart.length]);
+  const gateAge = useCallback(
+    (menuItemId: string, productName: string, run: () => void, hint?: unknown) => {
+      const need = minAgeById.get(menuItemId) ?? normaliseMinAge(hint);
+      if (need && need > ageVerifiedRef.current) setAgePrompt({ minAge: need, productName, run });
+      else run();
+    },
+    [minAgeById],
+  );
+  const cartMinAge = useMemo(
+    () => cart.reduce((max, l) => Math.max(max, minAgeById.get(l.menuItemId) ?? 0), 0),
+    [cart, minAgeById],
+  );
+
+  // ── Multi-buys on this till (cached for offline like the barcodes) ────────
+  const dealsQuery = useQuery({
+    queryKey: ["retail-deals", selectedLocationId],
+    queryFn: () => retailClient.deals(selectedLocationId!),
+    enabled: !!selectedLocationId,
+    staleTime: 60_000,
+    refetchInterval: 5 * 60_000,
+  });
+  const [cachedDeals, setCachedDeals] = useState<MultiBuyDeal[] | null>(null);
+  useEffect(() => {
+    if (!selectedLocationId) return;
+    const key = `deals:${selectedLocationId}`;
+    if (dealsQuery.data) {
+      void cacheMenu(key, dealsQuery.data.multiBuys);
+    } else if (dealsQuery.isError || !online) {
+      void getCachedMenu(key).then((row) => setCachedDeals((row?.menu as MultiBuyDeal[]) ?? null));
+    }
+  }, [selectedLocationId, dealsQuery.data, dealsQuery.isError, online]);
+  const multiBuys = dealsQuery.data?.multiBuys ?? cachedDeals ?? [];
+
+  // A fresh sale at a shop is a walk-in at the counter — skip the "who is it
+  // for" step. Going back to it still works: the draft then has a mode set.
+  useEffect(() => {
+    if (isShop && step === "start" && !draft.fulfillmentType && !tableId && !editOrderId) {
+      setDraft((d) => ({ ...d, fulfillmentType: "PICKUP", walkIn: true }));
+      setStep("menu");
+    }
+  }, [isShop, step, draft.fulfillmentType, tableId, editOrderId]);
+
+  const addScannedNow = useCallback(
+    (entry: BarcodeEntry) => {
+      setCart((prev) => {
+        // Same variant, no add-ons → one line with a bigger quantity, the
+        // way every supermarket till reads "Coke ×3".
+        const i = prev.findIndex((l) => l.variantId === entry.variantId && l.modifiers.length === 0 && !l.notes);
+        if (i >= 0) {
+          const next = [...prev];
+          next[i] = { ...next[i]!, quantity: next[i]!.quantity + 1 };
+          return next;
+        }
+        return [
+          ...prev,
+          {
+            id: Math.random().toString(36).slice(2),
+            menuItemId: entry.menuItemId,
+            displayName: entry.name,
+            unitPrice: entry.price,
+            quantity: 1,
+            plu: entry.sku,
+            variantId: entry.variantId,
+            modifiers: [],
+          },
+        ];
+      });
+      notify("ok", `${entry.name} · ${money(entry.price)}`);
+    },
+    [notify, money],
+  );
+  const addScanned = useCallback(
+    (entry: BarcodeEntry) => gateAge(entry.menuItemId, entry.name, () => addScannedNow(entry), entry.minAge),
+    [gateAge, addScannedNow],
+  );
+
+  const handleScan = useCallback(
+    async (code: string) => {
+      // A receipt scanned at the till means "I'm returning this".
+      if (code.toUpperCase().startsWith("OHR:")) {
+        setReturnsCode(code);
+        setReturnsOpen(true);
+        return;
+      }
+      if (step === "start") setStep("menu");
+      const entry = findByBarcode(barcodeIndex, code);
+      if (entry) {
+        if (!sellableItemIds.has(entry.menuItemId)) {
+          notify("warn", `${entry.name} is switched off on this till (out of stock or hidden).`);
+          return;
+        }
+        addScanned(entry);
+        return;
+      }
+      // A label from the shop's scale: "2…" with the product's scale code and
+      // the price or weight inside it.
+      const label = parseScaleBarcode(
+        code,
+        normaliseScaleFormat(((locationQuery.data as any)?.settings ?? {})?.scaleLabels?.format),
+      );
+      if (label) {
+        let item: MenuItem | undefined;
+        for (const c of categories)
+          for (const l of c.items ?? [])
+            if (!item && l.item && normaliseSellBy((l.item as any).sellBy) && sameScaleCode((l.item as any).scaleCode, label.itemCode))
+              item = l.item as MenuItem;
+        if (!item) {
+          notify("warn", `Scale label for item ${label.itemCode}, but no weighed product has that scale code.`);
+          return;
+        }
+        if (!sellableItemIds.has(item.id)) {
+          notify("warn", `${item.name} is switched off on this till (out of stock or hidden).`);
+          return;
+        }
+        const sellBy = normaliseSellBy((item as any).sellBy) as SellBy;
+        const perGram = Number(item.basePrice) / gramsPerUnit(sellBy);
+        const grams =
+          label.grams ?? (perGram > 0 ? Math.max(1, Math.round((label.price ?? 0) / perGram)) : 0);
+        addWeighed(item, grams, "SCALE_LABEL", label.price);
+        notify("ok", `${item.name} · ${money(label.price ?? priceForWeight(Number(item.basePrice), sellBy, grams))}`);
+        return;
+      }
+      if (!online) {
+        notify("warn", `No product with barcode ${code} on this till.`);
+        return;
+      }
+      try {
+        const hit = await retailClient.lookup(selectedLocationId!, code);
+        notify(
+          "warn",
+          hit.found
+            ? `${hit.product.name} isn't on this till's menu yet — add it to the menu published to the POS.`
+            : `Unknown barcode ${code}. Add it in Stock & barcodes.`,
+        );
+      } catch {
+        notify("warn", `No product with barcode ${code} on this till.`);
+      }
+    },
+    // addWeighed is re-created each render; it only reads stable setters + the menu.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [step, barcodeIndex, sellableItemIds, addScanned, notify, online, selectedLocationId, categories, locationQuery.data, money],
+  );
+
+  const anyModalOpen =
+    !!modalItem ||
+    !!weighItem ||
+    !!agePrompt ||
+    !!chargeOrder ||
+    !!cashOrder ||
+    !!payLinkOrder ||
+    showFeeModal ||
+    showPromosModal ||
+    showExtraCharge ||
+    showServiceCharge ||
+    voidOpen ||
+    pinOpen ||
+    payChoiceOpen ||
+    splitOpen ||
+    coloursOpen ||
+    returnsOpen ||
+    cameraOpen;
+  useBarcodeScanner(isShop && !anyModalOpen, (code) => void handleScan(code));
+
   /** Reminds staff which kind of order they're building, once past step 1. */
   const orderTypeLabel =
     draft.walkIn
@@ -1224,6 +1541,24 @@ export default function PosPage() {
     disabled?: boolean;
     show: boolean;
   }> = [
+    {
+      key: "returns",
+      label: "Returns",
+      title: "Scan a receipt to refund items and put them back in stock",
+      icon: RotateCcw,
+      onClick: () => setReturnsOpen(true),
+      disabled: !selectedLocationId || !online,
+      show: isShop,
+    },
+    {
+      key: "camera-scan",
+      label: "Scan with camera",
+      title: "Use this tablet's camera as a barcode scanner",
+      icon: Camera,
+      onClick: () => setCameraOpen(true),
+      disabled: !selectedLocationId,
+      show: isShop && isCameraScanSupported(),
+    },
     {
       key: "tile-colours",
       label: "Tile colours",
@@ -1607,11 +1942,42 @@ export default function PosPage() {
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search the whole menu…"
+                  // Retail R1 — a scanner typing into a focused search box
+                  // (or a code typed by hand) adds the product on Enter.
+                  onKeyDown={(e) => {
+                    if (e.key !== "Enter" || !isShop) return;
+                    const entry = findByBarcode(barcodeIndex, search);
+                    if (entry) {
+                      e.preventDefault();
+                      setSearch("");
+                      void handleScan(entry.barcode);
+                    } else if (/^2\d{12}$/.test(search.trim())) {
+                      // A label-scale barcode: price or weight is inside it.
+                      e.preventDefault();
+                      const code = search.trim();
+                      setSearch("");
+                      void handleScan(code);
+                    }
+                  }}
+                  placeholder={isShop ? "Scan or search products…" : "Search the whole menu…"}
                   className="w-full rounded-lg border border-zinc-200 bg-white px-9 py-2 text-sm focus:border-zinc-900 focus:outline-none"
                 />
               </div>
             </div>
+
+            {isShop && scanNotice && (
+              <div
+                role="status"
+                className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${
+                  scanNotice.tone === "ok"
+                    ? "bg-emerald-50 text-emerald-900"
+                    : "bg-amber-50 text-amber-900"
+                }`}
+              >
+                <ScanBarcode className="h-4 w-4 flex-shrink-0" />
+                <span className="truncate">{scanNotice.text}</span>
+              </div>
+            )}
 
             {/* Where in the menu we are. Only once a category is open — the
                 category grid is its own signpost. */}
@@ -1758,10 +2124,21 @@ export default function PosPage() {
               onChangeQty={changeQty}
               onClearCart={clearCart}
               onPlaceOrder={async (p) => {
+                // A basket restored from a draft skipped the prompt — ask now.
+                if (cartMinAge > ageVerified) {
+                  setAgePrompt({
+                    minAge: cartMinAge,
+                    productName: "This basket",
+                    run: () => void submitMutation.mutateAsync(p).catch(() => {}),
+                  });
+                  return;
+                }
                 await submitMutation.mutateAsync(p);
               }}
+              multiBuys={multiBuys}
               submitting={submitMutation.isPending}
               submitButtonLabel={editOrderId ? "Save changes" : undefined}
+              existingDeliveryFee={editOrderDeliveryFee ?? undefined}
               feedback={submitFeedback}
               initialDraft={draft}
               onDraftChange={setDraft}
@@ -1811,6 +2188,62 @@ export default function PosPage() {
         onSave={(colours, size) => saveColours.mutate({ colours, size })}
         onClose={() => setColoursOpen(false)}
       />
+
+      {weighItem && (
+        <WeighModal
+          name={weighItem.name}
+          pricePerUnit={Number(weighItem.basePrice)}
+          sellBy={normaliseSellBy((weighItem as any).sellBy) as SellBy}
+          money={money}
+          onClose={() => setWeighItem(null)}
+          onAdd={(grams) => {
+            const item = weighItem;
+            setWeighItem(null);
+            addWeighed(item, grams, "KEYED");
+          }}
+        />
+      )}
+
+      {agePrompt && (
+        <AgeCheckModal
+          prompt={agePrompt}
+          onConfirm={() => {
+            const p = agePrompt;
+            setAgeVerified((v) => Math.max(v, p.minAge));
+            ageVerifiedRef.current = Math.max(ageVerifiedRef.current, p.minAge);
+            setAgePrompt(null);
+            p.run();
+          }}
+          onRefuse={() => {
+            setAgePrompt(null);
+            notify("warn", `Sale refused — ${agePrompt.productName} not added`);
+          }}
+        />
+      )}
+
+      {/* Retail R1 — returns and camera scanning (shops only). */}
+      {returnsOpen && selectedLocationId && (
+        <RetailReturnsModal
+          locationId={selectedLocationId}
+          role={posRole}
+          initialCode={returnsCode}
+          onClose={() => {
+            setReturnsOpen(false);
+            setReturnsCode(undefined);
+          }}
+          // Cash is going back over the counter — the drawer has to open.
+          onCashRefunded={() => void openDrawer()}
+        />
+      )}
+      {cameraOpen && (
+        <CameraScanModal
+          onClose={() => setCameraOpen(false)}
+          onDetected={(code) => {
+            setCameraOpen(false);
+            void handleScan(code);
+          }}
+        />
+      )}
 
       {pinOpen && selectedLocationId && canManagePin && (
         <ManagerPinModal
@@ -2018,6 +2451,10 @@ function ProductCard({
         className={`mt-0.5 ${sizing.price} ${onDark ? "opacity-90" : "text-zinc-500"}`}
       >
         {formatDisplayPrice(product as any)}
+        {/* Weighed products: the price is per kg / per 100 g. */}
+        {normaliseSellBy((product as any).sellBy)
+          ? sellByLabel(normaliseSellBy((product as any).sellBy) as SellBy)
+          : ""}
       </span>
     </button>
   );
