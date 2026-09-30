@@ -24,6 +24,7 @@ import {
   Eye,
   EyeOff,
   KeyRound,
+  Monitor,
   Phone,
   RefreshCw,
   Webhook,
@@ -195,6 +196,40 @@ export function VoipSetupPanel({ locationId }: { locationId: string | null }) {
         ) : null}
       </Panel>
 
+      {/* ── Route A2: the desk phone app pops a web page ───────────────── */}
+      <Panel
+        title="Route A2 — a desk phone app that opens a web page (8x8 Work and similar)"
+        icon={<Monitor aria-hidden="true" className="h-3.5 w-3.5 text-zinc-400" />}
+        subtitle="No webhook, no API, no extra licence. If the phone app has a “caller info popup” box that takes a web address, paste this into it."
+      >
+        {setup ? (
+          <>
+            <Labelled label="Paste this into the caller-popup box">
+              <CopyRow value={screenPopUrl(setup.url, token)} />
+            </Labelled>
+            <p className="text-[11px] text-zinc-500">
+              The <code className="rounded bg-zinc-100 px-1">%%CallerNumber%%</code> part is
+              8x8 Work&apos;s own macro — it swaps in the caller&apos;s number when the phone
+              rings. A different phone app will spell it differently (check its own help for
+              the caller-number macro) and everything else stays the same.
+            </p>
+            <p className="text-[11px] text-zinc-500">
+              Two things to know before you use this. The key travels in the address rather
+              than a header, because a settings box that only takes a URL cannot send one —
+              it&apos;s a ring-only key for this shop, and <strong>Replace</strong> above
+              retires it in one tap. And the phone app opens a browser tab on that PC on
+              every call: the page tells whoever is sitting there who is calling and that the
+              tills already have it.
+            </p>
+            <p className="text-[11px] text-zinc-500">
+              It pops from the <strong>desk app of whoever is signed in</strong>, so it only
+              works while that app is running. A webhook (Route A) doesn&apos;t care what is
+              switched on; prefer it when the provider offers one.
+            </p>
+          </>
+        ) : null}
+      </Panel>
+
       {/* ── Route B: no webhook support ────────────────────────────────── */}
       <Panel
         title="Route B — your provider can't do webhooks"
@@ -304,6 +339,17 @@ export function VoipSetupPanel({ locationId }: { locationId: string | null }) {
       </Panel>
     </div>
   );
+}
+
+/**
+ * The same shop address, shaped for a phone app that can only open a web page.
+ *
+ * Everything moves into the query string because that is all such a box can
+ * hold: no method to choose, no body to send, no header to set.
+ */
+function screenPopUrl(url: string, token: string | null): string {
+  const key = token ?? "<create this shop's key above>";
+  return `${url}?key=${encodeURIComponent(key)}&from=%%CallerNumber%%`;
 }
 
 /** A number nobody will ever have ordered from, so the test card can't be
