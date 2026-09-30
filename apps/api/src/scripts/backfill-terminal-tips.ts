@@ -40,6 +40,11 @@ const minor = (n: unknown) => Math.round(Number(n ?? 0) * 100);
 const money = (m: number) => `£${(m / 100).toFixed(2)}`;
 
 async function main() {
+  await fixMissingTips();
+  await fixCashLabels();
+}
+
+async function fixMissingTips() {
   // Card-present payments that carried a tip and haven't been folded into
   // their order yet. A refunded row still tipped at the time, so status is
   // deliberately not narrowed beyond "the money landed".
@@ -112,8 +117,6 @@ async function main() {
       ? `\nDone — ${changed} order(s) now show the tip left on the card machine.`
       : `\nDry run only. Re-run with APPLY=true to write these changes.`,
   );
-
-  await fixCashLabels();
 }
 
 /**
