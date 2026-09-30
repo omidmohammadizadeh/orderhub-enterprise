@@ -150,6 +150,44 @@ export class DojoService {
     @Optional() private readonly events?: EventEmitter2,
   ) {}
 
+  // ── The operator's Logs page ──────────────────────────────────────────────
+  //
+  // Dojo events used to reach the Logs page as bare lines with nothing under
+  // them: an operator could see THAT something happened and never what, which
+  // makes ringing anyone's support desk pointless (Philip Wells, 2026-09-30).
+  // Every row here carries the intent, the machine, the money and — when Dojo
+  // refuses — its own status, message and traceId, which is the id Dojo's
+  // support looks the failure up by. Emitted, not injected, so the service
+  // keeps working (silently) wherever the log module isn't wired in.
+
+  logActivity(entry: {
+    tenantId: string;
+    locationId?: string | null;
+    action: string;
+    status: "SUCCESS" | "ERROR" | "INFO" | "WARNING";
+    message: string;
+    details?: Record<string, unknown>;
+  }) {
+    try {
+      this.events?.emit("activity.log", { ...entry, category: "PAYMENTS", channel: "DOJO" });
+    } catch {
+      /* a log must never break a payment */
+    }
+  }
+
+  /** What Dojo said when it refused — the part support can act on. */
+  static failureDetails(err: any): Record<string, unknown> {
+    if (err instanceof DojoApiError) {
+      return {
+        httpStatus: err.status,
+        ...(err.traceId ? { dojoTraceId: err.traceId } : {}),
+        dojoSaid: err.message,
+        ...(err.body && typeof err.body === "object" ? { dojoBody: err.body } : {}),
+      };
+    }
+    return { error: err?.message ?? String(err) };
+  }
+
   // Overridable in tests.
   protected makeClient(apiKey: string): DojoApiClient {
     return new DojoApiClient(apiKey, {
@@ -675,13 +713,19 @@ export class DojoService {
       total: unknown;
       tipAmount?: unknown;
       serviceCharge?: unknown;
+      metadata?: unknown;
       items?: Array<{ name: string; quantity: number; totalPrice: unknown; modifiers?: unknown; menuItemId?: string | null; id?: string }>;
     },
     amountMinor: number,
     currencyCode: string,
   ): { amountMinor?: number; tipsMinor?: number; serviceChargeMinor?: number; itemLines?: DojoItemLine[] } {
     const pence = (v: unknown) => Math.round(Number(v ?? 0) * 100);
-    const tipsMinor = pence(order.tipAmount);
+    // Only the tip that is part of THIS bill. A tip taken earlier on a card
+    // machine also lives on `tipAmount`, but it was paid on top of the total
+    // and subtracting it here would quietly charge the customer less than the
+    // order is worth.
+    const takenAtMachine = Number(((order.metadata as any) ?? {}).terminalTipsMinor ?? 0);
+    const tipsMinor = Math.max(0, pence(order.tipAmount) - takenAtMachine);
     const serviceChargeMinor = pence(order.serviceCharge);
     const goodsMinor = amountMinor - tipsMinor - serviceChargeMinor;
     if (goodsMinor <= 0) return {};
@@ -718,7 +762,7 @@ export class DojoService {
         id: true, tenantId: true, locationId: true, displayId: true, total: true, paymentStatus: true,
         // For the customer's receipt: Dojo prints the goods, the tip and the
         // service charge as separate lines, and itemises from `items`.
-        tipAmount: true, serviceCharge: true,
+        tipAmount: true, serviceCharge: true, metadata: true,
         items: { select: { name: true, quantity: true, totalPrice: true, modifiers: true, menuItemId: true, id: true } },
       },
     });
@@ -779,6 +823,20 @@ export class DojoService {
       // Nothing reached the customer — don't leave a fresh intent behind.
       // (A re-used one stays: it's the one the next retry will point at.)
       if (!reusable) await client.cancelPaymentIntent(pi.id).catch(() => undefined);
+      this.logActivity({
+        tenantId: order.tenantId,
+        locationId: order.locationId,
+        action: "dojo.charge",
+        status: "ERROR",
+        message: `Card machine wouldn't start a ${charge.toFixed(2)} ${currency} payment`,
+        details: {
+          orderId: order.id,
+          displayId: order.displayId,
+          terminalId: args.terminalId,
+          paymentIntentId: pi.id,
+          ...DojoService.failureDetails(err),
+        },
+      });
       throw new BadRequestException(this.sessionStartError(err));
     }
 
@@ -822,6 +880,26 @@ export class DojoService {
           `, ${receipt.itemLines?.length ?? 0} item line(s)`,
       );
     }
+    this.logActivity({
+      tenantId: order.tenantId,
+      locationId: order.locationId,
+      action: "dojo.charge",
+      status: "INFO",
+      message: `${charge.toFixed(2)} ${currency} sent to ${args.terminalId} for order ${order.displayId ?? order.id.slice(-8)}`,
+      details: {
+        orderId: order.id,
+        displayId: order.displayId,
+        terminalId: args.terminalId,
+        paymentIntentId: pi.id,
+        terminalSessionId: session.id,
+        amount: charge,
+        ...(isSplit ? { split: true, orderTotal: orderTotal } : {}),
+        ...(receipt.tipsMinor ? { tip: receipt.tipsMinor / 100 } : {}),
+        ...(receipt.serviceChargeMinor ? { serviceCharge: receipt.serviceChargeMinor / 100 } : {}),
+        itemLines: receipt.itemLines?.length ?? 0,
+        environment: cfg.environment,
+      },
+    });
     this.logger.log(
       `Dojo charge started: order ${order.id} ${charge.toFixed(2)} ${currency}` +
         `${isSplit ? ` (split of ${orderTotal.toFixed(2)})` : ""} on ${args.terminalId} ` +
@@ -927,6 +1005,22 @@ export class DojoService {
       // offer manual record or retry". Nothing settles here — the operator
       // looks at the machine and either records it manually or retries.
       await this.markFailed(payment);
+      this.logActivity({
+        tenantId,
+        locationId: payment.order?.locationId,
+        action: "dojo.charge",
+        status: "ERROR",
+        message: `Card machine never confirmed a ${Number(payment.amount).toFixed(2)} payment — check the machine`,
+        details: {
+          orderId: payment.orderId,
+          paymentIntentId,
+          terminalSessionId: sessionId,
+          sessionStatus,
+          amount: Number(payment.amount),
+          lastPrompt: prompt,
+          whatToDo: "If the machine shows APPROVED, record the payment manually; otherwise try again.",
+        },
+      });
       return {
         ...base,
         status: sessionStatus,
@@ -949,6 +1043,21 @@ export class DojoService {
         return { ...base, status: "Captured", paid: true, failed: false, needsSignature: false, unconfirmed: false };
       }
       await this.markFailed(payment);
+      this.logActivity({
+        tenantId,
+        locationId: payment.order?.locationId,
+        action: "dojo.charge",
+        status: sessionStatus === "Declined" ? "WARNING" : "ERROR",
+        message: `Card payment ${sessionStatus.toLowerCase()} on the machine`,
+        details: {
+          orderId: payment.orderId,
+          paymentIntentId,
+          terminalSessionId: sessionId,
+          sessionStatus,
+          amount: Number(payment.amount),
+          lastPrompt: prompt,
+        },
+      });
       return {
         ...base,
         status: sessionStatus,
@@ -1038,12 +1147,34 @@ export class DojoService {
         where: { id: payment.id },
         data: { tipAmount: tipMinor / 100 },
       });
+      // The in-memory row is what settleCardPresentPayment reads to put the
+      // tip on the ORDER. Without this line the tip was written to the
+      // payment and then lost on the way to the bill.
+      payment.tipAmount = tipMinor / 100;
     }
     // The settle can decline — a refunded payment must not be banked again —
     // and this used to log "settled" regardless, one line after the refusal
     // (2026-09-23). The intent is still real money for the caller either way;
     // only the log was wrong.
     const banked = await this.payments.settleCardPresentPayment(payment, pi.id);
+    if (banked) {
+      this.logActivity({
+        tenantId: payment.tenantId,
+        locationId: payment.order?.locationId,
+        action: "dojo.settled",
+        status: "SUCCESS",
+        message:
+          `${Number(payment.amount).toFixed(2)} taken on card` +
+          (Number(payment.tipAmount ?? 0) > 0 ? ` + ${Number(payment.tipAmount).toFixed(2)} tip` : ""),
+        details: {
+          orderId: payment.orderId,
+          paymentIntentId: pi.id,
+          amount: Number(payment.amount),
+          ...(Number(payment.tipAmount ?? 0) > 0 ? { tip: Number(payment.tipAmount) } : {}),
+          source: (payment.metadata as any)?.source ?? "dojo",
+        },
+      });
+    }
     this.logger.log(
       banked
         ? `Dojo payment settled: order ${payment.orderId} (${pi.id})`
@@ -1172,6 +1303,21 @@ export class DojoService {
       },
     });
 
+    this.logActivity({
+      tenantId: args.tenantId,
+      locationId: payment.order?.locationId,
+      action: "dojo.refund",
+      status: "INFO",
+      message: `${(wantMinor / 100).toFixed(2)} refund started on ${terminalId}`,
+      details: {
+        orderId: payment.orderId,
+        paymentIntentId: payment.providerChargeId,
+        terminalSessionId: session.id,
+        terminalId,
+        amount: wantMinor / 100,
+        reason: args.reason ?? null,
+      },
+    });
     this.logger.log(
       `Dojo matched refund started: ${(wantMinor / 100).toFixed(2)} on ${payment.providerChargeId} ` +
         `via ${terminalId} (${session.id})`,
@@ -1201,6 +1347,21 @@ export class DojoService {
         note: `Dojo terminal refund ${pending.id}`,
         reason: pending.reason ?? undefined,
         userId: pending.userId ?? undefined,
+      });
+      this.logActivity({
+        tenantId,
+        locationId: payment.order?.locationId,
+        action: "dojo.refund",
+        status: "SUCCESS",
+        message: `${done.amount.toFixed(2)} refunded on the card machine`,
+        details: {
+          orderId: payment.orderId,
+          paymentIntentId: payment.providerChargeId,
+          terminalSessionId: pending.id,
+          amount: done.amount,
+          leftToRefund: done.leftToRefund,
+          reason: pending.reason ?? null,
+        },
       });
       this.logger.log(`Dojo matched refund done: ${done.amount.toFixed(2)} on ${payment.providerChargeId}`);
       // Whoever polled this to completion — the till's Returns screen or the
@@ -1238,6 +1399,20 @@ export class DojoService {
             refundSession: null,
             refundUnconfirmed: { ...pending, expiredAt: new Date().toISOString() },
           },
+        },
+      });
+      this.logActivity({
+        tenantId,
+        locationId: payment.order?.locationId,
+        action: "dojo.refund",
+        status: "ERROR",
+        message: `Card machine never confirmed a ${(Number(pending.amountMinor) / 100).toFixed(2)} refund`,
+        details: {
+          orderId: payment.orderId,
+          paymentIntentId: payment.providerChargeId,
+          terminalSessionId: pending.id,
+          amount: Number(pending.amountMinor) / 100,
+          whatToDo: "Check the machine: record it on the order if it went through, otherwise refund again.",
         },
       });
       this.logger.warn(

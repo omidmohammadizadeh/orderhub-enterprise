@@ -93,6 +93,13 @@ export class DojoApiError extends Error {
     message: string,
     readonly status: number,
     readonly body: unknown,
+    /**
+     * Dojo's own id for the failed request. It is the first thing their
+     * support asks for, and without it a merchant ringing us has nothing to
+     * quote (Philip Wells, 2026-09-30): they can see the same trace on their
+     * side, so keeping it turns "it didn't work" into one lookup.
+     */
+    readonly traceId?: string,
   ) {
     super(message);
   }
@@ -210,7 +217,13 @@ export class DojoApiClient {
         ]
           .filter(Boolean)
           .join(" — ");
-      throw new DojoApiError(`Dojo ${method} ${path} → ${res.status}: ${detail}`, res.status, parsed);
+      const traceId = (pick("traceid") ?? pick("traceId")) as string | undefined;
+      throw new DojoApiError(
+        `Dojo ${method} ${path} → ${res.status}: ${detail}${traceId ? ` [trace ${traceId}]` : ""}`,
+        res.status,
+        parsed,
+        typeof traceId === "string" ? traceId : undefined,
+      );
     }
     return parsed as T;
   }

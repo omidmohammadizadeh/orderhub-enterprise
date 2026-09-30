@@ -530,7 +530,11 @@ function makeEpos(opts: { order?: any; existingPayment?: any; paid?: number; cli
     fakeClient({
       getPaymentIntent: jest.fn().mockResolvedValue({ id: "pi_pat", status: "Captured", amount: { value: 1500, currencyCode: "GBP" } }),
     });
-  const dojo = { clientFor: () => client, intentCovers: DojoService.prototype.intentCovers } as any;
+  const dojo = {
+    clientFor: () => client,
+    intentCovers: DojoService.prototype.intentCovers,
+    logActivity: jest.fn(),
+  } as any;
   const payments = { settleCardPresentPayment: jest.fn().mockResolvedValue(undefined) } as any;
   const epos = new DojoEposService(prisma, dojo, payments);
   const ctx = {
@@ -538,7 +542,7 @@ function makeEpos(opts: { order?: any; existingPayment?: any; paid?: number; cli
     cfg: { environment: "production" } as any,
     tenantId: "t-1",
   };
-  return { epos, prisma, payments, client, ctx, created, tx };
+  return { epos, prisma, payments, client, ctx, created, tx, dojo };
 }
 
 describe("DojoEposService — order mapping", () => {
@@ -586,7 +590,7 @@ describe("DojoEposService.recordPayment", () => {
   const body = { paymentIntentId: "pi_pat", paidAmount: { value: 1500, currencyCode: "GBP" } };
 
   it("verifies with Dojo, records a DOJO part-payment and settles through the shared path", async () => {
-    const { epos, ctx, created, payments, client } = makeEpos();
+    const { epos, ctx, created, payments, client, dojo } = makeEpos();
     await epos.recordPayment(ctx, "ord-1", { ...body, tipsAmount: { value: 200, currencyCode: "GBP" } }, { waiterId: "w1" });
     expect(client.getPaymentIntent).toHaveBeenCalledWith("pi_pat");
     expect(created[0]).toMatchObject({
@@ -598,6 +602,17 @@ describe("DojoEposService.recordPayment", () => {
       metadata: { source: "dojo_pay_at_table", split: true, waiterId: "w1" },
     });
     expect(payments.settleCardPresentPayment).toHaveBeenCalledWith(created[0], "pi_pat");
+    // Philip Wells, 2026-09-30: the Logs page showed that something happened
+    // and nothing about what. A table paid at the machine now names the money,
+    // the tip and the intent.
+    expect(dojo.logActivity).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: "dojo.pay_at_table",
+        status: "SUCCESS",
+        message: expect.stringContaining("2.00 tip"),
+        details: expect.objectContaining({ orderId: "ord-1", paymentIntentId: "pi_pat", amount: 15, tip: 2 }),
+      }),
+    );
   });
 
   it("refuses (so Dojo reverses) when Dojo's intent doesn't match the claimed amount", async () => {

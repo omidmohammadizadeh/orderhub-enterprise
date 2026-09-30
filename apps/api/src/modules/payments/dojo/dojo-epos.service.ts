@@ -465,6 +465,24 @@ export class DojoEposService {
     });
 
     await this.payments.settleCardPresentPayment(created, piId);
+    this.dojo.logActivity({
+      tenantId: ctx.tenantId,
+      locationId: ctx.loc.id,
+      action: "dojo.pay_at_table",
+      status: "SUCCESS",
+      message:
+        `Table paid ${paidGbp.toFixed(2)} on a Dojo machine` +
+        (tipGbp > 0 ? ` with a ${tipGbp.toFixed(2)} tip` : ""),
+      details: {
+        orderId,
+        paymentIntentId: piId,
+        amount: paidGbp,
+        ...(tipGbp > 0 ? { tip: tipGbp } : {}),
+        ...(requester.waiterId ? { waiterId: requester.waiterId } : {}),
+        ...(requester.deviceId ? { deviceId: requester.deviceId } : {}),
+        dojoStatus: pi.status,
+      },
+    });
     this.logger.log(
       `Dojo Pay at Table: recorded ${paidGbp.toFixed(2)}${tipGbp ? ` + ${tipGbp.toFixed(2)} tip` : ""} on order ${orderId} (${piId})`,
     );

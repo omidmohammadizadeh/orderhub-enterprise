@@ -67,6 +67,9 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
   // once, so this must not follow whichever one is selected.
   const money = (n: number | string | null | undefined) =>
     formatMoney(n, (order as any)?.location?.currency, { compact: true });
+  // How much of the tip was added at the card machine, after the bill was
+  // totalled. That part sits ON TOP of the total, not inside it.
+  const terminalTip = Number((order as any)?.metadata?.terminalTipsMinor ?? 0) / 100;
   const [cancelReason, setCancelReason] = useState("");
   const [showCancelInput, setShowCancelInput] = useState(false);
   const [printing, setPrinting] = useState(false);
@@ -576,10 +579,10 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
                   <span>{money(Number((order as any).serviceCharge))}</span>
                 </div>
               )}
-              {Number((order as any).tipAmount ?? 0) > 0 && (
+              {Number((order as any).tipAmount ?? 0) - terminalTip > 0 && (
                 <div className="flex justify-between text-sm text-zinc-600">
                   <span>Tip</span>
-                  <span>{money(Number((order as any).tipAmount))}</span>
+                  <span>{money(Number((order as any).tipAmount) - terminalTip)}</span>
                 </div>
               )}
               {order.taxAmount > 0 && (
@@ -597,6 +600,19 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
           <div className="flex justify-between text-sm font-bold text-zinc-900">
             <span>Total</span><span>{money(order.total)}</span>
           </div>
+          {/* A tip added on the card machine is not part of the bill — the
+              customer chose to pay it on top — so it reads below the total,
+              with what they actually handed over. */}
+          {terminalTip > 0 && (
+            <>
+              <div className="flex justify-between text-sm text-zinc-600">
+                <span>Tip on card</span><span>{money(terminalTip)}</span>
+              </div>
+              <div className="flex justify-between text-sm font-semibold text-zinc-900">
+                <span>Paid</span><span>{money(order.total + terminalTip)}</span>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Special instructions */}

@@ -1060,6 +1060,56 @@ export class PaymentsService {
    * nothing to do (already settled) or nothing left to bank (refunded), so a
    * caller does not announce a settlement that never happened.
    */
+  /**
+   * A tip the customer added ON the card machine, put onto the ORDER so it is
+   * visible to anyone who looks at the bill.
+   *
+   * It was already being stored on the Payment row and nowhere else, so a
+   * waiter who took £6.00 on a £5.40 share saw neither the tip nor the extra
+   * 60p anywhere on the order, the drawer or the printed receipt (Dojo
+   * certification, Philip Wells, 2026-09-30).
+   *
+   * `total` is deliberately NOT touched. It is the BILL, and five separate
+   * places work out what a table still owes by subtracting what has been paid
+   * from it — inflating it by a tip would leave every one of them asking for
+   * 60p that nobody owes, and a table that never closes. The tip is money on
+   * top, so it is shown on top: `terminalTipsMinor` on the order says how much
+   * of `tipAmount` arrived this way, which is what the till and the receipt
+   * use to print it after the total rather than inside it.
+   */
+  private async applyTerminalTip(payment: any): Promise<void> {
+    const tipMinor = Math.round(Number(payment.tipAmount ?? 0) * 100);
+    if (tipMinor <= 0) return;
+    // Once per payment, however many times a webhook or a poll settles it.
+    if ((payment.metadata as any)?.tipAppliedToOrder) return;
+    try {
+      const order = await this.prisma.order.findUnique({
+        where: { id: payment.orderId },
+        select: { tipAmount: true, metadata: true },
+      });
+      if (!order) return;
+      const meta = { ...((order.metadata as any) ?? {}) };
+      meta.terminalTipsMinor = Number(meta.terminalTipsMinor ?? 0) + tipMinor;
+      await this.prisma.$transaction([
+        (this.prisma as any).order.update({
+          where: { id: payment.orderId },
+          data: { tipAmount: Number(order.tipAmount ?? 0) + tipMinor / 100, metadata: meta as any },
+        }),
+        (this.prisma as any).payment.update({
+          where: { id: payment.id },
+          data: { metadata: { ...((payment.metadata as any) ?? {}), tipAppliedToOrder: true } },
+        }),
+      ]);
+      payment.metadata = { ...((payment.metadata as any) ?? {}), tipAppliedToOrder: true };
+      this.logger.log(
+        `Tip of ${(tipMinor / 100).toFixed(2)} taken on the card machine added to order ${payment.orderId}`,
+      );
+    } catch (err: any) {
+      // A tip that fails to record must never cost us the settlement.
+      this.logger.error(`Couldn't record the card-machine tip on order ${payment.orderId}: ${err?.message}`);
+    }
+  }
+
   async settleCardPresentPayment(payment: any, ref?: string): Promise<boolean> {
     if (payment.status === PaymentRecordStatus.SUCCEEDED) return false; // idempotent
 
@@ -1087,9 +1137,11 @@ export class PaymentsService {
     // here would clear a £48 table off the back of a £20 card tap, so the
     // order only flips once the banked parts actually cover the total.
     if ((payment.metadata as any)?.split) {
+      await this.applyTerminalTip(payment);
       await this.settleSplitPart(payment, pi);
       return true;
     }
+    await this.applyTerminalTip(payment);
 
     await this.prisma.$transaction([
       (this.prisma as any).payment.update({
