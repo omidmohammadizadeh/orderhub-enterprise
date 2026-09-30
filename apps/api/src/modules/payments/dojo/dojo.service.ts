@@ -812,6 +812,16 @@ export class DojoService {
       });
     }
 
+    if (receipt.itemLines?.length || receipt.tipsMinor || receipt.serviceChargeMinor) {
+      // The receipt is printed by Dojo, so this line is the only way to check
+      // from our side what the customer's copy will itemise.
+      this.logger.log(
+        `Dojo receipt for ${pi.id}: goods ${((receipt.amountMinor ?? amountMinor) / 100).toFixed(2)}` +
+          (receipt.tipsMinor ? `, tip ${(receipt.tipsMinor / 100).toFixed(2)}` : "") +
+          (receipt.serviceChargeMinor ? `, service ${(receipt.serviceChargeMinor / 100).toFixed(2)}` : "") +
+          `, ${receipt.itemLines?.length ?? 0} item line(s)`,
+      );
+    }
     this.logger.log(
       `Dojo charge started: order ${order.id} ${charge.toFixed(2)} ${currency}` +
         `${isSplit ? ` (split of ${orderTotal.toFixed(2)})` : ""} on ${args.terminalId} ` +
