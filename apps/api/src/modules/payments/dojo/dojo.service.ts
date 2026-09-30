@@ -1585,6 +1585,23 @@ export class DojoService {
           idempotencyKey,
         });
       } catch (err: any) {
+        // The clearest "ring somebody" moment there is: money the shop meant
+        // to give back, that Dojo refused. The row carries what Dojo said and
+        // the trace id it said it under.
+        this.logActivity({
+          tenantId: payment.tenantId,
+          locationId: payment.order?.locationId,
+          action: "dojo.refund",
+          status: "ERROR",
+          message: `Dojo refused a ${(wantMinor / 100).toFixed(2)} refund`,
+          details: {
+            orderId: payment.orderId,
+            paymentIntentId: payment.providerChargeId,
+            amount: wantMinor / 100,
+            wholePayment,
+            ...DojoService.failureDetails(err),
+          },
+        });
         // Tell the operator what they can actually do about it.
         if (err instanceof DojoApiError && !wholePayment) {
           throw new BadRequestException(
@@ -1603,6 +1620,23 @@ export class DojoService {
       note: res?.refundId ? `Dojo refund ${res.refundId}` : via === "reversal" ? "Dojo reversal" : null,
       reason,
       userId,
+    });
+    this.logActivity({
+      tenantId: payment.tenantId,
+      locationId: payment.order?.locationId,
+      action: "dojo.refund",
+      status: "SUCCESS",
+      message: `${(wantMinor / 100).toFixed(2)} refunded without the card (${via})`,
+      details: {
+        orderId: payment.orderId,
+        paymentIntentId: payment.providerChargeId,
+        amount: wantMinor / 100,
+        via,
+        refundId: res?.refundId ?? null,
+        full: done.full,
+        leftToRefund: done.leftToRefund,
+        paymentIntentStatus: pi?.status ?? null,
+      },
     });
     this.logger.log(
       `Dojo ${via} ${res?.refundId ?? ""}: ${(wantMinor / 100).toFixed(2)} on ${payment.providerChargeId} ` +
