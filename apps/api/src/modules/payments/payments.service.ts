@@ -1,8 +1,10 @@
 import {
+  Inject,
   Injectable,
   NotFoundException,
   BadRequestException,
   Logger,
+  Optional,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { EventEmitter2 } from "@nestjs/event-emitter";
@@ -12,6 +14,20 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { SocketService } from "../../infrastructure/socket/socket.service";
 import { SmsService } from "../sms/sms.service";
 import { WalletService } from "../wallet/wallet.service";
+
+/**
+ * Pay-by-link can be hosted by Dojo instead of Stripe, per location.
+ *
+ * Injected by STRING TOKEN (payments.module.ts points it at DojoService) so
+ * this file never imports dojo.service.ts, which imports this one — the pair
+ * would be a circular import, and the only thing needed here is one method.
+ */
+export const DOJO_PAYMENT_LINKS = "DOJO_PAYMENT_LINKS";
+
+export interface DojoPaymentLinkPort {
+  /** A Dojo-hosted link for this order, or null when the shop is on Stripe. */
+  paymentLinkForOrder(tenantId: string, orderId: string): Promise<{ url: string } | null>;
+}
 
 // Lazy-imported only if STRIPE_SECRET_KEY is present
 let Stripe: any;
@@ -135,6 +151,9 @@ export class PaymentsService {
     private readonly events: EventEmitter2,
     private readonly sms: SmsService,
     private readonly wallet: WalletService,
+    // Optional so the hand-built unit specs keep working — and because a shop
+    // with no Dojo account never needs it.
+    @Optional() @Inject(DOJO_PAYMENT_LINKS) private readonly dojoLinks?: DojoPaymentLinkPort,
   ) {
     const key = this.config.get<string>("STRIPE_SECRET_KEY");
     if (key && Stripe) {
@@ -1691,11 +1710,16 @@ export class PaymentsService {
   }
 
   /**
-   * POS "Payment Link" — generate a hosted Stripe checkout URL for an
-   * existing (unpaid) order, captured automatically so that when the
-   * customer pays, the order flips straight to PAID (no staff Accept step).
-   * The URL is shown as a QR / copyable link / SMS at the till. Reuses the
-   * same brand-Connect direct-charge path as the storefront checkout.
+   * POS "Payment Link" — generate a hosted checkout URL for an existing
+   * (unpaid) order, captured automatically so that when the customer pays, the
+   * order flips straight to PAID (no staff Accept step). The URL is shown as a
+   * QR / copyable link / SMS at the till.
+   *
+   * Stripe hosts it, on the same brand-Connect direct-charge path as the
+   * storefront checkout — unless the location has been switched to Dojo, which
+   * is the one branch below. This is the ONE place a link is minted (the QR
+   * modal, the `/p/<code>` short link and the payment SMS all come through
+   * here), so the choice of provider only has to be made once.
    */
   async createOrderPaymentLink(
     tenantId: string,
@@ -1728,6 +1752,16 @@ export class PaymentsService {
       this.logger.log(
         `Order ${order.id} switched from cash to payment link at the operator's request`,
       );
+    }
+
+    // Dojo-hosted instead of Stripe, if this location has been switched over.
+    // Null means it hasn't — which is every location unless an operator chose
+    // otherwise on the Card readers page — so the Stripe path below is
+    // untouched for everyone else.
+    const dojo = await this.dojoLinks?.paymentLinkForOrder(tenantId, orderId);
+    if (dojo) {
+      this.logger.log(`Payment link for order ${orderId} hosted by Dojo`);
+      return dojo;
     }
 
     const origin = (process.env.WEB_URL ?? "https://www.orderhubsolutions.com").replace(

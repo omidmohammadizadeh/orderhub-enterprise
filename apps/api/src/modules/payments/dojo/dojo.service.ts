@@ -13,6 +13,7 @@ import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { CredentialEncryptionService } from "../../integrations/credential-encryption.service";
 import { PaymentsService } from "../payments.service";
 import {
+  DOJO_CHECKOUT_BASE,
   DojoApiClient,
   DojoApiError,
   type DojoItemLine,
@@ -72,6 +73,13 @@ export interface DojoLocationConfig {
   terminals: DojoTerminalConfig[];
   webhookSubscriptionId?: string | null;
   payAtTable?: DojoPayAtTableConfig | null;
+  /**
+   * Who hosts this location's "Payment link" page. Absent or disabled means
+   * STRIPE, which is what every existing shop is on and must stay on: this
+   * setting exists so one location can be switched to Dojo for certification
+   * without touching anybody else's takings.
+   */
+  paymentLinks?: { enabled: boolean; enabledAt: string } | null;
 }
 
 /** Session states that mean "over, and nothing was taken". */
@@ -266,6 +274,10 @@ export class DojoService {
       payAtTable: cfg.payAtTable
         ? { enabled: cfg.payAtTable.enabled, registeredAt: cfg.payAtTable.registeredAt }
         : { enabled: false, registeredAt: null },
+      paymentLinks: {
+        enabled: !!cfg.paymentLinks?.enabled,
+        enabledAt: cfg.paymentLinks?.enabledAt ?? null,
+      },
     };
   }
 
@@ -371,6 +383,149 @@ export class DojoService {
   }
 
   // ── Pay at Table registration ─────────────────────────────────────────────
+
+  // ── Pay by link ───────────────────────────────────────────────────────────
+  //
+  // A Dojo payment link is an ordinary payment intent plus its hosted page, so
+  // there is no new money path here: the same intent, the same webhook and the
+  // same verify-before-settle as a card machine sale. All this switch decides
+  // is WHO hosts the page the customer types their card into.
+
+  async enablePaymentLinks(tenantId: string, locationId: string) {
+    const { loc, cfg } = await this.requireConfig(tenantId, locationId);
+    // Nothing polls a hosted link — the customer pays on Dojo's page and walks
+    // away — so the webhook is the ONLY way the order ever becomes PAID. Turning
+    // this on without one would take money and leave the till saying "waiting
+    // for payment" for ever.
+    if (!cfg.webhookSubscriptionId) {
+      throw new BadRequestException(
+        "Dojo hasn't accepted our webhook for this location, so a paid link would never reach the till. " +
+          "Reconnect the Dojo key and try again.",
+      );
+    }
+    cfg.paymentLinks = { enabled: true, enabledAt: new Date().toISOString() };
+    await this.saveConfig(loc.id, cfg);
+    this.logger.log(`Dojo payment links enabled at location ${loc.id} (was Stripe)`);
+    return this.status(tenantId, locationId);
+  }
+
+  async disablePaymentLinks(tenantId: string, locationId: string) {
+    const { loc, cfg } = await this.requireConfig(tenantId, locationId);
+    cfg.paymentLinks = null;
+    await this.saveConfig(loc.id, cfg);
+    this.logger.log(`Dojo payment links disabled at location ${loc.id} — back to Stripe`);
+    return this.status(tenantId, locationId);
+  }
+
+  /**
+   * The till's "Payment link" for an order, hosted by Dojo — or null when this
+   * location hasn't been switched over, which is every location by default.
+   *
+   * PaymentsService calls this before minting a Stripe link (through a string
+   * token, so neither file has to import the other). Returning null is the
+   * ONLY way to fall through to Stripe: if a shop chose Dojo and Dojo fails,
+   * this throws, because quietly taking the money into a different account
+   * than the operator picked is worse than an error at the till.
+   */
+  async paymentLinkForOrder(tenantId: string, orderId: string): Promise<{ url: string } | null> {
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, tenantId },
+      select: {
+        id: true, tenantId: true, locationId: true, displayId: true, total: true, paymentStatus: true,
+        tipAmount: true, serviceCharge: true,
+        items: { select: { name: true, quantity: true, totalPrice: true, modifiers: true, menuItemId: true, id: true } },
+      },
+    });
+    if (!order?.locationId) return null;
+    const loc = await this.prisma.location.findUnique({
+      where: { id: order.locationId },
+      select: { id: true, name: true, country: true, settings: true },
+    });
+    const cfg = this.configFrom(loc?.settings);
+    if (!cfg?.paymentLinks?.enabled) return null; // Stripe, as always.
+    if (order.paymentStatus === "PAID") throw new BadRequestException("This order is already paid");
+
+    const currency = this.currencyFor(loc!.country);
+    const total = Number(order.total ?? 0);
+    const amountMinor = Math.round(total * 100);
+    if (amountMinor <= 0) throw new BadRequestException("Order total must be > 0");
+
+    const client = this.clientFor(cfg);
+    // One live link per order. The QR, the copy button and the texted short
+    // link all come through here, and a Dojo link is single-use — minting a
+    // fresh one per press would leave the customer holding a link the shop
+    // has already replaced.
+    const open = await this.openLinkIntent(order.id, amountMinor, client);
+    const pi =
+      open?.pi ??
+      (await client.createPaymentIntent({
+        ...this.receiptBreakdown(order as any, amountMinor, currency),
+        amountMinor,
+        currencyCode: currency,
+        reference: order.displayId ? `Order ${order.displayId}` : `Order ${order.id.slice(-8)}`,
+        description: loc!.name,
+        metadata: { orderhubOrderId: order.id, orderhubLocationId: order.locationId },
+      }));
+
+    if (!open) {
+      await (this.prisma as any).payment.create({
+        data: {
+          tenantId: order.tenantId,
+          orderId: order.id,
+          provider: "DOJO",
+          providerChargeId: pi.id,
+          amount: total,
+          currency: currency.toLowerCase(),
+          status: "PROCESSING",
+          method: "CARD",
+          platformFee: 0,
+          netAmount: total,
+          metadata: {
+            source: "dojo_payment_link",
+            ...(cfg.environment === "sandbox" ? { sandbox: true } : {}),
+          },
+        },
+      });
+      this.logger.log(
+        `Dojo payment link created: order ${order.id} ${total.toFixed(2)} ${currency} (${pi.id})`,
+      );
+    }
+    return { url: `${DOJO_CHECKOUT_BASE}/${pi.id}` };
+  }
+
+  /**
+   * An unpaid link for this order whose intent Dojo still calls open.
+   *
+   * Also the guard against handing out a SECOND link for money that has
+   * already been taken: if the customer has paid the last one and the webhook
+   * hasn't reached us yet, our row still says PROCESSING. Minting a fresh link
+   * there would invite them to pay twice, so this settles the one that was
+   * paid and refuses instead.
+   */
+  private async openLinkIntent(orderId: string, amountMinor: number, client: DojoApiClient) {
+    const rows = await (this.prisma as any).payment.findMany({
+      where: { orderId, provider: "DOJO", status: "PROCESSING" },
+      orderBy: { createdAt: "desc" },
+      take: 3,
+    });
+    for (const p of rows) {
+      if ((p.metadata as any)?.source !== "dojo_payment_link") continue;
+      if (Math.round(Number(p.amount) * 100) !== amountMinor) continue;
+      let pi: DojoPaymentIntent;
+      try {
+        pi = await client.getPaymentIntent(p.providerChargeId);
+      } catch {
+        continue; // unreachable — make a new one
+      }
+      // Created = nobody has paid it yet, so the same link can go out again.
+      if (pi.status === "Created") return { paymentId: p.id as string, pi };
+      if (pi.status === "Captured" || pi.status === "Authorized") {
+        await this.verifyAndSettle({ ...p, order: { id: orderId } }, client, { allowAuthorized: false });
+        throw new BadRequestException("This order has already been paid on the last link sent.");
+      }
+    }
+    return null;
+  }
 
   async enablePayAtTable(tenantId: string, locationId: string) {
     const { loc, cfg } = await this.requireConfig(tenantId, locationId);
@@ -1350,13 +1505,38 @@ export class DojoService {
   }
 
   /** Is this intent real money for (at least) `amountMinor`, excluding tips? */
+  /**
+   * Does this intent account for every penny of our Payment row?
+   *
+   * Dojo's `amount` is the GOODS only: the tip and the service charge ride
+   * beside it and the customer is charged the sum. Our row holds one figure —
+   * the order total, which includes both. So there is no single field to
+   * compare, and the check has to add up the parts Dojo split. Every accepted
+   * equality sums to our amount, so none of them can accept an underpayment.
+   *
+   * (Without this, a dine-in order with an auto service charge was taken at
+   * the machine and then never settled: the intent said 4750 goods + 250
+   * service and the row said 5000, so nothing matched and the order sat
+   * unpaid with the customer's money gone.)
+   */
   intentCovers(pi: DojoPaymentIntent, amountMinor: number, allowAuthorized: boolean): boolean {
     const okStatus = pi.status === "Captured" || (allowAuthorized && pi.status === "Authorized");
     if (!okStatus) return false;
-    const base = pi.amount?.value;
+    const goods = pi.amount?.value;
     const total = pi.totalAmount?.value;
     const tips = pi.tipsAmount?.value ?? 0;
-    return base === amountMinor || (typeof total === "number" && total - tips === amountMinor);
+    const service = pi.serviceChargeAmount?.value ?? 0;
+    const candidates = [
+      goods,
+      // A tip or service charge WE sent is part of what the row is owed.
+      typeof goods === "number" ? goods + service : undefined,
+      typeof goods === "number" ? goods + service + tips : undefined,
+      total,
+      // A tip added ON the machine is not in our row — that's the one case
+      // where the intent legitimately carries more than we asked for.
+      typeof total === "number" ? total - tips : undefined,
+    ];
+    return candidates.some((c) => c === amountMinor);
   }
 
   /**

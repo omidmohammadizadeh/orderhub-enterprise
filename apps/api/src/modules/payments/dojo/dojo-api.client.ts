@@ -18,6 +18,16 @@
 export const DOJO_API_BASE = "https://api.dojo.tech";
 export const DOJO_API_VERSION = "2026-02-27";
 
+/**
+ * A Dojo "payment link" is not its own object: you create an ordinary payment
+ * intent and hand the customer this page for it
+ * (docs.dojo.tech/payments/accept-payments/online-payments/payment-links).
+ * The environment rides on the intent id — `pi_sandbox_…` shows Dojo's yellow
+ * Sandbox label on the same host — so there is no separate test URL to pick.
+ * Each link is single-use and expires after thirty days.
+ */
+export const DOJO_CHECKOUT_BASE = "https://pay.dojo.tech/checkout";
+
 export interface DojoMoney {
   value: number;
   currencyCode: string;
@@ -38,6 +48,7 @@ export interface DojoPaymentIntent {
   amount?: DojoMoney;
   totalAmount?: DojoMoney;
   tipsAmount?: DojoMoney;
+  serviceChargeAmount?: DojoMoney;
   reference?: string;
   metadata?: Record<string, string>;
   [k: string]: unknown;

@@ -24,6 +24,8 @@ export type DojoStatus =
       webhook: boolean;
       partnerIdsConfigured: boolean;
       payAtTable: { enabled: boolean; registeredAt: string | null };
+      /** Off = this location's payment links are hosted by Stripe. */
+      paymentLinks: { enabled: boolean; enabledAt: string | null };
     };
 
 export interface DojoChargeStatus {
@@ -89,6 +91,12 @@ export const dojoClient = {
     apiClient
       .get<DojoPayAtTablePreview>(`${base}/locations/${locationId}/pay-at-table/preview`)
       .then((r) => r.data),
+
+  enablePaymentLinks: (locationId: string) =>
+    apiClient.post<DojoStatus>(`${base}/locations/${locationId}/payment-links`, {}).then((r) => r.data),
+
+  disablePaymentLinks: (locationId: string) =>
+    apiClient.delete<DojoStatus>(`${base}/locations/${locationId}/payment-links`).then((r) => r.data),
 
   enablePayAtTable: (locationId: string) =>
     apiClient.post<DojoStatus>(`${base}/locations/${locationId}/pay-at-table`, {}).then((r) => r.data),

@@ -401,6 +401,28 @@ describe("DojoService.intentCovers", () => {
       ),
     ).toBe(true);
   });
+  // The receipt breakdown splits the charge into goods + tip + service charge,
+  // and our Payment row holds the one total that contains all three. A dine-in
+  // order with an auto service charge was taken and never settled because of
+  // this (2026-09-30).
+  it("adds up a charge Dojo split into goods, tip and service charge", () => {
+    const money = (value: number) => ({ value, currencyCode: "GBP" });
+    const split = {
+      id: "p",
+      status: "Captured" as const,
+      amount: money(4500),
+      serviceCharge: undefined,
+      serviceChargeAmount: money(250),
+      tipsAmount: money(250),
+    };
+    expect(svc.intentCovers(split, 5000, false)).toBe(true);
+    // Goods + service charge only: the tip went on at the machine, so our row
+    // was written before it existed.
+    expect(svc.intentCovers({ ...split, tipsAmount: undefined }, 4750, false)).toBe(true);
+    // And it still refuses an intent that doesn't add up to what we're owed.
+    expect(svc.intentCovers(split, 5250, false)).toBe(false);
+  });
+
   it("rejects Authorized unless allowed, and anything Created/Canceled", () => {
     const auth = { id: "p", status: "Authorized" as const, amount: { value: 500, currencyCode: "GBP" } };
     expect(svc.intentCovers(auth, 500, false)).toBe(false);

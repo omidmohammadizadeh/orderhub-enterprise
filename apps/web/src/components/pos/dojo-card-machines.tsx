@@ -5,7 +5,7 @@
 
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, Loader2, Pencil, Utensils } from "lucide-react";
+import { CheckCircle2, Link2, Loader2, Pencil, Utensils } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { dojoClient, type DojoStatus, type DojoPayAtTablePreview } from "@/lib/api/dojo.client";
@@ -221,6 +221,72 @@ export function DojoCardMachines({ locationId }: { locationId: string }) {
               ))}
             </ul>
           )}
+
+          {/* Who hosts the "Payment link" the till shows as a QR / texts to a
+              customer. Stripe for every shop unless someone chooses otherwise
+              here — switching is per location and changes nothing else. */}
+          <div className="rounded-md border border-zinc-200 p-3">
+            <h3 className="flex items-center gap-1.5 text-sm font-semibold text-zinc-900">
+              <Link2 className="h-4 w-4" /> Payment links
+            </h3>
+            <p className="mt-1 text-xs leading-relaxed text-zinc-500">
+              Where the customer pays when the till shows a payment QR code or texts a link. The QR
+              code, the copy button and the SMS work the same either way — only the page the
+              customer lands on changes.
+            </p>
+            <div
+              className="mt-2 inline-flex rounded-md border border-zinc-200 p-0.5"
+              role="group"
+              aria-label="Payment link provider"
+            >
+              <button
+                type="button"
+                aria-pressed={!s.paymentLinks.enabled}
+                disabled={busy !== null || !s.paymentLinks.enabled}
+                onClick={() =>
+                  run("links", () => dojoClient.disablePaymentLinks(locationId), "Payment links are back on Stripe")
+                }
+                className={`rounded px-3 py-1.5 text-xs font-medium ${
+                  s.paymentLinks.enabled ? "text-zinc-600 hover:bg-zinc-50" : "bg-zinc-900 text-white"
+                }`}
+              >
+                {busy === "links" && s.paymentLinks.enabled ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  "Stripe (default)"
+                )}
+              </button>
+              <button
+                type="button"
+                aria-pressed={s.paymentLinks.enabled}
+                disabled={busy !== null || s.paymentLinks.enabled}
+                onClick={() =>
+                  run("links", () => dojoClient.enablePaymentLinks(locationId), "Payment links now go through Dojo")
+                }
+                className={`rounded px-3 py-1.5 text-xs font-medium ${
+                  s.paymentLinks.enabled ? "bg-zinc-900 text-white" : "text-zinc-600 hover:bg-zinc-50"
+                }`}
+              >
+                {busy === "links" && !s.paymentLinks.enabled ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  "Dojo"
+                )}
+              </button>
+            </div>
+            {s.paymentLinks.enabled ? (
+              <p className="mt-2 text-xs text-amber-700">
+                Links go to Dojo&rsquo;s own payment page and the money lands in this shop&rsquo;s Dojo
+                account. Each link can be used once and expires after 30 days.
+                {s.environment === "sandbox" && " Sandbox links show a yellow Sandbox label."}
+              </p>
+            ) : (
+              <p className="mt-2 text-xs text-zinc-500">
+                Nothing to do — this is what every shop uses. Switch to Dojo only if you want card
+                payments from links in your Dojo account instead of Stripe.
+              </p>
+            )}
+          </div>
 
           <div className="rounded-md border border-zinc-200 p-3">
             <div className="flex items-start justify-between gap-3">
