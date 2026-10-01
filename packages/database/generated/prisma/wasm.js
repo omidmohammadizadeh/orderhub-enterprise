@@ -314,6 +314,10 @@ exports.Prisma.BrandScalarFieldEnum = {
   stripeConnectedAccountId: 'stripeConnectedAccountId',
   tapDestinationId: 'tapDestinationId',
   tapBusinessId: 'tapBusinessId',
+  tapMerchantId: 'tapMerchantId',
+  tapLeadId: 'tapLeadId',
+  tapOnboardingStatus: 'tapOnboardingStatus',
+  tapConnectUrl: 'tapConnectUrl',
   applicationFeeFixedAmount: 'applicationFeeFixedAmount',
   applicationFeePercentage: 'applicationFeePercentage',
   applicationFeeMode: 'applicationFeeMode',
@@ -2638,6 +2642,10 @@ exports.Prisma.BrandOrderByRelevanceFieldEnum = {
   stripeConnectedAccountId: 'stripeConnectedAccountId',
   tapDestinationId: 'tapDestinationId',
   tapBusinessId: 'tapBusinessId',
+  tapMerchantId: 'tapMerchantId',
+  tapLeadId: 'tapLeadId',
+  tapOnboardingStatus: 'tapOnboardingStatus',
+  tapConnectUrl: 'tapConnectUrl',
   applicationFeeMode: 'applicationFeeMode',
   defaultStationId: 'defaultStationId'
 };
