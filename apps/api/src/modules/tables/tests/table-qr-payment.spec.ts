@@ -20,10 +20,14 @@ function makeService(opts: {
   country?: string;
   connect?: { id: string | null; stripeAccountId: string } | null;
   table?: Record<string, unknown>;
+  tapConfigured?: boolean;
+  tapMerchantId?: string | null;
 } = {}) {
   const tableUpdates: any[] = [];
   const createdOrders: any[] = [];
   const intents: any[] = [];
+  const tapCharges: any[] = [];
+  const reconciled: string[] = [];
 
   const table = {
     id: "tbl1",
@@ -56,6 +60,12 @@ function makeService(opts: {
       },
     },
     order: { findMany: async () => [], findFirst: async () => null, findUnique: async () => null },
+    brand: {
+      findFirst: async () => ({
+        id: "b1",
+        tapMerchantId: opts.tapMerchantId === undefined ? "merchant_shop" : opts.tapMerchantId,
+      }),
+    },
   };
 
   const orders: any = {
@@ -85,11 +95,24 @@ function makeService(opts: {
         stripeAccountId: "acct_shop",
       };
     },
-    reconcileOrderPayment: async () => undefined,
+    reconcileOrderPayment: async (id: string) => {
+      reconciled.push(`stripe:${id}`);
+    },
   };
 
-  const svc = new TableQrService(prisma, orders, payments);
-  return { svc, tableUpdates, createdOrders, intents, table };
+  const tap: any = {
+    configured: () => opts.tapConfigured ?? true,
+    createCharge: async (p: any) => {
+      tapCharges.push(p);
+      return { chargeId: "chg_1", redirectUrl: "https://checkout.tap.company/x", amount: 14, currency: "AED" };
+    },
+    reconcileOrder: async (id: string) => {
+      reconciled.push(`tap:${id}`);
+    },
+  };
+
+  const svc = new TableQrService(prisma, orders, payments, tap);
+  return { svc, tableUpdates, createdOrders, intents, tapCharges, reconciled, table };
 }
 
 const BASKET = {
@@ -181,14 +204,70 @@ describe("checkout", () => {
     expect(createdOrders).toHaveLength(0);
   });
 
-  it("refuses in Tap countries — there is no on-page wallet sheet there", async () => {
-    const { svc, createdOrders } = makeService({
+  it("sends a Tap shop's guest to Tap's hosted page, on a TAP-flagged unpaid order", async () => {
+    const { svc, createdOrders, intents, tapCharges } = makeService({
       qrPayment: "PAY_NOW",
       country: "AE",
     });
-    await expect(svc.checkout("tok", BASKET)).rejects.toThrow(
-      /isn't available at this restaurant yet/i,
-    );
+    process.env.WEB_URL = "https://web.example";
+    const res = await svc.checkout("tok", {
+      ...BASKET,
+      customerName: "Omar Ali",
+      customerEmail: "omar@example.com",
+    });
+    delete process.env.WEB_URL;
+
+    expect(createdOrders).toHaveLength(1);
+    expect(createdOrders[0]).toMatchObject({
+      paymentMethod: "QR_CODE",
+      paymentStatus: "PENDING",
+      paymentProvider: "TAP",
+    });
+    // No Stripe intent is ever minted for a Gulf shop.
+    expect(intents).toHaveLength(0);
+    expect(tapCharges).toHaveLength(1);
+    expect(tapCharges[0]).toMatchObject({
+      tenantId: TENANT,
+      orderId: "ord1",
+      // Back to the same landing a 3-D Secure redirect uses.
+      redirectUrl: "https://web.example/t/tok?paid=ord1",
+      customer: { firstName: "Omar", lastName: "Ali", email: "omar@example.com" },
+    });
+    expect(res.checkoutUrl).toBe("https://checkout.tap.company/x");
+    expect(res.clientSecret).toBeUndefined();
+  });
+
+  it("asks a Tap shop's guest for an email before writing anything", async () => {
+    // Tap refuses a charge without one, and its hosted page can't ask later.
+    const { svc, createdOrders } = makeService({ qrPayment: "PAY_NOW", country: "AE" });
+    await expect(svc.checkout("tok", BASKET)).rejects.toThrow(/email/i);
+    await expect(
+      svc.checkout("tok", { ...BASKET, customerEmail: "not-an-email" }),
+    ).rejects.toThrow(/email/i);
+    expect(createdOrders).toHaveLength(0);
+  });
+
+  it("refuses before writing anything when the brand has no Tap merchant yet", async () => {
+    const { svc, createdOrders } = makeService({
+      qrPayment: "PAY_NOW",
+      country: "AE",
+      tapMerchantId: null,
+    });
+    await expect(
+      svc.checkout("tok", { ...BASKET, customerEmail: "a@b.co" }),
+    ).rejects.toThrow(/hasn't finished setting up card payments/i);
+    expect(createdOrders).toHaveLength(0);
+  });
+
+  it("refuses before writing anything when Tap isn't configured at all", async () => {
+    const { svc, createdOrders } = makeService({
+      qrPayment: "PAY_NOW",
+      country: "AE",
+      tapConfigured: false,
+    });
+    await expect(
+      svc.checkout("tok", { ...BASKET, customerEmail: "a@b.co" }),
+    ).rejects.toThrow(/hasn't finished setting up card payments/i);
     expect(createdOrders).toHaveLength(0);
   });
 
@@ -204,7 +283,28 @@ describe("checkout", () => {
   });
 });
 
+describe("orderStatus", () => {
+  it("reconciles a pending order with whichever provider took the card", async () => {
+    const pending = { id: "ord1", tableId: "tbl1", paymentStatus: "PENDING", total: 14, status: "PENDING" };
+    for (const [country, expected] of [["AE", "tap:ord1"], ["GB", "stripe:ord1"]] as const) {
+      const { svc, reconciled } = makeService({ qrPayment: "PAY_NOW", country });
+      (svc as any).prisma.order.findFirst = async () => ({ ...pending });
+      await svc.orderStatus("tok", "ord1");
+      expect(reconciled).toEqual([expected]);
+    }
+  });
+});
+
 describe("resolve", () => {
+  it("tells the phone who takes the card", async () => {
+    await expect(makeService({ country: "AE" }).svc.resolve("tok")).resolves.toMatchObject({
+      cardProvider: "TAP",
+    });
+    await expect(makeService().svc.resolve("tok")).resolves.toMatchObject({
+      cardProvider: "STRIPE",
+    });
+  });
+
   it("tells the phone which flow to render", async () => {
     const payNow = makeService({ qrPayment: "PAY_NOW" });
     await expect(payNow.svc.resolve("tok")).resolves.toMatchObject({
