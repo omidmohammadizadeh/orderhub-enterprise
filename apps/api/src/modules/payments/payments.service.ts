@@ -9,6 +9,7 @@ import {
 import { ConfigService } from "@nestjs/config";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { randomBytes } from "crypto";
+import { usesTap } from "@orderhub/shared";
 import { Decimal } from "@prisma/client/runtime/library";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { SocketService } from "../../infrastructure/socket/socket.service";
@@ -3140,7 +3141,19 @@ export class PaymentsService {
         applicationFeeMode: true,
         applicationFeeFixedAmount: true,
         applicationFeePercentage: true,
-      },
+        country: true,
+        tapMerchantId: true,
+        tapOnboardingStatus: true,
+        tapConnectUrl: true,
+        // Where the brand trades decides Stripe vs Tap — the shop's country,
+        // not the brand's own (which defaults to GB).
+        locations: {
+          where: { deletedAt: null },
+          select: { country: true },
+          take: 1,
+          orderBy: { createdAt: "asc" },
+        },
+      } as any,
       orderBy: { name: "asc" },
     });
     const accounts = await (this.prisma as any).stripeConnectAccount.findMany({
@@ -3149,10 +3162,18 @@ export class PaymentsService {
     const byBrandId = new Map<string, any>();
     for (const a of accounts) byBrandId.set(a.brandId, a);
 
-    return brands.map((b) => {
+    return brands.map((b: any) => {
       const a = byBrandId.get(b.id);
+      const country = String(b.locations?.[0]?.country || b.country || "GB").toUpperCase();
       return {
         brandId: b.id,
+        country,
+        provider: usesTap(country) ? "TAP" : "STRIPE",
+        tap: {
+          merchantId: b.tapMerchantId ?? null,
+          onboardingStatus: b.tapOnboardingStatus ?? "not_started",
+          connectUrl: b.tapConnectUrl ?? null,
+        },
         name: b.name,
         logoUrl: b.logoUrl,
         stripeAccountId: a?.stripeAccountId ?? b.stripeConnectedAccountId ?? null,

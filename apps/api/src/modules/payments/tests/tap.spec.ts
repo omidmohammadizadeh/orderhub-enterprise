@@ -7,6 +7,7 @@ import {
   onboardingSignature,
   merchantIdFromSignup,
   tapPlatformFromEnv,
+  tapPlatformProblem,
 } from "../tap.service";
 import {
   paymentProviderForCountry,
@@ -163,16 +164,50 @@ describe("tapPlatformFromEnv", () => {
     expect(tapPlatformFromEnv("COMMERCE", { TAP_COMMERCE_PLATFORM_ID: "p" } as any)).toBeNull();
     expect(
       tapPlatformFromEnv("COMMERCE", {
-        TAP_COMMERCE_SECRET_KEY: " k ",
+        TAP_COMMERCE_SECRET_KEY: " sk_test_k ",
         TAP_COMMERCE_PLATFORM_ID: " p ",
       } as any),
-    ).toEqual({ kind: "COMMERCE", id: "p", secretKey: "k" });
+    ).toEqual({ kind: "COMMERCE", id: "p", secretKey: "sk_test_k" });
   });
 
   it("does not treat the old marketplace TAP_SECRET_KEY as the commerce platform", () => {
     // That key belonged to a different account type; charging with it would
     // route money as if we were the merchant.
     expect(tapPlatformFromEnv("COMMERCE", { TAP_SECRET_KEY: "sk_old" } as any)).toBeNull();
+  });
+});
+
+describe("tapPlatformProblem", () => {
+  // The 2026-10-01 outage: a key pasted from a masked display made fetch()
+  // throw "Cannot convert argument to a ByteString" — a nameless 500.
+  it("names a key copied from a masked display, and refuses to use it", () => {
+    const env = { TAP_APP_SECRET_KEY: "sk_test_NLE•••gOPfvy", TAP_APP_PLATFORM_ID: "app_platform_1" } as any;
+    expect(tapPlatformProblem("APP", env)).toMatch(/TAP_APP_SECRET_KEY.*masked/);
+    expect(tapPlatformFromEnv("APP", env)).toBeNull();
+  });
+
+  it("names a half-configured platform and a key that isn't a Tap key", () => {
+    expect(tapPlatformProblem("BILLING", { TAP_BILLING_SECRET_KEY: "sk_test_a" } as any)).toMatch(/TAP_BILLING_PLATFORM_ID is missing/);
+    expect(tapPlatformProblem("BILLING", { TAP_BILLING_SECRET_KEY: "pk_test_a", TAP_BILLING_PLATFORM_ID: "b" } as any)).toMatch(/sk_test_/);
+  });
+
+  it("is quiet for an unset platform and a good one", () => {
+    expect(tapPlatformProblem("APP", {} as any)).toBeNull();
+    expect(tapPlatformProblem("APP", { TAP_APP_SECRET_KEY: "sk_test_Ab1", TAP_APP_PLATFORM_ID: "app_platform_1" } as any)).toBeNull();
+  });
+});
+
+describe("TapService.status", () => {
+  afterEach(clearEnv);
+  it("reports each platform and the wallet without exposing a secret", () => {
+    setEnv({ TAP_APP_SECRET_KEY: "sk_test_x•y", TAP_APP_PLATFORM_ID: "app_platform_1" });
+    const out = new TapService({} as any, {} as any).status();
+    expect(out.ready).toBe(true);
+    expect(out.commissionWallet).toBe(true);
+    expect(out.platforms.find((p) => p.kind === "COMMERCE")).toMatchObject({ configured: true, mode: "test", problem: null });
+    expect(out.platforms.find((p) => p.kind === "APP")).toMatchObject({ configured: false });
+    expect(out.platforms.find((p) => p.kind === "APP")!.problem).toMatch(/masked/);
+    expect(JSON.stringify(out)).not.toContain("sk_test");
   });
 });
 
@@ -582,6 +617,21 @@ describe("Tap onboarding", () => {
     const out = await new TapService(prisma, {} as any).startOnboarding("t1", "b1");
     expect(out.leadId).toBe("led_2");
     expect((fetchMock.mock.calls[1] as any)[1].headers.Authorization).toBe("Bearer sk_test_billing");
+  });
+
+  it("refuses by variable name when a platform key is broken, instead of a nameless 500", async () => {
+    process.env.TAP_APP_SECRET_KEY = "sk_test_NLE•••x";
+    process.env.TAP_APP_PLATFORM_ID = "app_platform_1";
+    const prisma = { brand: { findFirst: jest.fn().mockResolvedValue(brandRow()), update: jest.fn() } } as any;
+    const fetchMock = jest.spyOn(global, "fetch" as any);
+    await expect(new TapService(prisma, {} as any).startOnboarding("t1", "b1")).rejects.toThrow(/TAP_APP_SECRET_KEY/);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("turns a fetch that never reached Tap into a readable error", async () => {
+    const prisma = { brand: { findFirst: jest.fn().mockResolvedValue(brandRow()), update: jest.fn() } } as any;
+    jest.spyOn(global, "fetch" as any).mockRejectedValue(new TypeError("fetch failed"));
+    await expect(new TapService(prisma, {} as any).startOnboarding("t1", "b1")).rejects.toThrow(/Couldn't reach Tap/);
   });
 
   it("won't start onboarding for a brand that already has a merchant", async () => {

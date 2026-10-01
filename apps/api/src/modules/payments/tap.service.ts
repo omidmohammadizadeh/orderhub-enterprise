@@ -165,9 +165,40 @@ export interface TapPlatform {
 }
 
 /**
+ * What's wrong with one platform's env, or null if it's usable / simply unset.
+ *
+ * Exists because of a real outage of the onboarding button (2026-10-01): a
+ * secret pasted into Render from a MASKED display ("sk_test_•••…") made
+ * fetch() throw "Cannot convert argument to a ByteString" from inside the
+ * Authorization header — a 500 that named no variable. A key is plain ASCII
+ * `sk_test_…` / `sk_live_…`; anything else is a paste error, said by name.
+ */
+export function tapPlatformProblem(
+  kind: TapPlatformKind,
+  env: NodeJS.ProcessEnv = process.env,
+): string | null {
+  const id = env[`TAP_${kind}_PLATFORM_ID`]?.trim();
+  const key = env[`TAP_${kind}_SECRET_KEY`]?.trim();
+  if (!id && !key) return null;
+  if (!key) return `TAP_${kind}_SECRET_KEY is missing (TAP_${kind}_PLATFORM_ID is set).`;
+  if (!id) return `TAP_${kind}_PLATFORM_ID is missing (TAP_${kind}_SECRET_KEY is set).`;
+  if (/[^\x21-\x7e]/.test(key)) {
+    return `TAP_${kind}_SECRET_KEY contains characters a key can't have (e.g. "•") — it was probably copied from a masked display. Paste the full key from Tap's email.`;
+  }
+  if (!/^sk_(test|live)_[A-Za-z0-9_]+$/.test(key)) {
+    return `TAP_${kind}_SECRET_KEY doesn't look like a Tap secret key (it should start sk_test_ or sk_live_).`;
+  }
+  if (!/^[A-Za-z0-9_]+$/.test(id)) {
+    return `TAP_${kind}_PLATFORM_ID doesn't look like a Tap platform id (e.g. ${kind.toLowerCase()}_platform_…).`;
+  }
+  return null;
+}
+
+/**
  * One platform's id + secret key from the environment, or null when either is
- * missing — half a platform is no platform, and a charge with the right key
- * but no platform id would be routed as if we were the merchant.
+ * missing or malformed — half a platform is no platform, and a charge with
+ * the right key but no platform id would be routed as if we were the
+ * merchant. tapPlatformProblem says why.
  *
  * The pre-Platform `TAP_SECRET_KEY` is deliberately NOT a fallback: it was a
  * marketplace key, and treating it as the commerce platform would send charges
@@ -180,6 +211,7 @@ export function tapPlatformFromEnv(
   const id = env[`TAP_${kind}_PLATFORM_ID`]?.trim();
   const secretKey = env[`TAP_${kind}_SECRET_KEY`]?.trim();
   if (!id || !secretKey) return null;
+  if (tapPlatformProblem(kind, env)) return null;
   return { kind, id, secretKey };
 }
 
@@ -258,16 +290,26 @@ export class TapService {
     path: string,
     init: { method: string; body?: unknown },
   ): Promise<T> {
-    const res = await fetch(`${this.apiHost}${path}`, {
-      method: init.method,
-      headers: {
-        Authorization: `Bearer ${key}`,
-        "Content-Type": "application/json",
-        accept: "application/json",
-      },
-      ...(init.body ? { body: JSON.stringify(init.body) } : {}),
-      signal: AbortSignal.timeout(15_000),
-    });
+    let res: Response;
+    try {
+      res = await fetch(`${this.apiHost}${path}`, {
+        method: init.method,
+        headers: {
+          Authorization: `Bearer ${key}`,
+          "Content-Type": "application/json",
+          accept: "application/json",
+        },
+        ...(init.body ? { body: JSON.stringify(init.body) } : {}),
+        signal: AbortSignal.timeout(15_000),
+      });
+    } catch (err: any) {
+      // Never reached Tap: a timeout, DNS, or a header fetch() refuses to
+      // send. A bare TypeError here used to surface as a nameless 500.
+      this.logger.error(`Tap ${init.method} ${path} didn't reach Tap: ${err?.message ?? err}`);
+      throw new BadRequestException(
+        "Couldn't reach Tap just now. Please try again in a moment.",
+      );
+    }
     const text = await res.text();
     let body: any = null;
     try {
@@ -599,6 +641,40 @@ export class TapService {
     this.logger.log(`Tap refund ${out.id} (${out.status}) for order ${orderId}`);
   }
 
+  /**
+   * What an admin needs to see to know Tap will work — without exposing a
+   * single secret. Rendered on the Payments page above the brand rows.
+   */
+  status(): {
+    platforms: Array<{ kind: TapPlatformKind; configured: boolean; mode: "test" | "live" | null; problem: string | null }>;
+    commissionWallet: boolean;
+    ready: boolean;
+  } {
+    const platforms = TAP_PLATFORM_KINDS.map((kind) => {
+      const p = this.platform(kind);
+      return {
+        kind,
+        configured: !!p,
+        mode: p ? (p.secretKey.startsWith("sk_live_") ? ("live" as const) : ("test" as const)) : null,
+        problem: tapPlatformProblem(kind),
+      };
+    });
+    return {
+      platforms,
+      commissionWallet: !!this.commissionWalletId,
+      ready: !!this.platform("COMMERCE"),
+    };
+  }
+
+  /** Refuse loudly, by variable name, when a platform's env is broken. */
+  private assertPlatformsSane(): void {
+    const problems = TAP_PLATFORM_KINDS.map((k) => tapPlatformProblem(k)).filter(Boolean);
+    if (problems.length) {
+      this.logger.error(`Tap configuration: ${problems.join(" | ")}`);
+      throw new BadRequestException(`Tap is misconfigured: ${problems.join(" ")}`);
+    }
+  }
+
   // ── Onboarding: Lead → Connect → merchant ─────────────────────────────────
 
   private get onboardingSecret(): string | null {
@@ -646,6 +722,7 @@ export class TapService {
         "This brand already has a Tap merchant account. Clear it first if you really mean to onboard again.",
       );
     }
+    this.assertPlatformsSane();
     const platforms = this.configuredPlatforms();
     if (!platforms.length) throw new BadRequestException("Tap isn't configured.");
 

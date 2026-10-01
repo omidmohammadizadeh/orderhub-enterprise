@@ -116,13 +116,24 @@ export class PaymentsController {
    * for the Gulf.
    */
   @Post("tap/brands/:brandId/onboarding")
-  @Roles("TENANT_OWNER", "PLATFORM_ADMIN")
+  // Same people who can start a brand's Stripe onboarding. A sign-up link
+  // can't move money by itself — only Tap's signed webhook (or an admin's
+  // hand-set merchant id) points a brand at a merchant.
+  @Roles("TENANT_OWNER", "FINANCIAL_AGENT")
   @ApiOperation({ summary: "Create a Tap Connect sign-up link for a brand" })
   startTapOnboarding(
     @Param("brandId") brandId: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.tap.startOnboarding(user.tenantId, brandId);
+  }
+
+  /** GET /v1/payments/tap/status — is Tap configured, without any secrets. */
+  @Get("tap/status")
+  @Roles("TENANT_OWNER", "FINANCIAL_AGENT", "OWNER")
+  @ApiOperation({ summary: "Tap configuration health (no secrets)" })
+  tapStatus() {
+    return this.tap.status();
   }
 
   /** POST /v1/payments/tap/brands/:brandId/merchant — set/clear by hand. */
