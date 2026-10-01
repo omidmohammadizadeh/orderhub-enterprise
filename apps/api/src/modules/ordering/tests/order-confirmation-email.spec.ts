@@ -232,3 +232,65 @@ describe("online order confirmation email — the daily cap", () => {
     expect(subjects.some((x: string) => /cap|limit/i.test(x))).toBe(false);
   });
 });
+
+// Customers must sign in to order online, so the account they signed in with
+// is the address we know is real. The checkout email field is optional and is
+// routinely left blank — which is exactly what happened on the first live
+// test, and the reason the sweep had nothing to send to.
+describe("online order confirmation email — which address", () => {
+  it("loads the signed-in account and the CRM record, or the fallbacks are always undefined", async () => {
+    const { s, prisma } = svc();
+
+    await s.sweep();
+
+    const include = prisma.order.findMany.mock.calls[0][0].include;
+    expect(include.customerAccount).toBeTruthy();
+    expect(include.customer).toBeTruthy();
+  });
+
+  it("prefers the signed-in account over the optional checkout field", async () => {
+    const { s, email } = svc({
+      orders: [
+        {
+          ...ORDER,
+          customerAccount: { email: "lee.morgan@gmail.com" },
+          customerInfo: { name: "Lee", email: "typo@exmaple.cmo" },
+        },
+      ],
+    });
+
+    await s.sweep();
+
+    expect(email.send.mock.calls[0][0].to).toBe("lee.morgan@gmail.com");
+  });
+
+  it("falls back to the CRM record, then to the checkout field", async () => {
+    const crm = svc({
+      orders: [{ ...ORDER, customer: { email: "crm@example.com" }, customerInfo: { name: "Lee" } }],
+    });
+    await crm.s.sweep();
+    expect(crm.email.send.mock.calls[0][0].to).toBe("crm@example.com");
+
+    const typed = svc({
+      orders: [{ ...ORDER, customerInfo: { name: "Lee", email: "typed@example.com" } }],
+    });
+    await typed.s.sweep();
+    expect(typed.email.send.mock.calls[0][0].to).toBe("typed@example.com");
+  });
+
+  it("ignores a blank account email rather than sending to nothing", async () => {
+    const { s, email } = svc({
+      orders: [
+        {
+          ...ORDER,
+          customerAccount: { email: "   " },
+          customerInfo: { name: "Lee", email: "lee@example.com" },
+        },
+      ],
+    });
+
+    await s.sweep();
+
+    expect(email.send.mock.calls[0][0].to).toBe("lee@example.com");
+  });
+});

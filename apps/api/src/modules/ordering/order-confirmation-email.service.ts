@@ -79,6 +79,11 @@ export class OrderConfirmationEmailService {
           items: true,
           location: { select: { name: true, onlineOrderingSlug: true, slug: true } },
           brand: { select: { name: true } },
+          // Both address sources. Without these the fallbacks below read
+          // undefined for ever, which is how the first live order reached
+          // the kitchen with no email sent.
+          customerAccount: { select: { email: true } },
+          customer: { select: { email: true } },
         },
       });
       if (orders.length === 0) return;
@@ -205,14 +210,25 @@ export class OrderConfirmationEmailService {
 
   // ── Composition ──────────────────────────────────────────────────────
 
+  /**
+   * Where to send it, most trustworthy first.
+   *
+   * Online ordering requires a sign-in, so `customerAccount.email` is the
+   * address the customer proved they own — it is non-null on that model and
+   * is the right default. The CRM record comes next. The checkout form's
+   * email field is LAST because it is optional and routinely left blank,
+   * which is why relying on it sent nothing at all.
+   */
   private addressFor(order: any): string | null {
-    const raw =
-      order?.customerInfo?.email ??
-      order?.customer?.email ??
-      order?.customerAccount?.email ??
-      "";
-    const email = String(raw).trim();
-    return email.includes("@") ? email : null;
+    for (const raw of [
+      order?.customerAccount?.email,
+      order?.customer?.email,
+      order?.customerInfo?.email,
+    ]) {
+      const email = String(raw ?? "").trim();
+      if (email.includes("@")) return email;
+    }
+    return null;
   }
 
   private reference(order: any): string {
