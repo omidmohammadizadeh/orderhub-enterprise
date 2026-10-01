@@ -10,6 +10,7 @@ import {
   currencyForCountry,
   timezoneForCountry,
   DASHBOARD_ACCESS_SETTINGS_KEY,
+  DISPATCH_CHARGING_SETTINGS_KEY,
 } from "@orderhub/shared";
 import { CredentialEncryptionService } from "../integrations/credential-encryption.service";
 import { SupabaseStorageService } from "../uploads/supabase-storage.service";
@@ -295,21 +296,40 @@ export function managerForbiddenLocationFields(dto: {
   return offending;
 }
 
-/** Remove the admin-owned dashboard-access key from a location PATCH body.
+/** Location.settings keys only a platform admin may write.
  *
- *  PLATFORM_ADMIN is exempt so the admin screen's own writes (and any future
+ *  dashboardAccess decides what a tenant's own owners can see, so an owner who
+ *  could set it would just undo it on themselves. dispatchCharging waives the
+ *  courier dispatch fee, so an owner who could set it would give themselves
+ *  free dispatch on every order. Both are admin-owned for the same reason: the
+ *  person the rule constrains must not hold the switch. */
+const ADMIN_ONLY_SETTINGS_KEYS = [
+  DASHBOARD_ACCESS_SETTINGS_KEY,
+  DISPATCH_CHARGING_SETTINGS_KEY,
+] as const;
+
+/** Remove the admin-owned keys from a location PATCH body.
+ *
+ *  PLATFORM_ADMIN is exempt so the admin screens' own writes (and any future
  *  admin tooling that patches a location wholesale) still work. Returns the
- *  dto unchanged when the key isn't present, so the common path allocates
+ *  dto unchanged when no such key is present, so the common path allocates
  *  nothing. */
-export function stripDashboardAccess<T extends { settings?: Record<string, unknown> | null }>(
+export function stripAdminOnlySettings<T extends { settings?: Record<string, unknown> | null }>(
   dto: T,
   role?: string,
 ): T {
   if (role === "PLATFORM_ADMIN") return dto;
-  if (!dto.settings || !(DASHBOARD_ACCESS_SETTINGS_KEY in dto.settings)) return dto;
-  const { [DASHBOARD_ACCESS_SETTINGS_KEY]: _dropped, ...rest } = dto.settings;
+  if (!dto.settings) return dto;
+  const present = ADMIN_ONLY_SETTINGS_KEYS.filter((k) => k in dto.settings!);
+  if (present.length === 0) return dto;
+  const rest = { ...dto.settings };
+  for (const k of present) delete rest[k];
   return { ...dto, settings: rest };
 }
+
+/** @deprecated Kept so existing callers and tests keep working — it now strips
+ *  every admin-owned settings key, not just dashboardAccess. */
+export const stripDashboardAccess = stripAdminOnlySettings;
 
 @Injectable()
 export class LocationsService {
@@ -544,7 +564,7 @@ export class LocationsService {
     // the tab an admin switched off. Silently dropped rather than refused:
     // the settings blob is shallow-merged from several tabs, and a 403
     // would lose whatever else the operator was actually saving.
-    dto = stripDashboardAccess(dto, role);
+    dto = stripAdminOnlySettings(dto, role);
     const current = await this.assertAccess(locationId, tenantId);
     // Inline logo → hosted file, before it can land in a column and be
     // re-sent inside every storefront response.

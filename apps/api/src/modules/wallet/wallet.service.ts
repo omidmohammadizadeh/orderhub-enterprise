@@ -7,6 +7,7 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { dispatchChargeWaivedFromSettings } from "@orderhub/shared";
 import { isSmsConfigured } from "../sms/sms-provider";
 
 // Stripe is loaded lazily (mirrors subscriptions.service / billing) so a missing
@@ -908,6 +909,34 @@ export class WalletService {
     }
   }
 
+  /**
+   * Is the courier dispatch fee waived for this location?
+   *
+   * A platform-admin testing switch (Location.settings.dispatchCharging), NOT a
+   * role check. It used to be "the caller is a PLATFORM_ADMIN", which meant an
+   * admin dispatching a real shop's real order silently paid nothing, and the
+   * only way to find out was to read the ledger.
+   *
+   * Fails CLOSED: any error reading the setting bills the wallet, because the
+   * wrong answer in that direction costs us a 50p fee, and in the other it
+   * hands out free couriers.
+   */
+  async isDispatchChargeWaived(locationId: string | null): Promise<boolean> {
+    if (!locationId) return false;
+    try {
+      const loc = await this.prisma.location.findUnique({
+        where: { id: locationId },
+        select: { settings: true },
+      });
+      return dispatchChargeWaivedFromSettings(loc?.settings);
+    } catch (e: any) {
+      this.logger.warn(
+        `Could not read dispatch charging for location ${locationId} — charging: ${e?.message ?? e}`,
+      );
+      return false;
+    }
+  }
+
   async assertCanAffordDispatch(
     tenantId: string,
     locationId: string | null,
@@ -934,16 +963,23 @@ export class WalletService {
   }): Promise<{ chargedMinor: number; balanceAfterMinor: number }> {
     const cost = args.amountMinor ?? this.dispatchFeeMinor();
     const wallet = await this.getOrCreate(args.tenantId, args.locationId);
-    if (wallet.balanceMinor < cost) {
-      throw new BadRequestException(
-        "Dispatch wallet balance is too low. Top up your wallet to dispatch this order.",
-      );
-    }
     const updated = await this.prisma.$transaction(async (tx: any) => {
-      const u = await tx.wallet.update({
-        where: { id: wallet.id },
+      // The balance check is part of the UPDATE, not a read before it. Two
+      // dispatches clicked at once on one till both passed a separate read and
+      // both decremented, so a wallet with one fee in it paid for two couriers
+      // and went negative. updateMany with the guard in the WHERE makes the
+      // check and the decrement the same statement; count 0 means someone
+      // else got there first.
+      const res = await tx.wallet.updateMany({
+        where: { id: wallet.id, balanceMinor: { gte: cost } },
         data: { balanceMinor: { decrement: cost } },
       });
+      if (res.count === 0) {
+        throw new BadRequestException(
+          "Dispatch wallet balance is too low. Top up your wallet to dispatch this order.",
+        );
+      }
+      const u = await tx.wallet.findUnique({ where: { id: wallet.id } });
       await tx.walletTransaction.create({
         data: {
           tenantId: args.tenantId,
@@ -961,7 +997,7 @@ export class WalletService {
       });
       return u;
     });
-    return { chargedMinor: cost, balanceAfterMinor: updated.balanceMinor };
+    return { chargedMinor: cost, balanceAfterMinor: updated?.balanceMinor ?? 0 };
   }
 
   /** Credit a previously-charged dispatch fee back (courier job creation failed

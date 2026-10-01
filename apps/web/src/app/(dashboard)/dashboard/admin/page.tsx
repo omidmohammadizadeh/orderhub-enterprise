@@ -15,6 +15,7 @@ import {
   Lock,
   Rocket,
   ShieldCheck,
+  Wallet,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth.store";
 
@@ -39,6 +40,13 @@ const TOOLS: AdminTool[] = [
     blurb:
       "Readiness scores per location, and the switch that lets a shop start taking real orders.",
     icon: Rocket,
+  },
+  {
+    href: "/dashboard/admin/dispatch-charging",
+    title: "Dispatch charging",
+    blurb:
+      "Whether a location pays its courier dispatch fee. Waive it to test a sandbox flow without funding a wallet — and switch it back after.",
+    icon: Wallet,
   },
   {
     href: "/dashboard/admin/release-readiness",

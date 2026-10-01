@@ -27,7 +27,6 @@ interface DispatchArgs {
   orderId: string;
   tenantId: string;
   userId?: string | null;
-  isAdmin: boolean;
 }
 
 // Stuart: "you can send up to 8 deliveries with one courier". One pickup, many
@@ -194,11 +193,14 @@ export class StuartDispatchService {
 
     const payload = this.buildPayload(order, location);
     const feeMinor = this.wallet.dispatchFeeMinor();
+    const waived = await this.wallet.isDispatchChargeWaived(order.locationId);
 
-    // Charge the wallet FIRST (unless admin) so an unfunded dispatch is blocked
-    // atomically; refund if the Stuart job then fails to create.
+    // Charge the wallet FIRST so an unfunded dispatch is blocked before a
+    // courier exists; refund if the Stuart job then fails to create. The only
+    // way past it is the per-location testing waiver — being an admin is not
+    // enough, because that silently made every admin dispatch free.
     let charged = false;
-    if (!args.isAdmin) {
+    if (!waived) {
       await this.wallet.debitForDispatch({
         tenantId: args.tenantId,
         locationId: order.locationId,
@@ -248,7 +250,7 @@ export class StuartDispatchService {
     });
 
     this.logger.log(
-      `Stuart dispatch OK order=${order.id} job=${job?.id} fee=${args.isAdmin ? "0 (admin bypass)" : `${feeMinor}p`}`,
+      `Stuart dispatch OK order=${order.id} job=${job?.id} fee=${waived ? "0 (charge waived for this location)" : `${feeMinor}p`}`,
     );
 
     return {
@@ -256,8 +258,8 @@ export class StuartDispatchService {
       jobId: job?.id ?? null,
       status: job?.status ?? delivery?.status ?? "new",
       trackingUrl: delivery?.tracking_url ?? null,
-      feeChargedMinor: args.isAdmin ? 0 : feeMinor,
-      adminBypass: args.isAdmin,
+      feeChargedMinor: waived ? 0 : feeMinor,
+      chargeWaived: waived,
     };
   }
 
@@ -519,14 +521,14 @@ export class StuartDispatchService {
   async dispatchBulk(args: {
     orderIds: string[];
     user: AuthenticatedUser;
-    isAdmin: boolean;
-  }) {
+    }) {
     const { orders, location, cfg } = await this.loadBulk(args.orderIds, args.user);
     const { payload, orderIdByReference } = this.buildBulkPayload(orders, location);
     const feeMinor = this.wallet.dispatchFeeMinor();
     const tenantId = args.user.tenantId;
     const locationId = location.id as string;
     const createdBy = args.user.userId ?? null;
+    const waived = await this.wallet.isDispatchChargeWaived(locationId);
 
     const charged: string[] = [];
     const refundAll = async () => {
@@ -541,7 +543,7 @@ export class StuartDispatchService {
       }
     };
 
-    if (!args.isAdmin) {
+    if (!waived) {
       await this.wallet.assertCanAffordDispatch(
         tenantId,
         locationId,
@@ -617,15 +619,15 @@ export class StuartDispatchService {
     }
 
     this.logger.log(
-      `Stuart run OK job=${jobId} orders=${orders.length} fee=${args.isAdmin ? "0 (admin bypass)" : `${feeMinor}p each`}`,
+      `Stuart run OK job=${jobId} orders=${orders.length} fee=${waived ? "0 (charge waived for this location)" : `${feeMinor}p each`}`,
     );
 
     return {
       ok: true,
       jobId,
       orders: results,
-      feeChargedMinor: args.isAdmin ? 0 : feeMinor * orders.length,
-      adminBypass: args.isAdmin,
+      feeChargedMinor: waived ? 0 : feeMinor * orders.length,
+      chargeWaived: waived,
     };
   }
 }

@@ -23,7 +23,6 @@ interface DispatchArgs {
   orderId: string;
   tenantId: string;
   userId?: string | null;
-  isAdmin: boolean;
 }
 
 @Injectable()
@@ -180,9 +179,12 @@ export class UberDirectDispatchService {
       );
     }
 
+    // Fee out before the courier exists — a short wallet refuses here rather
+    // than after Uber has a rider moving. debitForDispatch throws when short.
     const feeMinor = this.wallet.dispatchFeeMinor();
+    const waived = await this.wallet.isDispatchChargeWaived(order.locationId);
     let charged = false;
-    if (!args.isAdmin) {
+    if (!waived) {
       await this.wallet.debitForDispatch({
         tenantId: args.tenantId,
         locationId: order.locationId,
@@ -229,7 +231,7 @@ export class UberDirectDispatchService {
     });
 
     this.logger.log(
-      `Uber Direct dispatch OK order=${order.id} delivery=${delivery?.id} fee=${args.isAdmin ? "0 (admin bypass)" : `${feeMinor}p`}`,
+      `Uber Direct dispatch OK order=${order.id} delivery=${delivery?.id} fee=${waived ? "0 (charge waived for this location)" : `${feeMinor}p`}`,
     );
 
     return {
@@ -237,8 +239,8 @@ export class UberDirectDispatchService {
       jobId: delivery?.id ?? null,
       status: delivery?.status ?? "pending",
       trackingUrl: delivery?.tracking_url ?? null,
-      feeChargedMinor: args.isAdmin ? 0 : feeMinor,
-      adminBypass: args.isAdmin,
+      feeChargedMinor: waived ? 0 : feeMinor,
+      chargeWaived: waived,
     };
   }
 
