@@ -2376,11 +2376,7 @@ model Table {
   qrToken   String? @unique
   qrEnabled Boolean @default(false)
 
-<<<<<<< HEAD
-  // ── Current sitting ───��─────────────────────────────────────────────
-=======
-  // ── Current sitting ──���──────────────────────────────────────────────
->>>>>>> c824fca01b7e9580c6b3bf512f57324ae2f1442e
+  // ── Current sitting ─────────────────────────────────────────────────
   covers     Int? // guests on the open tab, for spend-per-head
   serverId   String?
   serverName String?
@@ -2586,7 +2582,7 @@ model PrintJob {
   retryMetadata Json           @default("{}")
   printedAt     DateTime?
 
-  // Phase AS-1 �� routing + lifecycle additions.
+  // Phase AS-1 — routing + lifecycle additions.
   // stationId: which station this ticket belongs to (null for receipts).
   // trigger: which auto-print rule produced the job (or MANUAL_ONLY).
   // claimedByAgentId + claimedAt: held during the print window so two
@@ -2779,7 +2775,7 @@ model AgentPairCode {
   @@map("agent_pair_codes")
 }
 
-// ── Routing join tables ───────────────────────────────────────────────���
+// ── Routing join tables ────────────────────────────────────────────────
 // Phase AS-1. Most-specific-wins resolver walks these in order.
 model MenuItemStation {
   id         String         @id @default(cuid())
@@ -3181,7 +3177,7 @@ model Refund {
 
 // ══════════════════════════════════════════════════════════════════════════════
 // RETAIL R1 — BARCODED VARIANTS, PER-LOCATION STOCK, ITEM-LEVEL RETURNS
-// ════════════════════════════════════════════════��═════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════════
 //
 // A retail product is still a MenuItem, so the till, the storefront and every
 // marketplace publish keep working unchanged. What retail adds is underneath
@@ -3984,7 +3980,7 @@ model SystemSecret {
 
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE I — TRANSACTIONAL OUTBOX
-// ══════════════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════���═════════════════════════════════
 
 model OutboxEvent {
   id             String            @id @default(cuid())
@@ -4696,6 +4692,15 @@ model Wallet {
   // → the platform default. One column rather than one per style, because the
   // styles are env-configurable and a new one shouldn't need a migration.
   aiStudioPricesMinor      Json?
+  // Per-location OrderHub fee per courier dispatch (pennies). null → the
+  // platform default (DISPATCH_FEE_MINOR env, default 50p).
+  //
+  // Per LOCATION, not per tenant, because the right number genuinely differs by
+  // shop: a UK site on Stuart pays this as our whole margin, while a JET Go site
+  // on our own reseller account pays it ON TOP of the courier cost we are
+  // invoiced for — and a Gulf site bills in a different currency entirely. One
+  // platform rate could not be correct for all three.
+  dispatchFeeMinor         Int?
   // Warn the operator when balance drops below this (pennies). Default £2.
   lowBalanceThresholdMinor Int   @default(200)
 

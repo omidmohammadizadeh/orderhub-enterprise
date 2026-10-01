@@ -2118,6 +2118,7 @@ exports.Prisma.WalletScalarFieldEnum = {
   smsPricePerSegmentMinor: 'smsPricePerSegmentMinor',
   voicePricePerCallMinor: 'voicePricePerCallMinor',
   aiStudioPricesMinor: 'aiStudioPricesMinor',
+  dispatchFeeMinor: 'dispatchFeeMinor',
   lowBalanceThresholdMinor: 'lowBalanceThresholdMinor',
   stripeCustomerId: 'stripeCustomerId',
   autoTopupEnabled: 'autoTopupEnabled',
