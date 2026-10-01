@@ -1022,6 +1022,13 @@ export class WalletService {
     orderId: string;
     amountMinor?: number;
     createdBy?: string | null;
+    /**
+     * What the statement line should say. Worth passing whenever the charge is
+     * not just our own fee: under the JET Go reseller model one debit is the
+     * courier's price PLUS our markup, and "Courier dispatch fee (650p)" gives
+     * the operator no way to reconcile it against Just Eat's monthly invoice.
+     */
+    description?: string;
   }): Promise<{ chargedMinor: number; balanceAfterMinor: number }> {
     const wallet = await this.getOrCreate(args.tenantId, args.locationId);
     const cost = args.amountMinor ?? this.dispatchFeeMinor(wallet);
@@ -1054,7 +1061,7 @@ export class WalletService {
           orderId: args.orderId,
           locationId: args.locationId ?? null,
           createdBy: args.createdBy ?? null,
-          description: `Courier dispatch fee (${cost}p)`,
+          description: args.description ?? `Courier dispatch fee (${cost}p)`,
         },
       });
       return u;
@@ -1070,6 +1077,8 @@ export class WalletService {
     orderId: string;
     amountMinor: number;
     createdBy?: string | null;
+    /** Mirrors the debit's line, so a refund reads as the undo of a charge. */
+    description?: string;
   }): Promise<void> {
     try {
       const wallet = await this.getOrCreate(args.tenantId, args.locationId);
@@ -1090,7 +1099,7 @@ export class WalletService {
             orderId: args.orderId,
             locationId: args.locationId ?? null,
             createdBy: args.createdBy ?? null,
-            description: `Dispatch fee refund (job failed)`,
+            description: args.description ?? `Dispatch fee refund (job failed)`,
           },
         });
       });

@@ -382,6 +382,7 @@ export class JetGoWebhookService {
           orderId: order.id,
           amountMinor: this.walletChargedMinor(order),
           createdBy: null,
+          description: "JET Go refund — Just Eat cancelled the delivery",
         });
       } catch (err: any) {
         this.logger.warn(
@@ -443,6 +444,7 @@ export class JetGoWebhookService {
         orderId: order.id,
         amountMinor: this.walletChargedMinor(order),
         createdBy: null,
+        description: "JET Go refund — Just Eat rejected the delivery",
       });
     } catch (err: any) {
       this.logger.warn(

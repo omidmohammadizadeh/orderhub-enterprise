@@ -414,6 +414,12 @@ export class JetGoDispatchService {
         orderId: order.id,
         amountMinor: feeMinor,
         createdBy: args.userId ?? null,
+        // Spell the split out: on our own account this debit is Just Eat's
+        // courier price plus our markup, and the operator has to be able to
+        // reconcile it line by line against JET's monthly invoice.
+        description: cfg.reseller
+          ? `JET Go courier ${this.pounds(estimate.dynamicDeliveryFee)} + ${markup}p OrderHub fee`
+          : `JET Go dispatch fee (${feeMinor}p)`,
       });
       charged = true;
     }
@@ -432,6 +438,7 @@ export class JetGoDispatchService {
           orderId: order.id,
           amountMinor: feeMinor,
           createdBy: args.userId ?? null,
+          description: "JET Go refund — Just Eat refused the booking",
         });
       }
       this.logger.error(`JET Go dispatch failed for order ${order.id}: ${err?.message ?? err}`);
@@ -564,6 +571,12 @@ export class JetGoDispatchService {
     const advance = estimate?.targetDeliverTime || estimate?.targetCollectTime;
     if (advance) return null;
     return estimate?.estimatedEarliestCollectTime ?? null;
+  }
+
+  /** Minor units as pounds, for a statement line a person reads. */
+  private pounds(minor: unknown): string {
+    const n = Number(minor);
+    return Number.isFinite(n) ? `£${(n / 100).toFixed(2)}` : "£?";
   }
 
   private asDate(v: unknown): Date | null {

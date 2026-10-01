@@ -111,3 +111,69 @@ describe("what a refund returns", () => {
     expect(s.walletChargedMinor({ metadata: { jetGo: { walletChargedMinor: "lots" } } })).toBe(MARKUP);
   });
 });
+
+// ── the statement line ────────────────────────────────────────────────────
+
+describe("what the wallet statement says", () => {
+  function dispatchSvc(reseller: boolean) {
+    const debits: any[] = [];
+    const s: any = Object.create(JetGoDispatchService.prototype);
+    s.wallet = {
+      dispatchFeeMinor: () => MARKUP,
+      dispatchFeeMinorFor: jest.fn().mockResolvedValue(MARKUP),
+      isDispatchChargeWaived: jest.fn().mockResolvedValue(false),
+      debitForDispatch: jest.fn(async (a: any) => {
+        debits.push(a);
+        return { chargedMinor: a.amountMinor, balanceAfterMinor: 0 };
+      }),
+      refundDispatch: jest.fn().mockResolvedValue(undefined),
+    };
+    s.logger = { log: jest.fn(), warn: jest.fn(), error: jest.fn() };
+    s.activity = { record: jest.fn() };
+    s.geocoding = { geocode: jest.fn().mockResolvedValue(null) };
+    s.client = {
+      estimate: jest
+        .fn()
+        .mockResolvedValue({ requestId: "req-1", dynamicDeliveryFee: 600 }),
+      createDelivery: jest.fn().mockResolvedValue({}),
+    };
+    s.load = jest.fn().mockResolvedValue({
+      order: {
+        id: "o1",
+        tenantId: "t1",
+        locationId: "loc1",
+        displayId: "A-1",
+        customerName: "Sam",
+        customerPhone: "+447700900123",
+        customerInfo: {},
+        deliveryAddress: { line1: "1 Mann Island", city: "Liverpool", postcode: "L3 1BP" },
+        deliveryLat: 53.4,
+        deliveryLng: -2.99,
+        items: [{ quantity: 1 }],
+        total: "12.00",
+        metadata: {},
+      },
+      location: { id: "loc1", name: "Shop", country: "GB", currency: "GBP", prepTime: 20 },
+      cfg: { reseller, collectPointId: "cp-1", market: "UK", environment: "sandbox", active: true },
+    });
+    s.db = () => ({ order: { update: jest.fn().mockResolvedValue({}) } });
+    return { s, debits };
+  }
+
+  it("spells out the courier price and our fee on our own account", async () => {
+    // "Courier dispatch fee (650p)" gives the operator no way to reconcile one
+    // debit against Just Eat's monthly invoice. The split has to be on the line.
+    const { s, debits } = dispatchSvc(true);
+    await s.dispatch({ orderId: "o1", tenantId: "t1" });
+    expect(debits).toHaveLength(1);
+    expect(debits[0].amountMinor).toBe(650);
+    expect(debits[0].description).toBe("JET Go courier £6.00 + 50p OrderHub fee");
+  });
+
+  it("says only our fee when the merchant's own account paid the courier", async () => {
+    const { s, debits } = dispatchSvc(false);
+    await s.dispatch({ orderId: "o1", tenantId: "t1" });
+    expect(debits[0].amountMinor).toBe(MARKUP);
+    expect(debits[0].description).toBe("JET Go dispatch fee (50p)");
+  });
+});
