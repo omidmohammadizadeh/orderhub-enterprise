@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { OrderingController } from "./ordering.controller";
+import { OrderConfirmationEmailService } from "./order-confirmation-email.service";
 import { OrderingService } from "./ordering.service";
 import { OrdersModule } from "../orders/orders.module";
 import { PromoCodesModule } from "../promo-codes/promo-codes.module";
@@ -39,7 +40,9 @@ import { DeliveryZonesModule } from "../delivery-zones/delivery-zones.module";
     DeliveryZonesModule,
   ],
   controllers: [OrderingController],
-  providers: [OrderingService],
+  providers: [OrderingService,
+    OrderConfirmationEmailService,
+  ],
   // Group orders place through OrderingService.checkout (server pricing).
   exports: [OrderingService],
 })
