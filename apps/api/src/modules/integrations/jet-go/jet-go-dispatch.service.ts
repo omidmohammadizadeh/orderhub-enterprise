@@ -293,7 +293,7 @@ export class JetGoDispatchService {
   private buildDeliveryBody(
     order: any,
     estimate: JetGoEstimateResponse,
-    advanceCollectTime: string | null,
+    collectTime: string | null,
   ): JetGoDeliveryBody {
     const totalMinor = Math.max(Math.round(Number(order.total ?? 0) * 100), 0);
     return {
@@ -301,7 +301,7 @@ export class JetGoDispatchService {
       ...(order.specialInstructions
         ? { specialInstructions: this.cap(this.str(order.specialInstructions), 255) }
         : {}),
-      ...(advanceCollectTime ? { targetCollectTime: advanceCollectTime } : {}),
+      ...(collectTime ? { targetCollectTime: collectTime } : {}),
       // Deliberately no `tip`. Order.tipAmount is the RESTAURANT's gratuity, and
       // passing it here would hand the shop's money to the courier.
       orderValue: totalMinor,
@@ -416,11 +416,11 @@ export class JetGoDispatchService {
       charged = true;
     }
 
-    const advanceCollect = estimate.targetCollectTime ?? null;
+    const collectTime = this.collectTimeFor(estimate);
     try {
       await this.client.createDelivery(
         cfg,
-        this.buildDeliveryBody(order, estimate, advanceCollect),
+        this.buildDeliveryBody(order, estimate, collectTime),
       );
     } catch (err: any) {
       if (charged) {
@@ -542,6 +542,26 @@ export class JetGoDispatchService {
       );
     }
     return Math.round(courier) + markup;
+  }
+
+  /**
+   * The targetCollectTime to send on /delivery, or null to send none.
+   *
+   * JET's own field description: required when the estimate did NOT carry a
+   * target deliver time — which is every ASAP order. The getting-started page
+   * says the opposite ("do not pass these fields again in the /delivery call"),
+   * and following it got `404: must specify a targetCollectTime` on every ASAP
+   * booking. The spec wins.
+   *
+   * We send back the earliest collect time JET itself quoted, so it is their
+   * own number rather than a clock we guessed at. On an ADVANCE order the
+   * estimate echoes a target time, the slot is already agreed, and repeating it
+   * here is what the docs correctly warn against.
+   */
+  private collectTimeFor(estimate: JetGoEstimateResponse): string | null {
+    const advance = estimate?.targetDeliverTime || estimate?.targetCollectTime;
+    if (advance) return null;
+    return estimate?.estimatedEarliestCollectTime ?? null;
   }
 
   private asDate(v: unknown): Date | null {
