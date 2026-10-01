@@ -89,6 +89,9 @@ export const appConfig = registerAs("app", () => ({
       menuKeysByCountry: process.env.JET_MENU_KEYS ?? "",
       orderKeysByCountry: process.env.JET_ORDER_KEYS ?? "",
       defaultCountry: process.env.JET_DEFAULT_COUNTRY ?? "GB",
+      // Where an order that failed to inject is reported. Unset = no ops
+      // email; the shop is still notified and the Logs page still records it.
+      opsAlertEmail: process.env.JET_OPS_ALERT_EMAIL ?? process.env.OPS_ALERT_EMAIL ?? "",
       // The shared secret JET signs inbound order webhooks with
       // (X-JET-Connect-Hash). Distinct from the API keys.
       webhookSecret: process.env.JET_WEBHOOK_SECRET ?? "",

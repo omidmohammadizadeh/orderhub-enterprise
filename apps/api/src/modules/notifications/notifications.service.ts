@@ -457,6 +457,25 @@ export class NotificationsService {
     );
   }
 
+  /**
+   * Email whoever runs the platform, with no user row involved.
+   *
+   * The EMAIL channel on `send()` resolves an address from a User, which is
+   * the wrong shape for "tell us an integration is broken" — the people who
+   * need that are not necessarily users of the tenant it happened in, and an
+   * unroutable order has no tenant at all. Best-effort by design: the caller
+   * is already handling a failure and must not be handed a second one.
+   */
+  async sendOpsAlert(subject: string, html: string, to: string): Promise<void> {
+    const address = (to ?? "").trim();
+    if (!address) return;
+    try {
+      await this.sendEmail(address, subject, html);
+    } catch (e: any) {
+      this.logger.warn(`Ops alert email failed: ${e?.message}`);
+    }
+  }
+
   async getNotificationHistory(
     tenantId: string,
     opts: { userId?: string; limit?: number; offset?: number },
