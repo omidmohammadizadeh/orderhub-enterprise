@@ -129,6 +129,13 @@ export class OrderConfirmationEmailService {
 
         sentToday += 1;
         sentNow += 1;
+        // Success was silent, so a clean log could not tell "it sent" from
+        // "it never ran". The address is the part worth being able to check
+        // when a customer says nothing arrived, so it is masked, not omitted.
+        this.logger.log(
+          `Order confirmation sent for ${this.reference(order)} to ${this.mask(to)} ` +
+            `(${sentToday}/${cap} today)`,
+        );
         await this.markSent(order, to);
       }
 
@@ -305,6 +312,13 @@ export class OrderConfirmationEmailService {
     You can follow it any time on the tracking page above.
   </p>
 </div>`.trim();
+  }
+
+  /** Enough of an address to recognise, not enough to be a log of emails. */
+  private mask(email: string): string {
+    const [user = "", domain = ""] = email.split("@");
+    const head = user.slice(0, 2);
+    return `${head}${"*".repeat(Math.max(1, user.length - 2))}@${domain}`;
   }
 
   /** Customer-supplied names and notes land in this HTML. */

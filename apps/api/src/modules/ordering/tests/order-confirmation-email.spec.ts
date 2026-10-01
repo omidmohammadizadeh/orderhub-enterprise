@@ -51,12 +51,13 @@ function svc(opts: { orders?: any[]; sentToday?: number; capWarnAt?: number } = 
   };
   const email = { send: jest.fn().mockResolvedValue({ id: "e1" }) };
   const alerts = { raise: jest.fn().mockResolvedValue(undefined) };
+  const logger = { log: jest.fn(), warn: jest.fn(), error: jest.fn() };
   const s: any = Object.create(OrderConfirmationEmailService.prototype);
   Object.assign(s, {
     prisma,
     email,
     alerts,
-    logger: { log: jest.fn(), warn: jest.fn(), error: jest.fn() },
+    logger,
     warnedOn: null,
     config: {
       get: jest.fn((k: string) => {
@@ -69,7 +70,7 @@ function svc(opts: { orders?: any[]; sentToday?: number; capWarnAt?: number } = 
       }),
     },
   });
-  return { s: s as OrderConfirmationEmailService, prisma, email, updates };
+  return { s: s as OrderConfirmationEmailService, prisma, email, updates, logger };
 }
 
 describe("online order confirmation email", () => {
@@ -292,5 +293,21 @@ describe("online order confirmation email — which address", () => {
     await s.sweep();
 
     expect(email.send.mock.calls[0][0].to).toBe("lee@example.com");
+  });
+});
+
+describe("online order confirmation email — leaving a trace", () => {
+  it("logs the send with a masked address and the day's running count", async () => {
+    const { s, logger } = svc({ sentToday: 12 });
+
+    await s.sweep();
+
+    const line = logger.log.mock.calls.map((c: any[]) => String(c[0])).join("\n");
+    expect(line).toContain("A-1042");
+    expect(line).toContain("13/100");
+    // Recognisable to whoever is debugging, without turning the API log into
+    // a list of customers' email addresses.
+    expect(line).toContain("le");
+    expect(line).not.toContain("lee@example.com");
   });
 });
