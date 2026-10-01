@@ -42,6 +42,16 @@ export interface SendEmailOpts {
   text?: string;
   /** Optional Reply-To. Defaults to the platform support address. */
   replyTo?: string;
+  /**
+   * Display name to front the email with, e.g. the restaurant's.
+   *
+   * The ADDRESS is unchanged — it stays the one verified with Resend — and
+   * only the human-readable part varies. That matters because a customer
+   * ordering from a restaurant expects to hear from the restaurant, and a
+   * verified domain per brand (3 on Resend's free plan) will never cover them
+   * all.
+   */
+  fromName?: string;
 }
 
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
@@ -80,6 +90,19 @@ export class EmailService {
    * mock mode; in real mode the Promise resolves with the Resend ID
    * (or rejects on hard failures — caller decides whether to retry).
    */
+  /**
+   * `Name <address>` with the name swapped, or the configured value as-is.
+   * Quotes and angle brackets are stripped from the name: it is restaurant
+   * data and would otherwise be able to rewrite the header.
+   */
+  private fromWithName(name?: string): string {
+    const clean = String(name ?? "").replace(/[<>"\r\n]/g, "").trim();
+    if (!clean) return this.fromAddress;
+    const match = this.fromAddress.match(/<([^>]+)>/);
+    const address = match ? match[1] : this.fromAddress;
+    return `${clean} <${address}>`;
+  }
+
   async send(opts: SendEmailOpts): Promise<{ id: string | null }> {
     if (!this.apiKey) {
       // Mock path — log enough to debug a missing email in dev without
@@ -97,7 +120,7 @@ export class EmailService {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          from: this.fromAddress,
+          from: this.fromWithName(opts.fromName),
           to: [opts.to],
           subject: opts.subject,
           html: opts.html,

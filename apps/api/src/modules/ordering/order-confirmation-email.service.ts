@@ -2,6 +2,7 @@ import { Injectable, Logger, Optional } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Cron } from "@nestjs/schedule";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { formatMoney } from "@orderhub/shared";
 import { EmailService } from "../../infrastructure/email/email.service";
 
 // The confirmation email a customer gets after ordering online.
@@ -77,7 +78,17 @@ export class OrderConfirmationEmailService {
           // sweep — and the `as any` that used to sit here is why the
           // compiler did not say so.
           items: true,
-          location: { select: { name: true, onlineOrderingSlug: true, slug: true } },
+          location: {
+            select: {
+              name: true,
+              onlineOrderingSlug: true,
+              slug: true,
+              // Money without a symbol is ambiguous, and the currency decides
+              // the decimals too — a dinar is 3, not 2.
+              currency: true,
+              phone: true,
+            },
+          },
           brand: { select: { name: true } },
           // Both address sources. Without these the fallbacks below read
           // undefined for ever, which is how the first live order reached
@@ -116,6 +127,7 @@ export class OrderConfirmationEmailService {
           await this.email?.send({
             to,
             subject: `Order ${this.reference(order)} confirmed — ${this.shopName(order)}`,
+            fromName: this.shopName(order),
             html: this.body(order),
           });
         } catch (e: any) {
@@ -260,9 +272,20 @@ export class OrderConfirmationEmailService {
     return `${origin}/order/${encodeURIComponent(slug)}/status/${encodeURIComponent(order.id)}${brand}`;
   }
 
-  private money(v: unknown): string {
-    const n = Number(v ?? 0);
-    return Number.isFinite(n) ? n.toFixed(2) : "0.00";
+  private money(v: unknown, order: any): string {
+    return formatMoney(Number(v ?? 0), order?.location?.currency ?? "GBP");
+  }
+
+  /** Where it is going, or that it is being collected. */
+  private whereLine(order: any): string {
+    if (order.fulfillmentType !== "DELIVERY") {
+      return `Collection from ${this.esc(order.location?.name ?? "the shop")}`;
+    }
+    const a = order.deliveryAddress ?? {};
+    const parts = [a.line1, a.line2, a.city, a.postcode].filter(Boolean);
+    return parts.length
+      ? `Delivering to ${this.esc(parts.join(", "))}`
+      : "Delivering to the address you gave at checkout";
   }
 
   private body(order: any): string {
@@ -272,17 +295,22 @@ export class OrderConfirmationEmailService {
           .map((m: any) => m?.name)
           .filter(Boolean)
           .join(", ");
+        // The POS already folds the choices into the item name on some
+        // channels, so printing them again gave every line twice.
+        const alreadyNamed =
+          !!mods && String(i.name ?? "").toLowerCase().includes(mods.toLowerCase());
+        const showMods = mods && !alreadyNamed;
         return (
           `<tr><td style="padding:6px 0">${i.quantity} × ${this.esc(i.name)}` +
-          (mods ? `<br/><span style="color:#71717a;font-size:13px">${this.esc(mods)}</span>` : "") +
-          `</td><td align="right" style="padding:6px 0">${this.money(i.totalPrice)}</td></tr>`
+          (showMods ? `<br/><span style="color:#71717a;font-size:13px">${this.esc(mods)}</span>` : "") +
+          `</td><td align="right" style="padding:6px 0">${this.money(i.totalPrice, order)}</td></tr>`
         );
       })
       .join("");
 
     const line = (label: string, value: unknown) =>
       Number(value ?? 0) > 0
-        ? `<tr><td style="padding:2px 0;color:#71717a">${label}</td><td align="right" style="padding:2px 0">${this.money(value)}</td></tr>`
+        ? `<tr><td style="padding:2px 0;color:#71717a">${label}</td><td align="right" style="padding:2px 0">${this.money(value, order)}</td></tr>`
         : "";
 
     return `
@@ -304,12 +332,18 @@ export class OrderConfirmationEmailService {
     ${line("Delivery", order.deliveryFee)}
     ${line("Service charge", order.serviceCharge)}
     <tr><td style="padding-top:6px;font-weight:700">Total</td>
-        <td align="right" style="padding-top:6px;font-weight:700">${this.money(order.total)}</td></tr>
+        <td align="right" style="padding-top:6px;font-weight:700">${this.money(order.total, order)}</td></tr>
   </table>
 
-  <p style="margin:24px 0 0;color:#71717a;font-size:13px">
+  <p style="margin:20px 0 0;font-size:14px">${this.whereLine(order)}</p>
+
+  <p style="margin:16px 0 0;color:#71717a;font-size:13px">
     ${order.fulfillmentType === "DELIVERY" ? "We'll let you know when it's on its way." : "We'll let you know when it's ready to collect."}
-    You can follow it any time on the tracking page above.
+    You can follow it any time on the tracking page above.${
+      order.location?.phone
+        ? ` Any problems, call the shop on ${this.esc(order.location.phone)}.`
+        : ""
+    }
   </p>
 </div>`.trim();
   }

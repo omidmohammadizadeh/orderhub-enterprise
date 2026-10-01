@@ -30,7 +30,14 @@ const ORDER = {
     { name: "Margherita 12\"", quantity: 2, totalPrice: "15.00", modifiers: [{ name: "Thin base" }] },
     { name: "Garlic Bread", quantity: 1, totalPrice: "3.40", modifiers: [] },
   ],
-  location: { name: "Pizza Uno", onlineOrderingSlug: "pizza-uno", slug: "pizza-uno" },
+  location: {
+    name: "Pizza Uno",
+    onlineOrderingSlug: "pizza-uno",
+    slug: "pizza-uno",
+    currency: "GBP",
+    phone: "0191 123 4567",
+  },
+  deliveryAddress: { line1: "5 Sunningdale Drive", city: "Washington", postcode: "NE37 2LL" },
   brand: { name: "Pizza Uno" },
 };
 
@@ -309,5 +316,89 @@ describe("online order confirmation email — leaving a trace", () => {
     // a list of customers' email addresses.
     expect(line).toContain("le");
     expect(line).not.toContain("lee@example.com");
+  });
+});
+
+// Read back as a customer, the first real one had three faults: bare numbers
+// with no currency, every modifier printed twice, and nothing saying where it
+// was going or who to ring.
+describe("online order confirmation email — how it reads", () => {
+  it("shows money with the shop's currency, not bare numbers", async () => {
+    const { s, email } = svc();
+
+    await s.sweep();
+
+    const html = email.send.mock.calls[0][0].html;
+    expect(html).toContain("£21.65");
+    expect(html).toContain("£2.50");
+  });
+
+  it("uses the location's currency, including one with three decimals", async () => {
+    const { s, email } = svc({
+      orders: [
+        {
+          ...ORDER,
+          total: "21.650",
+          location: { ...ORDER.location, currency: "KWD" },
+        },
+      ],
+    });
+
+    await s.sweep();
+
+    // The dinar is 3dp; rendering it as 2 misstates the price.
+    expect(email.send.mock.calls[0][0].html).toMatch(/21\.650/);
+  });
+
+  it("does not repeat modifiers already spelled out in the item name", async () => {
+    const { s, email } = svc({
+      orders: [
+        {
+          ...ORDER,
+          items: [
+            {
+              name: "Quarter Chicken (BBQ, Coleslaw)",
+              quantity: 1,
+              totalPrice: "11.47",
+              modifiers: [{ name: "BBQ" }, { name: "Coleslaw" }],
+            },
+          ],
+        },
+      ],
+    });
+
+    await s.sweep();
+
+    const html = email.send.mock.calls[0][0].html;
+    // Once in the name, not again underneath it.
+    expect(html.match(/Coleslaw/g)).toHaveLength(1);
+  });
+
+  it("still lists modifiers the item name does not mention", async () => {
+    const { s, email } = svc();
+
+    await s.sweep();
+
+    expect(email.send.mock.calls[0][0].html).toContain("Thin base");
+  });
+
+  it("says where a delivery is going and who to call", async () => {
+    const { s, email } = svc();
+
+    await s.sweep();
+
+    const html = email.send.mock.calls[0][0].html;
+    expect(html).toContain("5 Sunningdale Drive");
+    expect(html).toContain("0191 123 4567");
+  });
+
+  it("comes from the shop's name, on the verified sending address", async () => {
+    const { s, email } = svc();
+
+    await s.sweep();
+
+    // The display name is free text, so the brand can front it without a
+    // verified domain per brand — the address itself is unchanged.
+    expect(email.send.mock.calls[0][0].fromName).toBe("Pizza Uno");
   });
 });
