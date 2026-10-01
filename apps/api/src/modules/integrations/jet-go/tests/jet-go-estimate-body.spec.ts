@@ -307,6 +307,17 @@ describe("JET Go delivery payload", () => {
     });
   });
 
+  it("does not name a payment type at all", async () => {
+    // JET gates `paymentType` behind a per-partner feature flag. Sending even
+    // the DEFAULT value ("PREPAID") 400s the whole delivery on an account that
+    // doesn't have it switched on — which is how staging actually behaved,
+    // moments after the estimate (which takes no such field) had succeeded.
+    // The field exists only to opt INTO cash on delivery, which we don't do.
+    const body = svc().buildDeliveryBody(order(), estimate, null);
+    expect(body.paymentType).toBeUndefined();
+    expect(Object.keys(body)).not.toContain("paymentType");
+  });
+
   it("books against the estimate's requestId", async () => {
     expect(svc().buildDeliveryBody(order(), estimate, null).requestId).toBe("req-1");
   });

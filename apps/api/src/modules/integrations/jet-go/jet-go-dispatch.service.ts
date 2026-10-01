@@ -306,7 +306,13 @@ export class JetGoDispatchService {
       // passing it here would hand the shop's money to the courier.
       orderValue: totalMinor,
       vendorOrderId: this.vendorOrderId(order),
-      paymentType: "PREPAID",
+      // paymentType is deliberately NOT sent. It exists only to opt INTO cash on
+      // delivery (Bulgaria only); PREPAID is what JET does anyway. Sending it
+      // unconditionally hit a per-partner feature flag and failed every
+      // delivery outright — "The payment type feature is currently disabled" —
+      // while the estimate, which doesn't take the field, had just succeeded.
+      // Nothing is gained by naming the default, so it stays off until we
+      // actually need COD.
       // Echoed back on every webhook, which is what lets the handler recover an
       // order even if the requestId lookup ever misses. Values cap at 255.
       metadata: {
