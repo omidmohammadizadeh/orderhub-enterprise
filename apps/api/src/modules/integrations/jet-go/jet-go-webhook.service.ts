@@ -173,6 +173,11 @@ export class JetGoWebhookService {
         return this.onDeliveryRejected(order, data, type);
       case "PROOFOFDELIVERY":
         return this.onProofOfDelivery(order, data, type);
+      // JET names this event TWO ways in its own documentation: the webhook
+      // samples say PICTUREASPROOFOFDELIVERY, the notification-config
+      // subscriptions enum says PROOFOFDELIVERY_PICTURE. The wire sends the
+      // second, so the first was never reached. Both are accepted.
+      case "PROOFOFDELIVERY_PICTURE":
       case "PICTUREASPROOFOFDELIVERY":
         return this.onPictureProof(order, data, type);
       default:
@@ -278,19 +283,31 @@ export class JetGoWebhookService {
   /** ETA at the SHOP. Kept apart from the customer ETA on purpose. */
   private async onCollectionTime(order: any, data: any, type: string) {
     const eta = this.asDate(data?.courierETA);
-    if (!eta) return { ok: true, reason: "no_eta", type };
+    if (!eta) {
+      this.logger.log(`JET Go ${type} order=${order.id} carried no ETA`);
+      return { ok: true, reason: "no_eta", type };
+    }
     await this.db().order.update({
       where: { id: order.id },
       data: { courierPickupEtaAt: eta },
     });
+    this.logger.log(
+      `JET Go ${type} order=${order.id} courier at shop by ${eta.toISOString()}`,
+    );
     return { ok: true, type };
   }
 
   /** ETA at the CUSTOMER. */
   private async onDeliveryTime(order: any, data: any, type: string) {
     const eta = this.asDate(data?.postPurchaseDeliveryEta);
-    if (!eta) return { ok: true, reason: "no_eta", type };
+    if (!eta) {
+      this.logger.log(`JET Go ${type} order=${order.id} carried no ETA`);
+      return { ok: true, reason: "no_eta", type };
+    }
     await this.db().order.update({ where: { id: order.id }, data: { courierEtaAt: eta } });
+    this.logger.log(
+      `JET Go ${type} order=${order.id} customer by ${eta.toISOString()}`,
+    );
     return { ok: true, type };
   }
 
@@ -300,6 +317,7 @@ export class JetGoWebhookService {
     // 0,0 is the Atlantic, not a courier. A pin with no timestamp is a lie, so
     // the position and the time it was taken are always written together.
     if (!Number.isFinite(lat) || !Number.isFinite(lng) || (lat === 0 && lng === 0)) {
+      this.logger.log(`JET Go ${type} order=${order.id} carried no usable position`);
       return { ok: true, reason: "no_location", type };
     }
     await this.db().order.update({
@@ -310,6 +328,7 @@ export class JetGoWebhookService {
         courierLocationAt: this.asDate(data?.timestamp) ?? new Date(),
       },
     });
+    this.logger.log(`JET Go ${type} order=${order.id} courier at ${lat},${lng}`);
     return { ok: true, type };
   }
 
@@ -455,6 +474,9 @@ export class JetGoWebhookService {
       ...(status ? { pinStatus: status } : {}),
       pinUpdatedAt: new Date().toISOString(),
     });
+    this.logger.log(
+      `JET Go ${type} order=${order.id} status=${status || "?"}${pin ? " (PIN stored)" : ""}`,
+    );
     if (status === "INVALID") {
       this.activity?.record({
         tenantId: order.tenantId,
@@ -478,11 +500,15 @@ export class JetGoWebhookService {
       : this.str(data?.urls)
         ? [this.str(data.urls)]
         : [];
-    if (!urls.length) return { ok: true, reason: "no_urls", type };
+    if (!urls.length) {
+      this.logger.log(`JET Go ${type} order=${order.id} carried no photo urls`);
+      return { ok: true, reason: "no_urls", type };
+    }
     await this.mergeJetGoMeta(order, {
       proofPhotoUrls: urls,
       proofPhotoAt: new Date().toISOString(),
     });
+    this.logger.log(`JET Go ${type} order=${order.id} ${urls.length} photo(s) stored`);
     return { ok: true, type };
   }
 }
