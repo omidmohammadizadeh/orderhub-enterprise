@@ -1,6 +1,8 @@
 # Phase BJ — JET Go (Just Eat Delivery-as-a-Service) courier dispatch
 
-**Status:** built, unit-tested, not yet run against JET. **Blocked on JET Go test credentials.**
+**Status:** built, unit-tested, and **proven end to end against JET's UK staging
+account on 2026-10-01** — estimate, booking, webhooks, full simulated lifecycle.
+Open questions for JET are listed under "Still open" below.
 
 JET Go is Just Eat Takeaway's last-mile network — the same product shape as Uber
 Direct and Stuart: our order, our customer, their courier. It is wired into the
@@ -184,6 +186,40 @@ drawer (worded for the asynchronous confirmation); `JET_GO` label + logo.
 - `next build` on `apps/web`: exit 0
 - Settings panel rendered and checked at desktop and mobile widths; label/input
   bindings, `autocomplete=off` and `spellcheck=false` confirmed in the DOM
+
+### Proven against JET staging — 2026-10-01
+
+A full delivery ran end to end on the UK staging account: estimate → book →
+DELIVERYCREATED → simulate → every COURIERJOBSTATUS → DELIVERED, with the order
+driving itself to COMPLETED off the webhooks and the wallet charging the courier
+price plus the markup.
+
+Four things only the first real call could have found, every one a place JET's
+prose and its schema disagree:
+
+| What | Prose said | Server said |
+|---|---|---|
+| `paymentType` | optional, defaults PREPAID | per-partner feature flag — sending even the default 400s |
+| `targetCollectTime` | "do not pass again for ASAP" | required whenever the estimate had no target deliver time |
+| photo proof event | `PICTUREASPROOFOFDELIVERY` | `PROOFOFDELIVERY_PICTURE` |
+| our own webhook route | — | the generic `webhooks/:platform/:locationId` was swallowing it |
+
+The last one was ours, not JET's, and it had been shadowing **every** dedicated
+receiver — stuart, uber-direct, yango, careem, stripe — since each was written.
+No courier webhook had ever arrived before, so nothing had surfaced it.
+
+### Still open
+
+- **No courier phone number.** JET's payload carries `courier: { id, name }` and
+  nothing else. Stuart and Uber Direct both send a phone; an operator who can't
+  ring the rider will notice. Ask JET whether it can be added.
+- **No tracking URL in the UK.** `orderTrackerURL` is Canada-only and returns the
+  literal string "Not available" here, which we filter rather than show.
+- **ETAs unconfirmed.** `COURIERCOLLECTIONTIME` / `COURIERDELIVERYTIME` fire once
+  a minute; a simulation at 3s a step finishes before they land. Needs a longer
+  `stepWaitDuration` run to prove.
+- **Staging prices aren't the rate card.** A 0.4-mile drop quoted £6.00; the
+  contract's under-0.5-mile band is £4.25. Confirm production uses Schedule 1.
 
 ### Not verified — needs credentials
 No call has been made to JET. The transformer is **spec-derived**, the same
