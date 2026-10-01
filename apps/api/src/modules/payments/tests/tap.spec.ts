@@ -3,7 +3,10 @@ import {
   TapService,
   tapHashString,
   signaturesMatch,
-  splitForDestination,
+  commissionDestinations,
+  onboardingSignature,
+  merchantIdFromSignup,
+  tapPlatformFromEnv,
 } from "../tap.service";
 import {
   paymentProviderForCountry,
@@ -130,59 +133,68 @@ describe("signaturesMatch", () => {
   });
 });
 
-describe("splitForDestination", () => {
-  it("pays the merchant total-minus-fee and leaves our cut as the remainder", () => {
-    // Tap inverts Stripe: the charge lands on the MARKETPLACE and the
-    // destinations name each business's share, with whatever is left over
-    // staying with us. Naming our own fee as a second destination would try to
-    // pay the marketplace out of its own charge.
+const PLATFORM_ENV = {
+  TAP_COMMERCE_SECRET_KEY: KEY,
+  TAP_COMMERCE_PLATFORM_ID: "commerce_platform_1",
+  TAP_BILLING_SECRET_KEY: "sk_test_billing",
+  TAP_BILLING_PLATFORM_ID: "billing_platform_1",
+};
+const WALLET = "wallet_ours";
+const setEnv = (extra: Record<string, string> = {}) => {
+  Object.assign(process.env, PLATFORM_ENV, { TAP_COMMISSION_DESTINATION_ID: WALLET }, extra);
+};
+const clearEnv = () => {
+  for (const k of [
+    ...Object.keys(PLATFORM_ENV),
+    "TAP_COMMISSION_DESTINATION_ID",
+    "TAP_APP_SECRET_KEY",
+    "TAP_APP_PLATFORM_ID",
+    "TAP_SECRET_KEY",
+    "TAP_ONBOARDING_SECRET",
+    "API_URL",
+  ]) {
+    delete process.env[k];
+  }
+};
+
+describe("tapPlatformFromEnv", () => {
+  it("needs BOTH the id and the key — half a platform is no platform", () => {
+    expect(tapPlatformFromEnv("COMMERCE", { TAP_COMMERCE_SECRET_KEY: "k" } as any)).toBeNull();
+    expect(tapPlatformFromEnv("COMMERCE", { TAP_COMMERCE_PLATFORM_ID: "p" } as any)).toBeNull();
     expect(
-      splitForDestination({
-        totalAmount: 100,
-        platformFee: 7.5,
-        currency: "AED",
-        destinationId: "dst_1",
-      }),
-    ).toEqual([{ id: "dst_1", amount: 92.5, currency: "AED" }]);
+      tapPlatformFromEnv("COMMERCE", {
+        TAP_COMMERCE_SECRET_KEY: " k ",
+        TAP_COMMERCE_PLATFORM_ID: " p ",
+      } as any),
+    ).toEqual({ kind: "COMMERCE", id: "p", secretKey: "k" });
   });
 
-  it("gives the merchant the whole amount when there is no platform fee", () => {
+  it("does not treat the old marketplace TAP_SECRET_KEY as the commerce platform", () => {
+    // That key belonged to a different account type; charging with it would
+    // route money as if we were the merchant.
+    expect(tapPlatformFromEnv("COMMERCE", { TAP_SECRET_KEY: "sk_old" } as any)).toBeNull();
+  });
+});
+
+describe("commissionDestinations", () => {
+  it("pays OUR fee into our wallet; the rest stays with the brand's merchant", () => {
+    // The Platform model inverts the Aug marketplace build: the charge lands on
+    // the restaurant's merchant, and our commission is the destination.
     expect(
-      splitForDestination({
-        totalAmount: 40,
-        platformFee: 0,
-        currency: "AED",
-        destinationId: "dst_1",
-      }),
-    ).toEqual([{ id: "dst_1", amount: 40, currency: "AED" }]);
+      commissionDestinations({ totalAmount: 102, platformFee: 9.75, currency: "AED", walletId: "w" }),
+    ).toEqual([{ id: "w", amount: 9.75, currency: "AED" }]);
   });
 
-  it("rounds the merchant's share to the currency's own decimals", () => {
-    const [split] = splitForDestination({
-      totalAmount: 10,
-      platformFee: 1.2345,
-      currency: "KWD",
-      destinationId: "dst_1",
-    });
-    expect(split!.amount).toBe(8.765);
+  it("sends nothing when there is no fee, no wallet, or a fee that eats the order", () => {
+    expect(commissionDestinations({ totalAmount: 40, platformFee: 0, currency: "AED", walletId: "w" })).toEqual([]);
+    expect(commissionDestinations({ totalAmount: 40, platformFee: 4, currency: "AED", walletId: null })).toEqual([]);
+    expect(commissionDestinations({ totalAmount: 5, platformFee: 5, currency: "AED", walletId: "w" })).toEqual([]);
+    expect(commissionDestinations({ totalAmount: 5, platformFee: -1, currency: "AED", walletId: "w" })).toEqual([]);
   });
 
-  it("splits nothing rather than sending a zero or negative destination", () => {
-    // A fee that swallows the order is a misconfiguration. Sending 0 would
-    // either be rejected by Tap or silently pay the merchant nothing, and
-    // mid-checkout is not the place to guess which was meant.
-    expect(
-      splitForDestination({ totalAmount: 5, platformFee: 5, currency: "AED", destinationId: "d" }),
-    ).toEqual([]);
-    expect(
-      splitForDestination({ totalAmount: 5, platformFee: 9, currency: "AED", destinationId: "d" }),
-    ).toEqual([]);
-  });
-
-  it("treats a negative fee as zero rather than paying out more than was taken", () => {
-    expect(
-      splitForDestination({ totalAmount: 20, platformFee: -5, currency: "AED", destinationId: "d" }),
-    ).toEqual([{ id: "d", amount: 20, currency: "AED" }]);
+  it("rounds the fee to the currency's own decimals", () => {
+    const [d] = commissionDestinations({ totalAmount: 10, platformFee: 1.2345, currency: "KWD", walletId: "w" });
+    expect(d!.amount).toBe(1.235);
   });
 });
 
@@ -199,25 +211,21 @@ describe("TapService.verifyWebhook", () => {
   const sign = (o: any, key = KEY) =>
     createHmac("sha256", key).update(tapHashString(o)).digest("hex");
 
-  beforeEach(() => {
-    process.env.TAP_SECRET_KEY = KEY;
-  });
-  afterEach(() => {
-    delete process.env.TAP_SECRET_KEY;
-  });
+  beforeEach(() => setEnv());
+  afterEach(clearEnv);
 
-  it("accepts a body signed with our secret key", () => {
+  it("accepts a body signed with any of our platform keys", () => {
+    // Tap signs with the PLATFORM key, and the body doesn't say which platform.
     expect(build().verifyWebhook(charge, sign(charge))).toBe(true);
+    expect(build().verifyWebhook(charge, sign(charge, "sk_test_billing"))).toBe(true);
   });
 
   it("rejects a body whose amount was tampered with after signing", () => {
-    // The attack this endpoint is exposed to: it is public, so an unsigned
-    // CAPTURED charge posted here would otherwise mark any order paid.
     const signature = sign(charge);
     expect(build().verifyWebhook({ ...charge, amount: 1500 }, signature)).toBe(false);
   });
 
-  it("rejects a signature from the wrong key", () => {
+  it("rejects a signature from a key that isn't ours", () => {
     expect(build().verifyWebhook(charge, sign(charge, "sk_test_someone_else"))).toBe(false);
   });
 
@@ -225,8 +233,8 @@ describe("TapService.verifyWebhook", () => {
     expect(build().verifyWebhook(charge, undefined)).toBe(false);
   });
 
-  it("rejects everything when no key is configured", () => {
-    delete process.env.TAP_SECRET_KEY;
+  it("rejects everything when no platform is configured", () => {
+    clearEnv();
     expect(build().verifyWebhook(charge, sign(charge))).toBe(false);
   });
 });
@@ -315,14 +323,20 @@ describe("TapService.createCharge", () => {
       order: { findFirst: jest.fn().mockResolvedValue(order(brand)) },
       payment: { create: jest.fn().mockResolvedValue({}) },
     } as any;
-    return new TapService(prisma, {} as any);
+    return { svc: new TapService(prisma, {} as any), prisma };
   };
+  const tapReturns = (charge: any) =>
+    jest.spyOn(global, "fetch" as any).mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: async () => JSON.stringify(charge),
+    } as any);
+  const sent = (fetchMock: jest.SpyInstance) =>
+    JSON.parse((fetchMock.mock.calls[0]![1] as any).body);
 
-  beforeEach(() => {
-    process.env.TAP_SECRET_KEY = KEY;
-  });
+  beforeEach(() => setEnv());
   afterEach(() => {
-    delete process.env.TAP_SECRET_KEY;
+    clearEnv();
     jest.restoreAllMocks();
   });
 
@@ -333,173 +347,289 @@ describe("TapService.createCharge", () => {
     webhookUrl: "https://api.example/v1/payments/tap/webhook",
     customer: { firstName: "Omar", email: "o@example.com" },
   };
+  const feeBrand = {
+    id: "b1",
+    name: "Shawarma Co",
+    tapMerchantId: "merchant_9",
+    applicationFeeMode: "fixed_and_percentage",
+    applicationFeePercentage: 7.75,
+    applicationFeeFixedAmount: 2,
+  };
 
-  it("refuses to charge a brand with no Tap destination", async () => {
-    // The money would otherwise land in the marketplace balance with nothing
-    // naming the merchant — we would have taken a customer's payment with no
-    // route for the shop ever to be paid it.
-    const svc = build({ id: "b1", name: "Shawarma Co", tapDestinationId: null });
+  it("refuses to charge a brand with no Tap merchant", async () => {
+    const { svc } = build({ id: "b1", name: "Shawarma Co", tapMerchantId: null });
     await expect(svc.createCharge(args)).rejects.toThrow(/Tap onboarding/i);
   });
 
-  it("adds the FIXED fee to the customer's bill and takes the percentage from the shop", async () => {
-    // The rule the UK already uses (computeFeeBreakdownPence): fixed is a
-    // visible surcharge on top, percentage is silent out of the restaurant's
-    // share. 7.75% + AED 2 on a 100 basket → customer charged 102, we keep
-    // 9.75, shop gets 92.25. Folding the fixed part into the fee WITHOUT
-    // adding it to the charge would quietly take it out of the restaurant,
-    // which is the opposite of what the setting means.
-    const svc = build({
-      id: "b1",
-      name: "Shawarma Co",
-      tapDestinationId: "dst_9",
-      applicationFeeMode: "fixed_and_percentage",
-      applicationFeePercentage: 7.75,
-      applicationFeeFixedAmount: 2,
-    });
-    const fetchMock = jest.spyOn(global, "fetch" as any).mockResolvedValue({
-      ok: true,
-      status: 200,
-      text: async () =>
-        JSON.stringify({ id: "chg_s", status: "INITIATED", transaction: { url: "u" } }),
-    } as any);
+  it("charges ON the brand's merchant, under our commerce platform, with the platform key", async () => {
+    const { svc } = build(feeBrand);
+    const fetchMock = tapReturns({ id: "chg_1", status: "INITIATED", transaction: { url: "u" } });
+    await svc.createCharge(args);
+    const [url, init] = fetchMock.mock.calls[0] as any;
+    expect(url).toBe("https://api.tap.company/v2/charges");
+    expect(init.headers.Authorization).toBe(`Bearer ${KEY}`);
+    const body = sent(fetchMock);
+    expect(body.platform).toEqual({ id: "commerce_platform_1" });
+    expect(body.merchant).toEqual({ id: "merchant_9" });
+  });
 
+  it("adds the FIXED fee to the bill and sends our whole cut to our wallet", async () => {
+    // 7.75% + AED 2 on a 100 basket → customer charged 102, our wallet gets
+    // 9.75, the restaurant's merchant keeps 92.25 — same rule as the UK.
+    const { svc, prisma } = build(feeBrand);
+    const fetchMock = tapReturns({ id: "chg_s", status: "INITIATED", transaction: { url: "u" } });
     const out = await svc.createCharge(args);
-    const body = JSON.parse((fetchMock.mock.calls[0]![1] as any).body);
-
+    const body = sent(fetchMock);
     expect(body.amount).toBe(102);
-    expect(body.destinations.destination).toEqual([
-      { id: "dst_9", amount: 92.25, currency: "AED" },
-    ]);
-    // Our remainder: 102 charged − 92.25 to the shop.
-    expect(roundToCurrency(102 - 92.25, "AED")).toBe(9.75);
-    expect(out.amount).toBe(102);
-    // The customer can only see why they're paying 102 from the description —
-    // a charge has no line items the way a Stripe session does.
+    expect(body.destinations.destination).toEqual([{ id: WALLET, amount: 9.75, currency: "AED" }]);
     expect(body.description).toContain("2.00 service charge");
+    expect(out.amount).toBe(102);
+    const row = prisma.payment.create.mock.calls[0][0].data;
+    expect(row).toMatchObject({ amount: 102, platformFee: 9.75, netAmount: 92.25, provider: "TAP" });
+    expect(row.metadata).toMatchObject({ tapMerchantId: "merchant_9", tapPlatform: "COMMERCE" });
   });
 
   it("adds nothing to the bill in percentage_only mode", async () => {
-    const svc = build({
-      id: "b1",
-      name: "S",
-      tapDestinationId: "dst_9",
-      applicationFeeMode: "percentage_only",
-      applicationFeePercentage: 7.75,
-      applicationFeeFixedAmount: 2,
-    });
-    const fetchMock = jest.spyOn(global, "fetch" as any).mockResolvedValue({
-      ok: true,
-      status: 200,
-      text: async () =>
-        JSON.stringify({ id: "chg_p", status: "INITIATED", transaction: { url: "u" } }),
-    } as any);
+    const { svc } = build({ ...feeBrand, applicationFeeMode: "percentage_only" });
+    const fetchMock = tapReturns({ id: "chg_p", status: "INITIATED", transaction: { url: "u" } });
     await svc.createCharge(args);
-    const body = JSON.parse((fetchMock.mock.calls[0]![1] as any).body);
-    // Fixed amount is set but the mode doesn't use it — the customer pays the
-    // basket and the whole fee comes out of the shop.
+    const body = sent(fetchMock);
     expect(body.amount).toBe(100);
-    expect(body.destinations.destination[0].amount).toBe(92.25);
+    expect(body.destinations.destination[0].amount).toBe(7.75);
     expect(body.description).not.toContain("service charge");
   });
 
-  it("surcharges the whole fee in fixed_only mode", async () => {
-    const svc = build({
-      id: "b1",
-      name: "S",
-      tapDestinationId: "dst_9",
-      applicationFeeMode: "fixed_only",
-      applicationFeeFixedAmount: 2,
-      applicationFeePercentage: 7.75,
-    });
-    const fetchMock = jest.spyOn(global, "fetch" as any).mockResolvedValue({
-      ok: true,
-      status: 200,
-      text: async () =>
-        JSON.stringify({ id: "chg_f", status: "INITIATED", transaction: { url: "u" } }),
-    } as any);
+  it("takes no fee at all — not even the surcharge — when our wallet isn't configured", async () => {
+    // Without a wallet the fee has nowhere to go. Surcharging the customer
+    // anyway would hand the restaurant money the customer was told was ours.
+    delete process.env.TAP_COMMISSION_DESTINATION_ID;
+    const { svc, prisma } = build(feeBrand);
+    const fetchMock = tapReturns({ id: "chg_n", status: "INITIATED", transaction: { url: "u" } });
     await svc.createCharge(args);
-    const body = JSON.parse((fetchMock.mock.calls[0]![1] as any).body);
-    // Customer pays 102, shop still gets its full 100 — the fee was entirely
-    // the customer's surcharge.
-    expect(body.amount).toBe(102);
-    expect(body.destinations.destination[0].amount).toBe(100);
+    const body = sent(fetchMock);
+    expect(body.amount).toBe(100);
+    expect(body.destinations).toBeUndefined();
+    expect(prisma.payment.create.mock.calls[0][0].data.platformFee).toBe(0);
   });
 
-  it("sends the split, the currency and the order's own reference", async () => {
-    const svc = build({
-      id: "b1",
-      name: "Shawarma Co",
-      tapDestinationId: "dst_9",
-      applicationFeeMode: "percentage_only",
-      applicationFeePercentage: 10,
-    });
-    const fetchMock = jest.spyOn(global, "fetch" as any).mockResolvedValue({
-      ok: true,
-      status: 200,
-      text: async () =>
-        JSON.stringify({
-          id: "chg_1",
-          status: "INITIATED",
-          transaction: { url: "https://checkout.tap.company/chg_1" },
-        }),
-    } as any);
+  it("refuses when the commerce platform isn't configured", async () => {
+    clearEnv();
+    const { svc } = build(feeBrand);
+    await expect(svc.createCharge(args)).rejects.toThrow(/aren't configured/i);
+  });
 
+  it("sends the currency, the order's own reference and the webhook", async () => {
+    const { svc } = build({ ...feeBrand, applicationFeeMode: "none" });
+    const fetchMock = tapReturns({
+      id: "chg_1",
+      status: "INITIATED",
+      transaction: { url: "https://checkout.tap.company/chg_1" },
+    });
     const out = await svc.createCharge(args);
-    expect(out).toMatchObject({
-      chargeId: "chg_1",
-      redirectUrl: "https://checkout.tap.company/chg_1",
-      currency: "AED",
-    });
-
-    const body = JSON.parse((fetchMock.mock.calls[0]![1] as any).body);
+    expect(out).toMatchObject({ chargeId: "chg_1", redirectUrl: "https://checkout.tap.company/chg_1", currency: "AED" });
+    const body = sent(fetchMock);
     expect(body.currency).toBe("AED");
-    expect(body.amount).toBe(100);
-    // 10% fee → merchant gets 90, we keep the 10 as Tap's automatic remainder.
-    expect(body.destinations.destination).toEqual([
-      { id: "dst_9", amount: 90, currency: "AED" },
-    ]);
-    // Idempotency is what stops a double-tapped Pay button becoming two
-    // charges — Tap dedupes on it, we don't.
     expect(body.reference.idempotent).toBe("ord_o1");
     expect(body.post.url).toBe(args.webhookUrl);
     expect(body.threeDSecure).toBe(true);
   });
 
-  it("prices in the shop's currency, not sterling", async () => {
-    const svc = build({ id: "b1", name: "S", tapDestinationId: "dst_9", applicationFeeMode: "none" });
-    const fetchMock = jest.spyOn(global, "fetch" as any).mockResolvedValue({
-      ok: true,
-      status: 200,
-      text: async () =>
-        JSON.stringify({ id: "chg_2", status: "INITIATED", transaction: { url: "u" } }),
-    } as any);
-    await svc.createCharge(args);
-    const body = JSON.parse((fetchMock.mock.calls[0]![1] as any).body);
-    expect(body.currency).toBe("AED");
-    expect(body.currency).not.toBe("GBP");
-  });
-
   it("fails loudly when Tap returns a charge with no hosted URL", async () => {
-    // Redirecting the customer to `undefined` would look to them like the shop
-    // is broken and to us like a successful charge.
-    const svc = build({ id: "b1", name: "S", tapDestinationId: "dst_9", applicationFeeMode: "none" });
-    jest.spyOn(global, "fetch" as any).mockResolvedValue({
-      ok: true,
-      status: 200,
-      text: async () => JSON.stringify({ id: "chg_3", status: "INITIATED" }),
-    } as any);
+    const { svc } = build({ ...feeBrand, applicationFeeMode: "none" });
+    tapReturns({ id: "chg_3", status: "INITIATED" });
     await expect(svc.createCharge(args)).rejects.toThrow(/couldn't be started/i);
   });
 
   it("surfaces Tap's own error description rather than a generic failure", async () => {
-    const svc = build({ id: "b1", name: "S", tapDestinationId: "dst_9", applicationFeeMode: "none" });
+    const { svc } = build({ ...feeBrand, applicationFeeMode: "none" });
     jest.spyOn(global, "fetch" as any).mockResolvedValue({
       ok: false,
       status: 400,
-      text: async () =>
-        JSON.stringify({ errors: [{ code: "2107", description: "Invalid destination id" }] }),
+      text: async () => JSON.stringify({ errors: [{ code: "2107", description: "Invalid merchant" }] }),
     } as any);
-    await expect(svc.createCharge(args)).rejects.toThrow("Invalid destination id");
+    await expect(svc.createCharge(args)).rejects.toThrow("Invalid merchant");
+  });
+});
+
+describe("TapService.refundOrder", () => {
+  beforeEach(() => setEnv());
+  afterEach(() => {
+    clearEnv();
+    jest.restoreAllMocks();
+  });
+
+  it("refunds with the platform key the charge was taken with, and keeps our commission", async () => {
+    // Same as a UK Stripe refund (no refund_application_fee): the merchant
+    // funds it, so no destination goes out.
+    const payment = {
+      id: "p1",
+      providerChargeId: "chg_1",
+      amount: 102,
+      currency: "aed",
+      metadata: { tapPlatform: "BILLING" },
+    };
+    const prisma = {
+      payment: { findFirst: jest.fn().mockResolvedValue(payment), update: jest.fn() },
+      order: { update: jest.fn() },
+    } as any;
+    const fetchMock = jest.spyOn(global, "fetch" as any).mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: async () => JSON.stringify({ id: "re_1", status: "REFUNDED" }),
+    } as any);
+    await new TapService(prisma, {} as any).refundOrder("o1");
+    const [url, init] = fetchMock.mock.calls[0] as any;
+    expect(url).toBe("https://api.tap.company/v2/refunds");
+    expect(init.headers.Authorization).toBe("Bearer sk_test_billing");
+    const body = JSON.parse(init.body);
+    expect(body).toMatchObject({ charge_id: "chg_1", amount: 102, currency: "AED" });
+    expect(body.destinations).toBeUndefined();
+    expect(prisma.order.update).toHaveBeenCalledWith(
+      expect.objectContaining({ data: { paymentStatus: "REFUNDED" } }),
+    );
+  });
+});
+
+describe("Tap onboarding", () => {
+  beforeEach(() => setEnv({ API_URL: "https://api.example" }));
+  afterEach(() => {
+    clearEnv();
+    jest.restoreAllMocks();
+  });
+
+  it("signs the webhook URL per brand, so one brand's URL can't set another's merchant", () => {
+    const svc = new TapService({} as any, {} as any);
+    const url = svc.onboardingWebhookUrl("brand_a");
+    const sig = url.split("/").pop()!;
+    expect(url).toBe(`https://api.example/v1/payments/tap/onboarding/brand_a/${sig}`);
+    expect(svc.verifyOnboardingSignature("brand_a", sig)).toBe(true);
+    expect(svc.verifyOnboardingSignature("brand_b", sig)).toBe(false);
+    expect(svc.verifyOnboardingSignature("brand_a", "nope")).toBe(false);
+    expect(sig).toBe(onboardingSignature("brand_a", KEY));
+  });
+
+  it("reads the merchant id from either documented webhook shape, and nothing else", () => {
+    expect(merchantIdFromSignup({ id: "merchant_rERh10", object: "merchant" })).toBe("merchant_rERh10");
+    expect(merchantIdFromSignup({ merchant: { id: "merchant_x1" }, board: {} })).toBe("merchant_x1");
+    expect(merchantIdFromSignup({ id: "led_123" })).toBeNull();
+    expect(merchantIdFromSignup({ id: "merchant_x; drop" })).toBeNull();
+    expect(merchantIdFromSignup(null)).toBeNull();
+  });
+
+  const brandRow = (over: any = {}) => ({
+    id: "b1",
+    tenantId: "t1",
+    name: "Shawarma Co",
+    country: "AE",
+    tapMerchantId: null,
+    tapLeadId: null,
+    ...over,
+  });
+
+  it("creates a lead listing every platform, then a Connect link, and saves both", async () => {
+    const prisma = {
+      brand: {
+        findFirst: jest.fn().mockResolvedValue(brandRow()),
+        update: jest.fn().mockResolvedValue({}),
+      },
+    } as any;
+    const fetchMock = jest
+      .spyOn(global, "fetch" as any)
+      .mockResolvedValueOnce({ ok: true, status: 200, text: async () => JSON.stringify({ id: "led_1" }) } as any)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        text: async () => JSON.stringify({ connect: { url: "https://connect.tap/x" } }),
+      } as any);
+
+    const out = await new TapService(prisma, {} as any).startOnboarding("t1", "b1");
+    expect(out).toEqual({ connectUrl: "https://connect.tap/x", leadId: "led_1", status: "link_sent" });
+
+    const [leadUrl, leadInit] = fetchMock.mock.calls[0] as any;
+    expect(leadUrl).toBe("https://api.tap.company/v3/lead");
+    const lead = JSON.parse(leadInit.body);
+    expect(lead.country).toBe("AE");
+    expect(lead.merchant.platforms).toEqual([{ id: "commerce_platform_1" }, { id: "billing_platform_1" }]);
+    expect(lead.metadata).toEqual({ brandId: "b1", tenantId: "t1" });
+
+    const [connUrl, connInit] = fetchMock.mock.calls[1] as any;
+    expect(connUrl).toBe("https://api.tap.company/v3/connect");
+    const conn = JSON.parse(connInit.body);
+    expect(conn.lead).toEqual({ id: "led_1" });
+    expect(conn.post.url).toMatch(/^https:\/\/api\.example\/v1\/payments\/tap\/onboarding\/b1\/[0-9a-f]{64}$/);
+
+    expect(prisma.brand.update).toHaveBeenCalledWith({
+      where: { id: "b1" },
+      data: { tapLeadId: "led_1", tapConnectUrl: "https://connect.tap/x", tapOnboardingStatus: "link_sent" },
+    });
+  });
+
+  it("falls through to another platform's key when one is refused", async () => {
+    // Seen in the sandbox: the same lead call refused by one platform key
+    // (2109 Api_key_unauthorised) and accepted by another.
+    const prisma = {
+      brand: { findFirst: jest.fn().mockResolvedValue(brandRow()), update: jest.fn() },
+    } as any;
+    const fetchMock = jest
+      .spyOn(global, "fetch" as any)
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        text: async () => JSON.stringify({ errors: [{ code: "2109", description: "Api key is unauthorized" }] }),
+      } as any)
+      .mockResolvedValueOnce({ ok: true, status: 200, text: async () => JSON.stringify({ id: "led_2" }) } as any)
+      .mockResolvedValueOnce({ ok: true, status: 200, text: async () => JSON.stringify({ connect: { url: "c" } }) } as any);
+    const out = await new TapService(prisma, {} as any).startOnboarding("t1", "b1");
+    expect(out.leadId).toBe("led_2");
+    expect((fetchMock.mock.calls[1] as any)[1].headers.Authorization).toBe("Bearer sk_test_billing");
+  });
+
+  it("won't start onboarding for a brand that already has a merchant", async () => {
+    const prisma = { brand: { findFirst: jest.fn().mockResolvedValue(brandRow({ tapMerchantId: "merchant_1" })) } } as any;
+    await expect(new TapService(prisma, {} as any).startOnboarding("t1", "b1")).rejects.toThrow(/already has/i);
+  });
+
+  it("completes onboarding with the merchant id and never stores Tap's API credentials", async () => {
+    const prisma = {
+      brand: { findFirst: jest.fn().mockResolvedValue(brandRow()), update: jest.fn() },
+    } as any;
+    const ok = await new TapService(prisma, {} as any).completeOnboarding("b1", {
+      id: "merchant_new1",
+      object: "merchant",
+      operator: { api_credentials: { live: { secret: "sk_live_theirs" } } },
+    });
+    expect(ok).toBe(true);
+    const data = prisma.brand.update.mock.calls[0][0].data;
+    expect(data).toEqual({ tapMerchantId: "merchant_new1", tapOnboardingStatus: "completed" });
+    expect(JSON.stringify(data)).not.toContain("sk_live");
+  });
+
+  it("never moves a trading brand to a different merchant", async () => {
+    const prisma = {
+      brand: { findFirst: jest.fn().mockResolvedValue(brandRow({ tapMerchantId: "merchant_old" })), update: jest.fn() },
+    } as any;
+    const ok = await new TapService(prisma, {} as any).completeOnboarding("b1", { id: "merchant_other" });
+    expect(ok).toBe(false);
+    expect(prisma.brand.update).not.toHaveBeenCalled();
+  });
+
+  it("refuses a post whose echoed metadata names a different brand", async () => {
+    const prisma = { brand: { findFirst: jest.fn(), update: jest.fn() } } as any;
+    const ok = await new TapService(prisma, {} as any).completeOnboarding("b1", {
+      id: "merchant_x",
+      metadata: { brandId: "b2" },
+    });
+    expect(ok).toBe(false);
+    expect(prisma.brand.update).not.toHaveBeenCalled();
+  });
+
+  it("rejects a hand-typed id that isn't a merchant id", async () => {
+    const prisma = { brand: { findFirst: jest.fn().mockResolvedValue(brandRow()), update: jest.fn() } } as any;
+    await expect(
+      new TapService(prisma, {} as any).setMerchantId("t1", "b1", "led_123"),
+    ).rejects.toThrow(/merchant_/);
+    await expect(
+      new TapService(prisma, {} as any).setMerchantId("t1", "b1", " merchant_ok1 "),
+    ).resolves.toEqual({ tapMerchantId: "merchant_ok1", tapOnboardingStatus: "completed" });
   });
 });

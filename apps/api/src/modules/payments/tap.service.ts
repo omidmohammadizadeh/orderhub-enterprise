@@ -20,64 +20,45 @@ import { PaymentsService } from "./payments.service";
 // Not preference. Stripe's UAE Connect rules allow a UAE platform only Custom
 // accounts with destination charges or separate charges+transfers, and forbid
 // `on_behalf_of`. Our storefront takes DIRECT charges on the merchant's own
-// account, so the existing integration cannot legally be pointed at the Gulf —
-// it would need rewriting for either provider. Tap also settles KNET, mada and
-// BENEFIT, which Stripe cannot.
+// account, so the existing integration cannot legally be pointed at the Gulf.
+// Tap also settles KNET, mada and BENEFIT, which Stripe cannot.
 //
-// ── How Tap's marketplace model maps onto ours ──────────────────────────────
+// ── The PLATFORM model (what Tap actually gave us, 2026-09-30) ──────────────
 //
-// Stripe: charge lands on the MERCHANT's account, platform takes an
-// application_fee_amount off it.
+// The first build (Aug 2026) assumed Tap's MARKETPLACE model: every charge
+// landing on OUR account and a `destinations` entry paying the brand out. Tap
+// issued us PLATFORM accounts instead, and confirmed the mechanics in writing
+// (Batool, 2026-10-01):
 //
-// Tap: the charge lands on the MARKETPLACE (us) and carries a `destinations`
-// array naming each business's cut. "The remaining amount of the transaction
-// after the split goes directly to your Marketplace account" — so our fee is
-// the REMAINDER, not a line item. One destination for the brand, at
-// total-minus-fee, and Tap keeps the rest for us.
-//
-// That inverts who holds the money, which matters for two things and is why
-// this isn't a drop-in adapter: the merchant is paid by Tap's settlement run
-// rather than owning the balance, and a refund has to name the destinations to
-// claw back from.
-//
-// ── Two constraints Tap confirmed in writing, 2026-08-23 ────────────────────
-//
-// 1. THE REMAINDER IS NOT WHAT WE KEEP. Tap's processing fee is "deducted from
-//    the total transaction amount at the Marketplace level, not from each
-//    destination/restaurant's share", and Tap "also deducts the applicable VAT
-//    on the processing fee". Both come out of OUR balance, after the
-//    destination has been paid in full.
-//
-//    So on a 102 charge with a 95 destination, the 7 remainder is gross: Tap
-//    takes its fee on the whole 102, plus 5% VAT on that fee, and what's left
-//    is ours. The opposite of Stripe, where the SHOP absorbs the card cost.
-//    Nothing in this file models that — it happens at settlement, not at
-//    charge time — but it is why a Gulf brand's percentage has to be set
-//    higher than the UK equivalent to take home the same money.
-//
-// 2. ONE MARKETPLACE ACCOUNT SERVES ONE COUNTRY. "The retailer's country must
-//    be the same as the Marketplace account's country, because Tap cannot
-//    split a payment across countries." A UAE marketplace cannot onboard a
-//    Saudi restaurant. Expanding to a second Gulf country means a second
-//    licensed entity, bank account and Tap account there — not a config
-//    change. Whatever `TAP_SECRET_KEY` holds, it is one country's marketplace.
+//   • Three platforms, each with its own id and secret key: COMMERCE
+//     (websites — this file's charges), BILLING (invoice/payment links) and
+//     APP (our mobile app). Env: TAP_<KIND>_SECRET_KEY + TAP_<KIND>_PLATFORM_ID.
+//   • Charges are made with the PLATFORM's secret key and carry
+//     `platform.id` + `merchant.id`. The money goes to the BRAND's own Tap
+//     merchant, not to us — the Stripe direct-charge shape again.
+//   • Our commission rides on the charge as a `destinations` entry naming OUR
+//     static wallet (TAP_COMMISSION_DESTINATION_ID), visible to merchants.
+//     That is the inverse of the Aug code, where the destination was the
+//     merchant and the remainder was ours.
+//   • Webhooks are always signed with the platform keys, and one URL serves
+//     every merchant.
+//   • Onboarding: Lead (v3) → Connect URL → the restaurant does Tap's KYC →
+//     Tap posts the new merchant (`merchant_…`) to the URL we gave it.
 //
 // ── What is verified and what is not ────────────────────────────────────────
 //
-// Verified against developers.tap.company: the charge, refund and webhook
-// contracts below — endpoints, field names, the `destinations` shape, the
-// hashstring signature construction, and that `src_all` yields a hosted page
-// at `transaction.url`.
+// Probed against the sandbox (2026-10-01): POST /v3/lead and its response
+// shape (`id: "led_…"`, metadata echoed back). From Tap's docs only: the
+// Connect request/response (`connect.url`), the merchant-signup payload
+// (`id: "merchant_…"`), and `platform`/`merchant`/`destinations` on a charge.
+// Tap documents NO signature for the signup webhook, so its URL carries an
+// HMAC of the brand id instead — see onboardingSignature.
 //
-// NOT verified, because Tap does not document it: the Create Business response
-// shape, i.e. where a new sub-merchant's destination id actually appears. So
-// onboarding is NOT automated here — `Brand.tapDestinationId` is set by the
-// operator from Tap's dashboard, and this service refuses a charge without
-// one. Automating it needs one real response payload from Tap first; the
-// HubRise docs were wrong twice, and a guessed field path here would silently
-// settle money to the wrong business.
+// Refunds deliberately do NOT name our wallet: the merchant funds the whole
+// refund and we keep our commission, exactly as the UK's Stripe refunds do
+// (no refund_application_fee). Change both together or not at all.
 
-const TAP_API_BASE = "https://api.tap.company/v2";
+const TAP_API_BASE = "https://api.tap.company";
 
 /** Tap's charge lifecycle. CAPTURED is the only one that means money moved. */
 export type TapChargeStatus =
@@ -150,30 +131,84 @@ export function signaturesMatch(expected: string, received: string): boolean {
 }
 
 /**
- * Split one order between the brand and the platform.
+ * Our commission on one charge, as the `destinations` Tap pays it to.
  *
- * Returns what to put in `destinations` — the brand's share only. Our fee is
- * whatever is left over, which Tap keeps automatically; naming it as a second
- * destination would try to pay the marketplace out of its own charge.
+ * One entry naming OUR wallet, at the fee. The rest of the charge stays with
+ * the brand's merchant — under the Platform model that is where it lands, not
+ * a share we pay out.
  *
- * A fee at or above the total, or a negative one, is treated as no split at
- * all: sending a zero or negative destination amount would either be rejected
- * or silently pay the merchant nothing, and neither is a thing to guess about
+ * A zero fee, or one at/over the total, is no destination at all: a zero
+ * amount is rejected, and a fee that swallows the whole charge would leave the
+ * restaurant nothing for its own food, which is not a thing to guess at
  * mid-checkout.
  */
-export function splitForDestination(input: {
+export function commissionDestinations(input: {
   totalAmount: number;
   platformFee: number;
   currency: string;
-  destinationId: string;
+  walletId: string | null | undefined;
 }): Array<{ id: string; amount: number; currency: string }> {
+  if (!input.walletId) return [];
   const total = roundToCurrency(input.totalAmount, input.currency);
   const fee = roundToCurrency(Math.max(0, input.platformFee), input.currency);
-  const merchantShare = roundToCurrency(total - fee, input.currency);
-  if (!(merchantShare > 0)) return [];
-  return [
-    { id: input.destinationId, amount: merchantShare, currency: input.currency },
-  ];
+  if (!(fee > 0) || fee >= total) return [];
+  return [{ id: input.walletId, amount: fee, currency: input.currency }];
+}
+
+export type TapPlatformKind = "COMMERCE" | "BILLING" | "APP";
+export const TAP_PLATFORM_KINDS: TapPlatformKind[] = ["COMMERCE", "BILLING", "APP"];
+
+export interface TapPlatform {
+  kind: TapPlatformKind;
+  id: string;
+  secretKey: string;
+}
+
+/**
+ * One platform's id + secret key from the environment, or null when either is
+ * missing — half a platform is no platform, and a charge with the right key
+ * but no platform id would be routed as if we were the merchant.
+ *
+ * The pre-Platform `TAP_SECRET_KEY` is deliberately NOT a fallback: it was a
+ * marketplace key, and treating it as the commerce platform would send charges
+ * to the wrong account type.
+ */
+export function tapPlatformFromEnv(
+  kind: TapPlatformKind,
+  env: NodeJS.ProcessEnv = process.env,
+): TapPlatform | null {
+  const id = env[`TAP_${kind}_PLATFORM_ID`]?.trim();
+  const secretKey = env[`TAP_${kind}_SECRET_KEY`]?.trim();
+  if (!id || !secretKey) return null;
+  return { kind, id, secretKey };
+}
+
+/**
+ * What Tap's merchant-signup webhook URL is signed with.
+ *
+ * Tap documents no signature for that webhook, and its body carries the
+ * merchant id we are about to route a brand's money to — so an unauthenticated
+ * URL would let anyone point a brand's card takings at their own merchant. The
+ * URL instead carries HMAC(brandId); only Tap ever sees it, and it can't be
+ * forged for another brand. Derived, not stored, so it never sits in a brand
+ * row the dashboard reads back.
+ */
+export function onboardingSignature(brandId: string, secret: string): string {
+  return createHmac("sha256", secret).update(`tap-onboarding:${brandId}`).digest("hex");
+}
+
+/**
+ * Pull the new merchant id out of Tap's signup webhook. Two documented shapes:
+ * the merchant object itself (`id: "merchant_…"`) and the board notification
+ * (`merchant: { id }`). Anything else is not a merchant id, and guessing one is
+ * how a brand's money ends up on the wrong account.
+ */
+export function merchantIdFromSignup(body: any): string | null {
+  const candidates = [body?.id, body?.merchant?.id];
+  for (const c of candidates) {
+    if (typeof c === "string" && /^merchant_[A-Za-z0-9]+$/.test(c)) return c;
+  }
+  return null;
 }
 
 @Injectable()
@@ -188,27 +223,42 @@ export class TapService {
     private readonly payments: PaymentsService,
   ) {}
 
-  private get secretKey(): string | null {
-    return process.env.TAP_SECRET_KEY?.trim() || null;
+  platform(kind: TapPlatformKind): TapPlatform | null {
+    return tapPlatformFromEnv(kind);
   }
 
-  private get apiBase(): string {
-    return (process.env.TAP_API_BASE?.trim() || TAP_API_BASE).replace(/\/+$/, "");
+  private configuredPlatforms(): TapPlatform[] {
+    return TAP_PLATFORM_KINDS.map((k) => this.platform(k)).filter(
+      (p): p is TapPlatform => !!p,
+    );
   }
 
-  /** Whether Tap is wired up at all. Checked before routing a shop to it, so
-   *  a missing key is a clear refusal at checkout rather than a 500 mid-pay. */
+  /** Our wallet on Tap — the destination our commission is paid into. */
+  private get commissionWalletId(): string | null {
+    return process.env.TAP_COMMISSION_DESTINATION_ID?.trim() || null;
+  }
+
+  private get apiHost(): string {
+    // TAP_API_BASE used to include /v2. Accept either, and add the version
+    // per call — leads and Connect are v3, charges and refunds v2.
+    return (process.env.TAP_API_BASE?.trim() || TAP_API_BASE)
+      .replace(/\/+$/, "")
+      .replace(/\/v\d+$/, "");
+  }
+
+  /** Whether online card payments can be taken at all. Checked before routing
+   *  a shop to Tap, so a missing key is a clear refusal at checkout rather
+   *  than a 500 mid-pay. */
   configured(): boolean {
-    return !!this.secretKey;
+    return !!this.platform("COMMERCE");
   }
 
   private async call<T>(
+    key: string,
     path: string,
     init: { method: string; body?: unknown },
   ): Promise<T> {
-    const key = this.secretKey;
-    if (!key) throw new BadRequestException("Card payments aren't configured.");
-    const res = await fetch(`${this.apiBase}${path}`, {
+    const res = await fetch(`${this.apiHost}${path}`, {
       method: init.method,
       headers: {
         Authorization: `Bearer ${key}`,
@@ -241,12 +291,11 @@ export class TapService {
   }
 
   /**
-   * Start a hosted card payment for one order.
+   * Start a hosted card payment for one order, on the COMMERCE platform.
    *
-   * Hosted rather than embedded on purpose: `src_all` renders Tap's own page
-   * with every method the merchant has enabled — in the Gulf that means KNET,
-   * mada, BENEFIT and Apple Pay, not just cards — and each of those carries
-   * its own redirect and 3-D Secure flow that an embedded field cannot host.
+   * Hosted rather than embedded: `src_all` renders Tap's own page with every
+   * method the merchant has enabled — Apple Pay, and KNET/mada/BENEFIT where
+   * they apply — each with its own redirect and 3-D Secure flow.
    *
    * Returns the URL to send the browser to. Nothing is settled here: the money
    * is confirmed by the webhook, which is the only thing that marks the order
@@ -259,6 +308,9 @@ export class TapService {
     webhookUrl: string;
     customer: { firstName: string; lastName?: string; email?: string; phone?: string };
   }): Promise<{ chargeId: string; redirectUrl: string; amount: number; currency: string }> {
+    const platform = this.platform("COMMERCE");
+    if (!platform) throw new BadRequestException("Card payments aren't configured.");
+
     const order = await this.prisma.order.findFirst({
       where: { id: params.orderId, tenantId: params.tenantId },
       include: {
@@ -267,7 +319,7 @@ export class TapService {
           select: {
             id: true,
             name: true,
-            tapDestinationId: true,
+            tapMerchantId: true,
             applicationFeeMode: true,
             applicationFeeFixedAmount: true,
             applicationFeePercentage: true,
@@ -277,13 +329,13 @@ export class TapService {
     });
     if (!order) throw new NotFoundException("Order not found");
     const brand = (order as any).brand;
-    const destinationId = brand?.tapDestinationId;
-    if (!destinationId) {
+    const merchantId = brand?.tapMerchantId;
+    if (!merchantId) {
       // Deliberately specific. "Payment failed" here sends an operator to
       // check their card details when what's missing is a Tap onboarding step
       // only they can complete.
       throw new BadRequestException(
-        "This brand hasn't finished Tap onboarding — no destination is set, so there's nowhere for the money to settle. Choose Cash, or contact the restaurant.",
+        "This brand hasn't finished Tap onboarding — it has no Tap merchant account yet, so there's nowhere for the money to go. Choose Cash, or contact the restaurant.",
       );
     }
 
@@ -302,13 +354,18 @@ export class TapService {
     // in our cut — charging only the basket would quietly take it out of the
     // restaurant instead, which is the opposite of what the setting means.
     const charged = roundToCurrency(basket + customerSurcharge, currency);
+    const destinations = commissionDestinations({
+      totalAmount: charged,
+      platformFee,
+      currency,
+      walletId: this.commissionWalletId,
+    });
 
-    const charge = await this.call<TapCharge>("/charges", {
+    const charge = await this.call<TapCharge>(platform.secretKey, "/v2/charges", {
       method: "POST",
       body: {
         amount: charged,
         currency,
-        // Tap's hosted page with every method the merchant has enabled.
         source: { id: "src_all" },
         // 3-D Secure is not optional in the Gulf in practice — the local
         // schemes mandate it, and a charge that skips it is declined by the
@@ -323,15 +380,12 @@ export class TapService {
         },
         // Tap's hosted page shows the description, and it is the only place
         // the customer can see why they are being charged more than their
-        // basket. Stripe gets a "Service charge" line item; a charge has no
-        // line items, so it says so here.
+        // basket — a charge has no line items.
         description:
           `${brand?.name ?? (order as any).location?.name ?? "Order"} — ${order.displayId ?? order.id}` +
           (customerSurcharge > 0
             ? ` (incl. ${customerSurcharge.toFixed(currencyDecimals(currency))} service charge)`
             : ""),
-        // Our own id on their record, so a Tap dashboard row can be traced
-        // back to an order without going through our database.
         reference: {
           order: order.displayId ?? order.id,
           // Tap dedupes on this, which is what stops a double-tapped Pay
@@ -344,14 +398,11 @@ export class TapService {
           locationId: order.locationId ?? "",
           brandId: brand?.id ?? "",
         },
-        destinations: {
-          destination: splitForDestination({
-            totalAmount: charged,
-            platformFee,
-            currency,
-            destinationId,
-          }),
-        },
+        // The Platform model: whose money this is (the brand's merchant) and
+        // which of our platforms took it.
+        platform: { id: platform.id },
+        merchant: { id: merchantId },
+        ...(destinations.length ? { destinations: { destination: destinations } } : {}),
         post: { url: params.webhookUrl },
         redirect: { url: params.redirectUrl },
       },
@@ -365,13 +416,19 @@ export class TapService {
       throw new BadRequestException("The payment couldn't be started. Please try again.");
     }
 
+    // What we actually take is what rode on the charge — if no commission
+    // destination went out, we earned nothing on it, and the Payment row must
+    // not claim otherwise.
+    const takenFee = destinations.reduce((sum, d) => sum + d.amount, 0);
     await this.recordPendingPayment({
       tenantId: params.tenantId,
       order,
       charge,
       currency,
       charged,
-      platformFee,
+      platformFee: roundToCurrency(takenFee, currency),
+      merchantId,
+      platformKind: platform.kind,
     });
 
     return { chargeId: charge.id, redirectUrl: url, amount: charged, currency };
@@ -380,49 +437,53 @@ export class TapService {
   /** Read a charge back from Tap. Used to reconcile an order whose webhook
    *  never arrived — the customer is back on the confirmation page and Tap is
    *  the only thing that knows whether their money moved. */
-  async retrieveCharge(chargeId: string): Promise<TapCharge> {
-    return this.call<TapCharge>(`/charges/${encodeURIComponent(chargeId)}`, {
-      method: "GET",
-    });
+  async retrieveCharge(
+    chargeId: string,
+    kind: TapPlatformKind = "COMMERCE",
+  ): Promise<TapCharge> {
+    const platform = this.platform(kind);
+    if (!platform) throw new BadRequestException("Card payments aren't configured.");
+    return this.call<TapCharge>(
+      platform.secretKey,
+      `/v2/charges/${encodeURIComponent(chargeId)}`,
+      { method: "GET" },
+    );
   }
 
   /**
-   * Refund a Tap charge, reversing the split.
+   * Refund a Tap charge, in full or in part.
    *
-   * `destinations` has to be named on the refund too: without it Tap takes the
-   * whole refund out of the marketplace balance, so we would be handing the
-   * customer their money back out of our own pocket while the merchant keeps
-   * their share of a cancelled order.
+   * No `destinations`: under the Platform model the money sits with the
+   * merchant, so the refund comes out of their balance and our commission
+   * stays ours — the same as a UK Stripe refund. `commissionRefund` hands our
+   * cut back as well, for the case where that is the agreed outcome.
    */
   async refundCharge(params: {
     chargeId: string;
     amount: number;
     currency: string;
     reason: string;
-    destinationId?: string | null;
-    destinationAmount?: number;
+    kind?: TapPlatformKind;
+    commissionRefund?: number;
   }): Promise<{ id: string; status: string }> {
+    const platform = this.platform(params.kind ?? "COMMERCE");
+    if (!platform) throw new BadRequestException("Card payments aren't configured.");
     const currency = params.currency.toUpperCase();
     const amount = roundToCurrency(params.amount, currency);
-    const share =
-      params.destinationId && params.destinationAmount != null
-        ? roundToCurrency(params.destinationAmount, currency)
-        : null;
-    return this.call<{ id: string; status: string }>("/refunds", {
+    const wallet = this.commissionWalletId;
+    const back =
+      wallet && params.commissionRefund != null
+        ? roundToCurrency(params.commissionRefund, currency)
+        : 0;
+    return this.call<{ id: string; status: string }>(platform.secretKey, "/v2/refunds", {
       method: "POST",
       body: {
         charge_id: params.chargeId,
         amount,
         currency,
         reason: params.reason,
-        ...(share && share > 0
-          ? {
-              destinations: {
-                destination: [
-                  { id: params.destinationId, amount: share, currency },
-                ],
-              },
-            }
+        ...(back > 0
+          ? { destinations: { destination: [{ id: wallet, amount: back, currency }] } }
           : {}),
         reference: { idempotent: `rf_${params.chargeId}_${toUnits(amount, currency)}` },
       },
@@ -430,20 +491,23 @@ export class TapService {
   }
 
   /**
-   * Verify a webhook against the `hashstring` header.
+   * Verify a charge/refund webhook against the `hashstring` header.
    *
-   * Signed with our SECRET key, over a string Tap builds from six fields of
-   * the object — see tapHashString. An unverified body is not a payment: Tap's
-   * webhook URL is public and posting a CAPTURED charge to it is otherwise all
-   * it would take to mark any order paid.
+   * Signed with a PLATFORM's secret key (Tap, in writing). We have up to
+   * three and the body doesn't say which one, so any configured platform key
+   * that matches is accepted. An unverified body is not a payment: posting a
+   * CAPTURED charge to this public URL is otherwise all it would take to mark
+   * any order paid.
    */
   verifyWebhook(body: TapSignable, hashstring: string | undefined): boolean {
-    const key = this.secretKey;
-    if (!key || !hashstring) return false;
-    const expected = createHmac("sha256", key)
-      .update(tapHashString(body))
-      .digest("hex");
-    return signaturesMatch(expected, hashstring);
+    if (!hashstring) return false;
+    const signed = tapHashString(body);
+    return this.configuredPlatforms().some((p) =>
+      signaturesMatch(
+        createHmac("sha256", p.secretKey).update(signed).digest("hex"),
+        hashstring,
+      ),
+    );
   }
 
   /**
@@ -456,8 +520,7 @@ export class TapService {
    *
    * Only CAPTURED means the money moved. Every other terminal status marks the
    * payment failed and leaves the order unpaid — deliberately not cancelled,
-   * because a customer whose card was declined usually tries again, and
-   * binning their basket is a worse outcome than an order sitting unpaid.
+   * because a customer whose card was declined usually tries again.
    */
   async settleCharge(charge: TapCharge): Promise<void> {
     const payment = await (this.prisma as any).payment.findFirst({
@@ -501,33 +564,26 @@ export class TapService {
     });
     if (!payment?.providerChargeId) return;
     if (payment.status === "SUCCEEDED") return;
-    const charge = await this.retrieveCharge(payment.providerChargeId);
+    const charge = await this.retrieveCharge(
+      payment.providerChargeId,
+      platformKindOf(payment),
+    );
     await this.settleCharge(charge);
   }
 
-  /**
-   * Refund a Tap-paid order in full, reversing the merchant's share too.
-   *
-   * The brand's destination has to be named or Tap funds the whole refund from
-   * the marketplace balance — we would be refunding the customer out of our
-   * own money while the merchant kept their cut of a cancelled order.
-   */
+  /** Refund a Tap-paid order in full. The merchant funds it; see refundCharge. */
   async refundOrder(orderId: string, reason = "Order cancelled"): Promise<void> {
     const payment = await (this.prisma as any).payment.findFirst({
       where: { orderId, provider: "TAP", status: "SUCCEEDED" },
       orderBy: { createdAt: "desc" },
     });
     if (!payment?.providerChargeId) return;
-    const destinationId = (payment.metadata as any)?.destinationId ?? null;
-    const amount = Number(payment.amount);
-    const merchantShare = Number(payment.netAmount);
     const out = await this.refundCharge({
       chargeId: payment.providerChargeId,
-      amount,
+      amount: Number(payment.amount),
       currency: payment.currency,
       reason,
-      destinationId,
-      destinationAmount: merchantShare,
+      kind: platformKindOf(payment),
     });
     await (this.prisma as any).payment.update({
       where: { id: payment.id },
@@ -543,6 +599,223 @@ export class TapService {
     this.logger.log(`Tap refund ${out.id} (${out.status}) for order ${orderId}`);
   }
 
+  // ── Onboarding: Lead → Connect → merchant ─────────────────────────────────
+
+  private get onboardingSecret(): string | null {
+    return (
+      process.env.TAP_ONBOARDING_SECRET?.trim() ||
+      this.platform("COMMERCE")?.secretKey ||
+      null
+    );
+  }
+
+  /** The URL Tap posts the new merchant to for one brand. */
+  onboardingWebhookUrl(brandId: string): string {
+    const secret = this.onboardingSecret;
+    if (!secret) throw new BadRequestException("Tap isn't configured.");
+    const api = (process.env.API_URL ?? "").replace(/\/+$/, "");
+    return `${api}/v1/payments/tap/onboarding/${encodeURIComponent(brandId)}/${onboardingSignature(brandId, secret)}`;
+  }
+
+  verifyOnboardingSignature(brandId: string, sig: string): boolean {
+    const secret = this.onboardingSecret;
+    if (!secret) return false;
+    return signaturesMatch(onboardingSignature(brandId, secret), sig ?? "");
+  }
+
+  /**
+   * Generate (or regenerate) the Tap sign-up link for a brand.
+   *
+   * One lead per brand, listing every platform we have, so the restaurant does
+   * KYC once and its merchant can be charged from the website, payment links
+   * and the app alike — Tap's guidance is to onboard a merchant under each
+   * platform it will use. An open lead is reused; Tap expires them after 30
+   * days, so a failure to connect it falls through to a fresh lead.
+   */
+  async startOnboarding(
+    tenantId: string,
+    brandId: string,
+  ): Promise<{ connectUrl: string; leadId: string; status: string }> {
+    const brand = await this.prisma.brand.findFirst({
+      where: { id: brandId, tenantId, deletedAt: null },
+    });
+    if (!brand) throw new NotFoundException("Brand not found");
+    const b = brand as any;
+    if (b.tapMerchantId) {
+      throw new BadRequestException(
+        "This brand already has a Tap merchant account. Clear it first if you really mean to onboard again.",
+      );
+    }
+    const platforms = this.configuredPlatforms();
+    if (!platforms.length) throw new BadRequestException("Tap isn't configured.");
+
+    const postUrl = this.onboardingWebhookUrl(brandId);
+    const web = (process.env.WEB_URL ?? "https://www.orderhubsolutions.com").replace(/\/+$/, "");
+    const redirectUrl = `${web}/dashboard/brands?tapOnboarded=${encodeURIComponent(brandId)}`;
+
+    let leadId: string | null = b.tapLeadId ?? null;
+    let connectUrl: string | null = null;
+    if (leadId) {
+      connectUrl = await this.connectUrlFor(platforms, leadId, postUrl, redirectUrl).catch(
+        (err) => {
+          this.logger.warn(`Tap lead ${leadId} couldn't be reconnected (${err.message}) — starting a new one`);
+          return null;
+        },
+      );
+    }
+    if (!connectUrl) {
+      leadId = await this.createLead(platforms, b, postUrl);
+      connectUrl = await this.connectUrlFor(platforms, leadId, postUrl, redirectUrl);
+    }
+
+    await this.prisma.brand.update({
+      where: { id: brandId },
+      data: {
+        tapLeadId: leadId,
+        tapConnectUrl: connectUrl,
+        tapOnboardingStatus: "link_sent",
+      } as any,
+    });
+    return { connectUrl, leadId: leadId!, status: "link_sent" };
+  }
+
+  /**
+   * Try each platform key in turn. In the sandbox (2026-10-01) the same lead
+   * call was refused by one platform's key ("Api_key_unauthorised") and
+   * accepted by another's, with no pattern documented — so one refusal is not
+   * an answer.
+   */
+  private async withAnyPlatform<T>(
+    platforms: TapPlatform[],
+    fn: (p: TapPlatform) => Promise<T>,
+  ): Promise<T> {
+    let last: unknown;
+    for (const p of platforms) {
+      try {
+        return await fn(p);
+      } catch (err) {
+        last = err;
+      }
+    }
+    throw last instanceof Error ? last : new BadRequestException("Tap refused the request.");
+  }
+
+  private async createLead(platforms: TapPlatform[], brand: any, postUrl: string): Promise<string> {
+    // Tap wants a brand name of at least three characters.
+    const name = String(brand.name ?? "").trim().padEnd(3, ".");
+    const body = {
+      country: String(brand.country || "AE").toUpperCase(),
+      brand: { name: [{ text: name, lang: "en" }] },
+      merchant: { platforms: platforms.map((p) => ({ id: p.id })) },
+      // Echoed back on the lead — how a lead in Tap OS is traced to a brand.
+      metadata: { brandId: brand.id, tenantId: brand.tenantId },
+      post: { url: postUrl },
+    };
+    const lead = await this.withAnyPlatform(platforms, (p) =>
+      this.call<{ id: string }>(p.secretKey, "/v3/lead", { method: "POST", body }),
+    );
+    if (!lead?.id) throw new BadRequestException("Tap didn't return a lead id.");
+    return lead.id;
+  }
+
+  private async connectUrlFor(
+    platforms: TapPlatform[],
+    leadId: string,
+    postUrl: string,
+    redirectUrl: string,
+  ): Promise<string> {
+    const res = await this.withAnyPlatform(platforms, (p) =>
+      this.call<{ connect?: { url?: string } }>(p.secretKey, "/v3/connect", {
+        method: "POST",
+        body: {
+          scope: "merchant",
+          data: ["operation", "brand", "entity", "merchant"],
+          lead: { id: leadId },
+          board: { editable: true, display: true },
+          redirect: { url: redirectUrl },
+          post: { url: postUrl },
+          webhook: { url: postUrl },
+          interface: { locale: "en", direction: "ltr", edges: "curved" },
+        },
+      }),
+    );
+    const url = res?.connect?.url;
+    if (!url) throw new BadRequestException("Tap didn't return a sign-up link.");
+    return url;
+  }
+
+  /**
+   * Tap's merchant-signup webhook, already authenticated by its URL signature.
+   *
+   * Takes ONLY the merchant id. The payload also carries the new merchant's
+   * own API keys (`operator.api_credentials`) — we charge with our platform
+   * keys, so we have no use for them, and storing a merchant's live secret is
+   * a liability with no upside. Never log the body for the same reason.
+   */
+  async completeOnboarding(brandId: string, body: any): Promise<boolean> {
+    const merchantId = merchantIdFromSignup(body);
+    if (!merchantId) {
+      this.logger.log(
+        `Tap onboarding post for brand ${brandId} carried no merchant id (keys: ${Object.keys(body ?? {}).join(",")}) — ignoring`,
+      );
+      return false;
+    }
+    const echoed = body?.metadata?.brandId;
+    if (echoed && echoed !== brandId) {
+      this.logger.warn(`Tap onboarding post for brand ${brandId} names brand ${echoed} — refusing`);
+      return false;
+    }
+    const brand = await this.prisma.brand.findFirst({ where: { id: brandId } });
+    if (!brand) return false;
+    const existing = (brand as any).tapMerchantId;
+    if (existing && existing !== merchantId) {
+      // Never silently move a trading brand's money to a different account.
+      this.logger.warn(
+        `Tap onboarding post for brand ${brandId} names ${merchantId} but it already has ${existing} — not overwriting`,
+      );
+      return false;
+    }
+    await this.prisma.brand.update({
+      where: { id: brandId },
+      data: { tapMerchantId: merchantId, tapOnboardingStatus: "completed" } as any,
+    });
+    this.logger.log(`Tap onboarding complete for brand ${brandId}: ${merchantId}`);
+    return true;
+  }
+
+  /**
+   * Set or clear a brand's Tap merchant by hand — for a merchant onboarded in
+   * Tap OS rather than through our link, or a webhook that never arrived.
+   * Admin-only at the route; the format check stops a pasted lead/brand id
+   * (`led_…`, `brd_…`) being taken for a merchant.
+   */
+  async setMerchantId(
+    tenantId: string,
+    brandId: string,
+    merchantId: string | null,
+  ): Promise<{ tapMerchantId: string | null; tapOnboardingStatus: string }> {
+    const brand = await this.prisma.brand.findFirst({
+      where: { id: brandId, tenantId, deletedAt: null },
+    });
+    if (!brand) throw new NotFoundException("Brand not found");
+    const id = (merchantId ?? "").trim() || null;
+    if (id && !/^merchant_[A-Za-z0-9]+$/.test(id)) {
+      throw new BadRequestException(
+        "That isn't a Tap merchant id — it should start with merchant_ (Tap OS → Merchants).",
+      );
+    }
+    const status = id
+      ? "completed"
+      : (brand as any).tapLeadId
+        ? "link_sent"
+        : "not_started";
+    await this.prisma.brand.update({
+      where: { id: brandId },
+      data: { tapMerchantId: id, tapOnboardingStatus: status } as any,
+    });
+    return { tapMerchantId: id, tapOnboardingStatus: status };
+  }
+
   // ── internals ─────────────────────────────────────────────────────────────
 
   /**
@@ -555,20 +828,25 @@ export class TapService {
    *     7.75% + AED 2 on a 100 order means the customer is charged 102;
    *   • the PERCENTAGE part is silent, taken out of the restaurant's share.
    *
-   * So our cut is fixed + pct×basket, and the restaurant gets
-   * (basket + surcharge) − our cut, which is basket − pct×basket. Same
-   * arithmetic as computeFeeBreakdownPence in PaymentsService, and it has to
-   * stay the same or the identical brand config would mean different money
+   * Same arithmetic as computeFeeBreakdownPence in PaymentsService, and it has
+   * to stay the same or the identical brand config would mean different money
    * either side of the Gulf.
    *
    * Decimal units, not pence: the `* 100` that path uses is exactly the
    * assumption that breaks on a three-decimal dinar.
+   *
+   * With no commission wallet configured there is nowhere for our fee to go,
+   * so there is no fee at all — not even the customer surcharge, which would
+   * otherwise be charged to the customer and land with the restaurant.
    */
   private feeBreakdown(
     order: any,
     basket: number,
     currency: string,
   ): { platformFee: number; customerSurcharge: number } {
+    if (!this.commissionWalletId) {
+      return { platformFee: 0, customerSurcharge: 0 };
+    }
     const brand = order.brand;
     const src =
       brand?.applicationFeeMode && brand.applicationFeeMode !== "none"
@@ -595,8 +873,6 @@ export class TapService {
    *
    * Ahead of the redirect on purpose: the row is what the webhook matches on,
    * and the webhook can land before the customer's browser gets back to us.
-   * Creating it on webhook receipt instead would race, and lose the fee
-   * breakdown we computed here.
    */
   private async recordPendingPayment(input: {
     tenantId: string;
@@ -606,6 +882,8 @@ export class TapService {
     /** What the customer is charged — basket PLUS any fixed surcharge. */
     charged: number;
     platformFee: number;
+    merchantId: string;
+    platformKind: TapPlatformKind;
   }): Promise<void> {
     await (this.prisma as any).payment
       .create({
@@ -620,8 +898,7 @@ export class TapService {
           method: "CARD",
           platformFee: input.platformFee,
           processingFee: 0,
-          // What the restaurant actually receives — and what a refund has to
-          // claw back from their destination.
+          // What the restaurant's merchant keeps of the charge.
           netAmount: roundToCurrency(
             input.charged - input.platformFee,
             input.currency,
@@ -629,7 +906,9 @@ export class TapService {
           metadata: {
             tapChargeId: input.charge.id,
             tapStatus: input.charge.status,
-            destinationId: input.order.brand?.tapDestinationId ?? null,
+            tapMerchantId: input.merchantId,
+            tapPlatform: input.platformKind,
+            commissionWalletId: input.platformFee > 0 ? this.commissionWalletId : null,
           },
         },
       })
@@ -641,6 +920,13 @@ export class TapService {
         throw err;
       });
   }
+}
+
+/** Which platform took a payment — charges are read and refunded with that
+ *  platform's key. Rows from before the Platform model have none: COMMERCE. */
+function platformKindOf(payment: any): TapPlatformKind {
+  const k = (payment?.metadata as any)?.tapPlatform;
+  return TAP_PLATFORM_KINDS.includes(k) ? k : "COMMERCE";
 }
 
 /** Tap wants the country code and number as separate fields. Best-effort:

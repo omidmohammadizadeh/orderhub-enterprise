@@ -109,6 +109,63 @@ export class PaymentsController {
     return { received: true };
   }
 
+  /**
+   * POST /v1/payments/tap/brands/:brandId/onboarding — generate the Tap
+   * sign-up link a restaurant follows to open its merchant account (KYC on
+   * Tap's own pages). Admin-only, like the Stripe payout settings it replaces
+   * for the Gulf.
+   */
+  @Post("tap/brands/:brandId/onboarding")
+  @Roles("TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Create a Tap Connect sign-up link for a brand" })
+  startTapOnboarding(
+    @Param("brandId") brandId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.tap.startOnboarding(user.tenantId, brandId);
+  }
+
+  /** POST /v1/payments/tap/brands/:brandId/merchant — set/clear by hand. */
+  @Post("tap/brands/:brandId/merchant")
+  @Roles("TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Set or clear a brand's Tap merchant id" })
+  setTapMerchant(
+    @Param("brandId") brandId: string,
+    @Body() body: { merchantId?: string | null },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.tap.setMerchantId(user.tenantId, brandId, body?.merchantId ?? null);
+  }
+
+  /**
+   * POST /v1/payments/tap/onboarding/:brandId/:sig — Tap posts the new
+   * merchant here once the restaurant finishes Connect.
+   *
+   * Tap documents no signature for this webhook, so `sig` (an HMAC of the
+   * brand id that only Tap is ever given) is the authentication. Always 200s
+   * so Tap doesn't retry something that will never match.
+   */
+  @Post("tap/onboarding/:brandId/:sig")
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Tap merchant-signup webhook (URL-signed)" })
+  async handleTapOnboarding(
+    @Param("brandId") brandId: string,
+    @Param("sig") sig: string,
+    @Body() body: any,
+  ) {
+    if (!this.tap.verifyOnboardingSignature(brandId, sig)) {
+      this.logger.warn(`Tap onboarding post rejected: bad signature for brand ${brandId}`);
+      return { received: true };
+    }
+    await this.tap
+      .completeOnboarding(brandId, body)
+      .catch((err: any) =>
+        this.logger.error(`Tap onboarding failed for brand ${brandId}: ${err.message}`),
+      );
+    return { received: true };
+  }
+
   // GET /v1/payments/orders/:orderId
   @Get("orders/:orderId")
   @ApiOperation({ summary: "Get all payments and refunds for an order" })

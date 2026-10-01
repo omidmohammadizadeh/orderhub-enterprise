@@ -170,10 +170,14 @@ export interface Brand {
   customDomain?: string | null;
   customDomainStatus?: string;
   stripeConnectedAccountId?: string | null;
-  /** Tap's destination id — where a Gulf brand's share of a split charge
-   *  settles. The counterpart of stripeConnectedAccountId; a card charge is
-   *  refused without one. */
-  tapDestinationId?: string | null;
+  /** The brand's own Tap merchant (`merchant_…`) — Gulf card payments are
+   *  routed to it. Set by Tap's onboarding webhook or by an admin. */
+  tapMerchantId?: string | null;
+  tapLeadId?: string | null;
+  /** not_started | link_sent | completed */
+  tapOnboardingStatus?: string;
+  /** The last Tap sign-up link generated, so it can be re-sent. */
+  tapConnectUrl?: string | null;
   applicationFeeFixedAmount?: number | string | null;
   applicationFeePercentage?: number | string | null;
   applicationFeeMode?: string;
@@ -241,6 +245,22 @@ export const brandsClient = {
       .then((r) => r.data),
   /** Copy this brand's application fee onto every other brand in the tenant.
    *  Call with dryRun first — same shape back, nothing written. */
+  /** Generate the Tap sign-up link a Gulf restaurant uses to open its
+   *  merchant account. Admin-only. */
+  startTapOnboarding: (brandId: string) =>
+    apiClient
+      .post<{ connectUrl: string; leadId: string; status: string }>(
+        `/v1/payments/tap/brands/${brandId}/onboarding`,
+      )
+      .then((r) => r.data),
+  /** Set (or clear, with null) a brand's Tap merchant id by hand. */
+  setTapMerchant: (brandId: string, merchantId: string | null) =>
+    apiClient
+      .post<{ tapMerchantId: string | null; tapOnboardingStatus: string }>(
+        `/v1/payments/tap/brands/${brandId}/merchant`,
+        { merchantId },
+      )
+      .then((r) => r.data),
   applyFeeToAll: (brandId: string, dryRun = false) =>
     apiClient
       .post<FeeApplyResult>(`/v1/brands/${brandId}/fee/apply-to-all`, { dryRun })
