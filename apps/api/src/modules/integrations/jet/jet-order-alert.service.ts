@@ -1,5 +1,6 @@
 import { Injectable, Logger, Optional } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { EmailService } from "../../../infrastructure/email/email.service";
 import { ActivityLogService } from "../../logs/activity-log.service";
 import { NotificationsService } from "../../notifications/notifications.service";
 
@@ -61,6 +62,11 @@ export class JetOrderAlertService {
 
   constructor(
     private readonly config: ConfigService,
+    // Resend, via the platform's own EmailService. NotificationsService has an
+    // EMAIL channel too, but it is a SendGrid branch with no key in Render —
+    // it logs "skipping email" and returns, so an alert sent that way would
+    // have reached nobody at all.
+    @Optional() private readonly email?: EmailService,
     @Optional() private readonly notifications?: NotificationsService,
     @Optional() private readonly activity?: ActivityLogService,
   ) {}
@@ -119,29 +125,33 @@ export class JetOrderAlertService {
         this.config?.get<string>("app.platforms.jet.opsAlertEmail") ?? "",
       ).trim();
       if (opsEmail) {
-        await this.notifications
-          ?.sendOpsAlert(
-            `${this.headline(args.kind)} — Just Eat order ${ref}`,
-            `<p><b>${this.headline(args.kind)}</b></p>` +
+        await this.email
+          ?.send({
+            to: opsEmail,
+            subject: `${this.headline(args.kind)} — Just Eat order ${ref}`,
+            html:
+              `<p><b>${this.headline(args.kind)}</b></p>` +
               `<p>Store: ${where}<br/>` +
               `Order: ${ref} (JET id ${args.jetOrderId})<br/>` +
               `${detail ? `Reason: ${detail}<br/>` : ""}` +
               `When: ${new Date().toISOString()}</p>` +
               `<p>Search the API log for <code>${args.jetOrderId}</code> for the full trail.</p>`,
-            opsEmail,
-          )
+          })
           .catch((e: any) =>
             this.logger.warn(`JET alert: could not email ops: ${e?.message}`),
           );
       }
 
-      // 4. A text, because an email is not read mid-service — and on 1 Oct
-      //    the API had Twilio configured and no SendGrid at all, so an alert
-      //    that could only email would have been an alert that did nothing.
+      // 4. A text, but ONLY when the order is actually gone.
+      //
+      //    An email on Resend is effectively free and carries the full detail;
+      //    a segment costs real money and interrupts someone. A rejected order
+      //    still reaches the restaurant's backup flow, so it does not warrant
+      //    a buzz — an un-acked or abandoned one is lost, and does.
       const opsSms = String(
         this.config?.get<string>("app.platforms.jet.opsAlertSms") ?? "",
       ).trim();
-      if (opsSms) {
+      if (opsSms && args.kind !== "ingest_failed") {
         await this.notifications
           ?.sendOpsSms(this.smsText(args, ref, where), opsSms)
           .catch((e: any) =>
