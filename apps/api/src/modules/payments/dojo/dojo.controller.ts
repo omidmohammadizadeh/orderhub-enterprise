@@ -84,6 +84,23 @@ export class DojoController {
     return this.dojo.renameTerminal(user.tenantId, locationId, terminalId, body?.label ?? "");
   }
 
+  // Who hosts this shop's "Payment link": Stripe unless an operator switches
+  // it here. Per location, because one shop going to Dojo must not move
+  // anybody else's takings.
+  @Post("locations/:locationId/payment-links")
+  @Roles(...DOJO_ADMIN_ROLES)
+  @ApiOperation({ summary: "Host this location's payment links on Dojo instead of Stripe" })
+  enablePaymentLinks(@Param("locationId") locationId: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.dojo.enablePaymentLinks(user.tenantId, locationId);
+  }
+
+  @Delete("locations/:locationId/payment-links")
+  @Roles(...DOJO_ADMIN_ROLES)
+  @ApiOperation({ summary: "Put this location's payment links back on Stripe" })
+  disablePaymentLinks(@Param("locationId") locationId: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.dojo.disablePaymentLinks(user.tenantId, locationId);
+  }
+
   @Post("locations/:locationId/pay-at-table")
   @Roles(...DOJO_ADMIN_ROLES)
   @ApiOperation({ summary: "Turn on Dojo Pay at Table (registers our EPOS endpoints with Dojo)" })
@@ -250,6 +267,28 @@ export class DojoController {
   @ApiOperation({ summary: "Poll a card-machine refund" })
   terminalRefundStatus(@Query("paymentIntentId") paymentIntentId: string, @CurrentUser() user: AuthenticatedUser) {
     return this.dojo.terminalRefundStatus(user.tenantId, paymentIntentId);
+  }
+
+  // A refund asks for a signature exactly as a sale does, and the machine waits
+  // for an answer either way. Its own route rather than a flag on
+  // `charge/signature`, because money going back is manager-tier.
+  @Post("charge/refund/signature")
+  @Roles(...DOJO_ADMIN_ROLES)
+  @ApiOperation({ summary: "Accept or reject the signature on a card-machine refund" })
+  refundSignature(
+    @Body() body: { paymentIntentId: string; accepted: boolean },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.dojo.respondToRefundSignature(user.tenantId, body.paymentIntentId, body.accepted === true);
+  }
+
+  // The refund session expired without the machine reporting an outcome: the
+  // operator read the machine and is telling us the money went back.
+  @Post("charge/refund/record")
+  @Roles(...DOJO_ADMIN_ROLES)
+  @ApiOperation({ summary: "Record a card-machine refund the machine never confirmed" })
+  recordUnconfirmedRefund(@Body() body: { paymentIntentId: string }, @CurrentUser() user: AuthenticatedUser) {
+    return this.dojo.recordUnconfirmedRefund(user.tenantId, body.paymentIntentId, user.userId);
   }
 
   // ── Webhook ───────────────────────────────────────────────────────────────

@@ -34,7 +34,19 @@ import {
 } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { formatMoney, currencySymbol } from "@orderhub/shared";
+import {
+  formatMoney,
+  currencySymbol,
+  applyMultiBuys,
+  basketMinAge,
+  describeMultiBuy,
+  normaliseSellBy,
+  sellByLabel,
+  weighedLineName,
+  type SellBy,
+  type MultiBuyApplication,
+  type MultiBuyDeal,
+} from "@orderhub/shared";
 import axios from "axios";
 import { LoginModal } from "@/components/storefront/login-modal";
 import { FoodPlaceholder } from "@/components/storefront/food-placeholder";
@@ -45,6 +57,7 @@ import { ReferAFriend } from "@/components/storefront/refer-a-friend";
 import { PlacingOrderSheet } from "@/components/storefront/placing-order-sheet";
 import { TipStep } from "@/components/storefront/tip-step";
 import { ShopProductTile } from "@/components/storefront/shop-product-tile";
+import { WeightSheet } from "@/components/storefront/weight-sheet";
 import {
   RatingPill,
   StorefrontReviews,
@@ -229,6 +242,8 @@ interface CartLine {
   /** Retail R3 — shops only: may the picker swap this if it's out of stock?
    *  Absent = yes (BEST_MATCH), the grocery norm. */
   substitution?: "BEST_MATCH" | "NONE";
+  /** Retail — weighed products: grams per pack (the checkout re-prices it). */
+  weightGrams?: number;
 }
 
 type CartAction =
@@ -263,6 +278,7 @@ function cartLineKey(line: Omit<CartLine, "id">): string {
     line.plu ?? "",
     line.bogoOf ?? "",
     line.freeItemOf ?? "",
+    line.weightGrams ?? "",
     mods,
   ].join("\u0000");
 }
@@ -494,6 +510,8 @@ function OrderPage() {
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [scheduledFor, setScheduledFor] = useState<string | null>(null); // ISO
   const [modalItem, setModalItem] = useState<MenuItem | null>(null);
+  // Retail — a loose product waiting for the shopper to pick an amount.
+  const [weighItem, setWeighItem] = useState<MenuItem | null>(null);
   const [confirmedOrderId, setConfirmedOrderId] = useState<string | null>(null);
   // Set once an embedded CARD order has been created and is waiting to be
   // paid on-page. Non-null means the payment sheet is up.
@@ -556,6 +574,8 @@ function OrderPage() {
   const [customerEmail, setCustomerEmail] = useState("");
   // "Keep me updated by SMS" — ticked by default, customer can opt out.
   const [smsMarketingConsent, setSmsMarketingConsent] = useState(true);
+  // Challenge 25 — "I'm 18 or over", asked only when the basket needs it.
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [addrFlat, setAddrFlat] = useState(""); // Phase AP fix #3 — house/flat number
   const [addrLine1, setAddrLine1] = useState("");
   const [addrCity, setAddrCity] = useState("");
@@ -969,20 +989,47 @@ function OrderPage() {
       });
     }
   }, [cart, freeItem, eligibleSubtotal, chosenFreeItemId, itemsById, groupToken]);
+  // Retail — multi-buys ("3 for £2", meal deals) come off first, with the
+  // same engine the checkout charges by; the campaign or promo code then
+  // applies to what's left.
+  const multiBuyDeals: MultiBuyDeal[] = (storefront as any)?.multiBuys ?? [];
+  const multiBuy = useMemo(
+    () =>
+      applyMultiBuys(
+        cart.map((l) => ({ menuItemId: l.menuItemId, unitPrice: l.unitPrice, quantity: l.quantity })),
+        multiBuyDeals,
+      ),
+    [cart, multiBuyDeals],
+  );
+  const afterDeals = round2(Math.max(0, subtotal - multiBuy.savings));
+  // The first multi-buy each product counts towards, for its tile badge.
+  const dealLabelFor = useCallback(
+    (itemId: string): string | null => {
+      const d = multiBuyDeals.find((x) =>
+        x.mode === "MEAL_DEAL" ? x.slots.some((sl) => sl.itemIds.includes(itemId)) : x.itemIds.includes(itemId),
+      );
+      return d ? describeMultiBuy(d, currencySymbol(currency)) : null;
+    },
+    [multiBuyDeals, currency],
+  );
   const campaignClears =
     storeCampaign &&
     (storeCampaign.minOrder == null ||
-      subtotal >= Number(storeCampaign.minOrder));
+      afterDeals >= Number(storeCampaign.minOrder));
   const campaignDiscount = !campaignClears
     ? 0
     : storeCampaign.percentageOff != null
-      ? Math.round(subtotal * Number(storeCampaign.percentageOff)) / 100
+      ? Math.round(afterDeals * Number(storeCampaign.percentageOff)) / 100
       : storeCampaign.amountOff != null
-        ? Math.min(subtotal, Number(storeCampaign.amountOff))
+        ? Math.min(afterDeals, Number(storeCampaign.amountOff))
         : 0;
-  // Effective discount is the larger of the promo code and the
-  // campaign — they don't stack.
-  const effectiveDiscount = Math.max(promoDiscount, campaignDiscount);
+  // The promo code and the campaign don't stack — the larger applies, on
+  // top of any multi-buy saving.
+  const effectiveDiscount = round2(
+    multiBuy.savings + Math.max(Math.min(promoDiscount, afterDeals), campaignDiscount),
+  );
+  // Challenge 25 — the highest age any product in the basket needs.
+  const cartMinAge = basketMinAge(cart.map((l) => itemsById[l.menuItemId] as any));
 
   // Phase AP-8 — visible service charge.
   // Only the fixed portion of the application fee surfaces to the
@@ -1062,7 +1109,9 @@ function OrderPage() {
 
   const isSimpleItem = useCallback(
     (item: MenuItem) =>
-      !(item.modifierGroupLinks?.length ?? 0) && !(item as any).hasMultipleSkus,
+      !(item.modifierGroupLinks?.length ?? 0) &&
+      !(item as any).hasMultipleSkus &&
+      !normaliseSellBy((item as any).sellBy),
     [],
   );
   // The plain line for an item: same item, no modifiers, no note. A line
@@ -1202,8 +1251,14 @@ function OrderPage() {
           unitPrice: line.unitPrice,
           menuItemId: line.menuItemId,
           notes: line.notes || undefined,
-          // Same shape the ordinary checkout sends: name + price only.
-          modifiers: line.modifiers.map(toOrderLineModifier),
+          // Same shape the ordinary checkout sends, including the size and
+          // option ids the server needs to price the line when the host places.
+          modifiers: line.modifiers.map((m) => ({
+            ...toOrderLineModifier(m),
+            ...(m.id ? { optionId: m.id } : {}),
+          })),
+          ...(line.selectedSku ? { skuPlu: line.selectedSku.plu ?? null, skuName: line.selectedSku.name } : {}),
+          ...(line.weightGrams ? { weightGrams: line.weightGrams } : {}),
         },
         quantity: line.quantity,
         // unitPrice is already modifier-inclusive — the same rule the local
@@ -1240,6 +1295,10 @@ function OrderPage() {
       setGroupError(groupErrorFrom(err, "Couldn't close the basket.")),
   });
 
+  // Challenge 25 for a group basket: every guest's lines, looked up on the menu.
+  const groupMinAge = basketMinAge(
+    (basket?.items ?? []).map((i: any) => itemsById[String(i.cartItem?.menuItemId ?? "")] as any),
+  );
   const placeGroup = useMutation({
     mutationFn: () =>
       groupOrdersClient.place(String(groupToken), {
@@ -1272,6 +1331,7 @@ function OrderPage() {
         // Stable per basket: a double-tap on Place order can't become two
         // orders, and neither can a retry after a dropped connection.
         idempotencyKey: `group-${groupToken}`,
+        ...(groupMinAge ? { ageConfirmed } : {}),
       }),
     onSuccess: (order) => {
       if (order?.checkoutUrl && typeof window !== "undefined") {
@@ -1339,7 +1399,14 @@ function OrderPage() {
         name: l.displayName,
         quantity: l.quantity,
         unitPrice: l.unitPrice,
-        modifiers: l.modifiers.map(toOrderLineModifier),
+        // The option id and the size let the server price the line exactly
+        // (it re-prices every line; unitPrice here is only a cross-check).
+        modifiers: l.modifiers.map((m) => ({
+          ...toOrderLineModifier(m),
+          ...(m.id ? { optionId: m.id } : {}),
+        })),
+        ...(l.selectedSku ? { skuPlu: l.selectedSku.plu ?? null, skuName: l.selectedSku.name } : {}),
+        ...(l.weightGrams ? { weightGrams: l.weightGrams } : {}),
         notes: l.notes,
         // Retail R3 — ignored by the server for restaurants.
         ...(l.substitution ? { substitution: l.substitution } : {}),
@@ -1401,6 +1468,8 @@ function OrderPage() {
         loyaltyRewardId: useLoyaltyReward ? (loyaltyReward?.id ?? undefined) : undefined,
         // "Keep me updated by SMS" checkbox → SMS-marketing consent.
         marketingConsent: smsMarketingConsent,
+        // Challenge 25 — the server refuses a restricted basket without it.
+        ...(cartMinAge ? { ageConfirmed } : {}),
       };
       return axios
         .post(`${API_BASE}/v1/ordering/store/${slug}/checkout`, payload, {
@@ -2292,6 +2361,12 @@ function OrderPage() {
                               if (line) dispatch({ type: "DECREMENT", id: line.id });
                             }}
                             onOpen={() => openItemSheet(item)}
+                            unitSuffix={
+                              normaliseSellBy((item as any).sellBy)
+                                ? sellByLabel(normaliseSellBy((item as any).sellBy) as SellBy)
+                                : null
+                            }
+                            deal={dealLabelFor(item.id)}
                           />
                         );
                       })}
@@ -2366,6 +2441,9 @@ function OrderPage() {
           shareUrl={groupOrdersClient.shareUrl(String(slug), basket.token)}
           onClose={() => setGroupPanelOpen(false)}
           onRemoveItem={(id) => removeFromGroup.mutate(id)}
+          minAge={groupMinAge}
+          ageConfirmed={ageConfirmed}
+          setAgeConfirmed={setAgeConfirmed}
           removingItemId={removingGroupItemId}
           onLock={() => lockGroup.mutate("lock")}
           onUnlock={() => lockGroup.mutate("unlock")}
@@ -2545,6 +2623,10 @@ function OrderPage() {
           }}
           promoDiscount={promoDiscount}
           campaignDiscount={campaignDiscount}
+          multiBuyApplied={multiBuy.applied}
+          cartMinAge={cartMinAge}
+          ageConfirmed={ageConfirmed}
+          setAgeConfirmed={setAgeConfirmed}
           campaignName={storeCampaign?.name ?? null}
           freeItemPicker={
             freeItem
@@ -2600,6 +2682,38 @@ function OrderPage() {
       {/* Modifier modal — reuses POS modal exactly. allModifierGroups
           is required for multi-SKU products (their per-SKU groups are
           stored as plain ID arrays, not FK-linked). */}
+      {weighItem && (
+        <WeightSheet
+          name={weighItem.name}
+          pricePerUnit={Number(weighItem.basePrice)}
+          sellBy={normaliseSellBy((weighItem as any).sellBy) as SellBy}
+          percentageOff={itemPromos[weighItem.id]?.percentageOff ?? 0}
+          money={money}
+          onClose={() => setWeighItem(null)}
+          onAdd={(grams, unitPrice, quantity) => {
+            const item = weighItem;
+            setWeighItem(null);
+            addLine({
+              menuItemId: item.id,
+              displayName: weighedLineName(
+                item.name,
+                grams,
+                Number(item.basePrice),
+                normaliseSellBy((item as any).sellBy) as SellBy,
+                currencySymbol(currency),
+              ),
+              unitPrice,
+              quantity,
+              modifiers: [],
+              selectedSku: null,
+              notes: "",
+              plu: item.plu ?? null,
+              weightGrams: grams,
+            });
+          }}
+        />
+      )}
+
       {modalItem && (
         <ModifierSelectionModal
           item={modalItem}
@@ -2684,6 +2798,7 @@ function OrderPage() {
           symbol={symbol}
           tipBase={subtotal}
           brandName={storefront.brand?.name ?? storefront.location.name}
+          isShop={isShop}
           onBack={() => setTipOpen(false)}
           onContinue={(tip) => {
             setTipAmount(tip);
@@ -2813,6 +2928,10 @@ function OrderPage() {
    */
   function openItemSheet(item: MenuItem) {
     if (storefront?.closed) return;
+    if (normaliseSellBy((item as any).sellBy)) {
+      setWeighItem(item);
+      return;
+    }
     setModalItem(item);
   }
 
@@ -2821,6 +2940,10 @@ function OrderPage() {
     // cards become inert. The customer can still scroll the menu but
     // can't open the modifier sheet or drop anything in the cart.
     if (storefront?.closed) return;
+    if (normaliseSellBy((item as any).sellBy)) {
+      setWeighItem(item);
+      return;
+    }
     const hasMods = (item.modifierGroupLinks?.length ?? 0) > 0;
     const multiSku = !!item.hasMultipleSkus;
     if (hasMods || multiSku) {
@@ -3387,6 +3510,10 @@ interface CartPanelProps {
   promoDiscount: number;
   campaignDiscount: number;
   campaignName: string | null;
+  multiBuyApplied: MultiBuyApplication[];
+  cartMinAge: number | null;
+  ageConfirmed: boolean;
+  setAgeConfirmed: (v: boolean) => void;
   freeDelivery: boolean;
   postcodeSuggestions: Array<{
     id: string;
@@ -3436,6 +3563,10 @@ function CartPanel(props: CartPanelProps) {
     promoDiscount,
     campaignDiscount,
     campaignName,
+    multiBuyApplied,
+    cartMinAge,
+    ageConfirmed,
+    setAgeConfirmed,
     freeDelivery,
     postcodeSuggestions,
     postcodeLookupNote,
@@ -3518,7 +3649,8 @@ function CartPanel(props: CartPanelProps) {
     (cart.length > 0 || rewardApplied) &&
     customerName.trim().length > 0 &&
     customerPhone.trim().length > 0 &&
-    (fulfillmentType === "PICKUP" || addressComplete);
+    (fulfillmentType === "PICKUP" || addressComplete) &&
+    (!cartMinAge || ageConfirmed);
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/40" onClick={onClose}>
@@ -3622,7 +3754,10 @@ function CartPanel(props: CartPanelProps) {
                     <p className="mt-1 text-xs text-zinc-500">
                       {money(l.unitPrice * l.quantity)}
                     </p>
-                    {isShop && !l.bogoOf && !l.freeItemOf && (
+                    {isShop && l.weightGrams ? (
+                      // Weighed lines are re-weighed, never swapped.
+                      <p className="mt-1 text-[11px] text-zinc-500">Weighed when picked — lighter is refunded</p>
+                    ) : isShop && !l.bogoOf && !l.freeItemOf && (
                       <label className="mt-1 flex items-center gap-1.5 text-[11px] text-zinc-600">
                         <input
                           type="checkbox"
@@ -3693,6 +3828,27 @@ function CartPanel(props: CartPanelProps) {
               <span>Keep me updated with offers &amp; news by SMS</span>
             </label>
           </Section>
+
+          {cartMinAge && (
+            <Section title={`Age check — ${cartMinAge}+`}>
+              <div className="rounded-md border border-amber-300 bg-amber-50 p-2.5">
+                <label className="flex cursor-pointer items-start gap-2 text-xs text-amber-950">
+                  <input
+                    type="checkbox"
+                    checked={ageConfirmed}
+                    onChange={(e) => setAgeConfirmed(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-amber-400"
+                  />
+                  <span>
+                    <span className="font-semibold">I&apos;m {cartMinAge} or over.</span> Your basket has
+                    age-restricted items. We&apos;ll ask for photo ID when you{" "}
+                    {fulfillmentType === "DELIVERY" ? "receive your order" : "collect"}, and won&apos;t hand it
+                    over without it.
+                  </span>
+                </label>
+              </div>
+            </Section>
+          )}
 
           {/* The loyalty reward, offered rather than applied.
               Opt IN, not out: someone may be saving it for a bigger order,
@@ -4035,6 +4191,13 @@ function CartPanel(props: CartPanelProps) {
         {/* Totals + place */}
         <footer className="border-t border-zinc-200 px-4 py-3 space-y-2">
           <Row label="Subtotal" value={`${money(subtotal)}`} />
+          {multiBuyApplied.map((a) => (
+            <Row
+              key={a.dealId}
+              label={`${a.name}${a.times > 1 ? ` ×${a.times}` : ""}`}
+              value={`-${money(a.saving)}`}
+            />
+          ))}
           {campaignDiscount >= promoDiscount && campaignDiscount > 0 && (
             <Row
               label={`Discount (${campaignName ?? "Promo"})`}

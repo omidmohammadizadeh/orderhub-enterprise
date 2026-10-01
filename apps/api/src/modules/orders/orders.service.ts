@@ -742,7 +742,7 @@ export class OrdersService {
                 // re-price later — a repeat could not tell a 10" from a 12"
                 // and had to drop it. metadata is an existing column, so this
                 // costs no migration.
-                ...((item as any).sku || (item as any).variantId || (item as any).substitution
+                ...((item as any).sku || (item as any).variantId || (item as any).substitution || (item as any).weight
                   ? {
                       metadata: {
                         ...((item as any).sku ? { sku: String((item as any).sku) } : {}),
@@ -754,6 +754,9 @@ export class OrdersService {
                         ...((item as any).substitution
                           ? { substitution: String((item as any).substitution) }
                           : {}),
+                        // Retail — a weighed line (grams, price per kg/100 g,
+                        // how it was weighed). Stock and picking read grams.
+                        ...((item as any).weight ? { weight: (item as any).weight } : {}),
                       } as Prisma.InputJsonValue,
                     }
                   : {}),
@@ -1058,7 +1061,7 @@ export class OrdersService {
 
   // ── Direct order creation (POS / staff) ──────────────
 
-  async create(dto: CreateOrderDto, tenantId: string): Promise<Order> {
+  async create(dto: CreateOrderDto, tenantId: string, actorUserId?: string): Promise<Order> {
     const location = await this.prisma.location.findFirst({
       where: { id: dto.locationId, brand: { tenantId } },
     });
@@ -1156,6 +1159,7 @@ export class OrdersService {
         // which barcode was sold. Kept in OrderItem.metadata beside sku.
         ...(i.variantId ? { variantId: i.variantId } : {}),
         ...(i.substitution ? { substitution: i.substitution } : {}),
+        ...(i.weight ? { weight: { ...i.weight, grams: Math.round(i.weight.grams) } } : {}),
         // Carried through to OrderItem.menuItemId so KDS station rules
         // (category/item routing) can match POS lines.
         menuItemId: i.menuItemId,
@@ -1195,6 +1199,18 @@ export class OrdersService {
         paymentStatus: dto.paymentStatus,
         preparationMinutes: dto.preparationMinutes,
         isScheduled,
+        // Retail — the due-diligence record for an age-restricted sale:
+        // what was checked, how, and by whom, stamped by the server.
+        ...(dto.ageCheck
+          ? {
+              ageCheck: {
+                minAge: dto.ageCheck.minAge,
+                method: dto.ageCheck.method,
+                confirmedAt: new Date().toISOString(),
+                confirmedByUserId: dto.ageCheck.method === "TILL_ID_CHECK" ? (actorUserId ?? null) : null,
+              },
+            }
+          : {}),
       },
       // Phase AP-5 — thread the storefront customerAccountId through
       // to persistOrder so the Order row gets attributed and the

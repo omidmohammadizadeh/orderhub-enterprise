@@ -1069,6 +1069,16 @@ model MenuItem {
   dietary            Json      @default("[]")
   calories           Int?
   prepTime           Int?
+  // Retail — age-restricted product (Challenge 25): null = anyone, else 16
+  // or 18. The till asks for ID, the storefront asks for confirmation and
+  // online orders carry an ID CHECK note. See @orderhub/shared age-check.
+  minAge             Int?
+  // Retail — sold by weight: null = each, "KG" / "100G" = basePrice is per
+  // that unit, order lines carry grams, stock is counted in grams.
+  // scaleCode is the product's number on the shop's label scale (the code
+  // inside "2…" barcodes). See @orderhub/shared weighed.
+  sellBy             String?
+  scaleCode          String?
   metadata           Json      @default("{}")
 
   // ── Multi-SKU pricing ──────────────────────────────────────────────────
@@ -1844,6 +1854,9 @@ enum CampaignType {
   FREE_ITEM
   FREE_DELIVERY
   HAPPY_HOUR
+  // "3 for £2" / "buy 3, cheapest free" / meal deal. Config on
+  // metadata.multiBuy; pricing in @orderhub/shared multi-buy.
+  MULTI_BUY
 }
 
 enum CampaignStatus {
@@ -4679,6 +4692,15 @@ model Wallet {
   // → the platform default. One column rather than one per style, because the
   // styles are env-configurable and a new one shouldn't need a migration.
   aiStudioPricesMinor      Json?
+  // Per-location OrderHub fee per courier dispatch (pennies). null → the
+  // platform default (DISPATCH_FEE_MINOR env, default 50p).
+  //
+  // Per LOCATION, not per tenant, because the right number genuinely differs by
+  // shop: a UK site on Stuart pays this as our whole margin, while a JET Go site
+  // on our own reseller account pays it ON TOP of the courier cost we are
+  // invoiced for — and a Gulf site bills in a different currency entirely. One
+  // platform rate could not be correct for all three.
+  dispatchFeeMinor         Int?
   // Warn the operator when balance drops below this (pennies). Default £2.
   lowBalanceThresholdMinor Int  @default(200)
 

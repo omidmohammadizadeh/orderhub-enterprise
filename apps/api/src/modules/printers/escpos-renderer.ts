@@ -295,9 +295,12 @@ export function renderToEscPos(
       write(pad("Service charge", width - 10) + padRight(svc.toFixed(2), 10));
       newline();
     }
-    if (Number(payload.tipAmount ?? 0) > 0) {
-      const tip = Number(payload.tipAmount);
-      write(pad("Tip", width - 10) + padRight(tip.toFixed(2), 10));
+    // A tip agreed when the order was placed is part of the total; one added
+    // on the card machine is not, and prints below it.
+    const cardTip = Number(payload.terminalTip ?? 0);
+    const tipInTotal = Number(payload.tipAmount ?? 0) - cardTip;
+    if (tipInTotal > 0) {
+      write(pad("Tip", width - 10) + padRight(tipInTotal.toFixed(2), 10));
       newline();
     }
     if (Number(payload.discount ?? 0) > 0) {
@@ -313,6 +316,14 @@ export function renderToEscPos(
     write(pad("TOTAL", width - 10) + padRight(Number(payload.total).toFixed(2), 10));
     newline();
     out.push(...boldOff());
+    if (cardTip > 0) {
+      write(pad("Tip on card", width - 10) + padRight(cardTip.toFixed(2), 10));
+      newline();
+      out.push(...boldOn());
+      write(pad("PAID", width - 10) + padRight((Number(payload.total) + cardTip).toFixed(2), 10));
+      newline();
+      out.push(...boldOff());
+    }
   }
 
   const addressString =

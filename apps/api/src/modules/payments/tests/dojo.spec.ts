@@ -8,7 +8,7 @@ jest.mock(
 
 import { CredentialEncryptionService } from "../../integrations/credential-encryption.service";
 import { DojoApiClient, DojoApiError, dojoKeyEnvironment } from "../dojo/dojo-api.client";
-import { DojoEposService, EposError, areaIdOf } from "../dojo/dojo-epos.service";
+import { DojoEposService, EposError, areaIdOf, waiterLabel } from "../dojo/dojo-epos.service";
 import { activeDojoLock } from "../dojo/dojo-lock";
 import {
   DEFAULT_PUBLIC_API_ORIGIN,
@@ -120,22 +120,75 @@ describe("DojoApiClient", () => {
     return { calls, fetchImpl };
   }
 
-  it("sends the raw key as Basic auth, the version, and the partner ids on EVERY call", async () => {
+  it("sends the raw key as Basic auth and the version on every call", async () => {
     const { calls, fetchImpl } = recorder(200, { id: "pi_1" });
     const c = new DojoApiClient("sk_prod_x", { softwareHouseId: "sh", resellerId: "rs" }, fetchImpl as any);
     await c.listTerminals();
     await c.getPaymentIntent("pi_1");
     expect(calls[0].url).toBe("https://api.dojo.tech/terminals");
-    // Dojo's spec asks for the partner ids on terminal calls; our partner
-    // manager asked for them on payment intents too, so both carry them.
     for (const call of calls) {
       expect(call.init.headers).toMatchObject({
         Authorization: "Basic sk_prod_x",
         version: "2026-02-27",
+        // Dojo wants this one everywhere.
         "software-house-id": "sh",
-        "reseller-id": "rs",
       });
     }
+  });
+
+  it("keeps reseller-id off payment intents and terminal sessions", async () => {
+    // Dojo asked for it to be dropped from both while software-house-id stays
+    // (certification call, 2026-09-30). It still belongs on /terminals, which
+    // is the only place their spec asks for it.
+    const { calls, fetchImpl } = recorder(200, { id: "x" });
+    const c = new DojoApiClient("sk_prod_x", { softwareHouseId: "sh", resellerId: "rs" }, fetchImpl as any);
+    await c.listTerminals();
+    await c.createPaymentIntent({ amountMinor: 100, currencyCode: "GBP", reference: "Order A" });
+    await c.createSaleSession("tm_1", "pi_1");
+    await c.getTerminalSession("ts_1");
+
+    const header = (i: number) => calls[i]!.init.headers["reseller-id"];
+    expect(header(0)).toBe("rs"); // /terminals
+    expect(header(1)).toBeUndefined(); // /payment-intents
+    expect(header(2)).toBeUndefined(); // /terminal-sessions
+    expect(header(3)).toBeUndefined(); // /terminal-sessions/{id}
+    // …and the one Dojo does want is on all of them.
+    for (const call of calls) {
+      expect(call.init.headers["software-house-id"]).toBe("sh");
+    }
+  });
+
+  it("puts the tip, service charge and item lines on the receipt", async () => {
+    // Dojo's `amount` is the goods ONLY, and without itemLines the customer's
+    // receipt prints a bare total — both flagged at certification.
+    const { calls, fetchImpl } = recorder(200, { id: "pi_1" });
+    const c = new DojoApiClient("sk_prod_x", {}, fetchImpl as any);
+    await c.createPaymentIntent({
+      amountMinor: 2000,
+      currencyCode: "GBP",
+      reference: "Order A",
+      tipsMinor: 200,
+      serviceChargeMinor: 150,
+      itemLines: [
+        { name: "Burger", quantity: 1, plu: "p1", amountTotal: { value: 999, currencyCode: "GBP" } },
+      ],
+    });
+    const body = JSON.parse(calls[0]!.init.body);
+    expect(body.amount).toEqual({ value: 2000, currencyCode: "GBP" });
+    expect(body.tipsAmount).toEqual({ value: 200, currencyCode: "GBP" });
+    expect(body.serviceChargeAmount).toEqual({ value: 150, currencyCode: "GBP" });
+    expect(body.itemLines).toHaveLength(1);
+  });
+
+  it("omits the receipt fields entirely when there's nothing to say", async () => {
+    // A zero tip must not become "tipsAmount: 0" on someone's receipt.
+    const { calls, fetchImpl } = recorder(200, { id: "pi_1" });
+    const c = new DojoApiClient("sk_prod_x", {}, fetchImpl as any);
+    await c.createPaymentIntent({ amountMinor: 2000, currencyCode: "GBP", reference: "A", tipsMinor: 0 });
+    const body = JSON.parse(calls[0]!.init.body);
+    expect(body).not.toHaveProperty("tipsAmount");
+    expect(body).not.toHaveProperty("serviceChargeAmount");
+    expect(body).not.toHaveProperty("itemLines");
   });
 
   it("names the offending fields from a validation 400", async () => {
@@ -348,6 +401,28 @@ describe("DojoService.intentCovers", () => {
       ),
     ).toBe(true);
   });
+  // The receipt breakdown splits the charge into goods + tip + service charge,
+  // and our Payment row holds the one total that contains all three. A dine-in
+  // order with an auto service charge was taken and never settled because of
+  // this (2026-09-30).
+  it("adds up a charge Dojo split into goods, tip and service charge", () => {
+    const money = (value: number) => ({ value, currencyCode: "GBP" });
+    const split = {
+      id: "p",
+      status: "Captured" as const,
+      amount: money(4500),
+      serviceCharge: undefined,
+      serviceChargeAmount: money(250),
+      tipsAmount: money(250),
+    };
+    expect(svc.intentCovers(split, 5000, false)).toBe(true);
+    // Goods + service charge only: the tip went on at the machine, so our row
+    // was written before it existed.
+    expect(svc.intentCovers({ ...split, tipsAmount: undefined }, 4750, false)).toBe(true);
+    // And it still refuses an intent that doesn't add up to what we're owed.
+    expect(svc.intentCovers(split, 5250, false)).toBe(false);
+  });
+
   it("rejects Authorized unless allowed, and anything Created/Canceled", () => {
     const auth = { id: "p", status: "Authorized" as const, amount: { value: 500, currencyCode: "GBP" } };
     expect(svc.intentCovers(auth, 500, false)).toBe(false);
@@ -455,7 +530,11 @@ function makeEpos(opts: { order?: any; existingPayment?: any; paid?: number; cli
     fakeClient({
       getPaymentIntent: jest.fn().mockResolvedValue({ id: "pi_pat", status: "Captured", amount: { value: 1500, currencyCode: "GBP" } }),
     });
-  const dojo = { clientFor: () => client, intentCovers: DojoService.prototype.intentCovers } as any;
+  const dojo = {
+    clientFor: () => client,
+    intentCovers: DojoService.prototype.intentCovers,
+    logActivity: jest.fn(),
+  } as any;
   const payments = { settleCardPresentPayment: jest.fn().mockResolvedValue(undefined) } as any;
   const epos = new DojoEposService(prisma, dojo, payments);
   const ctx = {
@@ -463,7 +542,7 @@ function makeEpos(opts: { order?: any; existingPayment?: any; paid?: number; cli
     cfg: { environment: "production" } as any,
     tenantId: "t-1",
   };
-  return { epos, prisma, payments, client, ctx, created, tx };
+  return { epos, prisma, payments, client, ctx, created, tx, dojo };
 }
 
 describe("DojoEposService — order mapping", () => {
@@ -507,11 +586,69 @@ describe("DojoEposService — locks", () => {
   });
 });
 
+// Dojo's docs: the waiter types an id into the terminal, and it reaches us on
+// the LOCK and in the payment INTENT's metadata. We were reading only a header,
+// which is the one place it never comes from — so no table payment recorded a
+// waiter at all (found 2026-09-30, Philip Wells).
+describe("who took the payment", () => {
+  it("reads the waiter from the payment intent when the header is silent", async () => {
+    const client = fakeClient({
+      getPaymentIntent: jest.fn().mockResolvedValue({
+        id: "pi_pat",
+        status: "Captured",
+        amount: { value: 1500, currencyCode: "GBP" },
+        metadata: { waiterId: 7 },
+      }),
+    });
+    const { epos, ctx, created } = makeEpos({ client });
+    await epos.recordPayment(ctx, "ord-1", { paymentIntentId: "pi_pat", paidAmount: { value: 1500, currencyCode: "GBP" } }, {});
+    expect(created[0].metadata).toMatchObject({ waiterId: "7" });
+  });
+
+  it("falls back to the waiter who locked the table", async () => {
+    const future = new Date(Date.now() + 60_000).toISOString();
+    const { epos, ctx, prisma, created } = makeEpos();
+    const base = await prisma.order.findFirst();
+    prisma.order.findFirst.mockResolvedValue({
+      ...base,
+      metadata: { dojoLock: { lockId: "L1", expiry: future, waiterId: "12" } },
+    });
+    await epos.recordPayment(
+      ctx,
+      "ord-1",
+      { paymentIntentId: "pi_pat", paidAmount: { value: 1500, currencyCode: "GBP" }, lockId: "L1" },
+      {},
+    );
+    expect(created[0].metadata).toMatchObject({ waiterId: "12" });
+  });
+
+  it("remembers the waiter who took the lock", async () => {
+    const future = new Date(Date.now() + 60_000).toISOString();
+    const { epos, ctx, prisma } = makeEpos();
+    await epos.createLock(ctx, "ord-1", { lockId: "L1", expiry: future, waiterId: 9 } as any);
+    expect(prisma.order.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          metadata: expect.objectContaining({ dojoLock: expect.objectContaining({ waiterId: "9" }) }),
+        }),
+      }),
+    );
+  });
+
+  it("treats no waiter, a blank one and 0 as nobody", () => {
+    expect(waiterLabel(undefined)).toBeNull();
+    expect(waiterLabel("  ")).toBeNull();
+    expect(waiterLabel(0)).toBeNull();
+    expect(waiterLabel("0")).toBeNull();
+    expect(waiterLabel(7)).toBe("7");
+  });
+});
+
 describe("DojoEposService.recordPayment", () => {
   const body = { paymentIntentId: "pi_pat", paidAmount: { value: 1500, currencyCode: "GBP" } };
 
   it("verifies with Dojo, records a DOJO part-payment and settles through the shared path", async () => {
-    const { epos, ctx, created, payments, client } = makeEpos();
+    const { epos, ctx, created, payments, client, dojo } = makeEpos();
     await epos.recordPayment(ctx, "ord-1", { ...body, tipsAmount: { value: 200, currencyCode: "GBP" } }, { waiterId: "w1" });
     expect(client.getPaymentIntent).toHaveBeenCalledWith("pi_pat");
     expect(created[0]).toMatchObject({
@@ -523,6 +660,17 @@ describe("DojoEposService.recordPayment", () => {
       metadata: { source: "dojo_pay_at_table", split: true, waiterId: "w1" },
     });
     expect(payments.settleCardPresentPayment).toHaveBeenCalledWith(created[0], "pi_pat");
+    // Philip Wells, 2026-09-30: the Logs page showed that something happened
+    // and nothing about what. A table paid at the machine now names the money,
+    // the tip and the intent.
+    expect(dojo.logActivity).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: "dojo.pay_at_table",
+        status: "SUCCESS",
+        message: expect.stringContaining("2.00 tip"),
+        details: expect.objectContaining({ orderId: "ord-1", paymentIntentId: "pi_pat", amount: 15, tip: 2 }),
+      }),
+    );
   });
 
   it("refuses (so Dojo reverses) when Dojo's intent doesn't match the claimed amount", async () => {
@@ -777,6 +925,121 @@ describe("Dojo go-live checklist", () => {
           data: expect.objectContaining({ metadata: expect.objectContaining({ refundOwedMinor: 2450 }) }),
         }),
       );
+    });
+
+    // Dojo certification, 2026-09-30: "Signature verification flow & Expired
+    // session flow missing from refunds — you have them on sales so all you
+    // should need to do is duplicate these flows for refunds."
+    it("asks the operator to check the signature on a refund too", async () => {
+      const client = fakeClient({
+        getTerminalSession: jest.fn().mockResolvedValue({
+          id: "ts_refund",
+          status: "SignatureVerificationRequired",
+          notificationEvents: [{ notificationType: "SignatureRequired", createdAt: "a" }],
+        }),
+      });
+      const { svc, prisma } = makeDojo({
+        client,
+        payment: { ...paid, metadata: { ...paid.metadata, refundSession: { id: "ts_refund", amountMinor: 2450 } } },
+      });
+      const r = await svc.terminalRefundStatus("t-1", "pi_new");
+      expect(r).toMatchObject({ needsSignature: true, done: false, failed: false });
+      expect(prisma.refund.create).not.toHaveBeenCalled();
+
+      await svc.respondToRefundSignature("t-1", "pi_new", true);
+      expect(client.respondToSignature).toHaveBeenCalledWith("ts_refund", true);
+    });
+
+    it("books the refund once the signature is accepted", async () => {
+      const client = fakeClient({
+        getTerminalSession: jest.fn().mockResolvedValue({ id: "ts_refund", status: "SignatureVerificationAccepted" }),
+      });
+      const { svc, prisma } = makeDojo({
+        client,
+        payment: { ...paid, metadata: { ...paid.metadata, refundSession: { id: "ts_refund", amountMinor: 2450 } } },
+      });
+      prisma.payment.findMany.mockResolvedValue([{ amount: 24.5, status: "REFUNDED", metadata: {} }]);
+      expect(await svc.terminalRefundStatus("t-1", "pi_new")).toMatchObject({ done: true, amount: 24.5 });
+    });
+
+    it("says a signature-rejected refund moved no money", async () => {
+      const client = fakeClient({
+        getTerminalSession: jest.fn().mockResolvedValue({ id: "ts_refund", status: "SignatureVerificationRejected" }),
+      });
+      const { svc, prisma } = makeDojo({
+        client,
+        payment: { ...paid, metadata: { ...paid.metadata, refundSession: { id: "ts_refund", amountMinor: 2450 } } },
+      });
+      const r = await svc.terminalRefundStatus("t-1", "pi_new");
+      expect(r).toMatchObject({ failed: true, unconfirmed: false, message: expect.stringMatching(/no money went back/i) });
+      expect(prisma.refund.create).not.toHaveBeenCalled();
+    });
+
+    it("parks an expired refund as unconfirmed instead of claiming it failed", async () => {
+      const client = fakeClient({
+        getTerminalSession: jest.fn().mockResolvedValue({ id: "ts_refund", status: "Expired" }),
+      });
+      const { svc, prisma } = makeDojo({
+        client,
+        payment: { ...paid, metadata: { ...paid.metadata, refundSession: { id: "ts_refund", amountMinor: 2450 } } },
+      });
+      const r = await svc.terminalRefundStatus("t-1", "pi_new");
+      expect(r).toMatchObject({ failed: true, unconfirmed: true, message: expect.stringMatching(/record it here/i) });
+      // Nothing booked, and the attempt is remembered on the row so it survives
+      // a page refresh.
+      expect(prisma.refund.create).not.toHaveBeenCalled();
+      expect(prisma.payment.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            metadata: expect.objectContaining({
+              refundSession: null,
+              refundUnconfirmed: expect.objectContaining({ id: "ts_refund", amountMinor: 2450 }),
+            }),
+          }),
+        }),
+      );
+    });
+
+    it("re-asks Dojo before recording an unconfirmed refund, and books it once", async () => {
+      // The machine reported late — the sandbox did exactly this on a sale.
+      const client = fakeClient({
+        getTerminalSession: jest.fn().mockResolvedValue({ id: "ts_refund", status: "Captured" }),
+      });
+      const { svc, prisma } = makeDojo({
+        client,
+        payment: { ...paid, metadata: { ...paid.metadata, refundUnconfirmed: { id: "ts_refund", amountMinor: 2450 } } },
+      });
+      prisma.payment.findMany.mockResolvedValue([{ amount: 24.5, status: "REFUNDED", metadata: {} }]);
+      const r = await svc.recordUnconfirmedRefund("t-1", "pi_new", "u-1");
+      expect(r).toMatchObject({ amount: 24.5, full: true, confirmedByDojo: true });
+      expect(prisma.refund.create).toHaveBeenCalledTimes(1);
+      // Booked under the SESSION's note, so a late poll can't book it twice…
+      expect(prisma.refund.create).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining({ note: "Dojo terminal refund ts_refund" }) }),
+      );
+      // …and the flag goes out in the same write as the refund.
+      expect(prisma.payment.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ metadata: expect.objectContaining({ refundUnconfirmed: null }) }),
+        }),
+      );
+    });
+
+    it("still records the refund when Dojo can't be reached to confirm it", async () => {
+      const client = fakeClient({
+        getTerminalSession: jest.fn().mockRejectedValue(new DojoApiError("gone", 404, null)),
+      });
+      const { svc } = makeDojo({
+        client,
+        payment: { ...paid, metadata: { ...paid.metadata, refundUnconfirmed: { id: "ts_refund", amountMinor: 1000 } } },
+      });
+      const r = await svc.recordUnconfirmedRefund("t-1", "pi_new", "u-1");
+      expect(r).toMatchObject({ amount: 10, confirmedByDojo: false });
+    });
+
+    it("refuses to record an unconfirmed refund that doesn't exist", async () => {
+      const { svc } = makeDojo({ payment: { ...paid } });
+      await expect(svc.recordUnconfirmedRefund("t-1", "pi_new", "u-1")).rejects.toThrow(/no unconfirmed refund/i);
     });
 
     it("never refunds more than is left", async () => {

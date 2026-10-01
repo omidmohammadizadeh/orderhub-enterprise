@@ -33,6 +33,10 @@ import type { GroupOrderView } from "@/lib/api/group-orders.client";
 import { AddressSearchField } from "@/components/storefront/address-search-field";
 
 export interface GroupBasketPanelProps {
+  /** Challenge 25: the highest age any item in the basket needs, or null. */
+  minAge?: number | null;
+  ageConfirmed?: boolean;
+  setAgeConfirmed?: (v: boolean) => void;
   /** Bound to the store's currency by the page — never format money here. */
   money: (n: number | string | null | undefined) => string;
   basket: GroupOrderView;
@@ -158,6 +162,7 @@ export function GroupBasketPanel(props: GroupBasketPanelProps) {
   const canPlace =
     locked &&
     basket.items.length > 0 &&
+    (!props.minAge || !!props.ageConfirmed) &&
     props.customerName.trim().length > 0 &&
     props.customerPhone.trim().length > 0 &&
     (!isDelivery ||
@@ -559,6 +564,20 @@ export function GroupBasketPanel(props: GroupBasketPanelProps) {
               )}
               {locked && (
                 <>
+                  {props.minAge ? (
+                    <label className="flex cursor-pointer items-start gap-2 rounded-md border border-amber-300 bg-amber-50 p-2.5 text-xs text-amber-950">
+                      <input
+                        type="checkbox"
+                        checked={!!props.ageConfirmed}
+                        onChange={(e) => props.setAgeConfirmed?.(e.target.checked)}
+                        className="mt-0.5 h-4 w-4 rounded border-amber-400"
+                      />
+                      <span>
+                        <span className="font-semibold">I&apos;m {props.minAge} or over.</span> This basket has
+                        age-restricted items; we&apos;ll ask for photo ID on hand-over.
+                      </span>
+                    </label>
+                  ) : null}
                   <button
                     onClick={onPlace}
                     disabled={!canPlace || isPlacing}

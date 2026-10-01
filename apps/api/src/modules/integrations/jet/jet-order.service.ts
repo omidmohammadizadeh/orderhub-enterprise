@@ -3,6 +3,7 @@ import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { OrdersService } from "../../orders/orders.service";
 import { ActivityLogService } from "../../logs/activity-log.service";
 import { JetOrderAckService } from "./jet-order-ack.service";
+import { JetOrderAlertService, type JetAlertArgs } from "./jet-order-alert.service";
 import { transformJetOrder } from "./jet-order.transformer";
 import {
   classifyJetFailure,
@@ -37,6 +38,10 @@ export class JetOrderService {
     private readonly orders: OrdersService,
     private readonly ack: JetOrderAckService,
     @Optional() private readonly activity?: ActivityLogService,
+    // Last on purpose: hand-built services in the specs pass the earlier
+    // arguments positionally, and inserting ahead of them would silently
+    // hand ActivityLogService to the alerter.
+    @Optional() private readonly alerts?: JetOrderAlertService,
   ) {}
 
   /**
@@ -64,6 +69,15 @@ export class JetOrderService {
     const transmissionId =
       opts.transmissionId ?? payload?.transmissionId ?? payload?.transmission_id ?? null;
 
+    // Held outside the try so a failure can still say WHICH shop lost the
+    // order. Null here is itself the diagnosis: the order never routed.
+    let routed: {
+      tenantId: string;
+      brandId: string | null;
+      locationId: string;
+      name?: string | null;
+    } | null = null;
+
     try {
       // ── Route to a restaurant ─────────────────────────────────────────
       const { value: posLocationId, field } = jetPosLocationIdFrom(payload);
@@ -82,6 +96,7 @@ export class JetOrderService {
       }
 
       const conn = await this.resolveConnection(posLocationId);
+      routed = conn;
       if (!conn) {
         throw new Error(
           `No connected Just Eat restaurant for posLocationId "${posLocationId}"`,
@@ -208,7 +223,37 @@ export class JetOrderService {
         message,
         transmissionId,
       });
+      // AFTER the ack, and never awaited into the return path: telling someone
+      // about a lost order must not be able to lose another one.
+      this.safeAlert({
+        kind: "ingest_failed",
+        jetOrderId,
+        displayId: payload?.third_party_order_reference ?? null,
+        tenantId: routed?.tenantId ?? null,
+        brandId: routed?.brandId ?? null,
+        locationId: routed?.locationId ?? null,
+        restaurantName: routed?.name ?? null,
+        code,
+        error: err?.message ?? null,
+      });
       return { handled: false, reason: `ingest_failed:${code}` };
+    }
+  }
+
+
+  /**
+   * Fire an alert and forget it, in the strongest sense.
+   *
+   * `void somePromise` only swallows a REJECTION — a callee that throws
+   * synchronously still unwinds into our caller. Here that caller is the catch
+   * block that acknowledges the order, so an alerter that threw on the way in
+   * would cost us the ack and lose the order outright. Belt and braces.
+   */
+  private safeAlert(args: JetAlertArgs): void {
+    try {
+      void this.alerts?.raise(args)?.catch(() => undefined);
+    } catch {
+      /* an alert is never worth an order */
     }
   }
 

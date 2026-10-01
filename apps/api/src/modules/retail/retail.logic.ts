@@ -235,6 +235,12 @@ export interface ImportProduct {
   name: string;
   category: string;
   description: string | null;
+  /** Challenge 25 from an "Age" column: 16 / 18, or undefined when blank. */
+  minAge?: 16 | 18;
+  /** Weighed products, from a "Sold by" column; the price is then per kg / 100 g. */
+  sellBy?: "KG" | "100G";
+  /** The product's number on the shop's label scale. */
+  scaleCode?: string;
   variants: ImportVariantRow[];
 }
 
@@ -281,7 +287,38 @@ const HEADER_ALIASES: Record<string, string> = {
   size: "size",
   colour: "colour",
   color: "colour",
+  age: "age",
+  minage: "age",
+  minimumage: "age",
+  agelimit: "age",
+  agerestriction: "age",
+  agerestricted: "age",
+  soldby: "sellBy",
+  sellby: "sellBy",
+  unit: "sellBy",
+  priceper: "sellBy",
+  pricingunit: "sellBy",
+  scalecode: "scaleCode",
+  scaleplu: "scaleCode",
+  scale: "scaleCode",
 };
+
+/** "kg", "per kg", "£/kg" → KG; "100g", "per 100 g" → 100G; anything else → undefined (sold each). */
+export function parseImportSellBy(v: unknown): "KG" | "100G" | undefined {
+  const t = String(v ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  if (/(^|per)kg$|kilo/.test(t)) return "KG";
+  if (/(^|per)100g(rams?)?$/.test(t)) return "100G";
+  return undefined;
+}
+
+/** "18", "18+", "Yes", "Y" → 18; "16" → 16; blank or anything else → undefined. */
+export function parseImportAge(v: unknown): 16 | 18 | undefined {
+  const t = String(v ?? "").trim().toLowerCase();
+  if (!t) return undefined;
+  if (/^16\+?$/.test(t)) return 16;
+  if (/^18\+?$/.test(t) || t === "yes" || t === "y" || t === "true") return 18;
+  return undefined;
+}
 
 function headerKey(h: string): string | undefined {
   return HEADER_ALIASES[h.toLowerCase().replace(/[^a-z]/g, "")];
@@ -377,6 +414,12 @@ export function normalizeImportRows(
       };
       products.set(key, product);
     }
+    const age = parseImportAge(r.age);
+    if (age && (!product.minAge || age > product.minAge)) product.minAge = age;
+    const sellBy = parseImportSellBy(r.sellBy);
+    if (sellBy) product.sellBy = sellBy;
+    const scaleCode = text(r.scaleCode).replace(/\D/g, "").replace(/^0+/, "");
+    if (scaleCode) product.scaleCode = scaleCode.slice(0, 6);
     if (product.variants.some((v) => v.variantName.toLowerCase() === variantName.toLowerCase())) {
       errors.push({
         row,
@@ -427,6 +470,8 @@ export function parseSubstitutionPref(v: unknown): SubstitutionPref | undefined 
 export interface PickState {
   picked: number;
   sub?: { variantId?: string | null; menuItemId?: string | null; name: string; qty: number; unitPrice: number } | null;
+  /** Weighed lines: the actual total weight picked, in grams (0 = none). */
+  grams?: number | null;
 }
 
 export interface PickLine {
@@ -436,10 +481,24 @@ export interface PickLine {
   /** Line total in minor units, as ordered. */
   totalMinor: number;
   pick?: PickState | null;
+  /** Weighed lines: the total weight ordered (grams per pack × packs). */
+  weightGrams?: number | null;
 }
 
 /** Validate a pick update against the ordered quantity; throws a staff-readable Error. */
-export function normalizePick(line: { name: string; quantity: number }, pick: PickState): PickState {
+export function normalizePick(
+  line: { name: string; quantity: number; weightGrams?: number | null },
+  pick: PickState,
+): PickState {
+  // A weighed line is picked by weight: all the packs, at whatever they weigh.
+  if (line.weightGrams) {
+    const grams = Math.round(Number(pick.grams));
+    if (!Number.isFinite(grams) || grams < 0 || grams > line.weightGrams * 3) {
+      throw new Error(`Enter what the ${line.name} actually weighed, in grams`);
+    }
+    if (pick.sub) throw new Error("A weighed item can't be substituted — pick it at a different weight instead");
+    return { picked: grams > 0 ? line.quantity : 0, grams, sub: null };
+  }
   const picked = Math.trunc(Number(pick.picked));
   if (!Number.isFinite(picked) || picked < 0 || picked > line.quantity) {
     throw new Error(`Picked must be between 0 and ${line.quantity} for ${line.name}`);
@@ -482,13 +541,20 @@ export function priceShortfall(args: {
   discountMinor: number;
 }): {
   refundMinor: number;
-  lines: Array<{ id: string; missing: number; substituted: number; refundMinor: number }>;
+  lines: Array<{ id: string; missing: number; substituted: number; refundMinor: number; lightGrams?: number }>;
 } {
   const factor =
     args.subtotalMinor > 0 && args.discountMinor > 0
       ? Math.max(0, args.subtotalMinor - args.discountMinor) / args.subtotalMinor
       : 1;
   const out = args.lines.map((l) => {
+    // Weighed and actually weighed: refund what came in light, at the price
+    // paid per gram. Heavier than ordered costs the customer nothing more.
+    if (l.weightGrams && l.pick?.grams != null && l.pick.grams > 0) {
+      const lightGrams = Math.max(0, l.weightGrams - l.pick.grams);
+      const refund = (l.totalMinor / l.weightGrams) * lightGrams * factor;
+      return { id: l.id, missing: 0, substituted: 0, refundMinor: Math.round(refund), lightGrams };
+    }
     const picked = Math.min(l.quantity, Math.max(0, l.pick?.picked ?? 0));
     const subQty = Math.min(l.quantity - picked, Math.max(0, l.pick?.sub?.qty ?? 0));
     const missing = l.quantity - picked - subQty;
@@ -498,4 +564,20 @@ export function priceShortfall(args: {
     return { id: l.id, missing, substituted: subQty, refundMinor: Math.round(refund) };
   });
   return { refundMinor: out.reduce((s, l) => s + l.refundMinor, 0), lines: out };
+}
+
+/**
+ * Weighed lines: the total grams ordered (grams per pack × packs), else null.
+ * Stock for a weighed product is counted in grams, so this is also how much a
+ * sale takes off the shelf.
+ */
+export function orderedGrams(line: { quantity: number; metadata?: unknown }): number | null {
+  const w = (line.metadata as any)?.weight;
+  const g = Math.round(Number(w?.grams));
+  return w && g > 0 ? g * Math.max(1, Math.trunc(Number(line.quantity) || 1)) : null;
+}
+
+/** How much of a line the stock ledger moves: grams for weighed lines, else units. */
+export function stockUnitsFor(line: { quantity: number; metadata?: unknown }): number {
+  return orderedGrams(line) ?? line.quantity;
 }

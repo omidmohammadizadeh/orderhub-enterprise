@@ -71,6 +71,8 @@ export interface WaCart {
   pending?: WaPending;
   /** True once collection/delivery (+ address) has been completed up front. */
   fulfillmentChosen?: boolean;
+  /** Challenge 25: the age the customer confirmed they are (16 / 18), if asked. */
+  ageConfirmed?: number;
 }
 
 export function emptyCart(): WaCart {
@@ -96,6 +98,7 @@ export function coerceCart(raw: unknown): WaCart {
     fulfillmentType: c.fulfillmentType === "PICKUP" ? "PICKUP" : "DELIVERY",
     deliveryAddress: c.deliveryAddress,
     fulfillmentChosen: c.fulfillmentChosen === true,
+    ...(Number(c.ageConfirmed) > 0 ? { ageConfirmed: Number(c.ageConfirmed) } : {}),
     pending:
       c.pending && typeof c.pending === "object" && Array.isArray((c.pending as any).groupIds)
         ? {

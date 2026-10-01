@@ -23,6 +23,7 @@ import { StockProductCard } from "@/components/retail/stock-product-card";
 import { ImportProductsModal } from "@/components/retail/import-products-modal";
 import { NewProductModal } from "@/components/retail/new-product-modal";
 import { ReceiveDeliveryModal } from "@/components/retail/receive-delivery-modal";
+import { ScaleLabelSetting } from "@/components/retail/scale-label-setting";
 
 const CATALOG_MANAGERS = ["PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "MANAGER", "DARK_KITCHEN_MANAGER"];
 const looksLikeBarcode = (s: string) => /^\d{6,14}$/.test(s.trim());
@@ -81,9 +82,11 @@ export default function StockPage() {
         const t = v === null || v === undefined ? "" : String(v);
         return /[",\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t;
       };
-      const head = ["Product", "Variant", "Barcode", "SKU", "In stock", "Low stock at", "Price", "Cost", "Value at cost"];
+      const head = ["Product", "Variant", "Barcode", "SKU", "In stock", "Unit", "Low stock at", "Price", "Cost", "Value at cost"];
       const body = r.rows.map((x) =>
-        [x.product, x.variant, x.barcode, x.sku, x.quantity, x.lowStockAt, x.price, x.cost, x.value].map(cell).join(","),
+        [x.product, x.variant, x.barcode, x.sku, x.quantity, (x as any).unit ?? "each", x.lowStockAt, x.price, x.cost, x.value]
+          .map(cell)
+          .join(","),
       );
       const csv = [head.join(","), ...body].join("\n");
       const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
@@ -195,6 +198,10 @@ export default function StockPage() {
           Low stock only
         </label>
       </div>
+
+      {canManage && locationId && location.data && (
+        <ScaleLabelSetting locationId={locationId} settings={(location.data as any).settings} />
+      )}
 
       {products.isLoading ? (
         <div className="grid place-items-center py-16">

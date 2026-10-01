@@ -1,6 +1,8 @@
 # Phase BJ — JET Go (Just Eat Delivery-as-a-Service) courier dispatch
 
-**Status:** built, unit-tested, not yet run against JET. **Blocked on JET Go test credentials.**
+**Status:** built, unit-tested, and **proven end to end against JET's UK staging
+account on 2026-10-01** — estimate, booking, webhooks, full simulated lifecycle.
+Open questions for JET are listed under "Still open" below.
 
 JET Go is Just Eat Takeaway's last-mile network — the same product shape as Uber
 Direct and Stuart: our order, our customer, their courier. It is wired into the
@@ -108,6 +110,30 @@ it fail later at the till.
 
 ---
 
+## Money — we are the RESELLER, so this is not the Stuart/Uber shape
+
+The signed contract puts JET Go on **our** account. JET has no relationship with
+the restaurant: it invoices **us** per completed delivery, £4.25–£9.20 by
+distance, and we owe it whether or not the shop pays us (Schedule 2, clause 8).
+
+So the wallet recovers **the courier cost plus our markup**, not the markup
+alone. The estimate gives us JET's exact price for that delivery moments before
+we book against it, so the figure charged is the figure we will be invoiced.
+
+| | Stuart / Uber Direct | JET Go (our account) |
+|---|---|---|
+| Who holds the courier account | the merchant | **OrderHub** |
+| Who JET/Stuart/Uber invoices | the merchant | **OrderHub** |
+| Wallet debit | flat markup (50p) | **courier price + 50p** |
+
+A merchant that brings its own JET Go account (Payment Processor / Intermediary
+in the contract) is billed by JET directly, and then the wallet takes only the
+markup — per-location credentials are what select that mode.
+
+Credentials for the reseller account are platform-level, from the environment,
+and never copied into a location row. A location on our account only picks a
+collect point.
+
 ## Money
 
 Identical to Stuart / Uber Direct: flat OrderHub fee debited from the location
@@ -161,6 +187,40 @@ drawer (worded for the asynchronous confirmation); `JET_GO` label + logo.
 - Settings panel rendered and checked at desktop and mobile widths; label/input
   bindings, `autocomplete=off` and `spellcheck=false` confirmed in the DOM
 
+### Proven against JET staging — 2026-10-01
+
+A full delivery ran end to end on the UK staging account: estimate → book →
+DELIVERYCREATED → simulate → every COURIERJOBSTATUS → DELIVERED, with the order
+driving itself to COMPLETED off the webhooks and the wallet charging the courier
+price plus the markup.
+
+Four things only the first real call could have found, every one a place JET's
+prose and its schema disagree:
+
+| What | Prose said | Server said |
+|---|---|---|
+| `paymentType` | optional, defaults PREPAID | per-partner feature flag — sending even the default 400s |
+| `targetCollectTime` | "do not pass again for ASAP" | required whenever the estimate had no target deliver time |
+| photo proof event | `PICTUREASPROOFOFDELIVERY` | `PROOFOFDELIVERY_PICTURE` |
+| our own webhook route | — | the generic `webhooks/:platform/:locationId` was swallowing it |
+
+The last one was ours, not JET's, and it had been shadowing **every** dedicated
+receiver — stuart, uber-direct, yango, careem, stripe — since each was written.
+No courier webhook had ever arrived before, so nothing had surfaced it.
+
+### Still open
+
+- **No courier phone number.** JET's payload carries `courier: { id, name }` and
+  nothing else. Stuart and Uber Direct both send a phone; an operator who can't
+  ring the rider will notice. Ask JET whether it can be added.
+- **No tracking URL in the UK.** `orderTrackerURL` is Canada-only and returns the
+  literal string "Not available" here, which we filter rather than show.
+- **ETAs unconfirmed.** `COURIERCOLLECTIONTIME` / `COURIERDELIVERYTIME` fire once
+  a minute; a simulation at 3s a step finishes before they land. Needs a longer
+  `stepWaitDuration` run to prove.
+- **Staging prices aren't the rate card.** A 0.4-mile drop quoted £6.00; the
+  contract's under-0.5-mile band is £4.25. Confirm production uses Schedule 1.
+
 ### Not verified — needs credentials
 No call has been made to JET. The transformer is **spec-derived**, the same
 position JET Connect was in before its first real order. Specifically unproven:
@@ -202,8 +262,12 @@ pence as documented, and the real webhook field casing.
 
 | Var | Default | Notes |
 |---|---|---|
-| `JET_GO_USER_AGENT` | `OrderHub/1.0 (+https://orderhub.solutions)` | mandatory in production |
+| `JET_GO_USER_AGENT` | `OrderHub/1.0 (+https://www.orderhubsolutions.com)` | mandatory in production |
 | `JET_GO_CONTACT_EMAIL` | `support@orderhubsolutions.com` | who JET contacts if our endpoint fails |
 | `JET_GO_FALLBACK_EMAIL` | `noreply@orderhubsolutions.com` | JET requires a customer email; used when the order has none |
+| `JET_GO_CLIENT_ID` | — | **the OrderHub JET Go account.** Set this and locations need no credentials of their own |
+| `JET_GO_CLIENT_SECRET` | — | as above. Absent → reseller mode is off and only merchant-owned accounts work |
+| `JET_GO_MARKET` | `UK` | which JET market our account belongs to |
+| `JET_GO_ENVIRONMENT` | `sandbox` | `production` when we go live |
 
 Credentials are per location, encrypted with `CREDENTIAL_ENCRYPTION_KEY`.

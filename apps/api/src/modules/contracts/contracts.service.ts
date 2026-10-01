@@ -831,6 +831,20 @@ export class ContractsService {
       await this.recordEvent(contract.id, "OPENED", {}, ctx);
     }
 
+    // Once the shop is paying, the button would only start a second
+    // subscription — show "all done" instead.
+    const merchantSub =
+      contract.locationId && contract.subscriptionAmountPence
+        ? await (this.prisma as any).merchantSubscription
+            ?.findFirst({
+              where: { tenantId: contract.tenantId, locationId: contract.locationId },
+              select: { status: true },
+            })
+            .catch(() => null)
+        : null;
+    const subscriptionActive =
+      merchantSub?.status === "active" || merchantSub?.status === "trialing";
+
     return {
       title: contract.title,
       bodyHtml: contract.bodyHtml,
@@ -849,7 +863,9 @@ export class ContractsService {
       canSubscribe:
         contract.status === "SIGNED" &&
         !!contract.subscriptionAmountPence &&
-        !!contract.locationId,
+        !!contract.locationId &&
+        !subscriptionActive,
+      subscriptionActive,
     };
   }
 
@@ -962,17 +978,21 @@ export class ContractsService {
       );
     }
 
-    // PLATFORM_ADMIN is passed because the caller is an unauthenticated
-    // signer with no user of their own. It is safe precisely because every
-    // input below is read off the contract row rather than the request.
-    const result = await this.subscriptions.setPlan(
+    // Every input below is read off the contract row rather than the
+    // request, so whoever holds the link chooses only whether to press.
+    // checkoutForContract (not setPlan) so a second press reopens Checkout
+    // instead of re-pricing the subscription the first press created.
+    const result = await this.subscriptions.checkoutForContract(
       contract.tenantId,
       contract.locationId,
       contract.subscriptionAmountPence,
       contract.signerEmail ?? contract.recipientEmail,
-      undefined,
-      "PLATFORM_ADMIN",
+      this.signingUrl(token),
     );
+
+    if (result.alreadyActive) {
+      return { checkoutUrl: null, alreadyActive: true };
+    }
 
     await (this.prisma as any).contract.update({
       where: { id: contract.id },
@@ -985,7 +1005,7 @@ export class ContractsService {
       ctx,
     );
 
-    return { checkoutUrl: (result as any).checkoutUrl ?? null };
+    return { checkoutUrl: result.checkoutUrl };
   }
 
   // ── Signed copy ──────────────────────────────────────────────────────────

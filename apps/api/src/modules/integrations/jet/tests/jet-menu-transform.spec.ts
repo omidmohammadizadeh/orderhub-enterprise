@@ -77,6 +77,90 @@ describe("buildJetMenus — menu envelope", () => {
   });
 });
 
+describe("buildJetMenus — availability", () => {
+  // The live failure this fixes: Jinty's had hours for six days and none for
+  // Monday, so the payload carried `monday: []` and JET rejected the WHOLE
+  // publish — "menus.0.availability.monday: Array must have at least 1 items" —
+  // taking the other six days, both service types and all 117 items with it.
+  it("never sends an empty day, whatever the shop's hours look like", () => {
+    const hours = {
+      monday: { enabled: false, slots: [] },
+      tuesday: [{ from: "11:00", to: "22:00" }],
+      wednesday: [{ from: "11:00", to: "22:00" }],
+      thursday: [{ from: "11:00", to: "22:00" }],
+      friday: [{ from: "11:00", to: "23:00" }],
+      saturday: [{ from: "11:00", to: "23:00" }],
+      sunday: [{ from: "12:00", to: "22:00" }],
+    };
+    const { menus } = build([category()], {
+      availability: toJetAvailability(hours),
+    });
+    for (const menu of menus) {
+      for (const day of JET_DAYS) {
+        expect(menu.availability[day]!.length).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it("keeps the real hours for the days that have them", () => {
+    const { menus } = build([category()], {
+      availability: toJetAvailability({
+        monday: [],
+        tuesday: [{ from: "11:00", to: "22:00" }],
+      }),
+    });
+    expect(menus[0]!.availability.tuesday).toEqual(["11:00 - 22:00"]);
+  });
+
+  it("publishes a closed day as all-day, never as a narrower window", () => {
+    // A menu can be narrowed later by service times and can never be widened,
+    // so guessing a short window here would quietly shut the shop.
+    const { menus } = build([category()], {
+      availability: toJetAvailability({ tuesday: [{ from: "11:00", to: "22:00" }] }),
+    });
+    expect(menus[0]!.availability.monday).toEqual(["00:00 - 23:59"]);
+  });
+
+  it("names the days it had to fill, so the operator can fix the hours", () => {
+    const { warnings } = build([category()], {
+      availability: toJetAvailability({
+        tuesday: [{ from: "11:00", to: "22:00" }],
+        wednesday: [{ from: "11:00", to: "22:00" }],
+        thursday: [{ from: "11:00", to: "22:00" }],
+        friday: [{ from: "11:00", to: "22:00" }],
+        saturday: [{ from: "11:00", to: "22:00" }],
+        sunday: [{ from: "11:00", to: "22:00" }],
+      }),
+    });
+    expect(warnings.join(" ")).toMatch(/monday/);
+  });
+
+  it("still warns when no day has hours at all", () => {
+    const { menus, warnings } = build([category()], {
+      availability: toJetAvailability({}),
+    });
+    expect(warnings.join(" ")).toMatch(/no opening hours for any day/i);
+    expect(menus[0]!.availability).toEqual(allDayAvailability());
+  });
+
+  it("fills a day key that is missing entirely, not just an empty one", () => {
+    const { menus } = build([category()], {
+      availability: { tuesday: ["11:00 - 22:00"] },
+    });
+    for (const day of JET_DAYS) {
+      expect(menus[0]!.availability[day]!.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("sends both service types the same availability", () => {
+    const { menus } = build([category()], {
+      availability: toJetAvailability({ tuesday: [{ from: "11:00", to: "22:00" }] }),
+    });
+    // The 400 named menus.0 AND menus.1 — the bug hit both, and so must the fix.
+    expect(menus[0]!.availability).toEqual(menus[1]!.availability);
+  });
+});
+
 describe("buildJetMenus — categories and items", () => {
   it("always sends a category description, which the schema requires", () => {
     const { menus } = build([category({ description: null })]);
@@ -385,7 +469,7 @@ describe("buildJetMenus — availability safety", () => {
     // all-closed availability would take the shop off Just Eat entirely.
     const built = build([category()], { availability: toJetAvailability({}) });
     expect(built.menus[0]!.availability.monday).toEqual(["00:00 - 23:59"]);
-    expect(built.warnings.join(" ")).toContain("never be orderable");
+    expect(built.warnings.join(" ")).toContain("no opening hours for any day");
   });
 
   it("passes real hours through untouched", () => {
@@ -394,7 +478,7 @@ describe("buildJetMenus — availability safety", () => {
     });
     const built = build([category()], { availability });
     expect(built.menus[0]!.availability.monday).toEqual(["08:00 - 23:59"]);
-    expect(built.warnings.join(" ")).not.toContain("never be orderable");
+    expect(built.warnings.join(" ")).not.toContain("no opening hours for any day");
   });
 
   it("allDayAvailability covers every day", () => {

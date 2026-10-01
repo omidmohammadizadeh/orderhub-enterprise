@@ -33,6 +33,8 @@ interface PaymentRow {
     /** Set when a PAID order was cancelled: money still owed on the card. */
     refundOwedMinor?: number | null;
     refundOwedReason?: string | null;
+    /** A refund the machine never confirmed — waiting on someone's eyes. */
+    refundUnconfirmed?: { id?: string; amountMinor?: number } | null;
   } | null;
 }
 
@@ -120,8 +122,13 @@ export function DojoRefundPanel({
       void qc.invalidateQueries({ queryKey: key });
       void qc.invalidateQueries({ queryKey: ["orders", "live"] });
     } else if (session.failed) {
-      toast.error(session.message ?? "The refund didn't go through on the machine.");
+      toast.error(session.message ?? "The refund didn't go through on the machine.", {
+        duration: session.unconfirmed ? 8000 : 4000,
+      });
       setLive(null);
+      // An expired session leaves a flag on the payment row ("record it, or try
+      // again"), so the rows have to be refetched for it to show up.
+      if (session.unconfirmed) void qc.invalidateQueries({ queryKey: key });
     }
     // `money` and `key` are stable for a given order.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -169,6 +176,37 @@ export function DojoRefundPanel({
     }
   };
 
+  // The machine is showing a signature to check — the refund sits there until
+  // this is answered, exactly like a sale (charge-reader-modal.tsx).
+  const answerSignature = async (p: PaymentRow, accepted: boolean) => {
+    try {
+      await dojoClient.refundSignature(p.providerChargeId!, accepted);
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message ?? "Couldn't send the answer to the card machine");
+    }
+  };
+
+  const recordUnconfirmed = async (p: PaymentRow, amount: number) => {
+    if (!window.confirm(`Record ${money(amount)} as refunded? Only do this if the card machine shows it went back.`)) {
+      return;
+    }
+    setBusy(p.id);
+    try {
+      const r = await dojoClient.recordUnconfirmedRefund(p.providerChargeId!);
+      toast.success(
+        r.confirmedByDojo
+          ? `Dojo confirmed it — ${money(r.amount)} refunded`
+          : `Recorded ${money(r.amount)} as refunded`,
+      );
+      await qc.invalidateQueries({ queryKey: key });
+      await qc.invalidateQueries({ queryKey: ["orders", "live"] });
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message ?? "Couldn't record the refund");
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const refundRemotely = async (p: PaymentRow, full: boolean, left: number) => {
     const amount = wanted(p, full, left);
     if (amount === null) return;
@@ -201,6 +239,7 @@ export function DojoRefundPanel({
           const refunded = Number(p.metadata?.refundedMinor ?? (p.status === "REFUNDED" ? taken * 100 : 0)) / 100;
           const left = Math.max(0, Math.round((taken - refunded) * 100) / 100);
           const owed = Number(p.metadata?.refundOwedMinor ?? 0) / 100;
+          const unconfirmed = Number(p.metadata?.refundUnconfirmed?.amountMinor ?? 0) / 100;
           const reason = (p.metadata?.refundOwedReason ?? "").trim().replace(/[.\s]+$/, "");
           const running = live?.paymentId === p.id;
           return (
@@ -219,6 +258,24 @@ export function DojoRefundPanel({
               )}
               {left <= 0 ? (
                 <p className="mt-1 text-xs font-medium text-amber-700">Fully refunded</p>
+              ) : running && session?.needsSignature ? (
+                <div className="mt-2 space-y-2 rounded-lg border border-amber-200 bg-amber-50 p-3" role="alert">
+                  <p className="text-sm font-medium text-amber-900">
+                    Check the customer&rsquo;s signature against their card.
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => answerSignature(p, true)}
+                      className="flex-1 bg-emerald-600 text-white hover:bg-emerald-700"
+                    >
+                      Signature matches
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => answerSignature(p, false)} className="flex-1">
+                      Doesn&rsquo;t match
+                    </Button>
+                  </div>
+                </div>
               ) : running ? (
                 <p className="mt-2 flex items-center gap-2 text-sm text-zinc-700">
                   <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
@@ -227,6 +284,26 @@ export function DojoRefundPanel({
                 </p>
               ) : (
                 <div className="mt-2 space-y-2">
+                  {unconfirmed > 0 && (
+                    <div className="rounded-md bg-amber-50 px-2 py-2 text-xs text-amber-800" role="alert">
+                      <p className="font-medium">
+                        {money(unconfirmed)} was put on the card machine but never confirmed.
+                      </p>
+                      <p className="mt-0.5">
+                        Look at the machine: if it shows the refund went through, record it — otherwise refund again
+                        below.
+                      </p>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={busy !== null}
+                        onClick={() => recordUnconfirmed(p, unconfirmed)}
+                        className="mt-1.5"
+                      >
+                        Machine shows it went back — record {money(unconfirmed)}
+                      </Button>
+                    </div>
+                  )}
                   <div className="flex flex-wrap items-center gap-2">
                     <label className="sr-only" htmlFor={`refund-amt-${p.id}`}>
                       Amount to refund

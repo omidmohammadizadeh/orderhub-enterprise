@@ -7,6 +7,7 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { dispatchChargeWaivedFromSettings } from "@orderhub/shared";
 import { isSmsConfigured } from "../sms/sms-provider";
 
 // Stripe is loaded lazily (mirrors subscriptions.service / billing) so a missing
@@ -44,6 +45,7 @@ export interface WalletSummary {
   currency: string;
   pricePerSegmentMinor: number;
   voicePricePerCallMinor: number;
+  dispatchFeeMinor: number;
   lowBalanceThresholdMinor: number;
   lowBalance: boolean;
   smsConfigured: boolean;
@@ -179,6 +181,7 @@ export class WalletService {
       currency: wallet.currency,
       pricePerSegmentMinor: rate,
       voicePricePerCallMinor: voiceRate,
+      dispatchFeeMinor: this.dispatchFeeMinor(wallet),
       lowBalanceThresholdMinor: wallet.lowBalanceThresholdMinor,
       lowBalance: wallet.balanceMinor < wallet.lowBalanceThresholdMinor,
       smsConfigured: this.smsConfigured(),
@@ -768,14 +771,74 @@ export class WalletService {
 
   // ── Dispatch (courier) fee ──────────────────────────────────────────────
 
-  /** Flat OrderHub fee (pennies) charged to the location wallet per courier
-   *  dispatch. Overridable via DISPATCH_FEE_MINOR; defaults to 50p. */
-  dispatchFeeMinor(): number {
-    const n = parseInt(
-      this.config.get<string>("DISPATCH_FEE_MINOR") ?? "50",
-      10,
-    );
-    return Number.isFinite(n) && n >= 0 ? n : 50;
+  /**
+   * OrderHub's fee (pennies) per courier dispatch.
+   *
+   * The shop's own rate when the wallet carries one, otherwise the platform
+   * default from DISPATCH_FEE_MINOR (50p). Same shape as
+   * voicePricePerCallMinor: pass the wallet and get that shop's number.
+   *
+   * Per LOCATION rather than per tenant because the right figure genuinely
+   * differs by shop. On Stuart or Uber Direct this fee is our whole margin —
+   * the merchant's own account pays the courier. On JET Go it sits on TOP of a
+   * courier cost we are invoiced for. And a Gulf site bills in another currency.
+   * One platform rate cannot be right for all three.
+   */
+  dispatchFeeMinor(wallet?: { dispatchFeeMinor?: number | null } | null): number {
+    const n = parseInt(this.config.get<string>("DISPATCH_FEE_MINOR") ?? "50", 10);
+    const platform = Number.isFinite(n) && n >= 0 ? n : 50;
+    return wallet?.dispatchFeeMinor ?? platform;
+  }
+
+  /** This shop's dispatch fee, loading its wallet. What the courier services
+   *  call: they hold a tenant and a location, not a wallet row. */
+  async dispatchFeeMinorFor(
+    tenantId: string,
+    locationId: string | null,
+  ): Promise<number> {
+    try {
+      const wallet = await this.getOrCreate(tenantId, locationId);
+      return this.dispatchFeeMinor(wallet);
+    } catch (e: any) {
+      // A wallet we cannot read must not mean a free dispatch, so fall back to
+      // the platform rate rather than to zero.
+      this.logger.warn(
+        `Could not read the dispatch fee for location ${locationId} — using the platform rate: ${e?.message ?? e}`,
+      );
+      return this.dispatchFeeMinor(null);
+    }
+  }
+
+  /**
+   * Set a shop's own dispatch fee. null puts it back on the platform rate.
+   *
+   * Platform-admin only, enforced at the controller: a shop must not be able to
+   * set what it pays us.
+   */
+  async setDispatchFee(
+    tenantId: string,
+    locationId: string | null,
+    feeMinor: number | null,
+  ) {
+    if (feeMinor !== null) {
+      if (!Number.isInteger(feeMinor) || feeMinor < 0) {
+        throw new BadRequestException(
+          "Fee must be a whole number of pence, or blank for the standard rate.",
+        );
+      }
+      // Pounds typed into a pence field is the mistake that actually happens,
+      // and the shop would find out on its statement rather than here.
+      if (feeMinor > 2000) {
+        throw new BadRequestException(
+          "That is over £20 a dispatch — enter the fee in PENCE (100 = £1).",
+        );
+      }
+    }
+    const wallet = await this.getOrCreate(tenantId, locationId);
+    return this.db().wallet.update({
+      where: { id: wallet.id },
+      data: { dispatchFeeMinor: feeMinor },
+    });
   }
 
   /** Throw (402-style) unless the location wallet can cover a dispatch fee.
@@ -908,13 +971,41 @@ export class WalletService {
     }
   }
 
+  /**
+   * Is the courier dispatch fee waived for this location?
+   *
+   * A platform-admin testing switch (Location.settings.dispatchCharging), NOT a
+   * role check. It used to be "the caller is a PLATFORM_ADMIN", which meant an
+   * admin dispatching a real shop's real order silently paid nothing, and the
+   * only way to find out was to read the ledger.
+   *
+   * Fails CLOSED: any error reading the setting bills the wallet, because the
+   * wrong answer in that direction costs us a 50p fee, and in the other it
+   * hands out free couriers.
+   */
+  async isDispatchChargeWaived(locationId: string | null): Promise<boolean> {
+    if (!locationId) return false;
+    try {
+      const loc = await this.prisma.location.findUnique({
+        where: { id: locationId },
+        select: { settings: true },
+      });
+      return dispatchChargeWaivedFromSettings(loc?.settings);
+    } catch (e: any) {
+      this.logger.warn(
+        `Could not read dispatch charging for location ${locationId} — charging: ${e?.message ?? e}`,
+      );
+      return false;
+    }
+  }
+
   async assertCanAffordDispatch(
     tenantId: string,
     locationId: string | null,
     amountMinor?: number,
   ): Promise<void> {
-    const cost = amountMinor ?? this.dispatchFeeMinor();
     const wallet = await this.getOrCreate(tenantId, locationId);
+    const cost = amountMinor ?? this.dispatchFeeMinor(wallet);
     if (wallet.balanceMinor < cost) {
       throw new BadRequestException(
         "Dispatch wallet balance is too low. Top up your wallet to dispatch this order.",
@@ -931,19 +1022,33 @@ export class WalletService {
     orderId: string;
     amountMinor?: number;
     createdBy?: string | null;
+    /**
+     * What the statement line should say. Worth passing whenever the charge is
+     * not just our own fee: under the JET Go reseller model one debit is the
+     * courier's price PLUS our markup, and "Courier dispatch fee (650p)" gives
+     * the operator no way to reconcile it against Just Eat's monthly invoice.
+     */
+    description?: string;
   }): Promise<{ chargedMinor: number; balanceAfterMinor: number }> {
-    const cost = args.amountMinor ?? this.dispatchFeeMinor();
     const wallet = await this.getOrCreate(args.tenantId, args.locationId);
-    if (wallet.balanceMinor < cost) {
-      throw new BadRequestException(
-        "Dispatch wallet balance is too low. Top up your wallet to dispatch this order.",
-      );
-    }
+    const cost = args.amountMinor ?? this.dispatchFeeMinor(wallet);
     const updated = await this.prisma.$transaction(async (tx: any) => {
-      const u = await tx.wallet.update({
-        where: { id: wallet.id },
+      // The balance check is part of the UPDATE, not a read before it. Two
+      // dispatches clicked at once on one till both passed a separate read and
+      // both decremented, so a wallet with one fee in it paid for two couriers
+      // and went negative. updateMany with the guard in the WHERE makes the
+      // check and the decrement the same statement; count 0 means someone
+      // else got there first.
+      const res = await tx.wallet.updateMany({
+        where: { id: wallet.id, balanceMinor: { gte: cost } },
         data: { balanceMinor: { decrement: cost } },
       });
+      if (res.count === 0) {
+        throw new BadRequestException(
+          "Dispatch wallet balance is too low. Top up your wallet to dispatch this order.",
+        );
+      }
+      const u = await tx.wallet.findUnique({ where: { id: wallet.id } });
       await tx.walletTransaction.create({
         data: {
           tenantId: args.tenantId,
@@ -956,12 +1061,12 @@ export class WalletService {
           orderId: args.orderId,
           locationId: args.locationId ?? null,
           createdBy: args.createdBy ?? null,
-          description: `Courier dispatch fee (${cost}p)`,
+          description: args.description ?? `Courier dispatch fee (${cost}p)`,
         },
       });
       return u;
     });
-    return { chargedMinor: cost, balanceAfterMinor: updated.balanceMinor };
+    return { chargedMinor: cost, balanceAfterMinor: updated?.balanceMinor ?? 0 };
   }
 
   /** Credit a previously-charged dispatch fee back (courier job creation failed
@@ -972,6 +1077,8 @@ export class WalletService {
     orderId: string;
     amountMinor: number;
     createdBy?: string | null;
+    /** Mirrors the debit's line, so a refund reads as the undo of a charge. */
+    description?: string;
   }): Promise<void> {
     try {
       const wallet = await this.getOrCreate(args.tenantId, args.locationId);
@@ -992,7 +1099,7 @@ export class WalletService {
             orderId: args.orderId,
             locationId: args.locationId ?? null,
             createdBy: args.createdBy ?? null,
-            description: `Dispatch fee refund (job failed)`,
+            description: args.description ?? `Dispatch fee refund (job failed)`,
           },
         });
       });

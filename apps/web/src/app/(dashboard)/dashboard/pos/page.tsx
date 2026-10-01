@@ -40,7 +40,20 @@ import {
   resolveDeliveryAddress,
   type SelectedModifier,
   type ProductSku,
+  normaliseMinAge,
+  type MultiBuyDeal,
+  gramsPerUnit,
+  normaliseScaleFormat,
+  normaliseSellBy,
+  parseScaleBarcode,
+  priceForWeight,
+  sameScaleCode,
+  sellByLabel,
+  weighedLineName,
+  type SellBy,
 } from "@orderhub/shared";
+import { WeighModal } from "@/components/retail/weigh-modal";
+import { AgeCheckModal, type AgePrompt } from "@/components/retail/age-check-modal";
 import { useRepeatOrder } from "@/hooks/use-repeat-order";
 import { ModifierSelectionModal } from "@/components/pos/modifier-selection-modal";
 import {
@@ -129,7 +142,7 @@ interface PersistedCart {
 
 export default function PosPage() {
   // Prices follow the selected location's currency, not a hardcoded pound.
-  const { money } = useCurrency();
+  const { money, symbol } = useCurrency();
   const selectedLocationId = useSelectedLocationStore(
     (s) => s.selectedLocationId,
   );
@@ -212,6 +225,8 @@ export default function PosPage() {
 
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
   const [modalItem, setModalItem] = useState<MenuItem | null>(null);
+  // Retail — a loose product waiting for its weight.
+  const [weighItem, setWeighItem] = useState<MenuItem | null>(null);
   const [cart, setCart] = useState<CartLine[]>([]);
   const [draft, setDraft] = useState<PartialDraft>({});
 
@@ -726,6 +741,8 @@ export default function PosPage() {
           sku: line.plu ?? undefined,
           // Retail R1 — which barcoded variant was scanned (stock + returns).
           ...(line.variantId ? { variantId: line.variantId } : {}),
+          // Retail — a weighed line: grams, price per kg/100 g, how it was weighed.
+          ...(line.weight ? { weight: line.weight } : {}),
           // KDS station routing (category/item rules) matches on this.
           menuItemId: line.menuItemId || undefined,
           modifiers: line.modifiers.map((m) => ({
@@ -750,6 +767,8 @@ export default function PosPage() {
         paymentStatus: payload.paymentStatus,
         isScheduled: payload.isScheduled,
         marketingConsent: payload.marketingConsent,
+        // Challenge 25 — the record that ID was checked for this sale.
+        ...(cartMinAge ? { ageCheck: { minAge: cartMinAge, method: "TILL_ID_CHECK" as const } } : {}),
       };
 
       // ── Table Tabs (dine-in): send this round to the kitchen ──
@@ -1112,6 +1131,10 @@ export default function PosPage() {
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   const onProductClick = (item: MenuItem) => {
+    if (normaliseSellBy((item as any).sellBy)) {
+      setWeighItem(item);
+      return;
+    }
     const hasMods = (item.modifierGroupLinks?.length ?? 0) > 0;
     if (hasMods || item.hasMultipleSkus) {
       setModalItem(item);
@@ -1137,20 +1160,46 @@ export default function PosPage() {
     modifiers: SelectedModifier[];
     selectedSku?: ProductSku | null;
     notes?: string;
+    weight?: CartLine["weight"];
   }) => {
-    setCart((prev) => [
-      ...prev,
-      {
-        id: Math.random().toString(36).slice(2),
-        menuItemId: line.menuItemId,
-        displayName: line.displayName,
-        unitPrice: line.unitPrice,
-        quantity: line.quantity,
-        plu: line.plu ?? null,
-        modifiers: line.modifiers.map(toOrderLineModifier),
-        notes: line.notes,
-      },
-    ]);
+    gateAge(line.menuItemId, line.displayName, () =>
+      setCart((prev) => [
+        ...prev,
+        {
+          id: Math.random().toString(36).slice(2),
+          menuItemId: line.menuItemId,
+          displayName: line.displayName,
+          unitPrice: line.unitPrice,
+          quantity: line.quantity,
+          plu: line.plu ?? null,
+          modifiers: line.modifiers.map(toOrderLineModifier),
+          notes: line.notes,
+          ...(line.weight ? { weight: line.weight } : {}),
+        },
+      ]),
+    );
+  };
+
+  /** A weighed product at a known weight — keyed in, or read off a scale label. */
+  const addWeighed = (
+    item: MenuItem,
+    grams: number,
+    source: "SCALE_LABEL" | "KEYED",
+    labelPrice?: number,
+  ) => {
+    const sellBy = normaliseSellBy((item as any).sellBy) as SellBy;
+    const pricePerUnit = Number(item.basePrice);
+    // A price label is the price; the weight on it is only for the ticket.
+    const unitPrice = labelPrice ?? priceForWeight(pricePerUnit, sellBy, grams);
+    addToCart({
+      menuItemId: item.id,
+      displayName: weighedLineName(item.name, grams, pricePerUnit, sellBy, symbol),
+      unitPrice,
+      quantity: 1,
+      plu: item.plu ?? null,
+      modifiers: [],
+      weight: { grams, sellBy, pricePerUnit, source },
+    });
   };
 
   const removeLine = useCallback((id: string) => {
@@ -1287,6 +1336,59 @@ export default function PosPage() {
     return ids;
   }, [categories]);
 
+  // ── Challenge 25 ─────────────────────────────────────────────────────────
+  // An age-restricted product asks the cashier to check ID before it lands in
+  // the basket. One confirmation covers the rest of the sale up to that age;
+  // an emptied basket (a new customer) starts again.
+  const minAgeById = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const c of categories)
+      for (const l of c.items ?? []) {
+        const a = normaliseMinAge((l.item as any)?.minAge);
+        if (l.item?.id && a) m.set(l.item.id, a);
+      }
+    return m;
+  }, [categories]);
+  const [ageVerified, setAgeVerified] = useState(0);
+  const ageVerifiedRef = useRef(0);
+  ageVerifiedRef.current = ageVerified;
+  const [agePrompt, setAgePrompt] = useState<(AgePrompt & { run: () => void }) | null>(null);
+  useEffect(() => {
+    if (cart.length === 0) setAgeVerified(0);
+  }, [cart.length]);
+  const gateAge = useCallback(
+    (menuItemId: string, productName: string, run: () => void, hint?: unknown) => {
+      const need = minAgeById.get(menuItemId) ?? normaliseMinAge(hint);
+      if (need && need > ageVerifiedRef.current) setAgePrompt({ minAge: need, productName, run });
+      else run();
+    },
+    [minAgeById],
+  );
+  const cartMinAge = useMemo(
+    () => cart.reduce((max, l) => Math.max(max, minAgeById.get(l.menuItemId) ?? 0), 0),
+    [cart, minAgeById],
+  );
+
+  // ── Multi-buys on this till (cached for offline like the barcodes) ────────
+  const dealsQuery = useQuery({
+    queryKey: ["retail-deals", selectedLocationId],
+    queryFn: () => retailClient.deals(selectedLocationId!),
+    enabled: !!selectedLocationId,
+    staleTime: 60_000,
+    refetchInterval: 5 * 60_000,
+  });
+  const [cachedDeals, setCachedDeals] = useState<MultiBuyDeal[] | null>(null);
+  useEffect(() => {
+    if (!selectedLocationId) return;
+    const key = `deals:${selectedLocationId}`;
+    if (dealsQuery.data) {
+      void cacheMenu(key, dealsQuery.data.multiBuys);
+    } else if (dealsQuery.isError || !online) {
+      void getCachedMenu(key).then((row) => setCachedDeals((row?.menu as MultiBuyDeal[]) ?? null));
+    }
+  }, [selectedLocationId, dealsQuery.data, dealsQuery.isError, online]);
+  const multiBuys = dealsQuery.data?.multiBuys ?? cachedDeals ?? [];
+
   // A fresh sale at a shop is a walk-in at the counter — skip the "who is it
   // for" step. Going back to it still works: the draft then has a mode set.
   useEffect(() => {
@@ -1296,7 +1398,7 @@ export default function PosPage() {
     }
   }, [isShop, step, draft.fulfillmentType, tableId, editOrderId]);
 
-  const addScanned = useCallback(
+  const addScannedNow = useCallback(
     (entry: BarcodeEntry) => {
       setCart((prev) => {
         // Same variant, no add-ons → one line with a bigger quantity, the
@@ -1325,6 +1427,10 @@ export default function PosPage() {
     },
     [notify, money],
   );
+  const addScanned = useCallback(
+    (entry: BarcodeEntry) => gateAge(entry.menuItemId, entry.name, () => addScannedNow(entry), entry.minAge),
+    [gateAge, addScannedNow],
+  );
 
   const handleScan = useCallback(
     async (code: string) => {
@@ -1344,6 +1450,34 @@ export default function PosPage() {
         addScanned(entry);
         return;
       }
+      // A label from the shop's scale: "2…" with the product's scale code and
+      // the price or weight inside it.
+      const label = parseScaleBarcode(
+        code,
+        normaliseScaleFormat(((locationQuery.data as any)?.settings ?? {})?.scaleLabels?.format),
+      );
+      if (label) {
+        let item: MenuItem | undefined;
+        for (const c of categories)
+          for (const l of c.items ?? [])
+            if (!item && l.item && normaliseSellBy((l.item as any).sellBy) && sameScaleCode((l.item as any).scaleCode, label.itemCode))
+              item = l.item as MenuItem;
+        if (!item) {
+          notify("warn", `Scale label for item ${label.itemCode}, but no weighed product has that scale code.`);
+          return;
+        }
+        if (!sellableItemIds.has(item.id)) {
+          notify("warn", `${item.name} is switched off on this till (out of stock or hidden).`);
+          return;
+        }
+        const sellBy = normaliseSellBy((item as any).sellBy) as SellBy;
+        const perGram = Number(item.basePrice) / gramsPerUnit(sellBy);
+        const grams =
+          label.grams ?? (perGram > 0 ? Math.max(1, Math.round((label.price ?? 0) / perGram)) : 0);
+        addWeighed(item, grams, "SCALE_LABEL", label.price);
+        notify("ok", `${item.name} · ${money(label.price ?? priceForWeight(Number(item.basePrice), sellBy, grams))}`);
+        return;
+      }
       if (!online) {
         notify("warn", `No product with barcode ${code} on this till.`);
         return;
@@ -1360,11 +1494,15 @@ export default function PosPage() {
         notify("warn", `No product with barcode ${code} on this till.`);
       }
     },
-    [step, barcodeIndex, sellableItemIds, addScanned, notify, online, selectedLocationId],
+    // addWeighed is re-created each render; it only reads stable setters + the menu.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [step, barcodeIndex, sellableItemIds, addScanned, notify, online, selectedLocationId, categories, locationQuery.data, money],
   );
 
   const anyModalOpen =
     !!modalItem ||
+    !!weighItem ||
+    !!agePrompt ||
     !!chargeOrder ||
     !!cashOrder ||
     !!payLinkOrder ||
@@ -1813,6 +1951,12 @@ export default function PosPage() {
                       e.preventDefault();
                       setSearch("");
                       void handleScan(entry.barcode);
+                    } else if (/^2\d{12}$/.test(search.trim())) {
+                      // A label-scale barcode: price or weight is inside it.
+                      e.preventDefault();
+                      const code = search.trim();
+                      setSearch("");
+                      void handleScan(code);
                     }
                   }}
                   placeholder={isShop ? "Scan or search products…" : "Search the whole menu…"}
@@ -1980,8 +2124,18 @@ export default function PosPage() {
               onChangeQty={changeQty}
               onClearCart={clearCart}
               onPlaceOrder={async (p) => {
+                // A basket restored from a draft skipped the prompt — ask now.
+                if (cartMinAge > ageVerified) {
+                  setAgePrompt({
+                    minAge: cartMinAge,
+                    productName: "This basket",
+                    run: () => void submitMutation.mutateAsync(p).catch(() => {}),
+                  });
+                  return;
+                }
                 await submitMutation.mutateAsync(p);
               }}
+              multiBuys={multiBuys}
               submitting={submitMutation.isPending}
               submitButtonLabel={editOrderId ? "Save changes" : undefined}
               existingDeliveryFee={editOrderDeliveryFee ?? undefined}
@@ -2034,6 +2188,38 @@ export default function PosPage() {
         onSave={(colours, size) => saveColours.mutate({ colours, size })}
         onClose={() => setColoursOpen(false)}
       />
+
+      {weighItem && (
+        <WeighModal
+          name={weighItem.name}
+          pricePerUnit={Number(weighItem.basePrice)}
+          sellBy={normaliseSellBy((weighItem as any).sellBy) as SellBy}
+          money={money}
+          onClose={() => setWeighItem(null)}
+          onAdd={(grams) => {
+            const item = weighItem;
+            setWeighItem(null);
+            addWeighed(item, grams, "KEYED");
+          }}
+        />
+      )}
+
+      {agePrompt && (
+        <AgeCheckModal
+          prompt={agePrompt}
+          onConfirm={() => {
+            const p = agePrompt;
+            setAgeVerified((v) => Math.max(v, p.minAge));
+            ageVerifiedRef.current = Math.max(ageVerifiedRef.current, p.minAge);
+            setAgePrompt(null);
+            p.run();
+          }}
+          onRefuse={() => {
+            setAgePrompt(null);
+            notify("warn", `Sale refused — ${agePrompt.productName} not added`);
+          }}
+        />
+      )}
 
       {/* Retail R1 — returns and camera scanning (shops only). */}
       {returnsOpen && selectedLocationId && (
@@ -2265,6 +2451,10 @@ function ProductCard({
         className={`mt-0.5 ${sizing.price} ${onDark ? "opacity-90" : "text-zinc-500"}`}
       >
         {formatDisplayPrice(product as any)}
+        {/* Weighed products: the price is per kg / per 100 g. */}
+        {normaliseSellBy((product as any).sellBy)
+          ? sellByLabel(normaliseSellBy((product as any).sellBy) as SellBy)
+          : ""}
       </span>
     </button>
   );

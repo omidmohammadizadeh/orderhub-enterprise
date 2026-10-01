@@ -129,4 +129,31 @@ export class WalletController {
     );
     return this.wallet.getSummary(user.tenantId, body?.locationId ?? null);
   }
+
+  // POST /v1/wallet/dispatch-fee — what this shop pays us per courier dispatch.
+  //
+  // PLATFORM_ADMIN only, for the same reason as the call price: a shop reading
+  // its own rate is fine, a shop setting it is not. Blank clears the override
+  // and puts them back on the standard rate.
+  @Post("dispatch-fee")
+  @Roles("PLATFORM_ADMIN")
+  @ApiOperation({ summary: "Set a shop's own OrderHub fee per courier dispatch" })
+  async setDispatchFee(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: { feeMinor?: number | null; locationId?: string },
+  ) {
+    await this.wallet.assertLocationAccess(
+      user.tenantId,
+      body?.locationId ?? null,
+      user.userId,
+      user.role,
+    );
+    const raw = body?.feeMinor;
+    await this.wallet.setDispatchFee(
+      user.tenantId,
+      body?.locationId ?? null,
+      raw === null || raw === undefined || (raw as any) === "" ? null : Number(raw),
+    );
+    return this.wallet.getSummary(user.tenantId, body?.locationId ?? null);
+  }
 }

@@ -1,0 +1,54 @@
+Name,Category,Size,Price,Barcode,Stock,Cost,Age,Sold by,Scale code
+Coca-Cola 500ml,Drinks,,1.75,0400000000015,48,0.95,,,
+Diet Coke 500ml,Drinks,,1.75,0400000000022,36,0.95,,,
+Pepsi Max 500ml,Drinks,,1.65,0400000000039,24,0.88,,,
+Fanta Orange 500ml,Drinks,,1.65,0400000000046,24,0.88,,,
+Lucozade Energy Orange 380ml,Drinks,,1.60,0400000000053,24,0.85,,,
+Buxton Still Water 500ml,Drinks,,1.10,0400000000060,48,0.40,,,
+Tropicana Orange Juice 250ml,Drinks,,1.80,0400000000077,12,1.05,,,
+Red Bull 250ml,Drinks,,1.85,0400000000084,24,1.10,16,,
+Monster Energy 500ml,Drinks,,1.99,0400000000091,24,1.15,16,,
+Walkers Ready Salted 32.5g,Crisps & Snacks,,1.00,0400000000107,30,0.48,,,
+Walkers Cheese & Onion 32.5g,Crisps & Snacks,,1.00,0400000000114,30,0.48,,,
+Walkers Salt & Vinegar 32.5g,Crisps & Snacks,,1.00,0400000000121,30,0.48,,,
+Quavers 20g,Crisps & Snacks,,1.00,0400000000138,30,0.48,,,
+Mars Bar 51g,Chocolate & Sweets,,1.00,0400000000145,30,0.52,,,
+Snickers 48g,Chocolate & Sweets,,1.00,0400000000152,30,0.52,,,
+Twix 50g,Chocolate & Sweets,,1.00,0400000000169,30,0.52,,,
+Cadbury Dairy Milk 45g,Chocolate & Sweets,,1.10,0400000000176,30,0.60,,,
+KitKat 4 Finger,Chocolate & Sweets,,1.00,0400000000183,30,0.50,,,
+Haribo Starmix 140g,Chocolate & Sweets,,1.50,0400000000190,20,0.80,,,
+Ham & Cheese Sandwich,Lunch,,3.25,0400000000206,10,1.60,,,
+Chicken & Bacon Sandwich,Lunch,,3.50,0400000000213,10,1.75,,,
+Egg Mayo Sandwich,Lunch,,2.95,0400000000220,8,1.30,,,
+Chicken Caesar Wrap,Lunch,,3.75,0400000000237,8,1.90,,,
+Semi-Skimmed Milk,Dairy & Eggs,1 pint,0.95,0400000000244,20,0.55,,,
+Semi-Skimmed Milk,Dairy & Eggs,2 pints,1.35,0400000000251,20,0.80,,,
+Semi-Skimmed Milk,Dairy & Eggs,4 pints,1.95,0400000000268,12,1.20,,,
+Lurpak Slightly Salted Butter 250g,Dairy & Eggs,,3.25,0400000000275,8,2.10,,,
+Cathedral City Mature Cheddar 350g,Dairy & Eggs,,4.50,0400000000282,8,2.90,,,
+Free Range Eggs x6,Dairy & Eggs,,2.30,0400000000299,12,1.40,,,
+Hovis Soft White Bread 800g,Bakery,,1.65,0400000000305,12,0.95,,,
+Warburtons Crumpets x6,Bakery,,1.20,0400000000312,10,0.70,,,
+All Butter Croissants x2,Bakery,,1.50,0400000000329,10,0.80,,,
+Heinz Baked Beans 415g,Food Cupboard,,1.40,0400000000336,24,0.85,,,
+Fusilli Pasta 500g,Food Cupboard,,0.95,0400000000343,20,0.50,,,
+PG Tips 80 Tea Bags,Food Cupboard,,3.60,0400000000350,12,2.30,,,
+Nescafe Original Coffee 100g,Food Cupboard,,4.75,0400000000367,8,3.10,,,
+Kellogg's Corn Flakes 500g,Food Cupboard,,2.99,0400000000374,8,1.90,,,
+Andrex Toilet Tissue x4,Household,,3.75,0400000000381,12,2.40,,,
+Fairy Original Washing Up Liquid 433ml,Household,,1.99,0400000000398,10,1.20,,,
+Bananas,Fruit & Veg,,1.10,,15000,0.60,,per kg,1
+Gala Apples,Fruit & Veg,,2.40,,10000,1.30,,per kg,2
+Vine Tomatoes,Fruit & Veg,,2.20,,6000,1.20,,per kg,3
+Potatoes,Fruit & Veg,,1.00,,20000,0.45,,per kg,4
+Brown Onions,Fruit & Veg,,1.20,,10000,0.55,,per kg,5
+Red Seedless Grapes,Fruit & Veg,,3.50,,5000,2.00,,per kg,6
+Wiltshire Ham,Deli Counter,,2.49,,3000,1.30,,per 100g,77
+Mature Cheddar (deli),Deli Counter,,1.60,,4000,0.85,,per 100g,78
+Mixed Olives,Deli Counter,,1.99,,2000,1.00,,per 100g,79
+Stella Artois 4 x 440ml,"Beer, Wine & Spirits",,6.00,0400000000404,12,3.90,18,,
+Heineken 4 x 440ml,"Beer, Wine & Spirits",,5.75,0400000000411,12,3.70,18,,
+Strongbow Cider 4 x 440ml,"Beer, Wine & Spirits",,5.25,0400000000428,12,3.30,18,,
+Echo Falls Rosé 75cl,"Beer, Wine & Spirits",,6.50,0400000000435,8,4.10,18,,
+Smirnoff Red Vodka 35cl,"Beer, Wine & Spirits",,11.50,0400000000442,6,7.80,18,,

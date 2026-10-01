@@ -108,7 +108,6 @@ export class StuartController {
       orderId,
       tenantId: user.tenantId,
       userId: user.userId,
-      isAdmin: user.role === "PLATFORM_ADMIN",
     });
   }
 
@@ -147,7 +146,6 @@ export class StuartController {
     return this.dispatch.dispatchBulk({
       orderIds: dto.orderIds,
       user,
-      isAdmin: user.role === "PLATFORM_ADMIN",
     });
   }
 }

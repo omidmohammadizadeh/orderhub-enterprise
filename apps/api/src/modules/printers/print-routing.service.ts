@@ -650,6 +650,9 @@ export class PrintRoutingService {
       // The gratuity. It is inside `total` already, so leaving it out doesn't
       // change what anyone pays — it changes whether the shop can see it.
       tipAmount: Number((order as any).tipAmount ?? 0),
+      // The part of the tip added at the card machine: printed AFTER the
+      // total, because the customer chose it on top of the bill.
+      terminalTip: Number(((order as any).metadata as any)?.terminalTipsMinor ?? 0) / 100,
       discount: Number(order.discount ?? 0),
       total: Number(order.total ?? 0),
       paymentMethod: order.paymentMethod,

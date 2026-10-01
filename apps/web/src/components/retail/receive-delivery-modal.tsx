@@ -3,8 +3,12 @@
 // R2-lite — goods in. Scan everything off the delivery; each scan adds one
 // (a case of 24 is "scan once, set 24"). Booked as one batch so a delivery is
 // either fully in the books or not at all.
+//
+// Weighed products (loose veg, deli) are stocked in grams and usually have no
+// barcode: they're found by name and received in kilograms.
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { formatWeight } from "@orderhub/shared";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { Minus, Plus, Truck, X } from "lucide-react";
@@ -35,8 +39,38 @@ export function ReceiveDeliveryModal({
     staleTime: 60_000,
   });
   const byCode = useMemo(() => new Map((index.data ?? []).map((e) => [e.barcode, e])), [index.data]);
+  // Weighed products with no barcode aren't in the scan index; find them by name.
+  const products = useQuery({
+    queryKey: ["retail-products", locationId, "receive"],
+    queryFn: () => retailClient.products(locationId),
+    staleTime: 60_000,
+  });
+  const pool = useMemo(() => {
+    const inIndex = new Set((index.data ?? []).map((e) => e.variantId));
+    const weighed: BarcodeEntry[] = [];
+    for (const p of products.data?.products ?? []) {
+      if (!p.sellBy) continue;
+      for (const v of p.variants) {
+        if (!v.isActive || inIndex.has(v.id)) continue;
+        weighed.push({
+          barcode: "",
+          variantId: v.id,
+          menuItemId: p.id,
+          name: p.variants.length > 1 ? `${p.name} — ${v.name}` : p.name,
+          productName: p.name,
+          variantName: v.name,
+          price: v.price ?? p.basePrice,
+          sku: v.sku,
+          sellBy: p.sellBy,
+        });
+      }
+    }
+    return [...(index.data ?? []), ...weighed];
+  }, [index.data, products.data]);
 
-  const add = (entry: BarcodeEntry, n = 1) =>
+  // A weighed line starts at 1 kg and steps in kilos; everything else in ones.
+  const step = (entry: BarcodeEntry) => (entry.sellBy ? 1000 : 1);
+  const add = (entry: BarcodeEntry, n = step(entry)) =>
     setLines((prev) => {
       const at = prev.findIndex((l) => l.entry.variantId === entry.variantId);
       if (at < 0) return [{ entry, quantity: n }, ...prev];
@@ -60,10 +94,11 @@ export function ReceiveDeliveryModal({
   const results = useMemo(() => {
     const t = q.trim().toLowerCase();
     if (!t) return [];
-    return (index.data ?? []).filter((e) => e.name.toLowerCase().includes(t) || e.barcode.includes(t)).slice(0, 6);
-  }, [q, index.data]);
+    return pool.filter((e) => e.name.toLowerCase().includes(t) || (!!e.barcode && e.barcode.includes(t))).slice(0, 6);
+  }, [q, pool]);
 
-  const units = lines.reduce((s, l) => s + l.quantity, 0);
+  const units = lines.reduce((s, l) => s + (l.entry.sellBy ? 0 : l.quantity), 0);
+  const grams = lines.reduce((s, l) => s + (l.entry.sellBy ? l.quantity : 0), 0);
   const save = useMutation({
     mutationFn: () =>
       retailClient.receive(locationId, {
@@ -71,7 +106,7 @@ export function ReceiveDeliveryModal({
         lines: lines.map((l) => ({ variantId: l.entry.variantId, quantity: l.quantity })),
       }),
     onSuccess: (r) => {
-      toast.success(`Delivery booked: ${r.units} items across ${r.lines} products`);
+      toast.success(`Delivery booked across ${r.lines} product${r.lines === 1 ? "" : "s"}`);
       onDone();
       onClose();
     },
@@ -134,6 +169,7 @@ export function ReceiveDeliveryModal({
                       className="w-full px-3 py-2 text-left hover:bg-zinc-50"
                     >
                       {e.name}
+                      {e.sellBy && <span className="ml-1 text-[11px] text-zinc-500">· by weight</span>}
                     </button>
                   </li>
                 ))}
@@ -149,40 +185,78 @@ export function ReceiveDeliveryModal({
               {lines.map((l) => (
                 <li key={l.entry.variantId} className="flex items-center gap-2 px-3 py-2">
                   <span className="min-w-0 flex-1 truncate">{l.entry.name}</span>
-                  <Button
-                    size="icon-sm"
-                    variant="ghost"
-                    aria-label={`One fewer ${l.entry.name}`}
-                    onClick={() => setQty(l.entry.variantId, l.quantity - 1)}
-                  >
-                    <Minus className="h-3.5 w-3.5" />
-                  </Button>
-                  <input
-                    value={l.quantity}
-                    inputMode="numeric"
-                    aria-label={`Quantity of ${l.entry.name}`}
-                    onChange={(e) => setQty(l.entry.variantId, Number(e.target.value.replace(/\D/g, "")) || 0)}
-                    className="w-14 rounded-md border border-zinc-200 px-2 py-1 text-center tabular-nums"
-                  />
-                  <Button
-                    size="icon-sm"
-                    variant="ghost"
-                    aria-label={`One more ${l.entry.name}`}
-                    onClick={() => setQty(l.entry.variantId, l.quantity + 1)}
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                  </Button>
+                  {l.entry.sellBy ? (
+                    <KiloInput
+                      grams={l.quantity}
+                      label={l.entry.name}
+                      onChange={(g) => setQty(l.entry.variantId, g)}
+                    />
+                  ) : (
+                    <>
+                      <Button
+                        size="icon-sm"
+                        variant="ghost"
+                        aria-label={`One fewer ${l.entry.name}`}
+                        onClick={() => setQty(l.entry.variantId, l.quantity - 1)}
+                      >
+                        <Minus className="h-3.5 w-3.5" />
+                      </Button>
+                      <input
+                        value={l.quantity}
+                        inputMode="numeric"
+                        aria-label={`Quantity of ${l.entry.name}`}
+                        onChange={(e) => setQty(l.entry.variantId, Number(e.target.value.replace(/\D/g, "")) || 0)}
+                        className="w-14 rounded-md border border-zinc-200 px-2 py-1 text-center tabular-nums"
+                      />
+                      <Button
+                        size="icon-sm"
+                        variant="ghost"
+                        aria-label={`One more ${l.entry.name}`}
+                        onClick={() => setQty(l.entry.variantId, l.quantity + 1)}
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                      </Button>
+                    </>
+                  )}
                 </li>
               ))}
             </ul>
           )}
         </div>
         <footer className="border-t border-zinc-200 p-4">
-          <Button className="w-full" disabled={!units} loading={save.isPending} onClick={() => save.mutate()}>
-            Book {units} item{units === 1 ? "" : "s"} into stock
+          <Button className="w-full" disabled={!units && !grams} loading={save.isPending} onClick={() => save.mutate()}>
+            Book{" "}
+            {[units ? `${units} item${units === 1 ? "" : "s"}` : "", grams ? formatWeight(grams) : ""]
+              .filter(Boolean)
+              .join(" and ")}{" "}
+            into stock
           </Button>
         </footer>
       </div>
     </div>
+  );
+}
+
+/** Kilograms in, grams stored; commits on blur so "1." can be typed. Empty or 0 removes the line. */
+function KiloInput({ grams, label, onChange }: { grams: number; label: string; onChange: (grams: number) => void }) {
+  const [text, setText] = useState(String(grams / 1000));
+  useEffect(() => setText(String(grams / 1000)), [grams]);
+  const commit = () => {
+    const kg = Number(text.replace(",", "."));
+    onChange(Number.isFinite(kg) && kg > 0 ? Math.round(kg * 1000) : 0);
+  };
+  return (
+    <label className="flex items-center gap-1">
+      <input
+        value={text}
+        inputMode="decimal"
+        aria-label={`Kilograms of ${label}`}
+        onChange={(e) => setText(e.target.value.replace(/[^0-9.,]/g, ""))}
+        onBlur={commit}
+        onKeyDown={(e) => e.key === "Enter" && commit()}
+        className="w-16 rounded-md border border-zinc-200 px-2 py-1 text-right tabular-nums"
+      />
+      <span className="text-xs text-zinc-500">kg</span>
+    </label>
   );
 }

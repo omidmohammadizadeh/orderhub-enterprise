@@ -5,6 +5,9 @@ export const appConfig = registerAs("app", () => ({
   port: parseInt(process.env.PORT ?? "4000", 10),
   appUrl: process.env.APP_URL ?? "http://localhost:3000",
   apiUrl: process.env.API_URL ?? "http://localhost:4000",
+  // The customer-facing storefront origin. APP_URL is the dashboard; the
+  // storefront is what an order tracking link has to point at.
+  webUrl: process.env.WEB_URL ?? process.env.APP_URL ?? "https://www.orderhubsolutions.com",
   isProduction: process.env.NODE_ENV === "production",
   isTest: process.env.NODE_ENV === "test",
 
@@ -32,6 +35,18 @@ export const appConfig = registerAs("app", () => ({
 
   // Global fallback webhook secrets — per-tenant overrides are stored in the
   // integrations table and take precedence over these during signature verification.
+  // Phase OE — the confirmation email a customer gets after ordering online.
+  // Off unless switched on, so no tenant starts emailing by surprise.
+  orderEmails: {
+    enabled: (process.env.ORDER_CONFIRMATION_EMAILS ?? "") === "true",
+    // Resend's free plan stops dead at 100 a day; past that a customer
+    // silently gets nothing, which looks like the order never existed.
+    dailyCap: Number(process.env.ORDER_EMAIL_DAILY_CAP ?? 100),
+    capWarnAt: Number(process.env.ORDER_EMAIL_CAP_WARN_AT ?? 80),
+    opsAlertEmail:
+      process.env.JET_OPS_ALERT_EMAIL ?? process.env.OPS_ALERT_EMAIL ?? "",
+  },
+
   platforms: {
     uberEats: {
       clientId: process.env.UBER_EATS_CLIENT_ID ?? "",
@@ -89,6 +104,12 @@ export const appConfig = registerAs("app", () => ({
       menuKeysByCountry: process.env.JET_MENU_KEYS ?? "",
       orderKeysByCountry: process.env.JET_ORDER_KEYS ?? "",
       defaultCountry: process.env.JET_DEFAULT_COUNTRY ?? "GB",
+      // Where an order that failed to inject is reported. Unset = no ops
+      // email; the shop is still notified and the Logs page still records it.
+      opsAlertEmail: process.env.JET_OPS_ALERT_EMAIL ?? process.env.OPS_ALERT_EMAIL ?? "",
+      // A mobile number for the same alert. Separate from the email because
+      // they fail independently and the text is the one read during service.
+      opsAlertSms: process.env.JET_OPS_ALERT_SMS ?? process.env.OPS_ALERT_SMS ?? "",
       // The shared secret JET signs inbound order webhooks with
       // (X-JET-Connect-Hash). Distinct from the API keys.
       webhookSecret: process.env.JET_WEBHOOK_SECRET ?? "",

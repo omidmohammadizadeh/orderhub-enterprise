@@ -14,7 +14,9 @@ import { useCurrency } from "@/hooks/use-currency";
 import { useQuery } from "@tanstack/react-query";
 import { Trash2, ShoppingBag, Loader2, Clock, Calendar, Tag, Phone, CheckCircle2, Search, XCircle, WifiOff, UtensilsCrossed, MapPin } from "lucide-react";
 import {
+  applyMultiBuys,
   round2,
+  type MultiBuyDeal,
   zoneMode,
   areaZoneNames,
   postcodeRequiredFor,
@@ -41,6 +43,13 @@ export interface CartLine {
   variantId?: string;
   modifiers: Array<{ name: string; price: number }>;
   notes?: string;
+  /** Retail — a weighed line (grams per pack); unitPrice is that pack's price. */
+  weight?: {
+    grams: number;
+    sellBy: "KG" | "100G";
+    pricePerUnit: number;
+    source: "SCALE_LABEL" | "KEYED";
+  };
 }
 
 export type FulfillmentType = "PICKUP" | "DELIVERY";
@@ -140,6 +149,8 @@ export interface CartPanelProps {
     /** Total already on the tab before this round. */
     tabTotal: number;
   } | null;
+  /** Retail — multi-buys live on this till; the saving comes off automatically. */
+  multiBuys?: MultiBuyDeal[];
 }
 
 export interface PartialDraft {
@@ -186,6 +197,7 @@ export function PosCartPanel(props: CartPanelProps) {
     onDraftChange,
     existingDeliveryFee,
     dineIn,
+    multiBuys,
   } = props;
   // Prices follow this location's currency, not a hardcoded pound — and the
   // same row tells us the country, which decides whether an address needs a
@@ -539,23 +551,36 @@ export function PosCartPanel(props: CartPanelProps) {
     return round2(deliveryFee);
   }, [fulfillmentType, freeDeliveryActive, deliveryFeeOverride, deliveryFee]);
 
+  // Retail — multi-buys come off first (they're shelf prices, not offers);
+  // a promo then applies to what's left. Same engine as online checkout.
+  const multiBuy = useMemo(
+    () =>
+      applyMultiBuys(
+        cart.map((l) => ({ menuItemId: l.menuItemId, unitPrice: l.unitPrice, quantity: l.quantity })),
+        multiBuys ?? [],
+      ),
+    [cart, multiBuys],
+  );
+  const afterDeals = round2(Math.max(0, subtotal - multiBuy.savings));
+
   const discountAmount = useMemo(() => {
     let amount = 0;
     // Configured quick-promo (Phase AM dynamic list)
     if (activeQuickPromo) {
       if (activeQuickPromo.type === "PERCENTAGE") {
-        amount = subtotal * (Number(activeQuickPromo.value) / 100);
+        amount = afterDeals * (Number(activeQuickPromo.value) / 100);
       } else if (activeQuickPromo.type === "FIXED_AMOUNT") {
-        amount = Math.min(Number(activeQuickPromo.value), subtotal);
+        amount = Math.min(Number(activeQuickPromo.value), afterDeals);
       }
       // FREE_DELIVERY contributes via effectiveDeliveryFee instead
     }
     // Manual promo-code entry (server-validated)
     if (discountType === "PROMO_CODE" && promoApplied?.valid) {
-      amount = promoApplied.discountAmount ?? 0;
+      amount = Math.min(promoApplied.discountAmount ?? 0, afterDeals);
     }
-    return round2(amount);
-  }, [activeQuickPromo, discountType, subtotal, promoApplied]);
+    return round2(multiBuy.savings + amount);
+  }, [activeQuickPromo, discountType, afterDeals, promoApplied, multiBuy.savings]);
+  const promoPart = round2(discountAmount - multiBuy.savings);
 
   const total = useMemo(
     () => round2(Math.max(0, subtotal - discountAmount + effectiveDeliveryFee)),
@@ -1111,8 +1136,16 @@ export function PosCartPanel(props: CartPanelProps) {
           label={dineIn ? "This round" : "Subtotal"}
           value={`${money(subtotal)}`}
         />
-        {discountAmount > 0 && (
-          <Row label="Discount" value={`−${money(discountAmount)}`} accent="text-emerald-700" />
+        {multiBuy.applied.map((a) => (
+          <Row
+            key={a.dealId}
+            label={`${a.name}${a.times > 1 ? ` ×${a.times}` : ""}`}
+            value={`−${money(a.saving)}`}
+            accent="text-emerald-700"
+          />
+        ))}
+        {promoPart > 0 && (
+          <Row label="Discount" value={`−${money(promoPart)}`} accent="text-emerald-700" />
         )}
         {fulfillmentType === "DELIVERY" && !dineIn && (
           <>

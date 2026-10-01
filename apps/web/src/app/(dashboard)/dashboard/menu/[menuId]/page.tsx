@@ -94,14 +94,24 @@ export default function MenuEditorPage() {
     queryFn: () => menusClient.getMenu(menuId),
   });
 
-  // We accept either a user-assigned brandId or fall back to the menu's
-  // own brand once it loads (Platform Admins). The catalog list below
-  // needs a brandId.
-  const brandId = user?.brandId ?? (menu as any)?.brandId ?? "";
+  // THE MENU'S brand, and nothing else.
+  //
+  // This used to read `user.brandId` first. That field is not the user's
+  // brand — getMe fills it with the tenant's OLDEST brand (`orderBy:
+  // createdAt asc`) as a UI shortcut, so every menu in the tenant, whoever
+  // opened it, offered the first brand's entire catalogue. Editing a Dubai
+  // menu listed the original UK shop's products, in pounds.
+  //
+  // A menu's brandId is a non-null FK, so there is nothing to fall back to:
+  // while the menu loads this is "" and the query below stays disabled.
+  const brandId = (menu as any)?.brandId ?? "";
+  // …and the location it is served at. Null on legacy brand-wide menus,
+  // which genuinely do span every location — those keep the brand library.
+  const menuLocationId = ((menu as any)?.locationId as string | null) ?? undefined;
 
   const { data: catalogProducts = [] } = useQuery({
-    queryKey: ["catalog", "products", brandId],
-    queryFn: () => productsClient.list(brandId),
+    queryKey: ["catalog", "products", brandId, menuLocationId ?? "brand"],
+    queryFn: () => productsClient.list(brandId, menuLocationId),
     enabled: !!brandId,
   });
 
@@ -999,7 +1009,7 @@ export default function MenuEditorPage() {
         open={productEditorTarget !== null}
         brandId={brandId}
         menuId={menuId}
-        locationId={(menu as any)?.locationId ?? undefined}
+        locationId={menuLocationId}
         productId={
           productEditorTarget && productEditorTarget !== "new"
             ? productEditorTarget
@@ -1012,7 +1022,7 @@ export default function MenuEditorPage() {
           // createdAt desc) and attach it to the active category if we
           // were in create mode. For edit mode we just close.
           if (productEditorTarget === "new" && activeCat) {
-            const all = await productsClient.list(brandId);
+            const all = await productsClient.list(brandId, menuLocationId);
             const newest = [...all].sort(
               (a, b) =>
                 new Date(b.createdAt).getTime() -

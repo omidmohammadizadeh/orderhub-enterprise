@@ -307,6 +307,54 @@ describe("JET Go delivery payload", () => {
     });
   });
 
+  it("does not name a payment type at all", async () => {
+    // JET gates `paymentType` behind a per-partner feature flag. Sending even
+    // the DEFAULT value ("PREPAID") 400s the whole delivery on an account that
+    // doesn't have it switched on — which is how staging actually behaved,
+    // moments after the estimate (which takes no such field) had succeeded.
+    // The field exists only to opt INTO cash on delivery, which we don't do.
+    const body = svc().buildDeliveryBody(order(), estimate, null);
+    expect(body.paymentType).toBeUndefined();
+    expect(Object.keys(body)).not.toContain("paymentType");
+  });
+
+  it("sends JET's own earliest collect time on an ASAP booking", async () => {
+    // JET 404s an ASAP booking with "must specify a targetCollectTime". Their
+    // getting-started page says not to send it; their field description says it
+    // is required whenever the estimate carried no target deliver time. The
+    // field description is the one that matches the server.
+    const s = svc();
+    const asap: any = {
+      requestId: "req-1",
+      dynamicDeliveryFee: 350,
+      estimatedEarliestCollectTime: "2026-10-01T11:00:00.000Z",
+      estimatedEarliestDeliverTime: "2026-10-01T11:20:00.000Z",
+    };
+    expect(s.collectTimeFor(asap)).toBe("2026-10-01T11:00:00.000Z");
+    expect(s.buildDeliveryBody(order(), asap, s.collectTimeFor(asap)).targetCollectTime).toBe(
+      "2026-10-01T11:00:00.000Z",
+    );
+  });
+
+  it("sends none on an advance booking, where the slot is already agreed", async () => {
+    const s = svc();
+    const advance: any = {
+      requestId: "req-1",
+      dynamicDeliveryFee: 350,
+      targetCollectTime: "2026-10-02T17:00:00.000Z",
+      targetDeliverTime: "2026-10-02T17:30:00.000Z",
+    };
+    expect(s.collectTimeFor(advance)).toBeNull();
+    expect(
+      s.buildDeliveryBody(order(), advance, s.collectTimeFor(advance)).targetCollectTime,
+    ).toBeUndefined();
+  });
+
+  it("sends none when JET quoted no collect time at all", async () => {
+    const s = svc();
+    expect(s.collectTimeFor({ requestId: "r", dynamicDeliveryFee: 1 } as any)).toBeNull();
+  });
+
   it("books against the estimate's requestId", async () => {
     expect(svc().buildDeliveryBody(order(), estimate, null).requestId).toBe("req-1");
   });

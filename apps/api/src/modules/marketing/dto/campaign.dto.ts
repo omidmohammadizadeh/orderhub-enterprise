@@ -18,6 +18,27 @@ import {
   MaxLength,
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Type } from "class-transformer";
+import { ArrayMaxSize, IsIn, IsInt, ValidateNested } from "class-validator";
+
+// MULTI_BUY — stored on metadata.multiBuy; itemIds is the pool for the
+// quantity modes. Rules live in @orderhub/shared validateMultiBuy.
+export class MultiBuySlotDto {
+  @IsString() @MaxLength(60) name!: string;
+  @IsArray() @ArrayMaxSize(500) @IsString({ each: true }) itemIds!: string[];
+}
+
+export class MultiBuyConfigDto {
+  @IsIn(["FIXED_PRICE", "CHEAPEST_FREE", "MEAL_DEAL"]) mode!: "FIXED_PRICE" | "CHEAPEST_FREE" | "MEAL_DEAL";
+  @IsOptional() @IsInt() @Min(2) @Max(50) quantity?: number;
+  @IsOptional() @IsNumber() @Min(0) price?: number;
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(6)
+  @ValidateNested({ each: true })
+  @Type(() => MultiBuySlotDto)
+  slots?: MultiBuySlotDto[];
+}
 
 export const CAMPAIGN_TYPES = [
   "PERCENTAGE_OFF",
@@ -27,6 +48,7 @@ export const CAMPAIGN_TYPES = [
   "FREE_ITEM",
   "FREE_DELIVERY",
   "HAPPY_HOUR",
+  "MULTI_BUY",
 ] as const;
 export type CampaignTypeValue = (typeof CAMPAIGN_TYPES)[number];
 
@@ -90,6 +112,11 @@ export class CreateCampaignDto {
   @IsArray()
   @IsNumber({}, { each: true })
   daysOfWeek?: number[];
+  @ApiPropertyOptional({ type: MultiBuyConfigDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => MultiBuyConfigDto)
+  multiBuy?: MultiBuyConfigDto;
   @ApiPropertyOptional() @IsOptional() @IsString() dailyStartTime?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() dailyEndTime?: string;
   @ApiPropertyOptional() @IsOptional() @IsISO8601() startsAt?: string;
@@ -128,6 +155,11 @@ export class UpdateCampaignDto {
   @IsArray()
   @IsString({ each: true })
   rewardItemIds?: string[];
+  @ApiPropertyOptional({ type: MultiBuyConfigDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => MultiBuyConfigDto)
+  multiBuy?: MultiBuyConfigDto;
   @ApiPropertyOptional() @IsOptional() @IsString() dailyStartTime?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() dailyEndTime?: string;
   @ApiPropertyOptional() @IsOptional() @IsISO8601() startsAt?: string;

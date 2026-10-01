@@ -540,6 +540,9 @@ exports.Prisma.MenuItemScalarFieldEnum = {
   dietary: 'dietary',
   calories: 'calories',
   prepTime: 'prepTime',
+  minAge: 'minAge',
+  sellBy: 'sellBy',
+  scaleCode: 'scaleCode',
   metadata: 'metadata',
   hasMultipleSkus: 'hasMultipleSkus',
   productSkus: 'productSkus',
@@ -2767,6 +2770,8 @@ exports.Prisma.MenuItemOrderByRelevanceFieldEnum = {
   plu: 'plu',
   allergens: 'allergens',
   dietaryTags: 'dietaryTags',
+  sellBy: 'sellBy',
+  scaleCode: 'scaleCode',
   menuIds: 'menuIds',
   brandIds: 'brandIds',
   platformSource: 'platformSource',
@@ -4103,7 +4108,8 @@ exports.CampaignType = exports.$Enums.CampaignType = {
   BOGO: 'BOGO',
   FREE_ITEM: 'FREE_ITEM',
   FREE_DELIVERY: 'FREE_DELIVERY',
-  HAPPY_HOUR: 'HAPPY_HOUR'
+  HAPPY_HOUR: 'HAPPY_HOUR',
+  MULTI_BUY: 'MULTI_BUY'
 };
 
 exports.CampaignStatus = exports.$Enums.CampaignStatus = {

@@ -30,6 +30,8 @@ import {
   brandChannelRef,
   CHANNEL_VARIANT_PRESETS,
   type PricingVariant,
+  normaliseMinAge,
+  normaliseSellBy,
 } from "@orderhub/shared";
 import type {
   CreateMenuDto,
@@ -1466,23 +1468,48 @@ export class MenusService {
 
   // ── MenuItem CRUD ─────────────────────────────────────────────────────────
 
-  async findItemsByBrand(brandId: string, user: AuthenticatedUser) {
+  async findItemsByBrand(
+    brandId: string,
+    user: AuthenticatedUser,
+    /**
+     * Narrow the library to one location. Separate from the role scope on
+     * purpose: the scope answers "are you allowed to see this?", and this
+     * answers "does it belong on the menu I'm editing?" — a platform admin
+     * needs the second answer just as much, and used to get every location's
+     * products offered for a single shop's menu.
+     */
+    locationId?: string,
+  ) {
     await this.assertBrandAccess(brandId, user.tenantId);
     // Only surface the brand's library to users who can access this brand.
     const scope = await this.resolveCatalogScope(user);
     if (scope.brandIds !== null && !scope.brandIds.includes(brandId)) return [];
+    if (locationId) {
+      // Never trust the client's locationId — same rule as findItemsByLocation.
+      await this.assertLocationAccess(locationId, user.tenantId);
+      if (scope.locationIds !== null && !scope.locationIds.includes(locationId))
+        return [];
+    }
+    // Brand-only rows (locationId null) stay in either branch: an unassigned
+    // library product belongs to every location of the brand, and dropping
+    // them would empty the picker for any tenant that never stamped a
+    // location onto its catalogue.
+    const locationWhere = locationId
+      ? { OR: [{ locationId }, { locationId: null }] }
+      : scope.locationIds !== null
+        ? {
+            // Non-admins see only items stamped to their accessible
+            // locations, plus brand-only library items.
+            OR: [
+              { locationId: { in: scope.locationIds } },
+              { locationId: null },
+            ],
+          }
+        : {};
     return this.prisma.menuItem.findMany({
       where: {
         brandId,
-        // Non-admins see only items stamped to their accessible locations,
-        // plus brand-only (unassigned) library items — never another
-        // location's products.
-        ...(scope.locationIds !== null && {
-          OR: [
-            { locationId: { in: scope.locationIds } },
-            { locationId: null },
-          ],
-        }),
+        ...locationWhere,
       },
       include: {
         modifierGroupLinks: {
@@ -1589,6 +1616,9 @@ export class MenusService {
         calories: dto.calories,
         allergens: dto.allergens ?? [],
         dietaryTags: (dto as any).dietaryTags ?? [],
+        minAge: normaliseMinAge(dto.minAge),
+        sellBy: normaliseSellBy(dto.sellBy),
+        scaleCode: cleanScaleCode(dto.scaleCode),
         prepTime: (dto as any).prepTime ?? null,
         isInventoryTracked: (dto as any).isInventoryTracked ?? false,
         inventoryCount: (dto as any).inventoryCount ?? null,
@@ -1666,6 +1696,10 @@ export class MenusService {
         ...(dto.menuIds !== undefined && { menuIds: dto.menuIds }),
         ...(dto.brandIds !== undefined && { brandIds: dto.brandIds }),
         ...(dto.dietaryTags !== undefined && { dietaryTags: dto.dietaryTags }),
+        // null clears it — so `!== undefined`, not truthiness.
+        ...(dto.minAge !== undefined && { minAge: normaliseMinAge(dto.minAge) }),
+        ...(dto.sellBy !== undefined && { sellBy: normaliseSellBy(dto.sellBy) }),
+        ...(dto.scaleCode !== undefined && { scaleCode: cleanScaleCode(dto.scaleCode) }),
         ...((dto as any).prepTime !== undefined && { prepTime: (dto as any).prepTime }),
         ...((dto as any).isInventoryTracked !== undefined && { isInventoryTracked: (dto as any).isInventoryTracked }),
         ...((dto as any).inventoryCount !== undefined && { inventoryCount: (dto as any).inventoryCount }),
@@ -3645,4 +3679,10 @@ export class MenusService {
     return [...ids];
   }
 
+}
+
+/** A scale code is digits only; blank clears it. */
+function cleanScaleCode(v: string | null | undefined): string | null {
+  const d = String(v ?? "").replace(/\D/g, "").replace(/^0+/, "");
+  return d ? d.slice(0, 6) : null;
 }

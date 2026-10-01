@@ -128,6 +128,11 @@ export function ProductForm({
   const [isAvailable, setIsAvailable] = useState(true);
   const [outOfStock, setOutOfStock] = useState(false);
   const [visibleToCustomers, setVisibleToCustomers] = useState(true);
+  // Challenge 25: "" = anyone, else the minimum age (16 / 18).
+  const [minAge, setMinAge] = useState<"" | "16" | "18">("");
+  // Sold by weight: "" = each, else the base price is per kg / per 100 g.
+  const [sellBy, setSellBy] = useState<"" | "KG" | "100G">("");
+  const [scaleCode, setScaleCode] = useState("");
   // Which service modes this product is sold in. All three on by default —
   // unticking one is the exception, not the setup step.
   const [availableCollection, setAvailableCollection] = useState(true);
@@ -198,6 +203,9 @@ export function ProductForm({
     setIsAvailable(existing.isAvailable);
     setOutOfStock(existing.outOfStock);
     setVisibleToCustomers(existing.visibleToCustomers);
+    setMinAge(existing.minAge === 16 || existing.minAge === 18 ? (String(existing.minAge) as "16" | "18") : "");
+    setSellBy(existing.sellBy === "KG" || existing.sellBy === "100G" ? existing.sellBy : "");
+    setScaleCode(existing.scaleCode ?? "");
     // `!== false` rather than `?? true`: products saved before this existed
     // have the field absent, and they are sold everywhere.
     setAvailableCollection((existing as any).availableCollection !== false);
@@ -256,6 +264,9 @@ export function ProductForm({
         isAvailable,
         outOfStock,
         visibleToCustomers,
+        minAge: minAge ? Number(minAge) : null,
+        sellBy: sellBy || null,
+        scaleCode: sellBy ? scaleCode.trim() || null : null,
         availableCollection,
         availableDelivery,
         availableDineIn,
@@ -765,7 +776,42 @@ export function ProductForm({
           <Card className="p-5">
             <h3 className="text-sm font-semibold text-zinc-900 mb-4">Pricing</h3>
             <div className="space-y-4">
-              <Field label={`Base price (${symbol.trim()})`}>
+              <Field label="Sold by">
+                <select
+                  aria-label="Sold by"
+                  value={sellBy}
+                  onChange={(e) => setSellBy(e.target.value as "" | "KG" | "100G")}
+                  className="h-9 w-full rounded-md border border-zinc-200 px-2 text-sm focus:border-zinc-900 focus:outline-none"
+                >
+                  <option value="">Each</option>
+                  <option value="KG">Weight — price per kg</option>
+                  <option value="100G">Weight — price per 100 g</option>
+                </select>
+              </Field>
+              {sellBy && (
+                <Field label="Scale code (optional)">
+                  <Input
+                    inputMode="numeric"
+                    value={scaleCode}
+                    onChange={(e) => setScaleCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    placeholder="e.g. 412"
+                    className="h-9 text-sm tabular-nums"
+                  />
+                  <p className="mt-1 text-[11px] text-zinc-500">
+                    The number this product has on your label scale, so the till can read its printed barcodes.
+                    Without one, staff type the weight at the till.
+                  </p>
+                </Field>
+              )}
+              <Field
+                label={
+                  sellBy === "KG"
+                    ? `Price per kg (${symbol.trim()})`
+                    : sellBy === "100G"
+                      ? `Price per 100 g (${symbol.trim()})`
+                      : `Base price (${symbol.trim()})`
+                }
+              >
                 <Input
                   type="number"
                   step="0.01"
@@ -892,6 +938,26 @@ export function ProductForm({
                 onChange={setVisibleToCustomers}
               />
             </div>
+          </Card>
+
+          <Card className="p-5">
+            <label htmlFor="product-min-age" className="text-sm font-semibold text-zinc-900">
+              Age restriction
+            </label>
+            <p className="mt-1 mb-3 text-xs text-zinc-500">
+              Alcohol, tobacco, vapes and knives are 18+. The till asks staff to check ID (Challenge 25), and online
+              shoppers must confirm their age — the order is marked ID CHECK for hand-over.
+            </p>
+            <select
+              id="product-min-age"
+              value={minAge}
+              onChange={(e) => setMinAge(e.target.value as "" | "16" | "18")}
+              className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+            >
+              <option value="">No restriction</option>
+              <option value="16">16 and over</option>
+              <option value="18">18 and over</option>
+            </select>
           </Card>
 
           <Card title="How it can be ordered">

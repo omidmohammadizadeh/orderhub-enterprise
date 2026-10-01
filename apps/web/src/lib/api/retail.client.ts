@@ -1,5 +1,6 @@
 // Retail R1 — barcodes, stock and returns (apps/api/src/modules/retail).
 
+import type { MultiBuyDeal } from "@orderhub/shared";
 import { apiClient } from "./client";
 
 export interface BarcodeEntry {
@@ -11,6 +12,10 @@ export interface BarcodeEntry {
   variantName: string;
   price: number;
   sku: string | null;
+  /** Challenge 25 — 16 or 18 when the product is age-restricted. */
+  minAge?: number | null;
+  /** Weighed products are stocked (and received) in grams. */
+  sellBy?: "KG" | "100G" | null;
 }
 
 export interface RetailVariant {
@@ -34,6 +39,8 @@ export interface RetailProduct {
   basePrice: number;
   plu: string | null;
   imageUrl: string | null;
+  /** Weighed products: priced per kg / 100 g and stocked in grams. */
+  sellBy?: "KG" | "100G" | null;
   variants: RetailVariant[];
 }
 
@@ -140,7 +147,9 @@ export interface PickLine {
   barcodes: string[];
   variantId: string | null;
   substitution: "BEST_MATCH" | "NONE";
-  pick: { picked: number; sub?: PickSub | null } | null;
+  pick: { picked: number; sub?: PickSub | null; grams?: number | null } | null;
+  /** Weighed lines: total grams ordered; picked by weight, not count. */
+  weightGrams?: number | null;
 }
 
 export interface PickOrder {
@@ -196,6 +205,10 @@ export const retailClient = {
   barcodes: (locationId: string) =>
     apiClient.get<BarcodeEntry[]>(`${base(locationId)}/barcodes`).then((r) => r.data),
 
+  /** Multi-buys live on this till (POS channel). */
+  deals: (locationId: string) =>
+    apiClient.get<{ multiBuys: MultiBuyDeal[] }>(`${base(locationId)}/deals`).then((r) => r.data),
+
   lookup: (locationId: string, code: string) =>
     apiClient
       .get<BarcodeLookup>(`${base(locationId)}/lookup`, { params: { code } })
@@ -248,7 +261,7 @@ export const retailClient = {
   pickList: (locationId: string) =>
     apiClient.get<{ orders: PickOrder[] }>(`${base(locationId)}/picking`).then((r) => r.data),
   startPicking: (orderId: string) => apiClient.post(`/v1/retail/picking/${orderId}/start`).then((r) => r.data),
-  pickLine: (orderId: string, itemId: string, body: { picked: number; sub?: PickSub | null }) =>
+  pickLine: (orderId: string, itemId: string, body: { picked: number; sub?: PickSub | null; grams?: number }) =>
     apiClient.patch(`/v1/retail/picking/${orderId}/lines/${itemId}`, body).then((r) => r.data),
   completePicking: (orderId: string) =>
     apiClient

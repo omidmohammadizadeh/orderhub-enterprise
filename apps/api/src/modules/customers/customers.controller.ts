@@ -28,7 +28,14 @@ import { SocketService } from "../../infrastructure/socket/socket.service";
 import { extractVoipPhone } from "./voip-phone.util";
 import { CallerIdSetupService } from "./caller-id-setup.service";
 import { LocationAccessService } from "../../common/access/location-access.service";
-import { ForbiddenException, BadRequestException, NotFoundException, Headers } from "@nestjs/common";
+import {
+  ForbiddenException,
+  BadRequestException,
+  NotFoundException,
+  Headers,
+  Header,
+} from "@nestjs/common";
+import { screenPopPage, unsubstitutedMacro } from "./caller-id-screen-pop";
 
 // Who may see and mint a shop's caller-ID webhook token: the same people who
 // may change the shop's settings at all. Both naming generations listed —
@@ -129,50 +136,15 @@ export class CustomersController {
     @Query("key") key?: string,
     @Headers("x-voip-key") headerKey?: string,
   ) {
-    // Per-shop token first, platform-wide key second. A shop that has minted
-    // its own token can be posted to only by whoever holds THAT token, which
-    // is the point: the shared key is one secret across every shop on the
-    // platform, so anyone holding it could ring another shop's tills.
-    const auth = await this.callerIdSetup.authorise(locationId, headerKey ?? key);
-    if (!auth.ok) {
-      // Worth recording: a provider posting with the wrong key looks exactly
-      // like a provider not posting at all from the shop's side, and this is
-      // the difference between "chase your provider" and "re-copy the key".
-      if (auth.locationExists) {
-        this.callerIdSetup.record({
-          locationId,
-          phone: extractVoipPhone(body) ?? "",
-          source: "webhook",
-          rejected: headerKey || key ? "wrong key" : "no key sent",
-        });
+    const result = await this.ringFromProvider(locationId, body, headerKey ?? key);
+    if (!result.ok) {
+      if (result.reason === "bad key") throw new ForbiddenException("Bad key");
+      if (result.reason === "unknown location") {
+        throw new NotFoundException("Unknown location");
       }
-      throw new ForbiddenException("Bad key");
-    }
-
-    const phone = extractVoipPhone(body);
-    if (!phone) {
-      this.callerIdSetup.record({
-        locationId,
-        phone: "",
-        source: "webhook",
-        rejected: "no caller number in the payload",
-      });
       throw new BadRequestException("No caller number in payload");
     }
-
-    const tenantId = await this.customers.tenantForLocation(locationId);
-    if (!tenantId) throw new NotFoundException("Unknown location");
-
-    const match = await this.customers.lookupByPhone(tenantId, phone, { locationId });
-    const payload = { locationId, phone, at: new Date().toISOString(), match };
-    this.socket.emitToLocation(locationId, "callerid:ring", payload);
-    this.callerIdSetup.record({
-      locationId,
-      phone,
-      source: "webhook",
-      matched: !!match,
-      ownNumbers: auth.ownNumbers,
-    });
+    const { phone, match } = result;
     // What number actually reached the tills, and how long it was.
     //
     // Without this the only way to check a caller-ID complaint was to read the
@@ -187,6 +159,126 @@ export class CustomersController {
         `)${match ? " matched a known customer" : " no match"}`,
     );
     return { ok: true };
+  }
+
+  /**
+   * A caller-ID screen pop from a desktop phone client, as a plain web address.
+   *
+   * 8x8 Work (and several other business phone clients) has no webhook at all
+   * for an ordinary Work licence. What it has is a "Caller info popup"
+   * setting: one box for a URL, into which it substitutes macros —
+   * %%CallerNumber%%, %%CalleeNumber%%, %%Username%% — and then OPENS in a
+   * browser when a call comes in. Every Work client can do it, with no API, no
+   * case and no extra licence, which makes it the shortest route to a till
+   * popup that exists for those shops.
+   *
+   * Two consequences, both forced on us by that feature rather than chosen:
+   *
+   *  - It is a GET, and the key has to travel in the query string. We tell
+   *    providers to use the x-voip-key header precisely because addresses end
+   *    up in logs and browser history — but a settings box that only takes a
+   *    URL cannot send a header. It is a ring-only token for one shop, so the
+   *    worst a leak does is put a fake caller card on that shop's tills, and
+   *    it can be replaced in one tap.
+   *  - A browser tab opens on the desktop on every call. Nothing can stop
+   *    that, so it may as well be useful: the page says who is calling and
+   *    confirms the tills have it.
+   */
+  @Public()
+  @Get("caller-id/voip/:locationId")
+  @HttpCode(HttpStatus.OK)
+  @Header("Content-Type", "text/html; charset=utf-8")
+  @ApiOperation({
+    summary:
+      "Caller-ID screen pop for desktop phone clients (8x8 Work and similar) — number in the URL",
+  })
+  async voipRingScreenPop(
+    @Param("locationId") locationId: string,
+    @Query() query: Record<string, unknown>,
+  ) {
+    const key = typeof query.key === "string" ? query.key : undefined;
+    const result = await this.ringFromProvider(locationId, query, key);
+    if (result.ok) {
+      this.logger.log(
+        `Screen-pop ring → location ${locationId}: ${result.phone}` +
+          (result.match ? " matched a known customer" : " no match"),
+      );
+    }
+    // Always a page, never a JSON error: the audience is a person looking at a
+    // browser tab that opened on its own, and "400 Bad Request" tells them
+    // nothing they can act on. What went wrong is recorded against the shop in
+    // the ring log either way.
+    return screenPopPage(result);
+  }
+
+  /**
+   * One incoming ring from a phone provider, however it reached us.
+   *
+   * Shared by the webhook (POST, key in a header) and the desktop screen pop
+   * (GET, key in the query) so the two can never drift on who is allowed in,
+   * what counts as a caller number, or what the tills are told.
+   */
+  private async ringFromProvider(
+    locationId: string,
+    payload: Record<string, unknown>,
+    presentedKey: string | undefined,
+  ): Promise<
+    | { ok: true; phone: string; match: Awaited<ReturnType<CustomersService["lookupByPhone"]>> }
+    | { ok: false; reason: "bad key" | "no caller number" | "unknown location" }
+  > {
+    // Per-shop token first, platform-wide key second. A shop that has minted
+    // its own token can be rung only by whoever holds THAT token, which is the
+    // point: the shared key is one secret across every shop on the platform,
+    // so anyone holding it could ring another shop's tills.
+    const auth = await this.callerIdSetup.authorise(locationId, presentedKey);
+    if (!auth.ok) {
+      // Worth recording: a provider calling with the wrong key looks exactly
+      // like a provider not calling at all from the shop's side, and this is
+      // the difference between "chase your provider" and "re-copy the key".
+      if (auth.locationExists) {
+        this.callerIdSetup.record({
+          locationId,
+          phone: extractVoipPhone(payload) ?? "",
+          source: "webhook",
+          rejected: presentedKey ? "wrong key" : "no key sent",
+        });
+      }
+      return { ok: false, reason: "bad key" };
+    }
+
+    const phone = extractVoipPhone(payload);
+    if (!phone) {
+      this.callerIdSetup.record({
+        locationId,
+        phone: "",
+        source: "webhook",
+        // A macro the phone client never filled in arrives verbatim, and
+        // "%%CallerNumber%%" in the log is the whole diagnosis.
+        rejected: unsubstitutedMacro(payload)
+          ? `the phone system sent the macro unchanged (${unsubstitutedMacro(payload)})`
+          : "no caller number in the payload",
+      });
+      return { ok: false, reason: "no caller number" };
+    }
+
+    const tenantId = await this.customers.tenantForLocation(locationId);
+    if (!tenantId) return { ok: false, reason: "unknown location" };
+
+    const match = await this.customers.lookupByPhone(tenantId, phone, { locationId });
+    this.socket.emitToLocation(locationId, "callerid:ring", {
+      locationId,
+      phone,
+      at: new Date().toISOString(),
+      match,
+    });
+    this.callerIdSetup.record({
+      locationId,
+      phone,
+      source: "webhook",
+      matched: !!match,
+      ownNumbers: auth.ownNumbers,
+    });
+    return { ok: true, phone, match };
   }
 
   // ── Handing the shop's phone provider its instructions ──────────────────

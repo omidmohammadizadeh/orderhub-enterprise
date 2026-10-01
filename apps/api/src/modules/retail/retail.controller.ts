@@ -24,6 +24,7 @@ import { IMPORT_MAX_ROWS, RetailCatalogService } from "./retail-catalog.service"
 import { RetailReturnsService } from "./retail-returns.service";
 import { RetailStockService } from "./retail-stock.service";
 import { RetailPickingService } from "./retail-picking.service";
+import { RetailDealsService } from "./retail-deals.service";
 
 // Building the catalogue and pricing it is a manager's job; counting stock
 // and scanning at the till is everyone on shift.
@@ -105,6 +106,8 @@ class PickSubDto {
 class PickLineBodyDto {
   @IsInt() @Min(0) picked!: number;
   @IsOptional() @ValidateNested() @Type(() => PickSubDto) sub?: PickSubDto | null;
+  /** Weighed lines: the actual weight picked, in grams. */
+  @IsOptional() @IsInt() @Min(0) grams?: number;
 }
 
 class PollReturnBodyDto {
@@ -121,6 +124,7 @@ export class RetailController {
     private readonly returns: RetailReturnsService,
     private readonly picking: RetailPickingService,
     private readonly access: LocationAccessService,
+    private readonly deals: RetailDealsService,
   ) {}
 
   // ── Till ──────────────────────────────────────────────────────────────────
@@ -131,6 +135,14 @@ export class RetailController {
   async barcodes(@CurrentUser() user: AuthenticatedUser, @Param("locationId") locationId: string) {
     await this.access.assertAccess(user, locationId);
     return this.catalog.barcodeIndex(user.tenantId, locationId);
+  }
+
+  @Get("locations/:locationId/deals")
+  @Roles(...TILL_ROLES)
+  @ApiOperation({ summary: "Multi-buy deals live on this till (POS channel)" })
+  async tillDeals(@CurrentUser() user: AuthenticatedUser, @Param("locationId") locationId: string) {
+    await this.access.assertAccess(user, locationId);
+    return this.deals.tillDeals(user.tenantId, locationId);
   }
 
   @Get("locations/:locationId/lookup")
@@ -274,7 +286,11 @@ export class RetailController {
     @Param("itemId") itemId: string,
     @Body() body: PickLineBodyDto,
   ) {
-    return this.picking.setLine(user, orderId, itemId, { picked: body.picked, sub: body.sub ?? null } as any);
+    return this.picking.setLine(user, orderId, itemId, {
+      picked: body.picked,
+      sub: body.sub ?? null,
+      ...(body.grams !== undefined ? { grams: body.grams } : {}),
+    } as any);
   }
 
   @Post("picking/:orderId/complete")

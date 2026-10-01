@@ -95,8 +95,16 @@ export function JetGoConnectionSection({ locationId }: { locationId: string }) {
   }
 
   async function save() {
-    if (!clientId.trim() || !clientSecret.trim()) {
-      setMsg({ kind: "err", text: "Enter the Client ID and Client Secret." });
+    // BOTH blank is the normal case — it puts the shop on the OrderHub account.
+    // Only ONE filled is a typo. Demanding both outright locked every reseller
+    // location out of the screen entirely.
+    const onlyOne =
+      Boolean(clientId.trim()) !== Boolean(clientSecret.trim());
+    if (onlyOne) {
+      setMsg({
+        kind: "err",
+        text: "Enter both the Client ID and the Client Secret, or leave both blank to use the OrderHub account.",
+      });
       return;
     }
     setBusy("save");
@@ -112,8 +120,8 @@ export function JetGoConnectionSection({ locationId }: { locationId: string }) {
       setMsg({
         kind: "ok",
         text: (r as any)?.sharedWebhook
-          ? "Saved. Another location already uses these credentials, so both share one webhook URL."
-          : "JET Go credentials saved. Now load your collect points.",
+          ? "Saved — this shop shares a webhook URL with the other locations on the same account. Now load your collect points."
+          : "Saved. Now load your collect points.",
       });
       await load();
     } catch (e) {
@@ -232,10 +240,33 @@ export function JetGoConnectionSection({ locationId }: { locationId: string }) {
 
       <p className="text-[12px] leading-relaxed text-zinc-500">
         Dispatch delivery orders to a <strong>JET Go</strong> courier — Just Eat&apos;s
-        own last-mile network. Add the <strong>Client ID</strong> and{" "}
-        <strong>Secret</strong> the JET Go team issued you. JET bills your account
-        for the courier; OrderHub charges a flat fee per dispatch from your wallet.
+        own last-mile network. Most shops use the OrderHub JET Go account and need
+        no credentials at all: the courier cost plus our fee comes out of this
+        location&apos;s wallet. Only a shop with its own JET Go agreement fills the
+        two fields below, and then Just Eat bills them for the courier directly.
       </p>
+
+      {cfg?.configured && (
+        <p
+          className={`rounded-md px-2.5 py-2 text-[11px] leading-snug ${
+            cfg.reseller ? "bg-emerald-50 text-emerald-800" : "bg-zinc-100 text-zinc-700"
+          }`}
+        >
+          {cfg.reseller ? (
+            <>
+              Dispatching on the <strong>OrderHub JET Go account</strong>. Just Eat
+              invoices us for the courier, and the wallet pays the courier price
+              plus our fee.
+            </>
+          ) : (
+            <>
+              Dispatching on <strong>this shop&apos;s own JET Go account</strong>
+              {cfg.clientIdMasked ? ` (${cfg.clientIdMasked})` : ""}. Just Eat
+              invoices them for the courier; the wallet pays our fee only.
+            </>
+          )}
+        </p>
+      )}
 
       {/* 1 — credentials. The two credential inputs turn off autofill, spellcheck
           and password-manager prompts: they are machine secrets pasted into a
@@ -285,7 +316,9 @@ export function JetGoConnectionSection({ locationId }: { locationId: string }) {
             htmlFor={`${uid}-clientid`}
             className="text-[11px] font-medium text-zinc-600"
           >
-            Client ID {cfg?.clientIdMasked && `(saved: ${cfg.clientIdMasked})`}
+            Client ID{" "}
+            <span className="font-normal text-zinc-400">— only if this shop has its own account</span>
+            {cfg?.clientIdMasked && ` (saved: ${cfg.clientIdMasked})`}
           </label>
           <input
             id={`${uid}-clientid`}
@@ -294,7 +327,7 @@ export function JetGoConnectionSection({ locationId }: { locationId: string }) {
             onChange={(e) => setClientId(e.target.value)}
             autoComplete="off"
             spellCheck={false}
-            placeholder="Paste your JET Go Client ID…"
+            placeholder="Leave blank to use the OrderHub account"
             className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600"
           />
         </div>
@@ -313,7 +346,7 @@ export function JetGoConnectionSection({ locationId }: { locationId: string }) {
             onChange={(e) => setClientSecret(e.target.value)}
             autoComplete="off"
             spellCheck={false}
-            placeholder={cfg?.configured ? "•••••• (unchanged)" : "Paste your Client Secret…"}
+            placeholder={cfg?.configured ? "•••••• (unchanged)" : "Leave blank to use the OrderHub account"}
             className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600"
           />
         </div>
@@ -326,7 +359,13 @@ export function JetGoConnectionSection({ locationId }: { locationId: string }) {
           disabled={busy !== null}
           className="rounded-md bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600"
         >
-          {busy === "save" ? "Saving…" : "Save credentials"}
+          {busy === "save"
+            ? "Saving…"
+            : // Blank is the normal case, not an unfinished form. "Save
+              // credentials" over an empty one reads like a mistake to correct.
+              clientId.trim() || clientSecret.trim()
+              ? "Save credentials"
+              : "Use the OrderHub JET Go account"}
         </button>
         {cfg?.configured && (
           <button

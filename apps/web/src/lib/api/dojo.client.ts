@@ -24,6 +24,8 @@ export type DojoStatus =
       webhook: boolean;
       partnerIdsConfigured: boolean;
       payAtTable: { enabled: boolean; registeredAt: string | null };
+      /** Off = this location's payment links are hosted by Stripe. */
+      paymentLinks: { enabled: boolean; enabledAt: string | null };
     };
 
 export interface DojoChargeStatus {
@@ -50,6 +52,10 @@ export type DojoTerminalRefundStatus =
       prompt?: string | null;
       done: boolean;
       failed: boolean;
+      /** The machine is asking us to check the signature — same as a sale. */
+      needsSignature?: boolean;
+      /** Expired session: Dojo never said whether the money went back. */
+      unconfirmed?: boolean;
       message?: string;
       full?: boolean;
       leftToRefund?: number;
@@ -85,6 +91,12 @@ export const dojoClient = {
     apiClient
       .get<DojoPayAtTablePreview>(`${base}/locations/${locationId}/pay-at-table/preview`)
       .then((r) => r.data),
+
+  enablePaymentLinks: (locationId: string) =>
+    apiClient.post<DojoStatus>(`${base}/locations/${locationId}/payment-links`, {}).then((r) => r.data),
+
+  disablePaymentLinks: (locationId: string) =>
+    apiClient.delete<DojoStatus>(`${base}/locations/${locationId}/payment-links`).then((r) => r.data),
 
   enablePayAtTable: (locationId: string) =>
     apiClient.post<DojoStatus>(`${base}/locations/${locationId}/pay-at-table`, {}).then((r) => r.data),
@@ -138,4 +150,17 @@ export const dojoClient = {
 
   signature: (paymentIntentId: string, accepted: boolean) =>
     apiClient.post(`${base}/charge/signature`, { paymentIntentId, accepted }).then((r) => r.data),
+
+  refundSignature: (paymentIntentId: string, accepted: boolean) =>
+    apiClient.post(`${base}/charge/refund/signature`, { paymentIntentId, accepted }).then((r) => r.data),
+
+  // "The machine shows the refund went through" — for a session that expired
+  // without Dojo ever reporting an outcome.
+  recordUnconfirmedRefund: (paymentIntentId: string) =>
+    apiClient
+      .post<{ amount: number; full: boolean; leftToRefund: number; confirmedByDojo: boolean }>(
+        `${base}/charge/refund/record`,
+        { paymentIntentId },
+      )
+      .then((r) => r.data),
 };

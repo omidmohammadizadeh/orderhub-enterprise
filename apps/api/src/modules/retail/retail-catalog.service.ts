@@ -37,6 +37,10 @@ export interface BarcodeIndexEntry {
   variantName: string;
   price: number;
   sku: string | null;
+  /** Age-restricted product (Challenge 25): 16 or 18, else null. */
+  minAge: number | null;
+  /** Weighed product (stocked in grams): KG / 100G, else null. */
+  sellBy: string | null;
 }
 
 export interface VariantInput {
@@ -99,7 +103,7 @@ export class RetailCatalogService {
     if (!itemIds.length) return [];
     const variants = await this.prisma.productVariant.findMany({
       where: { tenantId, menuItemId: { in: itemIds }, isActive: true, barcode: { not: null } },
-      include: { menuItem: { select: { name: true, basePrice: true } } },
+      include: { menuItem: { select: { name: true, basePrice: true, minAge: true, sellBy: true } } },
       orderBy: [{ menuItemId: "asc" }, { sortOrder: "asc" }],
     });
     const perItem = new Map<string, number>();
@@ -115,6 +119,8 @@ export class RetailCatalogService {
         variantName: v.name,
         price: Number(v.price ?? v.menuItem.basePrice),
         sku: v.sku,
+        minAge: v.menuItem.minAge ?? null,
+        sellBy: v.menuItem.sellBy ?? null,
       };
     });
   }
@@ -197,6 +203,7 @@ export class RetailCatalogService {
         basePrice: true,
         plu: true,
         imageUrl: true,
+        sellBy: true,
         productVariants: {
           orderBy: { sortOrder: "asc" },
           include: { stockLevels: { where: { locationId }, select: { quantity: true } } },
@@ -210,6 +217,8 @@ export class RetailCatalogService {
       basePrice: Number(it.basePrice),
       plu: it.plu,
       imageUrl: it.imageUrl,
+      /** Weighed products are stocked in grams. */
+      sellBy: it.sellBy,
       variants: it.productVariants.map((v) => this.variantView(v)),
     }));
     if (opts.lowOnly) {
@@ -607,6 +616,9 @@ export class RetailCatalogService {
           basePrice,
           plu,
           menuIds: [menuId],
+          ...(product.minAge ? { minAge: product.minAge } : {}),
+          ...(product.sellBy ? { sellBy: product.sellBy } : {}),
+          ...(product.scaleCode ? { scaleCode: product.scaleCode } : {}),
         },
         select: { id: true },
       });
@@ -618,6 +630,18 @@ export class RetailCatalogService {
         data: {
           basePrice,
           ...(product.description ? { description: product.description } : {}),
+        },
+      });
+    }
+    // An "Age" column only ever adds a restriction; a blank cell leaves it be.
+    // So do "Sold by" and "Scale code": a blank cell never clears what's set.
+    if ((product.minAge || product.sellBy || product.scaleCode) && !result.created) {
+      await this.prisma.menuItem.update({
+        where: { id: menuItemId },
+        data: {
+          ...(product.minAge ? { minAge: product.minAge } : {}),
+          ...(product.sellBy ? { sellBy: product.sellBy } : {}),
+          ...(product.scaleCode ? { scaleCode: product.scaleCode } : {}),
         },
       });
     }
