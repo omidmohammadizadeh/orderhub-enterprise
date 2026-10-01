@@ -1,9 +1,22 @@
 // Phase BJ — dispatch an order to a JET Go courier.
 //
-// Money rule is the same as Stuart and Uber Direct: debit the location wallet a
-// flat OrderHub fee BEFORE the delivery is created, refund it if creation fails,
-// PLATFORM_ADMIN bypasses. JET bills the restaurant's own JET Go account for the
-// courier itself.
+// MONEY IS NOT THE SAME SHAPE AS STUART AND UBER DIRECT.
+//
+// For those two the merchant holds the courier account, the network bills them
+// directly, and our flat fee is the whole of our take. Under the JET Go RESELLER
+// contract the account is OURS: JET invoices us per completed delivery,
+// £4.25–£9.20 by distance, and we owe it whether or not the shop ever pays us
+// (Schedule 2, clause 8).
+//
+// So the wallet has to recover the courier cost AS WELL AS our margin. Charging
+// the flat fee alone would have lost us the difference on every single delivery
+// — about £4.85 on a 1.5-mile drop.
+//
+// The estimate tells us the exact cost before we commit, so the charge is
+// known-good rather than guessed: dynamicDeliveryFee + markup, taken before the
+// delivery is created and refunded in full if creation fails. A location that
+// brought its OWN JET Go account is billed by JET directly, and then the wallet
+// takes only the markup, exactly like Stuart.
 //
 // JET Go's flow is two calls, not one, and the order matters:
 //
@@ -334,15 +347,20 @@ export class JetGoDispatchService {
     const { order, location, cfg } = await this.load(args.orderId, args.tenantId);
     const { body, warnings } = await this.buildEstimateBody(order, location, cfg);
     const est = await this.client.estimate(cfg, body);
-    const feeMinor = Number(est?.dynamicDeliveryFee);
+    const courierMinor = Number(est?.dynamicDeliveryFee);
     return {
       currency: location.currency ?? "GBP",
-      amount: Number.isFinite(feeMinor) ? feeMinor / 100 : null,
+      amount: Number.isFinite(courierMinor) ? courierMinor / 100 : null,
       quoteId: est?.requestId ?? null,
       feeRule: est?.dynamicDeliveryFeeRule ?? null,
       collectBy: est?.estimatedEarliestCollectTime ?? est?.targetCollectTime ?? null,
       deliverBy: est?.estimatedEarliestDeliverTime ?? est?.targetDeliverTime ?? null,
       dispatchFeeMinor: this.wallet.dispatchFeeMinor(),
+      // The number that will actually leave the wallet. On our own account that
+      // is the courier plus the markup, not the markup alone — the operator has
+      // to see the real figure before committing, not discover it in the ledger.
+      walletChargeMinor: this.walletChargeMinor(cfg, est),
+      reseller: cfg.reseller,
       warnings,
       raw: est,
     };
@@ -378,7 +396,7 @@ export class JetGoDispatchService {
     // courier is moving and the money is spent, so a wallet that cannot cover
     // the fee refuses here rather than leaving us to chase it afterwards.
     // debitForDispatch throws when the balance is short.
-    const feeMinor = this.wallet.dispatchFeeMinor();
+    const feeMinor = this.walletChargeMinor(cfg, estimate);
     const waived = await this.wallet.isDispatchChargeWaived(order.locationId);
     let charged = false;
     if (!waived) {
@@ -432,6 +450,17 @@ export class JetGoDispatchService {
         courierStatus: "PENDING",
         ...(etaAt ? { courierEtaAt: etaAt } : {}),
         ...(pickupEtaAt ? { courierPickupEtaAt: pickupEtaAt } : {}),
+        // What the wallet actually paid, so a later refund returns THAT and not
+        // a flat fee. Under the reseller model the two differ by pounds.
+        metadata: {
+          ...((order.metadata ?? {}) as Record<string, any>),
+          jetGo: {
+            ...(((order.metadata ?? {}) as Record<string, any>).jetGo ?? {}),
+            walletChargedMinor: waived ? 0 : feeMinor,
+            courierCostMinor: estimate.dynamicDeliveryFee ?? null,
+            reseller: cfg.reseller,
+          },
+        },
       },
     });
 
@@ -448,11 +477,12 @@ export class JetGoDispatchService {
         courierFeeMinor: estimate.dynamicDeliveryFee ?? null,
         feeRule: estimate.dynamicDeliveryFeeRule ?? null,
         walletFeeMinor: waived ? 0 : feeMinor,
+        reseller: cfg.reseller,
       },
     });
 
     this.logger.log(
-      `JET Go dispatch OK order=${order.id} requestId=${estimate.requestId} courierFee=${estimate.dynamicDeliveryFee}p fee=${waived ? "0 (charge waived for this location)" : `${feeMinor}p`}`,
+      `JET Go dispatch OK order=${order.id} requestId=${estimate.requestId} courierFee=${estimate.dynamicDeliveryFee}p wallet=${waived ? "0 (charge waived for this location)" : `${feeMinor}p`} (${cfg.reseller ? "reseller" : "merchant account"})`,
     );
 
     return {
@@ -467,6 +497,45 @@ export class JetGoDispatchService {
       chargeWaived: waived,
       warnings,
     };
+  }
+
+  /**
+   * What comes out of the wallet for one delivery, in pence.
+   *
+   * Reseller (our account): JET's own price for THIS delivery, from the
+   * estimate, plus our markup. Never a guess — the estimate is taken moments
+   * before the booking and the id it returns is the one we book against, so the
+   * number we charge is the number we will be invoiced.
+   *
+   * Merchant's own account: the markup only. JET bills them for the courier.
+   */
+  private walletChargeMinor(
+    cfg: DecryptedJetGoConfig,
+    estimate: JetGoEstimateResponse,
+  ): number {
+    const markup = this.wallet.dispatchFeeMinor();
+    if (!cfg.reseller) return markup;
+    const raw = estimate?.dynamicDeliveryFee as unknown;
+    // Parsed strictly, because Number(null) and Number("") are both 0 — a
+    // MISSING price would otherwise read as a free delivery and we would book a
+    // courier whose invoice we had charged 50p for. Zero itself is allowed: JET
+    // is entitled to price a drop at nothing, and that is not the same as not
+    // telling us.
+    const courier =
+      typeof raw === "number"
+        ? raw
+        : typeof raw === "string" && raw.trim() !== ""
+          ? Number(raw)
+          : NaN;
+    if (!Number.isFinite(courier) || courier < 0) {
+      // JET priced the delivery but we could not read the price. Refusing is
+      // the only safe move: booking it would commit us to an invoice we have
+      // not collected for.
+      throw new BadRequestException(
+        "JET Go didn't return a courier price for this delivery, so we can't charge for it. Try again.",
+      );
+    }
+    return Math.round(courier) + markup;
   }
 
   private asDate(v: unknown): Date | null {

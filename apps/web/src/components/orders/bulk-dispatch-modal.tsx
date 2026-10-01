@@ -216,7 +216,14 @@ export function BulkDispatchModal({ orders, onClose, onDispatched }: Props) {
           setJetTotal({
             currency: quotes[0]?.currency ?? "GBP",
             amount: quotes.reduce((sum, q) => sum + (Number(q?.amount) || 0), 0),
-            feeMinor: quotes.reduce((sum, q) => sum + (Number(q?.dispatchFeeMinor) || 0), 0),
+            // The wallet total, which on our own JET account includes the
+            // couriers themselves — summing the markup alone understated what
+            // the run would cost by pounds per drop.
+            feeMinor: quotes.reduce(
+              (sum, q) =>
+                sum + (Number(q?.walletChargeMinor ?? q?.dispatchFeeMinor) || 0),
+              0,
+            ),
           });
           setJetWarnings([...new Set(quotes.flatMap((q) => q?.warnings ?? []))]);
         } catch (e) {
@@ -575,8 +582,8 @@ export function BulkDispatchModal({ orders, onClose, onDispatched }: Props) {
                     </div>
                     <div className="text-[10px] text-zinc-400">
                       {orders.length === 1
-                        ? `+ ${jetTotal.feeMinor}p OrderHub fee`
-                        : `total, + ${jetTotal.feeMinor}p OrderHub fees`}
+                        ? `${money(jetTotal.currency, jetTotal.feeMinor / 100)} from wallet`
+                        : `courier total · ${money(jetTotal.currency, jetTotal.feeMinor / 100)} from wallet`}
                     </div>
                   </>
                 ) : jetErr ? (

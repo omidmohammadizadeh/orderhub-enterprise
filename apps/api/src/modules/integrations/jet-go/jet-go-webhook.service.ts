@@ -127,6 +127,22 @@ export class JetGoWebhookService {
     });
   }
 
+  /**
+   * What this order's wallet actually paid, so a refund returns the same money.
+   *
+   * Under the reseller model the charge is the courier's own price plus our
+   * markup, so it differs per delivery and by POUNDS from the flat fee. Reading
+   * it back off the order is the only way a refund can be right; falling back
+   * to the flat fee would hand back 50p against a £5.85 charge.
+   */
+  private walletChargedMinor(order: any): number {
+    const meta = ((order?.metadata ?? {}) as Record<string, any>)?.jetGo ?? {};
+    const n = Number(meta.walletChargedMinor);
+    if (Number.isFinite(n) && n >= 0) return n;
+    // Pre-dating the field: the flat fee is what it would have taken then.
+    return this.wallet.dispatchFeeMinor();
+  }
+
   async handle(body: any): Promise<{ ok: boolean; reason?: string; type?: string }> {
     const type = this.str(body?.type).toUpperCase();
     const data = body?.data ?? {};
@@ -345,7 +361,7 @@ export class JetGoWebhookService {
           tenantId: order.tenantId,
           locationId: order.locationId,
           orderId: order.id,
-          amountMinor: this.wallet.dispatchFeeMinor(),
+          amountMinor: this.walletChargedMinor(order),
           createdBy: null,
         });
       } catch (err: any) {
@@ -406,7 +422,7 @@ export class JetGoWebhookService {
         tenantId: order.tenantId,
         locationId: order.locationId,
         orderId: order.id,
-        amountMinor: this.wallet.dispatchFeeMinor(),
+        amountMinor: this.walletChargedMinor(order),
         createdBy: null,
       });
     } catch (err: any) {

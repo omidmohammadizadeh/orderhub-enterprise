@@ -31,6 +31,9 @@ interface CourierQuote {
   currency: string;
   amount: number | string | null;
   dispatchFeeMinor: number;
+  /** JET Go only: what actually leaves the wallet, which on our own JET account
+   *  is the courier price PLUS the markup. */
+  walletChargeMinor?: number;
   /** JET Go surfaces things worth seeing before committing. */
   warnings?: string[];
 }
@@ -344,7 +347,11 @@ export function DispatchModal({ orderId, locationId, orderRef, onClose }: Props)
                       {money(jetQuote.currency, jetQuote.amount)}
                     </div>
                     <div className="text-[10px] text-zinc-400">
-                      + {jetQuote.dispatchFeeMinor}p OrderHub fee
+                      {/* The wallet figure, not the courier price: on our own
+                          JET account the shop pays the courier cost too. */}
+                      {jetQuote.walletChargeMinor != null
+                        ? `${money(jetQuote.currency, jetQuote.walletChargeMinor / 100)} from wallet`
+                        : `+ ${jetQuote.dispatchFeeMinor}p OrderHub fee`}
                     </div>
                   </>
                 ) : jetQuoteErr ? (
