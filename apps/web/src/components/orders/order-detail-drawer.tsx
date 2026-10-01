@@ -5,7 +5,7 @@ import { UberEatsOrderActionsPanel } from "./ubereats-order-actions-panel";
 import { DojoRefundPanel } from "./dojo-refund-panel";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { X, Clock, CheckCircle, ChefHat, Bike, XCircle, Check, AlertCircle, Pencil, Printer, Loader2, QrCode, CreditCard, Banknote, ShoppingBag, MapPin } from "lucide-react";
+import { X, Clock, CheckCircle, ChefHat, Bike, XCircle, Check, AlertCircle, Pencil, Printer, Loader2, QrCode, CreditCard, Banknote, ShoppingBag, MapPin, Zap } from "lucide-react";
 import { PaymentLinkModal } from "../pos/payment-link-modal";
 import { SwitchFulfillmentModal } from "./switch-fulfillment-modal";
 import { ChargeReaderModal } from "../pos/charge-reader-modal";
@@ -99,6 +99,7 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
   const userRole = useAuthStore((s) => s.user?.role);
   const [showDispatch, setShowDispatch] = useState(false);
   const [showMap, setShowMap] = useState(false);
+  const [simulating, setSimulating] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [showPayModal, setShowPayModal] = useState(false);
   const [showSwitchModal, setShowSwitchModal] = useState(false);
@@ -157,6 +158,30 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
     ((order as any)?.paymentStatus ?? "").toString().toUpperCase() !== "PAID" &&
     !!(order as any)?.locationId;
   const queryClient = useQueryClient();
+
+  // JET Go staging only — walks a booked delivery through the real webhook
+  // sequence (ASSIGNED → … → DELIVERED) so the whole integration can be proved
+  // without a courier. The API refuses it on production.
+  async function handleSimulate(step?: string) {
+    if (!order) return;
+    setSimulating(true);
+    try {
+      await jetGoClient.simulate(order.id, {
+        ...(step ? { deliveryStep: step } : {}),
+        stepWaitDuration: 3000,
+      });
+      toast.success(
+        step
+          ? `JET Go simulating up to ${step.replaceAll("_", " ").toLowerCase()}`
+          : "JET Go simulating the full delivery — watch the status move",
+      );
+      queryClient.invalidateQueries({ queryKey: ["orders", "live"] });
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message ?? "Couldn't start the simulation");
+    } finally {
+      setSimulating(false);
+    }
+  }
 
   async function handleCancelDispatch() {
     if (!order) return;
@@ -453,6 +478,24 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
                     <MapPin className="h-4 w-4" />
                     Map
                   </button>
+                  {/* Sandbox testing. Shown only once a JET Go delivery exists,
+                      because the simulation is driven by its requestId. The API
+                      refuses on a production account, so this cannot move a real
+                      courier. */}
+                  {dispatched && courierProvider === "JET_GO" && (
+                    <button
+                      onClick={() => handleSimulate()}
+                      disabled={simulating}
+                      className="inline-flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800 hover:bg-amber-100 disabled:opacity-50"
+                    >
+                      {simulating ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Zap className="h-4 w-4" />
+                      )}
+                      Simulate delivery
+                    </button>
+                  )}
                 </div>
                 <p className="mt-1.5 text-[11px] text-zinc-400">{hint}</p>
               </div>
