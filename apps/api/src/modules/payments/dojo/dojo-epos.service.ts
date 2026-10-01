@@ -56,6 +56,17 @@ export interface Money {
   currencyCode: string;
 }
 
+/**
+ * Dojo's waiter id, whatever shape it arrives in. It is an integer on their
+ * side and a label on ours — never arithmetic — and 0 is not a waiter.
+ */
+export function waiterLabel(raw: unknown): string | null {
+  if (raw === null || raw === undefined) return null;
+  const s = String(raw).trim();
+  if (!s || s === "0") return null;
+  return s.slice(0, 40);
+}
+
 export interface EposContext {
   loc: {
     id: string;
@@ -327,7 +338,7 @@ export class DojoEposService {
     await this.prisma.order.update({ where: { id: orderId }, data: { metadata: next as any } });
   }
 
-  async createLock(ctx: EposContext, orderId: string, body: { lockId?: string; expiry?: string }) {
+  async createLock(ctx: EposContext, orderId: string, body: { lockId?: string; expiry?: string; waiterId?: unknown }) {
     if (!body?.lockId || !body?.expiry || Number.isNaN(Date.parse(body.expiry))) {
       throw new EposError("InvalidRequest", "lockId and a valid expiry are required");
     }
@@ -339,7 +350,14 @@ export class DojoEposService {
     if (!(OPEN_TAB_STATUSES as readonly string[]).includes(order.status)) {
       throw new EposError("Conflict", "This table's order is already closed");
     }
-    await this.writeLock(order.id, order.metadata, { lockId: body.lockId, expiry: body.expiry });
+    await this.writeLock(order.id, order.metadata, {
+      lockId: body.lockId,
+      expiry: body.expiry,
+      // Dojo puts the waiter's id on the lock when they've identified
+      // themselves at the machine. It is an integer on their side; kept as a
+      // string because it is a label, never arithmetic.
+      ...(waiterLabel(body.waiterId) ? { waiterId: waiterLabel(body.waiterId)! } : {}),
+    });
     return this.getOrder(ctx, orderId);
   }
 
@@ -413,6 +431,17 @@ export class DojoEposService {
       throw new EposError("Conflict", "The payment on the card machine doesn't match the amount being recorded");
     }
 
+    // Who took this payment. Dojo documents the waiter id in the payment
+    // INTENT's metadata ("if a waiter ID was provided on the payment device"),
+    // and sends it on the lock as well; the header is our own belt and braces.
+    // We were reading only the header, which is the one place it doesn't come
+    // from, so every table payment recorded no waiter at all.
+    const waiterId =
+      waiterLabel(requester.waiterId) ??
+      waiterLabel((pi as any)?.metadata?.waiterId) ??
+      waiterLabel(lock?.waiterId) ??
+      null;
+
     const paidGbp = paidMinor / 100;
     const tipGbp = tipsMinor / 100;
     const created = await this.prisma.$transaction(async (tx: any) => {
@@ -456,7 +485,7 @@ export class DojoEposService {
             split: true,
             dojoStatus: pi.status,
             ...(body.lockId ? { lockId: body.lockId } : {}),
-            ...(requester.waiterId ? { waiterId: requester.waiterId } : {}),
+            ...(waiterId ? { waiterId } : {}),
             ...(requester.deviceId ? { deviceId: requester.deviceId } : {}),
             ...(ctx.cfg.environment === "sandbox" ? { sandbox: true } : {}),
           },
@@ -472,13 +501,14 @@ export class DojoEposService {
       status: "SUCCESS",
       message:
         `Table paid ${paidGbp.toFixed(2)} on a Dojo machine` +
-        (tipGbp > 0 ? ` with a ${tipGbp.toFixed(2)} tip` : ""),
+        (tipGbp > 0 ? ` with a ${tipGbp.toFixed(2)} tip` : "") +
+        (waiterId ? ` — taken by waiter ${waiterId}` : ""),
       details: {
         orderId,
         paymentIntentId: piId,
         amount: paidGbp,
         ...(tipGbp > 0 ? { tip: tipGbp } : {}),
-        ...(requester.waiterId ? { waiterId: requester.waiterId } : {}),
+        ...(waiterId ? { waiterId } : {}),
         ...(requester.deviceId ? { deviceId: requester.deviceId } : {}),
         dojoStatus: pi.status,
       },

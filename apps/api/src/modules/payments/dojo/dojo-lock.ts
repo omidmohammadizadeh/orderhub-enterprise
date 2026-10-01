@@ -5,6 +5,13 @@
 export interface DojoLock {
   lockId: string;
   expiry: string;
+  /**
+   * Who is standing at the machine. The waiter types an id into the terminal
+   * and Dojo sends it on the lock, so this is the earliest we learn who is
+   * taking the money — remembered here because the payment that follows
+   * doesn't always carry it.
+   */
+  waiterId?: string;
 }
 
 /** The lock, if one is held and hasn't expired. A stale lock is no lock. */

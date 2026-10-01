@@ -8,7 +8,7 @@ jest.mock(
 
 import { CredentialEncryptionService } from "../../integrations/credential-encryption.service";
 import { DojoApiClient, DojoApiError, dojoKeyEnvironment } from "../dojo/dojo-api.client";
-import { DojoEposService, EposError, areaIdOf } from "../dojo/dojo-epos.service";
+import { DojoEposService, EposError, areaIdOf, waiterLabel } from "../dojo/dojo-epos.service";
 import { activeDojoLock } from "../dojo/dojo-lock";
 import {
   DEFAULT_PUBLIC_API_ORIGIN,
@@ -583,6 +583,64 @@ describe("DojoEposService — locks", () => {
   it("treats an expired lock as no lock", () => {
     expect(activeDojoLock({ dojoLock: { lockId: "L1", expiry: "2000-01-01T00:00:00Z" } })).toBeNull();
     expect(activeDojoLock({ dojoLock: { lockId: "L1", expiry: "2999-01-01T00:00:00Z" } })?.lockId).toBe("L1");
+  });
+});
+
+// Dojo's docs: the waiter types an id into the terminal, and it reaches us on
+// the LOCK and in the payment INTENT's metadata. We were reading only a header,
+// which is the one place it never comes from — so no table payment recorded a
+// waiter at all (found 2026-09-30, Philip Wells).
+describe("who took the payment", () => {
+  it("reads the waiter from the payment intent when the header is silent", async () => {
+    const client = fakeClient({
+      getPaymentIntent: jest.fn().mockResolvedValue({
+        id: "pi_pat",
+        status: "Captured",
+        amount: { value: 1500, currencyCode: "GBP" },
+        metadata: { waiterId: 7 },
+      }),
+    });
+    const { epos, ctx, created } = makeEpos({ client });
+    await epos.recordPayment(ctx, "ord-1", { paymentIntentId: "pi_pat", paidAmount: { value: 1500, currencyCode: "GBP" } }, {});
+    expect(created[0].metadata).toMatchObject({ waiterId: "7" });
+  });
+
+  it("falls back to the waiter who locked the table", async () => {
+    const future = new Date(Date.now() + 60_000).toISOString();
+    const { epos, ctx, prisma, created } = makeEpos();
+    const base = await prisma.order.findFirst();
+    prisma.order.findFirst.mockResolvedValue({
+      ...base,
+      metadata: { dojoLock: { lockId: "L1", expiry: future, waiterId: "12" } },
+    });
+    await epos.recordPayment(
+      ctx,
+      "ord-1",
+      { paymentIntentId: "pi_pat", paidAmount: { value: 1500, currencyCode: "GBP" }, lockId: "L1" },
+      {},
+    );
+    expect(created[0].metadata).toMatchObject({ waiterId: "12" });
+  });
+
+  it("remembers the waiter who took the lock", async () => {
+    const future = new Date(Date.now() + 60_000).toISOString();
+    const { epos, ctx, prisma } = makeEpos();
+    await epos.createLock(ctx, "ord-1", { lockId: "L1", expiry: future, waiterId: 9 } as any);
+    expect(prisma.order.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          metadata: expect.objectContaining({ dojoLock: expect.objectContaining({ waiterId: "9" }) }),
+        }),
+      }),
+    );
+  });
+
+  it("treats no waiter, a blank one and 0 as nobody", () => {
+    expect(waiterLabel(undefined)).toBeNull();
+    expect(waiterLabel("  ")).toBeNull();
+    expect(waiterLabel(0)).toBeNull();
+    expect(waiterLabel("0")).toBeNull();
+    expect(waiterLabel(7)).toBe("7");
   });
 });
 
