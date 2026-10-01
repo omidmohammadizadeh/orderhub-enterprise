@@ -29,8 +29,11 @@ import { EmailService } from "../../infrastructure/email/email.service";
 /** Orders older than this are not worth emailing about any more. Also stops a
  *  backlog (or a restored database) from mailing a month of history at once. */
 const LOOKBACK_HOURS = 6;
+/** How many orders one sweep looks at. The window is small, so this is
+ *  generous enough that already-emailed orders cannot crowd out new ones. */
+const SCAN = 200;
 /** Belt and braces against a runaway sweep burning the daily allowance. */
-const BATCH = 25;
+const PER_SWEEP = 25;
 
 @Injectable()
 export class OrderConfirmationEmailService {
@@ -61,15 +64,22 @@ export class OrderConfirmationEmailService {
           // Only orders that actually happened. A card order sits PENDING
           // until its webhook lands; a cancelled one must never be confirmed.
           status: { notIn: ["PENDING", "CANCELLED", "REJECTED"] as any },
-          NOT: { metadata: { path: ["confirmationEmail", "sentAt"], not: null as any } },
         },
         orderBy: { createdAt: "asc" },
-        take: BATCH,
+        // Scan the window and skip the already-sent in code. Filtering the
+        // marker in SQL means a JSON path predicate whose null semantics
+        // differ between "key absent" and "value null" — and getting that
+        // subtly wrong sends a customer a second confirmation.
+        take: SCAN,
         include: {
-          items: { include: { modifiers: true } },
+          // `modifiers` is a Json COLUMN on OrderItem, not a relation, so it
+          // arrives with the row. Trying to `include` it threw on every
+          // sweep — and the `as any` that used to sit here is why the
+          // compiler did not say so.
+          items: true,
           location: { select: { name: true, onlineOrderingSlug: true, slug: true } },
           brand: { select: { name: true } },
-        } as any,
+        },
       });
       if (orders.length === 0) return;
 
@@ -79,8 +89,10 @@ export class OrderConfirmationEmailService {
       const cap = Number(this.cfg<number>("dailyCap") ?? 100);
       const warnAt = Number(this.cfg<number>("capWarnAt") ?? 80);
       let sentToday = await this.countToday();
+      let sentNow = 0;
 
       for (const order of orders as any[]) {
+        if (sentNow >= PER_SWEEP) break;
         if ((order?.metadata as any)?.confirmationEmail?.sentAt) continue;
         const to = this.addressFor(order);
         if (!to) continue;
@@ -111,6 +123,7 @@ export class OrderConfirmationEmailService {
         }
 
         sentToday += 1;
+        sentNow += 1;
         await this.markSent(order, to);
       }
 

@@ -151,6 +151,29 @@ describe("online order confirmation email", () => {
     await expect(s.sweep()).resolves.toBeUndefined();
   });
 
+  // The first live order sent nothing: `include: { items: { include:
+  // { modifiers: true } } }` threw on every sweep because OrderItem.modifiers
+  // is a Json COLUMN, not a relation — and an `as any` on the include stopped
+  // the compiler saying so. A mocked Prisma cannot catch that; tsc can, now
+  // that the cast is gone. This pins the shape so it is not reintroduced.
+  it("loads order items as rows, not as a relation include", async () => {
+    const { s, prisma } = svc();
+
+    await s.sweep();
+
+    const args = prisma.order.findMany.mock.calls[0][0];
+    expect(args.include.items).toBe(true);
+  });
+
+  it("renders modifiers that arrive as JSON on the row", async () => {
+    const { s, email } = svc();
+
+    await s.sweep();
+
+    // Exactly how Postgres hands them back: a plain array on the item.
+    expect(email.send.mock.calls[0][0].html).toContain("Thin base");
+  });
+
   it("is off when the feature is disabled", async () => {
     const { s, email } = svc();
     (s as any).config.get = jest.fn((k: string) =>
