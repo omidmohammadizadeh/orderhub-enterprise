@@ -226,7 +226,7 @@ pence as documented, and the real webhook field casing.
 
 | Var | Default | Notes |
 |---|---|---|
-| `JET_GO_USER_AGENT` | `OrderHub/1.0 (+https://orderhub.solutions)` | mandatory in production |
+| `JET_GO_USER_AGENT` | `OrderHub/1.0 (+https://www.orderhubsolutions.com)` | mandatory in production |
 | `JET_GO_CONTACT_EMAIL` | `support@orderhubsolutions.com` | who JET contacts if our endpoint fails |
 | `JET_GO_FALLBACK_EMAIL` | `noreply@orderhubsolutions.com` | JET requires a customer email; used when the order has none |
 | `JET_GO_CLIENT_ID` | — | **the OrderHub JET Go account.** Set this and locations need no credentials of their own |
