@@ -17,10 +17,11 @@ const base = {
   restaurantName: "Best Kebab",
 };
 
-function svc(over: { opsEmail?: string | null } = {}) {
+function svc(over: { opsEmail?: string | null; opsSms?: string | null } = {}) {
   const notifications = {
     notifyLocation: jest.fn().mockResolvedValue(undefined),
     sendOpsAlert: jest.fn().mockResolvedValue(undefined),
+    sendOpsSms: jest.fn().mockResolvedValue(undefined),
   };
   const activity = { record: jest.fn() };
   const logger = { log: jest.fn(), warn: jest.fn(), error: jest.fn() };
@@ -31,13 +32,15 @@ function svc(over: { opsEmail?: string | null } = {}) {
     logger,
     recent: new Map<string, number>(),
     config: {
-      get: jest.fn((k: string) =>
-        k === "app.platforms.jet.opsAlertEmail"
-          ? over.opsEmail === undefined
-            ? "ops@orderhubpos.com"
-            : over.opsEmail
-          : undefined,
-      ),
+      get: jest.fn((k: string) => {
+        if (k === "app.platforms.jet.opsAlertEmail") {
+          return over.opsEmail === undefined ? "ops@orderhubpos.com" : over.opsEmail;
+        }
+        if (k === "app.platforms.jet.opsAlertSms") {
+          return over.opsSms === undefined ? "+447700900123" : over.opsSms;
+        }
+        return undefined;
+      }),
     },
   });
   return { s: s as JetOrderAlertService, notifications, activity, logger };
@@ -148,6 +151,42 @@ describe("JET order failure alerts", () => {
     // Nothing to notify, but ops still needs to know: a store mapped wrong
     // drops EVERY order until someone fixes it.
     expect(notifications.notifyLocation).not.toHaveBeenCalled();
+    expect(notifications.sendOpsAlert).toHaveBeenCalledTimes(1);
+  });
+});
+
+// Email is the nice-to-have; the text is the one that reaches someone during
+// service. On 1 Oct the API had Twilio configured and no SendGrid at all, so
+// an alert that could only email would have been an alert that did nothing.
+describe("JET order failure alerts — reaching a human", () => {
+  it("texts ops, short enough to read on a lock screen", async () => {
+    const { s, notifications } = svc();
+
+    await s.raise({ ...base, kind: "ack_failed" });
+
+    expect(notifications.sendOpsSms).toHaveBeenCalledTimes(1);
+    const [message, to] = notifications.sendOpsSms.mock.calls[0];
+    expect(to).toBe("+447700900123");
+    expect(message).toContain("960172618");
+    expect(message).toContain("Best Kebab");
+    expect(message.length).toBeLessThanOrEqual(160);
+  });
+
+  it("sends nothing by text when no number is configured", async () => {
+    const { s, notifications } = svc({ opsSms: null });
+
+    await s.raise({ ...base, kind: "ack_failed" });
+
+    expect(notifications.sendOpsSms).not.toHaveBeenCalled();
+    expect(notifications.sendOpsAlert).toHaveBeenCalledTimes(1);
+  });
+
+  it("still emails when the text fails, and vice versa", async () => {
+    const { s, notifications } = svc();
+    notifications.sendOpsSms.mockRejectedValue(new Error("Twilio 429"));
+
+    await expect(s.raise({ ...base, kind: "abandoned" })).resolves.toBeUndefined();
+
     expect(notifications.sendOpsAlert).toHaveBeenCalledTimes(1);
   });
 });

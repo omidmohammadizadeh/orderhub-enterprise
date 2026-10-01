@@ -135,6 +135,20 @@ export class JetOrderAlertService {
           );
       }
 
+      // 4. A text, because an email is not read mid-service — and on 1 Oct
+      //    the API had Twilio configured and no SendGrid at all, so an alert
+      //    that could only email would have been an alert that did nothing.
+      const opsSms = String(
+        this.config?.get<string>("app.platforms.jet.opsAlertSms") ?? "",
+      ).trim();
+      if (opsSms) {
+        await this.notifications
+          ?.sendOpsSms(this.smsText(args, ref, where), opsSms)
+          .catch((e: any) =>
+            this.logger.warn(`JET alert: could not text ops: ${e?.message}`),
+          );
+      }
+
       this.logger.warn(
         `JET alert raised (${args.kind}) for order ${args.jetOrderId} at ${where}` +
           (detail ? `: ${detail}` : ""),
@@ -143,6 +157,17 @@ export class JetOrderAlertService {
       // Deliberately terminal. Nothing above is worth failing an order for.
       this.logger.warn(`JET alert could not be raised: ${e?.message}`);
     }
+  }
+
+  /**
+   * One segment if it can be. The shop name and the reference are what let
+   * someone act from a lock screen; everything else is in the email.
+   */
+  private smsText(args: JetAlertArgs, ref: string, where: string): string {
+    const what =
+      args.kind === "ingest_failed" ? "was rejected" : "was NOT acknowledged";
+    const text = `OrderHub: Just Eat order ${ref} at ${where} ${what}. It may not be in the kitchen — check the store.`;
+    return text.length <= 160 ? text : `${text.slice(0, 157)}...`;
   }
 
   private headline(kind: JetAlertKind): string {

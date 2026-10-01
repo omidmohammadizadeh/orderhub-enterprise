@@ -92,6 +92,9 @@ export const appConfig = registerAs("app", () => ({
       // Where an order that failed to inject is reported. Unset = no ops
       // email; the shop is still notified and the Logs page still records it.
       opsAlertEmail: process.env.JET_OPS_ALERT_EMAIL ?? process.env.OPS_ALERT_EMAIL ?? "",
+      // A mobile number for the same alert. Separate from the email because
+      // they fail independently and the text is the one read during service.
+      opsAlertSms: process.env.JET_OPS_ALERT_SMS ?? process.env.OPS_ALERT_SMS ?? "",
       // The shared secret JET signs inbound order webhooks with
       // (X-JET-Connect-Hash). Distinct from the API keys.
       webhookSecret: process.env.JET_WEBHOOK_SECRET ?? "",
