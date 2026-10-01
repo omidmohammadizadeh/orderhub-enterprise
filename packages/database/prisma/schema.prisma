@@ -4680,6 +4680,15 @@ model Wallet {
   // → the platform default. One column rather than one per style, because the
   // styles are env-configurable and a new one shouldn't need a migration.
   aiStudioPricesMinor      Json?
+  // Per-location OrderHub fee per courier dispatch (pennies). null → the
+  // platform default (DISPATCH_FEE_MINOR env, default 50p).
+  //
+  // Per LOCATION, not per tenant, because the right number genuinely differs by
+  // shop: a UK site on Stuart pays this as our whole margin, while a JET Go site
+  // on our own reseller account pays it ON TOP of the courier cost we are
+  // invoiced for — and a Gulf site bills in a different currency entirely. One
+  // platform rate could not be correct for all three.
+  dispatchFeeMinor         Int?
   // Warn the operator when balance drops below this (pennies). Default £2.
   lowBalanceThresholdMinor Int  @default(200)
 

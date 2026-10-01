@@ -15,7 +15,10 @@ const MARKUP = 50;
 
 function svc(cfgOver: Row = {}) {
   const s: any = Object.create(JetGoDispatchService.prototype);
-  s.wallet = { dispatchFeeMinor: () => MARKUP };
+  s.wallet = {
+    dispatchFeeMinor: () => MARKUP,
+    dispatchFeeMinorFor: jest.fn().mockResolvedValue(MARKUP),
+  };
   s.logger = { log: jest.fn(), warn: jest.fn(), error: jest.fn() };
   return {
     s,
@@ -29,7 +32,7 @@ describe("what the wallet pays", () => {
   it("charges the courier price PLUS the markup on our own account", () => {
     // JET's 1.5–2 mile band is £5.80. The shop pays that plus our 50p.
     const { s, cfg } = svc();
-    expect(s.walletChargeMinor(cfg, estimate(580))).toBe(630);
+    expect(s.walletChargeMinor(cfg, estimate(580), MARKUP)).toBe(630);
   });
 
   it.each([
@@ -38,20 +41,20 @@ describe("what the wallet pays", () => {
     [920, 970], // 5.5 mi+
   ])("band %ip → wallet %ip", (courier, expected) => {
     const { s, cfg } = svc();
-    expect(s.walletChargeMinor(cfg, estimate(courier))).toBe(expected);
+    expect(s.walletChargeMinor(cfg, estimate(courier), MARKUP)).toBe(expected);
   });
 
   it("charges only the markup when the merchant holds their own JET account", () => {
     // Payment Processor / Intermediary in the contract: JET bills them for the
     // courier, so we take what Stuart and Uber Direct take.
     const { s, cfg } = svc({ reseller: false });
-    expect(s.walletChargeMinor(cfg, estimate(580))).toBe(MARKUP);
+    expect(s.walletChargeMinor(cfg, estimate(580), MARKUP)).toBe(MARKUP);
   });
 
   it("never silently charges the markup alone on our own account", () => {
     // The whole bug: a reseller delivery billed at 50p while JET invoices £5.80.
     const { s, cfg } = svc();
-    expect(s.walletChargeMinor(cfg, estimate(580))).not.toBe(MARKUP);
+    expect(s.walletChargeMinor(cfg, estimate(580), MARKUP)).not.toBe(MARKUP);
   });
 
   it.each([[undefined], [null], ["", ], ["abc"], [-1], [NaN]])(
@@ -60,18 +63,18 @@ describe("what the wallet pays", () => {
       // Booking commits us to an invoice. Without a price we cannot collect for
       // it, so the delivery does not happen.
       const { s, cfg } = svc();
-      expect(() => s.walletChargeMinor(cfg, estimate(bad))).toThrow(/courier price/i);
+      expect(() => s.walletChargeMinor(cfg, estimate(bad), MARKUP)).toThrow(/courier price/i);
     },
   );
 
   it("rounds a fractional price rather than dropping the pence", () => {
     const { s, cfg } = svc();
-    expect(s.walletChargeMinor(cfg, estimate(580.6))).toBe(631);
+    expect(s.walletChargeMinor(cfg, estimate(580.6), MARKUP)).toBe(631);
   });
 
   it("still charges the markup on a free delivery", () => {
     const { s, cfg } = svc();
-    expect(s.walletChargeMinor(cfg, estimate(0))).toBe(MARKUP);
+    expect(s.walletChargeMinor(cfg, estimate(0), MARKUP)).toBe(MARKUP);
   });
 });
 

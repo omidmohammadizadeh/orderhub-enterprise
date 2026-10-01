@@ -66,6 +66,7 @@ function svcWith(opts: {
   };
   const wallet = {
     dispatchFeeMinor: jest.fn(() => 50),
+    dispatchFeeMinorFor: jest.fn().mockResolvedValue(50),
     // Charging is the default; the per-location waiver is what turns it off,
     // not the caller's role.
     isDispatchChargeWaived: jest.fn().mockResolvedValue(false),

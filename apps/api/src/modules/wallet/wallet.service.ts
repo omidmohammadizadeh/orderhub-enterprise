@@ -45,6 +45,7 @@ export interface WalletSummary {
   currency: string;
   pricePerSegmentMinor: number;
   voicePricePerCallMinor: number;
+  dispatchFeeMinor: number;
   lowBalanceThresholdMinor: number;
   lowBalance: boolean;
   smsConfigured: boolean;
@@ -180,6 +181,7 @@ export class WalletService {
       currency: wallet.currency,
       pricePerSegmentMinor: rate,
       voicePricePerCallMinor: voiceRate,
+      dispatchFeeMinor: this.dispatchFeeMinor(wallet),
       lowBalanceThresholdMinor: wallet.lowBalanceThresholdMinor,
       lowBalance: wallet.balanceMinor < wallet.lowBalanceThresholdMinor,
       smsConfigured: this.smsConfigured(),
@@ -769,14 +771,74 @@ export class WalletService {
 
   // ── Dispatch (courier) fee ──────────────────────────────────────────────
 
-  /** Flat OrderHub fee (pennies) charged to the location wallet per courier
-   *  dispatch. Overridable via DISPATCH_FEE_MINOR; defaults to 50p. */
-  dispatchFeeMinor(): number {
-    const n = parseInt(
-      this.config.get<string>("DISPATCH_FEE_MINOR") ?? "50",
-      10,
-    );
-    return Number.isFinite(n) && n >= 0 ? n : 50;
+  /**
+   * OrderHub's fee (pennies) per courier dispatch.
+   *
+   * The shop's own rate when the wallet carries one, otherwise the platform
+   * default from DISPATCH_FEE_MINOR (50p). Same shape as
+   * voicePricePerCallMinor: pass the wallet and get that shop's number.
+   *
+   * Per LOCATION rather than per tenant because the right figure genuinely
+   * differs by shop. On Stuart or Uber Direct this fee is our whole margin —
+   * the merchant's own account pays the courier. On JET Go it sits on TOP of a
+   * courier cost we are invoiced for. And a Gulf site bills in another currency.
+   * One platform rate cannot be right for all three.
+   */
+  dispatchFeeMinor(wallet?: { dispatchFeeMinor?: number | null } | null): number {
+    const n = parseInt(this.config.get<string>("DISPATCH_FEE_MINOR") ?? "50", 10);
+    const platform = Number.isFinite(n) && n >= 0 ? n : 50;
+    return wallet?.dispatchFeeMinor ?? platform;
+  }
+
+  /** This shop's dispatch fee, loading its wallet. What the courier services
+   *  call: they hold a tenant and a location, not a wallet row. */
+  async dispatchFeeMinorFor(
+    tenantId: string,
+    locationId: string | null,
+  ): Promise<number> {
+    try {
+      const wallet = await this.getOrCreate(tenantId, locationId);
+      return this.dispatchFeeMinor(wallet);
+    } catch (e: any) {
+      // A wallet we cannot read must not mean a free dispatch, so fall back to
+      // the platform rate rather than to zero.
+      this.logger.warn(
+        `Could not read the dispatch fee for location ${locationId} — using the platform rate: ${e?.message ?? e}`,
+      );
+      return this.dispatchFeeMinor(null);
+    }
+  }
+
+  /**
+   * Set a shop's own dispatch fee. null puts it back on the platform rate.
+   *
+   * Platform-admin only, enforced at the controller: a shop must not be able to
+   * set what it pays us.
+   */
+  async setDispatchFee(
+    tenantId: string,
+    locationId: string | null,
+    feeMinor: number | null,
+  ) {
+    if (feeMinor !== null) {
+      if (!Number.isInteger(feeMinor) || feeMinor < 0) {
+        throw new BadRequestException(
+          "Fee must be a whole number of pence, or blank for the standard rate.",
+        );
+      }
+      // Pounds typed into a pence field is the mistake that actually happens,
+      // and the shop would find out on its statement rather than here.
+      if (feeMinor > 2000) {
+        throw new BadRequestException(
+          "That is over £20 a dispatch — enter the fee in PENCE (100 = £1).",
+        );
+      }
+    }
+    const wallet = await this.getOrCreate(tenantId, locationId);
+    return this.db().wallet.update({
+      where: { id: wallet.id },
+      data: { dispatchFeeMinor: feeMinor },
+    });
   }
 
   /** Throw (402-style) unless the location wallet can cover a dispatch fee.
@@ -942,8 +1004,8 @@ export class WalletService {
     locationId: string | null,
     amountMinor?: number,
   ): Promise<void> {
-    const cost = amountMinor ?? this.dispatchFeeMinor();
     const wallet = await this.getOrCreate(tenantId, locationId);
+    const cost = amountMinor ?? this.dispatchFeeMinor(wallet);
     if (wallet.balanceMinor < cost) {
       throw new BadRequestException(
         "Dispatch wallet balance is too low. Top up your wallet to dispatch this order.",
@@ -961,8 +1023,8 @@ export class WalletService {
     amountMinor?: number;
     createdBy?: string | null;
   }): Promise<{ chargedMinor: number; balanceAfterMinor: number }> {
-    const cost = args.amountMinor ?? this.dispatchFeeMinor();
     const wallet = await this.getOrCreate(args.tenantId, args.locationId);
+    const cost = args.amountMinor ?? this.dispatchFeeMinor(wallet);
     const updated = await this.prisma.$transaction(async (tx: any) => {
       // The balance check is part of the UPDATE, not a read before it. Two
       // dispatches clicked at once on one till both passed a separate read and

@@ -353,6 +353,7 @@ export class JetGoDispatchService {
     const { order, location, cfg } = await this.load(args.orderId, args.tenantId);
     const { body, warnings } = await this.buildEstimateBody(order, location, cfg);
     const est = await this.client.estimate(cfg, body);
+    const markup = await this.wallet.dispatchFeeMinorFor(args.tenantId, order.locationId);
     const courierMinor = Number(est?.dynamicDeliveryFee);
     return {
       currency: location.currency ?? "GBP",
@@ -361,11 +362,11 @@ export class JetGoDispatchService {
       feeRule: est?.dynamicDeliveryFeeRule ?? null,
       collectBy: est?.estimatedEarliestCollectTime ?? est?.targetCollectTime ?? null,
       deliverBy: est?.estimatedEarliestDeliverTime ?? est?.targetDeliverTime ?? null,
-      dispatchFeeMinor: this.wallet.dispatchFeeMinor(),
+      dispatchFeeMinor: markup,
       // The number that will actually leave the wallet. On our own account that
       // is the courier plus the markup, not the markup alone — the operator has
       // to see the real figure before committing, not discover it in the ledger.
-      walletChargeMinor: this.walletChargeMinor(cfg, est),
+      walletChargeMinor: this.walletChargeMinor(cfg, est, markup),
       reseller: cfg.reseller,
       warnings,
       raw: est,
@@ -402,7 +403,8 @@ export class JetGoDispatchService {
     // courier is moving and the money is spent, so a wallet that cannot cover
     // the fee refuses here rather than leaving us to chase it afterwards.
     // debitForDispatch throws when the balance is short.
-    const feeMinor = this.walletChargeMinor(cfg, estimate);
+    const markup = await this.wallet.dispatchFeeMinorFor(args.tenantId, order.locationId);
+    const feeMinor = this.walletChargeMinor(cfg, estimate, markup);
     const waived = await this.wallet.isDispatchChargeWaived(order.locationId);
     let charged = false;
     if (!waived) {
@@ -518,8 +520,8 @@ export class JetGoDispatchService {
   private walletChargeMinor(
     cfg: DecryptedJetGoConfig,
     estimate: JetGoEstimateResponse,
+    markup: number,
   ): number {
-    const markup = this.wallet.dispatchFeeMinor();
     if (!cfg.reseller) return markup;
     const raw = estimate?.dynamicDeliveryFee as unknown;
     // Parsed strictly, because Number(null) and Number("") are both 0 — a

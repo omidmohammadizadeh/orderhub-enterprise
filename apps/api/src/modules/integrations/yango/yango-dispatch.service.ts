@@ -222,7 +222,7 @@ export class YangoDispatchService {
       mode: cfg.mode,
       /** estimate_only: the price is real, the dispatch button isn't. */
       canDispatch: cfg.mode === "live",
-      dispatchFeeMinor: this.wallet.dispatchFeeMinor(),
+      dispatchFeeMinor: await this.wallet.dispatchFeeMinorFor(args.tenantId, order.locationId),
       warnings: this.warnings(order),
     };
   }
@@ -267,7 +267,7 @@ export class YangoDispatchService {
       throw new BadRequestException(`Yango can't deliver this order: ${this.humanError(err)}`);
     }
 
-    const feeMinor = this.wallet.dispatchFeeMinor();
+    const feeMinor = await this.wallet.dispatchFeeMinorFor(args.tenantId, order.locationId);
     let charged = false;
     if (!args.isAdmin) {
       await this.wallet.debitForDispatch({

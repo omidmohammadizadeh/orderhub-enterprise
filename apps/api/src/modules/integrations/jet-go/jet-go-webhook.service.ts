@@ -140,7 +140,7 @@ export class JetGoWebhookService {
     const n = Number(meta.walletChargedMinor);
     if (Number.isFinite(n) && n >= 0) return n;
     // Pre-dating the field: the flat fee is what it would have taken then.
-    return this.wallet.dispatchFeeMinor();
+    return this.wallet.dispatchFeeMinor(null);
   }
 
   async handle(body: any): Promise<{ ok: boolean; reason?: string; type?: string }> {

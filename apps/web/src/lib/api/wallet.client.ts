@@ -10,6 +10,7 @@ export interface WalletSummary {
   pricePerSegmentMinor: number;
   /** What an answered AI phone call costs this shop, in pence. */
   voicePricePerCallMinor: number;
+  dispatchFeeMinor: number;
   /** How many more calls the balance answers. null when calls are free. */
   callsRemaining: number | null;
   /** Price of one AI Studio spokesperson video here, in pennies. */
@@ -88,6 +89,16 @@ export const walletClient = {
     apiClient
       .post<WalletSummary>("/v1/wallet/voice-price", {
         pricePerCallMinor,
+        locationId: locationId ?? undefined,
+      })
+      .then((r) => r.data),
+
+  // Platform admin only: what this shop pays us per courier dispatch. null puts
+  // them back on the standard rate.
+  setDispatchFee: (feeMinor: number | null, locationId?: string | null) =>
+    apiClient
+      .post<WalletSummary>("/v1/wallet/dispatch-fee", {
+        feeMinor,
         locationId: locationId ?? undefined,
       })
       .then((r) => r.data),

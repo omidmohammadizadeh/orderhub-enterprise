@@ -16,6 +16,7 @@ type Row = Record<string, any>;
 function brokeWallet() {
   return {
     dispatchFeeMinor: () => 50,
+    dispatchFeeMinorFor: jest.fn().mockResolvedValue(50),
     isDispatchChargeWaived: jest.fn().mockResolvedValue(false),
     debitForDispatch: jest.fn().mockRejectedValue(
       new BadRequestException(
@@ -30,6 +31,7 @@ function brokeWallet() {
 function fundedWallet(over: Row = {}) {
   return {
     dispatchFeeMinor: () => 50,
+    dispatchFeeMinorFor: jest.fn().mockResolvedValue(50),
     isDispatchChargeWaived: jest.fn().mockResolvedValue(false),
     debitForDispatch: jest.fn().mockResolvedValue({ chargedMinor: 50, balanceAfterMinor: 450 }),
     refundDispatch: jest.fn().mockResolvedValue(undefined),
