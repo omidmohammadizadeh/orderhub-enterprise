@@ -41,6 +41,7 @@ interface BrandConnectRow {
   /** STRIPE everywhere but the Gulf, where it's TAP (Stripe's UAE rules
    *  forbid our direct-charge model). */
   provider: "STRIPE" | "TAP";
+  directOrderingEnabled?: boolean;
   tap: {
     merchantId: string | null;
     onboardingStatus: string;
@@ -109,7 +110,7 @@ export function BrandConnectSection() {
       ) : brands.length === 0 ? (
         <p className="text-sm text-zinc-500">
           {locationId
-            ? "No brands with online ordering enabled at this location. Switch to All locations or enable a brand's online ordering from Locations → Brands."
+            ? "No brands here need a payout account yet. UK brands appear once their online ordering is on (Locations → Brands); Gulf brands always appear."
             : "No brands with online ordering enabled yet. Create one from Locations → Brands first."}
         </p>
       ) : (

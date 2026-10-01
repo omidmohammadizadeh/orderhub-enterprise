@@ -3113,11 +3113,7 @@ export class PaymentsService {
    * payments page hides them.
    */
   async listBrandConnectStatus(tenantId: string, locationId?: string) {
-    const baseWhere: any = {
-      tenantId,
-      deletedAt: null,
-      directOrderingEnabled: true,
-    };
+    const baseWhere: any = { tenantId, deletedAt: null };
 
     if (locationId) {
       const loc = await this.prisma.location.findFirst({
@@ -3141,12 +3137,12 @@ export class PaymentsService {
         applicationFeeMode: true,
         applicationFeeFixedAmount: true,
         applicationFeePercentage: true,
+        directOrderingEnabled: true,
+        primaryLocationId: true,
         country: true,
         tapMerchantId: true,
         tapOnboardingStatus: true,
         tapConnectUrl: true,
-        // Where the brand trades decides Stripe vs Tap — the shop's country,
-        // not the brand's own (which defaults to GB).
         locations: {
           where: { deletedAt: null },
           select: { country: true },
@@ -3156,37 +3152,67 @@ export class PaymentsService {
       } as any,
       orderBy: { name: "asc" },
     });
+
+    // Where a brand trades decides Stripe vs Tap — the SHOP's country, the
+    // same thing checkout routes on. A brand that "lives at" a kitchen via
+    // primaryLocationId has no locations of its own, and Brand.country
+    // defaults to GB, so reading either of those alone listed a Dubai brand
+    // as a Stripe one.
+    const primaryIds = Array.from(
+      new Set((brands as any[]).map((b) => b.primaryLocationId).filter(Boolean)),
+    ) as string[];
+    const primaryCountry = new Map<string, string>();
+    if (primaryIds.length) {
+      const locs = await this.prisma.location.findMany({
+        where: { id: { in: primaryIds } },
+        select: { id: true, country: true },
+      });
+      for (const l of locs) primaryCountry.set(l.id, l.country);
+    }
+
     const accounts = await (this.prisma as any).stripeConnectAccount.findMany({
       where: { tenantId, brandId: { not: null } },
     });
     const byBrandId = new Map<string, any>();
     for (const a of accounts) byBrandId.set(a.brandId, a);
 
-    return brands.map((b: any) => {
-      const a = byBrandId.get(b.id);
-      const country = String(b.locations?.[0]?.country || b.country || "GB").toUpperCase();
-      return {
-        brandId: b.id,
-        country,
-        provider: usesTap(country) ? "TAP" : "STRIPE",
-        tap: {
-          merchantId: b.tapMerchantId ?? null,
-          onboardingStatus: b.tapOnboardingStatus ?? "not_started",
-          connectUrl: b.tapConnectUrl ?? null,
-        },
-        name: b.name,
-        logoUrl: b.logoUrl,
-        stripeAccountId: a?.stripeAccountId ?? b.stripeConnectedAccountId ?? null,
-        chargesEnabled: a?.chargesEnabled ?? false,
-        payoutsEnabled: a?.payoutsEnabled ?? false,
-        onboardingComplete: a?.onboardingComplete ?? false,
-        applicationFee: {
-          mode: b.applicationFeeMode,
-          fixedAmount: b.applicationFeeFixedAmount,
-          percentage: b.applicationFeePercentage,
-        },
-      };
-    });
+    return (brands as any[])
+      .map((b) => {
+        const a = byBrandId.get(b.id);
+        const country = String(
+          (b.primaryLocationId && primaryCountry.get(b.primaryLocationId)) ||
+            b.locations?.[0]?.country ||
+            b.country ||
+            "GB",
+        ).toUpperCase();
+        return {
+          brandId: b.id,
+          country,
+          provider: usesTap(country) ? ("TAP" as const) : ("STRIPE" as const),
+          directOrderingEnabled: !!b.directOrderingEnabled,
+          tap: {
+            merchantId: b.tapMerchantId ?? null,
+            onboardingStatus: b.tapOnboardingStatus ?? "not_started",
+            connectUrl: b.tapConnectUrl ?? null,
+          },
+          name: b.name,
+          logoUrl: b.logoUrl,
+          stripeAccountId: a?.stripeAccountId ?? b.stripeConnectedAccountId ?? null,
+          chargesEnabled: a?.chargesEnabled ?? false,
+          payoutsEnabled: a?.payoutsEnabled ?? false,
+          onboardingComplete: a?.onboardingComplete ?? false,
+          applicationFee: {
+            mode: b.applicationFeeMode,
+            fixedAmount: b.applicationFeeFixedAmount,
+            percentage: b.applicationFeePercentage,
+          },
+        };
+      })
+      // Stripe rows stay limited to brands that sell online, as before. A
+      // Gulf brand is listed regardless: its Tap merchant is what QR
+      // pay-at-table and payment links charge to as well, so it has to be
+      // onboardable before (or without) online ordering being switched on.
+      .filter((r) => r.directOrderingEnabled || r.provider === "TAP");
   }
 
   /** Refresh Stripe-side capability flags into our DB row. */
