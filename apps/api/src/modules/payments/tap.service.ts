@@ -728,7 +728,7 @@ export class TapService {
 
     const postUrl = this.onboardingWebhookUrl(brandId);
     const web = (process.env.WEB_URL ?? "https://www.orderhubsolutions.com").replace(/\/+$/, "");
-    const redirectUrl = `${web}/dashboard/brands?tapOnboarded=${encodeURIComponent(brandId)}`;
+    const redirectUrl = `${web}/dashboard/payments?tapOnboarded=${encodeURIComponent(brandId)}`;
 
     let leadId: string | null = b.tapLeadId ?? null;
     let connectUrl: string | null = null;
