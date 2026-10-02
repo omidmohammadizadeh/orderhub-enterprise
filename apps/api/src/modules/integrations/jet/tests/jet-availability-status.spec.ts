@@ -21,7 +21,15 @@ const CONN = {
 };
 
 function makeAvailability(
-  opts: { assignments?: any[]; menu?: any; connection?: any; item?: any; request?: jest.Mock } = {},
+  opts: {
+    assignments?: any[];
+    menu?: any;
+    connection?: any;
+    item?: any;
+    /** Same-brand same-name rows of the SAME product. See `allReferencesFor`. */
+    twins?: any[];
+    request?: jest.Mock;
+  } = {},
 ) {
   const request = opts.request ?? jest.fn().mockResolvedValue(null);
   const prisma = {
@@ -38,6 +46,7 @@ function makeAvailability(
             }
           : opts.item,
       ),
+      findMany: jest.fn(async () => opts.twins ?? []),
     },
     menuChannelAssignment: { findMany: jest.fn(async () => opts.assignments ?? []) },
     menu: { findFirst: jest.fn(async () => opts.menu ?? null) },
@@ -498,5 +507,160 @@ describe("JetItemAvailabilityService.referencesFor — size numbering", () => {
       productSkus: [null, { name: '10"', plu: "SKU-10" }, { name: '12"' }],
     });
     expect(refs).toEqual(["PROD-1", "SKU-10", "item1__s1"]);
+  });
+});
+
+// THE BOARD'S ROW IS NOT ALWAYS THE PUBLISHED ROW.
+//
+// Jinty's, 2 Oct 2026, 08:39:52. One click on the inventory board took
+// "Berrylicious" off sale on HubRise and left it on sale on Just Eat. Nothing
+// errored — JET answered 202, as it does for a reference its catalog has never
+// heard of. The two log lines from that same second are the whole bug:
+//
+//   HubRise 86 -> catalog rkkqy loc wexg2-0: OUT Berrylicious, PROD-NYLM32, PROD-KMVK7U
+//   JET 86 OUT restaurant 302649: Berrylicious
+//
+// Three MenuItem rows for one smoothie — a master menu composed from source
+// menus, plus a location clone. HubRise covered all three because this exact
+// bug was found there first and fixed with a twin fan-out. This path had never
+// been given that fix, so it sent the row the board happened to show.
+describe("JetItemAvailabilityService — 86 covers every twin of the product", () => {
+  const assignments = [{ brandId: "brand-1", locationId: "location-1" }];
+
+  const berrylicious = {
+    id: "item-berry",
+    name: "Berrylicious",
+    plu: "Berrylicious",
+    brandId: "brand-1",
+    hasMultipleSkus: false,
+    productSkus: null,
+  };
+
+  it("sends the twins' references too, so the 86 lands whichever row was published", async () => {
+    const { service, request } = makeAvailability({
+      assignments,
+      item: berrylicious,
+      twins: [
+        { id: "twin-a", plu: "PROD-NYLM32", hasMultipleSkus: false, productSkus: null },
+        { id: "twin-b", plu: "PROD-KMVK7U", hasMultipleSkus: false, productSkus: null },
+      ],
+    });
+
+    await service.pushItemAvailability({
+      tenantId: "t1",
+      itemId: "item-berry",
+      available: false,
+    });
+
+    // Exactly what HubRise sent for the same click.
+    expect(request.mock.calls[0]![2].body.itemReferences).toEqual([
+      "Berrylicious",
+      "PROD-NYLM32",
+      "PROD-KMVK7U",
+    ]);
+  });
+
+  it("restores every twin as well — a one-sided fan-out would strand the others off sale", async () => {
+    const { service, request } = makeAvailability({
+      assignments,
+      item: berrylicious,
+      twins: [
+        { id: "twin-a", plu: "PROD-NYLM32", hasMultipleSkus: false, productSkus: null },
+      ],
+    });
+
+    await service.pushItemAvailability({
+      tenantId: "t1",
+      itemId: "item-berry",
+      available: true,
+    });
+
+    expect(request.mock.calls[0]![2].body.event).toBe("AVAILABLE");
+    expect(request.mock.calls[0]![2].body.itemReferences).toEqual([
+      "Berrylicious",
+      "PROD-NYLM32",
+    ]);
+  });
+
+  it("matches twins on the same brand AND the same name, never on name alone", async () => {
+    // Widening this to name-only would 86 another tenant's identically named
+    // product. Scope first, always.
+    const { service, prisma } = makeAvailability({ assignments, item: berrylicious });
+
+    await service.pushItemAvailability({
+      tenantId: "t1",
+      itemId: "item-berry",
+      available: false,
+    });
+
+    const where = prisma.menuItem.findMany.mock.calls[0]![0].where;
+    expect(where.brandId).toBe("brand-1");
+    expect(where.name).toEqual({ equals: "Berrylicious", mode: "insensitive" });
+    expect(where.id).toEqual({ not: "item-berry" });
+  });
+
+  it("fans a twin's SIZES out too, not just its parent row", async () => {
+    // A twin can be the sized one: the board row is a single price and the
+    // published clone carries 10"/12". Sending only the twin's parent ref
+    // would leave both sizes orderable.
+    const { service, request } = makeAvailability({
+      assignments,
+      item: berrylicious,
+      twins: [
+        {
+          id: "twin-sized",
+          plu: "PZ",
+          hasMultipleSkus: true,
+          productSkus: [{ name: "10 inch", plu: "PZ10" }, { name: "12 inch", plu: null }],
+        },
+      ],
+    });
+
+    await service.pushItemAvailability({
+      tenantId: "t1",
+      itemId: "item-berry",
+      available: false,
+    });
+
+    expect(request.mock.calls[0]![2].body.itemReferences).toEqual([
+      "Berrylicious",
+      "PZ",
+      "PZ10",
+      "twin-sized__s1",
+    ]);
+  });
+
+  it("sends one reference when there are no twins — the common case is unchanged", async () => {
+    const { service, request } = makeAvailability({
+      assignments,
+      item: berrylicious,
+      twins: [],
+    });
+
+    await service.pushItemAvailability({
+      tenantId: "t1",
+      itemId: "item-berry",
+      available: false,
+    });
+
+    expect(request.mock.calls[0]![2].body.itemReferences).toEqual(["Berrylicious"]);
+  });
+
+  it("de-duplicates a twin that shares the board row's PLU", async () => {
+    const { service, request } = makeAvailability({
+      assignments,
+      item: berrylicious,
+      twins: [
+        { id: "twin-dup", plu: "Berrylicious", hasMultipleSkus: false, productSkus: null },
+      ],
+    });
+
+    await service.pushItemAvailability({
+      tenantId: "t1",
+      itemId: "item-berry",
+      available: false,
+    });
+
+    expect(request.mock.calls[0]![2].body.itemReferences).toEqual(["Berrylicious"]);
   });
 });

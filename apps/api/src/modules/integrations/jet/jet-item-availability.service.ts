@@ -24,6 +24,12 @@ import { JetClientService } from "./jet-client.service";
 //    itself on their side, so we do not inherit Deliveroo's caveat where a
 //    snooze that expires never pushes back. It is only valid on UNAVAILABLE
 //    and must be in the future, both of which are enforced here.
+//
+// 3. THE BOARD'S ROW IS NOT ALWAYS THE PUBLISHED ROW. See `allReferencesFor`.
+//    Point 1 is necessary but not sufficient: building the reference correctly
+//    still sends the WRONG reference if the published menu holds a different
+//    twin of the same product. HubRise learned this the expensive way; this
+//    path now fans out the same way.
 
 @Injectable()
 export class JetItemAvailabilityService {
@@ -66,6 +72,66 @@ export class JetItemAvailabilityService {
   }
 
   /**
+   * Every reference Just Eat could be holding for this product: the row the
+   * inventory board 86'd, plus every same-brand same-name twin of it.
+   *
+   * WHY TWINS EXIST. One product is often SEVERAL MenuItem rows — a master menu
+   * is composed from per-brand source menus, and cloning a menu into a location
+   * mints a fresh row with its own PLU. The board dedups them and snoozes ONE,
+   * but the menu we published to a given restaurant may hold a DIFFERENT twin.
+   * The reference is then built perfectly and still names a product JET's
+   * catalog has never heard of, and because JET answers 202 and applies the
+   * update asynchronously, nothing anywhere reports a miss.
+   *
+   * This is not hypothetical. On 2 Oct 2026 "Berrylicious" at Jinty's went out
+   * of stock on HubRise and stayed on sale on Just Eat. Same click, same
+   * second, two outcomes, and the logs name the cause:
+   *   HubRise 86 -> ... OUT Berrylicious, PROD-NYLM32, PROD-KMVK7U
+   *   JET 86 OUT restaurant 302649: Berrylicious
+   * Three rows of that product, and HubRise covered all three because the
+   * identical bug was found and fixed there first. This path sent one.
+   *
+   * SAFETY. Sending references a catalog does not contain is a no-op on JET's
+   * side — which is precisely why the miss was silent — so the fan-out can only
+   * ever hit the row that was actually published. It cannot 86 a different
+   * product: twins are matched on the same brand AND the same name, which is
+   * the same rule the HubRise path has used in production for months.
+   */
+  private async allReferencesFor(item: {
+    id: string;
+    name: string;
+    brandId: string | null;
+    plu?: string | null;
+    hasMultipleSkus?: boolean | null;
+    productSkus?: unknown;
+  }): Promise<string[]> {
+    const refs = JetItemAvailabilityService.referencesFor(item);
+    if (!item.brandId || !item.name) return refs;
+
+    const twins = await this.prisma.menuItem.findMany({
+      where: {
+        id: { not: item.id },
+        brandId: item.brandId,
+        name: { equals: item.name, mode: "insensitive" },
+      },
+      select: {
+        id: true,
+        plu: true,
+        hasMultipleSkus: true,
+        productSkus: true,
+      },
+    });
+
+    const all = [...refs];
+    for (const twin of twins) {
+      all.push(...JetItemAvailabilityService.referencesFor(twin));
+    }
+    // The board's own row stays FIRST: it is the one a human would recognise
+    // in the log line, and it is the likeliest match.
+    return Array.from(new Set(all));
+  }
+
+  /**
    * Push one item's availability to every Just Eat restaurant serving it.
    *
    * Resolution mirrors the Deliveroo path: the MenuChannelAssignment rows are
@@ -102,7 +168,7 @@ export class JetItemAvailabilityService {
       return;
     }
 
-    const itemReferences = JetItemAvailabilityService.referencesFor(item);
+    const itemReferences = await this.allReferencesFor(item);
     // `nextAvailableAt` is UNAVAILABLE-only and must be in the future. A
     // snooze whose expiry has already passed is a restore, not a 86 — sending
     // a past timestamp is a 400 and would drop the update entirely.
