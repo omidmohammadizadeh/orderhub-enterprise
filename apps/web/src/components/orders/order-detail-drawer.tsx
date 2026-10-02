@@ -26,7 +26,7 @@ import { yangoClient } from "../../lib/api/yango.client";
 import { unassignOrder } from "../../lib/api/dispatch.client";
 import { printOrderViaBridge } from "../../lib/printing/print-order";
 import type { Order } from "../../lib/api/orders.client";
-import { modifierDepth, formatMoney } from "@orderhub/shared";
+import { describeMaskedAddress, modifierDepth, formatMoney } from "@orderhub/shared";
 
 // Lazily loaded: it pulls in the Google Maps JS loader, which has no business
 // in the drawer's bundle for the orders nobody opens a map on.
@@ -387,13 +387,19 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
               )}
             </p>
           )}
-          {order.deliveryAddress && (
-            <p className="text-xs text-zinc-500 mt-1">
-              {[order.deliveryAddress.line1, order.deliveryAddress.line2, order.deliveryAddress.city, order.deliveryAddress.postcode]
-                .filter(Boolean)
-                .join(", ")}
-            </p>
-          )}
+          {order.deliveryAddress && (() => {
+            // Just Eat (and the others) mask the address when THEIR courier
+            // delivers. Rendering the asterisks looks like a broken screen.
+            const withheld = describeMaskedAddress(order.deliveryAddress as any);
+            return (
+              <p className={`text-xs mt-1 ${withheld ? "italic text-zinc-400" : "text-zinc-500"}`}>
+                {withheld ??
+                  [order.deliveryAddress.line1, order.deliveryAddress.line2, order.deliveryAddress.city, order.deliveryAddress.postcode]
+                    .filter(Boolean)
+                    .join(", ")}
+              </p>
+            );
+          })()}
         </div>
 
         {/* Phase BH — unified dispatch chooser + cancel. A delivery order is

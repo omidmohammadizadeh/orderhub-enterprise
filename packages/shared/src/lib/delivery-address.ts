@@ -129,3 +129,48 @@ export function coordsFromDeliveryAddress(
   }
   return null;
 }
+
+// ── Masked addresses ────────────────────────────────────────────────────────
+//
+// When a marketplace's OWN courier delivers, the marketplace withholds the
+// customer's details from the restaurant — Just Eat sends literal asterisks
+// for the name, both address lines, the city and the postcode. A real order on
+// 2 Oct arrived as:
+//
+//   "line_one": "*************", "city": "***********", "postcode": "*******"
+//
+// Showing those through is worse than showing nothing: a row of stars on a
+// ticket or an order screen reads as a broken render, and staff ring us about
+// it. The coordinates ARE still sent, so the map keeps working — it is only
+// the text that is withheld.
+
+/** True when a value is present but consists only of mask characters. */
+export function isMaskedValue(value: unknown): boolean {
+  const s = String(value ?? "").trim();
+  if (!s) return false;
+  // Only asterisks (and the spaces between them). "Flat 2*" is a real address
+  // that happens to contain one, and must not be treated as masked.
+  return /^\*+(\s+\*+)*$/.test(s);
+}
+
+/**
+ * A sentence to show in place of an address the delivery partner withheld,
+ * or null when the address is usable (or simply absent).
+ *
+ * Partly masked counts: an address missing its street or postcode cannot be
+ * delivered to either, and presenting it as real would be worse than saying
+ * plainly that it was withheld.
+ */
+export function describeMaskedAddress(
+  address: {
+    line1?: unknown;
+    line2?: unknown;
+    city?: unknown;
+    postcode?: unknown;
+  } | null | undefined,
+): string | null {
+  if (!address) return null;
+  const parts = [address.line1, address.line2, address.city, address.postcode];
+  if (!parts.some(isMaskedValue)) return null;
+  return "Address withheld by the delivery partner — their courier is delivering";
+}
