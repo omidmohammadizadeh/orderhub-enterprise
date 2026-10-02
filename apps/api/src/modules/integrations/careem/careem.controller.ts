@@ -332,6 +332,22 @@ export class CareemController {
     );
   }
 
+  // The sandbox dry-run, available live: when a COMPLETED catalog still does
+  // not show on the SuperApp, the first question is what we actually sent.
+  @Get("locations/:locationId/menu/preview")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({
+    summary: "The exact catalog a publish would send Careem. Sends nothing.",
+  })
+  previewMenu(
+    @Param("locationId") locationId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.explain("preview menu", () =>
+      this.menu.dryRun(locationId, user.tenantId),
+    );
+  }
+
   @Post("locations/:locationId/menu/publish")
   @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.OK)

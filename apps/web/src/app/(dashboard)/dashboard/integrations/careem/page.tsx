@@ -530,6 +530,15 @@ export default function CareemPage() {
                       `/v1/integrations/careem/locations/${locationId}/menu/publish`,
                     ),
                 },
+                {
+                  sandboxOnly: false,
+                  label: "Preview the menu we send",
+                  hint: "Sends nothing. Shows which menu is used, how many items, and the exact catalog.",
+                  run: () =>
+                    apiClient.get(
+                      `/v1/integrations/careem/locations/${locationId}/menu/preview`,
+                    ),
+                },
                 // A pushed catalog is not enough to appear in the SuperApp: the
                 // branch must also be orderable (visibility) and open now
                 // (hours). These are the three checks when a mapped shop with
