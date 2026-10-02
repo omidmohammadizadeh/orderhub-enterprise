@@ -644,8 +644,64 @@ describe("who took the payment", () => {
   });
 });
 
+/** EposError carries its detail in the response body, not in `message`. */
+async function refusal(epos: any, ctx: any, body: any): Promise<string> {
+  try {
+    await epos.recordPayment(ctx, "ord-1", body, {});
+  } catch (err: any) {
+    return String(err?.getResponse?.()?.debugMessage ?? err?.message ?? err);
+  }
+  throw new Error("expected a refusal");
+}
+
 describe("DojoEposService.recordPayment", () => {
   const body = { paymentIntentId: "pi_pat", paidAmount: { value: 1500, currencyCode: "GBP" } };
+
+  // 2026-10-02: five refusals in a row on a real terminal. Dojo had the money
+  // and we wouldn't write it down, so the table never closed. Exact-match was
+  // the wrong rule — a tip makes the intent bigger than the share recorded.
+  it("records a share when the intent holds more than it, because of a tip", async () => {
+    const client = fakeClient({
+      getPaymentIntent: jest.fn().mockResolvedValue({
+        id: "pi_pat",
+        status: "Captured",
+        amount: { value: 1500, currencyCode: "GBP" },
+        tipsAmount: { value: 300, currencyCode: "GBP" },
+        totalAmount: { value: 1800, currencyCode: "GBP" },
+      }),
+    });
+    const { epos, ctx, created } = makeEpos({ client });
+    await epos.recordPayment(ctx, "ord-1", body, {});
+    expect(created[0]).toMatchObject({ amount: 15 });
+  });
+
+  it("still refuses to write down more than the machine took", async () => {
+    const client = fakeClient({
+      getPaymentIntent: jest.fn().mockResolvedValue({
+        id: "pi_pat",
+        status: "Captured",
+        amount: { value: 500, currencyCode: "GBP" },
+      }),
+    });
+    const { epos, ctx, created } = makeEpos({ client });
+    await expect(epos.recordPayment(ctx, "ord-1", body, {})).rejects.toBeInstanceOf(EposError);
+    expect(created).toHaveLength(0);
+    // The refusal has to name the numbers — the old one said nothing, which is
+    // why five of them in a row told us nothing.
+    expect(await refusal(epos, ctx, body)).toMatch(/doesn't cover.*recording 15\.00.*holds 5\.00/);
+  });
+
+  it("refuses an intent nobody has paid yet, and says so", async () => {
+    const client = fakeClient({
+      getPaymentIntent: jest.fn().mockResolvedValue({
+        id: "pi_pat",
+        status: "Created",
+        amount: { value: 1500, currencyCode: "GBP" },
+      }),
+    });
+    const { epos, ctx } = makeEpos({ client });
+    expect(await refusal(epos, ctx, body)).toMatch(/is Created/);
+  });
 
   it("verifies with Dojo, records a DOJO part-payment and settles through the shared path", async () => {
     const { epos, ctx, created, payments, client, dojo } = makeEpos();

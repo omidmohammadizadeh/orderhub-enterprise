@@ -427,8 +427,50 @@ export class DojoEposService {
       // which is the safe direction (never an unrecorded charge).
       throw new EposError("UnexpectedError", `Couldn't verify the payment with Dojo: ${err?.message}`, 502);
     }
-    if (!this.dojo.intentCovers(pi, paidMinor, true)) {
-      throw new EposError("Conflict", "The payment on the card machine doesn't match the amount being recorded");
+    // The money check: does the intent HOLD what we're about to write down?
+    //
+    // This used to demand an exact match, and refused Philip Wells' table five
+    // times on 2026-10-02 — Dojo had taken the money and we wouldn't record it,
+    // so the tab never closed. Exact is the wrong test: a tip or a service
+    // charge legitimately makes the intent bigger than the share being
+    // recorded, and Dojo is free to report the parts however it likes. The
+    // rule that actually protects the shop is "never write down more than Dojo
+    // took", so that is the rule. A penny of slack for rounding.
+    const heldMinor = Math.max(
+      (pi.amount?.value ?? 0) + (pi.tipsAmount?.value ?? 0) + ((pi as any).serviceChargeAmount?.value ?? 0),
+      pi.totalAmount?.value ?? 0,
+      pi.amount?.value ?? 0,
+    );
+    const settled = pi.status === "Captured" || pi.status === "Authorized";
+    if (!settled || paidMinor > heldMinor + 1) {
+      // Say the numbers. The old message named nothing, so five refusals in a
+      // row left no way to tell whether the problem was the status, the tip or
+      // the amount — on either side of the integration.
+      const detail =
+        `recording ${(paidMinor / 100).toFixed(2)} against intent ${piId} which is ${pi.status} ` +
+        `and holds ${(heldMinor / 100).toFixed(2)} ` +
+        `(amount ${((pi.amount?.value ?? 0) / 100).toFixed(2)}, tips ${((pi.tipsAmount?.value ?? 0) / 100).toFixed(2)})`;
+      this.logger.warn(`Dojo Pay at Table refused: ${detail}`);
+      this.dojo.logActivity({
+        tenantId: ctx.tenantId,
+        locationId: ctx.loc.id,
+        action: "dojo.pay_at_table",
+        status: "ERROR",
+        message: `Refused a ${(paidMinor / 100).toFixed(2)} table payment — the card machine's total doesn't cover it`,
+        details: {
+          orderId,
+          paymentIntentId: piId,
+          recording: paidMinor / 100,
+          heldOnIntent: heldMinor / 100,
+          intentStatus: pi.status,
+          intentAmount: (pi.amount?.value ?? 0) / 100,
+          intentTips: (pi.tipsAmount?.value ?? 0) / 100,
+        },
+      });
+      throw new EposError(
+        "Conflict",
+        `The payment on the card machine doesn't cover the amount being recorded — ${detail}`,
+      );
     }
 
     // Who took this payment. Dojo documents the waiter id in the payment
