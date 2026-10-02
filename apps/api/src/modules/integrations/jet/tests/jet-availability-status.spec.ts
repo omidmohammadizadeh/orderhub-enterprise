@@ -28,6 +28,9 @@ function makeAvailability(
     item?: any;
     /** Same-brand same-name rows of the SAME product. See `allReferencesFor`. */
     twins?: any[];
+    /** Snooze rows whose expiresAt fell in the sweep window. */
+    expired?: any[];
+    brands?: any[];
     request?: jest.Mock;
   } = {},
 ) {
@@ -48,6 +51,10 @@ function makeAvailability(
       ),
       findMany: jest.fn(async () => opts.twins ?? []),
     },
+    menuItemChannelAvailability: {
+      findMany: jest.fn(async () => opts.expired ?? []),
+    },
+    brand: { findMany: jest.fn(async () => opts.brands ?? []) },
     menuChannelAssignment: { findMany: jest.fn(async () => opts.assignments ?? []) },
     menu: { findFirst: jest.fn(async () => opts.menu ?? null) },
     brandPlatformConnection: {
@@ -167,9 +174,12 @@ describe("JetItemAvailabilityService.pushItemAvailability", () => {
     expect(opts.body.itemReferences).toEqual(["B1"]);
   });
 
-  it("sends nextAvailableAt for a timed snooze — JET restores it itself", async () => {
-    // The advantage over Deliveroo, where an expiring snooze never pushes
-    // back and the item stays off until someone notices.
+  it("sends NO expiry field, even for a timed snooze", async () => {
+    // We used to send `nextAvailableAt` and let JET restore the item. On
+    // 2 Oct 2026 it was the only thing separating two 86s that took effect
+    // from one that did not, and it is our reading of their prose rather
+    // than anything we have watched them honour. The body is now the shape
+    // that is proven to work, and `sweepExpired` does the restore.
     const until = new Date(Date.now() + 3_600_000);
     const { service, request } = makeAvailability({ assignments });
     await service.pushItemAvailability({
@@ -178,7 +188,11 @@ describe("JetItemAvailabilityService.pushItemAvailability", () => {
       available: false,
       until,
     });
-    expect(request.mock.calls[0]![2].body.nextAvailableAt).toBe(until.toISOString());
+    const body = request.mock.calls[0]![2].body;
+    expect(body.event).toBe("UNAVAILABLE");
+    expect("nextAvailableAt" in body).toBe(false);
+    // The 86 itself must still go — dropping the field must not drop the push.
+    expect(body.itemReferences).toEqual(["B1"]);
   });
 
   it("drops an expiry that is already in the past", async () => {
@@ -662,5 +676,95 @@ describe("JetItemAvailabilityService — 86 covers every twin of the product", (
     });
 
     expect(request.mock.calls[0]![2].body.itemReferences).toEqual(["Berrylicious"]);
+  });
+});
+
+
+// HAVING TAKEN THE EXPIRY OUT OF JET'S HANDS, WE HAVE TO HONOUR IT.
+//
+// The 86 no longer carries `nextAvailableAt`, so nothing on JET's side knows
+// when "off until 9am" ends. Without this sweep that snooze would last until a
+// human noticed — a worse failure than the one it replaced, and a silent one.
+describe("JetItemAvailabilityService.sweepExpired", () => {
+  const expiredRow = {
+    itemId: "item-1",
+    locationId: "location-1",
+    item: { brandId: "brand-1" },
+  };
+
+  it("pushes the item back on sale when its snooze has run out", async () => {
+    const { service, request } = makeAvailability({
+      assignments: [{ brandId: "brand-1", locationId: "location-1" }],
+      expired: [expiredRow],
+      brands: [{ id: "brand-1", tenantId: "t1" }],
+    });
+
+    const restored = await service.sweepExpired();
+
+    expect(restored).toBe(1);
+    expect(request.mock.calls[0]![2].body.event).toBe("AVAILABLE");
+    expect(request.mock.calls[0]![2].body.restaurant).toBe("8282340");
+  });
+
+  it("sweeps only the window since the last run, so an item restores once", async () => {
+    const { service, prisma } = makeAvailability({
+      assignments: [{ brandId: "brand-1", locationId: "location-1" }],
+      expired: [expiredRow],
+      brands: [{ id: "brand-1", tenantId: "t1" }],
+    });
+
+    await service.sweepExpired();
+    const first = prisma.menuItemChannelAvailability.findMany.mock.calls[0]![0].where;
+    await service.sweepExpired();
+    const second = prisma.menuItemChannelAvailability.findMany.mock.calls[1]![0].where;
+
+    // A half-open window that moves forward: the second sweep starts where the
+    // first ended, so the same row is never restored twice.
+    expect(first.expiresAt.gt.getTime()).toBeLessThan(first.expiresAt.lte.getTime());
+    expect(second.expiresAt.gt.getTime()).toBeGreaterThanOrEqual(
+      first.expiresAt.lte.getTime(),
+    );
+    expect(first.channel).toEqual({ in: ["JUST_EAT", "ALL"] });
+  });
+
+  it("keeps going when one item's restore call fails", async () => {
+    const request = jest
+      .fn()
+      .mockRejectedValueOnce(new Error("JET 503"))
+      .mockResolvedValue(null);
+    const { service } = makeAvailability({
+      assignments: [{ brandId: "brand-1", locationId: "location-1" }],
+      expired: [expiredRow, { ...expiredRow, itemId: "item-2" }],
+      brands: [{ id: "brand-1", tenantId: "t1" }],
+      request,
+    });
+
+    const restored = await service.sweepExpired();
+
+    // Both were attempted: a failure on the first must not abandon the second,
+    // which is the whole point of sweeping in a loop. The count is restores
+    // PUSHED — pushItemAvailability logs and swallows a per-restaurant HTTP
+    // failure rather than rejecting, so it cannot report JET's verdict.
+    expect(request).toHaveBeenCalledTimes(2);
+    expect(restored).toBe(2);
+  });
+
+  it("skips a row whose brand resolves to no tenant rather than guessing one", async () => {
+    const { service, request } = makeAvailability({
+      assignments: [{ brandId: "brand-1", locationId: "location-1" }],
+      expired: [expiredRow],
+      brands: [],
+    });
+
+    expect(await service.sweepExpired()).toBe(0);
+    expect(request).not.toHaveBeenCalled();
+  });
+
+  it("does nothing, and calls nothing, when no snooze expired", async () => {
+    const { service, request, prisma } = makeAvailability({ expired: [] });
+
+    expect(await service.sweepExpired()).toBe(0);
+    expect(request).not.toHaveBeenCalled();
+    expect(prisma.brand.findMany).not.toHaveBeenCalled();
   });
 });

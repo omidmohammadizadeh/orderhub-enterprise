@@ -1,4 +1,5 @@
 import { Injectable, Logger, Optional } from "@nestjs/common";
+import { Cron } from "@nestjs/schedule";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { ActivityLogService } from "../../logs/activity-log.service";
 import { JetClientService } from "./jet-client.service";
@@ -20,10 +21,22 @@ import { JetClientService } from "./jet-client.service";
 //    alongside it: 86ing a pizza has to take every size off, not just the
 //    parent row nobody orders directly.
 //
-// 2. JET HAS A REAL EXPIRY. `nextAvailableAt` means a timed snooze restores
-//    itself on their side, so we do not inherit Deliveroo's caveat where a
-//    snooze that expires never pushes back. It is only valid on UNAVAILABLE
-//    and must be in the future, both of which are enforced here.
+// 2. WE OWN THE EXPIRY, NOT THEM. Their docs describe a `nextAvailableAt` that
+//    restores the item on their side. We no longer send it, and `sweepExpired`
+//    below puts the item back instead — the same way Glovo and Keeta work.
+//
+//    WHY. On 2 Oct 2026 three 86s went out within half an hour. The two that
+//    took effect carried no expiry; the one that did not was the only one
+//    carrying `nextAvailableAt`:
+//      434799 OUT PROD-65ATHH                                  -> applied
+//      440823 OUT PROD-CHAMQT,...__s0..__s3                     -> applied
+//      302649 OUT Berrylicious until 2026-10-03T09:00:00.000Z    -> did not
+//    Everything else about the third was verified good: the reference matched
+//    `pluFor`, the menu ingest for that restaurant had succeeded four minutes
+//    earlier on the same key, and JET answered 202. `nextAvailableAt` was the
+//    only field that differed, and it is OUR READING OF THEIR PROSE — we have
+//    never seen a call they demonstrably honoured with it. So the 86 now goes
+//    in the shape that is proven to work, and the restore is ours to do.
 //
 // 3. THE BOARD'S ROW IS NOT ALWAYS THE PUBLISHED ROW. See `allReferencesFor`.
 //    Point 1 is necessary but not sufficient: building the reference correctly
@@ -34,6 +47,9 @@ import { JetClientService } from "./jet-client.service";
 @Injectable()
 export class JetItemAvailabilityService {
   private readonly logger = new Logger(JetItemAvailabilityService.name);
+  /** Restores are swept forward from here. Ten minutes back so a restart
+   *  re-covers the window it missed; a duplicate restore is harmless. */
+  private sweptUntil = new Date(Date.now() - 10 * 60_000);
 
   constructor(
     private readonly prisma: PrismaService,
@@ -83,13 +99,17 @@ export class JetItemAvailabilityService {
    * catalog has never heard of, and because JET answers 202 and applies the
    * update asynchronously, nothing anywhere reports a miss.
    *
-   * This is not hypothetical. On 2 Oct 2026 "Berrylicious" at Jinty's went out
-   * of stock on HubRise and stayed on sale on Just Eat. Same click, same
-   * second, two outcomes, and the logs name the cause:
+   * The asymmetry is real and was found on 2 Oct 2026: one click on
+   * "Berrylicious" at Jinty's sent three references to HubRise and one to JET.
    *   HubRise 86 -> ... OUT Berrylicious, PROD-NYLM32, PROD-KMVK7U
    *   JET 86 OUT restaurant 302649: Berrylicious
-   * Three rows of that product, and HubRise covered all three because the
-   * identical bug was found and fixed there first. This path sent one.
+   * HubRise covered all three because the identical bug was found and fixed
+   * there first; this path sent only the row the board happened to show.
+   *
+   * NOT the cause of that day's miss, to be clear — the reference JET got was
+   * the right one (the menu ingest for 302649 succeeded on the same key, so the
+   * live catalog held `Berrylicious`). This is the latent bug next door, closed
+   * before it bites a brand whose published twin differs.
    *
    * SAFETY. Sending references a catalog does not contain is a no-op on JET's
    * side — which is precisely why the miss was silent — so the fan-out can only
@@ -169,10 +189,10 @@ export class JetItemAvailabilityService {
     }
 
     const itemReferences = await this.allReferencesFor(item);
-    // `nextAvailableAt` is UNAVAILABLE-only and must be in the future. A
-    // snooze whose expiry has already passed is a restore, not a 86 — sending
-    // a past timestamp is a 400 and would drop the update entirely.
-    const nextAvailableAt =
+    // The expiry is recorded for the log line and for `sweepExpired` to act on
+    // later. It is deliberately NOT put in the body — see point 2 in the file
+    // header. A snooze whose expiry has already passed is a restore, not an 86.
+    const until =
       !args.available && args.until && args.until.getTime() > Date.now()
         ? args.until.toISOString()
         : null;
@@ -183,7 +203,6 @@ export class JetItemAvailabilityService {
         itemReferences,
         restaurant: target.restaurantReference,
         happenedAt: new Date().toISOString(),
-        ...(nextAvailableAt ? { nextAvailableAt } : {}),
       };
 
       try {
@@ -198,7 +217,7 @@ export class JetItemAvailabilityService {
         this.logger.log(
           `JET 86 ${args.available ? "IN" : "OUT"} restaurant ${target.restaurantReference}: ` +
             `${itemReferences.join(",")}` +
-            (nextAvailableAt ? ` until ${nextAvailableAt}` : ""),
+            (until ? ` until ${until} (restored by our sweep)` : ""),
         );
         this.activity?.record({
           tenantId: args.tenantId,
@@ -209,7 +228,7 @@ export class JetItemAvailabilityService {
           action: args.available ? "item.restore.push" : "item.86.push",
           status: "SUCCESS",
           message: `"${item.name}" marked ${args.available ? "available" : "unavailable"} on Just Eat`,
-          details: { itemReferences, restaurant: target.restaurantReference, nextAvailableAt },
+          details: { itemReferences, restaurant: target.restaurantReference, until },
         });
       } catch (err: any) {
         this.logger.warn(
@@ -228,6 +247,77 @@ export class JetItemAvailabilityService {
         });
       }
     }
+  }
+
+  /**
+   * Put items back on sale when their timed snooze runs out.
+   *
+   * This is the other half of not sending `nextAvailableAt` (file header,
+   * point 2): having taken the expiry out of their hands, we have to honour it
+   * ourselves, or "off until 9am tomorrow" would mean "off until a human
+   * notices". Same shape as Glovo's and Keeta's sweeps.
+   *
+   * Only rows that expired SINCE THE LAST SWEEP, so an item is restored once
+   * rather than every thirty seconds for the rest of the day.
+   */
+  @Cron("30 * * * * *")
+  async sweepExpired(): Promise<number> {
+    const from = this.sweptUntil;
+    const to = new Date();
+    this.sweptUntil = to;
+
+    const rows = await (this.prisma as any).menuItemChannelAvailability
+      .findMany({
+        where: {
+          channel: { in: ["JUST_EAT", "ALL"] },
+          expiresAt: { gt: from, lte: to },
+        },
+        select: { itemId: true, locationId: true, item: { select: { brandId: true } } },
+        take: 500,
+      })
+      .catch(() => []);
+    if (rows.length === 0) return 0;
+
+    // The push needs a tenant, and the row only carries the brand.
+    const brandIds = Array.from(
+      new Set(rows.map((r: any) => r?.item?.brandId).filter(Boolean)),
+    ) as string[];
+    const brands = brandIds.length
+      ? await this.prisma.brand.findMany({
+          where: { id: { in: brandIds } },
+          select: { id: true, tenantId: true },
+        })
+      : [];
+    const tenantOf = new Map(brands.map((b) => [b.id, b.tenantId]));
+
+    // Counts restores PUSHED, not restores JET confirmed: pushItemAvailability
+    // deliberately swallows a per-restaurant HTTP failure (and logs it) so one
+    // unreachable store cannot strand the rest of the sweep. The catch below is
+    // for the push failing outright — a database error before it gets that far.
+    let pushed = 0;
+    for (const row of rows) {
+      const tenantId = tenantOf.get(row?.item?.brandId);
+      if (!tenantId) continue;
+      // One bad item must not strand the rest of the sweep.
+      await this.pushItemAvailability({
+        tenantId,
+        itemId: row.itemId,
+        available: true,
+        ...(row.locationId ? { locationId: row.locationId } : {}),
+      })
+        .then(() => {
+          pushed += 1;
+        })
+        .catch((err: any) =>
+          this.logger.warn(
+            `JET restore after expiry failed for item ${row.itemId}: ${err?.message}`,
+          ),
+        );
+    }
+    if (pushed > 0) {
+      this.logger.log(`JET: pushed a restore for ${pushed} expired snooze(s)`);
+    }
+    return pushed;
   }
 
   /** Every connected JET restaurant serving a menu that contains this item. */
