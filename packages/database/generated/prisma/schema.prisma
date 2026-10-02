@@ -447,14 +447,26 @@ model Brand {
   customDomain              String?
   customDomainStatus        String   @default("not_configured") // not_configured | pending | verified | failed
   stripeConnectedAccountId  String?
-  /// Tap's destination id for this brand — where its share of a split charge
-  /// settles. The Gulf equivalent of stripeConnectedAccountId, and like it,
-  /// a charge cannot be taken for the brand without one.
+  /// LEGACY — Tap's MARKETPLACE model (Aug 2026), never used in production.
+  /// Tap issued us PLATFORM accounts instead: the money goes to the brand's
+  /// own Tap merchant (`tapMerchantId`), not to a destination of ours. Kept
+  /// only so the column isn't dropped under a live database; nothing reads it.
   tapDestinationId          String?
-  /// Tap's business id for the brand, from the marketplace Business API.
-  /// Kept alongside the destination id because they are different things and
-  /// only the destination one is used on a charge.
+  /// LEGACY — see tapDestinationId.
   tapBusinessId             String?
+  /// The brand's own Tap merchant account (`merchant_…`). Every Tap charge for
+  /// the brand names it, with our platform id beside it — the Gulf equivalent
+  /// of stripeConnectedAccountId, and a card charge is refused without one.
+  /// Arrives on the Connect webhook once the restaurant finishes Tap's KYC, or
+  /// is pasted in by an admin from Tap OS.
+  tapMerchantId             String?
+  /// The Tap lead (`led_…`) the brand's onboarding started from. Reused for a
+  /// fresh sign-up link while it is still open (Tap expires leads after 30 days).
+  tapLeadId                 String?
+  /// not_started | link_sent | completed
+  tapOnboardingStatus       String   @default("not_started")
+  /// The last Connect URL we generated, so an admin can re-send it.
+  tapConnectUrl             String?
   applicationFeeFixedAmount Decimal? @db.Decimal(10, 2)
   applicationFeePercentage  Decimal? @db.Decimal(5, 2)
   applicationFeeMode        String   @default("none") // none | fixed_only | percentage_only | fixed_and_percentage
@@ -692,7 +704,7 @@ model Location {
   lastTestOrderAt DateTime?
   lastTestPrintAt DateTime?
 
-  // ── Store Operations ──────────────────────────────────
+  // ── Store Operations ─────���────────────────────────────
   isOpen          Boolean   @default(true)
   isPaused        Boolean   @default(false)
   pauseUntil      DateTime?
@@ -2364,7 +2376,7 @@ model Table {
   qrToken   String? @unique
   qrEnabled Boolean @default(false)
 
-  // ── Current sitting ──���──────────────────────────────────────────────
+  // ── Current sitting ─────────────────────────────────────────────────
   covers     Int? // guests on the open tab, for spend-per-head
   serverId   String?
   serverName String?
@@ -2570,7 +2582,7 @@ model PrintJob {
   retryMetadata Json           @default("{}")
   printedAt     DateTime?
 
-  // Phase AS-1 �� routing + lifecycle additions.
+  // Phase AS-1 — routing + lifecycle additions.
   // stationId: which station this ticket belongs to (null for receipts).
   // trigger: which auto-print rule produced the job (or MANUAL_ONLY).
   // claimedByAgentId + claimedAt: held during the print window so two
@@ -2763,7 +2775,7 @@ model AgentPairCode {
   @@map("agent_pair_codes")
 }
 
-// ── Routing join tables ───────────────────────────────────────────────���
+// ── Routing join tables ────────────────────────────────────────────────
 // Phase AS-1. Most-specific-wins resolver walks these in order.
 model MenuItemStation {
   id         String         @id @default(cuid())
@@ -3165,7 +3177,7 @@ model Refund {
 
 // ══════════════════════════════════════════════════════════════════════════════
 // RETAIL R1 — BARCODED VARIANTS, PER-LOCATION STOCK, ITEM-LEVEL RETURNS
-// ════════════════════════════════════════════════��═════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════════
 //
 // A retail product is still a MenuItem, so the till, the storefront and every
 // marketplace publish keep working unchanged. What retail adds is underneath
@@ -3968,7 +3980,7 @@ model SystemSecret {
 
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE I — TRANSACTIONAL OUTBOX
-// ══════════════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════���═════════════════════════════════
 
 model OutboxEvent {
   id             String            @id @default(cuid())
@@ -4680,6 +4692,15 @@ model Wallet {
   // → the platform default. One column rather than one per style, because the
   // styles are env-configurable and a new one shouldn't need a migration.
   aiStudioPricesMinor      Json?
+  // Per-location OrderHub fee per courier dispatch (pennies). null → the
+  // platform default (DISPATCH_FEE_MINOR env, default 50p).
+  //
+  // Per LOCATION, not per tenant, because the right number genuinely differs by
+  // shop: a UK site on Stuart pays this as our whole margin, while a JET Go site
+  // on our own reseller account pays it ON TOP of the courier cost we are
+  // invoiced for — and a Gulf site bills in a different currency entirely. One
+  // platform rate could not be correct for all three.
+  dispatchFeeMinor         Int?
   // Warn the operator when balance drops below this (pennies). Default £2.
   lowBalanceThresholdMinor Int   @default(200)
 

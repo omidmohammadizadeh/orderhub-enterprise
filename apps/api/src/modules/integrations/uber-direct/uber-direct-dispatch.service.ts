@@ -155,7 +155,7 @@ export class UberDirectDispatchService {
       currency: q?.currency ?? "GBP",
       amount: feeMinor != null ? feeMinor / 100 : null,
       quoteId: q?.id ?? null,
-      dispatchFeeMinor: this.wallet.dispatchFeeMinor(),
+      dispatchFeeMinor: await this.wallet.dispatchFeeMinorFor(args.tenantId, order.locationId),
       raw: q,
     };
   }
@@ -181,7 +181,7 @@ export class UberDirectDispatchService {
 
     // Fee out before the courier exists — a short wallet refuses here rather
     // than after Uber has a rider moving. debitForDispatch throws when short.
-    const feeMinor = this.wallet.dispatchFeeMinor();
+    const feeMinor = await this.wallet.dispatchFeeMinorFor(args.tenantId, order.locationId);
     const waived = await this.wallet.isDispatchChargeWaived(order.locationId);
     let charged = false;
     if (!waived) {

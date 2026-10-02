@@ -124,14 +124,59 @@ describe("webhook token sharing", () => {
 });
 
 describe("validation", () => {
-  it("requires both halves of the credential", async () => {
+  it("rejects half a credential — both or neither", async () => {
+    // Neither means "use the OrderHub account"; one alone is a typo, and
+    // accepting it would quietly put the shop on our bill.
     const { s } = svcWith([]);
     await expect(s.upsert("locB", "t1", { clientId: " ", clientSecret: "s" })).rejects.toThrow(
-      /required/i,
+      /both/i,
     );
     await expect(s.upsert("locB", "t1", { clientId: "x", clientSecret: "" })).rejects.toThrow(
-      /required/i,
+      /both/i,
     );
+  });
+
+  it("refuses an empty credential when there is no platform account to fall back on", async () => {
+    const { s } = svcWith([]);
+    delete process.env.JET_GO_CLIENT_ID;
+    delete process.env.JET_GO_CLIENT_SECRET;
+    await expect(s.upsert("locB", "t1", { clientId: "", clientSecret: "" })).rejects.toThrow(
+      /platform JET Go account/i,
+    );
+  });
+
+  it("puts a location on the OrderHub account when no credentials are given", async () => {
+    // The normal case under the reseller contract: the shop has no JET account
+    // of its own and never will, so it only picks a collect point.
+    const { s, rows } = svcWith([]);
+    process.env.JET_GO_CLIENT_ID = "platform-id";
+    process.env.JET_GO_CLIENT_SECRET = "platform-secret";
+    try {
+      await s.upsert("locB", "t1", { clientId: "", clientSecret: "" });
+      const cfg: any = await s.getDecrypted("locB");
+      expect(cfg.reseller).toBe(true);
+      expect(cfg.clientId).toBe("platform-id");
+      // The platform secret is never copied into the row.
+      expect(JSON.stringify(rows[0]!.credentials)).not.toContain("platform-secret");
+    } finally {
+      delete process.env.JET_GO_CLIENT_ID;
+      delete process.env.JET_GO_CLIENT_SECRET;
+    }
+  });
+
+  it("keeps a merchant's own account off the platform one", async () => {
+    const { s } = svcWith([]);
+    process.env.JET_GO_CLIENT_ID = "platform-id";
+    process.env.JET_GO_CLIENT_SECRET = "platform-secret";
+    try {
+      await s.upsert("locB", "t1", { clientId: "their-id", clientSecret: "their-secret" });
+      const cfg: any = await s.getDecrypted("locB");
+      expect(cfg.reseller).toBe(false);
+      expect(cfg.clientId).toBe("their-id");
+    } finally {
+      delete process.env.JET_GO_CLIENT_ID;
+      delete process.env.JET_GO_CLIENT_SECRET;
+    }
   });
 
   it("defaults an unrecognised market to UK rather than an invalid host", async () => {

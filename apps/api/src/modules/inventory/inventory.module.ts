@@ -11,6 +11,7 @@ import { JetModule } from "../integrations/jet/jet.module";
 import { GlovoModule } from "../integrations/glovo/glovo.module";
 import { CareemModule } from "../integrations/careem/careem.module";
 import { KeetaModule } from "../integrations/keeta/keeta.module";
+import { TalabatModule } from "../integrations/talabat/talabat.module";
 import { LocationAccessService } from "../../common/access/location-access.service";
 
 @Module({
@@ -34,6 +35,7 @@ import { LocationAccessService } from "../../common/access/location-access.servi
     GlovoModule,
     CareemModule,
     KeetaModule,
+    TalabatModule,
   ],
   controllers: [InventoryController, MenuAvailabilityController],
   providers: [InventoryService, MenuAvailabilityService, LocationAccessService],

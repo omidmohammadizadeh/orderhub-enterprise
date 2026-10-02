@@ -1,9 +1,22 @@
 // Phase BJ — dispatch an order to a JET Go courier.
 //
-// Money rule is the same as Stuart and Uber Direct: debit the location wallet a
-// flat OrderHub fee BEFORE the delivery is created, refund it if creation fails,
-// PLATFORM_ADMIN bypasses. JET bills the restaurant's own JET Go account for the
-// courier itself.
+// MONEY IS NOT THE SAME SHAPE AS STUART AND UBER DIRECT.
+//
+// For those two the merchant holds the courier account, the network bills them
+// directly, and our flat fee is the whole of our take. Under the JET Go RESELLER
+// contract the account is OURS: JET invoices us per completed delivery,
+// £4.25–£9.20 by distance, and we owe it whether or not the shop ever pays us
+// (Schedule 2, clause 8).
+//
+// So the wallet has to recover the courier cost AS WELL AS our margin. Charging
+// the flat fee alone would have lost us the difference on every single delivery
+// — about £4.85 on a 1.5-mile drop.
+//
+// The estimate tells us the exact cost before we commit, so the charge is
+// known-good rather than guessed: dynamicDeliveryFee + markup, taken before the
+// delivery is created and refunded in full if creation fails. A location that
+// brought its OWN JET Go account is billed by JET directly, and then the wallet
+// takes only the markup, exactly like Stuart.
 //
 // JET Go's flow is two calls, not one, and the order matters:
 //
@@ -280,7 +293,7 @@ export class JetGoDispatchService {
   private buildDeliveryBody(
     order: any,
     estimate: JetGoEstimateResponse,
-    advanceCollectTime: string | null,
+    collectTime: string | null,
   ): JetGoDeliveryBody {
     const totalMinor = Math.max(Math.round(Number(order.total ?? 0) * 100), 0);
     return {
@@ -288,12 +301,18 @@ export class JetGoDispatchService {
       ...(order.specialInstructions
         ? { specialInstructions: this.cap(this.str(order.specialInstructions), 255) }
         : {}),
-      ...(advanceCollectTime ? { targetCollectTime: advanceCollectTime } : {}),
+      ...(collectTime ? { targetCollectTime: collectTime } : {}),
       // Deliberately no `tip`. Order.tipAmount is the RESTAURANT's gratuity, and
       // passing it here would hand the shop's money to the courier.
       orderValue: totalMinor,
       vendorOrderId: this.vendorOrderId(order),
-      paymentType: "PREPAID",
+      // paymentType is deliberately NOT sent. It exists only to opt INTO cash on
+      // delivery (Bulgaria only); PREPAID is what JET does anyway. Sending it
+      // unconditionally hit a per-partner feature flag and failed every
+      // delivery outright — "The payment type feature is currently disabled" —
+      // while the estimate, which doesn't take the field, had just succeeded.
+      // Nothing is gained by naming the default, so it stays off until we
+      // actually need COD.
       // Echoed back on every webhook, which is what lets the handler recover an
       // order even if the requestId lookup ever misses. Values cap at 255.
       metadata: {
@@ -334,15 +353,21 @@ export class JetGoDispatchService {
     const { order, location, cfg } = await this.load(args.orderId, args.tenantId);
     const { body, warnings } = await this.buildEstimateBody(order, location, cfg);
     const est = await this.client.estimate(cfg, body);
-    const feeMinor = Number(est?.dynamicDeliveryFee);
+    const markup = await this.wallet.dispatchFeeMinorFor(args.tenantId, order.locationId);
+    const courierMinor = Number(est?.dynamicDeliveryFee);
     return {
       currency: location.currency ?? "GBP",
-      amount: Number.isFinite(feeMinor) ? feeMinor / 100 : null,
+      amount: Number.isFinite(courierMinor) ? courierMinor / 100 : null,
       quoteId: est?.requestId ?? null,
       feeRule: est?.dynamicDeliveryFeeRule ?? null,
       collectBy: est?.estimatedEarliestCollectTime ?? est?.targetCollectTime ?? null,
       deliverBy: est?.estimatedEarliestDeliverTime ?? est?.targetDeliverTime ?? null,
-      dispatchFeeMinor: this.wallet.dispatchFeeMinor(),
+      dispatchFeeMinor: markup,
+      // The number that will actually leave the wallet. On our own account that
+      // is the courier plus the markup, not the markup alone — the operator has
+      // to see the real figure before committing, not discover it in the ledger.
+      walletChargeMinor: this.walletChargeMinor(cfg, est, markup),
+      reseller: cfg.reseller,
       warnings,
       raw: est,
     };
@@ -378,7 +403,8 @@ export class JetGoDispatchService {
     // courier is moving and the money is spent, so a wallet that cannot cover
     // the fee refuses here rather than leaving us to chase it afterwards.
     // debitForDispatch throws when the balance is short.
-    const feeMinor = this.wallet.dispatchFeeMinor();
+    const markup = await this.wallet.dispatchFeeMinorFor(args.tenantId, order.locationId);
+    const feeMinor = this.walletChargeMinor(cfg, estimate, markup);
     const waived = await this.wallet.isDispatchChargeWaived(order.locationId);
     let charged = false;
     if (!waived) {
@@ -388,15 +414,21 @@ export class JetGoDispatchService {
         orderId: order.id,
         amountMinor: feeMinor,
         createdBy: args.userId ?? null,
+        // Spell the split out: on our own account this debit is Just Eat's
+        // courier price plus our markup, and the operator has to be able to
+        // reconcile it line by line against JET's monthly invoice.
+        description: cfg.reseller
+          ? `JET Go courier ${this.pounds(estimate.dynamicDeliveryFee)} + ${markup}p OrderHub fee`
+          : `JET Go dispatch fee (${feeMinor}p)`,
       });
       charged = true;
     }
 
-    const advanceCollect = estimate.targetCollectTime ?? null;
+    const collectTime = this.collectTimeFor(estimate);
     try {
       await this.client.createDelivery(
         cfg,
-        this.buildDeliveryBody(order, estimate, advanceCollect),
+        this.buildDeliveryBody(order, estimate, collectTime),
       );
     } catch (err: any) {
       if (charged) {
@@ -406,6 +438,7 @@ export class JetGoDispatchService {
           orderId: order.id,
           amountMinor: feeMinor,
           createdBy: args.userId ?? null,
+          description: "JET Go refund — Just Eat refused the booking",
         });
       }
       this.logger.error(`JET Go dispatch failed for order ${order.id}: ${err?.message ?? err}`);
@@ -432,6 +465,17 @@ export class JetGoDispatchService {
         courierStatus: "PENDING",
         ...(etaAt ? { courierEtaAt: etaAt } : {}),
         ...(pickupEtaAt ? { courierPickupEtaAt: pickupEtaAt } : {}),
+        // What the wallet actually paid, so a later refund returns THAT and not
+        // a flat fee. Under the reseller model the two differ by pounds.
+        metadata: {
+          ...((order.metadata ?? {}) as Record<string, any>),
+          jetGo: {
+            ...(((order.metadata ?? {}) as Record<string, any>).jetGo ?? {}),
+            walletChargedMinor: waived ? 0 : feeMinor,
+            courierCostMinor: estimate.dynamicDeliveryFee ?? null,
+            reseller: cfg.reseller,
+          },
+        },
       },
     });
 
@@ -448,11 +492,12 @@ export class JetGoDispatchService {
         courierFeeMinor: estimate.dynamicDeliveryFee ?? null,
         feeRule: estimate.dynamicDeliveryFeeRule ?? null,
         walletFeeMinor: waived ? 0 : feeMinor,
+        reseller: cfg.reseller,
       },
     });
 
     this.logger.log(
-      `JET Go dispatch OK order=${order.id} requestId=${estimate.requestId} courierFee=${estimate.dynamicDeliveryFee}p fee=${waived ? "0 (charge waived for this location)" : `${feeMinor}p`}`,
+      `JET Go dispatch OK order=${order.id} requestId=${estimate.requestId} courierFee=${estimate.dynamicDeliveryFee}p wallet=${waived ? "0 (charge waived for this location)" : `${feeMinor}p`} (${cfg.reseller ? "reseller" : "merchant account"})`,
     );
 
     return {
@@ -467,6 +512,71 @@ export class JetGoDispatchService {
       chargeWaived: waived,
       warnings,
     };
+  }
+
+  /**
+   * What comes out of the wallet for one delivery, in pence.
+   *
+   * Reseller (our account): JET's own price for THIS delivery, from the
+   * estimate, plus our markup. Never a guess — the estimate is taken moments
+   * before the booking and the id it returns is the one we book against, so the
+   * number we charge is the number we will be invoiced.
+   *
+   * Merchant's own account: the markup only. JET bills them for the courier.
+   */
+  private walletChargeMinor(
+    cfg: DecryptedJetGoConfig,
+    estimate: JetGoEstimateResponse,
+    markup: number,
+  ): number {
+    if (!cfg.reseller) return markup;
+    const raw = estimate?.dynamicDeliveryFee as unknown;
+    // Parsed strictly, because Number(null) and Number("") are both 0 — a
+    // MISSING price would otherwise read as a free delivery and we would book a
+    // courier whose invoice we had charged 50p for. Zero itself is allowed: JET
+    // is entitled to price a drop at nothing, and that is not the same as not
+    // telling us.
+    const courier =
+      typeof raw === "number"
+        ? raw
+        : typeof raw === "string" && raw.trim() !== ""
+          ? Number(raw)
+          : NaN;
+    if (!Number.isFinite(courier) || courier < 0) {
+      // JET priced the delivery but we could not read the price. Refusing is
+      // the only safe move: booking it would commit us to an invoice we have
+      // not collected for.
+      throw new BadRequestException(
+        "JET Go didn't return a courier price for this delivery, so we can't charge for it. Try again.",
+      );
+    }
+    return Math.round(courier) + markup;
+  }
+
+  /**
+   * The targetCollectTime to send on /delivery, or null to send none.
+   *
+   * JET's own field description: required when the estimate did NOT carry a
+   * target deliver time — which is every ASAP order. The getting-started page
+   * says the opposite ("do not pass these fields again in the /delivery call"),
+   * and following it got `404: must specify a targetCollectTime` on every ASAP
+   * booking. The spec wins.
+   *
+   * We send back the earliest collect time JET itself quoted, so it is their
+   * own number rather than a clock we guessed at. On an ADVANCE order the
+   * estimate echoes a target time, the slot is already agreed, and repeating it
+   * here is what the docs correctly warn against.
+   */
+  private collectTimeFor(estimate: JetGoEstimateResponse): string | null {
+    const advance = estimate?.targetDeliverTime || estimate?.targetCollectTime;
+    if (advance) return null;
+    return estimate?.estimatedEarliestCollectTime ?? null;
+  }
+
+  /** Minor units as pounds, for a statement line a person reads. */
+  private pounds(minor: unknown): string {
+    const n = Number(minor);
+    return Number.isFinite(n) ? `£${(n / 100).toFixed(2)}` : "£?";
   }
 
   private asDate(v: unknown): Date | null {

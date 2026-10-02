@@ -237,6 +237,7 @@ function WalletInner() {
 
       <AutoTopupCard wallet={wallet} locationId={locationId} />
       {isAdmin && <VoicePriceCard wallet={wallet} locationId={locationId} />}
+      {isAdmin && <DispatchFeeCard wallet={wallet} locationId={locationId} />}
 
       {/* Statement */}
       <div className="mt-8">
@@ -420,6 +421,93 @@ function AutoTopupCard({
  * reading its own price is fine, a shop setting it is not. Until now the
  * agreed founding rate lived in somebody's memory and a database update.
  */
+// Admin Dashboard → the shop's own courier dispatch fee.
+//
+// Rendered only for PLATFORM_ADMIN, and the endpoint behind it is admin-only
+// too, for the same reason as the call price: a shop reading what it pays is
+// fine, a shop setting it is not.
+//
+// Per location rather than per tenant because the right number genuinely
+// differs by shop. On Stuart or Uber Direct this fee is our whole margin — the
+// merchant's own account pays the courier. On JET Go it sits on TOP of a
+// courier cost we are invoiced for. And a Gulf site bills in another currency.
+function DispatchFeeCard({
+  wallet,
+  locationId,
+}: {
+  wallet: WalletSummary | undefined;
+  locationId: string | null;
+}) {
+  const qc = useQueryClient();
+  const [fee, setFee] = useState<string>("");
+
+  const save = useMutation({
+    mutationFn: (pence: number | null) =>
+      walletClient.setDispatchFee(pence, locationId),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["wallet"] });
+      setFee("");
+    },
+  });
+
+  if (!wallet) return null;
+
+  return (
+    <div className="mt-4 rounded-xl border border-dashed border-amber-300 bg-amber-50/50 p-5">
+      <h2 className="text-sm font-semibold text-amber-900">
+        Dispatch fee for this shop
+        <span className="ml-2 rounded bg-amber-200 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-900">
+          Admin
+        </span>
+      </h2>
+      <p className="mt-0.5 text-xs text-amber-900">
+        Currently {wallet.dispatchFeeMinor}p per courier dispatch — Stuart, Uber
+        Direct, JET Go and Yango. In PENCE, 100 is £1. Leave blank and save to
+        put them back on the standard rate.
+      </p>
+      <p className="mt-1 text-[11px] leading-snug text-amber-800">
+        On JET Go this is charged <strong>on top of</strong> the courier price
+        Just Eat invoices us for. On Stuart and Uber Direct the merchant&apos;s own
+        account pays the courier, so this is the whole of our margin.
+      </p>
+      <div className="mt-3 flex items-center gap-2">
+        <label htmlFor="dispatch-fee" className="sr-only">
+          Dispatch fee in pence
+        </label>
+        <input
+          id="dispatch-fee"
+          type="number"
+          min={0}
+          step={1}
+          inputMode="numeric"
+          value={fee}
+          onChange={(e) => setFee(e.target.value)}
+          placeholder={String(wallet.dispatchFeeMinor)}
+          className="w-32 rounded-md border border-amber-300 px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600"
+        />
+        <button
+          onClick={() =>
+            save.mutate(fee.trim() === "" ? null : Math.round(Number(fee)))
+          }
+          disabled={save.isPending}
+          className="rounded-lg bg-amber-700 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-800 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600"
+        >
+          {save.isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            "Set fee"
+          )}
+        </button>
+      </div>
+      {save.isError && (
+        <p role="alert" className="mt-2 text-xs text-red-600">
+          {(save.error as any)?.response?.data?.message ?? "Couldn't save."}
+        </p>
+      )}
+    </div>
+  );
+}
+
 function VoicePriceCard({
   wallet,
   locationId,

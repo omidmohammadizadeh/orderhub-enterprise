@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { menusClient } from "@/lib/api/menus.client";
 import { glovoClient } from "@/lib/api/glovo.client";
 import { keetaClient } from "@/lib/api/keeta.client";
+import { talabatClient } from "@/lib/api/talabat.client";
 import {
   brandsClient,
   locationsClient,
@@ -115,6 +116,13 @@ const TARGETS: Target[] = [
       "Direct Keeta push — replaces the whole menu on the brand's connected Keeta store. Keeta then lock menu editing in their own portal.",
     wired: true,
   },
+  {
+    id: "TALABAT",
+    title: "Talabat",
+    description:
+      "Direct Talabat push (Delivery Hero catalog import) — replaces the whole menu on the brand's connected Talabat vendor. Talabat allow two levels of choices; anything deeper is flagged before sending.",
+    wired: true,
+  },
 ];
 
 type Step = "channels" | "location" | "brand";
@@ -167,7 +175,7 @@ export function PublishMenuModal({
     (l: any) => l.id === locationId,
   )?.country as string | undefined;
   // Keeta the same way: Gulf markets only.
-  const COUNTRY_GATED = new Set(["GLOVO", "KEETA"]);
+  const COUNTRY_GATED = new Set(["GLOVO", "KEETA", "TALABAT"]);
   const visibleTargets = TARGETS.filter(
     (t) =>
       !COUNTRY_GATED.has(t.id) ||
@@ -296,6 +304,30 @@ export function PublishMenuModal({
             .catch((e: any) =>
               pushErrors.push(
                 `Keeta: ${e?.response?.data?.message ?? e?.message ?? "failed"}`,
+              ),
+            );
+        }
+        if (next.includes("TALABAT")) {
+          await talabatClient
+            .publishMenu(menuId, { locationId: loc || undefined, brandId })
+            .then((r) => {
+              // Refused before sending — named, rather than a rejection from
+              // Talabat's importer minutes later.
+              if (r && r.ok === false) {
+                const errs = r.errors ?? [];
+                pushErrors.push(
+                  `Talabat: not sent — ${errs
+                    .slice(0, 3)
+                    .map((e) => e.message)
+                    .join("; ")}${errs.length > 3 ? ` (+${errs.length - 3} more)` : ""}`,
+                );
+                return;
+              }
+              for (const w of r?.warnings ?? []) pushWarnings.push(`Talabat: ${w}`);
+            })
+            .catch((e: any) =>
+              pushErrors.push(
+                `Talabat: ${e?.response?.data?.message ?? e?.message ?? "failed"}`,
               ),
             );
         }
@@ -676,6 +708,7 @@ function describeSelection(s: Set<string>): string {
     DELIVEROO: "Deliveroo",
     GLOVO: "Glovo",
     KEETA: "Keeta",
+    TALABAT: "Talabat",
   };
   const names = Array.from(s).map((id) => labels[id] ?? id);
   if (names.length === 0) return "no channels";

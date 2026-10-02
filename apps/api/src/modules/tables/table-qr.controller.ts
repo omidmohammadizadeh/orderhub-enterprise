@@ -57,6 +57,7 @@ export class TableQrController {
     body: {
       items: QrOrderItem[];
       customerName?: string;
+      customerEmail?: string;
       notes?: string | null;
       requestId?: string;
     },

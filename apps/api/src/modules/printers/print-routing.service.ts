@@ -25,8 +25,10 @@
 
 import { Injectable, Logger } from "@nestjs/common";
 import { receiptOrderNumber } from './receipt-order-number';
-import { formatMoney,
+import {
+  formatMoney,
   cleanPrintedItemName,
+  describeMaskedAddress,
 } from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import {
@@ -731,6 +733,20 @@ export class PrintRoutingService {
   // row (POS path) and falls back to the legacy `deliveryAddress` JSON
   // blob (older platform imports).
   private formatDeliveryAddress(order: any): string | null {
+    // A marketplace delivering with its own courier withholds the address and
+    // sends asterisks. Printing those puts a row of stars on the kitchen
+    // ticket, which reads as a broken printer rather than a deliberate
+    // withholding — say what happened instead.
+    const blob = order.deliveryAddress as Record<string, any> | null;
+    const withheld =
+      describeMaskedAddress({
+        line1: order.addressLine1 ?? blob?.line1,
+        line2: order.addressLine2 ?? blob?.line2,
+        city: order.city ?? blob?.city,
+        postcode: order.postcode ?? blob?.postcode,
+      }) ?? null;
+    if (withheld) return withheld;
+
     const parts = [
       order.addressLine1,
       order.addressLine2,
@@ -738,7 +754,6 @@ export class PrintRoutingService {
       order.postcode,
     ].filter((s) => typeof s === "string" && s.trim().length > 0);
     if (parts.length) return parts.join(", ");
-    const blob = order.deliveryAddress as Record<string, any> | null;
     if (blob) {
       const more = [blob.line1, blob.line2, blob.city, blob.postcode].filter(
         (s) => typeof s === "string" && s.trim().length > 0,

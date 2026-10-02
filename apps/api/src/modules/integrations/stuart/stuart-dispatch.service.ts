@@ -152,7 +152,7 @@ export class StuartDispatchService {
     return {
       currency: pricing?.currency ?? "GBP",
       amount: pricing?.amount ?? pricing?.price_tax_included ?? null,
-      dispatchFeeMinor: this.wallet.dispatchFeeMinor(),
+      dispatchFeeMinor: await this.wallet.dispatchFeeMinorFor(args.tenantId, order.locationId),
       raw: pricing,
     };
   }
@@ -192,7 +192,7 @@ export class StuartDispatchService {
     }
 
     const payload = this.buildPayload(order, location);
-    const feeMinor = this.wallet.dispatchFeeMinor();
+    const feeMinor = await this.wallet.dispatchFeeMinorFor(args.tenantId, order.locationId);
     const waived = await this.wallet.isDispatchChargeWaived(order.locationId);
 
     // Charge the wallet FIRST so an unfunded dispatch is blocked before a
@@ -498,7 +498,10 @@ export class StuartDispatchService {
     const { orders, location, cfg } = await this.loadBulk(args.orderIds, args.user);
     const { payload } = this.buildBulkPayload(orders, location);
     const pricing = await this.client.pricing(cfg, payload);
-    const feeEachMinor = this.wallet.dispatchFeeMinor();
+    const feeEachMinor = await this.wallet.dispatchFeeMinorFor(
+      args.user.tenantId,
+      (location as any).id ?? null,
+    );
     return {
       currency: pricing?.currency ?? "GBP",
       amount: pricing?.amount ?? pricing?.price_tax_included ?? null,
@@ -524,10 +527,10 @@ export class StuartDispatchService {
     }) {
     const { orders, location, cfg } = await this.loadBulk(args.orderIds, args.user);
     const { payload, orderIdByReference } = this.buildBulkPayload(orders, location);
-    const feeMinor = this.wallet.dispatchFeeMinor();
     const tenantId = args.user.tenantId;
     const locationId = location.id as string;
     const createdBy = args.user.userId ?? null;
+    const feeMinor = await this.wallet.dispatchFeeMinorFor(tenantId, locationId);
     const waived = await this.wallet.isDispatchChargeWaived(locationId);
 
     const charged: string[] = [];

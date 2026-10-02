@@ -24,6 +24,26 @@ const PLATFORM_TO_INTEGRATION: Record<string, string> = {
   hubrise: "HUBRISE",
 };
 
+/**
+ * The route below is pinned to exactly these slugs, and that constraint is
+ * load-bearing rather than cosmetic.
+ *
+ * `webhooks/:platform/:locationId` matches ANY two segments under /webhooks,
+ * which includes every dedicated receiver we have — webhooks/jet-go/:token,
+ * webhooks/stuart/:locationId, webhooks/uber-direct/:locationId,
+ * webhooks/yango/…, webhooks/careem/…, webhooks/stripe/…. Express hands a
+ * request to the first route registered that matches, and HubRiseModule imports
+ * WebhooksModule, so this controller registers early and swallowed all of them:
+ * a real JET Go courier webhook came back "400 Unknown platform: jet-go" while
+ * the dedicated handler sat unused.
+ *
+ * Ordering the modules differently would have fixed it until the next module
+ * imported WebhooksModule. Naming the four slugs in the path means anything
+ * else simply doesn't match here and falls through to its own controller, no
+ * matter what order modules load in.
+ */
+const PLATFORM_SLUG_PATTERN = Object.keys(PLATFORM_TO_INTEGRATION).join("|");
+
 @ApiTags("webhooks")
 @BillingExempt() // Provider webhooks must always be accepted regardless of billing state
 @Controller({ path: "webhooks", version: "1" })
@@ -34,7 +54,7 @@ export class WebhooksController {
 
   // POST /api/v1/webhooks/:platform/:locationId
   // Public — signature verification is the auth mechanism.
-  @Post(":platform/:locationId")
+  @Post(`:platform(${PLATFORM_SLUG_PATTERN})/:locationId`)
   @Public()
   @HttpCode(HttpStatus.OK)
   @Throttle({ short: { ttl: 60_000, limit: 300 }, medium: { ttl: 60_000, limit: 300 } })
@@ -46,6 +66,8 @@ export class WebhooksController {
   ) {
     const platform = PLATFORM_TO_INTEGRATION[platformSlug.toLowerCase()];
     if (!platform) {
+      // Unreachable while the path pattern above is in place — kept so that
+      // loosening the route can never silently start accepting anything.
       throw new BadRequestException(`Unknown platform: ${platformSlug}`);
     }
 

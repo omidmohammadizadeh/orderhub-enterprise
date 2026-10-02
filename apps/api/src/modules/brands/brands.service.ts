@@ -66,11 +66,8 @@ export interface UpdateBrandDto {
   customDomain?: string | null;
   customDomainStatus?: string;
   stripeConnectedAccountId?: string | null;
-  /** Tap's destination id for this brand — where its share of a split charge
-   *  settles. The Gulf counterpart of stripeConnectedAccountId, and like it,
-   *  a card charge is refused without one. Entered by hand from Tap's
-   *  dashboard: Tap doesn't document the Business API response, so there is
-   *  nothing safe to read it out of automatically. */
+  /** LEGACY — Tap marketplace model, unused. The Tap merchant is set via
+   *  POST /v1/payments/tap/brands/:id/merchant (admin-only), not here. */
   tapDestinationId?: string | null;
   applicationFeeFixedAmount?: number | null;
   applicationFeePercentage?: number | null;

@@ -18,7 +18,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { CreditCard, Check, X, AlertTriangle } from "lucide-react";
+import { CreditCard, Check, X } from "lucide-react";
 import { usesTap } from "@orderhub/shared";
 import { Button } from "@/components/ui/button";
 import { locationsClient } from "@/lib/api/locations.client";
@@ -137,7 +137,6 @@ export function TablePaymentOptionsModal({
         <fieldset className="space-y-3 p-5">
           <legend className="sr-only">QR ordering payment option</legend>
           {OPTIONS.map((opt) => {
-            const disabled = opt.value === "PAY_NOW" && gulf;
             const active = choice === opt.value;
             return (
               <label
@@ -147,7 +146,6 @@ export function TablePaymentOptionsModal({
                   active
                     ? "border-zinc-900 bg-zinc-50"
                     : "border-zinc-200 hover:border-zinc-300",
-                  disabled ? "cursor-not-allowed opacity-50" : "",
                 ].join(" ")}
               >
                 <input
@@ -156,7 +154,6 @@ export function TablePaymentOptionsModal({
                   className="mt-1 h-4 w-4 accent-zinc-900"
                   value={opt.value}
                   checked={active}
-                  disabled={disabled}
                   onChange={() => setChoice(opt.value)}
                 />
                 <span className="min-w-0">
@@ -179,14 +176,13 @@ export function TablePaymentOptionsModal({
             );
           })}
 
-          {gulf && (
-            <p className="flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
-              <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
-              <span>
-                Paying at the table isn&rsquo;t available in this country yet —
-                card payments here go through Tap, which needs its own hosted
-                page rather than the wallet sheet a guest&rsquo;s phone shows.
-              </span>
+          {choice === "PAY_NOW" && gulf && (
+            <p className="rounded-lg bg-zinc-50 px-3 py-2 text-xs leading-relaxed text-zinc-600">
+              Card payments here go through Tap: guests pay on Tap&rsquo;s own
+              page and are asked for their email. The money goes to this
+              brand&rsquo;s Tap merchant account — until that&rsquo;s connected
+              (brand settings → Payouts), guests are told to order with a member
+              of staff instead.
             </p>
           )}
 

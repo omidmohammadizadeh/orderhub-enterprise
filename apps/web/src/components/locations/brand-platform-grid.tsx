@@ -454,6 +454,10 @@ function ConnectionRow({
   // So this row points at the Careem page, which runs that registration,
   // rather than offering a text box that can only ever be wrong.
   const isCareem = platform === "CAREEM";
+  // Talabat vendors carry a chain code, vendor code and our remote ID, set
+  // (and published to, and opened/closed) on the Talabat page — a bare store
+  // ID box here would create a connection the integration can't use.
+  const isTalabat = platform === "TALABAT";
 
   useEffect(() => {
     setStoreId(connection?.externalStoreId ?? "");
@@ -471,7 +475,14 @@ function ConnectionRow({
             <span className="text-xs font-semibold text-zinc-900">{platformLabel(platform)}</span>
             <StatusChip status={status} />
           </div>
-          {isCareem ? (
+          {isTalabat ? (
+            <p className="text-[10px] text-zinc-500">
+              {connection?.externalStoreId
+                ? `Remote ID: ${connection.externalStoreId}. `
+                : ""}
+              Connected, published and opened/closed on the Talabat page.
+            </p>
+          ) : isCareem ? (
             <p className="text-[10px] text-zinc-500">
               Careem uses this brand and location&apos;s own IDs — there is no
               store ID to enter. Register them with &ldquo;Onboard the
@@ -486,7 +497,14 @@ function ConnectionRow({
             )
           )}
         </div>
-        {isCareem ? (
+        {isTalabat ? (
+          <a
+            href="/dashboard/integrations/talabat"
+            className="rounded-md border border-zinc-300 px-2 py-1 text-[10px] font-medium hover:bg-zinc-50"
+          >
+            Set up on the Talabat page
+          </a>
+        ) : isCareem ? (
           <a
             href="/dashboard/integrations/careem"
             className="rounded-md border border-zinc-300 px-2 py-1 text-[10px] font-medium hover:bg-zinc-50"

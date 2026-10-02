@@ -180,7 +180,7 @@ export class YangoClientService {
   }
 
   private userAgent(): string {
-    return process.env.YANGO_USER_AGENT ?? "OrderHub/1.0 (+https://orderhub.solutions)";
+    return process.env.YANGO_USER_AGENT ?? "OrderHub/1.0 (+https://www.orderhubsolutions.com)";
   }
 
   private async request<T = any>(

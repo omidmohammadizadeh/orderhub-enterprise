@@ -6,7 +6,9 @@ import {
   Logger,
   Inject,
   forwardRef,
+  Optional,
 } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { InjectQueue } from "@nestjs/bull";
 import type { Queue } from "bull";
 import type { Prisma } from "@orderhub/database";
@@ -105,6 +107,8 @@ export class MenusService {
     private readonly menuAssignments: MenuAssignmentsService,
     // Inline images get pushed into storage on write — see rehostInline below.
     private readonly storage: SupabaseStorageService,
+    // Optional and last so specs that construct this positionally still work.
+    @Optional() private readonly events?: EventEmitter2,
   ) {}
 
   /**
@@ -1468,23 +1472,48 @@ export class MenusService {
 
   // ── MenuItem CRUD ─────────────────────────────────────────────────────────
 
-  async findItemsByBrand(brandId: string, user: AuthenticatedUser) {
+  async findItemsByBrand(
+    brandId: string,
+    user: AuthenticatedUser,
+    /**
+     * Narrow the library to one location. Separate from the role scope on
+     * purpose: the scope answers "are you allowed to see this?", and this
+     * answers "does it belong on the menu I'm editing?" — a platform admin
+     * needs the second answer just as much, and used to get every location's
+     * products offered for a single shop's menu.
+     */
+    locationId?: string,
+  ) {
     await this.assertBrandAccess(brandId, user.tenantId);
     // Only surface the brand's library to users who can access this brand.
     const scope = await this.resolveCatalogScope(user);
     if (scope.brandIds !== null && !scope.brandIds.includes(brandId)) return [];
+    if (locationId) {
+      // Never trust the client's locationId — same rule as findItemsByLocation.
+      await this.assertLocationAccess(locationId, user.tenantId);
+      if (scope.locationIds !== null && !scope.locationIds.includes(locationId))
+        return [];
+    }
+    // Brand-only rows (locationId null) stay in either branch: an unassigned
+    // library product belongs to every location of the brand, and dropping
+    // them would empty the picker for any tenant that never stamped a
+    // location onto its catalogue.
+    const locationWhere = locationId
+      ? { OR: [{ locationId }, { locationId: null }] }
+      : scope.locationIds !== null
+        ? {
+            // Non-admins see only items stamped to their accessible
+            // locations, plus brand-only library items.
+            OR: [
+              { locationId: { in: scope.locationIds } },
+              { locationId: null },
+            ],
+          }
+        : {};
     return this.prisma.menuItem.findMany({
       where: {
         brandId,
-        // Non-admins see only items stamped to their accessible locations,
-        // plus brand-only (unassigned) library items — never another
-        // location's products.
-        ...(scope.locationIds !== null && {
-          OR: [
-            { locationId: { in: scope.locationIds } },
-            { locationId: null },
-          ],
-        }),
+        ...locationWhere,
       },
       include: {
         modifierGroupLinks: {
@@ -2574,7 +2603,11 @@ export class MenusService {
     if (dto.nestedGroupIds !== undefined) {
       await this.setNestedModifierGroups(optionId, tenantId, dto.nestedGroupIds);
     }
-    return this.prisma.modifierOption.update({
+    // A choice switched on or off is an 86 for marketplaces that take
+    // per-choice availability (Talabat). Emitted after the write lands.
+    const availabilityFlip =
+      dto.isAvailable !== undefined && dto.isAvailable !== option.isAvailable;
+    const updatedOption = await this.prisma.modifierOption.update({
       where: { id: optionId },
       data: {
         ...(dto.name && { name: dto.name }),
@@ -2608,6 +2641,15 @@ export class MenusService {
         ...(dto.menuIds !== undefined && { menuIds: dto.menuIds }),
       },
     });
+    if (availabilityFlip) {
+      this.events?.emit("modifier_option.availability_changed", {
+        tenantId,
+        optionId,
+        available: !!dto.isAvailable,
+        name: updatedOption.name,
+      });
+    }
+    return updatedOption;
   }
 
   async removeModifierOption(optionId: string, tenantId: string) {

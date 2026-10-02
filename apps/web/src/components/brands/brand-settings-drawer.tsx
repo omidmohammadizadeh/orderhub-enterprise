@@ -43,6 +43,7 @@ import {
 import { ImageUploader } from "@/components/products/image-uploader";
 import { ChannelVariantMenuPanel } from "@/components/locations/channel-variant-menu-panel";
 import { BrandCustomDomainPanel } from "./brand-custom-domain-panel";
+import { BrandTapPayoutsPanel } from "./brand-tap-payouts-panel";
 import { useAuthStore } from "@/stores/auth.store";
 
 const ADMIN_ROLES = new Set(["PLATFORM_ADMIN", "TENANT_OWNER"]);
@@ -120,13 +121,6 @@ export function BrandSettingsDrawer({
   // ── Stripe Connect ────────────────────────────────────────────────
   const [stripeAccountId, setStripeAccountId] = useState(
     brand.stripeConnectedAccountId ?? "",
-  );
-  // Tap's destination for this brand — the Gulf counterpart of the Stripe
-  // connected account. Typed in by hand from Tap's dashboard: Tap doesn't
-  // document what its Business API returns, so there's nothing safe to read
-  // it out of automatically.
-  const [tapDestinationId, setTapDestinationId] = useState(
-    brand.tapDestinationId ?? "",
   );
   const [appFeeMode, setAppFeeMode] = useState(brand.applicationFeeMode ?? "none");
   const [appFeeFixed, setAppFeeFixed] = useState<string>(
@@ -275,7 +269,6 @@ export function BrandSettingsDrawer({
     setPostcode(brand.postcode ?? "");
     setAbout(brand.about ?? "");
     setStripeAccountId(brand.stripeConnectedAccountId ?? "");
-    setTapDestinationId(brand.tapDestinationId ?? "");
     setAppFeeMode(brand.applicationFeeMode ?? "none");
     setAppFeeFixed(brand.applicationFeeFixedAmount?.toString() ?? "");
     setAppFeePct(brand.applicationFeePercentage?.toString() ?? "");
@@ -318,7 +311,6 @@ export function BrandSettingsDrawer({
           postcode: postcode || null,
           about: about || null,
           stripeConnectedAccountId: stripeAccountId || null,
-          tapDestinationId: tapDestinationId.trim() || null,
           applicationFeeMode: appFeeMode,
           applicationFeeFixedAmount: appFeeFixed ? Number(appFeeFixed) : null,
           applicationFeePercentage: appFeePct ? Number(appFeePct) : null,
@@ -553,28 +545,7 @@ export function BrandSettingsDrawer({
           {isAdmin && (
           <Section title={gulf ? "Payouts (Tap)" : "Stripe Connect (payouts)"}>
             {gulf ? (
-              <>
-                <p className="text-[11px] text-zinc-500">
-                  Gulf shops are paid through Tap, not Stripe — Stripe&apos;s own
-                  UAE rules don&apos;t allow the way our checkout charges cards.
-                  Paste the destination id Tap issued for this brand once its
-                  KYC is done; card payments are refused until it&apos;s here.
-                </p>
-                <Field label="Tap destination id">
-                  <input
-                    value={tapDestinationId}
-                    onChange={(e) => setTapDestinationId(e.target.value)}
-                    disabled={!canEdit}
-                    placeholder="Destination id from Tap"
-                    className="input font-mono"
-                  />
-                </Field>
-                {!tapDestinationId.trim() && (
-                  <p className="text-[11px] text-amber-600">
-                    Without this the shop can take cash but not cards.
-                  </p>
-                )}
-              </>
+              <BrandTapPayoutsPanel brand={brand} canEdit={canEdit} />
             ) : (
               <>
                 <p className="text-[11px] text-zinc-500">

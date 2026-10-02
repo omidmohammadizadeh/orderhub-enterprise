@@ -4,6 +4,7 @@ import { Cron } from "@nestjs/schedule";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { ActivityLogService } from "../../logs/activity-log.service";
 import { JetClientService } from "./jet-client.service";
+import { JetOrderAlertService, type JetAlertArgs } from "./jet-order-alert.service";
 import type { JetFailureCode } from "./jet-order.mappers";
 
 // Phase JE-1 — asynchronous order acknowledgement.
@@ -48,6 +49,8 @@ export class JetOrderAckService {
     private readonly config: ConfigService,
     private readonly client: JetClientService,
     @Optional() private readonly activity?: ActivityLogService,
+    /** See the note in JetOrderService: new optional deps go last. */
+    @Optional() private readonly alerts?: JetOrderAlertService,
   ) {}
 
   private cfg<T = string>(key: string): T {
@@ -215,7 +218,34 @@ export class JetOrderAckService {
           details: { error: String(err?.message ?? err) },
         });
       }
+      // The worst of the three: JET will mark this failed-to-inject and skip
+      // the restaurant's backup flow, so nobody downstream learns of it.
+      this.safeAlert({
+        kind: "ack_failed",
+        jetOrderId: args.jetOrderId,
+        tenantId: args.tenantId ?? null,
+        brandId: args.brandId ?? null,
+        locationId: args.locationId ?? null,
+        error: String(err?.message ?? err),
+      });
       return false;
+    }
+  }
+
+
+  /**
+   * Fire an alert and forget it, in the strongest sense.
+   *
+   * `void somePromise` only swallows a REJECTION — a callee that throws
+   * synchronously still unwinds into our caller. Here that caller is the catch
+   * block that acknowledges the order, so an alerter that threw on the way in
+   * would cost us the ack and lose the order outright. Belt and braces.
+   */
+  private safeAlert(args: JetAlertArgs): void {
+    try {
+      void this.alerts?.raise(args)?.catch(() => undefined);
+    } catch {
+      /* an alert is never worth an order */
     }
   }
 
@@ -333,6 +363,14 @@ export class JetOrderAckService {
           state: "abandoned",
           abandonedAt: new Date().toISOString(),
         }));
+        this.safeAlert({
+          kind: "abandoned",
+          jetOrderId: row.externalEventId,
+          tenantId: ack?.tenantId ?? null,
+          brandId: ack?.brandId ?? null,
+          locationId: ack?.locationId ?? null,
+          error: ack?.lastAckError ?? null,
+        });
         continue;
       }
 

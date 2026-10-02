@@ -14,6 +14,7 @@ export const CHANNELS = [
   "WHATSAPP",
   "HUBRISE",
   "KEETA",
+  "TALABAT",
 ] as const;
 export type Channel = (typeof CHANNELS)[number];
 

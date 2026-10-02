@@ -40,6 +40,7 @@ const CHANNELS: SupportedChannel[] = [
   "HUBRISE",
   "GLOVO",
   "KEETA",
+  "TALABAT",
 ];
 const DURATIONS: DurationPreset[] = [
   "1h",

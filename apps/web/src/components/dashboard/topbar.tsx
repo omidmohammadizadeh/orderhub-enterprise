@@ -26,6 +26,7 @@ const PAGE_TITLES: Record<string, { title: string; description?: string }> = {
   "/dashboard/payments":          { title: "Payments", description: "Ledger, payouts, and Stripe Connect" },
   "/dashboard/billing":           { title: "Billing", description: "Subscription, plans, and invoices" },
   "/dashboard/integrations/careem": { title: "Careem", description: "Connection status and incoming notifications" },
+  "/dashboard/integrations/talabat": { title: "Talabat", description: "Vendors, menu, availability, missed orders and promotions" },
   "/dashboard/settings/security":  { title: "Security", description: "MFA, sessions, IP allowlist, and audit log" },
   "/dashboard/settings/branding":  { title: "Branding", description: "White-label customisation and custom domains" },
   "/dashboard/orders/kitchen":     { title: "Kitchen Display", description: "Full-screen KDS with auto-aging and BUMP" },

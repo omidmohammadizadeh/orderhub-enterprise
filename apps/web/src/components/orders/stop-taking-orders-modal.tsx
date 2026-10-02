@@ -43,6 +43,7 @@ const CHANNEL_LABELS: Record<PauseChannel, string> = {
   WHATSAPP: "WhatsApp",
   HUBRISE: "HubRise",
   KEETA: "Keeta",
+  TALABAT: "Talabat",
 };
 
 const DURATION_LABELS: Record<PauseDuration, string> = {

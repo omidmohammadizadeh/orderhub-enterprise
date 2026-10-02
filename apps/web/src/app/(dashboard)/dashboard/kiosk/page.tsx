@@ -19,6 +19,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useCurrency } from "@/hooks/use-currency";
+import { usesTap } from "@orderhub/shared";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Loader2, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import {
@@ -70,7 +71,7 @@ interface Line {
 const IDLE_RESET_MS = 90_000;
 
 export default function KioskPage() {
-  const { money } = useCurrency();
+  const { money, country } = useCurrency();
   const locationId = useSelectedLocationStore((s) => s.selectedLocationId);
 
   const menuQuery = useQuery({
@@ -98,7 +99,11 @@ export default function KioskPage() {
   // Absent means "not configured yet", which is every location that existed
   // before this setting — both stay on until somebody turns one off.
   const acceptCash = kioskSettings?.acceptCash !== false;
-  const acceptCard = kioskSettings?.acceptCard !== false;
+  // Gulf shops have no card machine the till can drive (Tap offers none in
+  // the UAE, and Stripe Terminal isn't sold there) — a card is taken on the
+  // shop's own bank machine by a member of staff. A self-service screen
+  // can't do that, so it offers pay-at-counter only.
+  const acceptCard = kioskSettings?.acceptCard !== false && !usesTap(country);
 
   const groupsQuery = useQuery({
     queryKey: ["kiosk-groups", brandId],
@@ -601,6 +606,7 @@ export default function KioskPage() {
       {pendingCard && locationId && (
         <ChargeReaderModal
           open
+          selfService
           orderId={pendingCard.orderId}
           locationId={locationId}
           amount={pendingCard.amount}

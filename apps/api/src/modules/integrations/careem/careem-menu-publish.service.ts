@@ -141,6 +141,9 @@ export class CareemMenuPublishService {
       branchId: locationId,
     });
     return {
+      // Which of the brand's menus this is: the newest-edited ACTIVE one, so
+      // a forgotten older active menu silently wins over the one just built.
+      sourceMenu: { id: menu.id, name: menu.name },
       wouldPublish: !!payload,
       problems: errors,
       counts: {
