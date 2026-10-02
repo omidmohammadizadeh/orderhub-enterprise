@@ -94,6 +94,9 @@ describe("transformTalabatOrder — spec examples", () => {
     ]);
     // Unpaid ("pending") → cash to collect is on the ticket.
     expect((canonical.metadata as any).paymentStatus).toBe("PENDING");
+    // Never CARD + PENDING: ingest would hide that as an unpaid Stripe order.
+    expect((canonical.metadata as any).paymentMethod).toBe("CASH");
+    expect((canonical.metadata as any).talabat.paymentType).toBe("credit-card");
   });
 
   it("own delivery: no address, PLATFORM courier, callback urls kept", () => {

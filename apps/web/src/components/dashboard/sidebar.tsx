@@ -252,6 +252,9 @@ const secondaryNav: NavItem[] = [
   // it exposes gateway hosts and which credentials are set, which is internal
   // plumbing rather than anything a client owner acts on.
   { href: "/dashboard/integrations/careem", label: "Careem", icon: Plug, roles: ["PLATFORM_ADMIN"] },
+  // Talabat is also where an owner connects vendors and reads who funded each
+  // promotion, so owners see it too.
+  { href: "/dashboard/integrations/talabat", label: "Talabat", icon: Plug, roles: ["PLATFORM_ADMIN", "TENANT_OWNER"] },
   { href: "/dashboard/settings/security", label: "Security", icon: Shield, roles: ["PLATFORM_ADMIN"] },
   { href: "/dashboard/settings/branding", label: "Branding", icon: Palette, roles: ["PLATFORM_ADMIN"] },
   // Maintenance: move base64 images out of Postgres into storage. Admin-only

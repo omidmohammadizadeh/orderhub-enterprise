@@ -245,7 +245,12 @@ export function transformTalabatOrder(order: TalabatOrder, ctx: TalabatTransform
       // PLATFORM hands the post-READY flow to Talabat's rider, MERCHANT walks
       // staff through to delivered.
       ...(kind !== "PICKUP" ? { deliveryType: kind === "OWN_DELIVERY" ? "PLATFORM" : "MERCHANT" } : {}),
-      paymentMethod: paid ? "CARD" : String(order.payment?.type ?? "").toLowerCase().includes("cash") ? "CASH" : "CARD",
+      // Unpaid = collected at the door, whatever the type ("card on
+      // delivery" included): CASH/PENDING is what prints "collect" on the
+      // ticket. CARD/PENDING would be worse than wrong — ingest reads it as
+      // a storefront order awaiting Stripe and hides it from the board.
+      // The exact type stays in talabat.paymentType.
+      paymentMethod: paid ? "CARD" : "CASH",
       paymentStatus: paid ? "PAID" : "PENDING",
       talabat: {
         token: String(order.token),

@@ -368,7 +368,10 @@ export class TalabatSandboxService {
   adjustPrep(token: string, body: any): { status: number; body: unknown } {
     const o = this.orders.get(token);
     if (!o) return { status: 404, body: { code: "NOT_FOUND", message: "Order Not Found" } };
-    if (o.state === "ACCEPTED" && o.riderAccepted) {
+    // Their table: vendor accepted AND rider accepted = no adjustments.
+    // "Vendor accepted" includes every state after it (prepared, picked up).
+    const vendorAccepted = ["ACCEPTED", "PREPARED", "PICKED_UP"].includes(o.state);
+    if (vendorAccepted && o.riderAccepted) {
       return { status: 409, body: { code: "conflict-error", message: "The current order state does not allow preparation time adjustment." } };
     }
     const t = Date.parse(String(body?.expectedPickupAt ?? ""));

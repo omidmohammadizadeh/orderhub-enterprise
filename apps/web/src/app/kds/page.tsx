@@ -101,6 +101,7 @@ const CHANNEL_CHIP: Record<string, { label: string; cls: string }> = {
   DELIVEROO: { label: "Deliveroo", cls: "bg-teal-950 text-teal-300" },
   JUST_EAT: { label: "Just Eat", cls: "bg-orange-950 text-orange-300" },
   KEETA: { label: "Keeta", cls: "bg-yellow-950 text-yellow-300" },
+  TALABAT: { label: "Talabat", cls: "bg-orange-950 text-orange-300" },
   ONLINE: { label: "Online", cls: "bg-sky-950 text-sky-300" },
   POS: { label: "POS", cls: "bg-violet-950 text-violet-300" },
   WHATSAPP: { label: "WhatsApp", cls: "bg-green-950 text-green-300" },

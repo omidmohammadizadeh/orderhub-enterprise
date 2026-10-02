@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { UberEatsOrderActionsPanel } from "./ubereats-order-actions-panel";
+import { TalabatOrderActionsPanel } from "./talabat-order-actions-panel";
 import { DojoRefundPanel } from "./dojo-refund-panel";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -696,6 +697,9 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
           <UberEatsOrderActionsPanel
                 orderId={order.id}
                 currency={(order as any)?.location?.currency} />
+        )}
+      {order.platform === "TALABAT" && (
+          <TalabatOrderActionsPanel orderId={order.id} metadata={(order as any).metadata} />
         )}
         <DojoRefundPanel
           orderId={order.id}
