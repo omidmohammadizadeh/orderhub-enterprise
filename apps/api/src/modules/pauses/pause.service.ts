@@ -21,6 +21,7 @@ import { UberEatsConnectionService } from "../integrations/ubereats/ubereats-con
 import { JetStoreStatusService } from "../integrations/jet/jet-store-status.service";
 import { GlovoStoreStatusService } from "../integrations/glovo/glovo-store-status.service";
 import { KeetaStoreService } from "../integrations/keeta/keeta-store.service";
+import { TalabatStoreService } from "../integrations/talabat/talabat-store.service";
 import { ActivityLogService } from "../logs/activity-log.service";
 
 export type SupportedChannel =
@@ -32,7 +33,8 @@ export type SupportedChannel =
   | "WHATSAPP"
   | "HUBRISE"
   | "GLOVO"
-  | "KEETA";
+  | "KEETA"
+  | "TALABAT";
 
 export type DurationPreset =
   | "1h"
@@ -82,6 +84,8 @@ export class PauseService {
     @Optional() private readonly glovo?: GlovoStoreStatusService,
     // Phase KT-5 — Keeta suspend/reopen. Optional and last, as above.
     @Optional() private readonly keeta?: KeetaStoreService,
+    // Phase TB-5 — Talabat vendor availability. Optional and last, as above.
+    @Optional() private readonly talabat?: TalabatStoreService,
   ) {}
 
   // ─── Reads ─────────────────────────────────────────────────────────
@@ -265,6 +269,7 @@ export class PauseService {
 
     void this.reconcileGlovo(args.scope, args.tenantId);
     void this.reconcileKeeta(args.scope, args.tenantId);
+    void this.reconcileTalabat(args.scope, args.tenantId);
 
     return row;
   }
@@ -325,6 +330,10 @@ export class PauseService {
         { locationId: row.locationId, brandId: row.brandId, channel: row.channel },
         args.tenantId,
       );
+      void this.reconcileTalabat(
+        { locationId: row.locationId, brandId: row.brandId, channel: row.channel },
+        args.tenantId,
+      );
       this.activity?.record({
         tenantId: args.tenantId,
         locationId: row.locationId,
@@ -352,6 +361,7 @@ export class PauseService {
 
     void this.reconcileGlovo(args.scope, args.tenantId);
     void this.reconcileKeeta(args.scope, args.tenantId);
+    void this.reconcileTalabat(args.scope, args.tenantId);
     this.activity?.record({
       tenantId: args.tenantId,
       locationId: args.scope.locationId,
@@ -579,6 +589,42 @@ export class PauseService {
       }
     } catch (e: any) {
       this.logger.warn(`Keeta pause reconcile failed: ${e?.message}`);
+    }
+  }
+
+  /**
+   * Mirror our pause onto the brand's Talabat vendor(s). Talabat take a
+   * timed close natively (CLOSED_UNTIL + closingMinutes), so the resume time
+   * goes with it; an open-ended pause closes until reopened.
+   */
+  private async reconcileTalabat(scope: PauseScope, tenantId: string): Promise<void> {
+    try {
+      if (!this.talabat) return;
+      if (scope.channel && scope.channel !== "TALABAT") return;
+      const conns = await this.prisma.brandPlatformConnection.findMany({
+        where: {
+          locationId: scope.locationId,
+          platform: "TALABAT",
+          ...(scope.brandId ? { brandId: scope.brandId } : {}),
+          status: { in: ["connected", "suspended"] },
+        },
+        select: { brandId: true, tenantId: true },
+      });
+      for (const c of conns) {
+        const snap = await this.isPaused({ locationId: scope.locationId, brandId: c.brandId, channel: "TALABAT" });
+        await this.talabat
+          .reconcile({
+            tenantId: c.tenantId ?? tenantId,
+            brandId: c.brandId,
+            locationId: scope.locationId,
+            paused: snap.paused,
+            resumeAt: snap.resumeAt ?? null,
+            mode: snap.mode ?? null,
+          })
+          .catch((e: any) => this.logger.warn(`Talabat pause reconcile failed: ${e?.message}`));
+      }
+    } catch (e: any) {
+      this.logger.warn(`Talabat pause reconcile failed: ${e?.message}`);
     }
   }
 

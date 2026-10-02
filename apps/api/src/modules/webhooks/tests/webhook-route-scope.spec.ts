@@ -38,6 +38,7 @@ describe("the generic webhook route's scope", () => {
     ["uber-direct"],
     ["yango"],
     ["careem"],
+    ["talabat"],
     ["stripe"],
   ])("leaves %s to its own controller", (slug) => {
     // The regex is an alternation of whole slugs; a dedicated one must not be

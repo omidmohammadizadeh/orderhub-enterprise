@@ -6,7 +6,9 @@ import {
   Logger,
   Inject,
   forwardRef,
+  Optional,
 } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { InjectQueue } from "@nestjs/bull";
 import type { Queue } from "bull";
 import type { Prisma } from "@orderhub/database";
@@ -105,6 +107,8 @@ export class MenusService {
     private readonly menuAssignments: MenuAssignmentsService,
     // Inline images get pushed into storage on write — see rehostInline below.
     private readonly storage: SupabaseStorageService,
+    // Optional and last so specs that construct this positionally still work.
+    @Optional() private readonly events?: EventEmitter2,
   ) {}
 
   /**
@@ -2599,7 +2603,11 @@ export class MenusService {
     if (dto.nestedGroupIds !== undefined) {
       await this.setNestedModifierGroups(optionId, tenantId, dto.nestedGroupIds);
     }
-    return this.prisma.modifierOption.update({
+    // A choice switched on or off is an 86 for marketplaces that take
+    // per-choice availability (Talabat). Emitted after the write lands.
+    const availabilityFlip =
+      dto.isAvailable !== undefined && dto.isAvailable !== option.isAvailable;
+    const updatedOption = await this.prisma.modifierOption.update({
       where: { id: optionId },
       data: {
         ...(dto.name && { name: dto.name }),
@@ -2633,6 +2641,15 @@ export class MenusService {
         ...(dto.menuIds !== undefined && { menuIds: dto.menuIds }),
       },
     });
+    if (availabilityFlip) {
+      this.events?.emit("modifier_option.availability_changed", {
+        tenantId,
+        optionId,
+        available: !!dto.isAvailable,
+        name: updatedOption.name,
+      });
+    }
+    return updatedOption;
   }
 
   async removeModifierOption(optionId: string, tenantId: string) {

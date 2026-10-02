@@ -110,6 +110,20 @@ const envSchema = z.object({
   // mispricing a whole menu by 100×. Confirm with Careem, then set this.
   CAREEM_PRICE_UNIT: z.enum(["major", "minor"]).default("major"),
 
+  // Talabat (Delivery Hero POS Middleware — the RESTAURANT integration, not
+  // developer.talabat.com's grocery Partner API). One username/password for
+  // the whole integration, issued PGP-encrypted by Talabat. The plugin secret
+  // verifies the JWT the middleware puts on every call to our plugin.
+  // Production has no documented host, so TALABAT_API_BASE is required there.
+  TALABAT_USERNAME: z.string().optional(),
+  TALABAT_PASSWORD: z.string().optional(),
+  TALABAT_PLUGIN_SECRET: z.string().optional(),
+  TALABAT_ENV: z.enum(["staging", "production"]).default("staging"),
+  TALABAT_API_BASE: z.string().url().optional(),
+  // Our own fake middleware, for driving the integration before credentials
+  // exist. Refused when TALABAT_ENV=production.
+  TALABAT_SANDBOX: z.string().optional(),
+
   // Billing enforcement. The guard reads the per-location subscriptions that
   // actually charge merchants, which nothing enforced before — so this ships
   // as "observe": it logs what it WOULD block and lets the request through.

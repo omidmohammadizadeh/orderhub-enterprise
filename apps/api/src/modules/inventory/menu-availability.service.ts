@@ -22,6 +22,7 @@ import { JetItemAvailabilityService } from "../integrations/jet/jet-item-availab
 import { CareemItemAvailabilityService } from "../integrations/careem/careem-item-availability.service";
 import { GlovoItemAvailabilityService } from "../integrations/glovo/glovo-item-availability.service";
 import { KeetaItemAvailabilityService } from "../integrations/keeta/keeta-item-availability.service";
+import { TalabatItemAvailabilityService } from "../integrations/talabat/talabat-item-availability.service";
 import { ActivityLogService } from "../logs/activity-log.service";
 
 // Mirrors the publish-menu modal's TARGETS. Free-form string in the DB, which
@@ -40,6 +41,7 @@ export type SupportedChannel =
   | "CAREEM"
   | "GLOVO"
   | "KEETA"
+  | "TALABAT"
   | "ALL";
 
 // Operator presets from the spec. Translated to an `expiresAt` Date
@@ -70,6 +72,7 @@ export class MenuAvailabilityService {
     // their positional arguments.
     @Optional() private readonly glovoAvailability?: GlovoItemAvailabilityService,
     @Optional() private readonly keetaAvailability?: KeetaItemAvailabilityService,
+    @Optional() private readonly talabatAvailability?: TalabatItemAvailabilityService,
   ) {}
 
   // ─── Reads ─────────────────────────────────────────────────────────
@@ -483,6 +486,24 @@ export class MenuAvailabilityService {
         );
     }
 
+    // Fire-and-forget direct Talabat sync. Talabat take a timed 86 natively
+    // (willBeAvailable AT_TIMESTAMP), so `until` restores itself on their side.
+    if ((args.channel === "TALABAT" || args.channel === "ALL") && this.talabatAvailability) {
+      this.talabatAvailability
+        .pushItemAvailability({
+          tenantId: args.tenantId,
+          itemId: args.itemId,
+          available: false,
+          until: expiresAt,
+          locationId: args.locationId,
+        })
+        .catch((err) =>
+          this.logger.warn(
+            `Talabat availability push failed for item ${args.itemId}: ${err?.message ?? err}`,
+          ),
+        );
+    }
+
     // Fire-and-forget direct Uber Eats sync (sparse Update Menu Item).
     if (args.channel === "UBER_EATS" || args.channel === "ALL") {
       this.syncUberEatsAvailability(item, args.tenantId, expiresAt, args.snoozeReason ?? null, false, args.locationId).catch(
@@ -658,6 +679,23 @@ export class MenuAvailabilityService {
         .catch((err) =>
           this.logger.warn(
             `Glovo availability restore failed for item ${args.itemId}: ${err?.message ?? err}`,
+          ),
+        );
+    }
+
+    // Restore on Talabat. The push re-checks for a TALABAT or ALL snooze still
+    // covering the item at that vendor before putting it back on sale.
+    if ((args.channel === "TALABAT" || args.channel === "ALL") && this.talabatAvailability) {
+      this.talabatAvailability
+        .pushItemAvailability({
+          tenantId: args.tenantId,
+          itemId: args.itemId,
+          available: true,
+          locationId: args.locationId,
+        })
+        .catch((err) =>
+          this.logger.warn(
+            `Talabat availability restore failed for item ${args.itemId}: ${err?.message ?? err}`,
           ),
         );
     }
