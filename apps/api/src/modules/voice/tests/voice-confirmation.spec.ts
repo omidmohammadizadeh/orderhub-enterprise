@@ -307,12 +307,30 @@ describe("never giving up", () => {
   });
 
   it("offers a way out when the address is out of area", async () => {
+    // Only an unlisted AREA is a refusal now — a postcode no zone knows is
+    // taken at the highest fee, as online ordering does (next test).
+    const state = withItem();
+    state.cart.fulfillmentType = "DELIVERY";
+    state.cart.deliveryAddress = { line1: "1 Far Away", area: "Al Quoz" };
+    const areaShop = ctx({
+      country: "AE",
+      currency: "AED",
+      deliveryZones: [
+        { id: "m", postcodePrefix: null, areaName: "Dubai Marina", maxDistanceMiles: null, fee: 15, minOrderValue: null },
+      ],
+    });
+    const say = await svc().confirmAddressAloud(areaShop, state);
+    expect(say).toContain("collection");
+    expect(say).toContain("another address");
+  });
+
+  it("takes a postcode no zone knows at the highest fee instead of refusing", async () => {
     const state = withItem();
     state.cart.fulfillmentType = "DELIVERY";
     state.cart.deliveryAddress = { line1: "1 Far Away", postcode: "ZZ99 9ZZ" };
     const say = await svc().confirmAddressAloud(ctx(), state);
-    expect(say).toContain("collection");
-    expect(say).toContain("another address");
+    expect(say).not.toContain("don't deliver");
+    expect(say).toContain("£2.50");
   });
 });
 

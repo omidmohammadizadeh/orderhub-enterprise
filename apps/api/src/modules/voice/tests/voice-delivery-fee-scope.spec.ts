@@ -90,3 +90,22 @@ describe("feeForAddress", () => {
     expect(ai.feeForAddress({ postcode: "NE33 2AB" }, ctx([]))).toBe(0);
   });
 });
+
+describe("checkArea for a postcode no zone knows", () => {
+  const ai: any = Object.create(VoiceAiService.prototype);
+  const zones = [
+    { id: "a", postcodePrefix: "NE33", areaName: null, maxDistanceMiles: null, fee: 3, minOrderValue: null },
+    { id: "b", postcodePrefix: "NE34", areaName: null, maxDistanceMiles: null, fee: 4.5, minOrderValue: null },
+  ];
+  const ctx = { currency: "GBP", deliveryZones: zones } as any;
+
+  it("takes it at the highest fee, like online ordering", () => {
+    const out = ai.checkArea("NE36 1AA", ctx);
+    expect(out).not.toContain("does NOT deliver");
+    expect(out).toContain("£4.50");
+  });
+
+  it("still quotes the matching zone when there is one", () => {
+    expect(ai.checkArea("NE33 2AB", ctx)).toContain("£3.00");
+  });
+});
