@@ -4,6 +4,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import type { CanonicalOrder, DeliveryZoneMode } from "@orderhub/shared";
 import {
   resolveZone,
+  deliveryZoneScope,
   zoneMode,
   areaZoneNames,
   matchAreaZone,
@@ -1349,7 +1350,7 @@ export class WhatsAppAiService {
       // reads as a bug, because it is one.
       const where =
         zone.mode === "AREA" ? (addr?.area ?? "").trim() : (addr?.postcode ?? "").trim();
-      if (zone.hasZones && !zone.matched) {
+      if (zone.mode === "AREA" && !zone.matched) {
         await this.send.sendText(
           phoneNumberId,
           from,
@@ -1656,13 +1657,16 @@ export class WhatsAppAiService {
     );
   }
 
-  /** The brand's delivery zones. Brand settings only — never the POS/location
-   *  zones, mirroring the storefront: the two keep separate charges on purpose
-   *  so a shop's till pricing can't leak into customer-facing ordering. */
+  /** Every delivery zone that applies at this shop — the SAME scope online
+   *  checkout charges from (deliveryZoneScope: the location's rows, the
+   *  brand's rows, and rows of any brand trading here).
+   *
+   *  This used to read the brand's rows only. A shop whose zones hang off the
+   *  LOCATION (NE33 → £3 on the storefront) therefore had "no zones" here, and
+   *  every WhatsApp delivery went out at £0 — two orders on 2 Oct 2026. */
   private async brandZones(ctx: WaMenuContext) {
-    if (!ctx.brandId) return [];
     return this.prisma.deliveryZone.findMany({
-      where: { brandId: ctx.brandId, isActive: true },
+      where: deliveryZoneScope({ locationId: ctx.locationId, brandId: ctx.brandId }) as any,
       select: {
         id: true,
         postcodePrefix: true,
@@ -1702,12 +1706,20 @@ export class WhatsAppAiService {
       postcode: address.postcode,
       area: address.area,
     });
+    // A postcode (or distance) we can't place is a config gap, not a reason
+    // to deliver free or to turn the customer away: charge the highest fee
+    // configured, exactly as online checkout does (resolveDeliveryFee in
+    // ordering.service). Only AREA mode refuses — its rows ARE the picker.
+    const fallbackFee =
+      !match.matched && match.mode !== "AREA"
+        ? zones.reduce((max, z) => Math.max(max, Number(z.fee) || 0), 0)
+        : 0;
     return {
       mode: match.mode,
       matched: match.matched,
       hasZones: zones.length > 0,
       unserviceable: match.unserviceable,
-      fee: match.fee,
+      fee: match.matched ? match.fee : fallbackFee,
       minOrder: match.minOrderValue,
       label: match.label ?? null,
     };
