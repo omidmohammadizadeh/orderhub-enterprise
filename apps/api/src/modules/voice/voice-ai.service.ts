@@ -6836,15 +6836,24 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
    *
    *  Same resolver as every other surface. Distance bands quote the TOP band
    *  here — a phone call collects no coordinates — and orders.create re-prices
-   *  them from the address, so the caller is never quoted less than they pay. */
+   *  them from the address, so the caller is never quoted less than they pay.
+   *
+   *  A postcode no zone recognises charges the HIGHEST configured fee, as
+   *  online checkout does — a config gap must never deliver free. Area mode
+   *  is the exception: an unlisted area is a refusal, settled before here. */
   private feeForAddress(
     address: { postcode?: string; area?: string } | undefined,
     ctx: VoiceContext,
   ): number {
-    return resolveZone(ctx.deliveryZones as any, {
+    const match = resolveZone(ctx.deliveryZones as any, {
       postcode: address?.postcode,
       area: address?.area,
-    }).fee;
+    });
+    if (match.matched || match.mode === 'AREA') return match.fee;
+    return (ctx.deliveryZones ?? []).reduce(
+      (max, z: any) => Math.max(max, Number(z.fee) || 0),
+      0,
+    );
   }
 
   /**
