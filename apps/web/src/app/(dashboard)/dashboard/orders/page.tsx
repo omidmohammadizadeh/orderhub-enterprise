@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { Beaker, Bike, ShoppingBag, Loader2, PauseCircle, FlaskConical, History, ChevronDown, Timer } from "lucide-react";
+import { Loader2, PauseCircle, FlaskConical, History, ChevronDown, Timer } from "lucide-react";
 import { PlatformLogo } from "@/components/ui/platform-logo";
 import { OrderList } from "@/components/orders/order-list";
 import { StopTakingOrdersModal } from "@/components/orders/stop-taking-orders-modal";
@@ -58,8 +58,6 @@ const SIM_MARKETPLACES = new Set<SimPlatform>([
   "KEETA",
 ]);
 
-const CAN_RUN_TEST_ORDERS = new Set(["PLATFORM_ADMIN", "ONBOARDING_AGENT"]);
-
 // Phase AJ — the live orders board with location filter and a "Create test
 // order" affordance for go-live verification. This page itself is a thin
 // client wrapper; the actual board/columns/cards live in components/orders.
@@ -77,7 +75,6 @@ export default function OrdersPage() {
   const queryClient = useQueryClient();
   const [feedback, setFeedback] = useState<string | null>(null);
   const role = useAuthStore((s) => s.user?.role);
-  const canRunTests = !!role && CAN_RUN_TEST_ORDERS.has(role);
   // Simulated marketplace orders look exactly like the real thing on a live
   // shop's board, which is why only we can make them. The API enforces this
   // too — this just keeps the buttons out of an operator's way.
@@ -154,34 +151,9 @@ export default function OrdersPage() {
     },
   });
 
-  const testOrder = useMutation({
-    mutationFn: async (fulfillmentType: "DELIVERY" | "PICKUP") => {
-      if (!selectedLocationId) {
-        throw new Error("Select a specific location first");
-      }
-      const res = await apiClient.post("/v1/orders/test", {
-        locationId: selectedLocationId,
-        fulfillmentType,
-      });
-      return res.data;
-    },
-    onSuccess: (_data, fulfillmentType) => {
-      setFeedback(
-        `Test ${fulfillmentType === "PICKUP" ? "collection" : "delivery"} order created — should appear on the board.`,
-      );
-      queryClient.invalidateQueries({ queryKey: ["orders", "live"] });
-      window.setTimeout(() => setFeedback(null), 4000);
-    },
-    onError: (err: any) => {
-      setFeedback(err?.response?.data?.message ?? err?.message ?? "Failed");
-      window.setTimeout(() => setFeedback(null), 5000);
-    },
-  });
-
-  const disabled = testOrder.isPending || !selectedLocationId;
-  const tooltip = selectedLocationId
-    ? "Create a sandbox order at the selected location"
-    : "Select a specific location to create a test order";
+  // Simulate is now the only test-order button — the plain "Test delivery" /
+  // "Test collection" pair it replaced is gone from the board.
+  const disabled = simulateOrder.isPending || !selectedLocationId;
 
   return (
     <div>
@@ -218,38 +190,6 @@ export default function OrdersPage() {
               Stop taking orders
             </button>
           </div>
-          {canRunTests && (
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => testOrder.mutate("DELIVERY")}
-                disabled={disabled}
-                title={tooltip}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {testOrder.isPending && testOrder.variables === "DELIVERY" ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Bike className="h-4 w-4" />
-                )}
-                Test delivery
-              </button>
-              <button
-                type="button"
-                onClick={() => testOrder.mutate("PICKUP")}
-                disabled={disabled}
-                title={tooltip}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {testOrder.isPending && testOrder.variables === "PICKUP" ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <ShoppingBag className="h-4 w-4" />
-                )}
-                Test collection
-              </button>
-            </div>
-          )}
           {/* Auto ready — the shop's own timer for preparing/ready, which is
               what feeds the marketplaces' prep stages. */}
           <button
