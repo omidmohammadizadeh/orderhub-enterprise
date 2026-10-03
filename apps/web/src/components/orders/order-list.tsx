@@ -482,7 +482,9 @@ export function OrderList({ locationId }: Props) {
       )}
 
       {/* Status dropdown + channel Filter, one tidy row */}
-      <div className="mb-3 flex items-center gap-2">
+      {/* Wraps on a phone: four controls don't fit in 375px, and a row
+          that can't wrap pushed Filter off the right edge. */}
+      <div className="mb-3 flex flex-wrap items-center gap-2 whitespace-nowrap">
         <div className="relative" ref={statusRef}>
           <button
             type="button"
@@ -1059,15 +1061,17 @@ function OrderCard({
         )}
       </div>
 
-      {/* Actions. Scrolls sideways INSIDE the card when a status carries
-          three transitions — the card itself never grows past the viewport,
-          so the page body still can't scroll horizontally. */}
+      {/* Actions. Wrap onto a second line when a status carries three
+          transitions. They used to scroll sideways inside the card, which on
+          a phone just looked cut off — "Cancel" showed as "Ca" with nothing
+          to say there was more. */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="-mx-1 mt-3 flex items-center gap-1.5 overflow-x-auto px-1 pb-0.5"
+        className="mt-3 flex flex-wrap items-center gap-2 whitespace-nowrap"
       >
         <PrintOrderButton order={order} />
         <OrderActions
+          wrap
           orderId={order.id}
           status={order.status}
           fulfillmentType={order.fulfillmentType}
