@@ -52,7 +52,7 @@ export function DispatchMap({
   onSelectOrder?: (id: string) => void;
 }) {
   // Prices follow the selected location's currency, not a hardcoded pound.
-  const { money, symbol } = useCurrency();
+  const { money } = useCurrency();
   const { ready, error } = useGoogleMaps();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<any>(null);
@@ -163,7 +163,7 @@ export function DispatchMap({
           `<div style="font-family:system-ui;font-size:13px;min-width:190px">
             <strong>#${o.displayId ?? o.orderNumber ?? o.id.slice(-5)}</strong> · ${o.platform}<br/>
             ${o.customerName ?? "Customer"}<br/>
-            £${o.total} · ${o.paymentMethod ?? "—"}<br/>
+            ${money(o.total)} · ${o.paymentMethod ?? "—"}<br/>
             <span style="color:${orderColor(o.deadlineAt, Date.now())};font-weight:700">${countdownLabel(o.deadlineAt, Date.now())}</span> · ${o.status}
           </div>`,
         );

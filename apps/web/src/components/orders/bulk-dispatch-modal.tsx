@@ -348,6 +348,8 @@ export function BulkDispatchModal({ orders, onClose, onDispatched }: Props) {
 
   return (
     <div
+      // Lets the dispatch map underneath leave Escape to this dialog.
+      data-bulk-dispatch-open=""
       className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4"
       onClick={() => busy === null && onClose()}
     >

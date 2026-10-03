@@ -33,6 +33,7 @@ import {
   Check,
   CalendarClock,
   ListChecks,
+  Map as MapIcon,
 } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { usePendingCallerStore } from "@/stores/pending-caller.store";
@@ -57,6 +58,11 @@ import { OrdersFeedBanner, OrdersFeedError } from "./feed-status";
 // clients the board has no use for otherwise.
 const BulkDispatchModal = dynamic(
   () => import("./bulk-dispatch-modal").then((m) => m.BulkDispatchModal),
+  { ssr: false },
+);
+// Google Maps and the dispatch feed, only once someone opens the map.
+const DispatchMapModal = dynamic(
+  () => import("./dispatch-map-modal").then((m) => m.DispatchMapModal),
   { ssr: false },
 );
 
@@ -349,6 +355,8 @@ export function OrderList({ locationId }: Props) {
   const [bulkMode, setBulkMode] = useState(false);
   const [picks, setPicks] = useState<string[]>([]);
   const [bulkOpen, setBulkOpen] = useState(false);
+  // The dispatch map shares the pick above — it is bulk dispatch on a map.
+  const [mapOpen, setMapOpen] = useState(false);
   const orderById = useMemo(
     () => new Map(orders.map((o) => [o.id, o])),
     [orders],
@@ -567,6 +575,21 @@ export function OrderList({ locationId }: Props) {
             <ListChecks className="h-3.5 w-3.5" aria-hidden="true" />
           )}
           {bulkMode ? "Cancel bulk dispatch" : "Bulk dispatch"}
+        </button>
+
+        {/* Every delivery on one map, picked and dispatched from there. Opens
+            in bulk mode so whatever is picked on the map is still showing,
+            numbered, on the board when the map closes. */}
+        <button
+          type="button"
+          onClick={() => {
+            setBulkMode(true);
+            setMapOpen(true);
+          }}
+          className="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 transition-colors hover:border-zinc-300"
+        >
+          <MapIcon className="h-3.5 w-3.5" aria-hidden="true" />
+          Dispatch map
         </button>
 
         {/* Channel filter — Filter button with popover */}
@@ -817,6 +840,22 @@ export function OrderList({ locationId }: Props) {
             </button>
           </div>
         </div>
+      )}
+
+      {mapOpen && (
+        <DispatchMapModal
+          locationId={locationId}
+          orders={orders}
+          pickedIds={pickedIds}
+          onTogglePick={togglePick}
+          onClearPicks={() => setPicks([])}
+          onDispatch={() => setBulkOpen(true)}
+          onClose={() => {
+            setMapOpen(false);
+            // Nothing picked: don't leave the board in pick mode for nothing.
+            if (pickedIds.length === 0) setBulkMode(false);
+          }}
+        />
       )}
 
       {bulkOpen && pickedOrders.length > 0 && (
