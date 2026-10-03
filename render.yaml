@@ -208,8 +208,19 @@ services:
       - key: JET_DEFAULT_COUNTRY
         value: GB
       # ── JWT config ──
+      # This is the REVOCATION window, not just a tuning knob: nothing
+      # re-reads the database while an access token is valid, so a
+      # deactivated user keeps working until theirs expires. Keep the till
+      # and dashboard short.
       - key: JWT_ACCESS_TTL
         value: 15m
+      # Drivers only. They work out of signal, and every expiry forces a
+      # refresh that can fail in a tunnel; app builds older than 1.0.3 treat
+      # any failed refresh as a logout, so refreshing less often is the only
+      # relief that reaches the phones already in the field. A driver token
+      # also reaches far less than a till's: their own jobs, chat and pings.
+      - key: JWT_DRIVER_ACCESS_TTL
+        value: 8h
       # Long-lived refresh so the till / dashboard stays logged in until
       # the operator logs out manually. Sliding rotation extends it on
       # every refresh, so an actively-used device never drops out.

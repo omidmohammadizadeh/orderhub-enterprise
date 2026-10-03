@@ -3,7 +3,7 @@ import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { randomBytes, createHash } from "crypto";
 import { addMilliseconds, isBefore } from "date-fns";
-import type { UserRole } from "@orderhub/database";
+import { UserRole } from "@orderhub/database";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import type { JwtPayload, AuthenticatedUser } from "../interfaces/jwt-payload.interface";
 import type { RequestMeta } from "../interfaces/request-meta.interface";
@@ -20,6 +20,7 @@ interface TokenPayload {
 export class TokenService {
   private readonly logger = new Logger(TokenService.name);
   private readonly accessTtlMs: number;
+  private readonly driverAccessTtlMs: number;
   private readonly refreshTtlMs: number;
 
   constructor(
@@ -28,6 +29,10 @@ export class TokenService {
     private readonly prisma: PrismaService,
   ) {
     this.accessTtlMs = this.parseTtl(config.get("JWT_ACCESS_TTL", "15m"));
+    // Drivers get a longer access token than the till — see accessTtlFor.
+    this.driverAccessTtlMs = this.parseTtl(
+      config.get("JWT_DRIVER_ACCESS_TTL", "8h"),
+    );
     // Long default so sessions persist until manual logout (sliding
     // rotation re-extends on every refresh). Overridable via env.
     this.refreshTtlMs = this.parseTtl(config.get("JWT_REFRESH_TTL", "365d"));
@@ -59,7 +64,7 @@ export class TokenService {
     return {
       accessToken,
       refreshToken: rawToken,
-      expiresIn: Math.floor(this.accessTtlMs / 1000),
+      expiresIn: Math.floor(this.accessTtlMsFor(payload.role) / 1000),
     };
   }
 
@@ -169,7 +174,7 @@ export class TokenService {
       tokens: {
         accessToken,
         refreshToken: newRawToken,
-        expiresIn: Math.floor(this.accessTtlMs / 1000),
+        expiresIn: Math.floor(this.accessTtlMsFor(payload.role) / 1000),
       },
       ...payload,
     };
@@ -230,6 +235,34 @@ export class TokenService {
 
   // ── Private helpers ───────────────────────────────────
 
+  /**
+   * How long this role's access token lives.
+   *
+   * Nothing re-checks the database while an access token is valid — JwtStrategy
+   * .validate just maps the payload — so this window IS the revocation window:
+   * deactivate a user and they keep working until their token expires. That is
+   * why the till and the dashboard stay at 15 minutes.
+   *
+   * A DRIVER is the one case where that short window costs more than it buys.
+   * They are out on the road: every expiry forces a refresh, and a refresh that
+   * happens in a tunnel or mid carrier-handover used to sign them out
+   * completely (fixed app-side in 9248ea4f, but every phone in the field is
+   * still on a July build that predates over-the-air updates, so the only
+   * relief that reaches them today is refreshing less often). A driver token
+   * also carries far less: their own jobs, chat and pings, scoped to
+   * themselves. Tune with JWT_DRIVER_ACCESS_TTL.
+   */
+  private accessTtlFor(role: UserRole): string {
+    return role === UserRole.DRIVER
+      ? this.config.get("JWT_DRIVER_ACCESS_TTL", "8h")
+      : this.config.get("JWT_ACCESS_TTL", "15m");
+  }
+
+  /** The matching value for the `expiresIn` the client is told. */
+  private accessTtlMsFor(role: UserRole): number {
+    return role === UserRole.DRIVER ? this.driverAccessTtlMs : this.accessTtlMs;
+  }
+
   private signAccessToken(payload: TokenPayload): Promise<string> {
     const jwtPayload: JwtPayload = {
       sub: payload.userId,
@@ -240,7 +273,7 @@ export class TokenService {
     };
     return this.jwt.signAsync(jwtPayload, {
       secret: this.config.get("JWT_SECRET"),
-      expiresIn: this.config.get("JWT_ACCESS_TTL", "15m"),
+      expiresIn: this.accessTtlFor(payload.role),
     });
   }
 
