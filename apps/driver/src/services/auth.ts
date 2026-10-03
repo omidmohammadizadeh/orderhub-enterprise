@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import * as SecureStore from "expo-secure-store";
 import axios from "axios";
 import Constants from "expo-constants";
+import { canRetryRefresh, isSessionDead } from "./session-policy";
 
 const TOKEN_KEY = "orderhub.driver.tokens";
 
@@ -31,6 +32,16 @@ let onTokensChanged: ((t: AuthTokens | null) => void) | null = null;
 // useAuth (foreground only) sets this true; the background context leaves it
 // false and never refreshes (its pings just fail silently if the access expired).
 let canRefresh = false;
+
+// useAuth claims rotation on mount and releases it on unmount. Exported so the
+// rule itself can be exercised in a test — never call these from the
+// background location task, which is the context the rule exists to stop.
+export function claimTokenRotation() {
+  canRefresh = true;
+}
+export function releaseTokenRotation() {
+  canRefresh = false;
+}
 
 // Single source of truth for persisting the token pair: in-memory (for the
 // request interceptor) + secure store + React state.
@@ -68,14 +79,26 @@ api.interceptors.request.use(async (config) => {
 
 // Access tokens live ~15 min. On a 401 we rotate the pair via /auth/refresh once,
 // persist the new pair, and replay the original request. Concurrent 401s share a
-// single in-flight refresh. If refresh fails the session is cleared → re-login.
+// single in-flight refresh.
+//
+// The session is cleared ONLY when the auth server says the refresh token is
+// dead (see isSessionDead). A failure to reach it — tunnel, carrier handover,
+// API deploy, 5xx, 429 — keeps the tokens and retries later, because signing a
+// driver out mid-delivery over a dead spot is the worst thing this app can do.
 let refreshInFlight: Promise<AuthTokens> | null = null;
+let refreshFailures = 0;
+let lastRefreshFailureAt = 0;
 async function refreshTokens(): Promise<AuthTokens> {
   if (!inMemoryRefresh) throw new Error("No refresh token");
   // Bare axios (not `api`) so this request skips the interceptors below.
+  // With a timeout: the default is none, and a socket left hanging in a dead
+  // spot would leave refreshInFlight pending for ever, so every later 401
+  // would await a promise that never settles and the app would sit there
+  // unauthenticated with no way back.
   const res = await axios.post<{ accessToken: string; refreshToken: string }>(
     `${API_URL}/v1/auth/refresh`,
     { refreshToken: inMemoryRefresh },
+    { timeout: 20_000 },
   );
   const next: AuthTokens = {
     accessToken: res.data.accessToken,
@@ -97,6 +120,14 @@ api.interceptors.response.use(
       original._retry = true;
       if (canRefresh && inMemoryRefresh) {
         // Foreground: rotate the pair and replay the request.
+        //
+        // While a refresh is backing off, don't pile on: the board polls every
+        // 8s, and hammering a server that is rate-limiting or restarting is
+        // what keeps it rate-limiting. The request just fails; the poll after
+        // the backoff tries again.
+        if (!refreshInFlight && !canRetryRefresh(refreshFailures, lastRefreshFailureAt)) {
+          return Promise.reject(error);
+        }
         try {
           if (!refreshInFlight) {
             refreshInFlight = refreshTokens().finally(() => {
@@ -104,11 +135,22 @@ api.interceptors.response.use(
             });
           }
           const next = await refreshInFlight;
+          refreshFailures = 0;
           original.headers = original.headers ?? {};
           original.headers.Authorization = `Bearer ${next.accessToken}`;
           return api(original);
-        } catch {
-          await persistTokens(null); // refresh token expired/revoked → force re-login
+        } catch (refreshError) {
+          if (isSessionDead(refreshError)) {
+            // The server has rejected the refresh token itself — genuinely
+            // signed out.
+            refreshFailures = 0;
+            await persistTokens(null);
+          } else {
+            // Couldn't reach the server, or it couldn't answer. Keep the
+            // tokens: the driver stays signed in and the next poll retries.
+            refreshFailures += 1;
+            lastRefreshFailureAt = Date.now();
+          }
         }
       } else {
         // Background/headless: never rotate (that would revoke the foreground's
@@ -128,17 +170,30 @@ export function useAuth() {
   useEffect(() => {
     // Keep React state in sync when the interceptor rotates or clears tokens.
     onTokensChanged = setTokensState;
-    canRefresh = true; // this is the foreground context — it owns token rotation
+    claimTokenRotation(); // this is the foreground context — it owns token rotation
     SecureStore.getItemAsync(TOKEN_KEY)
       .then((stored) => {
         if (!stored) return;
         try {
           const parsed = JSON.parse(stored) as AuthTokens;
-          if (parsed?.accessToken) {
-            inMemoryAccess = parsed.accessToken;
-            inMemoryRefresh = parsed.refreshToken ?? null;
-            setTokensState(parsed);
+          if (!parsed?.accessToken) return;
+          // If a pair is already in memory, something rotated while this read
+          // was in flight (a background ping can 401 before hydration lands).
+          // That pair is the newer one — adopting the one we just read would
+          // re-present a refresh token the server has already revoked, and a
+          // replay more than a minute after rotation reads as token theft:
+          // the server kills the whole chain and the driver is logged out for
+          // real. So never let a stale read win.
+          if (inMemoryRefresh) {
+            setTokensState({
+              accessToken: inMemoryAccess ?? parsed.accessToken,
+              refreshToken: inMemoryRefresh,
+            });
+            return;
           }
+          inMemoryAccess = parsed.accessToken;
+          inMemoryRefresh = parsed.refreshToken ?? null;
+          setTokensState(parsed);
         } catch {
           // ignore malformed
         }
@@ -146,7 +201,7 @@ export function useAuth() {
       .finally(() => setHydrated(true));
     return () => {
       onTokensChanged = null;
-      canRefresh = false;
+      releaseTokenRotation();
     };
   }, []);
 
