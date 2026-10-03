@@ -284,7 +284,7 @@ describe("live orders — scoping must survive the query build", () => {
 // Order history (findMany) runs through the same resolveOrderAccessWhere, and
 // has the same failure mode the live board once had: the scope resolves
 // correctly and is then lost while the rest of the query is built. It also now
-// merges a NOT clause for simulated orders, which is exactly the kind of
+// used to merge a NOT clause for simulated orders, which is exactly the kind of
 // addition that quietly clobbers a spread.
 //
 // Staff, managers, owners and dark-kitchen managers all reach history — it
@@ -339,12 +339,17 @@ describe("order history — scoping must survive the query build", () => {
     expect(svc.prisma.order.findMany).not.toHaveBeenCalled();
   });
 
-  it("hides simulated marketplace orders from a non-admin", async () => {
-    const svc: any = makeService({ userLocations: ["l1"] });
-    const h = historyWhere(svc, "OWNER");
-    await h.run();
-    expect(JSON.stringify(h.get())).toContain("isSandbox");
-  });
+  it.each(["STAFF", "MANAGER", "OWNER"])(
+    "shows simulated marketplace orders to %s at the location",
+    async (role) => {
+      // A simulation is for the shop to rehearse on its own tills.
+      const svc: any = makeService({ userLocations: ["l1"] });
+      const h = historyWhere(svc, role);
+      await h.run();
+      expect(JSON.stringify(h.get())).not.toContain("isSandbox");
+      expect(JSON.stringify(h.get())).toContain("l1");
+    },
+  );
 
   it("shows them to a platform admin", async () => {
     const svc: any = makeService({ userLocations: [] });
