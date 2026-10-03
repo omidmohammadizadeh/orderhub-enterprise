@@ -1494,12 +1494,20 @@ export class MenusService {
       if (scope.locationIds !== null && !scope.locationIds.includes(locationId))
         return [];
     }
-    // Brand-only rows (locationId null) stay in either branch: an unassigned
-    // library product belongs to every location of the brand, and dropping
-    // them would empty the picker for any tenant that never stamped a
-    // location onto its catalogue.
+    // With a location named, the picker offers that shop's products and the
+    // brand-only rows (locationId null) it ACTUALLY SELLS — ones already on a
+    // menu of this location. It used to admit every brand-only row, and every
+    // menu import writes its products brand-only, so one shop's "Add existing
+    // product" listed each import the brand had ever run, for any site: the
+    // same burger three times under three import prefixes. The Products tab
+    // already showed only the shop's own; the picker now agrees with it.
     const locationWhere = locationId
-      ? { OR: [{ locationId }, { locationId: null }] }
+      ? {
+          OR: [
+            { locationId },
+            { locationId: null, ...this.onMenuAtLocation(locationId) },
+          ],
+        }
       : scope.locationIds !== null
         ? {
             // Non-admins see only items stamped to their accessible
@@ -1985,13 +1993,30 @@ export class MenusService {
     const scope = await this.resolveCatalogScope(user);
     if (scope.locationIds !== null && !scope.locationIds.includes(locationId))
       return [];
+    // Brand-level groups a SKU of this shop's products points at. Those ids
+    // live in a JSON column no relation filter can reach, so collect them.
+    const skuGroupIds = await this.skuGroupIdsAtLocation(locationId);
     const groups = await this.prisma.modifierGroup.findMany({
       where: {
         OR: [
           { locationId },
-          // Brand-level rows, scoped to this location's own brand so a
-          // tenant running several brands doesn't see all of them.
-          { locationId: null, brandId: location.brandId },
+          // Brand-level rows of this location's own brand — but only the ones
+          // this shop uses: hung off one of its products, directly or through
+          // a size. Admitting every brand-level row listed each menu import's
+          // groups (imports write them brand-only) and the importer's empty
+          // "__import_holding" groups at every site of the brand.
+          {
+            locationId: null,
+            brandId: location.brandId,
+            OR: [
+              {
+                itemLinks: {
+                  some: { item: this.itemAtLocation(locationId) },
+                },
+              },
+              ...(skuGroupIds.length > 0 ? [{ id: { in: skuGroupIds } }] : []),
+            ],
+          },
         ],
       },
       include: {
@@ -2002,6 +2027,45 @@ export class MenusService {
     });
     const merged = await this.mergeArrayAttachedOptions(groups, user.tenantId);
     return this.attachNestedGroups(merged, user.tenantId);
+  }
+
+  /** A product sits on a live menu of this location. */
+  private onMenuAtLocation(locationId: string) {
+    return {
+      categories: {
+        some: { category: { menu: { locationId, deletedAt: null } } },
+      },
+    };
+  }
+
+  /** A product that belongs to this location: stamped to it, or brand-only
+   *  and on one of its menus. */
+  private itemAtLocation(locationId: string) {
+    return {
+      OR: [
+        { locationId },
+        { locationId: null, ...this.onMenuAtLocation(locationId) },
+      ],
+    };
+  }
+
+  /** Every modifier-group id a size of this location's products points at. */
+  private async skuGroupIdsAtLocation(locationId: string): Promise<string[]> {
+    const items = await this.prisma.menuItem.findMany({
+      where: this.itemAtLocation(locationId),
+      select: { productSkus: true },
+    });
+    const ids = new Set<string>();
+    for (const it of items) {
+      const skus = it.productSkus as any;
+      if (!Array.isArray(skus)) continue;
+      for (const sku of skus) {
+        for (const gid of sku?.modifierGroups ?? []) {
+          if (typeof gid === "string" && gid) ids.add(gid);
+        }
+      }
+    }
+    return [...ids];
   }
 
   /**

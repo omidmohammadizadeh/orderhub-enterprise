@@ -10,21 +10,30 @@ import { MenusService } from "../menus.service";
 //
 // So the location is now a filter in its own right: the role scope answers
 // "are you allowed to see this?", the location answers "does it belong on the
-// menu I'm editing?". Brand-only rows (locationId null) survive both, because
-// an unassigned library product belongs to every shop of the brand and every
-// group the product editor created before the location stamp was threaded
-// through is one of them.
+// menu I'm editing?". With a location named, brand-only rows (locationId null)
+// survive only when the shop already sells them — they sit on one of its menus.
+// Every menu import writes its products brand-only, so admitting all of them
+// listed every import the brand ever ran, at every site.
 
 const TENANT = "t1";
 const DUBAI = "loc-dubai";
 const LONDON = "loc-london";
 const BRAND = "b1";
 
-type Item = { id: string; brandId: string; locationId: string | null };
+type Item = {
+  id: string;
+  brandId: string;
+  locationId: string | null;
+  /** Locations whose (live) menus carry this item. */
+  onMenusAt?: string[];
+};
 
 const ALL_ITEMS: Item[] = [
   { id: "i-dubai", brandId: BRAND, locationId: DUBAI },
-  { id: "i-brand-wide", brandId: BRAND, locationId: null },
+  // Brand-only and on the Dubai menu — the shop sells it.
+  { id: "i-brand-wide", brandId: BRAND, locationId: null, onMenusAt: [DUBAI] },
+  // Brand-only and on no Dubai menu — another site's import.
+  { id: "i-imported-elsewhere", brandId: BRAND, locationId: null, onMenusAt: [LONDON] },
   { id: "i-london", brandId: BRAND, locationId: LONDON },
   { id: "i-other-brand", brandId: "b2", locationId: DUBAI },
 ];
@@ -34,7 +43,11 @@ function matches(it: Item, where: any): boolean {
   if (where.brandId && it.brandId !== where.brandId) return false;
   if (!where.OR) return true;
   return (where.OR as any[]).some((c) => {
-    if (c.locationId === null) return it.locationId === null;
+    if (c.locationId === null) {
+      if (it.locationId !== null) return false;
+      const loc = c.categories?.some?.category?.menu?.locationId;
+      return loc === undefined || (it.onMenusAt ?? []).includes(loc);
+    }
     if (typeof c.locationId === "string") return it.locationId === c.locationId;
     if (c.locationId?.in)
       return it.locationId !== null && c.locationId.in.includes(it.locationId);
@@ -89,13 +102,19 @@ describe("findItemsByBrand, scoped to a location", () => {
     expect(ids(rows)).not.toContain("i-london");
   });
 
-  it("keeps brand-wide products, which is where most of them live", async () => {
-    // A product never stamped with a location belongs to every shop of the
-    // brand. Dropping these would empty the picker for any tenant that
-    // built its catalogue before the stamp existed.
+  it("keeps brand-wide products the shop already sells", async () => {
+    // Unstamped but on one of this location's menus: it belongs here.
     const svc = makeService();
     const rows = await svc.findItemsByBrand(BRAND, ADMIN, DUBAI);
     expect(ids(rows)).toContain("i-brand-wide");
+  });
+
+  it("drops brand-wide products no menu of this shop carries", async () => {
+    // The reported leak: every import's products, brand-only, offered to a
+    // shop with four products of its own.
+    const svc = makeService();
+    const rows = await svc.findItemsByBrand(BRAND, ADMIN, DUBAI);
+    expect(ids(rows)).not.toContain("i-imported-elsewhere");
   });
 
   it("still never crosses a brand", async () => {
@@ -109,7 +128,12 @@ describe("findItemsByBrand, scoped to a location", () => {
     const svc = makeService();
     const rows = await svc.findItemsByBrand(BRAND, ADMIN);
     expect(ids(rows)).toEqual(
-      expect.arrayContaining(["i-dubai", "i-brand-wide", "i-london"]),
+      expect.arrayContaining([
+        "i-dubai",
+        "i-brand-wide",
+        "i-imported-elsewhere",
+        "i-london",
+      ]),
     );
   });
 
