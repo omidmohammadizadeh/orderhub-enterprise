@@ -170,8 +170,9 @@ export interface UpsellGroup {
 // ── Products (MenuItem) ────────────────────────────────────────────────────
 export const productsClient = {
   /** The brand's item library. `locationId` narrows it to one shop's
-   *  products plus the brand-wide ones — what the menu editor's picker
-   *  wants, since a menu is served at a location, not by a whole brand. */
+   *  products plus the brand-wide ones already on that shop's menus — what
+   *  the menu editor's picker wants, since a menu is served at a location,
+   *  not by a whole brand. */
   list: (brandId: string, locationId?: string) =>
     apiClient
       .get<CatalogProduct[]>(

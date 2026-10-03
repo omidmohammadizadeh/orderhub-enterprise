@@ -4570,7 +4570,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/Users/omidmohammadizadeh/orderhub-enterprise/.claude/worktrees/eager-liskov-ac2044/packages/database/generated/prisma",
+      "value": "/Users/omidmohammadizadeh/orderhub-enterprise/.claude/worktrees/settings-menu-location-leak-6d8276/packages/database/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -4595,7 +4595,7 @@ const config = {
       "fullTextSearch",
       "metrics"
     ],
-    "sourceFilePath": "/Users/omidmohammadizadeh/orderhub-enterprise/.claude/worktrees/eager-liskov-ac2044/packages/database/prisma/schema.prisma",
+    "sourceFilePath": "/Users/omidmohammadizadeh/orderhub-enterprise/.claude/worktrees/settings-menu-location-leak-6d8276/packages/database/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
