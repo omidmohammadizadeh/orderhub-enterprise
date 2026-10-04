@@ -715,6 +715,98 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
   },
 ];
 
+// ── Automations ──────────────────────────────────────────────────────────────
+
+export type EmailAutomationType = "WELCOME" | "WIN_BACK";
+
+export interface EmailAutomationSettings {
+  /** WELCOME: hours after joining before the welcome goes out. */
+  delayHours?: number;
+  /** WIN_BACK: days without an order before someone counts as lapsed. */
+  days?: number;
+  /** WIN_BACK: never send the same person a win-back more often than this. */
+  cooldownDays?: number;
+}
+
+export const AUTOMATION_DEFAULTS: Record<EmailAutomationType, EmailAutomationSettings> = {
+  WELCOME: { delayHours: 1 },
+  WIN_BACK: { days: 45, cooldownDays: 90 },
+};
+
+export const AUTOMATION_INFO: Record<EmailAutomationType, { name: string; description: string }> = {
+  WELCOME: {
+    name: "Welcome email",
+    description: "Says thanks to every new subscriber, with a first-order treat. Once per person.",
+  },
+  WIN_BACK: {
+    name: "Win-back email",
+    description: "Brings back customers who haven't ordered for a while, with a one-use discount.",
+  },
+};
+
+/** Starter emails for automations. No dates in the copy: they send for months.
+ *  The offer has no code until the restaurant picks or creates one. */
+export const AUTOMATION_TEMPLATES: Record<
+  EmailAutomationType,
+  { subject: string; preheader: string; build: (ctx: EmailTemplateContext) => EmailDesign }
+> = {
+  WELCOME: {
+    subject: "Welcome to {{brand_name}}, {{first_name}} 👋",
+    preheader: "Thanks for joining us — here's a little something.",
+    build: (ctx) => ({
+      theme: theme(ctx),
+      blocks: [
+        { id: bid("header"), type: "header", showName: true },
+        ...hero(ctx),
+        { id: bid("heading"), type: "heading", text: "Welcome, {{first_name}}!" },
+        {
+          id: bid("text"),
+          type: "text",
+          text: "Thanks for joining {{brand_name}}. You'll be first to hear about new dishes and offers, and to say hello, here's a treat on your next order.",
+        },
+        {
+          id: bid("offer"),
+          type: "offer",
+          title: "10% OFF",
+          subtitle: "Your next order",
+          code: "",
+          terms: "Valid when ordering online. One use per customer.",
+          buttonLabel: "Order now",
+          url: STOREFRONT_LINK,
+        },
+        ...products(ctx, "Customer favourites"),
+      ],
+    }),
+  },
+  WIN_BACK: {
+    subject: "We miss you, {{first_name}} — here's 15% off",
+    preheader: "It's been a while. Come back for something good.",
+    build: (ctx) => ({
+      theme: theme(ctx),
+      blocks: [
+        { id: bid("header"), type: "header", showName: true },
+        { id: bid("heading"), type: "heading", text: "It's been a while, {{first_name}}" },
+        {
+          id: bid("text"),
+          type: "text",
+          text: "We haven't seen you for a bit and the kitchen has missed you. Here's a little welcome-back gift.",
+        },
+        {
+          id: bid("offer"),
+          type: "offer",
+          title: "15% OFF",
+          subtitle: "Welcome back",
+          code: "",
+          terms: "Valid when ordering online. One use per customer.",
+          buttonLabel: "Claim my discount",
+          url: STOREFRONT_LINK,
+        },
+        ...products(ctx, "Still on the menu"),
+      ],
+    }),
+  },
+};
+
 export function newEmailBlockId(type: EmailBlockType): string {
   return `${type}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 }

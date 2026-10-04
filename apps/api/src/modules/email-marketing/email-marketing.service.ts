@@ -545,7 +545,8 @@ export class EmailMarketingService {
 
   async listCampaigns(actor: Actor, locationId?: string | null) {
     const locIds = await this.scope(actor, locationId);
-    const where: any = { tenantId: actor.tenantId };
+    // Automation ledgers are reported on their automation, not listed here.
+    const where: any = { tenantId: actor.tenantId, automationId: null };
     if (locIds) where.locationId = { in: locIds };
     return this.db().emailCampaign.findMany({
       where,
@@ -563,7 +564,7 @@ export class EmailMarketingService {
 
   /** Load a campaign the actor may touch. */
   async loadCampaign(actor: Actor, id: string): Promise<any> {
-    const c = await this.db().emailCampaign.findFirst({ where: { id, tenantId: actor.tenantId } });
+    const c = await this.db().emailCampaign.findFirst({ where: { id, tenantId: actor.tenantId, automationId: null } });
     if (!c) throw new NotFoundException("Campaign not found");
     if (c.locationId) await this.scope(actor, c.locationId);
     else if (!this.isTenantWide(actor)) throw new ForbiddenException("You don't have access to this campaign.");
@@ -602,7 +603,23 @@ export class EmailMarketingService {
     return { orders: Number(rows[0]?.orders ?? 0), revenue: Number(rows[0]?.revenue ?? 0), currency };
   }
 
-  private async currencyFor(locationId?: string | null): Promise<string> {
+  /** Orders and sales across several campaigns (an automation's ledgers). */
+  async resultsMany(tenantId: string, ids: string[], locationId?: string | null) {
+    const currency = await this.currencyFor(locationId);
+    if (!ids.length) return { orders: 0, revenue: 0, currency };
+    const rows = await this.prisma.$queryRawUnsafe<{ orders: number; revenue: number }[]>(
+      `SELECT COUNT(*)::int AS orders, COALESCE(SUM(total), 0)::float AS revenue
+       FROM orders
+       WHERE "tenantId" = $1
+         AND metadata->'emailAttribution'->>'campaignId' = ANY($2::text[])
+         AND status::text NOT IN ('${NOT_REAL_ORDER.join("','")}')`,
+      tenantId,
+      ids,
+    );
+    return { orders: Number(rows[0]?.orders ?? 0), revenue: Number(rows[0]?.revenue ?? 0), currency };
+  }
+
+  async currencyFor(locationId?: string | null): Promise<string> {
     if (!locationId) return "GBP";
     const loc = await this.prisma.location.findUnique({ where: { id: locationId }, select: { currency: true } });
     return loc?.currency ?? "GBP";
@@ -638,7 +655,7 @@ export class EmailMarketingService {
     return Array.from(ids);
   }
 
-  private async resolveSender(actor: Actor, brandId?: string | null, locationId?: string | null) {
+  async resolveSender(actor: Actor, brandId?: string | null, locationId?: string | null) {
     const locIds = await this.scope(actor, locationId);
     const loc = locationId ?? (locIds?.length === 1 ? locIds[0]! : null);
     if (!loc && !this.isTenantWide(actor)) {
@@ -682,22 +699,7 @@ export class EmailMarketingService {
           .directOrderingConfig.findUnique({ where: { brandId: brand.id }, select: { heroImageUrl: true } })
           .catch(() => null)
       : null;
-    // Best sellers first, topped up with the menu's other dishes (photos
-    // first) — a best-seller list can name dishes this shop doesn't serve.
-    let products: EmailProduct[] = [];
-    if (brand) {
-      if (brand.topSellerItemIds?.length) {
-        products = await this.products(actor, { brandId: brand.id, locationId, ids: brand.topSellerItemIds, limit: 4 });
-      }
-      if (products.length < 4) {
-        const more = await this.products(actor, { brandId: brand.id, locationId, limit: 12 });
-        const have = new Set(products.map((p) => p.name.toLowerCase()));
-        for (const p of more) {
-          if (products.length >= 4) break;
-          if (p.imageUrl && !have.has(p.name.toLowerCase())) products.push(p);
-        }
-      }
-    }
+    const products = brand ? await this.starterProducts(actor, brand, locationId) : [];
     const design = tpl.build({
       brandName: brand?.name ?? "",
       primaryColor: branding?.primaryColor ?? null,
@@ -719,6 +721,25 @@ export class EmailMarketingService {
         createdBy: actor.userId ?? null,
       },
     });
+  }
+
+  /** Best sellers first, topped up with the menu's other dishes that have
+   *  our own photos — a best-seller list can name dishes this shop doesn't
+   *  serve. Up to four, for a template's dish grid. */
+  async starterProducts(actor: Actor, brand: any, locationId: string | null): Promise<EmailProduct[]> {
+    let products: EmailProduct[] = [];
+    if (brand.topSellerItemIds?.length) {
+      products = await this.products(actor, { brandId: brand.id, locationId, ids: brand.topSellerItemIds, limit: 4 });
+    }
+    if (products.length < 4) {
+      const more = await this.products(actor, { brandId: brand.id, locationId, limit: 12 });
+      const have = new Set(products.map((p) => p.name.toLowerCase()));
+      for (const p of more) {
+        if (products.length >= 4) break;
+        if (p.imageUrl && !have.has(p.name.toLowerCase())) products.push(p);
+      }
+    }
+    return products;
   }
 
   async updateCampaign(
@@ -1145,7 +1166,17 @@ export class EmailMarketingService {
   // ── Test send ────────────────────────────────────────────────────────────
 
   async testSend(actor: Actor, id: string, to: string[]) {
-    const c = await this.loadCampaign(actor, id);
+    return this.testSendEmail(await this.loadCampaign(actor, id), to);
+  }
+
+  /** A test of any email — a campaign or an automation (same fields). */
+  async testSendEmail(
+    c: {
+      tenantId: string; subject: string; preheader?: string | null; replyTo?: string | null;
+      fromName?: string | null; brandId?: string | null; locationId?: string | null; design: unknown;
+    },
+    to: string[],
+  ) {
     const addresses = Array.from(new Set((to ?? []).map(normaliseEmail).filter(Boolean))) as string[];
     if (!addresses.length) throw new BadRequestException("Enter an email address for the test.");
     if (addresses.length > 5) throw new BadRequestException("Send a test to at most 5 addresses.");
@@ -1464,6 +1495,60 @@ export class EmailMarketingService {
       `Email campaign ${campaignId} queued: ${rows.length} recipients, ${price.free} free, charged ${chargedMinor}`,
     );
     return { recipients: rows.length, chargedMinor };
+  }
+
+  /**
+   * Pay for one batch of an automation's emails, BEFORE it is sent (an
+   * automation has no up-front campaign charge). Uses what is left of the free
+   * allowance first. Returns the pennies charged (to refund if Resend refuses
+   * the batch), or null when the wallet can't cover it.
+   */
+  async chargeAutomationBatch(ledger: any, n: number): Promise<number | null> {
+    // The batch's own rows are already counted as SENDING in usedThisMonth.
+    const usedBefore = Math.max(0, (await this.usedThisMonth(ledger.tenantId)) - n);
+    const free = Math.min(n, Math.max(0, this.freePerMonth() - usedBefore));
+    const cost = emailCostMinor(n - free, this.pricePer1000Minor());
+    if (cost > 0) {
+      try {
+        await this.wallet.debitForEmailMarketing({
+          tenantId: ledger.tenantId,
+          locationId: ledger.locationId ?? null,
+          campaignId: ledger.id,
+          emails: n - free,
+          amountMinor: cost,
+        });
+      } catch {
+        return null;
+      }
+    }
+    await this.db().emailCampaign.update({
+      where: { id: ledger.id },
+      data: { freeUsed: { increment: free }, chargedMinor: { increment: cost } },
+    });
+    return cost;
+  }
+
+  async refundAutomationBatch(ledger: any, cost: number, reason: string): Promise<void> {
+    if (cost <= 0) return;
+    const ok = await this.wallet.refundEmailMarketing({
+      tenantId: ledger.tenantId,
+      locationId: ledger.locationId ?? null,
+      campaignId: ledger.id,
+      amountMinor: cost,
+      reason,
+    });
+    if (ok) {
+      await this.db().emailCampaign.update({ where: { id: ledger.id }, data: { refundedMinor: { increment: cost } } });
+    }
+  }
+
+  /** Switch an automation off and say why on its card. */
+  async pauseAutomation(automationId: string | null | undefined, reason: string): Promise<void> {
+    if (!automationId) return;
+    await this.db()
+      .emailAutomation.update({ where: { id: automationId }, data: { enabled: false, lastError: reason } })
+      .catch(() => null);
+    this.logger.warn(`Email automation ${automationId} paused: ${reason}`);
   }
 
   // ── Public: unsubscribe ──────────────────────────────────────────────────

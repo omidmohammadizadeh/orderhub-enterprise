@@ -5739,6 +5739,11 @@ model EmailCampaign {
 
   createdBy String?
 
+  // Set on the hidden "ledger" campaigns an automation sends through (status
+  // AUTOMATION): they reuse the whole send/track/attribute machinery, and
+  // never appear in the campaign list.
+  automationId String?
+
   recipients EmailCampaignRecipient[]
 
   createdAt DateTime @default(now())
@@ -5746,7 +5751,47 @@ model EmailCampaign {
 
   @@index([tenantId, createdAt])
   @@index([status, scheduledAt])
+  @@index([automationId])
   @@map("email_campaigns")
+}
+
+// Emails that send themselves. One per shop per type:
+//   WELCOME  — a new subscriber, once per person, shortly after they join.
+//   WIN_BACK — a customer who hasn't ordered from this shop in N days; at most
+//              once per cooldown per person.
+// Each run queues recipients on a ledger EmailCampaign (automationId set), so
+// sending, tracking, unsubscribes and order attribution are the campaign code.
+model EmailAutomation {
+  id         String  @id @default(cuid())
+  tenantId   String
+  locationId String
+  brandId    String?
+  type       String // WELCOME | WIN_BACK
+
+  enabled   Boolean   @default(false)
+  // When it was last switched on. WELCOME only greets people who joined after
+  // this, so switching it on never mails the whole existing list.
+  enabledAt DateTime?
+
+  subject   String  @default("")
+  preheader String?
+  fromName  String?
+  replyTo   String?
+  design    Json    @default("{}")
+  // WELCOME { delayHours } · WIN_BACK { days, cooldownDays }
+  settings  Json    @default("{}")
+
+  lastRunAt DateTime?
+  // Why it paused itself (empty wallet, dead offer code) — shown on its card.
+  lastError String?
+  createdBy String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, locationId, type])
+  @@index([enabled])
+  @@map("email_automations")
 }
 
 // One row per address a campaign goes to. Unique (campaignId, email) is what

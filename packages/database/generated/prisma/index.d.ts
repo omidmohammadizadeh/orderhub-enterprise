@@ -737,6 +737,11 @@ export type EmailContact = $Result.DefaultSelection<Prisma.$EmailContactPayload>
  */
 export type EmailCampaign = $Result.DefaultSelection<Prisma.$EmailCampaignPayload>
 /**
+ * Model EmailAutomation
+ * 
+ */
+export type EmailAutomation = $Result.DefaultSelection<Prisma.$EmailAutomationPayload>
+/**
  * Model EmailCampaignRecipient
  * 
  */
@@ -3142,6 +3147,16 @@ export class PrismaClient<
   get emailCampaign(): Prisma.EmailCampaignDelegate<ExtArgs>;
 
   /**
+   * `prisma.emailAutomation`: Exposes CRUD operations for the **EmailAutomation** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more EmailAutomations
+    * const emailAutomations = await prisma.emailAutomation.findMany()
+    * ```
+    */
+  get emailAutomation(): Prisma.EmailAutomationDelegate<ExtArgs>;
+
+  /**
    * `prisma.emailCampaignRecipient`: Exposes CRUD operations for the **EmailCampaignRecipient** model.
     * Example usage:
     * ```ts
@@ -3734,6 +3749,7 @@ export namespace Prisma {
     KeetaAuthorization: 'KeetaAuthorization',
     EmailContact: 'EmailContact',
     EmailCampaign: 'EmailCampaign',
+    EmailAutomation: 'EmailAutomation',
     EmailCampaignRecipient: 'EmailCampaignRecipient'
   };
 
@@ -3750,7 +3766,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "promoCodeRedemption" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "productVariant" | "productStockLevel" | "productStockMovement" | "refundLine" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "yangoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "referralProgram" | "referralCode" | "referral" | "keetaAuthorization" | "emailContact" | "emailCampaign" | "emailCampaignRecipient"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "promoCodeRedemption" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "productVariant" | "productStockLevel" | "productStockMovement" | "refundLine" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "yangoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "referralProgram" | "referralCode" | "referral" | "keetaAuthorization" | "emailContact" | "emailCampaign" | "emailAutomation" | "emailCampaignRecipient"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -13761,6 +13777,76 @@ export namespace Prisma {
           count: {
             args: Prisma.EmailCampaignCountArgs<ExtArgs>
             result: $Utils.Optional<EmailCampaignCountAggregateOutputType> | number
+          }
+        }
+      }
+      EmailAutomation: {
+        payload: Prisma.$EmailAutomationPayload<ExtArgs>
+        fields: Prisma.EmailAutomationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.EmailAutomationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailAutomationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.EmailAutomationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailAutomationPayload>
+          }
+          findFirst: {
+            args: Prisma.EmailAutomationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailAutomationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.EmailAutomationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailAutomationPayload>
+          }
+          findMany: {
+            args: Prisma.EmailAutomationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailAutomationPayload>[]
+          }
+          create: {
+            args: Prisma.EmailAutomationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailAutomationPayload>
+          }
+          createMany: {
+            args: Prisma.EmailAutomationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.EmailAutomationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailAutomationPayload>[]
+          }
+          delete: {
+            args: Prisma.EmailAutomationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailAutomationPayload>
+          }
+          update: {
+            args: Prisma.EmailAutomationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailAutomationPayload>
+          }
+          deleteMany: {
+            args: Prisma.EmailAutomationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.EmailAutomationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.EmailAutomationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailAutomationPayload>
+          }
+          aggregate: {
+            args: Prisma.EmailAutomationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateEmailAutomation>
+          }
+          groupBy: {
+            args: Prisma.EmailAutomationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<EmailAutomationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.EmailAutomationCountArgs<ExtArgs>
+            result: $Utils.Optional<EmailAutomationCountAggregateOutputType> | number
           }
         }
       }
@@ -169981,6 +170067,7 @@ export namespace Prisma {
     chargedMinor: number | null
     refundedMinor: number | null
     createdBy: string | null
+    automationId: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -170015,6 +170102,7 @@ export namespace Prisma {
     chargedMinor: number | null
     refundedMinor: number | null
     createdBy: string | null
+    automationId: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -170052,6 +170140,7 @@ export namespace Prisma {
     chargedMinor: number
     refundedMinor: number
     createdBy: number
+    automationId: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -170120,6 +170209,7 @@ export namespace Prisma {
     chargedMinor?: true
     refundedMinor?: true
     createdBy?: true
+    automationId?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -170154,6 +170244,7 @@ export namespace Prisma {
     chargedMinor?: true
     refundedMinor?: true
     createdBy?: true
+    automationId?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -170191,6 +170282,7 @@ export namespace Prisma {
     chargedMinor?: true
     refundedMinor?: true
     createdBy?: true
+    automationId?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -170315,6 +170407,7 @@ export namespace Prisma {
     chargedMinor: number
     refundedMinor: number
     createdBy: string | null
+    automationId: string | null
     createdAt: Date
     updatedAt: Date
     _count: EmailCampaignCountAggregateOutputType | null
@@ -170371,6 +170464,7 @@ export namespace Prisma {
     chargedMinor?: boolean
     refundedMinor?: boolean
     createdBy?: boolean
+    automationId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     recipients?: boolean | EmailCampaign$recipientsArgs<ExtArgs>
@@ -170410,6 +170504,7 @@ export namespace Prisma {
     chargedMinor?: boolean
     refundedMinor?: boolean
     createdBy?: boolean
+    automationId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["emailCampaign"]>
@@ -170447,6 +170542,7 @@ export namespace Prisma {
     chargedMinor?: boolean
     refundedMinor?: boolean
     createdBy?: boolean
+    automationId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -170495,6 +170591,7 @@ export namespace Prisma {
       chargedMinor: number
       refundedMinor: number
       createdBy: string | null
+      automationId: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["emailCampaign"]>
@@ -170923,6 +171020,7 @@ export namespace Prisma {
     readonly chargedMinor: FieldRef<"EmailCampaign", 'Int'>
     readonly refundedMinor: FieldRef<"EmailCampaign", 'Int'>
     readonly createdBy: FieldRef<"EmailCampaign", 'String'>
+    readonly automationId: FieldRef<"EmailCampaign", 'String'>
     readonly createdAt: FieldRef<"EmailCampaign", 'DateTime'>
     readonly updatedAt: FieldRef<"EmailCampaign", 'DateTime'>
   }
@@ -171270,6 +171368,1032 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: EmailCampaignInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model EmailAutomation
+   */
+
+  export type AggregateEmailAutomation = {
+    _count: EmailAutomationCountAggregateOutputType | null
+    _min: EmailAutomationMinAggregateOutputType | null
+    _max: EmailAutomationMaxAggregateOutputType | null
+  }
+
+  export type EmailAutomationMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    brandId: string | null
+    type: string | null
+    enabled: boolean | null
+    enabledAt: Date | null
+    subject: string | null
+    preheader: string | null
+    fromName: string | null
+    replyTo: string | null
+    lastRunAt: Date | null
+    lastError: string | null
+    createdBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type EmailAutomationMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    brandId: string | null
+    type: string | null
+    enabled: boolean | null
+    enabledAt: Date | null
+    subject: string | null
+    preheader: string | null
+    fromName: string | null
+    replyTo: string | null
+    lastRunAt: Date | null
+    lastError: string | null
+    createdBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type EmailAutomationCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    brandId: number
+    type: number
+    enabled: number
+    enabledAt: number
+    subject: number
+    preheader: number
+    fromName: number
+    replyTo: number
+    design: number
+    settings: number
+    lastRunAt: number
+    lastError: number
+    createdBy: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type EmailAutomationMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    brandId?: true
+    type?: true
+    enabled?: true
+    enabledAt?: true
+    subject?: true
+    preheader?: true
+    fromName?: true
+    replyTo?: true
+    lastRunAt?: true
+    lastError?: true
+    createdBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type EmailAutomationMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    brandId?: true
+    type?: true
+    enabled?: true
+    enabledAt?: true
+    subject?: true
+    preheader?: true
+    fromName?: true
+    replyTo?: true
+    lastRunAt?: true
+    lastError?: true
+    createdBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type EmailAutomationCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    brandId?: true
+    type?: true
+    enabled?: true
+    enabledAt?: true
+    subject?: true
+    preheader?: true
+    fromName?: true
+    replyTo?: true
+    design?: true
+    settings?: true
+    lastRunAt?: true
+    lastError?: true
+    createdBy?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type EmailAutomationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EmailAutomation to aggregate.
+     */
+    where?: EmailAutomationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EmailAutomations to fetch.
+     */
+    orderBy?: EmailAutomationOrderByWithRelationInput | EmailAutomationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: EmailAutomationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EmailAutomations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EmailAutomations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned EmailAutomations
+    **/
+    _count?: true | EmailAutomationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: EmailAutomationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: EmailAutomationMaxAggregateInputType
+  }
+
+  export type GetEmailAutomationAggregateType<T extends EmailAutomationAggregateArgs> = {
+        [P in keyof T & keyof AggregateEmailAutomation]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateEmailAutomation[P]>
+      : GetScalarType<T[P], AggregateEmailAutomation[P]>
+  }
+
+
+
+
+  export type EmailAutomationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EmailAutomationWhereInput
+    orderBy?: EmailAutomationOrderByWithAggregationInput | EmailAutomationOrderByWithAggregationInput[]
+    by: EmailAutomationScalarFieldEnum[] | EmailAutomationScalarFieldEnum
+    having?: EmailAutomationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: EmailAutomationCountAggregateInputType | true
+    _min?: EmailAutomationMinAggregateInputType
+    _max?: EmailAutomationMaxAggregateInputType
+  }
+
+  export type EmailAutomationGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string
+    brandId: string | null
+    type: string
+    enabled: boolean
+    enabledAt: Date | null
+    subject: string
+    preheader: string | null
+    fromName: string | null
+    replyTo: string | null
+    design: JsonValue
+    settings: JsonValue
+    lastRunAt: Date | null
+    lastError: string | null
+    createdBy: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: EmailAutomationCountAggregateOutputType | null
+    _min: EmailAutomationMinAggregateOutputType | null
+    _max: EmailAutomationMaxAggregateOutputType | null
+  }
+
+  type GetEmailAutomationGroupByPayload<T extends EmailAutomationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<EmailAutomationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof EmailAutomationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], EmailAutomationGroupByOutputType[P]>
+            : GetScalarType<T[P], EmailAutomationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type EmailAutomationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    type?: boolean
+    enabled?: boolean
+    enabledAt?: boolean
+    subject?: boolean
+    preheader?: boolean
+    fromName?: boolean
+    replyTo?: boolean
+    design?: boolean
+    settings?: boolean
+    lastRunAt?: boolean
+    lastError?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["emailAutomation"]>
+
+  export type EmailAutomationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    type?: boolean
+    enabled?: boolean
+    enabledAt?: boolean
+    subject?: boolean
+    preheader?: boolean
+    fromName?: boolean
+    replyTo?: boolean
+    design?: boolean
+    settings?: boolean
+    lastRunAt?: boolean
+    lastError?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["emailAutomation"]>
+
+  export type EmailAutomationSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    type?: boolean
+    enabled?: boolean
+    enabledAt?: boolean
+    subject?: boolean
+    preheader?: boolean
+    fromName?: boolean
+    replyTo?: boolean
+    design?: boolean
+    settings?: boolean
+    lastRunAt?: boolean
+    lastError?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+
+  export type $EmailAutomationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "EmailAutomation"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string
+      brandId: string | null
+      type: string
+      enabled: boolean
+      enabledAt: Date | null
+      subject: string
+      preheader: string | null
+      fromName: string | null
+      replyTo: string | null
+      design: Prisma.JsonValue
+      settings: Prisma.JsonValue
+      lastRunAt: Date | null
+      lastError: string | null
+      createdBy: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["emailAutomation"]>
+    composites: {}
+  }
+
+  type EmailAutomationGetPayload<S extends boolean | null | undefined | EmailAutomationDefaultArgs> = $Result.GetResult<Prisma.$EmailAutomationPayload, S>
+
+  type EmailAutomationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<EmailAutomationFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: EmailAutomationCountAggregateInputType | true
+    }
+
+  export interface EmailAutomationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['EmailAutomation'], meta: { name: 'EmailAutomation' } }
+    /**
+     * Find zero or one EmailAutomation that matches the filter.
+     * @param {EmailAutomationFindUniqueArgs} args - Arguments to find a EmailAutomation
+     * @example
+     * // Get one EmailAutomation
+     * const emailAutomation = await prisma.emailAutomation.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends EmailAutomationFindUniqueArgs>(args: SelectSubset<T, EmailAutomationFindUniqueArgs<ExtArgs>>): Prisma__EmailAutomationClient<$Result.GetResult<Prisma.$EmailAutomationPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one EmailAutomation that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {EmailAutomationFindUniqueOrThrowArgs} args - Arguments to find a EmailAutomation
+     * @example
+     * // Get one EmailAutomation
+     * const emailAutomation = await prisma.emailAutomation.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends EmailAutomationFindUniqueOrThrowArgs>(args: SelectSubset<T, EmailAutomationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__EmailAutomationClient<$Result.GetResult<Prisma.$EmailAutomationPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first EmailAutomation that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailAutomationFindFirstArgs} args - Arguments to find a EmailAutomation
+     * @example
+     * // Get one EmailAutomation
+     * const emailAutomation = await prisma.emailAutomation.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends EmailAutomationFindFirstArgs>(args?: SelectSubset<T, EmailAutomationFindFirstArgs<ExtArgs>>): Prisma__EmailAutomationClient<$Result.GetResult<Prisma.$EmailAutomationPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first EmailAutomation that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailAutomationFindFirstOrThrowArgs} args - Arguments to find a EmailAutomation
+     * @example
+     * // Get one EmailAutomation
+     * const emailAutomation = await prisma.emailAutomation.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends EmailAutomationFindFirstOrThrowArgs>(args?: SelectSubset<T, EmailAutomationFindFirstOrThrowArgs<ExtArgs>>): Prisma__EmailAutomationClient<$Result.GetResult<Prisma.$EmailAutomationPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more EmailAutomations that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailAutomationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all EmailAutomations
+     * const emailAutomations = await prisma.emailAutomation.findMany()
+     * 
+     * // Get first 10 EmailAutomations
+     * const emailAutomations = await prisma.emailAutomation.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const emailAutomationWithIdOnly = await prisma.emailAutomation.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends EmailAutomationFindManyArgs>(args?: SelectSubset<T, EmailAutomationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EmailAutomationPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a EmailAutomation.
+     * @param {EmailAutomationCreateArgs} args - Arguments to create a EmailAutomation.
+     * @example
+     * // Create one EmailAutomation
+     * const EmailAutomation = await prisma.emailAutomation.create({
+     *   data: {
+     *     // ... data to create a EmailAutomation
+     *   }
+     * })
+     * 
+     */
+    create<T extends EmailAutomationCreateArgs>(args: SelectSubset<T, EmailAutomationCreateArgs<ExtArgs>>): Prisma__EmailAutomationClient<$Result.GetResult<Prisma.$EmailAutomationPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many EmailAutomations.
+     * @param {EmailAutomationCreateManyArgs} args - Arguments to create many EmailAutomations.
+     * @example
+     * // Create many EmailAutomations
+     * const emailAutomation = await prisma.emailAutomation.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends EmailAutomationCreateManyArgs>(args?: SelectSubset<T, EmailAutomationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many EmailAutomations and returns the data saved in the database.
+     * @param {EmailAutomationCreateManyAndReturnArgs} args - Arguments to create many EmailAutomations.
+     * @example
+     * // Create many EmailAutomations
+     * const emailAutomation = await prisma.emailAutomation.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many EmailAutomations and only return the `id`
+     * const emailAutomationWithIdOnly = await prisma.emailAutomation.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends EmailAutomationCreateManyAndReturnArgs>(args?: SelectSubset<T, EmailAutomationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EmailAutomationPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a EmailAutomation.
+     * @param {EmailAutomationDeleteArgs} args - Arguments to delete one EmailAutomation.
+     * @example
+     * // Delete one EmailAutomation
+     * const EmailAutomation = await prisma.emailAutomation.delete({
+     *   where: {
+     *     // ... filter to delete one EmailAutomation
+     *   }
+     * })
+     * 
+     */
+    delete<T extends EmailAutomationDeleteArgs>(args: SelectSubset<T, EmailAutomationDeleteArgs<ExtArgs>>): Prisma__EmailAutomationClient<$Result.GetResult<Prisma.$EmailAutomationPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one EmailAutomation.
+     * @param {EmailAutomationUpdateArgs} args - Arguments to update one EmailAutomation.
+     * @example
+     * // Update one EmailAutomation
+     * const emailAutomation = await prisma.emailAutomation.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends EmailAutomationUpdateArgs>(args: SelectSubset<T, EmailAutomationUpdateArgs<ExtArgs>>): Prisma__EmailAutomationClient<$Result.GetResult<Prisma.$EmailAutomationPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more EmailAutomations.
+     * @param {EmailAutomationDeleteManyArgs} args - Arguments to filter EmailAutomations to delete.
+     * @example
+     * // Delete a few EmailAutomations
+     * const { count } = await prisma.emailAutomation.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends EmailAutomationDeleteManyArgs>(args?: SelectSubset<T, EmailAutomationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EmailAutomations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailAutomationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many EmailAutomations
+     * const emailAutomation = await prisma.emailAutomation.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends EmailAutomationUpdateManyArgs>(args: SelectSubset<T, EmailAutomationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one EmailAutomation.
+     * @param {EmailAutomationUpsertArgs} args - Arguments to update or create a EmailAutomation.
+     * @example
+     * // Update or create a EmailAutomation
+     * const emailAutomation = await prisma.emailAutomation.upsert({
+     *   create: {
+     *     // ... data to create a EmailAutomation
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the EmailAutomation we want to update
+     *   }
+     * })
+     */
+    upsert<T extends EmailAutomationUpsertArgs>(args: SelectSubset<T, EmailAutomationUpsertArgs<ExtArgs>>): Prisma__EmailAutomationClient<$Result.GetResult<Prisma.$EmailAutomationPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of EmailAutomations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailAutomationCountArgs} args - Arguments to filter EmailAutomations to count.
+     * @example
+     * // Count the number of EmailAutomations
+     * const count = await prisma.emailAutomation.count({
+     *   where: {
+     *     // ... the filter for the EmailAutomations we want to count
+     *   }
+     * })
+    **/
+    count<T extends EmailAutomationCountArgs>(
+      args?: Subset<T, EmailAutomationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], EmailAutomationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a EmailAutomation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailAutomationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends EmailAutomationAggregateArgs>(args: Subset<T, EmailAutomationAggregateArgs>): Prisma.PrismaPromise<GetEmailAutomationAggregateType<T>>
+
+    /**
+     * Group by EmailAutomation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailAutomationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends EmailAutomationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: EmailAutomationGroupByArgs['orderBy'] }
+        : { orderBy?: EmailAutomationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, EmailAutomationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEmailAutomationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the EmailAutomation model
+   */
+  readonly fields: EmailAutomationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for EmailAutomation.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__EmailAutomationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the EmailAutomation model
+   */ 
+  interface EmailAutomationFieldRefs {
+    readonly id: FieldRef<"EmailAutomation", 'String'>
+    readonly tenantId: FieldRef<"EmailAutomation", 'String'>
+    readonly locationId: FieldRef<"EmailAutomation", 'String'>
+    readonly brandId: FieldRef<"EmailAutomation", 'String'>
+    readonly type: FieldRef<"EmailAutomation", 'String'>
+    readonly enabled: FieldRef<"EmailAutomation", 'Boolean'>
+    readonly enabledAt: FieldRef<"EmailAutomation", 'DateTime'>
+    readonly subject: FieldRef<"EmailAutomation", 'String'>
+    readonly preheader: FieldRef<"EmailAutomation", 'String'>
+    readonly fromName: FieldRef<"EmailAutomation", 'String'>
+    readonly replyTo: FieldRef<"EmailAutomation", 'String'>
+    readonly design: FieldRef<"EmailAutomation", 'Json'>
+    readonly settings: FieldRef<"EmailAutomation", 'Json'>
+    readonly lastRunAt: FieldRef<"EmailAutomation", 'DateTime'>
+    readonly lastError: FieldRef<"EmailAutomation", 'String'>
+    readonly createdBy: FieldRef<"EmailAutomation", 'String'>
+    readonly createdAt: FieldRef<"EmailAutomation", 'DateTime'>
+    readonly updatedAt: FieldRef<"EmailAutomation", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * EmailAutomation findUnique
+   */
+  export type EmailAutomationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailAutomation
+     */
+    select?: EmailAutomationSelect<ExtArgs> | null
+    /**
+     * Filter, which EmailAutomation to fetch.
+     */
+    where: EmailAutomationWhereUniqueInput
+  }
+
+  /**
+   * EmailAutomation findUniqueOrThrow
+   */
+  export type EmailAutomationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailAutomation
+     */
+    select?: EmailAutomationSelect<ExtArgs> | null
+    /**
+     * Filter, which EmailAutomation to fetch.
+     */
+    where: EmailAutomationWhereUniqueInput
+  }
+
+  /**
+   * EmailAutomation findFirst
+   */
+  export type EmailAutomationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailAutomation
+     */
+    select?: EmailAutomationSelect<ExtArgs> | null
+    /**
+     * Filter, which EmailAutomation to fetch.
+     */
+    where?: EmailAutomationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EmailAutomations to fetch.
+     */
+    orderBy?: EmailAutomationOrderByWithRelationInput | EmailAutomationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EmailAutomations.
+     */
+    cursor?: EmailAutomationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EmailAutomations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EmailAutomations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EmailAutomations.
+     */
+    distinct?: EmailAutomationScalarFieldEnum | EmailAutomationScalarFieldEnum[]
+  }
+
+  /**
+   * EmailAutomation findFirstOrThrow
+   */
+  export type EmailAutomationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailAutomation
+     */
+    select?: EmailAutomationSelect<ExtArgs> | null
+    /**
+     * Filter, which EmailAutomation to fetch.
+     */
+    where?: EmailAutomationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EmailAutomations to fetch.
+     */
+    orderBy?: EmailAutomationOrderByWithRelationInput | EmailAutomationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EmailAutomations.
+     */
+    cursor?: EmailAutomationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EmailAutomations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EmailAutomations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EmailAutomations.
+     */
+    distinct?: EmailAutomationScalarFieldEnum | EmailAutomationScalarFieldEnum[]
+  }
+
+  /**
+   * EmailAutomation findMany
+   */
+  export type EmailAutomationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailAutomation
+     */
+    select?: EmailAutomationSelect<ExtArgs> | null
+    /**
+     * Filter, which EmailAutomations to fetch.
+     */
+    where?: EmailAutomationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EmailAutomations to fetch.
+     */
+    orderBy?: EmailAutomationOrderByWithRelationInput | EmailAutomationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing EmailAutomations.
+     */
+    cursor?: EmailAutomationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EmailAutomations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EmailAutomations.
+     */
+    skip?: number
+    distinct?: EmailAutomationScalarFieldEnum | EmailAutomationScalarFieldEnum[]
+  }
+
+  /**
+   * EmailAutomation create
+   */
+  export type EmailAutomationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailAutomation
+     */
+    select?: EmailAutomationSelect<ExtArgs> | null
+    /**
+     * The data needed to create a EmailAutomation.
+     */
+    data: XOR<EmailAutomationCreateInput, EmailAutomationUncheckedCreateInput>
+  }
+
+  /**
+   * EmailAutomation createMany
+   */
+  export type EmailAutomationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many EmailAutomations.
+     */
+    data: EmailAutomationCreateManyInput | EmailAutomationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EmailAutomation createManyAndReturn
+   */
+  export type EmailAutomationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailAutomation
+     */
+    select?: EmailAutomationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many EmailAutomations.
+     */
+    data: EmailAutomationCreateManyInput | EmailAutomationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EmailAutomation update
+   */
+  export type EmailAutomationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailAutomation
+     */
+    select?: EmailAutomationSelect<ExtArgs> | null
+    /**
+     * The data needed to update a EmailAutomation.
+     */
+    data: XOR<EmailAutomationUpdateInput, EmailAutomationUncheckedUpdateInput>
+    /**
+     * Choose, which EmailAutomation to update.
+     */
+    where: EmailAutomationWhereUniqueInput
+  }
+
+  /**
+   * EmailAutomation updateMany
+   */
+  export type EmailAutomationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update EmailAutomations.
+     */
+    data: XOR<EmailAutomationUpdateManyMutationInput, EmailAutomationUncheckedUpdateManyInput>
+    /**
+     * Filter which EmailAutomations to update
+     */
+    where?: EmailAutomationWhereInput
+  }
+
+  /**
+   * EmailAutomation upsert
+   */
+  export type EmailAutomationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailAutomation
+     */
+    select?: EmailAutomationSelect<ExtArgs> | null
+    /**
+     * The filter to search for the EmailAutomation to update in case it exists.
+     */
+    where: EmailAutomationWhereUniqueInput
+    /**
+     * In case the EmailAutomation found by the `where` argument doesn't exist, create a new EmailAutomation with this data.
+     */
+    create: XOR<EmailAutomationCreateInput, EmailAutomationUncheckedCreateInput>
+    /**
+     * In case the EmailAutomation was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<EmailAutomationUpdateInput, EmailAutomationUncheckedUpdateInput>
+  }
+
+  /**
+   * EmailAutomation delete
+   */
+  export type EmailAutomationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailAutomation
+     */
+    select?: EmailAutomationSelect<ExtArgs> | null
+    /**
+     * Filter which EmailAutomation to delete.
+     */
+    where: EmailAutomationWhereUniqueInput
+  }
+
+  /**
+   * EmailAutomation deleteMany
+   */
+  export type EmailAutomationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EmailAutomations to delete
+     */
+    where?: EmailAutomationWhereInput
+  }
+
+  /**
+   * EmailAutomation without action
+   */
+  export type EmailAutomationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailAutomation
+     */
+    select?: EmailAutomationSelect<ExtArgs> | null
   }
 
 
@@ -175240,11 +176364,36 @@ export namespace Prisma {
     chargedMinor: 'chargedMinor',
     refundedMinor: 'refundedMinor',
     createdBy: 'createdBy',
+    automationId: 'automationId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
 
   export type EmailCampaignScalarFieldEnum = (typeof EmailCampaignScalarFieldEnum)[keyof typeof EmailCampaignScalarFieldEnum]
+
+
+  export const EmailAutomationScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    brandId: 'brandId',
+    type: 'type',
+    enabled: 'enabled',
+    enabledAt: 'enabledAt',
+    subject: 'subject',
+    preheader: 'preheader',
+    fromName: 'fromName',
+    replyTo: 'replyTo',
+    design: 'design',
+    settings: 'settings',
+    lastRunAt: 'lastRunAt',
+    lastError: 'lastError',
+    createdBy: 'createdBy',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type EmailAutomationScalarFieldEnum = (typeof EmailAutomationScalarFieldEnum)[keyof typeof EmailAutomationScalarFieldEnum]
 
 
   export const EmailCampaignRecipientScalarFieldEnum: {
@@ -177260,10 +178409,28 @@ export namespace Prisma {
     templateId: 'templateId',
     status: 'status',
     lastError: 'lastError',
-    createdBy: 'createdBy'
+    createdBy: 'createdBy',
+    automationId: 'automationId'
   };
 
   export type EmailCampaignOrderByRelevanceFieldEnum = (typeof EmailCampaignOrderByRelevanceFieldEnum)[keyof typeof EmailCampaignOrderByRelevanceFieldEnum]
+
+
+  export const EmailAutomationOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    brandId: 'brandId',
+    type: 'type',
+    subject: 'subject',
+    preheader: 'preheader',
+    fromName: 'fromName',
+    replyTo: 'replyTo',
+    lastError: 'lastError',
+    createdBy: 'createdBy'
+  };
+
+  export type EmailAutomationOrderByRelevanceFieldEnum = (typeof EmailAutomationOrderByRelevanceFieldEnum)[keyof typeof EmailAutomationOrderByRelevanceFieldEnum]
 
 
   export const EmailCampaignRecipientOrderByRelevanceFieldEnum: {
@@ -193139,6 +194306,7 @@ export namespace Prisma {
     chargedMinor?: IntFilter<"EmailCampaign"> | number
     refundedMinor?: IntFilter<"EmailCampaign"> | number
     createdBy?: StringNullableFilter<"EmailCampaign"> | string | null
+    automationId?: StringNullableFilter<"EmailCampaign"> | string | null
     createdAt?: DateTimeFilter<"EmailCampaign"> | Date | string
     updatedAt?: DateTimeFilter<"EmailCampaign"> | Date | string
     recipients?: EmailCampaignRecipientListRelationFilter
@@ -193177,6 +194345,7 @@ export namespace Prisma {
     chargedMinor?: SortOrder
     refundedMinor?: SortOrder
     createdBy?: SortOrderInput | SortOrder
+    automationId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     recipients?: EmailCampaignRecipientOrderByRelationAggregateInput
@@ -193219,6 +194388,7 @@ export namespace Prisma {
     chargedMinor?: IntFilter<"EmailCampaign"> | number
     refundedMinor?: IntFilter<"EmailCampaign"> | number
     createdBy?: StringNullableFilter<"EmailCampaign"> | string | null
+    automationId?: StringNullableFilter<"EmailCampaign"> | string | null
     createdAt?: DateTimeFilter<"EmailCampaign"> | Date | string
     updatedAt?: DateTimeFilter<"EmailCampaign"> | Date | string
     recipients?: EmailCampaignRecipientListRelationFilter
@@ -193257,6 +194427,7 @@ export namespace Prisma {
     chargedMinor?: SortOrder
     refundedMinor?: SortOrder
     createdBy?: SortOrderInput | SortOrder
+    automationId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: EmailCampaignCountOrderByAggregateInput
@@ -193302,8 +194473,128 @@ export namespace Prisma {
     chargedMinor?: IntWithAggregatesFilter<"EmailCampaign"> | number
     refundedMinor?: IntWithAggregatesFilter<"EmailCampaign"> | number
     createdBy?: StringNullableWithAggregatesFilter<"EmailCampaign"> | string | null
+    automationId?: StringNullableWithAggregatesFilter<"EmailCampaign"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"EmailCampaign"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"EmailCampaign"> | Date | string
+  }
+
+  export type EmailAutomationWhereInput = {
+    AND?: EmailAutomationWhereInput | EmailAutomationWhereInput[]
+    OR?: EmailAutomationWhereInput[]
+    NOT?: EmailAutomationWhereInput | EmailAutomationWhereInput[]
+    id?: StringFilter<"EmailAutomation"> | string
+    tenantId?: StringFilter<"EmailAutomation"> | string
+    locationId?: StringFilter<"EmailAutomation"> | string
+    brandId?: StringNullableFilter<"EmailAutomation"> | string | null
+    type?: StringFilter<"EmailAutomation"> | string
+    enabled?: BoolFilter<"EmailAutomation"> | boolean
+    enabledAt?: DateTimeNullableFilter<"EmailAutomation"> | Date | string | null
+    subject?: StringFilter<"EmailAutomation"> | string
+    preheader?: StringNullableFilter<"EmailAutomation"> | string | null
+    fromName?: StringNullableFilter<"EmailAutomation"> | string | null
+    replyTo?: StringNullableFilter<"EmailAutomation"> | string | null
+    design?: JsonFilter<"EmailAutomation">
+    settings?: JsonFilter<"EmailAutomation">
+    lastRunAt?: DateTimeNullableFilter<"EmailAutomation"> | Date | string | null
+    lastError?: StringNullableFilter<"EmailAutomation"> | string | null
+    createdBy?: StringNullableFilter<"EmailAutomation"> | string | null
+    createdAt?: DateTimeFilter<"EmailAutomation"> | Date | string
+    updatedAt?: DateTimeFilter<"EmailAutomation"> | Date | string
+  }
+
+  export type EmailAutomationOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrderInput | SortOrder
+    type?: SortOrder
+    enabled?: SortOrder
+    enabledAt?: SortOrderInput | SortOrder
+    subject?: SortOrder
+    preheader?: SortOrderInput | SortOrder
+    fromName?: SortOrderInput | SortOrder
+    replyTo?: SortOrderInput | SortOrder
+    design?: SortOrder
+    settings?: SortOrder
+    lastRunAt?: SortOrderInput | SortOrder
+    lastError?: SortOrderInput | SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _relevance?: EmailAutomationOrderByRelevanceInput
+  }
+
+  export type EmailAutomationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    tenantId_locationId_type?: EmailAutomationTenantIdLocationIdTypeCompoundUniqueInput
+    AND?: EmailAutomationWhereInput | EmailAutomationWhereInput[]
+    OR?: EmailAutomationWhereInput[]
+    NOT?: EmailAutomationWhereInput | EmailAutomationWhereInput[]
+    tenantId?: StringFilter<"EmailAutomation"> | string
+    locationId?: StringFilter<"EmailAutomation"> | string
+    brandId?: StringNullableFilter<"EmailAutomation"> | string | null
+    type?: StringFilter<"EmailAutomation"> | string
+    enabled?: BoolFilter<"EmailAutomation"> | boolean
+    enabledAt?: DateTimeNullableFilter<"EmailAutomation"> | Date | string | null
+    subject?: StringFilter<"EmailAutomation"> | string
+    preheader?: StringNullableFilter<"EmailAutomation"> | string | null
+    fromName?: StringNullableFilter<"EmailAutomation"> | string | null
+    replyTo?: StringNullableFilter<"EmailAutomation"> | string | null
+    design?: JsonFilter<"EmailAutomation">
+    settings?: JsonFilter<"EmailAutomation">
+    lastRunAt?: DateTimeNullableFilter<"EmailAutomation"> | Date | string | null
+    lastError?: StringNullableFilter<"EmailAutomation"> | string | null
+    createdBy?: StringNullableFilter<"EmailAutomation"> | string | null
+    createdAt?: DateTimeFilter<"EmailAutomation"> | Date | string
+    updatedAt?: DateTimeFilter<"EmailAutomation"> | Date | string
+  }, "id" | "tenantId_locationId_type">
+
+  export type EmailAutomationOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrderInput | SortOrder
+    type?: SortOrder
+    enabled?: SortOrder
+    enabledAt?: SortOrderInput | SortOrder
+    subject?: SortOrder
+    preheader?: SortOrderInput | SortOrder
+    fromName?: SortOrderInput | SortOrder
+    replyTo?: SortOrderInput | SortOrder
+    design?: SortOrder
+    settings?: SortOrder
+    lastRunAt?: SortOrderInput | SortOrder
+    lastError?: SortOrderInput | SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: EmailAutomationCountOrderByAggregateInput
+    _max?: EmailAutomationMaxOrderByAggregateInput
+    _min?: EmailAutomationMinOrderByAggregateInput
+  }
+
+  export type EmailAutomationScalarWhereWithAggregatesInput = {
+    AND?: EmailAutomationScalarWhereWithAggregatesInput | EmailAutomationScalarWhereWithAggregatesInput[]
+    OR?: EmailAutomationScalarWhereWithAggregatesInput[]
+    NOT?: EmailAutomationScalarWhereWithAggregatesInput | EmailAutomationScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"EmailAutomation"> | string
+    tenantId?: StringWithAggregatesFilter<"EmailAutomation"> | string
+    locationId?: StringWithAggregatesFilter<"EmailAutomation"> | string
+    brandId?: StringNullableWithAggregatesFilter<"EmailAutomation"> | string | null
+    type?: StringWithAggregatesFilter<"EmailAutomation"> | string
+    enabled?: BoolWithAggregatesFilter<"EmailAutomation"> | boolean
+    enabledAt?: DateTimeNullableWithAggregatesFilter<"EmailAutomation"> | Date | string | null
+    subject?: StringWithAggregatesFilter<"EmailAutomation"> | string
+    preheader?: StringNullableWithAggregatesFilter<"EmailAutomation"> | string | null
+    fromName?: StringNullableWithAggregatesFilter<"EmailAutomation"> | string | null
+    replyTo?: StringNullableWithAggregatesFilter<"EmailAutomation"> | string | null
+    design?: JsonWithAggregatesFilter<"EmailAutomation">
+    settings?: JsonWithAggregatesFilter<"EmailAutomation">
+    lastRunAt?: DateTimeNullableWithAggregatesFilter<"EmailAutomation"> | Date | string | null
+    lastError?: StringNullableWithAggregatesFilter<"EmailAutomation"> | string | null
+    createdBy?: StringNullableWithAggregatesFilter<"EmailAutomation"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"EmailAutomation"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"EmailAutomation"> | Date | string
   }
 
   export type EmailCampaignRecipientWhereInput = {
@@ -210709,6 +212000,7 @@ export namespace Prisma {
     chargedMinor?: number
     refundedMinor?: number
     createdBy?: string | null
+    automationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     recipients?: EmailCampaignRecipientCreateNestedManyWithoutCampaignInput
@@ -210747,6 +212039,7 @@ export namespace Prisma {
     chargedMinor?: number
     refundedMinor?: number
     createdBy?: string | null
+    automationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     recipients?: EmailCampaignRecipientUncheckedCreateNestedManyWithoutCampaignInput
@@ -210785,6 +212078,7 @@ export namespace Prisma {
     chargedMinor?: IntFieldUpdateOperationsInput | number
     refundedMinor?: IntFieldUpdateOperationsInput | number
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    automationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     recipients?: EmailCampaignRecipientUpdateManyWithoutCampaignNestedInput
@@ -210823,6 +212117,7 @@ export namespace Prisma {
     chargedMinor?: IntFieldUpdateOperationsInput | number
     refundedMinor?: IntFieldUpdateOperationsInput | number
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    automationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     recipients?: EmailCampaignRecipientUncheckedUpdateManyWithoutCampaignNestedInput
@@ -210861,6 +212156,7 @@ export namespace Prisma {
     chargedMinor?: number
     refundedMinor?: number
     createdBy?: string | null
+    automationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -210898,6 +212194,7 @@ export namespace Prisma {
     chargedMinor?: IntFieldUpdateOperationsInput | number
     refundedMinor?: IntFieldUpdateOperationsInput | number
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    automationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -210934,6 +212231,154 @@ export namespace Prisma {
     freeUsed?: IntFieldUpdateOperationsInput | number
     chargedMinor?: IntFieldUpdateOperationsInput | number
     refundedMinor?: IntFieldUpdateOperationsInput | number
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    automationId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EmailAutomationCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    brandId?: string | null
+    type: string
+    enabled?: boolean
+    enabledAt?: Date | string | null
+    subject?: string
+    preheader?: string | null
+    fromName?: string | null
+    replyTo?: string | null
+    design?: JsonNullValueInput | InputJsonValue
+    settings?: JsonNullValueInput | InputJsonValue
+    lastRunAt?: Date | string | null
+    lastError?: string | null
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EmailAutomationUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    brandId?: string | null
+    type: string
+    enabled?: boolean
+    enabledAt?: Date | string | null
+    subject?: string
+    preheader?: string | null
+    fromName?: string | null
+    replyTo?: string | null
+    design?: JsonNullValueInput | InputJsonValue
+    settings?: JsonNullValueInput | InputJsonValue
+    lastRunAt?: Date | string | null
+    lastError?: string | null
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EmailAutomationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    enabledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    subject?: StringFieldUpdateOperationsInput | string
+    preheader?: NullableStringFieldUpdateOperationsInput | string | null
+    fromName?: NullableStringFieldUpdateOperationsInput | string | null
+    replyTo?: NullableStringFieldUpdateOperationsInput | string | null
+    design?: JsonNullValueInput | InputJsonValue
+    settings?: JsonNullValueInput | InputJsonValue
+    lastRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EmailAutomationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    enabledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    subject?: StringFieldUpdateOperationsInput | string
+    preheader?: NullableStringFieldUpdateOperationsInput | string | null
+    fromName?: NullableStringFieldUpdateOperationsInput | string | null
+    replyTo?: NullableStringFieldUpdateOperationsInput | string | null
+    design?: JsonNullValueInput | InputJsonValue
+    settings?: JsonNullValueInput | InputJsonValue
+    lastRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EmailAutomationCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    brandId?: string | null
+    type: string
+    enabled?: boolean
+    enabledAt?: Date | string | null
+    subject?: string
+    preheader?: string | null
+    fromName?: string | null
+    replyTo?: string | null
+    design?: JsonNullValueInput | InputJsonValue
+    settings?: JsonNullValueInput | InputJsonValue
+    lastRunAt?: Date | string | null
+    lastError?: string | null
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EmailAutomationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    enabledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    subject?: StringFieldUpdateOperationsInput | string
+    preheader?: NullableStringFieldUpdateOperationsInput | string | null
+    fromName?: NullableStringFieldUpdateOperationsInput | string | null
+    replyTo?: NullableStringFieldUpdateOperationsInput | string | null
+    design?: JsonNullValueInput | InputJsonValue
+    settings?: JsonNullValueInput | InputJsonValue
+    lastRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EmailAutomationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    enabledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    subject?: StringFieldUpdateOperationsInput | string
+    preheader?: NullableStringFieldUpdateOperationsInput | string | null
+    fromName?: NullableStringFieldUpdateOperationsInput | string | null
+    replyTo?: NullableStringFieldUpdateOperationsInput | string | null
+    design?: JsonNullValueInput | InputJsonValue
+    settings?: JsonNullValueInput | InputJsonValue
+    lastRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -222692,6 +224137,7 @@ export namespace Prisma {
     chargedMinor?: SortOrder
     refundedMinor?: SortOrder
     createdBy?: SortOrder
+    automationId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -222742,6 +224188,7 @@ export namespace Prisma {
     chargedMinor?: SortOrder
     refundedMinor?: SortOrder
     createdBy?: SortOrder
+    automationId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -222776,6 +224223,7 @@ export namespace Prisma {
     chargedMinor?: SortOrder
     refundedMinor?: SortOrder
     createdBy?: SortOrder
+    automationId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -222794,6 +224242,77 @@ export namespace Prisma {
     freeUsed?: SortOrder
     chargedMinor?: SortOrder
     refundedMinor?: SortOrder
+  }
+
+  export type EmailAutomationOrderByRelevanceInput = {
+    fields: EmailAutomationOrderByRelevanceFieldEnum | EmailAutomationOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type EmailAutomationTenantIdLocationIdTypeCompoundUniqueInput = {
+    tenantId: string
+    locationId: string
+    type: string
+  }
+
+  export type EmailAutomationCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    type?: SortOrder
+    enabled?: SortOrder
+    enabledAt?: SortOrder
+    subject?: SortOrder
+    preheader?: SortOrder
+    fromName?: SortOrder
+    replyTo?: SortOrder
+    design?: SortOrder
+    settings?: SortOrder
+    lastRunAt?: SortOrder
+    lastError?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EmailAutomationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    type?: SortOrder
+    enabled?: SortOrder
+    enabledAt?: SortOrder
+    subject?: SortOrder
+    preheader?: SortOrder
+    fromName?: SortOrder
+    replyTo?: SortOrder
+    lastRunAt?: SortOrder
+    lastError?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EmailAutomationMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    type?: SortOrder
+    enabled?: SortOrder
+    enabledAt?: SortOrder
+    subject?: SortOrder
+    preheader?: SortOrder
+    fromName?: SortOrder
+    replyTo?: SortOrder
+    lastRunAt?: SortOrder
+    lastError?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type EmailCampaignRelationFilter = {
@@ -278953,6 +280472,7 @@ export namespace Prisma {
     chargedMinor?: number
     refundedMinor?: number
     createdBy?: string | null
+    automationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -278990,6 +280510,7 @@ export namespace Prisma {
     chargedMinor?: number
     refundedMinor?: number
     createdBy?: string | null
+    automationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -279043,6 +280564,7 @@ export namespace Prisma {
     chargedMinor?: IntFieldUpdateOperationsInput | number
     refundedMinor?: IntFieldUpdateOperationsInput | number
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    automationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -279080,6 +280602,7 @@ export namespace Prisma {
     chargedMinor?: IntFieldUpdateOperationsInput | number
     refundedMinor?: IntFieldUpdateOperationsInput | number
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    automationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -291609,6 +293132,10 @@ export namespace Prisma {
      * @deprecated Use EmailCampaignDefaultArgs instead
      */
     export type EmailCampaignArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = EmailCampaignDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use EmailAutomationDefaultArgs instead
+     */
+    export type EmailAutomationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = EmailAutomationDefaultArgs<ExtArgs>
     /**
      * @deprecated Use EmailCampaignRecipientDefaultArgs instead
      */

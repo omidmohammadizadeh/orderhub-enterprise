@@ -159,3 +159,56 @@ describe("EmailCampaignSenderService.finishIfDone", () => {
     expect(wallet.refundEmailMarketing).not.toHaveBeenCalled();
   });
 });
+
+describe("automation batches are paid for before they go", () => {
+  const ledger = { ...campaign, status: "AUTOMATION", automationId: "a1" };
+
+  it("charges the batch, then sends", async () => {
+    const { sender, email } = setup({ rows: rows.slice(0, 2), subscribed: ["k1", "k2"] });
+    const svc = (sender as any).svc;
+    svc.chargeAutomationBatch = jest.fn().mockResolvedValue(1);
+    await (sender as any).sendBatch(ledger, await svc.renderContext(), "key-a", false);
+    expect(svc.chargeAutomationBatch).toHaveBeenCalledWith(ledger, 2);
+    expect(email.sendBatch).toHaveBeenCalled();
+  });
+
+  it("an empty wallet skips the batch and pauses the automation — nothing sent unpaid", async () => {
+    const { sender, email, db } = setup({ rows: rows.slice(0, 2), subscribed: ["k1", "k2"] });
+    const svc = (sender as any).svc;
+    svc.chargeAutomationBatch = jest.fn().mockResolvedValue(null);
+    svc.pauseAutomation = jest.fn();
+    await (sender as any).sendBatch(ledger, await svc.renderContext(), "key-a", false);
+    expect(email.sendBatch).not.toHaveBeenCalled();
+    expect(db.emailCampaignRecipient.updateMany).toHaveBeenCalledWith({
+      where: { batchKey: "key-a", status: "SENDING" },
+      data: { status: "SKIPPED", error: "insufficient_balance" },
+    });
+    expect(svc.pauseAutomation).toHaveBeenCalledWith("a1", expect.stringContaining("wallet"));
+  });
+
+  it("a retry is not charged twice", async () => {
+    const { sender } = setup({ rows: rows.slice(0, 2), subscribed: [] });
+    const svc = (sender as any).svc;
+    svc.chargeAutomationBatch = jest.fn();
+    await (sender as any).sendBatch(ledger, await svc.renderContext(), "key-a", true);
+    expect(svc.chargeAutomationBatch).not.toHaveBeenCalled();
+  });
+
+  it("refunds the batch Resend refuses", async () => {
+    const { ResendError } = require("../../../infrastructure/email/email.service");
+    const sendBatch = jest.fn().mockRejectedValue(new ResendError("bad", 422));
+    const { sender } = setup({ rows: rows.slice(0, 2), subscribed: ["k1", "k2"], sendBatch });
+    const svc = (sender as any).svc;
+    svc.chargeAutomationBatch = jest.fn().mockResolvedValue(5);
+    svc.refundAutomationBatch = jest.fn();
+    svc.pauseAutomation = jest.fn();
+    await (sender as any).sendBatch(ledger, await svc.renderContext(), "key-a", false);
+    expect(svc.refundAutomationBatch).toHaveBeenCalledWith(ledger, 5, "not sent");
+  });
+
+  it("an automation ledger is never closed", async () => {
+    const { sender, db } = setup({ rows: [], subscribed: [] });
+    await sender.finishIfDone(ledger);
+    expect(db.emailCampaignRecipient.count).not.toHaveBeenCalled();
+  });
+});

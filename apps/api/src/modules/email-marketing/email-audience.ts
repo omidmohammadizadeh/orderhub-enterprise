@@ -121,3 +121,84 @@ export function emailCostMinor(billable: number, pricePer1000Minor: number): num
   if (billable <= 0 || pricePer1000Minor <= 0) return 0;
   return Math.ceil((billable * pricePer1000Minor) / 1000);
 }
+
+/**
+ * Who an automation should email on this run.
+ *
+ *   WELCOME  — subscribed since the automation was switched on (never the
+ *              whole existing list), at least `delayHours` ago, never welcomed
+ *              by this automation before.
+ *   WIN_BACK — last real order AT THIS SHOP (and brand, when set) more than
+ *              `days` ago but within a year (beyond that the email is spam,
+ *              not a nudge), and no win-back from this automation within
+ *              `cooldownDays`.
+ *
+ * "Already sent" is checked across every ledger campaign of the automation,
+ * so editing the email (which starts a new ledger) can't send it twice.
+ */
+export function buildAutomationQuery(args: {
+  tenantId: string;
+  automationId: string;
+  type: "WELCOME" | "WIN_BACK";
+  locationId: string;
+  brandId?: string | null;
+  enabledAt: Date;
+  delayHours?: number;
+  days?: number;
+  cooldownDays?: number;
+  limit: number;
+  now?: Date;
+}): AudienceQuery {
+  const now = args.now ?? new Date();
+  const params: unknown[] = [args.tenantId, args.locationId, args.automationId];
+  const p = (v: unknown) => {
+    params.push(v);
+    return `$${params.length}`;
+  };
+  const brand = args.brandId ? `AND o."brandId" = ${p(args.brandId)}` : "";
+  const where: string[] = [
+    `ec."tenantId" = $1`,
+    `ec.status = 'SUBSCRIBED'`,
+    `(ec."locationId" = $2 OR s.email IS NOT NULL)`,
+  ];
+  if (args.type === "WELCOME") {
+    const delay = clampInt(args.delayHours, 0, 24 * 14, 1);
+    // A welcome is for someone who just joined: switched on today, it greets
+    // people from today — and never anyone who joined over a week ago.
+    const since = new Date(Math.max(args.enabledAt.getTime(), now.getTime() - 7 * 86400_000));
+    const joined = `COALESCE(ec."consentAt", ec."createdAt")`;
+    where.push(`${joined} >= ${p(since)}`);
+    where.push(`${joined} <= ${p(new Date(now.getTime() - delay * 3600_000))}`);
+    where.push(`NOT EXISTS (
+      SELECT 1 FROM email_campaign_recipients r JOIN email_campaigns c ON c.id = r."campaignId"
+      WHERE c."automationId" = $3 AND r.email = ec.email)`);
+  } else {
+    const days = clampInt(args.days, 7, 365, 45);
+    const cooldown = clampInt(args.cooldownDays, 14, 365, 90);
+    where.push(`s.last_at < ${p(new Date(now.getTime() - days * 86400_000))}`);
+    where.push(`s.last_at >= ${p(new Date(now.getTime() - 365 * 86400_000))}`);
+    where.push(`NOT EXISTS (
+      SELECT 1 FROM email_campaign_recipients r JOIN email_campaigns c ON c.id = r."campaignId"
+      WHERE c."automationId" = $3 AND r.email = ec.email
+        AND r."createdAt" >= ${p(new Date(now.getTime() - cooldown * 86400_000))})`);
+  }
+  const sql = `
+WITH o AS (
+  SELECT ${ORDER_EMAIL_SQL} AS email, o."createdAt"
+  FROM orders o
+  LEFT JOIN customer_accounts ca ON ca.id = o."customerAccountId"
+  LEFT JOIN customers c ON c.id = o."customerId"
+  WHERE o."tenantId" = $1 AND o."locationId" = $2 AND o."isSandbox" = false
+    AND o.status::text NOT IN ('${NOT_REAL_ORDER.join("','")}')
+    ${brand}
+), s AS (
+  SELECT email, MAX("createdAt") AS last_at FROM o WHERE email LIKE '%@%' GROUP BY email
+)
+SELECT ec.id, ec.email, ec."firstName"
+FROM email_contacts ec
+LEFT JOIN s ON s.email = ec.email
+WHERE ${where.join("\n  AND ")}
+ORDER BY ec.id
+LIMIT ${clampInt(args.limit, 1, 5000, 1000)}`;
+  return { sql, params };
+}

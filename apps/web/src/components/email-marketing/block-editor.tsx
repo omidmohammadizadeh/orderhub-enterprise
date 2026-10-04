@@ -102,11 +102,14 @@ export function BlockEditor({
   onChange,
   brandId,
   locationId,
+  offerCodeExpiryDays = 7,
 }: {
   design: EmailDesign;
   onChange: (d: EmailDesign) => void;
   brandId: string | null;
   locationId: string | null;
+  /** Default expiry for a code created in an offer; null = never. */
+  offerCodeExpiryDays?: number | null;
 }) {
   const [open, setOpen] = useState<string | null>(design.blocks[1]?.id ?? null);
   const [adding, setAdding] = useState(false);
@@ -180,7 +183,13 @@ export function BlockEditor({
             </div>
             {isOpen && (
               <div className="space-y-3 border-t border-zinc-100 px-4 py-3">
-                <BlockFields block={b} update={(p) => update(b.id, p)} brandId={brandId} locationId={locationId} />
+                <BlockFields
+                  block={b}
+                  update={(p) => update(b.id, p)}
+                  brandId={brandId}
+                  locationId={locationId}
+                  offerCodeExpiryDays={offerCodeExpiryDays}
+                />
               </div>
             )}
           </div>
@@ -329,11 +338,13 @@ function BlockFields({
   update,
   brandId,
   locationId,
+  offerCodeExpiryDays,
 }: {
   block: EmailBlock;
   update: (p: any) => void;
   brandId: string | null;
   locationId: string | null;
+  offerCodeExpiryDays: number | null;
 }) {
   switch (b.type) {
     case "header":
@@ -384,7 +395,13 @@ function BlockFields({
     case "offer":
       return (
         <>
-          <OfferCodeField code={b.code ?? ""} title={b.title} locationId={locationId} onPick={(p) => update(p)} />
+          <OfferCodeField
+            code={b.code ?? ""}
+            title={b.title}
+            locationId={locationId}
+            onPick={(p) => update(p)}
+            defaultExpiryDays={offerCodeExpiryDays}
+          />
           <Field label="Big text">
             <input value={b.title} onChange={(e) => update({ title: e.target.value })} className={inputCls} />
           </Field>

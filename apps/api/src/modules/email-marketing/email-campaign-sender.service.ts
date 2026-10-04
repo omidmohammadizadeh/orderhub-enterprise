@@ -59,6 +59,12 @@ export class EmailCampaignSenderService {
         take: 5,
       });
       for (const c of sending) await this.work(c);
+      // Automations' ledgers: always open, worked whenever a run queued rows.
+      const ledgers = await this.db().emailCampaign.findMany({
+        where: { status: "AUTOMATION", recipients: { some: { status: { in: ["PENDING", "SENDING"] } } } },
+        take: 10,
+      });
+      for (const c of ledgers) await this.work(c);
     } catch (e: any) {
       this.logger.warn(`Email campaign sweep failed: ${e?.message ?? e}`);
     } finally {
@@ -162,6 +168,29 @@ export class EmailCampaignSenderService {
       });
     }
 
+    // An automation pays per batch, before sending. A retry was paid for on
+    // its first attempt.
+    let charged = 0;
+    if (c.status === "AUTOMATION" && !retry) {
+      const cost = await this.svc.chargeAutomationBatch(c, rows.length);
+      if (cost === null) {
+        await this.db().emailCampaignRecipient.updateMany({
+          where: { batchKey: key, status: "SENDING" },
+          data: { status: "SKIPPED", error: "insufficient_balance" },
+        });
+        await this.db().emailCampaignRecipient.updateMany({
+          where: { campaignId: c.id, status: "PENDING" },
+          data: { status: "SKIPPED", error: "insufficient_balance" },
+        });
+        await this.svc.pauseAutomation(
+          c.automationId,
+          "Paused: the wallet ran out. Top up, then switch it back on.",
+        );
+        return true;
+      }
+      charged = cost;
+    }
+
     const from = this.svc.fromAddress();
     const api = this.svc.apiBase();
     const emails = rows.map((r) => {
@@ -233,12 +262,18 @@ export class EmailCampaignSenderService {
         where: { id: c.id },
         data: { failedCount: { increment: rows.length }, lastError: message },
       });
+      if (charged > 0) await this.svc.refundAutomationBatch(c, charged, "not sent");
+      if (c.status === "AUTOMATION") {
+        await this.svc.pauseAutomation(c.automationId, `Paused: sending failed (${message.slice(0, 160)})`);
+      }
       return true;
     }
   }
 
   /** Close the campaign when no row is waiting, and refund what didn't go. */
   async finishIfDone(c: any): Promise<void> {
+    // An automation's ledger never finishes; it is billed per batch instead.
+    if (c.status === "AUTOMATION") return;
     const open = await this.db().emailCampaignRecipient.count({
       where: { campaignId: c.id, status: { in: ["PENDING", "SENDING"] } },
     });

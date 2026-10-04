@@ -22,6 +22,7 @@ import { Roles } from "../../common/decorators/roles.decorator";
 import { BillingExempt } from "../../common/guards/billing.guard";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 import { EmailMarketingService, type Actor, type EmailImportRow } from "./email-marketing.service";
+import { EmailAutomationService } from "./email-automation.service";
 import { verifySvixSignature } from "./email-tokens";
 
 // Same audience as SMS marketing: it spends wallet money and mails the
@@ -34,7 +35,57 @@ const actorOf = (u: AuthenticatedUser): Actor => ({ tenantId: u.tenantId, userId
 @ApiBearerAuth()
 @Controller({ path: "email-marketing", version: "1" })
 export class EmailMarketingController {
-  constructor(private readonly svc: EmailMarketingService) {}
+  constructor(
+    private readonly svc: EmailMarketingService,
+    private readonly automations: EmailAutomationService,
+  ) {}
+
+  // ── Automations (welcome / win-back) ──────────────────────────────────────
+
+  @Get("automations")
+  @Roles(...MARKETING_ROLES)
+  listAutomations(@CurrentUser() user: AuthenticatedUser, @Query("locationId") locationId?: string) {
+    return this.automations.list(actorOf(user), locationId || null);
+  }
+
+  @Post("automations")
+  @Roles(...MARKETING_ROLES)
+  createAutomation(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: { type: "WELCOME" | "WIN_BACK"; locationId: string; brandId?: string | null },
+  ) {
+    return this.automations.create(actorOf(user), body ?? ({} as any));
+  }
+
+  @Get("automations/:id")
+  @Roles(...MARKETING_ROLES)
+  getAutomation(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string) {
+    return this.automations.get(actorOf(user), id);
+  }
+
+  @Patch("automations/:id")
+  @Roles(...MARKETING_ROLES)
+  updateAutomation(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string, @Body() body: any) {
+    return this.automations.update(actorOf(user), id, body ?? {});
+  }
+
+  @Post("automations/:id/enabled")
+  @Roles(...MARKETING_ROLES)
+  @ApiOperation({ summary: "Switch an automation on (validated) or off" })
+  setAutomationEnabled(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("id") id: string,
+    @Body() body: { enabled: boolean },
+  ) {
+    return this.automations.setEnabled(actorOf(user), id, body?.enabled === true);
+  }
+
+  @Post("automations/:id/test")
+  @Roles(...MARKETING_ROLES)
+  testAutomation(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string, @Body() body: { to: string[] | string }) {
+    const to = Array.isArray(body?.to) ? body.to : String(body?.to ?? "").split(/[,\s]+/);
+    return this.automations.test(actorOf(user), id, to);
+  }
 
   @Get("context")
   @Roles(...MARKETING_ROLES)

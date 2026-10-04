@@ -2548,6 +2548,28 @@ exports.Prisma.EmailCampaignScalarFieldEnum = {
   chargedMinor: 'chargedMinor',
   refundedMinor: 'refundedMinor',
   createdBy: 'createdBy',
+  automationId: 'automationId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.EmailAutomationScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  type: 'type',
+  enabled: 'enabled',
+  enabledAt: 'enabledAt',
+  subject: 'subject',
+  preheader: 'preheader',
+  fromName: 'fromName',
+  replyTo: 'replyTo',
+  design: 'design',
+  settings: 'settings',
+  lastRunAt: 'lastRunAt',
+  lastError: 'lastError',
+  createdBy: 'createdBy',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -4118,6 +4140,21 @@ exports.Prisma.EmailCampaignOrderByRelevanceFieldEnum = {
   templateId: 'templateId',
   status: 'status',
   lastError: 'lastError',
+  createdBy: 'createdBy',
+  automationId: 'automationId'
+};
+
+exports.Prisma.EmailAutomationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  type: 'type',
+  subject: 'subject',
+  preheader: 'preheader',
+  fromName: 'fromName',
+  replyTo: 'replyTo',
+  lastError: 'lastError',
   createdBy: 'createdBy'
 };
 
@@ -4743,6 +4780,7 @@ exports.Prisma.ModelName = {
   KeetaAuthorization: 'KeetaAuthorization',
   EmailContact: 'EmailContact',
   EmailCampaign: 'EmailCampaign',
+  EmailAutomation: 'EmailAutomation',
   EmailCampaignRecipient: 'EmailCampaignRecipient'
 };
 

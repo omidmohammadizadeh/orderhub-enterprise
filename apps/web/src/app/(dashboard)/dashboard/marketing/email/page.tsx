@@ -25,6 +25,7 @@ import {
   Users,
   Wallet as WalletIcon,
   X,
+  Zap,
 } from "lucide-react";
 import { EMAIL_TEMPLATES, renderEmail, type EmailProduct } from "@orderhub/shared";
 import { POWERED_BY } from "@/components/email-marketing/email-preview";
@@ -41,8 +42,9 @@ import { parseEmailFile, parseEmailText, type EmailRow } from "@/lib/email-marke
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { cn } from "@/lib/utils";
 import { EmailStatusBadge } from "@/components/email-marketing/status-badge";
+import { AutomationsTab } from "@/components/email-marketing/automations-tab";
 
-type Tab = "campaigns" | "audience";
+type Tab = "campaigns" | "automations" | "audience";
 
 export default function EmailMarketingPage() {
   const [tab, setTab] = useState<Tab>("campaigns");
@@ -88,6 +90,7 @@ export default function EmailMarketingPage() {
         {(
           [
             ["campaigns", "Campaigns", Send],
+            ["automations", "Automations", Zap],
             ["audience", "Audience", Users],
           ] as [Tab, string, any][]
         ).map(([key, label, Icon]) => (
@@ -108,6 +111,7 @@ export default function EmailMarketingPage() {
 
       <div className="mt-6">
         {tab === "campaigns" && <CampaignsTab ctx={ctx} />}
+        {tab === "automations" && <AutomationsTab />}
         {tab === "audience" && <AudienceTab />}
       </div>
     </div>

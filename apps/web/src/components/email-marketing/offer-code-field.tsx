@@ -60,10 +60,14 @@ export function OfferCodeField({
   title,
   locationId,
   onPick,
+  defaultExpiryDays = 7,
 }: {
   code: string;
   title: string;
   locationId: string | null;
+  /** New codes expire this many days out; null = never (automations send for
+   *  months, so their code mustn't run out under them). */
+  defaultExpiryDays?: number | null;
   /** Sets code + promoCodeId, and the title/terms the code implies. */
   onPick: (patch: { code: string; promoCodeId?: string; title?: string; terms?: string }) => void;
 }) {
@@ -126,6 +130,7 @@ export function OfferCodeField({
 
       {creating && (
         <CreateCode
+          defaultExpiryDays={defaultExpiryDays}
           initialCode={code?.trim() ? code.toUpperCase() : ""}
           title={title}
           locationId={locationId}
@@ -147,7 +152,9 @@ function CreateCode({
   locationId,
   onCancel,
   onCreated,
+  defaultExpiryDays,
 }: {
+  defaultExpiryDays: number | null;
   initialCode: string;
   title: string;
   locationId: string | null;
@@ -156,9 +163,10 @@ function CreateCode({
 }) {
   const guess = guessFromTitle(title);
   const inAWeek = useMemo(() => {
-    const d = new Date(Date.now() + 7 * 86400_000);
+    if (defaultExpiryDays == null) return "";
+    const d = new Date(Date.now() + defaultExpiryDays * 86400_000);
     return d.toISOString().slice(0, 10);
-  }, []);
+  }, [defaultExpiryDays]);
   const [form, setForm] = useState({
     code: initialCode || "OFFER" + (guess.value || ""),
     type: guess.type,
@@ -222,7 +230,7 @@ function CreateCode({
           <div />
         )}
         <label className="block text-xs text-zinc-600">
-          Expires at the end of
+          Expires at the end of (empty = never)
           <input type="date" value={form.expires} onChange={(e) => set("expires", e.target.value)} className={cn(inputCls, "mt-1")} />
         </label>
         <label className="block text-xs text-zinc-600">

@@ -1,6 +1,12 @@
 // Email marketing — campaigns restaurants send to their own subscribed customers.
 
-import type { EmailAudience, EmailDesign, EmailProduct } from "@orderhub/shared";
+import type {
+  EmailAudience,
+  EmailAutomationSettings,
+  EmailAutomationType,
+  EmailDesign,
+  EmailProduct,
+} from "@orderhub/shared";
 import { apiClient } from "./client";
 
 export type EmailCampaignStatus = "DRAFT" | "SCHEDULED" | "SENDING" | "SENT" | "CANCELLED" | "FAILED";
@@ -81,6 +87,47 @@ export interface EmailEstimate {
   currency: string;
   canAfford: boolean;
   enabled: boolean;
+}
+
+export interface EmailAutomationStats {
+  sent: number;
+  delivered: number;
+  opened: number;
+  clicked: number;
+  unsubscribed: number;
+  bounced: number;
+  complaints: number;
+  chargedMinor: number;
+  orders: number;
+  revenue: number;
+  currency: string;
+}
+
+export interface EmailAutomation {
+  id: string;
+  type: EmailAutomationType;
+  locationId: string;
+  brandId: string | null;
+  enabled: boolean;
+  enabledAt: string | null;
+  subject: string;
+  preheader: string | null;
+  fromName: string | null;
+  replyTo: string | null;
+  design: EmailDesign;
+  settings: EmailAutomationSettings;
+  lastRunAt: string | null;
+  lastError: string | null;
+  stats: EmailAutomationStats;
+  /** Only on GET /automations/:id — how many people the next run would email. */
+  dueNow?: number;
+}
+
+export interface EmailAutomationCard {
+  type: EmailAutomationType;
+  name: string;
+  description: string;
+  automation: EmailAutomation | null;
 }
 
 export interface OfferCode {
@@ -220,6 +267,23 @@ export const emailMarketingClient = {
     oncePerCustomer?: boolean;
     locationId?: string | null;
   }) => apiClient.post<OfferCode>(`${BASE}/promo-codes`, body).then((r) => r.data),
+
+  automations: (locationId: string) =>
+    apiClient.get<EmailAutomationCard[]>(`${BASE}/automations`, { params: { locationId } }).then((r) => r.data),
+
+  createAutomation: (body: { type: EmailAutomationType; locationId: string; brandId?: string | null }) =>
+    apiClient.post<EmailAutomation>(`${BASE}/automations`, body).then((r) => r.data),
+
+  automation: (id: string) => apiClient.get<EmailAutomation>(`${BASE}/automations/${id}`).then((r) => r.data),
+
+  updateAutomation: (id: string, body: Partial<Omit<EmailAutomation, "stats" | "id" | "type">>) =>
+    apiClient.patch<EmailAutomation>(`${BASE}/automations/${id}`, body).then((r) => r.data),
+
+  setAutomationEnabled: (id: string, enabled: boolean) =>
+    apiClient.post<EmailAutomation>(`${BASE}/automations/${id}/enabled`, { enabled }).then((r) => r.data),
+
+  testAutomation: (id: string, to: string[]) =>
+    apiClient.post<{ ok: true; sentTo: string[] }>(`${BASE}/automations/${id}/test`, { to }).then((r) => r.data),
 
   // Public — the unsubscribe page.
   unsubscribeInfo: (t: string) =>
