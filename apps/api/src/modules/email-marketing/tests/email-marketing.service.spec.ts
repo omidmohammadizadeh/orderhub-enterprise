@@ -1,4 +1,4 @@
-import { EmailMarketingService } from "../email-marketing.service";
+import { EmailMarketingService, ownPhoto } from "../email-marketing.service";
 import { makeEmailToken } from "../email-tokens";
 
 function make(overrides: Record<string, any> = {}) {
@@ -346,5 +346,20 @@ describe("photos that won't load", () => {
     const { svc } = make();
     (global as any).fetch = jest.fn(async () => ({ ok: true, headers: { get: () => "image/png" }, body: null }));
     expect((await svc.withoutBrokenImages(design)).changed).toBe(false);
+  });
+});
+
+describe("only the restaurant's own photos", () => {
+  it("uses photos uploaded to OrderHub, never a marketplace's", () => {
+    const ours = "https://gnrjartmdruymwpdeoqe.supabase.co/storage/v1/object/public/menu-images/products/a.jpg";
+    expect(ownPhoto(ours)).toBe(ours);
+    expect(ownPhoto("/api/v1/menus/hubrise-image/gmm3n/x")).toBe("/api/v1/menus/hubrise-image/gmm3n/x");
+    // Pizza Uno Pelton's broken four: Deliveroo images synced through HubRise.
+    expect(ownPhoto("https://deliveroo.hubrise-apps.com/images/2qgmvnv?app_instance_id=62rjd")).toBeNull();
+    expect(ownPhoto("https://rs-menus-api.roocdn.com/images/x.jpg")).toBeNull();
+    expect(ownPhoto("https://tb-static.uber.com/prod/image-proc/x.jpeg")).toBeNull();
+    expect(ownPhoto("https://just-eat.co.uk/x.png")).toBeNull();
+    expect(ownPhoto("data:image/png;base64,AAAA")).toBeNull();
+    expect(ownPhoto(null)).toBeNull();
   });
 });

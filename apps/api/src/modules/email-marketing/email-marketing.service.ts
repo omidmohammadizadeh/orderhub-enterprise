@@ -880,10 +880,15 @@ export class EmailMarketingService {
           ? { where: this.onMenus(menuIds), select: { priceOverride: true }, take: 1 }
           : false,
       },
-      orderBy: [{ imageUrl: { sort: "asc", nulls: "last" } }, { name: "asc" }],
+      orderBy: { name: "asc" },
       take: 300,
     });
     const currency = await this.currencyFor(opts.locationId);
+    // Our own photos first: a dish whose only photo is a marketplace's has
+    // none as far as an email is concerned (see ownPhoto). Sorting on the URL
+    // used to put "https://deliveroo…" ahead of our storage, so a campaign
+    // opened with exactly the four dishes whose photos were broken.
+    items.sort((a, b) => Number(!!ownPhoto(b.imageUrl)) - Number(!!ownPhoto(a.imageUrl)));
     // Menus are copied per shop, so one dish exists many times; show it once.
     const seen = new Set<string>();
     const out: EmailProduct[] = [];
@@ -899,7 +904,7 @@ export class EmailMarketingService {
           Number((it as any).categories?.[0]?.priceOverride ?? it.basePrice ?? 0),
           currency,
         ),
-        imageUrl: it.imageUrl ?? null,
+        imageUrl: ownPhoto(it.imageUrl),
       });
       if (out.length >= (opts.limit ?? 120)) break;
     }
@@ -968,15 +973,24 @@ export class EmailMarketingService {
       if (b.type === "hero" || b.type === "image") urls.push(b.imageUrl);
     }
     const dead = await this.brokenImageCatalogs(urls);
-    if (!dead.size) return { design, changed: false };
+    // Dead HubRise catalog, or a dish photo borrowed from a marketplace (a
+    // restaurant's uploaded hero/image block is theirs, so only dish photos
+    // are held to ownPhoto).
+    const bad = (u: unknown) => this.isDead(u as string, dead);
+    const badDish = (u: unknown) => bad(u) || (!!u && !ownPhoto(u as string));
+    let changed = false;
     const next = blocks.map((b) => {
       if (b.type === "products") {
-        return { ...b, items: (b.items ?? []).map((i: any) => (this.isDead(i?.imageUrl, dead) ? { ...i, imageUrl: null } : i)) };
+        const items = (b.items ?? []).map((i: any) => (badDish(i?.imageUrl) ? ((changed = true), { ...i, imageUrl: null }) : i));
+        return { ...b, items };
       }
-      if ((b.type === "hero" || b.type === "image") && this.isDead(b.imageUrl, dead)) return { ...b, imageUrl: "" };
+      if ((b.type === "hero" || b.type === "image") && bad(b.imageUrl)) {
+        changed = true;
+        return { ...b, imageUrl: "" };
+      }
       return b;
     });
-    return { design: { ...design, blocks: next }, changed: true };
+    return changed ? { design: { ...design, blocks: next }, changed } : { design, changed: false };
   }
 
   private onMenus(menuIds: string[]) {
@@ -1677,6 +1691,29 @@ export class EmailMarketingService {
         data: { status: "COMPLAINED", suppressedAt: now },
       });
     }
+  }
+}
+
+/**
+ * Marketplaces' photo hosts. Menus synced through HubRise carry Deliveroo /
+ * Uber Eats / Just Eat image links; those are the marketplace's, expire or
+ * need their session (Deliveroo's answer 400), and aren't the restaurant's
+ * own photos. An email uses the photos uploaded to OrderHub, never these.
+ */
+const MARKETPLACE_PHOTO_HOSTS =
+  /(^|\.)(hubrise-apps\.com|deliveroo\.[a-z.]+|roocdn\.com|ubereats\.com|uber\.com|cdn-ubereats\.com|just-eat\.[a-z.]+|justeat\.[a-z.]+|jet-?cdn\.[a-z.]+|tkwy-?cdn\.[a-z.]+|talabat\.com|careem\.com|glovoapp\.com|keeta[a-z.]*)$/i;
+
+/** The dish photo an email may use: ours, or nothing. Relative paths are our
+ *  own proxy (checked separately for a dead HubRise login). */
+export function ownPhoto(url: string | null | undefined): string | null {
+  const u = String(url ?? "").trim();
+  if (!u) return null;
+  if (u.startsWith("/")) return u;
+  if (!/^https:\/\//i.test(u)) return null; // data:, http:, junk
+  try {
+    return MARKETPLACE_PHOTO_HOSTS.test(new URL(u).hostname) ? null : u;
+  } catch {
+    return null;
   }
 }
 
