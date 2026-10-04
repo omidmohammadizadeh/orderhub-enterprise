@@ -2,7 +2,7 @@ import { Injectable, Logger, Optional } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Cron } from "@nestjs/schedule";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
-import { formatMoney } from "@orderhub/shared";
+import { formatMoney, renderPoweredBy } from "@orderhub/shared";
 import { EmailService } from "../../infrastructure/email/email.service";
 
 // The confirmation email a customer gets after ordering online.
@@ -87,9 +87,15 @@ export class OrderConfirmationEmailService {
               // the decimals too — a dinar is 3, not 2.
               currency: true,
               phone: true,
+              // The email's header, and where to collect from.
+              logoUrl: true,
+              addressLine1: true,
+              city: true,
+              postcode: true,
+              timezone: true,
             },
           },
-          brand: { select: { name: true } },
+          brand: { select: { name: true, logoUrl: true } },
           // Both address sources. Without these the fallbacks below read
           // undefined for ever, which is how the first live order reached
           // the kitchen with no email sent.
@@ -288,7 +294,50 @@ export class OrderConfirmationEmailService {
       : "Delivering to the address you gave at checkout";
   }
 
+  private webBase(): string {
+    return String(this.config?.get<string>("app.webUrl") ?? "https://www.orderhubsolutions.com").replace(/\/+$/, "");
+  }
+
+  /** Absolute URL for an image — logos are sometimes stored as site paths. */
+  private img(u: unknown): string {
+    const v = String(u ?? "").trim();
+    if (!v) return "";
+    return this.esc(v.startsWith("/") && !v.startsWith("//") ? `${this.webBase()}${v}` : v);
+  }
+
+  /** "Today, 7:30pm" style label for a scheduled order, in the shop's zone. */
+  private whenLabel(order: any): string | null {
+    if (!order.scheduledFor) return null;
+    try {
+      return new Date(order.scheduledFor).toLocaleString("en-GB", {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+        hour: "numeric",
+        minute: "2-digit",
+        timeZone: order.location?.timezone || "Europe/London",
+      });
+    } catch {
+      return null;
+    }
+  }
+
+  private firstName(order: any): string {
+    const raw = String(order.customerInfo?.name ?? order.customerName ?? "").trim();
+    return raw.split(/\s+/)[0] ?? "";
+  }
+
   private body(order: any): string {
+    const FONT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+    const ink = "#18181b";
+    const muted = "#71717a";
+    const accent = "#16a34a";
+    const isDelivery = order.fulfillmentType === "DELIVERY";
+    const shop = this.esc(this.shopName(order));
+    const logo = this.img(order.brand?.logoUrl ?? order.location?.logoUrl);
+    const first = this.esc(this.firstName(order));
+    const when = this.whenLabel(order);
+
     const rows = (order.items ?? [])
       .map((i: any) => {
         const mods = (i.modifiers ?? [])
@@ -300,52 +349,105 @@ export class OrderConfirmationEmailService {
         const alreadyNamed =
           !!mods && String(i.name ?? "").toLowerCase().includes(mods.toLowerCase());
         const showMods = mods && !alreadyNamed;
-        return (
-          `<tr><td style="padding:6px 0">${i.quantity} × ${this.esc(i.name)}` +
-          (showMods ? `<br/><span style="color:#71717a;font-size:13px">${this.esc(mods)}</span>` : "") +
-          `</td><td align="right" style="padding:6px 0">${this.money(i.totalPrice, order)}</td></tr>`
-        );
+        return `<tr>
+<td width="36" valign="top" style="padding:12px 0;border-bottom:1px solid #f4f4f5;">
+  <div style="display:inline-block;min-width:24px;padding:3px 6px;border-radius:6px;background:#f4f4f5;font-family:${FONT};font-size:13px;font-weight:700;color:${ink};text-align:center;">${this.esc(i.quantity)}×</div>
+</td>
+<td valign="top" style="padding:12px 8px;border-bottom:1px solid #f4f4f5;font-family:${FONT};font-size:15px;color:${ink};">
+  <div style="font-weight:600;">${this.esc(i.name)}</div>
+  ${showMods ? `<div style="margin-top:2px;font-size:13px;line-height:1.45;color:${muted};">${this.esc(mods)}</div>` : ""}
+</td>
+<td valign="top" align="right" style="padding:12px 0;border-bottom:1px solid #f4f4f5;font-family:${FONT};font-size:15px;color:${ink};white-space:nowrap;">${this.money(i.totalPrice, order)}</td>
+</tr>`;
       })
       .join("");
 
-    const line = (label: string, value: unknown) =>
+    const line = (label: string, value: unknown, negative = false) =>
       Number(value ?? 0) > 0
-        ? `<tr><td style="padding:2px 0;color:#71717a">${label}</td><td align="right" style="padding:2px 0">${this.money(value, order)}</td></tr>`
+        ? `<tr><td style="padding:3px 0;font-family:${FONT};font-size:14px;color:${muted};">${label}</td><td align="right" style="padding:3px 0;font-family:${FONT};font-size:14px;color:${ink};">${negative ? "−" : ""}${this.money(value, order)}</td></tr>`
         : "";
 
-    return `
-<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:560px;margin:0 auto;color:#18181b">
-  <h2 style="margin:0 0 4px">Thanks — your order is confirmed</h2>
-  <p style="margin:0 0 20px;color:#71717a">${this.esc(this.shopName(order))} · Order ${this.esc(this.reference(order))}</p>
+    const where = this.whereLine(order);
+    const phone = order.location?.phone ? this.esc(order.location.phone) : "";
+    const collectAddress = !isDelivery
+      ? [order.location?.addressLine1, order.location?.city, order.location?.postcode].filter(Boolean).map((x: any) => this.esc(x)).join(", ")
+      : "";
 
-  <p style="margin:0 0 24px">
-    <a href="${this.trackingUrl(order)}"
-       style="background:#18181b;color:#fff;text-decoration:none;padding:12px 20px;border-radius:8px;display:inline-block;font-weight:600">
-      Track your order
-    </a>
-  </p>
+    const powered = renderPoweredBy({
+      url: `${this.webBase()}/?utm_source=email&utm_medium=powered_by&utm_campaign=order_confirmation`,
+      logoUrl: `${this.webBase()}/email/orderhub-logo.png`,
+    });
 
-  <table width="100%" style="border-collapse:collapse;font-size:15px">
-    ${rows}
-    <tr><td colspan="2" style="border-top:1px solid #e4e4e7;padding-top:8px"></td></tr>
+    return `<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Order confirmed</title></head>
+<body style="margin:0;padding:0;background:#f4f4f5;">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">Order ${this.esc(this.reference(order))} is confirmed — track it any time.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f4f4f5" style="background:#f4f4f5;">
+<tr><td align="center" style="padding:24px 12px;">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" bgcolor="#ffffff" style="width:100%;max-width:600px;background:#ffffff;border-radius:18px;overflow:hidden;">
+
+<tr><td align="center" style="padding:28px 32px 8px 32px;font-family:${FONT};">
+  ${logo ? `<img src="${logo}" alt="${shop}" height="64" style="display:block;margin:0 auto 10px auto;height:64px;max-width:200px;width:auto;border:0;">` : ""}
+  <div style="font-size:15px;font-weight:700;color:${ink};">${shop}</div>
+</td></tr>
+
+<tr><td align="center" style="padding:20px 32px 4px 32px;font-family:${FONT};">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr>
+    <td width="56" height="56" align="center" valign="middle" bgcolor="${accent}" style="width:56px;height:56px;border-radius:28px;background:${accent};color:#ffffff;font-size:28px;font-weight:700;line-height:56px;">&#10003;</td>
+  </tr></table>
+  <h1 style="margin:16px 0 6px 0;font-size:26px;line-height:1.2;font-weight:800;color:${ink};">Order confirmed</h1>
+  <p style="margin:0;font-size:16px;line-height:1.5;color:${muted};">Thanks${first ? ` ${first}` : ""}, we've got your order and the kitchen is on it.</p>
+</td></tr>
+
+<tr><td align="center" style="padding:18px 32px 6px 32px;font-family:${FONT};">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr>
+    <td style="padding:8px 14px;border-radius:999px;background:#f4f4f5;font-size:14px;color:${ink};">Order <b>${this.esc(this.reference(order))}</b></td>
+    <td width="8"></td>
+    <td style="padding:8px 14px;border-radius:999px;background:#f4f4f5;font-size:14px;color:${ink};">${isDelivery ? "Delivery" : "Collection"} · ${when ? this.esc(when) : "ASAP"}</td>
+  </tr></table>
+</td></tr>
+
+<tr><td align="center" style="padding:20px 32px 28px 32px;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr>
+    <td bgcolor="${ink}" style="border-radius:10px;background:${ink};">
+      <a href="${this.trackingUrl(order)}" target="_blank" style="display:inline-block;padding:14px 30px;font-family:${FONT};font-size:16px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:10px;">Track your order</a>
+    </td>
+  </tr></table>
+</td></tr>
+
+<tr><td style="padding:0 32px;">
+  <div style="font-family:${FONT};font-size:12px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:${muted};padding-bottom:4px;border-bottom:1px solid #e4e4e7;">Your order</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${rows}</table>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:12px;">
     ${line("Subtotal", order.subtotal)}
     ${line("Delivery", order.deliveryFee)}
     ${line("Service charge", order.serviceCharge)}
-    <tr><td style="padding-top:6px;font-weight:700">Total</td>
-        <td align="right" style="padding-top:6px;font-weight:700">${this.money(order.total, order)}</td></tr>
+    ${line("Discount", order.discount, true)}
+    ${line("Tip", order.tipAmount)}
+    <tr><td style="padding:10px 0 0 0;font-family:${FONT};font-size:17px;font-weight:800;color:${ink};border-top:1px solid #e4e4e7;">Total</td>
+        <td align="right" style="padding:10px 0 0 0;font-family:${FONT};font-size:17px;font-weight:800;color:${ink};border-top:1px solid #e4e4e7;">${this.money(order.total, order)}</td></tr>
   </table>
+</td></tr>
 
-  <p style="margin:20px 0 0;font-size:14px">${this.whereLine(order)}</p>
+<tr><td style="padding:24px 32px 8px 32px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#fafafa" style="background:#fafafa;border:1px solid #f0f0f0;border-radius:12px;">
+    <tr><td style="padding:16px 18px;font-family:${FONT};font-size:14px;line-height:1.55;color:${ink};">
+      <div style="font-size:12px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:${muted};margin-bottom:4px;">${isDelivery ? "Delivering to" : "Collect from"}</div>
+      <div>${isDelivery ? where.replace(/^Delivering to /, "") : `${this.esc(order.location?.name ?? "the shop")}${collectAddress ? `<br>${collectAddress}` : ""}`}</div>
+      ${phone ? `<div style="margin-top:10px;color:${muted};">Questions about your order? Call ${shop} on <a href="tel:${phone.replace(/\s+/g, "")}" style="color:${ink};font-weight:600;text-decoration:none;">${phone}</a></div>` : ""}
+    </td></tr>
+  </table>
+</td></tr>
 
-  <p style="margin:16px 0 0;color:#71717a;font-size:13px">
-    ${order.fulfillmentType === "DELIVERY" ? "We'll let you know when it's on its way." : "We'll let you know when it's ready to collect."}
-    You can follow it any time on the tracking page above.${
-      order.location?.phone
-        ? ` Any problems, call the shop on ${this.esc(order.location.phone)}.`
-        : ""
-    }
-  </p>
-</div>`.trim();
+<tr><td align="center" style="padding:16px 32px 18px 32px;font-family:${FONT};font-size:13px;line-height:1.5;color:${muted};">
+  ${isDelivery ? "We'll let you know when it's on its way." : "We'll let you know when it's ready to collect."}
+  You can follow it any time on the tracking page.
+</td></tr>
+
+${powered}
+</table>
+</td></tr></table>
+</body></html>`;
   }
 
   /** Enough of an address to recognise, not enough to be a log of emails. */

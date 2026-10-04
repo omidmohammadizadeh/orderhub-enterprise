@@ -2074,28 +2074,27 @@ export class OrderingService {
       }
     }
 
-    // "Email me offers" — the address is the signed-in account's when there
-    // is one (the customer proved they own it), else what they typed.
-    if (dto.emailMarketingConsent === true && this.emailMarketing) {
-      const account = dto.customerAccountId
-        ? await this.prisma.customerAccount
-            .findUnique({
-              where: { id: dto.customerAccountId },
-              select: { email: true, firstName: true, lastName: true },
-            })
-            .catch(() => null)
-        : null;
-      const info: any = dto.customerInfo ?? {};
-      const [first, ...rest] = String(info.name ?? "").trim().split(/\s+/);
-      void this.emailMarketing.onCheckoutConsent({
-        tenantId: location.brand.tenantId,
-        locationId: location.id,
-        email: account?.email ?? info.email ?? null,
-        firstName: account?.firstName || first || null,
-        lastName: account?.lastName || rest.join(" ") || null,
-        customerAccountId: dto.customerAccountId ?? null,
-        source: "ONLINE",
-      });
+    // "Email me offers" — always the SIGNED-IN account's address, the one the
+    // customer proved they own. The checkout email field is optional and
+    // unverified, so a guest (no account) is never subscribed from here.
+    if (dto.emailMarketingConsent === true && dto.customerAccountId && this.emailMarketing) {
+      const account = await this.prisma.customerAccount
+        .findUnique({
+          where: { id: dto.customerAccountId },
+          select: { email: true, firstName: true, lastName: true },
+        })
+        .catch(() => null);
+      if (account?.email) {
+        void this.emailMarketing.onCheckoutConsent({
+          tenantId: location.brand.tenantId,
+          locationId: location.id,
+          email: account.email,
+          firstName: account.firstName || null,
+          lastName: account.lastName || null,
+          customerAccountId: dto.customerAccountId,
+          source: "ONLINE",
+        });
+      }
     }
 
     // Phase MK-INSIGHTS — attribute the order to whichever campaigns

@@ -5,6 +5,12 @@ import { Monitor, Smartphone } from "lucide-react";
 import { personalise, renderEmail, type EmailDesign } from "@orderhub/shared";
 import { cn } from "@/lib/utils";
 
+/** Same footer the API adds to every email. */
+export const POWERED_BY = {
+  url: "https://www.orderhubsolutions.com",
+  logoUrl: "/email/orderhub-logo.png",
+};
+
 /**
  * The live preview. Uses the SAME renderer the API sends with, so what the
  * restaurant sees here is what lands in the inbox — including the footer and
@@ -38,6 +44,9 @@ export function EmailPreview({
         footerAddress: footerAddress ?? "Your shop address appears here",
         firstName,
         preheader,
+        poweredBy: POWERED_BY,
+        // The iframe is srcDoc, so site paths need the page's own origin.
+        assetBaseUrl: typeof window !== "undefined" ? window.location.origin : null,
       }).html,
     [design, brandName, logoUrl, preheader, footerAddress, firstName],
   );

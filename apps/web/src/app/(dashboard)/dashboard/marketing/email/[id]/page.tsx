@@ -46,11 +46,17 @@ interface Props {
 
 export default function EmailCampaignPage({ params }: Props) {
   const { id } = use(params);
-  const { data: ctx } = useQuery({ queryKey: ["email-mkt", "context"], queryFn: emailMarketingClient.context });
   const { data: campaign, isLoading, error } = useQuery({
     queryKey: ["email-mkt", "campaign", id],
     queryFn: () => emailMarketingClient.campaign(id),
     refetchInterval: (q) => ((q.state.data as EmailCampaign | undefined)?.status === "SENDING" ? 4000 : false),
+  });
+  // Brands scoped to the campaign's shop, so the brand picker can't offer
+  // another restaurant.
+  const { data: ctx } = useQuery({
+    queryKey: ["email-mkt", "context", campaign?.locationId ?? null],
+    queryFn: () => emailMarketingClient.context(campaign?.locationId ?? null),
+    enabled: !!campaign,
   });
 
   if (isLoading) {

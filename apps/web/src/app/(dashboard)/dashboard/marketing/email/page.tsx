@@ -27,6 +27,7 @@ import {
   X,
 } from "lucide-react";
 import { EMAIL_TEMPLATES, renderEmail, type EmailProduct } from "@orderhub/shared";
+import { POWERED_BY } from "@/components/email-marketing/email-preview";
 import {
   apiErrorMessage,
   emailMarketingClient,
@@ -46,7 +47,10 @@ type Tab = "campaigns" | "audience";
 export default function EmailMarketingPage() {
   const [tab, setTab] = useState<Tab>("campaigns");
   const locationId = useSelectedLocationStore((s) => s.selectedLocationId);
-  const { data: ctx } = useQuery({ queryKey: ["email-mkt", "context"], queryFn: emailMarketingClient.context });
+  const { data: ctx } = useQuery({
+    queryKey: ["email-mkt", "context", locationId],
+    queryFn: () => emailMarketingClient.context(locationId),
+  });
   const { data: stats } = useQuery({
     queryKey: ["email-mkt", "contacts", "stats", locationId],
     queryFn: () => emailMarketingClient.contacts({ locationId, limit: 1 }),
@@ -259,6 +263,7 @@ function TemplatePicker({
 }) {
   const locationId = useSelectedLocationStore((s) => s.selectedLocationId);
   const brands = ctx?.brands ?? [];
+  // brands[0] is the selected shop's own brand (the API sorts it first).
   const [brandId, setBrandId] = useState<string>(brands[0]?.id ?? "");
   const brand = brands.find((b) => b.id === brandId) ?? brands[0];
   const { data: products } = useQuery({
@@ -349,6 +354,7 @@ function TemplateThumb(props: {
       storefrontUrl: "#",
       unsubscribeUrl: "#",
       firstName: "Sam",
+      poweredBy: POWERED_BY,
     }).html;
   }, [props.templateId, props.brandName, props.logoUrl, props.primaryColor, props.products]);
   return (

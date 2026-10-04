@@ -40,14 +40,12 @@ describe("checkout consent", () => {
     });
   });
 
-  it("a fresh tick re-subscribes someone who unsubscribed", async () => {
+  it("the pre-ticked box never undoes an unsubscribe", async () => {
     const { svc, prisma } = make();
     prisma.emailContact.findUnique.mockResolvedValue({ id: "k1", status: "UNSUBSCRIBED" });
     await svc.onCheckoutConsent({ tenantId: "t1", email: "sam@x.com" });
-    expect(prisma.emailContact.update).toHaveBeenCalledWith({
-      where: { id: "k1" },
-      data: expect.objectContaining({ status: "SUBSCRIBED", consentSource: "checkout", unsubscribedAt: null }),
-    });
+    expect(prisma.emailContact.update).not.toHaveBeenCalled();
+    expect(prisma.emailContact.create).not.toHaveBeenCalled();
   });
 
   it.each(["BOUNCED", "COMPLAINED"])("never re-subscribes a %s address", async (status) => {
@@ -217,5 +215,47 @@ describe("failed campaigns", () => {
     const { svc, actor } = withCampaign({ id: "c1", status: "CANCELLED", startedAt: new Date(), completedAt: null }, 0);
     await expect(svc.retry(actor, "c1")).rejects.toThrow();
     await expect(svc.deleteCampaign(actor, "c1")).rejects.toThrow();
+  });
+});
+
+describe("the right restaurant's dishes", () => {
+  function shop() {
+    const { svc, prisma } = make({
+      location: { findFirst: jest.fn().mockResolvedValue({ brandId: "pizza" }), findUnique: jest.fn().mockResolvedValue({ currency: "GBP" }) },
+      brand: {
+        findMany: jest.fn().mockResolvedValue([]),
+        findFirst: jest.fn().mockImplementation(({ where }: any) => ({ id: where.id, name: where.id })),
+        findUnique: jest.fn(),
+      },
+      menuChannelAssignment: {
+        findMany: jest.fn().mockImplementation(({ where }: any) =>
+          where.brandId
+            ? [{ menuId: "m-pos", channel: "POS" }, { menuId: "m-online", channel: "ONLINE" }]
+            : [{ brandId: "pizza" }],
+        ),
+      },
+      menu: { findMany: jest.fn().mockResolvedValue([]) },
+      menuItem: { findMany: jest.fn().mockResolvedValue([]) },
+    });
+    (svc as any).wallet = { accessibleLocationIds: async () => null };
+    return { svc, prisma };
+  }
+
+  it("a shop only trades as its own brands", async () => {
+    const { svc } = shop();
+    expect(await svc.brandIdsAtLocation("t1", "pelton")).toEqual(["pizza"]);
+  });
+
+  it("dishes come from the menu that shop serves online, not every menu of the brand", async () => {
+    const { svc, prisma } = shop();
+    await svc.products({ tenantId: "t1" }, { brandId: "pizza", locationId: "pelton" });
+    expect(prisma.menuItem.findMany.mock.calls[0][0].where.menuIds).toEqual({ hasSome: ["m-online"] });
+  });
+
+  it("refuses a brand the shop doesn't sell", async () => {
+    const { svc } = shop();
+    await expect(
+      (svc as any).resolveSender({ tenantId: "t1", role: "TENANT_OWNER" }, "kebab", "pelton"),
+    ).rejects.toThrow("isn't sold at this location");
   });
 });

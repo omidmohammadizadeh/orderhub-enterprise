@@ -175,6 +175,30 @@ export interface RenderEmailContext {
    *  resolved against. A browser fills that in from the page; an inbox has no
    *  page, so a relative src is a broken image in every email client. */
   assetBaseUrl?: string | null;
+  /** "Powered by OrderHub" under the footer — our logo, linking to our site. */
+  poweredBy?: PoweredBy | null;
+}
+
+export interface PoweredBy {
+  url: string;
+  logoUrl: string;
+}
+
+/**
+ * The small "Powered by OrderHub" line every customer email ends with —
+ * marketing and order confirmations alike. A table row, so it drops into any
+ * of our 600px email layouts.
+ */
+export function renderPoweredBy(p: PoweredBy): string {
+  const url = escapeHtml(p.url);
+  return `<tr><td align="center" style="padding:4px 32px 28px 32px;">
+<a href="${url}" target="_blank" style="text-decoration:none;color:#a1a1aa;font-family:${FONT};font-size:11px;letter-spacing:0.3px;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr>
+<td style="font-family:${FONT};font-size:12px;color:#a1a1aa;padding-right:8px;vertical-align:middle;">Powered by</td>
+<td style="vertical-align:middle;"><img src="${escapeHtml(p.logoUrl)}" alt="OrderHub" height="32" style="display:block;height:32px;width:auto;border:0;"></td>
+<td style="font-family:${FONT};font-size:14px;font-weight:800;color:#3f3f46;padding-left:8px;vertical-align:middle;">OrderHub</td>
+</tr></table></a>
+</td></tr>`;
 }
 
 export interface RenderedEmail {
@@ -355,7 +379,6 @@ export function renderEmail(design: EmailDesign, ctx: RenderEmailContext): Rende
 <tr><td>${img}</td></tr>
 <tr><td style="padding:12px 14px 14px 14px;font-family:${FONT};">
 <div style="font-size:15px;font-weight:700;color:${theme.textColor};">${escapeHtml(it.name)}</div>
-${it.description ? `<div style="font-size:13px;line-height:1.45;color:#71717a;margin-top:4px;">${escapeHtml(String(it.description).slice(0, 110))}</div>` : ""}
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:10px;"><tr>
 <td style="font-size:15px;font-weight:800;color:${theme.textColor};">${escapeHtml(it.price ?? "")}</td>
 <td align="right"><a href="${h}" target="_blank" style="font-size:13px;font-weight:700;color:${theme.primaryColor};text-decoration:none;">${escapeHtml(b.buttonLabel || "Order")} &rarr;</a></td>
@@ -416,6 +439,7 @@ You're receiving this because you signed up for offers from ${escapeHtml(ctx.bra
 ${ctx.footerAddress ? `${escapeHtml(ctx.footerAddress)}<br>` : ""}
 <a href="${unsub}" target="_blank" style="color:#71717a;text-decoration:underline;">Unsubscribe</a>
 </td></tr>`;
+  const powered = ctx.poweredBy ? renderPoweredBy(ctx.poweredBy) : "";
   text.push("", `You're receiving this because you signed up for offers from ${ctx.brandName}.`);
   if (ctx.footerAddress) text.push(ctx.footerAddress);
   text.push(`Unsubscribe: ${ctx.unsubscribeUrl}`);
@@ -436,6 +460,7 @@ ${preheader}
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" bgcolor="${theme.cardColor}" style="width:100%;max-width:600px;background:${theme.cardColor};border-radius:16px;overflow:hidden;">
 ${parts.join("\n")}
 ${footer}
+${powered}
 </table>
 </td></tr></table>
 ${pixel}

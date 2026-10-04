@@ -581,9 +581,10 @@ function OrderPage() {
   const [customerEmail, setCustomerEmail] = useState("");
   // "Keep me updated by SMS" — ticked by default, customer can opt out.
   const [smsMarketingConsent, setSmsMarketingConsent] = useState(true);
-  // "Email me offers" — UNticked by default. Email consent is its own
-  // permission (not implied by the SMS box) and has to be an active choice.
-  const [emailMarketingConsent, setEmailMarketingConsent] = useState(false);
+  // "Email me offers" — ticked by default like the SMS box; the customer
+  // unticks it if they'd rather not. It goes to their ACCOUNT email (the one
+  // they signed in with), never the optional checkout field.
+  const [emailMarketingConsent, setEmailMarketingConsent] = useState(true);
   // Challenge 25 — "I'm 18 or over", asked only when the basket needs it.
   const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [addrFlat, setAddrFlat] = useState(""); // Phase AP fix #3 — house/flat number
@@ -3851,7 +3852,7 @@ function CartPanel(props: CartPanelProps) {
               />
               <span>Keep me updated with offers &amp; news by SMS</span>
             </label>
-            {(accountEmail || customerEmail.includes("@")) && (
+            {accountEmail && (
               <label className="mt-1 flex cursor-pointer items-start gap-2 text-xs text-zinc-500">
                 <input
                   type="checkbox"
@@ -3859,7 +3860,9 @@ function CartPanel(props: CartPanelProps) {
                   onChange={(e) => setEmailMarketingConsent(e.target.checked)}
                   className="mt-0.5 h-3.5 w-3.5 rounded border-zinc-300"
                 />
-                <span>Email me offers &amp; news. Unsubscribe any time.</span>
+                <span>
+                  Keep me updated with offers &amp; news by email ({accountEmail}). Unsubscribe any time.
+                </span>
               </label>
             )}
           </Section>

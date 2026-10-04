@@ -38,8 +38,8 @@ export class EmailMarketingController {
 
   @Get("context")
   @Roles(...MARKETING_ROLES)
-  context(@CurrentUser() user: AuthenticatedUser) {
-    return this.svc.context(actorOf(user));
+  context(@CurrentUser() user: AuthenticatedUser, @Query("locationId") locationId?: string) {
+    return this.svc.context(actorOf(user), locationId || null);
   }
 
   // ── Contacts ──────────────────────────────────────────────────────────────

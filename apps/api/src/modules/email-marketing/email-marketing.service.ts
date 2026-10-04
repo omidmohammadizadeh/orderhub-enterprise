@@ -159,9 +159,21 @@ export class EmailMarketingService {
 
   // ── Context for the dashboard ────────────────────────────────────────────
 
-  async context(actor: Actor) {
+  async context(actor: Actor, locationId?: string | null) {
+    // With a shop selected, only the brands that shop trades as — and its
+    // own brand first, so a new campaign defaults to the right restaurant.
+    let atLocation: string[] | null = null;
+    if (locationId) {
+      await this.scope(actor, locationId);
+      atLocation = await this.brandIdsAtLocation(actor.tenantId, locationId);
+    }
     const rows = await this.prisma.brand.findMany({
-      where: { tenantId: actor.tenantId, deletedAt: null, isActive: true },
+      where: {
+        tenantId: actor.tenantId,
+        deletedAt: null,
+        isActive: true,
+        ...(atLocation?.length ? { id: { in: atLocation } } : {}),
+      },
       select: {
         id: true, name: true, logoUrl: true, primaryLocationId: true,
         locations: { select: { id: true, logoUrl: true }, take: 5 },
@@ -178,6 +190,10 @@ export class EmailMarketingService {
         locations.find((l) => l.logoUrl)?.logoUrl ??
         null,
     }));
+    if (atLocation?.length) {
+      // atLocation[0] is the shop's own brand.
+      brands.sort((a, b) => (a.id === atLocation![0] ? -1 : b.id === atLocation![0] ? 1 : 0));
+    }
     const branding = await this.db()
       .tenantBranding.findUnique({ where: { tenantId: actor.tenantId }, select: { primaryColor: true } })
       .catch(() => null);
@@ -469,9 +485,18 @@ export class EmailMarketingService {
   }
 
   /**
-   * Checkout's "Email me offers" box. Ticked = subscribe (or resubscribe: a
-   * fresh tick is fresh consent). Unticked does NOTHING — the box starts
-   * unticked, so leaving it alone is not a request to be removed.
+   * Checkout's "Email me offers" box, for a SIGNED-IN customer: the address is
+   * their account's (the one they proved they own), never the optional
+   * checkout field.
+   *
+   * The box starts ticked — the soft opt-in for a customer buying from the
+   * shop, with an obvious way to say no right there and in every email. So:
+   *   - ticked, new address  → subscribed;
+   *   - ticked, already on the list as unsubscribed / bounced / complained →
+   *     left alone (leaving a pre-ticked box ticked is not a fresh decision;
+   *     anyone who changes their mind re-subscribes from any email's link);
+   *   - unticked → nothing happens here either (not ticking is not a request
+   *     to unsubscribe — the unsubscribe link is how that's said).
    */
   @OnEvent("email-marketing.consent")
   async onCheckoutConsent(ev: {
@@ -490,14 +515,11 @@ export class EmailMarketingService {
         where: { tenantId_email: { tenantId: ev.tenantId, email } },
       });
       if (existing) {
-        if (existing.status === "BOUNCED" || existing.status === "COMPLAINED") return;
+        if (existing.status !== "SUBSCRIBED") return;
+        // Already subscribed: just fill in what we didn't know.
         await this.db().emailContact.update({
           where: { id: existing.id },
           data: {
-            status: "SUBSCRIBED",
-            consentSource: existing.status === "SUBSCRIBED" ? existing.consentSource : "checkout",
-            consentAt: existing.status === "SUBSCRIBED" ? existing.consentAt : new Date(),
-            unsubscribedAt: null,
             firstName: existing.firstName ?? ev.firstName ?? null,
             lastName: existing.lastName ?? ev.lastName ?? null,
             locationId: existing.locationId ?? ev.locationId ?? null,
@@ -576,6 +598,35 @@ export class EmailMarketingService {
   }
 
   /** A campaign must say who it is from and whose wallet pays. */
+  /**
+   * The brands a shop actually trades as: its own brand, brands that name it
+   * as their home, and brands with a menu assigned to it. A tenant often runs
+   * several restaurants; Pizza Uno Pelton's email must never be built from
+   * Best Kebab's dishes just because Best Kebab sorts first.
+   */
+  async brandIdsAtLocation(tenantId: string, locationId: string): Promise<string[]> {
+    const [loc, homed, assigned] = await Promise.all([
+      this.prisma.location.findFirst({
+        where: { id: locationId, brand: { tenantId } },
+        select: { brandId: true },
+      }),
+      this.prisma.brand.findMany({
+        where: { tenantId, primaryLocationId: locationId, deletedAt: null },
+        select: { id: true },
+      }),
+      this.prisma.menuChannelAssignment.findMany({
+        where: { locationId },
+        select: { brandId: true },
+        distinct: ["brandId"],
+      }),
+    ]);
+    const ids = new Set<string>();
+    if (loc?.brandId) ids.add(loc.brandId);
+    homed.forEach((b) => ids.add(b.id));
+    assigned.forEach((a) => ids.add(a.brandId));
+    return Array.from(ids);
+  }
+
   private async resolveSender(actor: Actor, brandId?: string | null, locationId?: string | null) {
     const locIds = await this.scope(actor, locationId);
     const loc = locationId ?? (locIds?.length === 1 ? locIds[0]! : null);
@@ -589,6 +640,11 @@ export class EmailMarketingService {
         select: { id: true, name: true, logoUrl: true, topSellerItemIds: true, primaryLocationId: true },
       });
       if (!brand) throw new BadRequestException("Brand not found");
+      // A brand that doesn't trade at this shop would put another
+      // restaurant's name, logo and dishes on this shop's email.
+      if (loc && !(await this.brandIdsAtLocation(actor.tenantId, loc)).includes(brand.id)) {
+        throw new BadRequestException("That brand isn't sold at this location.");
+      }
     } else if (loc) {
       const l = await this.prisma.location.findUnique({ where: { id: loc }, select: { brandId: true } });
       if (l?.brandId) {
@@ -766,6 +822,12 @@ export class EmailMarketingService {
       isAvailable: true,
       visibleToCustomers: true,
     };
+    // At a shop, only what that shop's menu for this brand actually sells —
+    // not every product the brand has ever had at any of its sites.
+    if (opts.locationId) {
+      const menuIds = await this.menuIdsAt(opts.locationId, brand.id);
+      if (menuIds.length) where.menuIds = { hasSome: menuIds };
+    }
     if (opts.ids?.length) where.id = { in: opts.ids };
     if (opts.search?.trim()) where.name = { contains: opts.search.trim(), mode: "insensitive" };
     const items = await this.prisma.menuItem.findMany({
@@ -792,6 +854,25 @@ export class EmailMarketingService {
       if (out.length >= (opts.limit ?? 120)) break;
     }
     return out;
+  }
+
+  /** The menus a shop serves for a brand: its channel assignments (online
+   *  first), else menus built for that shop. Empty = unknown; the caller then
+   *  falls back to the brand's products. */
+  private async menuIdsAt(locationId: string, brandId: string): Promise<string[]> {
+    const assigned = await this.prisma.menuChannelAssignment.findMany({
+      where: { locationId, brandId },
+      select: { menuId: true, channel: true },
+    });
+    if (assigned.length) {
+      const online = assigned.filter((a) => a.channel === "ONLINE");
+      return Array.from(new Set((online.length ? online : assigned).map((a) => a.menuId)));
+    }
+    const own = await this.prisma.menu.findMany({
+      where: { brandId, locationId, deletedAt: null, isActive: true },
+      select: { id: true },
+    });
+    return own.map((m) => m.id);
   }
 
   // ── Audience + cost ──────────────────────────────────────────────────────
@@ -899,6 +980,7 @@ export class EmailMarketingService {
       footerAddress: address || null,
       // Menu photos are often stored as relative proxy paths.
       assetBaseUrl: base,
+      poweredBy: poweredByFor(base),
     };
   }
 
@@ -1338,6 +1420,14 @@ export class EmailMarketingService {
       });
     }
   }
+}
+
+/** The "Powered by OrderHub" footer every email carries. */
+export function poweredByFor(webBase: string) {
+  return {
+    url: `${webBase}/?utm_source=email&utm_medium=powered_by`,
+    logoUrl: `${webBase}/email/orderhub-logo.png`,
+  };
 }
 
 export function maskEmail(email: string): string {

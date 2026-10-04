@@ -96,7 +96,10 @@ const BASE = "/v1/email-marketing";
 const loc = (locationId?: string | null) => (locationId ? { locationId } : {});
 
 export const emailMarketingClient = {
-  context: () => apiClient.get<EmailMarketingContext>(`${BASE}/context`).then((r) => r.data),
+  /** With a shop selected, `brands` is just the brands that shop trades as,
+   *  its own first. */
+  context: (locationId?: string | null) =>
+    apiClient.get<EmailMarketingContext>(`${BASE}/context`, { params: loc(locationId) }).then((r) => r.data),
 
   contacts: (params: {
     locationId?: string | null;
