@@ -160,11 +160,24 @@ export class EmailMarketingService {
   // ── Context for the dashboard ────────────────────────────────────────────
 
   async context(actor: Actor) {
-    const brands = await this.prisma.brand.findMany({
+    const rows = await this.prisma.brand.findMany({
       where: { tenantId: actor.tenantId, deletedAt: null, isActive: true },
-      select: { id: true, name: true, logoUrl: true, primaryLocationId: true },
+      select: {
+        id: true, name: true, logoUrl: true, primaryLocationId: true,
+        locations: { select: { id: true, logoUrl: true }, take: 5 },
+      },
       orderBy: { name: "asc" },
     });
+    // The logo the email will actually carry (see renderContext): the brand's,
+    // else its shop's — so the preview isn't missing a logo the inbox shows.
+    const brands = rows.map(({ locations, ...b }) => ({
+      ...b,
+      logoUrl:
+        b.logoUrl ??
+        locations.find((l) => l.id === b.primaryLocationId)?.logoUrl ??
+        locations.find((l) => l.logoUrl)?.logoUrl ??
+        null,
+    }));
     const branding = await this.db()
       .tenantBranding.findUnique({ where: { tenantId: actor.tenantId }, select: { primaryColor: true } })
       .catch(() => null);
@@ -805,7 +818,7 @@ export class EmailMarketingService {
           where: { id: locId },
           select: {
             id: true, name: true, brandId: true, onlineOrderingSlug: true, slug: true,
-            addressLine1: true, city: true, postcode: true,
+            addressLine1: true, city: true, postcode: true, logoUrl: true,
           },
         })
       : null;
@@ -830,7 +843,15 @@ export class EmailMarketingService {
       .filter((s) => s && String(s).trim())
       .join(", ");
     const brandName = String(c.fromName || brand?.name || loc?.name || "Our restaurant");
-    return { brandName, logoUrl: brand?.logoUrl ?? null, storefrontUrl, footerAddress: address || null };
+    return {
+      brandName,
+      // Same order the storefront uses: the brand's logo, else the shop's.
+      logoUrl: brand?.logoUrl ?? loc?.logoUrl ?? null,
+      storefrontUrl,
+      footerAddress: address || null,
+      // Menu photos are often stored as relative proxy paths.
+      assetBaseUrl: base,
+    };
   }
 
   /** Append the attribution parameter to a storefront link. */
@@ -861,16 +882,19 @@ export class EmailMarketingService {
       // preview mode rather than one that could unsubscribe anybody.
       unsubscribeUrl: `${this.webBase()}/email/unsubscribe?t=test`,
     });
-    for (const address of addresses) {
-      await this.email.send({
+    // Through the same sender as the real campaign, so a test proves the
+    // marketing domain works — not just the order-confirmation one.
+    await this.email.sendBatch(
+      addresses.map((address) => ({
         to: address,
         subject: `[Test] ${personalise(c.subject, { brandName: ctx.brandName })}`,
         html: rendered.html,
         text: rendered.text,
         fromName: ctx.brandName,
+        fromAddress: this.fromAddress(),
         replyTo: c.replyTo ?? undefined,
-      });
-    }
+      })),
+    );
     return { ok: true, sentTo: addresses };
   }
 

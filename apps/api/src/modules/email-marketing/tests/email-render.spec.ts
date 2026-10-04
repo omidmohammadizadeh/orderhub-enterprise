@@ -84,6 +84,27 @@ describe("renderEmail", () => {
     expect(personalise("From {{brand_name}}", { brandName: "Uno" })).toBe("From Uno");
   });
 
+  it("drops a missing name gracefully instead of writing 'there, 20% off'", () => {
+    expect(personalise("{{first_name}}, 20% off this weekend", {})).toBe("20% off this weekend");
+    expect(personalise("We miss you, {{first_name}} — here's 15% off", {})).toBe("We miss you — here's 15% off");
+    expect(personalise("Thank you, {{first_name}}", { firstName: null })).toBe("Thank you");
+    expect(personalise("Hi {{first_name}}, thanks", {})).toBe("Hi there, thanks");
+    expect(personalise("{{first_name}}, 20% off", { firstName: "Sam" })).toBe("Sam, 20% off");
+  });
+
+  it("makes relative image paths absolute — an inbox has no page to resolve them against", () => {
+    const { html } = renderEmail(
+      design([
+        { id: "h", type: "header" },
+        { id: "p", type: "products", items: [{ id: "1", name: "Chips", imageUrl: "/api/v1/menus/hubrise-image/a/b" }] },
+      ]),
+      { ...ctx, logoUrl: "/logo.png", assetBaseUrl: "https://www.orderhubsolutions.com/" },
+    );
+    expect(html).toContain('src="https://www.orderhubsolutions.com/api/v1/menus/hubrise-image/a/b"');
+    expect(html).toContain('src="https://www.orderhubsolutions.com/logo.png"');
+    expect(html).not.toContain('src="/');
+  });
+
   it("builds and renders every starter template", () => {
     for (const t of EMAIL_TEMPLATES) {
       const d = t.build({

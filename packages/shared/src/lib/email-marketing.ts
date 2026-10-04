@@ -171,6 +171,10 @@ export interface RenderEmailContext {
   trackLink?: (link: EmailLink, index: number) => string;
   /** 1×1 open-tracking image, appended to the body. */
   openPixelUrl?: string | null;
+  /** Origin that relative image paths (`/api/v1/menus/hubrise-image/…`) are
+   *  resolved against. A browser fills that in from the page; an inbox has no
+   *  page, so a relative src is a broken image in every email client. */
+  assetBaseUrl?: string | null;
 }
 
 export interface RenderedEmail {
@@ -195,15 +199,27 @@ function color(v: unknown, fallback: string): string {
   return HEX.test(s) ? s : fallback;
 }
 
+const NAME_TAG = "\\{\\{\\s*(?:first_?name|name)\\s*\\}\\}";
+
 /** Replace {{first_name}} / {{brand_name}}; unknown tags are dropped rather
- *  than shown to a customer as literal braces. */
+ *  than shown to a customer as literal braces.
+ *
+ *  Without a name, "{{first_name}}, 20% off" and "We miss you, {{first_name}}"
+ *  lose the name AND its comma rather than becoming "there, 20% off"; only a
+ *  greeting ("Hi {{first_name}}") falls back to "there". */
 export function personalise(
   text: string,
   vars: { firstName?: string | null; brandName?: string | null },
 ): string {
-  const first = String(vars.firstName ?? "").trim() || "there";
-  return String(text ?? "")
-    .replace(/\{\{\s*(first_?name|name)\s*\}\}/gi, first)
+  const first = String(vars.firstName ?? "").trim();
+  let out = String(text ?? "");
+  if (!first) {
+    out = out
+      .replace(new RegExp(`^\\s*${NAME_TAG}\\s*[,!:]?\\s*(.)`, "i"), (_m, c: string) => c.toUpperCase())
+      .replace(new RegExp(`\\s*,\\s*${NAME_TAG}`, "gi"), "");
+  }
+  return out
+    .replace(new RegExp(NAME_TAG, "gi"), first || "there")
     .replace(/\{\{\s*brand(_?name)?\s*\}\}/gi, String(vars.brandName ?? ""))
     .replace(/\{\{\s*(?!storefront\s*\}\})[^}]*\}\}/g, "");
 }
@@ -243,6 +259,11 @@ export function renderEmail(design: EmailDesign, ctx: RenderEmailContext): Rende
   const text: string[] = [];
   const vars = { firstName: ctx.firstName, brandName: ctx.brandName };
   const p = (s: string) => personalise(s, vars);
+  const base = String(ctx.assetBaseUrl ?? "").replace(/\/+$/, "");
+  const src = (u: string | null | undefined): string => {
+    const v = String(u ?? "").trim();
+    return escapeHtml(v.startsWith("/") && !v.startsWith("//") && base ? `${base}${v}` : v);
+  };
 
   const href = (raw: string | undefined | null): string => {
     const link = resolveEmailUrl(raw, ctx.storefrontUrl);
@@ -268,7 +289,7 @@ export function renderEmail(design: EmailDesign, ctx: RenderEmailContext): Rende
     switch (b.type) {
       case "header": {
         const logo = ctx.logoUrl
-          ? `<img src="${escapeHtml(ctx.logoUrl)}" alt="${escapeHtml(ctx.brandName)}" height="56" style="display:block;margin:0 auto;height:56px;max-width:220px;width:auto;border:0;">`
+          ? `<img src="${src(ctx.logoUrl)}" alt="${escapeHtml(ctx.brandName)}" height="56" style="display:block;margin:0 auto;height:56px;max-width:220px;width:auto;border:0;">`
           : "";
         const name =
           b.showName !== false || !ctx.logoUrl
@@ -280,7 +301,7 @@ export function renderEmail(design: EmailDesign, ctx: RenderEmailContext): Rende
       case "hero":
       case "image": {
         if (!b.imageUrl) break;
-        const img = `<img src="${escapeHtml(b.imageUrl)}" alt="${escapeHtml(b.alt ?? "")}" width="600" style="display:block;width:100%;max-width:600px;height:auto;border:0;${b.type === "image" ? "border-radius:10px;" : ""}">`;
+        const img = `<img src="${src(b.imageUrl)}" alt="${escapeHtml(b.alt ?? "")}" width="600" style="display:block;width:100%;max-width:600px;height:auto;border:0;${b.type === "image" ? "border-radius:10px;" : ""}">`;
         const linked = b.url ? `<a href="${href(b.url)}" target="_blank">${img}</a>` : img;
         parts.push(b.type === "hero" ? `<tr><td style="padding:0 0 24px 0;">${linked}</td></tr>` : row(linked));
         break;
@@ -327,7 +348,7 @@ export function renderEmail(design: EmailDesign, ctx: RenderEmailContext): Rende
           const h = href(STOREFRONT_LINK);
           text.push(`- ${it.name}${it.price ? ` ${it.price}` : ""}`);
           const img = it.imageUrl
-            ? `<a href="${h}" target="_blank"><img src="${escapeHtml(it.imageUrl)}" alt="${escapeHtml(it.name)}" width="250" style="display:block;width:100%;height:auto;border:0;border-radius:10px 10px 0 0;"></a>`
+            ? `<a href="${h}" target="_blank"><img src="${src(it.imageUrl)}" alt="${escapeHtml(it.name)}" width="250" style="display:block;width:100%;height:auto;border:0;border-radius:10px 10px 0 0;"></a>`
             : "";
           return `<td width="50%" valign="top" style="padding:6px;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e4e4e7;border-radius:10px;">
