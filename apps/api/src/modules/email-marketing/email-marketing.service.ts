@@ -572,6 +572,15 @@ export class EmailMarketingService {
 
   async getCampaign(actor: Actor, id: string) {
     const c = await this.loadCampaign(actor, id);
+    // A draft saved while its photos loaded may have dead ones now (an
+    // expired HubRise login): take them out so the editor shows the truth.
+    if (c.status === "DRAFT" || c.status === "SCHEDULED") {
+      const cleaned = await this.withoutBrokenImages(c.design as unknown as EmailDesign);
+      if (cleaned.changed) {
+        c.design = cleaned.design as any;
+        await this.db().emailCampaign.update({ where: { id }, data: { design: cleaned.design as any } });
+      }
+    }
     return { ...c, results: await this.results(c) };
   }
 
@@ -894,7 +903,80 @@ export class EmailMarketingService {
       });
       if (out.length >= (opts.limit ?? 120)) break;
     }
-    return out;
+    // A photo that won't load is worse than no photo: offer the dish without it.
+    const dead = await this.brokenImageCatalogs(out.map((p) => p.imageUrl));
+    return dead.size ? out.map((p) => (this.isDead(p.imageUrl, dead) ? { ...p, imageUrl: null } : p)) : out;
+  }
+
+  // ── Photos that actually load ────────────────────────────────────────────
+  //
+  // Menus imported from HubRise keep their photos in HubRise, served through
+  // our /menus/hubrise-image proxy with the SHOP's HubRise login. When that
+  // login expires every one of the shop's photos 404s at once — on the
+  // storefront and in any email. One sample per catalog tells us which.
+
+  private imageCheck = new Map<string, { ok: boolean; at: number }>();
+
+  private catalogOf(url: string | null | undefined): string | null {
+    return String(url ?? "").match(/\/hubrise-image\/([^/]+)\//)?.[1] ?? null;
+  }
+
+  private isDead(url: string | null | undefined, dead: Set<string>): boolean {
+    const cat = this.catalogOf(url);
+    return !!cat && dead.has(cat);
+  }
+
+  /** HubRise catalogs whose photos don't load right now. */
+  async brokenImageCatalogs(urls: (string | null | undefined)[]): Promise<Set<string>> {
+    const sample = new Map<string, string>();
+    for (const u of urls) {
+      const cat = this.catalogOf(u);
+      if (cat && !sample.has(cat)) sample.set(cat, String(u));
+    }
+    const dead = new Set<string>();
+    await Promise.all(
+      Array.from(sample).map(async ([cat, url]) => {
+        if (!(await this.imageLoads(url))) dead.add(cat);
+      }),
+    );
+    return dead;
+  }
+
+  private async imageLoads(url: string): Promise<boolean> {
+    const hit = this.imageCheck.get(url);
+    if (hit && Date.now() - hit.at < 10 * 60_000) return hit.ok;
+    let ok = false;
+    try {
+      const abs = url.startsWith("/") ? `${this.webBase()}${url}` : url;
+      const res = await fetch(abs, { signal: AbortSignal.timeout(6000) });
+      ok = res.ok && String(res.headers.get("content-type") ?? "").startsWith("image/");
+      await res.body?.cancel().catch(() => undefined);
+    } catch {
+      ok = false;
+    }
+    this.imageCheck.set(url, { ok, at: Date.now() });
+    return ok;
+  }
+
+  /** The design with every photo that won't load taken out (the dish keeps
+   *  its name and price; a banner that won't load is dropped). */
+  async withoutBrokenImages(design: EmailDesign): Promise<{ design: EmailDesign; changed: boolean }> {
+    const blocks = (design?.blocks ?? []) as any[];
+    const urls: string[] = [];
+    for (const b of blocks) {
+      if (b.type === "products") (b.items ?? []).forEach((i: any) => urls.push(i?.imageUrl));
+      if (b.type === "hero" || b.type === "image") urls.push(b.imageUrl);
+    }
+    const dead = await this.brokenImageCatalogs(urls);
+    if (!dead.size) return { design, changed: false };
+    const next = blocks.map((b) => {
+      if (b.type === "products") {
+        return { ...b, items: (b.items ?? []).map((i: any) => (this.isDead(i?.imageUrl, dead) ? { ...i, imageUrl: null } : i)) };
+      }
+      if ((b.type === "hero" || b.type === "image") && this.isDead(b.imageUrl, dead)) return { ...b, imageUrl: "" };
+      return b;
+    });
+    return { design: { ...design, blocks: next }, changed: true };
   }
 
   private onMenus(menuIds: string[]) {
@@ -1056,7 +1138,8 @@ export class EmailMarketingService {
     if (!c.subject?.trim()) throw new BadRequestException("Add a subject line first.");
     if (!this.email) throw new BadRequestException("Email isn't configured.");
     const ctx = await this.renderContext(c);
-    const rendered = renderEmail(c.design as unknown as EmailDesign, {
+    const { design } = await this.withoutBrokenImages(c.design as unknown as EmailDesign);
+    const rendered = renderEmail(design, {
       ...ctx,
       firstName: null,
       preheader: c.preheader,
@@ -1316,6 +1399,13 @@ export class EmailMarketingService {
     }
 
     try {
+      // Never mail a broken photo: drop any that won't load right now (an
+      // expired HubRise login), and send the cleaned design.
+      const cleaned = await this.withoutBrokenImages(c.design as unknown as EmailDesign);
+      if (cleaned.changed) {
+        c.design = cleaned.design as any;
+        await this.db().emailCampaign.update({ where: { id: campaignId }, data: { design: cleaned.design as any } });
+      }
       // One dry render to record every link — the click redirect table.
       const ctx = await this.renderContext(c);
       const dry = renderEmail(c.design as unknown as EmailDesign, { ...ctx, unsubscribeUrl: "", preheader: c.preheader });

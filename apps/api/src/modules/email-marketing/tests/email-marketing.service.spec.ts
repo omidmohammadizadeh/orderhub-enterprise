@@ -302,3 +302,49 @@ describe("offer codes must work before an email goes out", () => {
     await expect(withPromo(null).assertOfferCodesWork(c(""))).resolves.toBeUndefined();
   });
 });
+
+describe("photos that won't load", () => {
+  afterEach(() => {
+    (global as any).fetch = undefined;
+  });
+  const design = {
+    theme: {},
+    blocks: [
+      {
+        id: "p",
+        type: "products",
+        items: [
+          { id: "1", name: "Chips", imageUrl: "/api/v1/menus/hubrise-image/dead1/a" },
+          { id: "2", name: "Pizza", imageUrl: "/api/v1/menus/hubrise-image/live1/b" },
+          { id: "3", name: "Cola", imageUrl: "https://cdn.example.com/cola.jpg" },
+        ],
+      },
+      { id: "h", type: "hero", imageUrl: "/api/v1/menus/hubrise-image/dead1/c" },
+    ],
+  } as any;
+
+  it("checks one photo per HubRise catalog and drops the dead catalog's photos", async () => {
+    const { svc } = make();
+    (global as any).fetch = jest.fn(async (url: string) =>
+      url.includes("dead1")
+        ? { ok: false, headers: { get: () => "application/json" }, body: null }
+        : { ok: true, headers: { get: () => "image/jpeg" }, body: null },
+    );
+    const { design: out, changed } = await svc.withoutBrokenImages(design);
+    expect(changed).toBe(true);
+    expect(out.blocks[0].items.map((i: any) => i.imageUrl)).toEqual([
+      null,
+      "/api/v1/menus/hubrise-image/live1/b",
+      "https://cdn.example.com/cola.jpg",
+    ]);
+    expect((out.blocks[1] as any).imageUrl).toBe("");
+    // one request per catalog, none for ordinary https photos
+    expect((global as any).fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("leaves a design alone when every photo loads", async () => {
+    const { svc } = make();
+    (global as any).fetch = jest.fn(async () => ({ ok: true, headers: { get: () => "image/png" }, body: null }));
+    expect((await svc.withoutBrokenImages(design)).changed).toBe(false);
+  });
+});
