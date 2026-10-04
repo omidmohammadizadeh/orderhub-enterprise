@@ -170,3 +170,52 @@ describe("order attribution", () => {
     expect(await svc.attributionFor("t1", undefined)).toBeNull();
   });
 });
+
+describe("failed campaigns", () => {
+  function withCampaign(c: any, sent: number) {
+    const { svc, prisma } = make({
+      emailCampaign: {
+        findFirst: jest.fn().mockResolvedValue({ tenantId: "t1", locationId: null, ...c }),
+        findUnique: jest.fn(),
+        update: jest.fn().mockResolvedValue({}),
+        delete: jest.fn().mockResolvedValue({}),
+      },
+    });
+    prisma.emailCampaignRecipient.count = jest.fn().mockResolvedValue(sent);
+    prisma.emailCampaignRecipient.deleteMany = jest.fn().mockReturnValue("deleteMany");
+    prisma.$transaction = jest.fn().mockResolvedValue([]);
+    (svc as any).getCampaign = jest.fn().mockResolvedValue({ id: c.id, status: "DRAFT" });
+    const actor = { tenantId: "t1", role: "TENANT_OWNER" };
+    return { svc, prisma, actor };
+  }
+  const failedUnsent = { id: "c1", status: "FAILED", startedAt: new Date(), completedAt: new Date() };
+
+  it("a failure that sent nothing goes back to being a draft", async () => {
+    const { svc, prisma, actor } = withCampaign(failedUnsent, 0);
+    await svc.retry(actor, "c1");
+    expect(prisma.$transaction).toHaveBeenCalled();
+    expect(prisma.emailCampaign.update).toHaveBeenCalledWith({
+      where: { id: "c1" },
+      data: expect.objectContaining({ status: "DRAFT", startedAt: null, completedAt: null, chargedMinor: 0 }),
+    });
+  });
+
+  it("refuses to retry or delete once anything was sent", async () => {
+    const { svc, prisma, actor } = withCampaign(failedUnsent, 3);
+    await expect(svc.retry(actor, "c1")).rejects.toThrow("Duplicate it");
+    await expect(svc.deleteCampaign(actor, "c1")).rejects.toThrow("kept for your records");
+    expect(prisma.emailCampaign.delete).not.toHaveBeenCalled();
+  });
+
+  it("a failed campaign that sent nothing can be deleted", async () => {
+    const { svc, prisma, actor } = withCampaign(failedUnsent, 0);
+    await svc.deleteCampaign(actor, "c1");
+    expect(prisma.emailCampaign.delete).toHaveBeenCalledWith({ where: { id: "c1" } });
+  });
+
+  it("won't touch a stop that is still in flight", async () => {
+    const { svc, actor } = withCampaign({ id: "c1", status: "CANCELLED", startedAt: new Date(), completedAt: null }, 0);
+    await expect(svc.retry(actor, "c1")).rejects.toThrow();
+    await expect(svc.deleteCampaign(actor, "c1")).rejects.toThrow();
+  });
+});

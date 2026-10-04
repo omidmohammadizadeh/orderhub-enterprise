@@ -137,10 +137,13 @@ function Editor({ campaign, ctx }: { campaign: EmailCampaign; ctx?: EmailMarketi
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draft, dirty]);
 
+  /** Save pending edits before a modal reads the campaign. Never throws: a
+   *  failed save shows its error on the page, and the modal still opens so
+   *  the button never looks dead. */
   const flush = async () => {
     if (dirty || save.isPending) {
       setDirty(false);
-      await save.mutateAsync(latest.current);
+      await save.mutateAsync(latest.current).catch(() => undefined);
     }
   };
 
@@ -692,6 +695,21 @@ function Report({ campaign: c, ctx }: { campaign: EmailCampaign; ctx?: EmailMark
     mutationFn: () => emailMarketingClient.cancel(c.id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["email-mkt"] }),
   });
+  // Failed or stopped before anything went out (a refused API key, an
+  // unverified domain): fix the cause and send it again, or throw it away.
+  const nothingSent =
+    (c.status === "FAILED" || c.status === "CANCELLED") && c.sentCount === 0 && (!!c.completedAt || !c.startedAt);
+  const retry = useMutation({
+    mutationFn: () => emailMarketingClient.retry(c.id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["email-mkt"] }),
+  });
+  const remove = useMutation({
+    mutationFn: () => emailMarketingClient.remove(c.id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["email-mkt", "campaigns"] });
+      router.push("/dashboard/marketing/email");
+    },
+  });
   const base = c.sentCount || 0;
   const rate = (n: number) => (base ? `${((n / base) * 100).toFixed(1)}%` : "—");
   const progress = c.recipientCount ? Math.round(((c.sentCount + c.failedCount + c.skippedCount) / c.recipientCount) * 100) : 0;
@@ -721,6 +739,27 @@ function Report({ campaign: c, ctx }: { campaign: EmailCampaign; ctx?: EmailMark
             Stop sending
           </button>
         )}
+        {nothingSent && (
+          <>
+            <button
+              onClick={() => retry.mutate()}
+              disabled={retry.isPending}
+              className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+            >
+              {retry.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <PencilLine className="h-4 w-4" />}
+              Edit &amp; try again
+            </button>
+            <button
+              onClick={() => {
+                if (confirm("Delete this campaign? Nothing was sent, so nothing is lost.")) remove.mutate();
+              }}
+              disabled={remove.isPending}
+              className="flex items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 hover:text-rose-600"
+            >
+              <Trash2 className="h-4 w-4" /> Delete
+            </button>
+          </>
+        )}
         <button
           onClick={() => dup.mutate()}
           disabled={dup.isPending}
@@ -747,6 +786,11 @@ function Report({ campaign: c, ctx }: { campaign: EmailCampaign; ctx?: EmailMark
       )}
       {c.lastError && c.status !== "SENT" && (
         <div className="mt-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{c.lastError}</div>
+      )}
+      {(retry.isError || remove.isError) && (
+        <div className="mt-2 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">
+          {apiErrorMessage(retry.error ?? remove.error)}
+        </div>
       )}
 
       {/* The headline: did it make money? */}

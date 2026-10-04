@@ -170,6 +170,13 @@ export class EmailMarketingController {
     return this.svc.schedule(actorOf(user), id, body?.at);
   }
 
+  @Post("campaigns/:id/retry")
+  @Roles(...MARKETING_ROLES)
+  @ApiOperation({ summary: "Turn a failed campaign that sent nothing back into a draft" })
+  retry(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string) {
+    return this.svc.retry(actorOf(user), id);
+  }
+
   @Post("campaigns/:id/cancel")
   @Roles(...MARKETING_ROLES)
   cancel(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string) {

@@ -199,7 +199,9 @@ export class EmailMarketingService {
     start.setUTCDate(1);
     start.setUTCHours(0, 0, 0, 0);
     return this.db().emailCampaignRecipient.count({
-      where: { tenantId, createdAt: { gte: start }, status: { not: "SKIPPED" } },
+      // Only what went (or is about to go) out. A batch Resend refused never
+      // reached anyone and must not eat the restaurant's free allowance.
+      where: { tenantId, createdAt: { gte: start }, status: { in: ["PENDING", "SENDING", "SENT"] } },
     });
   }
 
@@ -692,13 +694,59 @@ export class EmailMarketingService {
     });
   }
 
+  /** Failed or stopped, and finished: no batch is still in flight. (A send
+   *  that failed while being prepared never started, so it has no close.) */
+  private isClosedUnsent(c: { status: string; startedAt: Date | null; completedAt: Date | null }): boolean {
+    return (c.status === "FAILED" || c.status === "CANCELLED") && (!!c.completedAt || !c.startedAt);
+  }
+
+  /** Whether any email of this campaign actually reached Resend. */
+  private async anySent(id: string): Promise<boolean> {
+    const n = await this.db().emailCampaignRecipient.count({ where: { campaignId: id, status: "SENT" } });
+    return n > 0;
+  }
+
+  /**
+   * Drafts, and failed / stopped campaigns that never sent a single email, can
+   * go. Anything that reached a customer stays: it is the record of what was
+   * sent, to whom, and what it was charged.
+   */
   async deleteCampaign(actor: Actor, id: string) {
     const c = await this.loadCampaign(actor, id);
-    if (!["DRAFT", "CANCELLED", "FAILED"].includes(c.status) || c.startedAt) {
-      throw new BadRequestException("Sent campaigns are kept for your records and can't be deleted.");
+    if (c.status !== "DRAFT" && (!this.isClosedUnsent(c) || (await this.anySent(id)))) {
+      throw new BadRequestException("Campaigns that sent emails are kept for your records and can't be deleted.");
     }
     await this.db().emailCampaign.delete({ where: { id } });
     return { ok: true };
+  }
+
+  /**
+   * A campaign that failed (or was stopped) before a single email went out —
+   * a refused API key, an unverified domain — goes back to being a draft, so
+   * the restaurant fixes the cause and sends it again instead of rebuilding it.
+   * Its money was already handed back when it closed.
+   */
+  async retry(actor: Actor, id: string) {
+    const c = await this.loadCampaign(actor, id);
+    if (!this.isClosedUnsent(c)) {
+      throw new BadRequestException("Only a failed or stopped campaign can be tried again.");
+    }
+    if (await this.anySent(id)) {
+      throw new BadRequestException("Some of this campaign was sent. Duplicate it to send again.");
+    }
+    await this.db().$transaction([
+      this.db().emailCampaignRecipient.deleteMany({ where: { campaignId: id } }),
+      this.db().emailCampaign.update({
+        where: { id },
+        data: {
+          status: "DRAFT", startedAt: null, completedAt: null, scheduledAt: null,
+          recipientCount: 0, sentCount: 0, failedCount: 0, skippedCount: 0, deliveredCount: 0,
+          openCount: 0, clickCount: 0, bounceCount: 0, complaintCount: 0, unsubscribeCount: 0,
+          freeUsed: 0, chargedMinor: 0, refundedMinor: 0, links: [],
+        },
+      }),
+    ]);
+    return this.getCampaign(actor, id);
   }
 
   // ── Products for the editor ──────────────────────────────────────────────

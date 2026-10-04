@@ -176,6 +176,8 @@ export const emailMarketingClient = {
 
   cancel: (id: string) => apiClient.post(`${BASE}/campaigns/${id}/cancel`).then((r) => r.data),
 
+  retry: (id: string) => apiClient.post<EmailCampaign>(`${BASE}/campaigns/${id}/retry`).then((r) => r.data),
+
   estimate: (body: { campaignId?: string; audience?: EmailAudience; locationId?: string | null }) =>
     apiClient.post<EmailEstimate>(`${BASE}/estimate`, body).then((r) => r.data),
 
