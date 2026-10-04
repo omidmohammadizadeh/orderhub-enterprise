@@ -494,7 +494,11 @@ function ProductPicker({
                 Done
               </button>
             </div>
-            <div className="grid flex-1 grid-cols-2 gap-2 overflow-y-auto p-3 sm:grid-cols-3">
+            {/* The scroll box and the grid are separate elements: a grid that is
+                itself the fixed-height scroller squashes every card into a
+                sliver (cards are overflow-hidden, so their min-height is 0). */}
+            <div className="min-h-0 flex-1 overflow-y-auto p-3">
+            <div className="grid auto-rows-max grid-cols-2 gap-2 sm:grid-cols-3">
               {isLoading && (
                 <div className="col-span-full flex justify-center py-8 text-zinc-400">
                   <Loader2 className="h-5 w-5 animate-spin" />
@@ -529,6 +533,7 @@ function ProductPicker({
                   </button>
                 );
               })}
+            </div>
             </div>
           </div>
         </div>
