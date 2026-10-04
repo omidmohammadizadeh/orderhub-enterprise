@@ -47,6 +47,25 @@ export const appConfig = registerAs("app", () => ({
       process.env.JET_OPS_ALERT_EMAIL ?? process.env.OPS_ALERT_EMAIL ?? "",
   },
 
+  // Email marketing — restaurants emailing their own customers. Sending is
+  // OFF until switched on: on Resend's free plan one campaign would use the
+  // whole 100-a-day allowance and stop order confirmations for the day.
+  emailMarketing: {
+    enabled: (process.env.EMAIL_MARKETING_ENABLED ?? "") === "true",
+    // A separate sending subdomain keeps a restaurant's spam complaints off
+    // the reputation order confirmations depend on. Falls back to EMAIL_FROM.
+    from: process.env.EMAIL_MARKETING_FROM ?? "",
+    // What WE charge the shop's wallet per 1,000 emails, in minor units
+    // (300 = £3.00). Resend charges us about $0.90 per 1,000 over the plan.
+    pricePer1000Minor: Number(process.env.EMAIL_MARKETING_PRICE_PER_1000_MINOR ?? 300),
+    // Free emails per tenant per calendar month before the wallet is charged.
+    freePerMonth: Number(process.env.EMAIL_MARKETING_FREE_PER_MONTH ?? 1000),
+    // Resend webhook signing secret (whsec_…) for delivered/bounced/complained.
+    webhookSecret: process.env.RESEND_WEBHOOK_SECRET ?? "",
+    // Signs unsubscribe links. Any long random string; falls back to JWT_SECRET.
+    tokenSecret: process.env.EMAIL_MARKETING_TOKEN_SECRET ?? process.env.JWT_SECRET ?? "",
+  },
+
   platforms: {
     uberEats: {
       clientId: process.env.UBER_EATS_CLIENT_ID ?? "",

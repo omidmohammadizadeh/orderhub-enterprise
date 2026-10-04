@@ -5614,3 +5614,147 @@ model KeetaAuthorization {
   @@index([tenantId])
   @@map("keeta_authorizations")
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// EMAIL MARKETING — restaurants email their own customers (Resend, per email)
+// ══════════════════════════════════════════════════════════════════════════════
+//
+// Separate from the SMS audience on purpose: consent is per CHANNEL in UK law
+// (PECR), so a customer who ticked "offers by SMS" has not agreed to email,
+// and an address that bounced must stop being mailed whatever its SMS status.
+//
+// One contact per (tenant, email). Segments ("ordered in the last 30 days",
+// "top spenders") are computed from the orders table at send time instead of
+// being copied onto the contact, so they can never drift from the real orders.
+
+model EmailContact {
+  id                String  @id @default(cuid())
+  tenantId          String
+  email             String // lower-cased, trimmed — the dedupe key
+  firstName         String?
+  lastName          String?
+  customerId        String?
+  customerAccountId String?
+  // The shop the contact was captured at (checkout / import). Location-scoped
+  // users see the contacts homed to their shops plus anyone who ordered there.
+  locationId        String?
+
+  // SUBSCRIBED is the only mailable status. UNSUBSCRIBED / BOUNCED /
+  // COMPLAINED are suppressions: an import can never undo them, only the
+  // customer opting in again at checkout can (and never for BOUNCED/COMPLAINED).
+  status         String    @default("SUBSCRIBED") // SUBSCRIBED | UNSUBSCRIBED | BOUNCED | COMPLAINED
+  consentSource  String? // checkout | import:asserted | manual | resubscribe
+  consentAt      DateTime?
+  unsubscribedAt DateTime?
+  suppressedAt   DateTime?
+  source         String? // ONLINE | POS | IMPORT | MANUAL
+
+  tags          String[] @default([])
+  lastEmailedAt DateTime?
+  lastOpenedAt  DateTime?
+  lastClickedAt DateTime?
+  createdBy     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, email])
+  @@index([tenantId, status])
+  @@index([tenantId, locationId])
+  @@map("email_contacts")
+}
+
+model EmailCampaign {
+  id         String  @id @default(cuid())
+  tenantId   String
+  // The shop whose wallet pays and whose address is in the footer. Null only
+  // for tenant-wide admins sending across every shop.
+  locationId String?
+  // The brand the email speaks as: name, logo, storefront link.
+  brandId    String?
+
+  name       String
+  subject    String  @default("")
+  preheader  String?
+  fromName   String?
+  replyTo    String?
+  templateId String?
+  // { theme: {...}, blocks: [...] } — rendered by @orderhub/shared/email-render
+  // in the browser preview AND at send time, so what you see is what is sent.
+  design     Json    @default("{}")
+  // { segment, days?, minOrders?, minSpend?, brandId?, tags? }
+  audience   Json    @default("{}")
+
+  status      String    @default("DRAFT") // DRAFT | SCHEDULED | SENDING | SENT | CANCELLED | FAILED
+  scheduledAt DateTime?
+  startedAt   DateTime?
+  completedAt DateTime?
+  lastError   String?
+
+  // Every link in the email, in render order. Click tracking redirects by
+  // index into this list, so the redirect can only ever go where the email
+  // already pointed — never an open redirect.
+  links Json @default("[]")
+
+  recipientCount   Int @default(0)
+  sentCount        Int @default(0)
+  failedCount      Int @default(0)
+  skippedCount     Int @default(0)
+  deliveredCount   Int @default(0)
+  openCount        Int @default(0) // unique opens
+  clickCount       Int @default(0) // unique clickers
+  bounceCount      Int @default(0)
+  complaintCount   Int @default(0)
+  unsubscribeCount Int @default(0)
+
+  // Billing snapshot: free allowance used + wallet pennies charged / refunded.
+  freeUsed      Int @default(0)
+  chargedMinor  Int @default(0)
+  refundedMinor Int @default(0)
+
+  createdBy String?
+
+  recipients EmailCampaignRecipient[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId, createdAt])
+  @@index([status, scheduledAt])
+  @@map("email_campaigns")
+}
+
+// One row per address a campaign goes to. Unique (campaignId, email) is what
+// makes "nobody gets the same campaign twice" true even across a crash and
+// retry; batchKey is the Resend Idempotency-Key the row was sent under.
+model EmailCampaignRecipient {
+  id         String        @id @default(cuid())
+  campaignId String
+  campaign   EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  tenantId   String
+  contactId  String
+  email      String
+  firstName  String?
+
+  status   String  @default("PENDING") // PENDING | SENDING | SENT | FAILED | SKIPPED
+  batchKey String?
+  resendId String?
+  error    String?
+
+  claimedAt      DateTime?
+  sentAt         DateTime?
+  deliveredAt    DateTime?
+  openedAt       DateTime?
+  clickedAt      DateTime?
+  bouncedAt      DateTime?
+  complainedAt   DateTime?
+  unsubscribedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@unique([campaignId, email])
+  @@index([campaignId, status])
+  @@index([resendId])
+  @@index([tenantId, createdAt])
+  @@map("email_campaign_recipients")
+}

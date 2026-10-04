@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
   Logger,
+  Optional,
 } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import {
@@ -35,6 +36,7 @@ import { resolveNestedModifierGroups } from "../menus/nested-modifier-groups";
 import { PauseService } from "../pauses/pause.service";
 import { MarketingService } from "../marketing/marketing.service";
 import { DeliveryZonesService } from "../delivery-zones/delivery-zones.service";
+import { EmailMarketingService } from "../email-marketing/email-marketing.service";
 import { isShop, soldOutItemIds } from "../retail/retail-availability";
 import { parseSubstitutionPref, priceShortfall, toMinor } from "../retail/retail.logic";
 import { isCurrentlyOpen as isOpenAt } from "../../common/opening-hours.util";
@@ -105,6 +107,12 @@ export interface CheckoutDto {
   promoCode?: string;
   /** Storefront "Send me offers by SMS" checkbox → SMS-marketing consent. */
   marketingConsent?: boolean;
+  /** Storefront "Email me offers" checkbox → EMAIL-marketing consent. Kept
+   *  apart from the SMS one: consent is per channel. */
+  emailMarketingConsent?: boolean;
+  /** The marketing email recipient row the customer arrived from (`?er=` on
+   *  the storefront link) — attributes the order to that campaign. */
+  emailRecipientId?: string;
   /** Retail — the customer ticked "I'm 18 or over" (or 16). Required when the
    *  basket holds an age-restricted product; ID is still checked on hand-over. */
   ageConfirmed?: boolean;
@@ -337,6 +345,9 @@ export class OrderingService {
     private readonly marketing: MarketingService,
     private readonly deliveryZones: DeliveryZonesService,
     private readonly tap: TapService,
+    // Email marketing: checkout consent + "this order came from an email".
+    // Optional so the existing positional test constructors keep working.
+    @Optional() private readonly emailMarketing?: EmailMarketingService,
   ) {}
 
   /**
@@ -1993,6 +2004,12 @@ export class OrderingService {
     );
     if (loyaltyLine) items.push(loyaltyLine);
 
+    // Checked against the database, not trusted: an attribution has to name a
+    // real recipient of this tenant's campaign, sent in the last two weeks.
+    const emailAttribution = dto.emailRecipientId
+      ? await this.emailMarketing?.attributionFor(location.brand.tenantId, dto.emailRecipientId)
+      : null;
+
     const order = await this.ordersService.create(
       {
         locationId: location.id,
@@ -2024,6 +2041,7 @@ export class OrderingService {
         // Storefront SMS-marketing consent → captured on the resulting Order
         // via OrdersService.create's marketing.consent event.
         marketingConsent: dto.marketingConsent,
+        ...(emailAttribution ? { emailAttribution } : {}),
         paymentMethod: dto.paymentMethod ?? "CASH",
         paymentStatus: dto.paymentMethod === "CARD" ? "PENDING" : "PENDING",
         // Phase AP-5 — attribute the order to the signed-in customer
@@ -2054,6 +2072,30 @@ export class OrderingService {
           `Loyalty reward ${dto.loyaltyRewardId} was given away on order ${order.id} but not marked claimed: ${(err as Error).message}`,
         );
       }
+    }
+
+    // "Email me offers" — the address is the signed-in account's when there
+    // is one (the customer proved they own it), else what they typed.
+    if (dto.emailMarketingConsent === true && this.emailMarketing) {
+      const account = dto.customerAccountId
+        ? await this.prisma.customerAccount
+            .findUnique({
+              where: { id: dto.customerAccountId },
+              select: { email: true, firstName: true, lastName: true },
+            })
+            .catch(() => null)
+        : null;
+      const info: any = dto.customerInfo ?? {};
+      const [first, ...rest] = String(info.name ?? "").trim().split(/\s+/);
+      void this.emailMarketing.onCheckoutConsent({
+        tenantId: location.brand.tenantId,
+        locationId: location.id,
+        email: account?.email ?? info.email ?? null,
+        firstName: account?.firstName || first || null,
+        lastName: account?.lastName || rest.join(" ") || null,
+        customerAccountId: dto.customerAccountId ?? null,
+        source: "ONLINE",
+      });
     }
 
     // Phase MK-INSIGHTS — attribute the order to whichever campaigns

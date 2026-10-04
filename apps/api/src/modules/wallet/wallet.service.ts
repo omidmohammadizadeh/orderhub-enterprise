@@ -131,7 +131,7 @@ export class WalletService {
   private static readonly TENANT_WIDE = ["PLATFORM_ADMIN", "TENANT_OWNER"];
 
   /** null = every location (tenant-wide role); array = the scoped allowlist. */
-  private async accessibleLocationIds(
+  async accessibleLocationIds(
     tenantId: string,
     userId?: string,
     role?: string,
@@ -931,6 +931,93 @@ export class WalletService {
       );
     }
     return { chargedMinor: cost, balanceAfterMinor: result.balanceMinor };
+  }
+
+  /**
+   * Charge a whole email campaign up front, in one guarded debit. The balance
+   * check lives in the update's WHERE clause, so two campaigns started at the
+   * same moment can't both spend a balance only one of them is covered by.
+   * Anything not delivered is handed back by refundEmailMarketing at the end.
+   */
+  async debitForEmailMarketing(args: {
+    tenantId: string;
+    locationId: string | null;
+    campaignId: string;
+    emails: number;
+    amountMinor: number;
+    createdBy?: string | null;
+  }): Promise<{ chargedMinor: number; balanceAfterMinor: number }> {
+    const cost = Math.max(0, Math.round(args.amountMinor));
+    const wallet = await this.getOrCreate(args.tenantId, args.locationId);
+    if (cost === 0) return { chargedMinor: 0, balanceAfterMinor: wallet.balanceMinor };
+    const result = await this.prisma.$transaction(async (tx: any) => {
+      const guarded = await tx.wallet.updateMany({
+        where: { id: wallet.id, balanceMinor: { gte: cost } },
+        data: { balanceMinor: { decrement: cost } },
+      });
+      if (guarded.count === 0) return null;
+      const after = await tx.wallet.findUnique({ where: { id: wallet.id } });
+      await tx.walletTransaction.create({
+        data: {
+          tenantId: args.tenantId,
+          walletId: wallet.id,
+          type: "DEBIT",
+          amountMinor: -cost,
+          balanceAfterMinor: after.balanceMinor,
+          currency: wallet.currency,
+          purpose: "EMAIL_MARKETING",
+          locationId: args.locationId ?? null,
+          createdBy: args.createdBy ?? null,
+          description: `Email campaign — ${args.emails.toLocaleString("en-GB")} emails (${args.campaignId})`,
+        },
+      });
+      return after;
+    });
+    if (!result) {
+      throw new BadRequestException(
+        `Not enough wallet balance to send this campaign (${(cost / 100).toFixed(2)} needed). ` +
+          `Top up this location's wallet and try again.`,
+      );
+    }
+    return { chargedMinor: cost, balanceAfterMinor: result.balanceMinor };
+  }
+
+  /** Return the charge for emails that were never sent. Best-effort. */
+  async refundEmailMarketing(args: {
+    tenantId: string;
+    locationId: string | null;
+    campaignId: string;
+    amountMinor: number;
+    reason: string;
+  }): Promise<boolean> {
+    const amount = Math.round(args.amountMinor);
+    if (!amount || amount <= 0) return false;
+    try {
+      const wallet = await this.getOrCreate(args.tenantId, args.locationId);
+      await this.prisma.$transaction(async (tx: any) => {
+        const u = await tx.wallet.update({
+          where: { id: wallet.id },
+          data: { balanceMinor: { increment: amount } },
+        });
+        await tx.walletTransaction.create({
+          data: {
+            tenantId: args.tenantId,
+            walletId: wallet.id,
+            type: "REFUND",
+            amountMinor: amount,
+            balanceAfterMinor: u.balanceMinor,
+            currency: wallet.currency,
+            purpose: "EMAIL_MARKETING",
+            locationId: args.locationId ?? null,
+            description: `Email campaign refund — ${args.reason} (${args.campaignId})`,
+          },
+        });
+      });
+      return true;
+    } catch (e: any) {
+      this.logger.error(`Email campaign refund failed for ${args.campaignId}: ${e?.message ?? e}`);
+      return false;
+    }
   }
 
   /** Give the money back when a render never produced anything. Best-effort:

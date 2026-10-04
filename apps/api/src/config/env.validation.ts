@@ -221,6 +221,13 @@ const envSchema = z.object({
   // Unset just means that half of the notification is skipped (logged, not
   // sent) — the client still gets theirs.
   BILLING_ALERT_EMAIL: z.string().email().optional(),
+  // Email marketing (campaigns restaurants send to their own customers).
+  EMAIL_MARKETING_ENABLED: z.string().optional(),
+  EMAIL_MARKETING_FROM: z.string().optional(),
+  EMAIL_MARKETING_PRICE_PER_1000_MINOR: z.coerce.number().int().nonnegative().optional(),
+  EMAIL_MARKETING_FREE_PER_MONTH: z.coerce.number().int().nonnegative().optional(),
+  EMAIL_MARKETING_TOKEN_SECRET: z.string().optional(),
+  RESEND_WEBHOOK_SECRET: z.string().optional(),
 
   // Socket.IO
   SOCKET_CORS_ORIGIN: z.string().default("http://localhost:3000"),

@@ -1199,6 +1199,8 @@ export class OrdersService {
         paymentStatus: dto.paymentStatus,
         preparationMinutes: dto.preparationMinutes,
         isScheduled,
+        // The marketing email that brought this order in (online checkout).
+        ...(dto.emailAttribution ? { emailAttribution: dto.emailAttribution } : {}),
         // Retail — the due-diligence record for an age-restricted sale:
         // what was checked, how, and by whom, stamped by the server.
         ...(dto.ageCheck

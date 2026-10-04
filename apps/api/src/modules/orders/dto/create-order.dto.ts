@@ -207,6 +207,9 @@ export class CreateOrderDto {
    *  SMS" box). true → opt the customer in; false → opt out. Undefined = not
    *  asked, leave marketing consent untouched. */
   @ApiPropertyOptional() @IsOptional() @IsBoolean() marketingConsent?: boolean;
+  /** Set by online checkout only, after it has verified the recipient row:
+   *  the marketing email this order came from. Stored on Order.metadata. */
+  @IsOptional() @IsObject() emailAttribution?: { campaignId: string; recipientId: string };
   /** Retail — Challenge 25 record for an order with age-restricted products. */
   @ApiPropertyOptional({ type: OrderAgeCheckDto })
   @IsOptional()

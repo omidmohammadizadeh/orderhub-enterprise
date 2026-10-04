@@ -69,7 +69,10 @@ export default function BrandStorefrontPage({ params }: Props) {
         // Forward to the existing location storefront with brand context.
         // Using replace() so the brand URL stays in history but the
         // address bar shows /order/<slug>?brand=<id>.
-        router.replace(`/order/${target}?brand=${data.brand.id}`);
+        // Carry a marketing email's attribution (?er=) through the hop, or
+        // the order it leads to can't be credited to the campaign.
+        const er = new URLSearchParams(window.location.search).get("er");
+        router.replace(`/order/${target}?brand=${data.brand.id}${er ? `&er=${encodeURIComponent(er)}` : ""}`);
       })
       .catch((err: any) => {
         if (cancelled) return;
