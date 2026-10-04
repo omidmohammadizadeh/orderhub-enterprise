@@ -83,6 +83,18 @@ export interface EmailEstimate {
   enabled: boolean;
 }
 
+export interface OfferCode {
+  id: string;
+  code: string;
+  type: "PERCENTAGE" | "FIXED_AMOUNT" | "FREE_DELIVERY";
+  value: number;
+  minOrderValue: number | null;
+  maxUses: number | null;
+  usedCount: number;
+  maxUsesPerCustomer: number | null;
+  expiresAt: string | null;
+}
+
 export interface EmailImportReport {
   added: number;
   updated: number;
@@ -194,6 +206,20 @@ export const emailMarketingClient = {
         },
       })
       .then((r) => r.data),
+
+  offerCodes: (locationId?: string | null) =>
+    apiClient.get<OfferCode[]>(`${BASE}/promo-codes`, { params: loc(locationId) }).then((r) => r.data),
+
+  createOfferCode: (body: {
+    code: string;
+    type: OfferCode["type"];
+    value?: number;
+    minOrderValue?: number | null;
+    expiresAt?: string | null;
+    maxUses?: number | null;
+    oncePerCustomer?: boolean;
+    locationId?: string | null;
+  }) => apiClient.post<OfferCode>(`${BASE}/promo-codes`, body).then((r) => r.data),
 
   // Public — the unsubscribe page.
   unsubscribeInfo: (t: string) =>

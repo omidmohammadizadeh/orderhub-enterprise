@@ -29,6 +29,8 @@ export type EmailBlock =
       title: string;
       subtitle?: string;
       code?: string;
+      /** The PromoCode row behind `code` — set when picked/created in the editor. */
+      promoCodeId?: string;
       terms?: string;
       buttonLabel?: string;
       url?: string;

@@ -1315,7 +1315,17 @@ export class OrdersService {
     // Promo code: bump usage AFTER persistence so we don't burn a use on a
     // failed write.
     if (dto.promoCode) {
-      void this.promoCodes.incrementUsage(tenantId, dto.promoCode);
+      // Also records WHO used it, so a once-per-customer code holds.
+      void this.promoCodes
+        .recordUse({
+          tenantId,
+          code: dto.promoCode,
+          orderId: order.id,
+          customerAccountId: (dto as any).customerAccountId ?? null,
+          customerEmail: dto.customerInfo?.email ?? null,
+          customerPhone: dto.customerInfo?.phone ?? null,
+        })
+        .catch(() => undefined);
     }
 
     // SMS-marketing consent from the POS "Send me offers by SMS" box. Only when

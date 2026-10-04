@@ -357,7 +357,7 @@ export class OrderingService {
    */
   async validatePromoForStorefront(
     slug: string,
-    body: { code: string; subtotal: number },
+    body: { code: string; subtotal: number; customerAccountId?: string | null },
   ) {
     const location = await this.prisma.location.findFirst({
       where: { OR: [{ onlineOrderingSlug: slug }, { slug }, { id: slug }] },
@@ -366,10 +366,13 @@ export class OrderingService {
     if (!location || !location.isActive || location.deletedAt) {
       throw new NotFoundException("Store not found");
     }
+    // The signed-in customer, so "you've already used this code" is said in
+    // the basket rather than at payment. Checkout re-checks it regardless.
     return this.promoCodes.validate(location.brand.tenantId, {
       code: body.code,
       locationId: location.id,
       subtotal: body.subtotal,
+      customerAccountId: body.customerAccountId ?? null,
     });
   }
 
@@ -1844,6 +1847,10 @@ export class OrderingService {
           code: dto.promoCode.trim(),
           locationId: location.id,
           subtotal: afterDeals,
+          customerAccountId: dto.customerAccountId ?? null,
+          customerEmail: dto.customerInfo?.email ?? null,
+          customerPhone: dto.customerInfo?.phone ?? null,
+          requireCustomerForLimit: true,
         });
         if (promo?.valid) {
           promoDiscount = Math.min(afterDeals, Math.max(0, Number(promo.discountAmount ?? 0)));

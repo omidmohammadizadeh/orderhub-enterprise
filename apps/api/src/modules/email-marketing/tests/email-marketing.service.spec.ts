@@ -198,10 +198,16 @@ describe("failed campaigns", () => {
     });
   });
 
-  it("refuses to retry or delete once anything was sent", async () => {
+  it("refuses to retry once anything was sent, but it can still be deleted", async () => {
     const { svc, prisma, actor } = withCampaign(failedUnsent, 3);
     await expect(svc.retry(actor, "c1")).rejects.toThrow("Duplicate it");
-    await expect(svc.deleteCampaign(actor, "c1")).rejects.toThrow("kept for your records");
+    await svc.deleteCampaign(actor, "c1");
+    expect(prisma.emailCampaign.delete).toHaveBeenCalled();
+  });
+
+  it("won't delete a campaign mid-send", async () => {
+    const { svc, prisma, actor } = withCampaign({ id: "c1", status: "SENDING", startedAt: new Date(), completedAt: null }, 0);
+    await expect(svc.deleteCampaign(actor, "c1")).rejects.toThrow("Stop it first");
     expect(prisma.emailCampaign.delete).not.toHaveBeenCalled();
   });
 
@@ -249,7 +255,17 @@ describe("the right restaurant's dishes", () => {
   it("dishes come from the menu that shop serves online, not every menu of the brand", async () => {
     const { svc, prisma } = shop();
     await svc.products({ tenantId: "t1" }, { brandId: "pizza", locationId: "pelton" });
-    expect(prisma.menuItem.findMany.mock.calls[0][0].where.menuIds).toEqual({ hasSome: ["m-online"] });
+    const where = prisma.menuItem.findMany.mock.calls[0][0].where;
+    // Through the menu's categories — MenuItem.menuIds is stale and matched
+    // nothing, which sent an email with no dishes at all.
+    expect(where.menuIds).toBeUndefined();
+    expect(where.categories.some.category.OR).toEqual([
+      { menuId: { in: ["m-online"] } },
+      { menuIds: { hasSome: ["m-online"] } },
+    ]);
+    // The menu is already this shop × brand; a master menu's items carry a
+    // sibling brand's id, so the brand filter must not also apply.
+    expect(where.OR).toBeUndefined();
   });
 
   it("refuses a brand the shop doesn't sell", async () => {
@@ -257,5 +273,32 @@ describe("the right restaurant's dishes", () => {
     await expect(
       (svc as any).resolveSender({ tenantId: "t1", role: "TENANT_OWNER" }, "kebab", "pelton"),
     ).rejects.toThrow("isn't sold at this location");
+  });
+});
+
+describe("offer codes must work before an email goes out", () => {
+  const design = (code: string) => ({ blocks: [{ id: "o", type: "offer", title: "20% OFF", code }] });
+  function withPromo(promo: any) {
+    const { svc } = make({ promoCode: { findFirst: jest.fn().mockResolvedValue(promo) } });
+    return svc;
+  }
+  const c = (code: string) => ({ tenantId: "t1", locationId: "L1", design: design(code) });
+
+  it("refuses the template's sample code that was never created", async () => {
+    await expect(withPromo(null).assertOfferCodesWork(c("WEEKEND20"))).rejects.toThrow("doesn't exist yet");
+  });
+  it("refuses an expired code, and one for another shop", async () => {
+    const base = { isActive: true, maxUses: null, usedCount: 0, locationIds: [] as string[] };
+    await expect(
+      withPromo({ ...base, expiresAt: new Date(Date.now() - 1000) }).assertOfferCodesWork(c("OLD")),
+    ).rejects.toThrow("expired");
+    await expect(withPromo({ ...base, locationIds: ["L2"] }).assertOfferCodesWork(c("ELSE"))).rejects.toThrow(
+      "isn't valid at this shop",
+    );
+  });
+  it("passes a live code, and an offer with no code", async () => {
+    const ok = { isActive: true, maxUses: null, usedCount: 0, locationIds: ["L1"], expiresAt: null };
+    await expect(withPromo(ok).assertOfferCodesWork(c("WEEKEND20"))).resolves.toBeUndefined();
+    await expect(withPromo(null).assertOfferCodesWork(c(""))).resolves.toBeUndefined();
   });
 });

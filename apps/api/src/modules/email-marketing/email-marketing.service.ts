@@ -20,6 +20,7 @@ import {
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { EmailService } from "../../infrastructure/email/email.service";
 import { WalletService } from "../wallet/wallet.service";
+import { PromoCodesService } from "../promo-codes/promo-codes.service";
 import {
   buildAudienceQuery,
   emailCostMinor,
@@ -84,6 +85,7 @@ export class EmailMarketingService {
     private readonly config: ConfigService,
     private readonly wallet: WalletService,
     @Optional() private readonly email?: EmailService,
+    @Optional() private readonly promoCodes?: PromoCodesService,
   ) {}
 
   /** Typed on purpose: an `as any` here is how a wrong field name reaches
@@ -671,7 +673,22 @@ export class EmailMarketingService {
           .directOrderingConfig.findUnique({ where: { brandId: brand.id }, select: { heroImageUrl: true } })
           .catch(() => null)
       : null;
-    const products = brand ? await this.products(actor, { brandId: brand.id, locationId, ids: brand.topSellerItemIds, limit: 4 }) : [];
+    // Best sellers first, topped up with the menu's other dishes (photos
+    // first) — a best-seller list can name dishes this shop doesn't serve.
+    let products: EmailProduct[] = [];
+    if (brand) {
+      if (brand.topSellerItemIds?.length) {
+        products = await this.products(actor, { brandId: brand.id, locationId, ids: brand.topSellerItemIds, limit: 4 });
+      }
+      if (products.length < 4) {
+        const more = await this.products(actor, { brandId: brand.id, locationId, limit: 12 });
+        const have = new Set(products.map((p) => p.name.toLowerCase()));
+        for (const p of more) {
+          if (products.length >= 4) break;
+          if (p.imageUrl && !have.has(p.name.toLowerCase())) products.push(p);
+        }
+      }
+    }
     const design = tpl.build({
       brandName: brand?.name ?? "",
       primaryColor: branding?.primaryColor ?? null,
@@ -767,10 +784,15 @@ export class EmailMarketingService {
    * go. Anything that reached a customer stays: it is the record of what was
    * sent, to whom, and what it was charged.
    */
+  /**
+   * Any campaign can be deleted except one that is going out right now — stop
+   * it first, so no batch is in Resend's hands when its rows disappear. The
+   * orders it brought in keep their attribution (it lives on the order).
+   */
   async deleteCampaign(actor: Actor, id: string) {
     const c = await this.loadCampaign(actor, id);
-    if (c.status !== "DRAFT" && (!this.isClosedUnsent(c) || (await this.anySent(id)))) {
-      throw new BadRequestException("Campaigns that sent emails are kept for your records and can't be deleted.");
+    if (c.status === "SENDING" || (c.status === "CANCELLED" && c.startedAt && !c.completedAt)) {
+      throw new BadRequestException("This campaign is still sending. Stop it first, then delete it.");
     }
     await this.db().emailCampaign.delete({ where: { id } });
     return { ok: true };
@@ -824,15 +846,31 @@ export class EmailMarketingService {
     };
     // At a shop, only what that shop's menu for this brand actually sells —
     // not every product the brand has ever had at any of its sites.
+    //
+    // A dish belongs to a menu through the menu's CATEGORIES (MenuItem.menuIds
+    // is not kept up to date — filtering on it matched nothing and every email
+    // went out with no dishes). The menu is already this shop × brand, so the
+    // brand filter is dropped: a composed master menu holds items whose own
+    // brandId is a sibling brand.
+    let menuIds: string[] = [];
     if (opts.locationId) {
-      const menuIds = await this.menuIdsAt(opts.locationId, brand.id);
-      if (menuIds.length) where.menuIds = { hasSome: menuIds };
+      menuIds = await this.menuIdsAt(opts.locationId, brand.id);
+      if (menuIds.length) {
+        delete where.OR;
+        where.categories = { some: this.onMenus(menuIds) };
+      }
     }
     if (opts.ids?.length) where.id = { in: opts.ids };
     if (opts.search?.trim()) where.name = { contains: opts.search.trim(), mode: "insensitive" };
     const items = await this.prisma.menuItem.findMany({
       where,
-      select: { id: true, name: true, description: true, basePrice: true, imageUrl: true },
+      select: {
+        id: true, name: true, description: true, basePrice: true, imageUrl: true,
+        // The price this menu sells it at, when it overrides the base price.
+        categories: menuIds.length
+          ? { where: this.onMenus(menuIds), select: { priceOverride: true }, take: 1 }
+          : false,
+      },
       orderBy: [{ imageUrl: { sort: "asc", nulls: "last" } }, { name: "asc" }],
       take: 300,
     });
@@ -848,12 +886,26 @@ export class EmailMarketingService {
         id: it.id,
         name: it.name,
         description: it.description ?? null,
-        price: formatMoney(Number(it.basePrice ?? 0), currency),
+        price: formatMoney(
+          Number((it as any).categories?.[0]?.priceOverride ?? it.basePrice ?? 0),
+          currency,
+        ),
         imageUrl: it.imageUrl ?? null,
       });
       if (out.length >= (opts.limit ?? 120)) break;
     }
     return out;
+  }
+
+  private onMenus(menuIds: string[]) {
+    return {
+      isVisible: true,
+      category: {
+        available: true,
+        visibleToCustomers: true,
+        OR: [{ menuId: { in: menuIds } }, { menuIds: { hasSome: menuIds } }],
+      },
+    };
   }
 
   /** The menus a shop serves for a brand: its channel assignments (online
@@ -1042,12 +1094,127 @@ export class EmailMarketingService {
     if (!c.locationId && !c.brandId) throw new BadRequestException("Pick who this email is from.");
   }
 
+  /**
+   * Every discount code an email promises must work at checkout. A code that
+   * doesn't exist (the template's sample), has expired, or isn't valid at this
+   * shop is a broken promise in hundreds of inboxes — refuse to send it.
+   */
+  async assertOfferCodesWork(c: any): Promise<void> {
+    const codes = ((c.design as any)?.blocks ?? [])
+      .filter((b: any) => b?.type === "offer" && String(b.code ?? "").trim())
+      .map((b: any) => String(b.code).trim().toUpperCase());
+    for (const code of Array.from(new Set<string>(codes))) {
+      const promo = await this.prisma.promoCode.findFirst({ where: { tenantId: c.tenantId, code } });
+      const where = `The code ${code} in your offer`;
+      if (!promo) {
+        throw new BadRequestException(`${where} doesn't exist yet. Open the offer section and create it.`);
+      }
+      if (!promo.isActive) throw new BadRequestException(`${where} is switched off.`);
+      if (promo.expiresAt && promo.expiresAt < new Date()) throw new BadRequestException(`${where} has expired.`);
+      if (promo.maxUses != null && promo.usedCount >= promo.maxUses) {
+        throw new BadRequestException(`${where} has no uses left.`);
+      }
+      if (c.locationId && promo.locationIds.length && !promo.locationIds.includes(c.locationId)) {
+        throw new BadRequestException(`${where} isn't valid at this shop.`);
+      }
+    }
+  }
+
+  // ── Promo codes for offers ───────────────────────────────────────────────
+
+  /** Codes an offer at this shop can use: live, unexpired, valid here. */
+  async listOfferCodes(actor: Actor, locationId?: string | null) {
+    const locIds = await this.scope(actor, locationId);
+    const loc = locationId ?? (locIds?.length === 1 ? locIds[0] : null);
+    const now = new Date();
+    const rows = await this.prisma.promoCode.findMany({
+      where: {
+        tenantId: actor.tenantId,
+        isActive: true,
+        OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+        ...(loc ? { AND: [{ OR: [{ locationIds: { isEmpty: true } }, { locationIds: { has: loc } }] }] } : {}),
+      },
+      orderBy: { createdAt: "desc" },
+      take: 100,
+    });
+    return rows.map((p) => ({
+      id: p.id,
+      code: p.code,
+      type: p.type,
+      value: Number(p.value),
+      minOrderValue: p.minOrderValue != null ? Number(p.minOrderValue) : null,
+      maxUses: p.maxUses,
+      usedCount: p.usedCount,
+      maxUsesPerCustomer: p.maxUsesPerCustomer,
+      expiresAt: p.expiresAt,
+    }));
+  }
+
+  /**
+   * Create a code straight from an email offer. Defaults to ONE USE PER
+   * CUSTOMER and to this shop only — a code mailed to a shop's customers
+   * shouldn't work at every site in the group.
+   */
+  async createOfferCode(
+    actor: Actor,
+    body: {
+      code: string;
+      type: "PERCENTAGE" | "FIXED_AMOUNT" | "FREE_DELIVERY";
+      value?: number;
+      minOrderValue?: number | null;
+      expiresAt?: string | null;
+      maxUses?: number | null;
+      oncePerCustomer?: boolean;
+      locationId?: string | null;
+    },
+  ) {
+    if (!this.promoCodes) throw new BadRequestException("Promo codes aren't available.");
+    const locIds = await this.scope(actor, body.locationId);
+    const loc = body.locationId ?? (locIds?.length === 1 ? locIds[0] : null);
+    if (!loc && !this.isTenantWide(actor)) throw new BadRequestException("Pick a location first.");
+    const code = String(body.code ?? "").trim().toUpperCase().replace(/\s+/g, "");
+    if (!/^[A-Z0-9_-]{3,30}$/.test(code)) {
+      throw new BadRequestException("Codes are 3–30 letters or numbers, e.g. WEEKEND20.");
+    }
+    if (!["PERCENTAGE", "FIXED_AMOUNT", "FREE_DELIVERY"].includes(body.type)) {
+      throw new BadRequestException("Pick a discount type.");
+    }
+    const value = body.type === "FREE_DELIVERY" ? 0 : Number(body.value);
+    if (body.type !== "FREE_DELIVERY" && (!Number.isFinite(value) || value <= 0)) {
+      throw new BadRequestException("Enter the discount amount.");
+    }
+    if (body.type === "PERCENTAGE" && value > 100) throw new BadRequestException("A percentage can't be over 100.");
+    const created = await this.promoCodes.create(actor.tenantId, {
+      code,
+      type: body.type as any,
+      value,
+      description: "Email campaign offer",
+      minOrderValue: body.minOrderValue ?? undefined,
+      maxUses: body.maxUses ?? undefined,
+      maxUsesPerCustomer: body.oncePerCustomer === false ? null : 1,
+      expiresAt: body.expiresAt ?? undefined,
+      locationIds: loc ? [loc] : [],
+    });
+    return {
+      id: created.id,
+      code: created.code,
+      type: created.type,
+      value: Number(created.value),
+      minOrderValue: created.minOrderValue != null ? Number(created.minOrderValue) : null,
+      maxUses: created.maxUses,
+      usedCount: created.usedCount,
+      maxUsesPerCustomer: created.maxUsesPerCustomer,
+      expiresAt: created.expiresAt,
+    };
+  }
+
   async sendNow(actor: Actor, id: string) {
     const c = await this.loadCampaign(actor, id);
     if (!["DRAFT", "SCHEDULED"].includes(c.status)) {
       throw new BadRequestException("This campaign has already been sent.");
     }
     this.assertSendable(c);
+    await this.assertOfferCodesWork(c);
     const res = await this.materialize(c.id, actor.userId ?? null, { throwOnError: true });
     return { ok: true, ...res };
   }
@@ -1058,6 +1225,7 @@ export class EmailMarketingService {
       throw new BadRequestException("This campaign has already been sent.");
     }
     this.assertSendable(c);
+    await this.assertOfferCodesWork(c);
     const when = new Date(at);
     if (Number.isNaN(when.getTime())) throw new BadRequestException("Pick a valid date and time.");
     if (when.getTime() < Date.now() + 60_000) throw new BadRequestException("Pick a time in the future.");

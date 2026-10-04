@@ -34,6 +34,7 @@ import {
 } from "@orderhub/shared";
 import { ImageUploader } from "@/components/products/image-uploader";
 import { emailMarketingClient } from "@/lib/api/email-marketing.client";
+import { OfferCodeField } from "./offer-code-field";
 import { cn } from "@/lib/utils";
 
 const BLOCK_META: Record<EmailBlockType, { label: string; icon: any }> = {
@@ -383,25 +384,14 @@ function BlockFields({
     case "offer":
       return (
         <>
-          <div className="grid grid-cols-2 gap-2">
-            <Field label="Big text">
-              <input value={b.title} onChange={(e) => update({ title: e.target.value })} className={inputCls} />
-            </Field>
-            <Field label="Discount code (optional)">
-              <input
-                value={b.code ?? ""}
-                onChange={(e) => update({ code: e.target.value.toUpperCase() })}
-                className={cn(inputCls, "font-mono")}
-              />
-            </Field>
-          </div>
+          <OfferCodeField code={b.code ?? ""} title={b.title} locationId={locationId} onPick={(p) => update(p)} />
+          <Field label="Big text">
+            <input value={b.title} onChange={(e) => update({ title: e.target.value })} className={inputCls} />
+          </Field>
           <Field label="Line underneath">
             <input value={b.subtitle ?? ""} onChange={(e) => update({ subtitle: e.target.value })} className={inputCls} />
           </Field>
-          <Field
-            label="Small print"
-            hint="Make sure the code exists under Marketing → Promo codes, with the same rules, so it works at checkout."
-          >
+          <Field label="Small print" hint="Filled in from the code's rules when you pick or create one.">
             <input value={b.terms ?? ""} onChange={(e) => update({ terms: e.target.value })} className={inputCls} />
           </Field>
           <Field label="Button text (leave empty for no button)">

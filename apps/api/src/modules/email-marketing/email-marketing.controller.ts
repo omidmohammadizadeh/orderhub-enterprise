@@ -193,6 +193,20 @@ export class EmailMarketingController {
     return this.svc.estimate(actorOf(user), body ?? {});
   }
 
+  @Get("promo-codes")
+  @Roles(...MARKETING_ROLES)
+  @ApiOperation({ summary: "Live promo codes an offer at this shop can use" })
+  offerCodes(@CurrentUser() user: AuthenticatedUser, @Query("locationId") locationId?: string) {
+    return this.svc.listOfferCodes(actorOf(user), locationId || null);
+  }
+
+  @Post("promo-codes")
+  @Roles(...MARKETING_ROLES)
+  @ApiOperation({ summary: "Create a promo code for an email offer (once per customer by default)" })
+  createOfferCode(@CurrentUser() user: AuthenticatedUser, @Body() body: any) {
+    return this.svc.createOfferCode(actorOf(user), body ?? {});
+  }
+
   @Get("products")
   @Roles(...MARKETING_ROLES)
   products(

@@ -27,6 +27,8 @@ export interface CreatePromoCodeDto {
   description?: string;
   minOrderValue?: number;
   maxUses?: number;
+  /** Uses allowed per customer (1 = once each). Null/undefined = no limit. */
+  maxUsesPerCustomer?: number | null;
   startAt?: string;
   expiresAt?: string;
   isActive?: boolean;
@@ -50,7 +52,22 @@ export interface ValidateInput {
   code: string;
   locationId: string;
   subtotal: number;
+  /** Who is using it — needed for a once-per-customer code. */
+  customerAccountId?: string | null;
+  customerEmail?: string | null;
+  customerPhone?: string | null;
+  /**
+   * The online checkout knows who the customer is (sign-in is required), so a
+   * per-customer code with nobody to check against is refused there. The till
+   * passes false: staff apply codes at the counter at their discretion.
+   */
+  requireCustomerForLimit?: boolean;
 }
+
+/** Order statuses that never became a real order: their use doesn't count.
+ *  PENDING is real only while fresh — an unpaid card order left for an hour
+ *  was abandoned, and must not spend the customer's one go. */
+const NOT_REAL = ["CANCELLED", "REJECTED", "FAILED"];
 
 @Injectable()
 export class PromoCodesService {
@@ -91,6 +108,7 @@ export class PromoCodesService {
           description: dto.description ?? null,
           minOrderValue: dto.minOrderValue ?? null,
           maxUses: dto.maxUses ?? null,
+          maxUsesPerCustomer: dto.maxUsesPerCustomer ?? null,
           startAt: dto.startAt ? new Date(dto.startAt) : null,
           expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null,
           isActive: dto.isActive ?? true,
@@ -120,6 +138,7 @@ export class PromoCodesService {
         ...(dto.description !== undefined && { description: dto.description }),
         ...(dto.minOrderValue !== undefined && { minOrderValue: dto.minOrderValue }),
         ...(dto.maxUses !== undefined && { maxUses: dto.maxUses }),
+        ...(dto.maxUsesPerCustomer !== undefined && { maxUsesPerCustomer: dto.maxUsesPerCustomer }),
         ...(dto.startAt !== undefined && {
           startAt: dto.startAt ? new Date(dto.startAt) : null,
         }),
@@ -186,6 +205,22 @@ export class PromoCodesService {
         reason: "Promo code not valid at this location",
       };
     }
+    if (promo.maxUsesPerCustomer != null) {
+      const who = this.identity(input);
+      if (!who) {
+        if (input.requireCustomerForLimit) {
+          return { valid: false, reason: "Please sign in to use this code" };
+        }
+      } else if ((await this.usesBy(promo.id, who)) >= promo.maxUsesPerCustomer) {
+        return {
+          valid: false,
+          reason:
+            promo.maxUsesPerCustomer === 1
+              ? "You've already used this code"
+              : "You've used this code the maximum number of times",
+        };
+      }
+    }
 
     // Compute discount.
     let discountAmount = 0;
@@ -214,6 +249,76 @@ export class PromoCodesService {
    * Atomically increment usedCount when an order successfully redeems a code.
    * Safe under concurrent calls — uses Prisma's increment operator.
    */
+  private identity(input: {
+    customerAccountId?: string | null;
+    customerEmail?: string | null;
+    customerPhone?: string | null;
+  }): { accountId: string | null; email: string | null; phone: string | null } | null {
+    const accountId = String(input.customerAccountId ?? "").trim() || null;
+    const email = String(input.customerEmail ?? "").trim().toLowerCase() || null;
+    const phone = String(input.customerPhone ?? "").replace(/[^\d+]/g, "") || null;
+    return accountId || email || phone ? { accountId, email, phone } : null;
+  }
+
+  /** Times this customer has used the code on an order that really happened. */
+  private async usesBy(
+    promoCodeId: string,
+    who: { accountId: string | null; email: string | null; phone: string | null },
+  ): Promise<number> {
+    const params: unknown[] = [promoCodeId];
+    const ors: string[] = [];
+    if (who.accountId) { params.push(who.accountId); ors.push(`r."customerAccountId" = $${params.length}`); }
+    if (who.email) { params.push(who.email); ors.push(`r."customerEmail" = $${params.length}`); }
+    if (who.phone) { params.push(who.phone); ors.push(`r."customerPhone" = $${params.length}`); }
+    const rows = await this.prisma.$queryRawUnsafe<{ n: number }[]>(
+      `SELECT COUNT(*)::int AS n
+       FROM promo_code_redemptions r
+       JOIN orders o ON o.id = r."orderId"
+       WHERE r."promoCodeId" = $1 AND (${ors.join(" OR ")})
+         AND o.status::text NOT IN ('${NOT_REAL.join("','")}')
+         AND NOT (o.status::text = 'PENDING' AND o."createdAt" < now() - interval '1 hour')`,
+      ...params,
+    );
+    return Number(rows[0]?.n ?? 0);
+  }
+
+  /**
+   * An order was placed with this code: count it, and remember who used it so
+   * a once-per-customer code can't be used twice. Idempotent per order.
+   */
+  async recordUse(args: {
+    tenantId: string;
+    code: string;
+    orderId: string;
+    customerAccountId?: string | null;
+    customerEmail?: string | null;
+    customerPhone?: string | null;
+  }): Promise<void> {
+    const code = args.code.trim().toUpperCase();
+    const promo = await this.prisma.promoCode.findFirst({
+      where: { tenantId: args.tenantId, code },
+      select: { id: true },
+    });
+    if (!promo) return;
+    const who = this.identity(args);
+    const created = await this.prisma.promoCodeRedemption.createMany({
+      data: [
+        {
+          tenantId: args.tenantId,
+          promoCodeId: promo.id,
+          orderId: args.orderId,
+          customerAccountId: who?.accountId ?? null,
+          customerEmail: who?.email ?? null,
+          customerPhone: who?.phone ?? null,
+        },
+      ],
+      skipDuplicates: true,
+    });
+    if (created.count) {
+      await this.prisma.promoCode.update({ where: { id: promo.id }, data: { usedCount: { increment: 1 } } });
+    }
+  }
+
   async incrementUsage(tenantId: string, code: string): Promise<void> {
     const normalised = code.trim().toUpperCase();
     await this.prisma.promoCode.updateMany({

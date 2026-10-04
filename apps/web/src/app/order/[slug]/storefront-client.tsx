@@ -1621,6 +1621,8 @@ function OrderPage() {
       }>(`${API_BASE}/v1/ordering/store/${slug}/promo`, {
         code,
         subtotal,
+        // Lets a once-per-customer code say "already used" here, not at payment.
+        customerAccountId: authCustomer?.id ?? undefined,
       });
       if (!res.data.valid) {
         setPromoApplied(null);

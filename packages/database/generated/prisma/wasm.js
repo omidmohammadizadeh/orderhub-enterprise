@@ -817,6 +817,7 @@ exports.Prisma.PromoCodeScalarFieldEnum = {
   value: 'value',
   minOrderValue: 'minOrderValue',
   maxUses: 'maxUses',
+  maxUsesPerCustomer: 'maxUsesPerCustomer',
   usedCount: 'usedCount',
   startAt: 'startAt',
   expiresAt: 'expiresAt',
@@ -824,6 +825,17 @@ exports.Prisma.PromoCodeScalarFieldEnum = {
   locationIds: 'locationIds',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PromoCodeRedemptionScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  promoCodeId: 'promoCodeId',
+  orderId: 'orderId',
+  customerAccountId: 'customerAccountId',
+  customerEmail: 'customerEmail',
+  customerPhone: 'customerPhone',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.MarketingCampaignScalarFieldEnum = {
@@ -3018,6 +3030,16 @@ exports.Prisma.PromoCodeOrderByRelevanceFieldEnum = {
   locationIds: 'locationIds'
 };
 
+exports.Prisma.PromoCodeRedemptionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  promoCodeId: 'promoCodeId',
+  orderId: 'orderId',
+  customerAccountId: 'customerAccountId',
+  customerEmail: 'customerEmail',
+  customerPhone: 'customerPhone'
+};
+
 exports.Prisma.MarketingCampaignOrderByRelevanceFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -4615,6 +4637,7 @@ exports.Prisma.ModelName = {
   CustomerAddress: 'CustomerAddress',
   LoyaltyAccount: 'LoyaltyAccount',
   PromoCode: 'PromoCode',
+  PromoCodeRedemption: 'PromoCodeRedemption',
   MarketingCampaign: 'MarketingCampaign',
   CampaignRedemption: 'CampaignRedemption',
   DeliveryZone: 'DeliveryZone',

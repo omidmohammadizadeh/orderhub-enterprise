@@ -1697,20 +1697,25 @@ model LoyaltyAccount {
 
 // ── Promo Codes ───────────────────────────────────────────────────────────────
 model PromoCode {
-  id            String        @id @default(cuid())
-  tenantId      String
-  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  code          String
-  description   String?
-  type          PromoCodeType
-  value         Decimal       @db.Decimal(10, 2)
-  minOrderValue Decimal?      @db.Decimal(10, 2)
-  maxUses       Int?
-  usedCount     Int           @default(0)
-  startAt       DateTime?
-  expiresAt     DateTime?
-  isActive      Boolean       @default(true)
-  locationIds   String[]
+  id                 String        @id @default(cuid())
+  tenantId           String
+  tenant             Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  code               String
+  description        String?
+  type               PromoCodeType
+  value              Decimal       @db.Decimal(10, 2)
+  minOrderValue      Decimal?      @db.Decimal(10, 2)
+  maxUses            Int?
+  // How many times ONE customer may use it (null = no limit). Counted from
+  // promo_code_redemptions against real orders; an email-campaign code is 1.
+  maxUsesPerCustomer Int?
+  usedCount          Int           @default(0)
+  startAt            DateTime?
+  expiresAt          DateTime?
+  isActive           Boolean       @default(true)
+  locationIds        String[]
+
+  redemptions PromoCodeRedemption[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1719,6 +1724,26 @@ model PromoCode {
   @@index([tenantId])
   @@index([tenantId, isActive])
   @@map("promo_codes")
+}
+
+// One row per order a promo code was used on — who used it, so "once per
+// customer" can be enforced. No FK to orders (an order row is never deleted
+// in practice, and the check joins on it to ignore cancelled/abandoned ones).
+model PromoCodeRedemption {
+  id                String    @id @default(cuid())
+  tenantId          String
+  promoCodeId       String
+  promoCode         PromoCode @relation(fields: [promoCodeId], references: [id], onDelete: Cascade)
+  orderId           String
+  customerAccountId String?
+  customerEmail     String? // lower-cased
+  customerPhone     String?
+  createdAt         DateTime  @default(now())
+
+  @@unique([promoCodeId, orderId])
+  @@index([promoCodeId, customerAccountId])
+  @@index([promoCodeId, customerEmail])
+  @@map("promo_code_redemptions")
 }
 
 // ── MarketingCampaign (Phase AW-19) ─────────────────────────────────────────
@@ -3980,7 +4005,7 @@ model SystemSecret {
 
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE I — TRANSACTIONAL OUTBOX
-// ════════════════════════════════════════════���═════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════════
 
 model OutboxEvent {
   id             String            @id @default(cuid())

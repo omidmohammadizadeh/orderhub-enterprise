@@ -746,25 +746,28 @@ function Report({ campaign: c, ctx }: { campaign: EmailCampaign; ctx?: EmailMark
           </button>
         )}
         {nothingSent && (
-          <>
-            <button
-              onClick={() => retry.mutate()}
-              disabled={retry.isPending}
-              className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
-            >
-              {retry.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <PencilLine className="h-4 w-4" />}
-              Edit &amp; try again
-            </button>
-            <button
-              onClick={() => {
-                if (confirm("Delete this campaign? Nothing was sent, so nothing is lost.")) remove.mutate();
-              }}
-              disabled={remove.isPending}
-              className="flex items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 hover:text-rose-600"
-            >
-              <Trash2 className="h-4 w-4" /> Delete
-            </button>
-          </>
+          <button
+            onClick={() => retry.mutate()}
+            disabled={retry.isPending}
+            className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+          >
+            {retry.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <PencilLine className="h-4 w-4" />}
+            Edit &amp; try again
+          </button>
+        )}
+        {c.status !== "SENDING" && (
+          <button
+            onClick={() => {
+              const msg = c.sentCount
+                ? `Delete "${c.name}" and its report? Emails already sent can't be recalled; orders it brought in stay on your orders.`
+                : `Delete "${c.name}"?`;
+              if (confirm(msg)) remove.mutate();
+            }}
+            disabled={remove.isPending}
+            className="flex items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 hover:text-rose-600"
+          >
+            <Trash2 className="h-4 w-4" /> Delete
+          </button>
         )}
         <button
           onClick={() => dup.mutate()}
