@@ -220,8 +220,45 @@ export function transformJetOrder(payload: any): JetTransformResult | null {
         .filter(Boolean),
     ),
   );
+  const topLevelSignatures = new Set<string>(rawItems.map(jetItemSignature));
+
+  // A DISCOUNT promotion lists the discounted item again in its `items` — it is
+  // naming what the money came off, not adding anything to make. Merging those
+  // is how one Duet Meal became two on Greek Gyros order 963789475 (5 Oct 2026):
+  // the ticket printed the meal twice, the kitchen made two, and the shop ate
+  // the second. The totals were right throughout, so nothing flagged it.
+  //
+  // The id guard above could never have caught it. In the real envelope there
+  // was NO id to correlate on at either end: `promotion_id` was "", there was
+  // no `offer_id` key at all, and the top-level item's keys were exactly
+  // children/description/name/notes/plu/price/unitDepositAmount — no
+  // `offers_applied`. (Our fixtures carry both fields because they were written
+  // from the spec, never from a real promotional order.)
+  //
+  // So the discriminator has to be the promotion's TYPE, and it CANNOT be item
+  // matching: a discounted item and a buy-one-get-one free item are identical
+  // in this payload — same plu, same full price, same children — and only the
+  // type says whether a second one should be made. Matching on the item alone
+  // would fix this ticket and start dropping free items instead.
+  const isDiscountPromotion = (promo: any): boolean => {
+    if (String(promo?.type ?? "").toUpperCase().includes("DISCOUNT")) return true;
+    // Unknown type that still takes money off and names something we are
+    // already charging for: treat as a discount rather than risk a double.
+    const items = Array.isArray(promo?.items) ? promo.items : [];
+    return (
+      jetMoney(promo?.discount_value) > 0 &&
+      items.length > 0 &&
+      items.every((i: any) => topLevelSignatures.has(jetItemSignature(i)))
+    );
+  };
+
   const promoItems: any[] = [];
+  let discountPromotions = 0;
   for (const promo of promotions) {
+    if (isDiscountPromotion(promo)) {
+      discountPromotions += 1;
+      continue;
+    }
     const offerId = String(promo?.offer_id ?? "").trim();
     if (offerId && claimedOfferIds.has(offerId)) continue;
     const items = Array.isArray(promo?.items) ? promo.items : [];
@@ -235,6 +272,12 @@ export function transformJetOrder(payload: any): JetTransformResult | null {
       });
     }
   }
+  if (discountPromotions) {
+    warnings.push(
+      `${discountPromotions} discount promotion(s) name an already-charged ` +
+        `item — not merged (the discount itself comes from payment.adjustments)`,
+    );
+  }
   if (promoItems.length) {
     warnings.push(
       `${promoItems.length} promotional item(s) merged in from promotions[] ` +
@@ -243,6 +286,21 @@ export function transformJetOrder(payload: any): JetTransformResult | null {
   }
   const items = collapseItems([...rawItems, ...promoItems], warnings);
   if (items.length === 0) warnings.push("order contained no items");
+
+  // Cross-check our lines against what JET actually charged for. If they add up
+  // to MORE than `items_in_cart`, we have invented food that nobody paid for —
+  // which is the shape of every double-count bug, whatever caused it. Silence
+  // is what let 963789475 reach a kitchen, so this is loud and unconditional.
+  // Under-running is normal and not flagged: a free promotional item is real
+  // food at no charge, and discounts land in payment.adjustments, not here.
+  const cartTotal = jetMoney(payload?.payment?.items_in_cart?.inc_tax);
+  const lineTotal = items.reduce((sum, i) => sum + i.totalPrice, 0);
+  if (cartTotal > 0 && lineTotal - cartTotal > 0.005) {
+    warnings.push(
+      `lines total ${lineTotal.toFixed(2)} but JET charged for ` +
+        `${cartTotal.toFixed(2)} — possible duplicated item, check the ticket`,
+    );
+  }
 
   // ── Money ────────────────────────────────────────────────────────────
   //

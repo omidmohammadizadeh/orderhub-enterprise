@@ -588,3 +588,121 @@ describe("transformJetOrder — V2 promotions", () => {
     expect(out.canonical.items.map((i: any) => i.name)).toContain("Crispy Chicken Twist");
   });
 });
+
+// ONE MEAL ORDERED, ONE MEAL MADE.
+//
+// Greek Gyros order 963789475, 5 Oct 2026. The customer bought a single Duet
+// Meal with £6 off. Just Eat's own ticket said "1 x Duet Meal". Ours printed it
+// TWICE, the kitchen made two, and the shop ate the second — while every total
+// on our receipt stayed correct (£19.99 / £19.21), because totals come from
+// JET's payment block and never from the lines. Nothing flagged it.
+//
+// The payload below is the real envelope, not the spec. Note what is NOT in it:
+// `promotion_id` is the empty string, there is no `offer_id` key, and the
+// top-level item has no `offers_applied`. There is no id to correlate on at
+// either end, which is why the existing id guard could not fire.
+describe("JET promotions — a discounted item is not a second item", () => {
+  const duetMeal = (notes = "") => ({
+    children: [
+      { name: "Chicken Gyros Wrap", plu: "PROD-C1", price: 0 },
+      { name: "+mayo", plu: "PROD-M1", price: 0 },
+      { name: "Donner Souvlak Wrapi", plu: "PROD-D1", price: 0 },
+      { name: "+no sauce", plu: "PROD-N1", price: 0 },
+      { name: "Oregano Fries", plu: "PROD-F1", price: 0 },
+      { name: "Oregano Fries", plu: "PROD-F1", price: 0 },
+      { name: "Coke", plu: "PROD-K1", price: 0 },
+      { name: "Coke", plu: "PROD-K1", price: 0 },
+    ],
+    description: "",
+    name: "Duet Meal",
+    notes,
+    plu: "PROD-GF7A6Y",
+    price: 1999,
+    unitDepositAmount: 0,
+  });
+
+  const realEnvelope = {
+    id: "emxutlhi6eefywflyve8yq",
+    third_party_order_reference: "963789475",
+    type: "delivery-by-delivery-partner",
+    location: { id: 302649, timezone: "Europe/London" },
+    items: [duetMeal()],
+    promotions: [
+      {
+        discount_value: 600,
+        items: [duetMeal()],
+        promotion_id: "",
+        type: "ITEM_LEVEL_DISCOUNT",
+      },
+    ],
+    payment: {
+      adjustments: [
+        { name: "discount", price: { inc_tax: 600, tax: 0 } },
+        { name: "deliveryFee", price: { inc_tax: 369, tax: 0 } },
+        { name: "serviceCharge", price: { inc_tax: 153, tax: 0 } },
+      ],
+      deposit: 0,
+      final: { inc_tax: 1921, tax: 0 },
+      items_in_cart: { inc_tax: 1999, tax: 0 },
+    },
+  };
+
+  it("sends ONE Duet Meal to the kitchen, not two", () => {
+    const c = transformJetOrder(realEnvelope as any)!.canonical;
+
+    expect(c.items).toHaveLength(1);
+    expect(c.items[0]!.name).toBe("Duet Meal");
+    expect(c.items[0]!.quantity).toBe(1);
+  });
+
+  it("keeps the money exactly as Just Eat charged it", () => {
+    const c = transformJetOrder(realEnvelope as any)!.canonical;
+
+    // The totals were never wrong — the regression is the lines, and fixing
+    // the lines must not disturb what the customer actually paid.
+    expect(c.total).toBeCloseTo(19.21, 2);
+    expect(c.items[0]!.totalPrice).toBeCloseTo(19.99, 2);
+  });
+
+  it("does not warn — one line for one meal is the correct outcome", () => {
+    const { warnings } = transformJetOrder(realEnvelope as any)!;
+
+    expect(warnings.join(" ")).not.toMatch(/possible duplicated item/i);
+  });
+
+  it("STILL merges a genuinely free item, which is why this isn't item-matching", () => {
+    // Buy-one-get-one is byte-identical to the discount case — same plu, same
+    // full price, same children — and only the promotion type tells them apart.
+    // Matching on the item would fix the ticket above and start dropping these.
+    const bogof = {
+      ...realEnvelope,
+      promotions: [
+        {
+          discount_value: 0,
+          items: [duetMeal()],
+          promotion_id: "",
+          type: "BUY_ONE_GET_ONE_FREE",
+        },
+      ],
+    };
+
+    const c = transformJetOrder(bogof as any)!.canonical;
+
+    expect(c.items.reduce((n, i) => n + i.quantity, 0)).toBe(2);
+  });
+
+  it("warns loudly when the lines outrun what JET charged for", () => {
+    // The safety net, independent of cause: if our lines add up to more than
+    // `items_in_cart`, we have invented food. Silence is what let the original
+    // reach a kitchen.
+    const doubled = {
+      ...realEnvelope,
+      items: [duetMeal(), duetMeal("second")],
+      promotions: [],
+    };
+
+    const { warnings } = transformJetOrder(doubled as any)!;
+
+    expect(warnings.join(" ")).toMatch(/lines total 39\.98 but JET charged for 19\.99/);
+  });
+});
