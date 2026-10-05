@@ -113,6 +113,9 @@ export function OfferCodeField({
       {current && (
         <p className="flex items-center gap-1.5 text-[11px] text-emerald-700">
           <CheckCircle2 className="h-3.5 w-3.5" /> Works at checkout: {describeCode(current)}
+          <a href="/dashboard/marketing/promo-codes" className="ml-auto text-indigo-700 underline">
+            Manage codes
+          </a>
         </p>
       )}
       {missing && !creating && (

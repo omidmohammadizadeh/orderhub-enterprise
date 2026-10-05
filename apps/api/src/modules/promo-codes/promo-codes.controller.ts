@@ -22,6 +22,10 @@ import { Roles } from "../../common/decorators/roles.decorator";
 import { BillingExempt } from "../../common/guards/billing.guard";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
+// Same people who run Marketing. OWNER is new: a shop owner manages their own
+// shop's codes; account-wide codes stay with tenant-wide admins.
+const PROMO_ROLES = ["PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "DARK_KITCHEN_MANAGER", "MANAGER"] as const;
+
 @ApiTags("promo-codes")
 @ApiBearerAuth()
 @BillingExempt()
@@ -38,35 +42,54 @@ export class PromoCodesController {
     return this.service.list(user.tenantId, locationId);
   }
 
+  // ── Marketing → Promo codes page ─────────────────────────────────────────
+
+  @Get("overview")
+  @Roles(...PROMO_ROLES)
+  @ApiOperation({ summary: "Codes with status, orders/sales/discount, and the emails that use them" })
+  overview(@CurrentUser() user: AuthenticatedUser, @Query("locationId") locationId?: string) {
+    return this.service.overview(user.tenantId, user, locationId || null);
+  }
+
+  @Get(":id/orders")
+  @Roles(...PROMO_ROLES)
+  @ApiOperation({ summary: "The latest orders that used a code" })
+  orders(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string) {
+    return this.service.recentOrders(user.tenantId, user, id);
+  }
+
+  // Create / edit / delete: a shop-scoped owner or manager may only touch
+  // codes limited to their own shops (enforced in the service).
+
   @Post()
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(...PROMO_ROLES)
   @ApiOperation({ summary: "Create promo code" })
   create(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: CreatePromoCodeDto,
   ) {
-    return this.service.create(user.tenantId, dto);
+    return this.service.createFor(user.tenantId, user, dto);
   }
 
   @Patch(":id")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(...PROMO_ROLES)
   @ApiOperation({ summary: "Update promo code" })
   update(
     @CurrentUser() user: AuthenticatedUser,
     @Param("id") id: string,
     @Body() dto: UpdatePromoCodeDto,
   ) {
-    return this.service.update(user.tenantId, id, dto);
+    return this.service.updateFor(user.tenantId, user, id, dto);
   }
 
   @Delete(":id")
-  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @Roles(...PROMO_ROLES)
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(
     @CurrentUser() user: AuthenticatedUser,
     @Param("id") id: string,
   ) {
-    return this.service.remove(user.tenantId, id);
+    return this.service.removeFor(user.tenantId, user, id);
   }
 
   @Post("validate")

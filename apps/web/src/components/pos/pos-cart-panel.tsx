@@ -340,7 +340,9 @@ export function PosCartPanel(props: CartPanelProps) {
     enabled: !!locationId,
   });
   const activePromos = useMemo(
-    () => (promosQuery.data ?? []).filter((p) => p.isActive),
+    // Only codes meant as till buttons: email-offer codes (once per customer,
+    // for the customer to type) are kept off.
+    () => (promosQuery.data ?? []).filter((p) => p.isActive && p.showOnPos !== false),
     [promosQuery.data],
   );
   const [promoCodeInput, setPromoCodeInput] = useState<string>(

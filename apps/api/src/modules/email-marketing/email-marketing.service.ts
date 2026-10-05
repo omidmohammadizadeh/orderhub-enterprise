@@ -1322,6 +1322,8 @@ export class EmailMarketingService {
       maxUsesPerCustomer: body.oncePerCustomer === false ? null : 1,
       expiresAt: body.expiresAt ?? undefined,
       locationIds: loc ? [loc] : [],
+      // A code for customers to type from an email — not a till button.
+      showOnPos: false,
     });
     return {
       id: created.id,

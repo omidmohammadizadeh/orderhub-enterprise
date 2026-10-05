@@ -100,7 +100,9 @@ export function PromosModal({ locationId, onClose }: Props) {
     return () => window.clearTimeout(t);
   }, [error]);
 
-  const promos = promosQuery.data ?? [];
+  // The till's quick buttons only. Email-offer codes live under Marketing →
+  // Promo codes and aren't till buttons.
+  const promos = (promosQuery.data ?? []).filter((p) => p.showOnPos !== false);
 
   return (
     <Backdrop onClose={onClose}>

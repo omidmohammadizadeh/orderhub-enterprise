@@ -1714,6 +1714,10 @@ model PromoCode {
   expiresAt          DateTime?
   isActive           Boolean       @default(true)
   locationIds        String[]
+  // Shown as a quick-tap discount button on the till. Off for codes made for
+  // email offers: a once-per-customer code is for the customer to type, not a
+  // button staff press for anyone.
+  showOnPos          Boolean       @default(true)
 
   redemptions PromoCodeRedemption[]
 
@@ -3979,7 +3983,7 @@ model WebPushSubscription {
 // ══════════════════════════════════════════════════════════════════════════════
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE AP — SYSTEM SECRETS VAULT (platform-admin only)
-// ══════════════════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════��═══════════
 
 // Phase AP — encrypted secret values used by other modules in place of
 // process.env. AES-256-GCM encryption with SECRETS_MASTER_KEY; the DB
@@ -5147,7 +5151,7 @@ model GroupOrderItem {
 
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE AX — CUSTOMER WEB PUSH (PWA order updates)
-// ══════════════════════════════════════════════════════════════════════════════
+// ════════════���═════════════════════════════════════════════════════════════════
 
 // A customer's browser, subscribed to hear about their order.
 //

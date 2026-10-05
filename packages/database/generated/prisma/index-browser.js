@@ -823,6 +823,7 @@ exports.Prisma.PromoCodeScalarFieldEnum = {
   expiresAt: 'expiresAt',
   isActive: 'isActive',
   locationIds: 'locationIds',
+  showOnPos: 'showOnPos',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

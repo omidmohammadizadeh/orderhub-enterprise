@@ -57923,6 +57923,7 @@ export namespace Prisma {
     startAt: Date | null
     expiresAt: Date | null
     isActive: boolean | null
+    showOnPos: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -57941,6 +57942,7 @@ export namespace Prisma {
     startAt: Date | null
     expiresAt: Date | null
     isActive: boolean | null
+    showOnPos: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -57960,6 +57962,7 @@ export namespace Prisma {
     expiresAt: number
     isActive: number
     locationIds: number
+    showOnPos: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -57996,6 +57999,7 @@ export namespace Prisma {
     startAt?: true
     expiresAt?: true
     isActive?: true
+    showOnPos?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -58014,6 +58018,7 @@ export namespace Prisma {
     startAt?: true
     expiresAt?: true
     isActive?: true
+    showOnPos?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -58033,6 +58038,7 @@ export namespace Prisma {
     expiresAt?: true
     isActive?: true
     locationIds?: true
+    showOnPos?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -58139,6 +58145,7 @@ export namespace Prisma {
     expiresAt: Date | null
     isActive: boolean
     locationIds: string[]
+    showOnPos: boolean
     createdAt: Date
     updatedAt: Date
     _count: PromoCodeCountAggregateOutputType | null
@@ -58177,6 +58184,7 @@ export namespace Prisma {
     expiresAt?: boolean
     isActive?: boolean
     locationIds?: boolean
+    showOnPos?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
@@ -58199,6 +58207,7 @@ export namespace Prisma {
     expiresAt?: boolean
     isActive?: boolean
     locationIds?: boolean
+    showOnPos?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
@@ -58219,6 +58228,7 @@ export namespace Prisma {
     expiresAt?: boolean
     isActive?: boolean
     locationIds?: boolean
+    showOnPos?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -58253,6 +58263,7 @@ export namespace Prisma {
       expiresAt: Date | null
       isActive: boolean
       locationIds: string[]
+      showOnPos: boolean
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["promoCode"]>
@@ -58664,6 +58675,7 @@ export namespace Prisma {
     readonly expiresAt: FieldRef<"PromoCode", 'DateTime'>
     readonly isActive: FieldRef<"PromoCode", 'Boolean'>
     readonly locationIds: FieldRef<"PromoCode", 'String[]'>
+    readonly showOnPos: FieldRef<"PromoCode", 'Boolean'>
     readonly createdAt: FieldRef<"PromoCode", 'DateTime'>
     readonly updatedAt: FieldRef<"PromoCode", 'DateTime'>
   }
@@ -174321,6 +174333,7 @@ export namespace Prisma {
     expiresAt: 'expiresAt',
     isActive: 'isActive',
     locationIds: 'locationIds',
+    showOnPos: 'showOnPos',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -183693,6 +183706,7 @@ export namespace Prisma {
     expiresAt?: DateTimeNullableFilter<"PromoCode"> | Date | string | null
     isActive?: BoolFilter<"PromoCode"> | boolean
     locationIds?: StringNullableListFilter<"PromoCode">
+    showOnPos?: BoolFilter<"PromoCode"> | boolean
     createdAt?: DateTimeFilter<"PromoCode"> | Date | string
     updatedAt?: DateTimeFilter<"PromoCode"> | Date | string
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
@@ -183714,6 +183728,7 @@ export namespace Prisma {
     expiresAt?: SortOrderInput | SortOrder
     isActive?: SortOrder
     locationIds?: SortOrder
+    showOnPos?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     tenant?: TenantOrderByWithRelationInput
@@ -183740,6 +183755,7 @@ export namespace Prisma {
     expiresAt?: DateTimeNullableFilter<"PromoCode"> | Date | string | null
     isActive?: BoolFilter<"PromoCode"> | boolean
     locationIds?: StringNullableListFilter<"PromoCode">
+    showOnPos?: BoolFilter<"PromoCode"> | boolean
     createdAt?: DateTimeFilter<"PromoCode"> | Date | string
     updatedAt?: DateTimeFilter<"PromoCode"> | Date | string
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
@@ -183761,6 +183777,7 @@ export namespace Prisma {
     expiresAt?: SortOrderInput | SortOrder
     isActive?: SortOrder
     locationIds?: SortOrder
+    showOnPos?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: PromoCodeCountOrderByAggregateInput
@@ -183788,6 +183805,7 @@ export namespace Prisma {
     expiresAt?: DateTimeNullableWithAggregatesFilter<"PromoCode"> | Date | string | null
     isActive?: BoolWithAggregatesFilter<"PromoCode"> | boolean
     locationIds?: StringNullableListFilter<"PromoCode">
+    showOnPos?: BoolWithAggregatesFilter<"PromoCode"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"PromoCode"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"PromoCode"> | Date | string
   }
@@ -199907,6 +199925,7 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     isActive?: boolean
     locationIds?: PromoCodeCreatelocationIdsInput | string[]
+    showOnPos?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutPromoCodesInput
@@ -199928,6 +199947,7 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     isActive?: boolean
     locationIds?: PromoCodeCreatelocationIdsInput | string[]
+    showOnPos?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     redemptions?: PromoCodeRedemptionUncheckedCreateNestedManyWithoutPromoCodeInput
@@ -199947,6 +199967,7 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     locationIds?: PromoCodeUpdatelocationIdsInput | string[]
+    showOnPos?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutPromoCodesNestedInput
@@ -199968,6 +199989,7 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     locationIds?: PromoCodeUpdatelocationIdsInput | string[]
+    showOnPos?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     redemptions?: PromoCodeRedemptionUncheckedUpdateManyWithoutPromoCodeNestedInput
@@ -199988,6 +200010,7 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     isActive?: boolean
     locationIds?: PromoCodeCreatelocationIdsInput | string[]
+    showOnPos?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -200006,6 +200029,7 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     locationIds?: PromoCodeUpdatelocationIdsInput | string[]
+    showOnPos?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -200025,6 +200049,7 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     locationIds?: PromoCodeUpdatelocationIdsInput | string[]
+    showOnPos?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -216434,6 +216459,7 @@ export namespace Prisma {
     expiresAt?: SortOrder
     isActive?: SortOrder
     locationIds?: SortOrder
+    showOnPos?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -216460,6 +216486,7 @@ export namespace Prisma {
     startAt?: SortOrder
     expiresAt?: SortOrder
     isActive?: SortOrder
+    showOnPos?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -216478,6 +216505,7 @@ export namespace Prisma {
     startAt?: SortOrder
     expiresAt?: SortOrder
     isActive?: SortOrder
+    showOnPos?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -235820,6 +235848,7 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     isActive?: boolean
     locationIds?: PromoCodeCreatelocationIdsInput | string[]
+    showOnPos?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     redemptions?: PromoCodeRedemptionCreateNestedManyWithoutPromoCodeInput
@@ -235839,6 +235868,7 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     isActive?: boolean
     locationIds?: PromoCodeCreatelocationIdsInput | string[]
+    showOnPos?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     redemptions?: PromoCodeRedemptionUncheckedCreateNestedManyWithoutPromoCodeInput
@@ -236915,6 +236945,7 @@ export namespace Prisma {
     expiresAt?: DateTimeNullableFilter<"PromoCode"> | Date | string | null
     isActive?: BoolFilter<"PromoCode"> | boolean
     locationIds?: StringNullableListFilter<"PromoCode">
+    showOnPos?: BoolFilter<"PromoCode"> | boolean
     createdAt?: DateTimeFilter<"PromoCode"> | Date | string
     updatedAt?: DateTimeFilter<"PromoCode"> | Date | string
   }
@@ -254207,6 +254238,7 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     isActive?: boolean
     locationIds?: PromoCodeCreatelocationIdsInput | string[]
+    showOnPos?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutPromoCodesInput
@@ -254227,6 +254259,7 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     isActive?: boolean
     locationIds?: PromoCodeCreatelocationIdsInput | string[]
+    showOnPos?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -254261,6 +254294,7 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     locationIds?: PromoCodeUpdatelocationIdsInput | string[]
+    showOnPos?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutPromoCodesNestedInput
@@ -254281,6 +254315,7 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     locationIds?: PromoCodeUpdatelocationIdsInput | string[]
+    showOnPos?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -280820,6 +280855,7 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     isActive?: boolean
     locationIds?: PromoCodeCreatelocationIdsInput | string[]
+    showOnPos?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -281733,6 +281769,7 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     locationIds?: PromoCodeUpdatelocationIdsInput | string[]
+    showOnPos?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     redemptions?: PromoCodeRedemptionUpdateManyWithoutPromoCodeNestedInput
@@ -281752,6 +281789,7 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     locationIds?: PromoCodeUpdatelocationIdsInput | string[]
+    showOnPos?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     redemptions?: PromoCodeRedemptionUncheckedUpdateManyWithoutPromoCodeNestedInput
@@ -281771,6 +281809,7 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     locationIds?: PromoCodeUpdatelocationIdsInput | string[]
+    showOnPos?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
