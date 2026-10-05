@@ -5,6 +5,9 @@ export const appConfig = registerAs("app", () => ({
   port: parseInt(process.env.PORT ?? "4000", 10),
   appUrl: process.env.APP_URL ?? "http://localhost:3000",
   apiUrl: process.env.API_URL ?? "http://localhost:4000",
+  // The customer-facing storefront origin. APP_URL is the dashboard; the
+  // storefront is what an order tracking link has to point at.
+  webUrl: process.env.WEB_URL ?? process.env.APP_URL ?? "https://www.orderhubsolutions.com",
   isProduction: process.env.NODE_ENV === "production",
   isTest: process.env.NODE_ENV === "test",
 
@@ -32,6 +35,37 @@ export const appConfig = registerAs("app", () => ({
 
   // Global fallback webhook secrets — per-tenant overrides are stored in the
   // integrations table and take precedence over these during signature verification.
+  // Phase OE — the confirmation email a customer gets after ordering online.
+  // Off unless switched on, so no tenant starts emailing by surprise.
+  orderEmails: {
+    enabled: (process.env.ORDER_CONFIRMATION_EMAILS ?? "") === "true",
+    // Resend's free plan stops dead at 100 a day; past that a customer
+    // silently gets nothing, which looks like the order never existed.
+    dailyCap: Number(process.env.ORDER_EMAIL_DAILY_CAP ?? 100),
+    capWarnAt: Number(process.env.ORDER_EMAIL_CAP_WARN_AT ?? 80),
+    opsAlertEmail:
+      process.env.JET_OPS_ALERT_EMAIL ?? process.env.OPS_ALERT_EMAIL ?? "",
+  },
+
+  // Email marketing — restaurants emailing their own customers. Sending is
+  // OFF until switched on: on Resend's free plan one campaign would use the
+  // whole 100-a-day allowance and stop order confirmations for the day.
+  emailMarketing: {
+    enabled: (process.env.EMAIL_MARKETING_ENABLED ?? "") === "true",
+    // A separate sending subdomain keeps a restaurant's spam complaints off
+    // the reputation order confirmations depend on. Falls back to EMAIL_FROM.
+    from: process.env.EMAIL_MARKETING_FROM ?? "",
+    // What WE charge the shop's wallet per 1,000 emails, in minor units
+    // (300 = £3.00). Resend charges us about $0.90 per 1,000 over the plan.
+    pricePer1000Minor: Number(process.env.EMAIL_MARKETING_PRICE_PER_1000_MINOR ?? 300),
+    // Free emails per tenant per calendar month before the wallet is charged.
+    freePerMonth: Number(process.env.EMAIL_MARKETING_FREE_PER_MONTH ?? 1000),
+    // Resend webhook signing secret (whsec_…) for delivered/bounced/complained.
+    webhookSecret: process.env.RESEND_WEBHOOK_SECRET ?? "",
+    // Signs unsubscribe links. Any long random string; falls back to JWT_SECRET.
+    tokenSecret: process.env.EMAIL_MARKETING_TOKEN_SECRET ?? process.env.JWT_SECRET ?? "",
+  },
+
   platforms: {
     uberEats: {
       clientId: process.env.UBER_EATS_CLIENT_ID ?? "",
@@ -89,6 +123,12 @@ export const appConfig = registerAs("app", () => ({
       menuKeysByCountry: process.env.JET_MENU_KEYS ?? "",
       orderKeysByCountry: process.env.JET_ORDER_KEYS ?? "",
       defaultCountry: process.env.JET_DEFAULT_COUNTRY ?? "GB",
+      // Where an order that failed to inject is reported. Unset = no ops
+      // email; the shop is still notified and the Logs page still records it.
+      opsAlertEmail: process.env.JET_OPS_ALERT_EMAIL ?? process.env.OPS_ALERT_EMAIL ?? "",
+      // A mobile number for the same alert. Separate from the email because
+      // they fail independently and the text is the one read during service.
+      opsAlertSms: process.env.JET_OPS_ALERT_SMS ?? process.env.OPS_ALERT_SMS ?? "",
       // The shared secret JET signs inbound order webhooks with
       // (X-JET-Connect-Hash). Distinct from the API keys.
       webhookSecret: process.env.JET_WEBHOOK_SECRET ?? "",

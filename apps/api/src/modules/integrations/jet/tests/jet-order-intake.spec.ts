@@ -263,3 +263,57 @@ describe("JetOrderService.ingestOrder — routing fallbacks", () => {
     expect(result.handled).toBe(true);
   });
 });
+
+// Phase JE-7 — the alert that tells someone an order was lost.
+//
+// The whole point of these two is that the alerter is downstream of the
+// acknowledgement. Alerting is a convenience; acking is the SLA.
+describe("JetOrderService.ingestOrder — failure alerts", () => {
+  const brokenConnection = { connection: null as any };
+
+  function withAlerts(opts: Parameters<typeof makeService>[0] = {}) {
+    const built = makeService(opts);
+    const alerts = { raise: jest.fn().mockResolvedValue(undefined) };
+    const service = new (JetOrderService as any)(
+      (built as any).prisma,
+      { ingestCanonical: built.ingestCanonical, resyncMarketplaceItems: built.resyncMarketplaceItems },
+      built.ack,
+      built.activity,
+      alerts,
+    );
+    return { service, alerts, ack: built.ack };
+  }
+
+  it("raises an alert naming the order and the classified reason", async () => {
+    const { service, alerts } = withAlerts(brokenConnection);
+
+    await service.ingestOrder(DELIVERY_BY_MERCHANT);
+
+    expect(alerts.raise).toHaveBeenCalledTimes(1);
+    expect(alerts.raise.mock.calls[0][0]).toMatchObject({
+      kind: "ingest_failed",
+      code: "INCORRECT_SETUP",
+    });
+  });
+
+  it("acknowledges the failure even when raising the alert throws", async () => {
+    const { service, alerts, ack } = withAlerts(brokenConnection);
+    alerts.raise.mockImplementation(() => {
+      throw new Error("SendGrid exploded");
+    });
+
+    // An alerting bug must not become the outage it was built to report.
+    await expect(service.ingestOrder(DELIVERY_BY_MERCHANT)).resolves.toMatchObject({
+      handled: false,
+    });
+    expect(ack.ackFailure).toHaveBeenCalledTimes(1);
+  });
+
+  it("stays silent on an order that went through", async () => {
+    const { service, alerts } = withAlerts();
+
+    await service.ingestOrder(COLLECTION_BY_CUSTOMER);
+
+    expect(alerts.raise).not.toHaveBeenCalled();
+  });
+});

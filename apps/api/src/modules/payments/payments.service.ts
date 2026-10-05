@@ -1,17 +1,34 @@
 import {
+  Inject,
   Injectable,
   NotFoundException,
   BadRequestException,
   Logger,
+  Optional,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { randomBytes } from "crypto";
+import { usesTap } from "@orderhub/shared";
 import { Decimal } from "@prisma/client/runtime/library";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { SocketService } from "../../infrastructure/socket/socket.service";
 import { SmsService } from "../sms/sms.service";
 import { WalletService } from "../wallet/wallet.service";
+
+/**
+ * Pay-by-link can be hosted by Dojo instead of Stripe, per location.
+ *
+ * Injected by STRING TOKEN (payments.module.ts points it at DojoService) so
+ * this file never imports dojo.service.ts, which imports this one — the pair
+ * would be a circular import, and the only thing needed here is one method.
+ */
+export const DOJO_PAYMENT_LINKS = "DOJO_PAYMENT_LINKS";
+
+export interface DojoPaymentLinkPort {
+  /** A Dojo-hosted link for this order, or null when the shop is on Stripe. */
+  paymentLinkForOrder(tenantId: string, orderId: string): Promise<{ url: string } | null>;
+}
 
 // Lazy-imported only if STRIPE_SECRET_KEY is present
 let Stripe: any;
@@ -135,6 +152,9 @@ export class PaymentsService {
     private readonly events: EventEmitter2,
     private readonly sms: SmsService,
     private readonly wallet: WalletService,
+    // Optional so the hand-built unit specs keep working — and because a shop
+    // with no Dojo account never needs it.
+    @Optional() @Inject(DOJO_PAYMENT_LINKS) private readonly dojoLinks?: DojoPaymentLinkPort,
   ) {
     const key = this.config.get<string>("STRIPE_SECRET_KEY");
     if (key && Stripe) {
@@ -1041,6 +1061,88 @@ export class PaymentsService {
    * nothing to do (already settled) or nothing left to bank (refunded), so a
    * caller does not announce a settlement that never happened.
    */
+  /**
+   * A tip the customer added ON the card machine, put onto the ORDER so it is
+   * visible to anyone who looks at the bill.
+   *
+   * It was already being stored on the Payment row and nowhere else, so a
+   * waiter who took £6.00 on a £5.40 share saw neither the tip nor the extra
+   * 60p anywhere on the order, the drawer or the printed receipt (Dojo
+   * certification, Philip Wells, 2026-09-30).
+   *
+   * `total` is deliberately NOT touched. It is the BILL, and five separate
+   * places work out what a table still owes by subtracting what has been paid
+   * from it — inflating it by a tip would leave every one of them asking for
+   * 60p that nobody owes, and a table that never closes. The tip is money on
+   * top, so it is shown on top: `terminalTipsMinor` on the order says how much
+   * of `tipAmount` arrived this way, which is what the till and the receipt
+   * use to print it after the total rather than inside it.
+   */
+  private async applyTerminalTip(payment: any): Promise<void> {
+    const tipMinor = Math.round(Number(payment.tipAmount ?? 0) * 100);
+    if (tipMinor <= 0) return;
+    // Once per payment, however many times a webhook or a poll settles it.
+    if ((payment.metadata as any)?.tipAppliedToOrder) return;
+    try {
+      const order = await this.prisma.order.findUnique({
+        where: { id: payment.orderId },
+        select: { tipAmount: true, metadata: true },
+      });
+      if (!order) return;
+      const meta = { ...((order.metadata as any) ?? {}) };
+      meta.terminalTipsMinor = Number(meta.terminalTipsMinor ?? 0) + tipMinor;
+      await this.prisma.$transaction([
+        (this.prisma as any).order.update({
+          where: { id: payment.orderId },
+          data: { tipAmount: Number(order.tipAmount ?? 0) + tipMinor / 100, metadata: meta as any },
+        }),
+        (this.prisma as any).payment.update({
+          where: { id: payment.id },
+          data: { metadata: { ...((payment.metadata as any) ?? {}), tipAppliedToOrder: true } },
+        }),
+      ]);
+      payment.metadata = { ...((payment.metadata as any) ?? {}), tipAppliedToOrder: true };
+      this.logger.log(
+        `Tip of ${(tipMinor / 100).toFixed(2)} taken on the card machine added to order ${payment.orderId}`,
+      );
+    } catch (err: any) {
+      // A tip that fails to record must never cost us the settlement.
+      this.logger.error(`Couldn't record the card-machine tip on order ${payment.orderId}: ${err?.message}`);
+    }
+  }
+
+  /**
+   * An order paid on a card machine must stop calling itself cash.
+   *
+   * A dine-in tab is opened at the till as CASH and only later paid on a
+   * terminal — at the counter, or by the waiter at the table. Nothing was
+   * moving the order off CASH, so the board showed a green "Cash" chip on a
+   * table settled by card (Dojo certification, 2026-09-30), and a refund on it
+   * showed no badge at all, because the cash chip has no refunded state.
+   *
+   * Only ever CASH → CARD_TERMINAL, and only once the money is real: an order
+   * that was placed as a card order already says so, and one still waiting to
+   * be paid keeps whatever the till chose.
+   */
+  private async markPaidOnCardMachine(payment: any): Promise<void> {
+    try {
+      const order = await this.prisma.order.findUnique({
+        where: { id: payment.orderId },
+        select: { paymentMethod: true },
+      });
+      // No order, no correction — never write to a row we couldn't read.
+      if (!order) return;
+      if (order.paymentMethod && order.paymentMethod !== "CASH") return;
+      await this.prisma.order.update({
+        where: { id: payment.orderId },
+        data: { paymentMethod: "CARD_TERMINAL" as any },
+      });
+      this.logger.log(`Order ${payment.orderId} was settled on a card machine — no longer marked cash`);
+    } catch (err: any) {
+      this.logger.error(`Couldn't correct the payment method on order ${payment.orderId}: ${err?.message}`);
+    }
+  }
+
   async settleCardPresentPayment(payment: any, ref?: string): Promise<boolean> {
     if (payment.status === PaymentRecordStatus.SUCCEEDED) return false; // idempotent
 
@@ -1068,9 +1170,13 @@ export class PaymentsService {
     // here would clear a £48 table off the back of a £20 card tap, so the
     // order only flips once the banked parts actually cover the total.
     if ((payment.metadata as any)?.split) {
+      await this.applyTerminalTip(payment);
+      await this.markPaidOnCardMachine(payment);
       await this.settleSplitPart(payment, pi);
       return true;
     }
+    await this.applyTerminalTip(payment);
+    await this.markPaidOnCardMachine(payment);
 
     await this.prisma.$transaction([
       (this.prisma as any).payment.update({
@@ -1691,11 +1797,16 @@ export class PaymentsService {
   }
 
   /**
-   * POS "Payment Link" — generate a hosted Stripe checkout URL for an
-   * existing (unpaid) order, captured automatically so that when the
-   * customer pays, the order flips straight to PAID (no staff Accept step).
-   * The URL is shown as a QR / copyable link / SMS at the till. Reuses the
-   * same brand-Connect direct-charge path as the storefront checkout.
+   * POS "Payment Link" — generate a hosted checkout URL for an existing
+   * (unpaid) order, captured automatically so that when the customer pays, the
+   * order flips straight to PAID (no staff Accept step). The URL is shown as a
+   * QR / copyable link / SMS at the till.
+   *
+   * Stripe hosts it, on the same brand-Connect direct-charge path as the
+   * storefront checkout — unless the location has been switched to Dojo, which
+   * is the one branch below. This is the ONE place a link is minted (the QR
+   * modal, the `/p/<code>` short link and the payment SMS all come through
+   * here), so the choice of provider only has to be made once.
    */
   async createOrderPaymentLink(
     tenantId: string,
@@ -1728,6 +1839,16 @@ export class PaymentsService {
       this.logger.log(
         `Order ${order.id} switched from cash to payment link at the operator's request`,
       );
+    }
+
+    // Dojo-hosted instead of Stripe, if this location has been switched over.
+    // Null means it hasn't — which is every location unless an operator chose
+    // otherwise on the Card readers page — so the Stripe path below is
+    // untouched for everyone else.
+    const dojo = await this.dojoLinks?.paymentLinkForOrder(tenantId, orderId);
+    if (dojo) {
+      this.logger.log(`Payment link for order ${orderId} hosted by Dojo`);
+      return dojo;
     }
 
     const origin = (process.env.WEB_URL ?? "https://www.orderhubsolutions.com").replace(
@@ -2992,11 +3113,7 @@ export class PaymentsService {
    * payments page hides them.
    */
   async listBrandConnectStatus(tenantId: string, locationId?: string) {
-    const baseWhere: any = {
-      tenantId,
-      deletedAt: null,
-      directOrderingEnabled: true,
-    };
+    const baseWhere: any = { tenantId, deletedAt: null };
 
     if (locationId) {
       const loc = await this.prisma.location.findFirst({
@@ -3020,32 +3137,82 @@ export class PaymentsService {
         applicationFeeMode: true,
         applicationFeeFixedAmount: true,
         applicationFeePercentage: true,
-      },
+        directOrderingEnabled: true,
+        primaryLocationId: true,
+        country: true,
+        tapMerchantId: true,
+        tapOnboardingStatus: true,
+        tapConnectUrl: true,
+        locations: {
+          where: { deletedAt: null },
+          select: { country: true },
+          take: 1,
+          orderBy: { createdAt: "asc" },
+        },
+      } as any,
       orderBy: { name: "asc" },
     });
+
+    // Where a brand trades decides Stripe vs Tap — the SHOP's country, the
+    // same thing checkout routes on. A brand that "lives at" a kitchen via
+    // primaryLocationId has no locations of its own, and Brand.country
+    // defaults to GB, so reading either of those alone listed a Dubai brand
+    // as a Stripe one.
+    const primaryIds = Array.from(
+      new Set((brands as any[]).map((b) => b.primaryLocationId).filter(Boolean)),
+    ) as string[];
+    const primaryCountry = new Map<string, string>();
+    if (primaryIds.length) {
+      const locs = await this.prisma.location.findMany({
+        where: { id: { in: primaryIds } },
+        select: { id: true, country: true },
+      });
+      for (const l of locs) primaryCountry.set(l.id, l.country);
+    }
+
     const accounts = await (this.prisma as any).stripeConnectAccount.findMany({
       where: { tenantId, brandId: { not: null } },
     });
     const byBrandId = new Map<string, any>();
     for (const a of accounts) byBrandId.set(a.brandId, a);
 
-    return brands.map((b) => {
-      const a = byBrandId.get(b.id);
-      return {
-        brandId: b.id,
-        name: b.name,
-        logoUrl: b.logoUrl,
-        stripeAccountId: a?.stripeAccountId ?? b.stripeConnectedAccountId ?? null,
-        chargesEnabled: a?.chargesEnabled ?? false,
-        payoutsEnabled: a?.payoutsEnabled ?? false,
-        onboardingComplete: a?.onboardingComplete ?? false,
-        applicationFee: {
-          mode: b.applicationFeeMode,
-          fixedAmount: b.applicationFeeFixedAmount,
-          percentage: b.applicationFeePercentage,
-        },
-      };
-    });
+    return (brands as any[])
+      .map((b) => {
+        const a = byBrandId.get(b.id);
+        const country = String(
+          (b.primaryLocationId && primaryCountry.get(b.primaryLocationId)) ||
+            b.locations?.[0]?.country ||
+            b.country ||
+            "GB",
+        ).toUpperCase();
+        return {
+          brandId: b.id,
+          country,
+          provider: usesTap(country) ? ("TAP" as const) : ("STRIPE" as const),
+          directOrderingEnabled: !!b.directOrderingEnabled,
+          tap: {
+            merchantId: b.tapMerchantId ?? null,
+            onboardingStatus: b.tapOnboardingStatus ?? "not_started",
+            connectUrl: b.tapConnectUrl ?? null,
+          },
+          name: b.name,
+          logoUrl: b.logoUrl,
+          stripeAccountId: a?.stripeAccountId ?? b.stripeConnectedAccountId ?? null,
+          chargesEnabled: a?.chargesEnabled ?? false,
+          payoutsEnabled: a?.payoutsEnabled ?? false,
+          onboardingComplete: a?.onboardingComplete ?? false,
+          applicationFee: {
+            mode: b.applicationFeeMode,
+            fixedAmount: b.applicationFeeFixedAmount,
+            percentage: b.applicationFeePercentage,
+          },
+        };
+      })
+      // Stripe rows stay limited to brands that sell online, as before. A
+      // Gulf brand is listed regardless: its Tap merchant is what QR
+      // pay-at-table and payment links charge to as well, so it has to be
+      // onboardable before (or without) online ordering being switched on.
+      .filter((r) => r.directOrderingEnabled || r.provider === "TAP");
   }
 
   /** Refresh Stripe-side capability flags into our DB row. */

@@ -188,4 +188,48 @@ describe("resolveDeliveryFee", () => {
     expect(out.hasZones).toBe(false);
     expect(out.fee).toBe(0);
   });
+
+  // WA-42JZI2 and one other, 2 Oct 2026: NE33 is £3 online, both WhatsApp
+  // deliveries went out at £0. The zones hang off the LOCATION; the bot read
+  // the brand's rows only, found none, and charged nothing.
+  it("reads location zones as well as brand zones, like online checkout", async () => {
+    const { svc } = makeService([{ id: "ne33", postcodePrefix: "NE33", fee: 3 }]);
+    const out = await svc.resolveDeliveryFee(ctx({ locationId: "loc1" }), {
+      postcode: "NE33 2AB",
+    });
+    expect(out).toMatchObject({ matched: true, fee: 3 });
+    const where = svc.prisma.deliveryZone.findMany.mock.calls[0][0].where;
+    expect(where.isActive).toBe(true);
+    expect(where.OR).toEqual(
+      expect.arrayContaining([{ locationId: "loc1" }, { brandId: "b1" }]),
+    );
+  });
+
+  it("still finds location zones when the shop has no brand pinned", async () => {
+    const { svc } = makeService([{ id: "ne33", postcodePrefix: "NE33", fee: 3 }]);
+    await svc.resolveDeliveryFee(ctx({ locationId: "loc1", brandId: undefined }), {
+      postcode: "NE33 2AB",
+    });
+    const where = svc.prisma.deliveryZone.findMany.mock.calls[0][0].where;
+    expect(where.OR).toEqual(expect.arrayContaining([{ locationId: "loc1" }]));
+  });
+
+  it("charges the highest fee for an unknown postcode instead of £0", async () => {
+    const { svc } = makeService([
+      { id: "a", postcodePrefix: "NE33", fee: 3 },
+      { id: "b", postcodePrefix: "NE34", fee: 4.5 },
+    ]);
+    const out = await svc.resolveDeliveryFee(ctx({ locationId: "loc1" }), {
+      postcode: "NE99 9ZZ",
+    });
+    expect(out.matched).toBe(false);
+    expect(out.fee).toBe(4.5);
+  });
+
+  it("never prices an unlisted area — that is a refusal", async () => {
+    const { svc } = makeService([{ id: "m", areaName: "Dubai Marina", fee: 15 }]);
+    const out = await svc.resolveDeliveryFee(ctx(), { area: "Al Quoz" });
+    expect(out.fee).toBe(0);
+    expect(out.unserviceable).toBe(true);
+  });
 });

@@ -314,6 +314,10 @@ exports.Prisma.BrandScalarFieldEnum = {
   stripeConnectedAccountId: 'stripeConnectedAccountId',
   tapDestinationId: 'tapDestinationId',
   tapBusinessId: 'tapBusinessId',
+  tapMerchantId: 'tapMerchantId',
+  tapLeadId: 'tapLeadId',
+  tapOnboardingStatus: 'tapOnboardingStatus',
+  tapConnectUrl: 'tapConnectUrl',
   applicationFeeFixedAmount: 'applicationFeeFixedAmount',
   applicationFeePercentage: 'applicationFeePercentage',
   applicationFeeMode: 'applicationFeeMode',
@@ -813,13 +817,26 @@ exports.Prisma.PromoCodeScalarFieldEnum = {
   value: 'value',
   minOrderValue: 'minOrderValue',
   maxUses: 'maxUses',
+  maxUsesPerCustomer: 'maxUsesPerCustomer',
   usedCount: 'usedCount',
   startAt: 'startAt',
   expiresAt: 'expiresAt',
   isActive: 'isActive',
   locationIds: 'locationIds',
+  showOnPos: 'showOnPos',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PromoCodeRedemptionScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  promoCodeId: 'promoCodeId',
+  orderId: 'orderId',
+  customerAccountId: 'customerAccountId',
+  customerEmail: 'customerEmail',
+  customerPhone: 'customerPhone',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.MarketingCampaignScalarFieldEnum = {
@@ -2114,6 +2131,7 @@ exports.Prisma.WalletScalarFieldEnum = {
   smsPricePerSegmentMinor: 'smsPricePerSegmentMinor',
   voicePricePerCallMinor: 'voicePricePerCallMinor',
   aiStudioPricesMinor: 'aiStudioPricesMinor',
+  dispatchFeeMinor: 'dispatchFeeMinor',
   lowBalanceThresholdMinor: 'lowBalanceThresholdMinor',
   stripeCustomerId: 'stripeCustomerId',
   autoTopupEnabled: 'autoTopupEnabled',
@@ -2474,6 +2492,111 @@ exports.Prisma.KeetaAuthorizationScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.EmailContactScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  email: 'email',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  customerId: 'customerId',
+  customerAccountId: 'customerAccountId',
+  locationId: 'locationId',
+  status: 'status',
+  consentSource: 'consentSource',
+  consentAt: 'consentAt',
+  unsubscribedAt: 'unsubscribedAt',
+  suppressedAt: 'suppressedAt',
+  source: 'source',
+  tags: 'tags',
+  lastEmailedAt: 'lastEmailedAt',
+  lastOpenedAt: 'lastOpenedAt',
+  lastClickedAt: 'lastClickedAt',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.EmailCampaignScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  name: 'name',
+  subject: 'subject',
+  preheader: 'preheader',
+  fromName: 'fromName',
+  replyTo: 'replyTo',
+  templateId: 'templateId',
+  design: 'design',
+  audience: 'audience',
+  status: 'status',
+  scheduledAt: 'scheduledAt',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  lastError: 'lastError',
+  links: 'links',
+  recipientCount: 'recipientCount',
+  sentCount: 'sentCount',
+  failedCount: 'failedCount',
+  skippedCount: 'skippedCount',
+  deliveredCount: 'deliveredCount',
+  openCount: 'openCount',
+  clickCount: 'clickCount',
+  bounceCount: 'bounceCount',
+  complaintCount: 'complaintCount',
+  unsubscribeCount: 'unsubscribeCount',
+  freeUsed: 'freeUsed',
+  chargedMinor: 'chargedMinor',
+  refundedMinor: 'refundedMinor',
+  createdBy: 'createdBy',
+  automationId: 'automationId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.EmailAutomationScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  type: 'type',
+  enabled: 'enabled',
+  enabledAt: 'enabledAt',
+  subject: 'subject',
+  preheader: 'preheader',
+  fromName: 'fromName',
+  replyTo: 'replyTo',
+  design: 'design',
+  settings: 'settings',
+  lastRunAt: 'lastRunAt',
+  lastError: 'lastError',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.EmailCampaignRecipientScalarFieldEnum = {
+  id: 'id',
+  campaignId: 'campaignId',
+  tenantId: 'tenantId',
+  contactId: 'contactId',
+  email: 'email',
+  firstName: 'firstName',
+  status: 'status',
+  batchKey: 'batchKey',
+  resendId: 'resendId',
+  error: 'error',
+  claimedAt: 'claimedAt',
+  sentAt: 'sentAt',
+  deliveredAt: 'deliveredAt',
+  openedAt: 'openedAt',
+  clickedAt: 'clickedAt',
+  bouncedAt: 'bouncedAt',
+  complainedAt: 'complainedAt',
+  unsubscribedAt: 'unsubscribedAt',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -2641,6 +2764,10 @@ exports.Prisma.BrandOrderByRelevanceFieldEnum = {
   stripeConnectedAccountId: 'stripeConnectedAccountId',
   tapDestinationId: 'tapDestinationId',
   tapBusinessId: 'tapBusinessId',
+  tapMerchantId: 'tapMerchantId',
+  tapLeadId: 'tapLeadId',
+  tapOnboardingStatus: 'tapOnboardingStatus',
+  tapConnectUrl: 'tapConnectUrl',
   applicationFeeMode: 'applicationFeeMode',
   defaultStationId: 'defaultStationId'
 };
@@ -2924,6 +3051,16 @@ exports.Prisma.PromoCodeOrderByRelevanceFieldEnum = {
   code: 'code',
   description: 'description',
   locationIds: 'locationIds'
+};
+
+exports.Prisma.PromoCodeRedemptionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  promoCodeId: 'promoCodeId',
+  orderId: 'orderId',
+  customerAccountId: 'customerAccountId',
+  customerEmail: 'customerEmail',
+  customerPhone: 'customerPhone'
 };
 
 exports.Prisma.MarketingCampaignOrderByRelevanceFieldEnum = {
@@ -3974,6 +4111,66 @@ exports.Prisma.KeetaAuthorizationOrderByRelevanceFieldEnum = {
   status: 'status',
   lastError: 'lastError'
 };
+
+exports.Prisma.EmailContactOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  email: 'email',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  customerId: 'customerId',
+  customerAccountId: 'customerAccountId',
+  locationId: 'locationId',
+  status: 'status',
+  consentSource: 'consentSource',
+  source: 'source',
+  tags: 'tags',
+  createdBy: 'createdBy'
+};
+
+exports.Prisma.EmailCampaignOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  name: 'name',
+  subject: 'subject',
+  preheader: 'preheader',
+  fromName: 'fromName',
+  replyTo: 'replyTo',
+  templateId: 'templateId',
+  status: 'status',
+  lastError: 'lastError',
+  createdBy: 'createdBy',
+  automationId: 'automationId'
+};
+
+exports.Prisma.EmailAutomationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  type: 'type',
+  subject: 'subject',
+  preheader: 'preheader',
+  fromName: 'fromName',
+  replyTo: 'replyTo',
+  lastError: 'lastError',
+  createdBy: 'createdBy'
+};
+
+exports.Prisma.EmailCampaignRecipientOrderByRelevanceFieldEnum = {
+  id: 'id',
+  campaignId: 'campaignId',
+  tenantId: 'tenantId',
+  contactId: 'contactId',
+  email: 'email',
+  firstName: 'firstName',
+  status: 'status',
+  batchKey: 'batchKey',
+  resendId: 'resendId',
+  error: 'error'
+};
 exports.TenantPlan = exports.$Enums.TenantPlan = {
   STARTER: 'STARTER',
   PROFESSIONAL: 'PROFESSIONAL',
@@ -4478,6 +4675,7 @@ exports.Prisma.ModelName = {
   CustomerAddress: 'CustomerAddress',
   LoyaltyAccount: 'LoyaltyAccount',
   PromoCode: 'PromoCode',
+  PromoCodeRedemption: 'PromoCodeRedemption',
   MarketingCampaign: 'MarketingCampaign',
   CampaignRedemption: 'CampaignRedemption',
   DeliveryZone: 'DeliveryZone',
@@ -4580,7 +4778,11 @@ exports.Prisma.ModelName = {
   ReferralProgram: 'ReferralProgram',
   ReferralCode: 'ReferralCode',
   Referral: 'Referral',
-  KeetaAuthorization: 'KeetaAuthorization'
+  KeetaAuthorization: 'KeetaAuthorization',
+  EmailContact: 'EmailContact',
+  EmailCampaign: 'EmailCampaign',
+  EmailAutomation: 'EmailAutomation',
+  EmailCampaignRecipient: 'EmailCampaignRecipient'
 };
 
 /**

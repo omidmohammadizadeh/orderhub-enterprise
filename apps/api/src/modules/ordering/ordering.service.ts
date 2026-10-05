@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
   Logger,
+  Optional,
 } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import {
@@ -35,6 +36,7 @@ import { resolveNestedModifierGroups } from "../menus/nested-modifier-groups";
 import { PauseService } from "../pauses/pause.service";
 import { MarketingService } from "../marketing/marketing.service";
 import { DeliveryZonesService } from "../delivery-zones/delivery-zones.service";
+import { EmailMarketingService } from "../email-marketing/email-marketing.service";
 import { isShop, soldOutItemIds } from "../retail/retail-availability";
 import { parseSubstitutionPref, priceShortfall, toMinor } from "../retail/retail.logic";
 import { isCurrentlyOpen as isOpenAt } from "../../common/opening-hours.util";
@@ -105,6 +107,12 @@ export interface CheckoutDto {
   promoCode?: string;
   /** Storefront "Send me offers by SMS" checkbox → SMS-marketing consent. */
   marketingConsent?: boolean;
+  /** Storefront "Email me offers" checkbox → EMAIL-marketing consent. Kept
+   *  apart from the SMS one: consent is per channel. */
+  emailMarketingConsent?: boolean;
+  /** The marketing email recipient row the customer arrived from (`?er=` on
+   *  the storefront link) — attributes the order to that campaign. */
+  emailRecipientId?: string;
   /** Retail — the customer ticked "I'm 18 or over" (or 16). Required when the
    *  basket holds an age-restricted product; ID is still checked on hand-over. */
   ageConfirmed?: boolean;
@@ -337,6 +345,9 @@ export class OrderingService {
     private readonly marketing: MarketingService,
     private readonly deliveryZones: DeliveryZonesService,
     private readonly tap: TapService,
+    // Email marketing: checkout consent + "this order came from an email".
+    // Optional so the existing positional test constructors keep working.
+    @Optional() private readonly emailMarketing?: EmailMarketingService,
   ) {}
 
   /**
@@ -346,7 +357,7 @@ export class OrderingService {
    */
   async validatePromoForStorefront(
     slug: string,
-    body: { code: string; subtotal: number },
+    body: { code: string; subtotal: number; customerAccountId?: string | null },
   ) {
     const location = await this.prisma.location.findFirst({
       where: { OR: [{ onlineOrderingSlug: slug }, { slug }, { id: slug }] },
@@ -355,10 +366,13 @@ export class OrderingService {
     if (!location || !location.isActive || location.deletedAt) {
       throw new NotFoundException("Store not found");
     }
+    // The signed-in customer, so "you've already used this code" is said in
+    // the basket rather than at payment. Checkout re-checks it regardless.
     return this.promoCodes.validate(location.brand.tenantId, {
       code: body.code,
       locationId: location.id,
       subtotal: body.subtotal,
+      customerAccountId: body.customerAccountId ?? null,
     });
   }
 
@@ -1833,6 +1847,10 @@ export class OrderingService {
           code: dto.promoCode.trim(),
           locationId: location.id,
           subtotal: afterDeals,
+          customerAccountId: dto.customerAccountId ?? null,
+          customerEmail: dto.customerInfo?.email ?? null,
+          customerPhone: dto.customerInfo?.phone ?? null,
+          requireCustomerForLimit: true,
         });
         if (promo?.valid) {
           promoDiscount = Math.min(afterDeals, Math.max(0, Number(promo.discountAmount ?? 0)));
@@ -1993,6 +2011,12 @@ export class OrderingService {
     );
     if (loyaltyLine) items.push(loyaltyLine);
 
+    // Checked against the database, not trusted: an attribution has to name a
+    // real recipient of this tenant's campaign, sent in the last two weeks.
+    const emailAttribution = dto.emailRecipientId
+      ? await this.emailMarketing?.attributionFor(location.brand.tenantId, dto.emailRecipientId)
+      : null;
+
     const order = await this.ordersService.create(
       {
         locationId: location.id,
@@ -2024,6 +2048,7 @@ export class OrderingService {
         // Storefront SMS-marketing consent → captured on the resulting Order
         // via OrdersService.create's marketing.consent event.
         marketingConsent: dto.marketingConsent,
+        ...(emailAttribution ? { emailAttribution } : {}),
         paymentMethod: dto.paymentMethod ?? "CASH",
         paymentStatus: dto.paymentMethod === "CARD" ? "PENDING" : "PENDING",
         // Phase AP-5 — attribute the order to the signed-in customer
@@ -2053,6 +2078,29 @@ export class OrderingService {
         this.logger.error(
           `Loyalty reward ${dto.loyaltyRewardId} was given away on order ${order.id} but not marked claimed: ${(err as Error).message}`,
         );
+      }
+    }
+
+    // "Email me offers" — always the SIGNED-IN account's address, the one the
+    // customer proved they own. The checkout email field is optional and
+    // unverified, so a guest (no account) is never subscribed from here.
+    if (dto.emailMarketingConsent === true && dto.customerAccountId && this.emailMarketing) {
+      const account = await this.prisma.customerAccount
+        .findUnique({
+          where: { id: dto.customerAccountId },
+          select: { email: true, firstName: true, lastName: true },
+        })
+        .catch(() => null);
+      if (account?.email) {
+        void this.emailMarketing.onCheckoutConsent({
+          tenantId: location.brand.tenantId,
+          locationId: location.id,
+          email: account.email,
+          firstName: account.firstName || null,
+          lastName: account.lastName || null,
+          customerAccountId: dto.customerAccountId,
+          source: "ONLINE",
+        });
       }
     }
 

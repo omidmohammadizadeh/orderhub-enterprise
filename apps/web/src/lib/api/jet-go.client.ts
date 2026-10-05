@@ -15,6 +15,7 @@ export interface JetGoConfig {
   active: boolean;
   market: string; // UK | CA | AU | EU
   environment: string; // sandbox | production
+  reseller: boolean;
   webhookUrl: string | null;
   webhookUsername: string | null;
   clientIdMasked: string | null;
@@ -39,6 +40,12 @@ export interface JetGoQuote {
   collectBy: string | null;
   deliverBy: string | null;
   dispatchFeeMinor: number;
+  /** What actually leaves the wallet. On the OrderHub JET Go account that is the
+   *  courier's own price plus our markup, because JET invoices us for the
+   *  courier — not the markup alone, as with Stuart and Uber Direct. */
+  walletChargeMinor: number;
+  /** True when this shop is on the OrderHub JET Go account. */
+  reseller: boolean;
   /** Things the operator should see before committing — a cash order no courier
    *  will collect, or a scheduled slot JET will treat as ASAP. */
   warnings: string[];

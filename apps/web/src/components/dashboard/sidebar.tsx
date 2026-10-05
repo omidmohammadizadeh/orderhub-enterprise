@@ -41,6 +41,8 @@ import {
   Wallet,
   Banknote,
   MessageSquare,
+  Mail,
+  Ticket,
   Clapperboard,
   CalendarDays,
   MonitorSmartphone,
@@ -164,7 +166,9 @@ const primaryNav: NavItem[] = [
   { href: "/dashboard/store-status", label: "Store Status", icon: Activity, roles: [...MANAGER_TIER, "STAFF"] },
   { href: "/dashboard/customers", label: "Customers", icon: Users, roles: MANAGER_TIER },
   { href: "/dashboard/marketing", label: "Marketing", icon: Megaphone, roles: MANAGER_TIER_PLUS },
+  { href: "/dashboard/marketing/promo-codes", label: "Promo codes", icon: Ticket, roles: MANAGER_TIER_PLUS },
   { href: "/dashboard/marketing/sms", label: "SMS Marketing", icon: MessageSquare, roles: FINANCE_ROLES },
+  { href: "/dashboard/marketing/email", label: "Email Marketing", icon: Mail, roles: FINANCE_ROLES },
   { href: "/dashboard/video-studio", label: "AI Studio", icon: Clapperboard, roles: MANAGER_TIER },
   // Drivers consolidated into the Dispatch console (Fleet tab) — Phase AX.
   { href: "/dashboard/reviews", label: "Reviews", icon: Star, roles: MANAGER_TIER },
@@ -252,6 +256,9 @@ const secondaryNav: NavItem[] = [
   // it exposes gateway hosts and which credentials are set, which is internal
   // plumbing rather than anything a client owner acts on.
   { href: "/dashboard/integrations/careem", label: "Careem", icon: Plug, roles: ["PLATFORM_ADMIN"] },
+  // Talabat is also where an owner connects vendors and reads who funded each
+  // promotion, so owners see it too.
+  { href: "/dashboard/integrations/talabat", label: "Talabat", icon: Plug, roles: ["PLATFORM_ADMIN", "TENANT_OWNER"] },
   { href: "/dashboard/settings/security", label: "Security", icon: Shield, roles: ["PLATFORM_ADMIN"] },
   { href: "/dashboard/settings/branding", label: "Branding", icon: Palette, roles: ["PLATFORM_ADMIN"] },
   // Maintenance: move base64 images out of Postgres into storage. Admin-only

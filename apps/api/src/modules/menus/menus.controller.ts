@@ -701,11 +701,18 @@ export class MenusController {
 
   @Get("brands/:brandId/items")
   @ApiOperation({ summary: "List all items for a brand (item library)" })
+  @ApiQuery({
+    name: "locationId",
+    required: false,
+    description:
+      "Narrow the library to one location (plus brand-wide items). The menu editor passes the menu's own location so a shop is never offered a sibling location's products.",
+  })
   findItems(
     @Param("brandId") brandId: string,
     @CurrentUser() user: AuthenticatedUser,
+    @Query("locationId") locationId?: string,
   ) {
-    return this.menus.findItemsByBrand(brandId, user);
+    return this.menus.findItemsByBrand(brandId, user, locationId || undefined);
   }
 
   // Phase AW-12 — single-item hydration for the edit form. Previously

@@ -126,6 +126,18 @@ re-reads SecureStore for whatever the foreground refreshed. Concurrent 401s
 share one `refreshInFlight` promise. If you touch auth, keep this invariant or
 you get the old "401 after 15 minutes / went offline by itself" bug back.
 
+**The session ends only when the SERVER says so.** A refresh that fails with
+401/403 means the refresh token is dead → sign out. Anything else — no signal,
+a timeout, a 5xx while the API redeploys, a 429 from the refresh endpoint's own
+30/min limit — keeps the tokens and retries on the next poll, backing off
+5s→10s→20s→40s→60s so a rate-limited app doesn't hammer. Clearing the session on
+*any* refresh failure is what logged drivers out mid-delivery (reported
+2026-10-03); the rule lives in `src/services/session-policy.ts` and is covered
+by `auth.spec.ts`, which drives the real interceptor. Hydration also refuses to
+overwrite a pair the interceptor rotated while its read was in flight —
+re-presenting a revoked token more than a minute later reads as theft server
+side and kills the whole chain.
+
 Note `POST /v1/auth/refresh` returns the token pair **unwrapped**
 (`{accessToken, refreshToken, expiresIn}`), unlike login.
 
@@ -223,7 +235,7 @@ These are my findings, not your bug list — decide what you care about.
 ```bash
 cd ~/orderhub-enterprise/.claude/worktrees/<new-worktree>
 git fetch origin && git merge --ff-only origin/claude/xenodochial-brahmagupta-5521f8
-cd apps/driver && npm install && npm run type-check    # must be clean before you start
+cd apps/driver && npm install && npm run type-check && npm test   # clean before you start
 cp .env.example .env    # then paste the two Maps keys, or the map renders blank
 ```
 

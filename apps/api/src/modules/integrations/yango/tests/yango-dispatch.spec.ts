@@ -83,6 +83,7 @@ function setup(opts: { cfg?: Row; order?: Row; location?: Row; client?: Row } = 
   };
   const wallet: any = {
     dispatchFeeMinor: () => 50,
+    dispatchFeeMinorFor: jest.fn().mockResolvedValue(50),
     debitForDispatch: jest.fn(async () => ({ chargedMinor: 50 })),
     refundDispatch: jest.fn(async () => undefined),
   };

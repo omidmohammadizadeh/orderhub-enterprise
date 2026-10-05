@@ -64,6 +64,9 @@ export interface TableQrResolved {
    *   PAY_NOW   — the phone pays first; nothing is cooked until it has.
    */
   paymentMode: TableQrPaymentMode;
+  /** Who takes the card. TAP = Tap's hosted page (Gulf), which also needs
+   *  the guest's email; STRIPE = the on-page wallet sheet. */
+  cardProvider?: "TAP" | "STRIPE";
 }
 
 export type TableQrPaymentMode = "PAY_LATER" | "PAY_NOW";
@@ -119,6 +122,8 @@ export interface TableQrCheckoutResult {
   stripeAccountId?: string;
   /** What Stripe will actually take, in minor units. */
   amountPence?: number;
+  /** Tap shops: the hosted payment page to send the phone to. */
+  checkoutUrl?: string;
   subtotal: number;
   serviceCharge: number;
   serviceChargeLabel: string;
@@ -206,6 +211,8 @@ export const tableQrClient = {
     body: {
       items: TableQrOrderItem[];
       customerName?: string;
+      /** Required by Tap (Gulf shops) — it won't take a charge without one. */
+      customerEmail?: string;
       notes?: string | null;
       /** Same stable per-basket id as sendRound — a retry replays the
        *  same intent instead of writing a second order. */

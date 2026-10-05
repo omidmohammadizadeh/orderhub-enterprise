@@ -1,10 +1,28 @@
-// Phase BJ — per-location JET Go config (encrypted credentials).
+// Phase BJ — JET Go config.
 //
-// Mirrors StuartConfigService / UberDirectConfigService, with two additions JET
-// Go forces on us:
+// TWO COMMERCIAL MODES, because our contract with JET defines both and they
+// bill in opposite directions:
+//
+//   RESELLER (the default, and what we signed). The JET Go account is OURS.
+//   JET has no relationship with the restaurant at all — it invoices US per
+//   completed delivery, £4.25–£9.20 by distance. Credentials are therefore
+//   platform-level, from the environment, and no merchant ever sees or holds
+//   them. The wallet has to recover the courier cost as well as our margin,
+//   because we owe JET that money whether or not the shop pays us
+//   (Schedule 2, clause 8).
+//
+//   MERCHANT ACCOUNT (Payment Processor / Intermediary in the contract). A
+//   chain brings its own JET Go account; JET bills them directly. Credentials
+//   live on the location row, and the wallet only takes our margin — the same
+//   shape as Stuart and Uber Direct.
+//
+// Per-location credentials therefore OVERRIDE the platform ones, and their
+// presence is what selects the mode. Everything else here is shared:
 //
 //   • collectPointId — JET takes a pickup POINT id, not an address, so a
 //     location with credentials but no collect point still can't dispatch.
+//     Under the reseller model this is how one account serves many shops: one
+//     credential, one collect point per site.
 //   • a webhookToken + webhookSecret pair, SHARED between locations on the same
 //     clientId because JET keeps one notification config per credential. The
 //     token is the path segment (shown to the operator); the secret is what JET
@@ -28,9 +46,32 @@ export interface DecryptedJetGoConfig extends JetGoCreds {
   webhookToken: string;
   webhookSecret: string;
   active: boolean;
+  /**
+   * True when these are OUR credentials, so JET invoices us for the courier and
+   * the wallet must recover that cost on top of our margin. False when the
+   * merchant brought their own account and JET bills them directly.
+   */
+  reseller: boolean;
 }
 
 const MARKETS = ["UK", "CA", "AU", "EU"];
+
+/** The platform JET Go account — the reseller credentials from our own
+ *  contract. Absent in dev, which simply means reseller mode is unavailable
+ *  and only merchant-owned accounts work. */
+export function platformJetGoCredentials(): JetGoCreds | null {
+  const clientId = (process.env.JET_GO_CLIENT_ID ?? "").trim();
+  const clientSecret = (process.env.JET_GO_CLIENT_SECRET ?? "").trim();
+  if (!clientId || !clientSecret) return null;
+  const market = String(process.env.JET_GO_MARKET ?? "UK").trim().toUpperCase();
+  return {
+    clientId,
+    clientSecret,
+    market: MARKETS.includes(market) ? market : "UK",
+    environment:
+      process.env.JET_GO_ENVIRONMENT === "production" ? "production" : "sandbox",
+  };
+}
 
 @Injectable()
 export class JetGoConfigService {
@@ -65,8 +106,9 @@ export class JetGoConfigService {
       return {
         configured: false,
         active: false,
-        market: "UK",
-        environment: "sandbox",
+        market: platformJetGoCredentials()?.market ?? "UK",
+        environment: platformJetGoCredentials()?.environment ?? "sandbox",
+        reseller: Boolean(platformJetGoCredentials()),
         webhookUrl: null,
         webhookUsername: null,
         clientIdMasked: null,
@@ -76,13 +118,16 @@ export class JetGoConfigService {
         readyToDispatch: false,
       };
     }
-    const creds = this.encryption.decrypt(row.credentials) as any;
-    const id = String(creds?.clientId ?? "");
+    const cfg = this.toDecrypted(row);
+    const id = cfg.reseller ? "" : cfg.clientId;
     return {
       configured: true,
       active: row.active,
-      market: row.market,
-      environment: row.environment,
+      market: cfg.market,
+      environment: cfg.environment,
+      // Which account this shop's deliveries go on, and therefore who JET
+      // invoices for the courier.
+      reseller: cfg.reseller,
       webhookUrl: this.webhookUrl(apiBaseUrl, row.webhookToken),
       // JET's BASIC notification config needs a username; we always use this one
       // so the operator can read it back off the screen if JET ops ask.
@@ -100,11 +145,22 @@ export class JetGoConfigService {
     dto: { clientId: string; clientSecret: string; market?: string; environment?: string },
   ) {
     await this.assertLocation(locationId, tenantId);
-    const clientId = dto.clientId?.trim();
-    const clientSecret = dto.clientSecret?.trim();
-    if (!clientId || !clientSecret) {
+    const clientId = dto.clientId?.trim() ?? "";
+    const clientSecret = dto.clientSecret?.trim() ?? "";
+    // No credentials means "put this shop on OUR JET Go account" — the normal
+    // case under the reseller contract, where the merchant has no account of
+    // their own and never will. Only an estate with its own JET agreement
+    // pastes anything here.
+    const usingPlatform = !clientId && !clientSecret;
+    if (usingPlatform && !platformJetGoCredentials()) {
       throw new BadRequestException(
-        "JET Go Client ID and Client Secret are both required.",
+        "No platform JET Go account is configured, so this location needs its own " +
+          "Client ID and Secret. Set JET_GO_CLIENT_ID and JET_GO_CLIENT_SECRET to use ours.",
+      );
+    }
+    if (!usingPlatform && (!clientId || !clientSecret)) {
+      throw new BadRequestException(
+        "Enter both the Client ID and the Client Secret, or leave both blank to use the OrderHub JET Go account.",
       );
     }
     const market = MARKETS.includes(String(dto.market ?? "").trim().toUpperCase())
@@ -123,20 +179,31 @@ export class JetGoConfigService {
     let webhookSecret: string = existing?.webhookSecret ?? "";
     let shared = false;
     if (!webhookToken) {
+      // JET keeps one notification config per credential, so every location on
+      // the same account must land on the same callback URL — registering a
+      // second would repoint JET and strand the first shop's courier updates.
+      // Under the platform account that is EVERY location, which is why the
+      // match is on the effective clientId rather than on what was typed.
+      const effectiveId = usingPlatform
+        ? (platformJetGoCredentials()?.clientId ?? "")
+        : clientId;
       const siblings = await this.db().jetGoConfig.findMany({
         where: { tenantId, NOT: { locationId } },
         select: { credentials: true, webhookToken: true, webhookSecret: true },
       });
       for (const sib of siblings) {
-        let sid = "";
+        let sibOwn = "";
         try {
-          sid = String((this.encryption.decrypt(sib.credentials) as any)?.clientId ?? "");
+          sibOwn = String(
+            (this.encryption.decrypt(sib.credentials) as any)?.clientId ?? "",
+          ).trim();
         } catch {
           // A sibling we can't decrypt (rotated key) tells us nothing about
-          // whether it shares this clientId, so skip it rather than guess.
+          // which account it is on, so skip it rather than guess.
           continue;
         }
-        if (sid && sid === clientId) {
+        const sibId = sibOwn || (platformJetGoCredentials()?.clientId ?? "");
+        if (sibId && sibId === effectiveId) {
           webhookToken = sib.webhookToken;
           webhookSecret = sib.webhookSecret;
           shared = true;
@@ -148,7 +215,9 @@ export class JetGoConfigService {
     // Backfills rows created before webhookSecret existed, too.
     if (!webhookSecret) webhookSecret = randomBytes(32).toString("hex");
 
-    const credentials = this.encryption.encrypt({ clientId, clientSecret });
+    const credentials = this.encryption.encrypt(
+      usingPlatform ? {} : { clientId, clientSecret },
+    );
     await this.db().jetGoConfig.upsert({
       where: { locationId },
       create: {
@@ -230,20 +299,33 @@ export class JetGoConfigService {
     try {
       creds = this.encryption.decrypt(row.credentials) ?? {};
     } catch {
+      // A row we cannot decrypt must not silently fall back to the PLATFORM
+      // account: that would put the merchant's deliveries on our bill without
+      // anyone choosing it. Left empty, dispatch refuses instead.
       creds = {};
     }
+    const own = {
+      clientId: String(creds?.clientId ?? "").trim(),
+      clientSecret: String(creds?.clientSecret ?? "").trim(),
+    };
+    const hasOwn = Boolean(own.clientId && own.clientSecret);
+    const platform = hasOwn ? null : platformJetGoCredentials();
+
     return {
       tenantId: row.tenantId,
       locationId: row.locationId,
-      market: row.market,
-      environment: row.environment,
-      clientId: creds?.clientId ?? "",
-      clientSecret: creds?.clientSecret ?? "",
+      // The market and environment follow whichever account is in play — ours
+      // is set once in the environment, theirs is set on their row.
+      market: platform ? platform.market : row.market,
+      environment: platform ? platform.environment : row.environment,
+      clientId: platform ? platform.clientId : own.clientId,
+      clientSecret: platform ? platform.clientSecret : own.clientSecret,
       collectPointId: row.collectPointId ?? null,
       collectPointName: row.collectPointName ?? null,
       webhookToken: row.webhookToken,
       webhookSecret: row.webhookSecret ?? "",
       active: row.active,
+      reseller: Boolean(platform),
     };
   }
 }

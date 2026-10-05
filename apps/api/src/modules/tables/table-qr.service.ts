@@ -5,6 +5,7 @@ import {
   ForbiddenException,
 } from "@nestjs/common";
 import { usesTap } from "@orderhub/shared";
+import { TapService } from "../payments/tap.service";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { OrdersService } from "../orders/orders.service";
 import { PaymentsService } from "../payments/payments.service";
@@ -95,8 +96,12 @@ export interface TableQrCheckoutResult {
   tableName: string;
   /** Already settled — the phone shows the confirmation, not a card sheet. */
   alreadyPaid?: boolean;
-  /** Stripe direct-charge secret. Absent only when alreadyPaid. */
+  /** Stripe direct-charge secret. Absent when alreadyPaid, and for a Tap
+   *  shop, which pays on Tap's hosted page instead (checkoutUrl). */
   clientSecret?: string;
+  /** Gulf (Tap) shops: send the phone here to pay. It comes back to
+   *  /t/<token>?paid=<orderId>, the same landing a 3-D Secure redirect uses. */
+  checkoutUrl?: string;
   /** The connected account the intent was minted on. Stripe.js MUST be
    *  constructed with it or the secret won't confirm. */
   stripeAccountId?: string;
@@ -119,6 +124,7 @@ export class TableQrService {
     private readonly prisma: PrismaService,
     private readonly orders: OrdersService,
     private readonly payments: PaymentsService,
+    private readonly tap: TapService,
   ) {}
 
   private replay<T>(key: string): T | null {
@@ -205,6 +211,9 @@ export class TableQrService {
       // Which of the two flows this shop runs. The phone renders a
       // "Send to kitchen" button or a "Pay & send" one off this.
       paymentMode,
+      // Who takes the card. TAP means a hosted page (and Tap insists on an
+      // email for the customer), STRIPE the on-page wallet sheet.
+      cardProvider: usesTap(table.location?.country) ? "TAP" : "STRIPE",
     };
   }
 
@@ -324,6 +333,8 @@ export class TableQrService {
     input: {
       items: QrOrderItem[];
       customerName?: string;
+      /** Required for a Tap shop — Tap won't take a charge without one. */
+      customerEmail?: string;
       notes?: string | null;
       requestId?: string;
     },
@@ -342,28 +353,46 @@ export class TableQrService {
       );
     }
 
-    // Gulf shops take cards through Tap, not Stripe, and Tap is
-    // hosted-redirect only — there is no on-page wallet sheet to mount.
-    // Say so plainly here rather than failing later inside Stripe, and the
-    // dashboard refuses to switch PAY_NOW on for these countries at all.
-    if (usesTap(table.location?.country)) {
-      throw new BadRequestException(
-        "Paying at the table isn't available at this restaurant yet — please ask a member of staff",
+    // Gulf shops take cards through Tap: a hosted page rather than the
+    // on-page wallet sheet, on the brand's own Tap merchant. Every refusal
+    // here happens BEFORE an order is written, for the same reason as the
+    // Stripe pre-flight below — an orphan unpaid order per failed guest.
+    const viaTap = usesTap(table.location?.country);
+    const guestEmail = input.customerEmail?.trim() || "";
+    if (viaTap) {
+      if (!this.tap.configured()) {
+        throw new BadRequestException(
+          "This restaurant hasn't finished setting up card payments — please order with a member of staff",
+        );
+      }
+      const brandId = table.location?.brand?.id ?? null;
+      const brand = brandId
+        ? await this.prisma.brand.findFirst({ where: { id: brandId } })
+        : null;
+      if (!(brand as any)?.tapMerchantId) {
+        throw new BadRequestException(
+          "This restaurant hasn't finished setting up card payments — please order with a member of staff",
+        );
+      }
+      // Tap refuses a charge without a customer email, and its hosted page
+      // can't ask for one after the fact.
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) {
+        throw new BadRequestException("Please enter your email to pay by card");
+      }
+    } else {
+      // Pre-flight the connected account BEFORE writing a row. A shop that
+      // never finished Stripe onboarding would otherwise leave an orphan
+      // unpaid order on the staff board for every guest who tried.
+      const connect = await this.payments.resolveConnectAccount(
+        tenantId,
+        table.locationId,
+        table.location?.brand?.id ?? null,
       );
-    }
-
-    // Pre-flight the connected account BEFORE writing a row. A shop that
-    // never finished Stripe onboarding would otherwise leave an orphan
-    // unpaid order on the staff board for every guest who tried.
-    const connect = await this.payments.resolveConnectAccount(
-      tenantId,
-      table.locationId,
-      table.location?.brand?.id ?? null,
-    );
-    if (!connect) {
-      throw new BadRequestException(
-        "This restaurant hasn't finished setting up card payments — please order with a member of staff",
-      );
+      if (!connect) {
+        throw new BadRequestException(
+          "This restaurant hasn't finished setting up card payments — please order with a member of staff",
+        );
+      }
     }
 
     const items = this.cleanItems(input.items);
@@ -389,7 +418,7 @@ export class TableQrService {
         // to hold this order in "Waiting for payment" instead of printing
         // it, and the one confirmPaymentRow reads to release it.
         paymentMethod: "QR_CODE",
-        paymentProvider: "STRIPE",
+        paymentProvider: viaTap ? "TAP" : "STRIPE",
         paymentStatus: "PENDING",
         ...(input.requestId
           ? { idempotencyKey: `tableqrpay:${table.id}:${input.requestId}` }
@@ -431,6 +460,35 @@ export class TableQrService {
       };
       if (replayKey) this.remember(replayKey, paid);
       return paid;
+    }
+
+    if (viaTap) {
+      const web = (process.env.WEB_URL ?? "https://www.orderhubsolutions.com").replace(/\/+$/, "");
+      const [firstName, ...rest] = guestName.split(/\s+/);
+      const { redirectUrl } = await this.tap.createCharge({
+        tenantId,
+        orderId: order.id,
+        // The same landing a 3-D Secure redirect uses: the phone shows the
+        // confirmation and polls until the webhook has paid the order.
+        redirectUrl: `${web}/t/${encodeURIComponent(token)}?paid=${encodeURIComponent(order.id)}`,
+        webhookUrl: `${(process.env.API_URL ?? "").replace(/\/+$/, "")}/v1/payments/tap/webhook`,
+        customer: {
+          firstName: firstName || "Guest",
+          lastName: rest.join(" ") || undefined,
+          email: guestEmail,
+        },
+      });
+      const out: TableQrCheckoutResult = {
+        orderId: order.id,
+        tableName: table.name,
+        checkoutUrl: redirectUrl,
+        subtotal: Number(order.subtotal ?? subtotal),
+        serviceCharge,
+        serviceChargeLabel: svcLabel,
+        total,
+      };
+      if (replayKey) this.remember(replayKey, out);
+      return out;
     }
 
     const { clientSecret, amountPence, stripeAccountId } =
@@ -482,9 +540,13 @@ export class TableQrService {
     if (!order) throw new NotFoundException("Order not found");
 
     if (order.paymentStatus === "PENDING") {
-      await this.payments
-        .reconcileOrderPayment(order.id)
-        .catch(() => undefined);
+      // Ask whichever provider took the card. A Tap redirect routinely beats
+      // Tap's webhook back, and a webhook that never arrives is exactly what
+      // this poll exists to survive.
+      await (usesTap(table.location?.country)
+        ? this.tap.reconcileOrder(order.id)
+        : this.payments.reconcileOrderPayment(order.id)
+      ).catch(() => undefined);
       const fresh = await this.prisma.order.findUnique({
         where: { id: order.id },
         select: { status: true, paymentStatus: true },

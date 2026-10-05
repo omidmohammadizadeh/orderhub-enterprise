@@ -1,10 +1,14 @@
 "use client";
 
 // POS "Payment Link" modal — opens after a Payment Link order is placed.
-// Fetches a hosted Stripe checkout URL for the (pending) order and shows it
-// as a QR code + copyable link so the customer can pay remotely. The order
-// stays "pending payment" and flips to PAID automatically via the Stripe
-// webhook (which pushes an order:updated socket event to the board).
+// Fetches a hosted checkout URL for the (pending) order and shows it as a QR
+// code + copyable link so the customer can pay remotely. The order stays
+// "pending payment" and flips to PAID automatically via the provider's webhook
+// (which pushes an order:updated socket event to the board).
+//
+// Stripe hosts that page, unless the location was switched to Dojo on the Card
+// readers page — the API decides, and nothing here needs to know: the QR is
+// just this URL encoded, whoever minted it.
 //
 // Phase 2 adds "Text link to customer" — sends the same link over SMS via
 // Twilio. Still metered per restaurant in sms_messages, but NOT billed to

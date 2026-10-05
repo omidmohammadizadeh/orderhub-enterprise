@@ -664,33 +664,53 @@ export class HubRiseCatalogService {
     // what the operator pasted at HubRise connect time. We don't need
     // the brand/tenant context because the public proxy is read-only
     // and the image ids are already opaque random tokens.
-    const location = await (this.prisma as any).location.findFirst({
+    // Several shops can carry the same catalog id (a brand connected per
+    // location). Taking just the first one meant a single shop with an
+    // expired HubRise token broke every photo for all of them — storefront
+    // and marketing emails alike — while a sibling's token still worked. Try
+    // each until one is accepted; only a 401/403 moves on to the next.
+    const locations: { hubriseCredentials: unknown }[] = await (this.prisma as any).location.findMany({
       where: { hubriseCatalogId: catalogId },
       select: { hubriseCredentials: true },
+      orderBy: { updatedAt: "desc" },
+      take: 10,
     });
-    if (!location) {
+    if (!locations.length) {
       throw new NotFoundException("HubRise catalog not found");
     }
-    const decrypted = this.credentialEncryption.decrypt(
-      (location.hubriseCredentials ?? {}) as Record<string, unknown>,
-    ) as Record<string, string>;
-    const accessToken = decrypted.accessToken;
-    if (!accessToken) throw new BadRequestException("No HubRise token");
     const baseUrl =
       this.config.get<string>("app.platforms.hubrise.baseUrl") ??
       "https://api.hubrise.com/v1";
-    const res = await fetch(
-      `${baseUrl}/catalogs/${catalogId}/images/${imageId}/data`,
-      {
-        headers: { "X-Access-Token": accessToken },
-      },
-    );
-    if (!res.ok) {
-      throw new NotFoundException(`HubRise image ${imageId} → ${res.status}`);
+    let lastStatus: number | string = "no token";
+    for (const location of locations) {
+      let accessToken: string | undefined;
+      try {
+        const decrypted = this.credentialEncryption.decrypt(
+          (location.hubriseCredentials ?? {}) as Record<string, unknown>,
+        ) as Record<string, string>;
+        accessToken = decrypted.accessToken;
+      } catch {
+        accessToken = undefined;
+      }
+      if (!accessToken) continue;
+      const res = await fetch(
+        `${baseUrl}/catalogs/${catalogId}/images/${imageId}/data`,
+        {
+          headers: { "X-Access-Token": accessToken },
+        },
+      );
+      if (res.ok) {
+        const buffer = Buffer.from(await res.arrayBuffer());
+        const contentType = res.headers.get("content-type") ?? "image/jpeg";
+        return { buffer, contentType };
+      }
+      lastStatus = res.status;
+      // A refused token: another shop's may still be good. Anything else
+      // (404 = no such image) is the same answer from every token.
+      if (res.status !== 401 && res.status !== 403) break;
     }
-    const buffer = Buffer.from(await res.arrayBuffer());
-    const contentType = res.headers.get("content-type") ?? "image/jpeg";
-    return { buffer, contentType };
+    if (lastStatus === "no token") throw new BadRequestException("No HubRise token");
+    throw new NotFoundException(`HubRise image ${imageId} → ${lastStatus}`);
   }
 
   /**

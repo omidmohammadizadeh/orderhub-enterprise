@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { deliveryZoneScope } from '@orderhub/shared';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { WhatsAppMenuService, type WaMenuContext } from '../whatsapp/whatsapp-menu.service';
 
@@ -238,8 +239,13 @@ export class VoiceContextService {
       return null;
     }
 
+    // The SAME scope online checkout charges from: the location's rows, the
+    // answering brand's rows, and rows of any brand trading here. Reading the
+    // location's rows only meant a shop whose zones hang off the BRAND had
+    // "no zones" on the phone and every delivery went out at £0 — the bug
+    // WhatsApp had the other way round (orders on 2 Oct 2026).
     const zones = await this.db().deliveryZone.findMany({
-      where: { locationId: location.id, isActive: true },
+      where: deliveryZoneScope({ locationId: location.id, brandId: menuCtx.brandId ?? null }),
       select: {
         id: true,
         postcodePrefix: true,

@@ -2,6 +2,7 @@ import * as crypto from "crypto";
 import { Injectable } from "@nestjs/common";
 import type { CanonicalOrder } from "@orderhub/shared";
 import { BaseWebhookAdapter } from "./base.adapter";
+import { scheduleMetadata } from "../../integrations/deliveroo/deliveroo-scheduled";
 
 @Injectable()
 export class DeliverooAdapter extends BaseWebhookAdapter {
@@ -290,6 +291,10 @@ export class DeliverooAdapter extends BaseWebhookAdapter {
       metadata: {
         rawOrderId: order.id,
         restaurantId: order.restaurant?.id,
+        // Scheduled orders need a second status call ("confirmed") by the
+        // time Deliveroo puts in confirm_at — kept so the confirm can be
+        // driven later. See deliveroo-scheduled.ts.
+        ...scheduleMetadata(order),
         deliverooFulfillmentType: ft || null,
         ...(deliveryType ? { deliveryType } : {}),
         ...(phoneAccessCode ? { phoneAccessCode } : {}),

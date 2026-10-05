@@ -114,7 +114,7 @@ export class OrderingController {
   @ApiOperation({ summary: "Validate a promo code for the storefront cart" })
   validatePromo(
     @Param("slug") slug: string,
-    @Body() body: { code: string; subtotal: number },
+    @Body() body: { code: string; subtotal: number; customerAccountId?: string | null },
   ) {
     return this.ordering.validatePromoForStorefront(slug, body);
   }

@@ -12,6 +12,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useCurrency } from "@/hooks/use-currency";
+import { usesTap } from "@orderhub/shared";
 import { useQuery } from "@tanstack/react-query";
 import { CreditCard, Loader2, X, CheckCircle2, Plus } from "lucide-react";
 import toast from "react-hot-toast";
@@ -63,6 +64,7 @@ export function ChargeReaderModal({
   onClose,
   partAmount,
   onPaid,
+  selfService = false,
 }: {
   open: boolean;
   orderId: string | null;
@@ -78,9 +80,20 @@ export function ChargeReaderModal({
   partAmount?: number | null;
   /** Fired once this charge has succeeded, before the modal closes. */
   onPaid?: () => void;
+  /**
+   * A customer is holding the screen (the kiosk), not staff. Every
+   * "mark as paid" control is withheld: on a self-service screen it would
+   * let the customer settle their own order without paying.
+   */
+  selfService?: boolean;
 }) {
   // Prices follow the selected location's currency, not a hardcoded pound.
-  const { money } = useCurrency();
+  const { money, country } = useCurrency(locationId);
+  // Gulf shops: Tap has no card machines or tap-to-phone in the UAE (Tap, in
+  // writing, 2026-10-01), and Stripe Terminal isn't available there either.
+  // The card goes through the shop's own bank machine; all the till does is
+  // record it — so none of the reader setup below applies.
+  const gulf = usesTap(country);
   const isPart = typeof partAmount === "number" && partAmount > 0;
   const chargeAmount = isPart ? partAmount : amount;
   const [phase, setPhase] = useState<Phase>("idle");
@@ -156,7 +169,7 @@ export function ChargeReaderModal({
   const readersQuery = useQuery({
     queryKey: ["terminal-readers", locationId],
     queryFn: () => terminalClient.listReaders(locationId),
-    enabled: open,
+    enabled: open && !gulf,
   });
   const readers = readersQuery.data?.readers ?? [];
   const testMode = readersQuery.data?.testMode ?? false;
@@ -165,7 +178,7 @@ export function ChargeReaderModal({
   const dojoQuery = useQuery({
     queryKey: ["dojo-status", locationId],
     queryFn: () => dojoClient.status(locationId),
-    enabled: open,
+    enabled: open && !gulf,
     // A shop without Dojo gets a clean "not connected", but a network blip
     // must never block taking a card on the Stripe reader.
     retry: false,
@@ -553,6 +566,55 @@ export function ChargeReaderModal({
     }
   };
 
+  if (gulf) {
+    return (
+      <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4">
+        <div className="w-full max-w-md rounded-xl bg-white shadow-2xl">
+          <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-3">
+            <h2 className="flex items-center gap-2 text-base font-semibold text-zinc-900">
+              <CreditCard className="h-4 w-4" /> Card on your machine
+            </h2>
+            <button
+              onClick={onClose}
+              aria-label="Close"
+              className="text-zinc-400 hover:text-zinc-700"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <div className="space-y-4 p-5">
+            <p className="text-center text-3xl font-bold text-zinc-900">
+              {money(chargeAmount)}
+            </p>
+            <p className="text-center text-sm text-zinc-600">
+              Key this amount into your card machine and take the card. When
+              the machine says <strong>approved</strong>, confirm it here.
+            </p>
+            {selfService ? (
+              <p className="rounded-md bg-amber-50 p-2.5 text-sm leading-relaxed text-amber-800">
+                Please pay at the counter — a member of staff will take your card.
+              </p>
+            ) : isPart ? (
+              // Confirming here marks the WHOLE order paid, which would clear
+              // the table off one person's share — same rule as the reader flow.
+              <p className="rounded-md bg-amber-50 p-2.5 text-xs leading-relaxed text-amber-800">
+                This is one share of a split bill. Once it&rsquo;s approved on
+                the machine, record it in the split screen as paid off-system.
+              </p>
+            ) : (
+              <Button onClick={markPaidManually} className="h-12 w-full text-base">
+                <CheckCircle2 className="mr-2 h-5 w-5" /> Approved on the machine
+              </Button>
+            )}
+            <Button variant="outline" onClick={onClose} className="w-full">
+              Not taken — go back
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4">
       <div className="w-full max-w-md rounded-xl bg-white shadow-2xl">
@@ -733,7 +795,7 @@ export function ChargeReaderModal({
                   {/* Expired: the machine may have taken the card anyway.
                       Dojo's checklist wants a manual-record option here as
                       well as retry — the operator checks the machine. */}
-                  {phase === "error" && dojoUnconfirmed && !isPart && (
+                  {phase === "error" && dojoUnconfirmed && !isPart && !selfService && (
                     <Button variant="outline" onClick={markPaidManually} className="w-full">
                       Machine shows APPROVED — record as paid
                     </Button>
@@ -973,7 +1035,7 @@ export function ChargeReaderModal({
           {/* Hidden for a split: this marks the WHOLE order paid, which
               would clear the table off one person's share. Staff take an
               off-system part as Cash in the split modal instead. */}
-          {phase !== "paid" && !isPart && (
+          {phase !== "paid" && !isPart && !selfService && (
             <button
               onClick={markPaidManually}
               className="w-full text-center text-xs text-zinc-500 underline hover:text-zinc-700"

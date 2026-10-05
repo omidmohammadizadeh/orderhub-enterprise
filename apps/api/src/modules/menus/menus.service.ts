@@ -6,7 +6,9 @@ import {
   Logger,
   Inject,
   forwardRef,
+  Optional,
 } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { InjectQueue } from "@nestjs/bull";
 import type { Queue } from "bull";
 import type { Prisma } from "@orderhub/database";
@@ -105,6 +107,8 @@ export class MenusService {
     private readonly menuAssignments: MenuAssignmentsService,
     // Inline images get pushed into storage on write — see rehostInline below.
     private readonly storage: SupabaseStorageService,
+    // Optional and last so specs that construct this positionally still work.
+    @Optional() private readonly events?: EventEmitter2,
   ) {}
 
   /**
@@ -1468,23 +1472,56 @@ export class MenusService {
 
   // ── MenuItem CRUD ─────────────────────────────────────────────────────────
 
-  async findItemsByBrand(brandId: string, user: AuthenticatedUser) {
+  async findItemsByBrand(
+    brandId: string,
+    user: AuthenticatedUser,
+    /**
+     * Narrow the library to one location. Separate from the role scope on
+     * purpose: the scope answers "are you allowed to see this?", and this
+     * answers "does it belong on the menu I'm editing?" — a platform admin
+     * needs the second answer just as much, and used to get every location's
+     * products offered for a single shop's menu.
+     */
+    locationId?: string,
+  ) {
     await this.assertBrandAccess(brandId, user.tenantId);
     // Only surface the brand's library to users who can access this brand.
     const scope = await this.resolveCatalogScope(user);
     if (scope.brandIds !== null && !scope.brandIds.includes(brandId)) return [];
+    if (locationId) {
+      // Never trust the client's locationId — same rule as findItemsByLocation.
+      await this.assertLocationAccess(locationId, user.tenantId);
+      if (scope.locationIds !== null && !scope.locationIds.includes(locationId))
+        return [];
+    }
+    // With a location named, the picker offers that shop's products and the
+    // brand-only rows (locationId null) it ACTUALLY SELLS — ones already on a
+    // menu of this location. It used to admit every brand-only row, and every
+    // menu import writes its products brand-only, so one shop's "Add existing
+    // product" listed each import the brand had ever run, for any site: the
+    // same burger three times under three import prefixes. The Products tab
+    // already showed only the shop's own; the picker now agrees with it.
+    const locationWhere = locationId
+      ? {
+          OR: [
+            { locationId },
+            { locationId: null, ...this.onMenuAtLocation(locationId) },
+          ],
+        }
+      : scope.locationIds !== null
+        ? {
+            // Non-admins see only items stamped to their accessible
+            // locations, plus brand-only library items.
+            OR: [
+              { locationId: { in: scope.locationIds } },
+              { locationId: null },
+            ],
+          }
+        : {};
     return this.prisma.menuItem.findMany({
       where: {
         brandId,
-        // Non-admins see only items stamped to their accessible locations,
-        // plus brand-only (unassigned) library items — never another
-        // location's products.
-        ...(scope.locationIds !== null && {
-          OR: [
-            { locationId: { in: scope.locationIds } },
-            { locationId: null },
-          ],
-        }),
+        ...locationWhere,
       },
       include: {
         modifierGroupLinks: {
@@ -1956,13 +1993,30 @@ export class MenusService {
     const scope = await this.resolveCatalogScope(user);
     if (scope.locationIds !== null && !scope.locationIds.includes(locationId))
       return [];
+    // Brand-level groups a SKU of this shop's products points at. Those ids
+    // live in a JSON column no relation filter can reach, so collect them.
+    const skuGroupIds = await this.skuGroupIdsAtLocation(locationId);
     const groups = await this.prisma.modifierGroup.findMany({
       where: {
         OR: [
           { locationId },
-          // Brand-level rows, scoped to this location's own brand so a
-          // tenant running several brands doesn't see all of them.
-          { locationId: null, brandId: location.brandId },
+          // Brand-level rows of this location's own brand — but only the ones
+          // this shop uses: hung off one of its products, directly or through
+          // a size. Admitting every brand-level row listed each menu import's
+          // groups (imports write them brand-only) and the importer's empty
+          // "__import_holding" groups at every site of the brand.
+          {
+            locationId: null,
+            brandId: location.brandId,
+            OR: [
+              {
+                itemLinks: {
+                  some: { item: this.itemAtLocation(locationId) },
+                },
+              },
+              ...(skuGroupIds.length > 0 ? [{ id: { in: skuGroupIds } }] : []),
+            ],
+          },
         ],
       },
       include: {
@@ -1973,6 +2027,45 @@ export class MenusService {
     });
     const merged = await this.mergeArrayAttachedOptions(groups, user.tenantId);
     return this.attachNestedGroups(merged, user.tenantId);
+  }
+
+  /** A product sits on a live menu of this location. */
+  private onMenuAtLocation(locationId: string) {
+    return {
+      categories: {
+        some: { category: { menu: { locationId, deletedAt: null } } },
+      },
+    };
+  }
+
+  /** A product that belongs to this location: stamped to it, or brand-only
+   *  and on one of its menus. */
+  private itemAtLocation(locationId: string) {
+    return {
+      OR: [
+        { locationId },
+        { locationId: null, ...this.onMenuAtLocation(locationId) },
+      ],
+    };
+  }
+
+  /** Every modifier-group id a size of this location's products points at. */
+  private async skuGroupIdsAtLocation(locationId: string): Promise<string[]> {
+    const items = await this.prisma.menuItem.findMany({
+      where: this.itemAtLocation(locationId),
+      select: { productSkus: true },
+    });
+    const ids = new Set<string>();
+    for (const it of items) {
+      const skus = it.productSkus as any;
+      if (!Array.isArray(skus)) continue;
+      for (const sku of skus) {
+        for (const gid of sku?.modifierGroups ?? []) {
+          if (typeof gid === "string" && gid) ids.add(gid);
+        }
+      }
+    }
+    return [...ids];
   }
 
   /**
@@ -2574,7 +2667,11 @@ export class MenusService {
     if (dto.nestedGroupIds !== undefined) {
       await this.setNestedModifierGroups(optionId, tenantId, dto.nestedGroupIds);
     }
-    return this.prisma.modifierOption.update({
+    // A choice switched on or off is an 86 for marketplaces that take
+    // per-choice availability (Talabat). Emitted after the write lands.
+    const availabilityFlip =
+      dto.isAvailable !== undefined && dto.isAvailable !== option.isAvailable;
+    const updatedOption = await this.prisma.modifierOption.update({
       where: { id: optionId },
       data: {
         ...(dto.name && { name: dto.name }),
@@ -2608,6 +2705,15 @@ export class MenusService {
         ...(dto.menuIds !== undefined && { menuIds: dto.menuIds }),
       },
     });
+    if (availabilityFlip) {
+      this.events?.emit("modifier_option.availability_changed", {
+        tenantId,
+        optionId,
+        available: !!dto.isAvailable,
+        name: updatedOption.name,
+      });
+    }
+    return updatedOption;
   }
 
   async removeModifierOption(optionId: string, tenantId: string) {

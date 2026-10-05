@@ -4,6 +4,7 @@ import { DeliverooClientService } from "./deliveroo-client.service";
 import { DeliverooConnectionService } from "./deliveroo-connection.service";
 import { DeliverooOrderService } from "./deliveroo-order.service";
 import { DeliverooOrderSyncService } from "./deliveroo-order-sync.service";
+import { DeliverooScheduledConfirmCron } from "./deliveroo-scheduled-confirm.cron";
 import { DeliverooOrderPollService } from "./deliveroo-order-poll.service";
 import { DeliverooMenuPublishService } from "./deliveroo-menu-publish.service";
 import { DeliverooController } from "./deliveroo.controller";
@@ -29,6 +30,7 @@ import { VariantPriceResolverModule } from "../../menus/variant-price-resolver.m
     DeliverooConnectionService,
     DeliverooOrderService,
     DeliverooOrderSyncService,
+    DeliverooScheduledConfirmCron,
     DeliverooOrderPollService,
     DeliverooMenuPublishService,
     DeliverooAdapter,

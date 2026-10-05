@@ -18,6 +18,16 @@
 export const DOJO_API_BASE = "https://api.dojo.tech";
 export const DOJO_API_VERSION = "2026-02-27";
 
+/**
+ * A Dojo "payment link" is not its own object: you create an ordinary payment
+ * intent and hand the customer this page for it
+ * (docs.dojo.tech/payments/accept-payments/online-payments/payment-links).
+ * The environment rides on the intent id — `pi_sandbox_…` shows Dojo's yellow
+ * Sandbox label on the same host — so there is no separate test URL to pick.
+ * Each link is single-use and expires after thirty days.
+ */
+export const DOJO_CHECKOUT_BASE = "https://pay.dojo.tech/checkout";
+
 export interface DojoMoney {
   value: number;
   currencyCode: string;
@@ -38,6 +48,7 @@ export interface DojoPaymentIntent {
   amount?: DojoMoney;
   totalAmount?: DojoMoney;
   tipsAmount?: DojoMoney;
+  serviceChargeAmount?: DojoMoney;
   reference?: string;
   metadata?: Record<string, string>;
   [k: string]: unknown;
@@ -82,6 +93,13 @@ export class DojoApiError extends Error {
     message: string,
     readonly status: number,
     readonly body: unknown,
+    /**
+     * Dojo's own id for the failed request. It is the first thing their
+     * support asks for, and without it a merchant ringing us has nothing to
+     * quote (Philip Wells, 2026-09-30): they can see the same trace on their
+     * side, so keeping it turns "it didn't work" into one lookup.
+     */
+    readonly traceId?: string,
   ) {
     super(message);
   }
@@ -97,6 +115,22 @@ export function dojoKeyEnvironment(apiKey: string): "sandbox" | "production" | n
   if (apiKey.startsWith("sk_sandbox_")) return "sandbox";
   if (apiKey.startsWith("sk_prod_")) return "production";
   return null;
+}
+
+/**
+ * One line on the customer's receipt.
+ *
+ * Deliberately minimal: Dojo documents these fields in its response examples
+ * but not in the request body, and the modifier shape isn't specified at all.
+ * So modifiers are folded into `name` ("VEGETARIAN (10\", deep pan)") and the
+ * price is the line total — which reads correctly on a receipt and can't be
+ * rejected for a field we guessed at.
+ */
+export interface DojoItemLine {
+  name: string;
+  quantity: number;
+  plu?: string;
+  amountTotal: { value: number; currencyCode: string };
 }
 
 export class DojoApiClient {
@@ -127,7 +161,15 @@ export class DojoApiClient {
     if (this.partner.softwareHouseId) {
       headers["software-house-id"] = this.partner.softwareHouseId;
     }
-    if (this.partner.resellerId) headers["reseller-id"] = this.partner.resellerId;
+    // reseller-id belongs on /terminals only. Dojo asked us to drop it from
+    // payment intents and terminal sessions while KEEPING software-house-id on
+    // both (Philip Wells, 2026-09-30 certification call). Scoped by path rather
+    // than by an argument at each call site, because "remember to pass the flag"
+    // is how one endpoint quietly keeps sending it.
+    const resellerAllowed = !/^\/(payment-intents|terminal-sessions)\b/.test(path);
+    if (this.partner.resellerId && resellerAllowed) {
+      headers["reseller-id"] = this.partner.resellerId;
+    }
 
     const res = await this.fetchImpl(`${DOJO_API_BASE}${path}`, {
       method,
@@ -175,7 +217,13 @@ export class DojoApiClient {
         ]
           .filter(Boolean)
           .join(" — ");
-      throw new DojoApiError(`Dojo ${method} ${path} → ${res.status}: ${detail}`, res.status, parsed);
+      const traceId = (pick("traceid") ?? pick("traceId")) as string | undefined;
+      throw new DojoApiError(
+        `Dojo ${method} ${path} → ${res.status}: ${detail}${traceId ? ` [trace ${traceId}]` : ""}`,
+        res.status,
+        parsed,
+        typeof traceId === "string" ? traceId : undefined,
+      );
     }
     return parsed as T;
   }
@@ -250,6 +298,16 @@ export class DojoApiClient {
 
   // ── Payment intents ─────────────────────────────────────────────────────
 
+  /**
+   * `amountMinor` is the goods only. Dojo defines `amount` as "the amount
+   * intended to be collected ... EXCLUDING tipsAmount, serviceChargeAmount and
+   * cashbackAmount", so a tip or a service charge folded into it would be
+   * charged correctly but printed as part of the food.
+   *
+   * `itemLines` is what puts a breakdown on the customer's receipt. Without it
+   * Dojo prints a bare total, which is what their certification flagged
+   * (2026-09-30).
+   */
   createPaymentIntent(args: {
     amountMinor: number;
     currencyCode: string;
@@ -257,15 +315,24 @@ export class DojoApiClient {
     description?: string;
     metadata?: Record<string, string>;
     idempotencyKey?: string;
+    tipsMinor?: number;
+    serviceChargeMinor?: number;
+    itemLines?: DojoItemLine[];
   }): Promise<DojoPaymentIntent> {
+    const money = (value: number) => ({ value, currencyCode: args.currencyCode });
     return this.request<DojoPaymentIntent>("POST", "/payment-intents", {
       idempotencyKey: args.idempotencyKey,
       body: {
-        amount: { value: args.amountMinor, currencyCode: args.currencyCode },
+        amount: money(args.amountMinor),
         // Dojo caps reference at 60 chars.
         reference: args.reference.slice(0, 60),
         description: args.description,
         captureMode: "Auto",
+        ...(args.tipsMinor ? { tipsAmount: money(args.tipsMinor) } : {}),
+        ...(args.serviceChargeMinor
+          ? { serviceChargeAmount: money(args.serviceChargeMinor) }
+          : {}),
+        ...(args.itemLines?.length ? { itemLines: args.itemLines } : {}),
         metadata: args.metadata,
       },
     });

@@ -3,8 +3,10 @@ import { BullModule } from "@nestjs/bull";
 import { QUEUES } from "@orderhub/shared";
 import { AdminController } from "./admin.controller";
 import { DashboardAccessController } from "./dashboard-access.controller";
+import { DispatchChargingController } from "./dispatch-charging.controller";
 import { AdminService } from "./admin.service";
 import { DashboardAccessService } from "./dashboard-access.service";
+import { DispatchChargingService } from "./dispatch-charging.service";
 import { DatabaseModule } from "../../infrastructure/database/database.module";
 
 @Module({
@@ -16,7 +18,7 @@ import { DatabaseModule } from "../../infrastructure/database/database.module";
       { name: QUEUES.PRINTING },
     ),
   ],
-  controllers: [AdminController, DashboardAccessController],
-  providers: [AdminService, DashboardAccessService],
+  controllers: [AdminController, DashboardAccessController, DispatchChargingController],
+  providers: [AdminService, DashboardAccessService, DispatchChargingService],
 })
 export class AdminModule {}

@@ -180,6 +180,15 @@ export function PaymentBadge({
   status?: string | null;
 }) {
   if (method === "CASH") {
+    // Cash gets refunded too, and a plain "Cash" chip on an order that has had
+    // money handed back reads as though the shop still holds all of it.
+    if (status === "REFUNDED" || status === "PARTIALLY_REFUNDED") {
+      return (
+        <Chip tone="amber">
+          <Undo2 className="h-3 w-3" /> {status === "REFUNDED" ? "Refunded" : "Part refunded"}
+        </Chip>
+      );
+    }
     return status === "PAID" ? (
       <Chip tone="success">
         <CheckCircle2 className="h-3 w-3" /> Cash

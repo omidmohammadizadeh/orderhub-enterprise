@@ -337,6 +337,18 @@ describe("proof of delivery", () => {
     expect(jetGo.proofPhotoAt).toBeTruthy();
   });
 
+  it("accepts the name JET actually sends for photo proof", async () => {
+    // JET documents this event twice under two names — PICTUREASPROOFOFDELIVERY
+    // in the webhook samples, PROOFOFDELIVERY_PICTURE in the subscriptions
+    // enum. The wire sends the second, so handling only the first meant a real
+    // simulation logged "type PROOFOFDELIVERY_PICTURE not handled".
+    const { s, updates } = svcWith([order()]);
+    await s.handle(evt("PROOFOFDELIVERY_PICTURE", { urls: ["https://x/1.jpg"] }));
+    expect(lastFor(updates, "o1").metadata.jetGo.proofPhotoUrls).toEqual([
+      "https://x/1.jpg",
+    ]);
+  });
+
   it("accepts a single url string as well as an array", async () => {
     const { s, updates } = svcWith([order()]);
     await s.handle(evt("PICTUREASPROOFOFDELIVERY", { urls: "https://x/1.jpg" }));

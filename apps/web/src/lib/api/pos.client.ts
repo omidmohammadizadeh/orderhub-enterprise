@@ -108,6 +108,8 @@ export interface PromoCode {
   expiresAt: string | null;
   isActive: boolean;
   locationIds: string[];
+  /** Shown as a quick discount button on the till (false for email codes). */
+  showOnPos?: boolean;
 }
 
 // Phase AP — Direct online ordering config.

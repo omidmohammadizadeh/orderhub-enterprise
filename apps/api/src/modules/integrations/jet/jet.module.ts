@@ -1,12 +1,14 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { VariantPriceResolverModule } from "../../menus/variant-price-resolver.module";
+import { NotificationsModule } from "../../notifications/notifications.module";
 import { OrdersModule } from "../../orders/orders.module";
 import { CredentialEncryptionService } from "../credential-encryption.service";
 import { JetClientService } from "./jet-client.service";
 import { JetConnectionService } from "./jet-connection.service";
 import { JetCredentialResolver } from "./jet-credential.resolver";
 import { JetOrderAckService } from "./jet-order-ack.service";
+import { JetOrderAlertService } from "./jet-order-alert.service";
 import { JetOrderService } from "./jet-order.service";
 import { JetLifecycleService } from "./jet-lifecycle.service";
 import { JetMenuPublishService } from "./jet-menu-publish.service";
@@ -31,7 +33,7 @@ import { JetLifecycleController } from "./jet-lifecycle.controller";
 // comes from the @Global() LogsModule and is injected @Optional(), so unit
 // tests can construct these services by hand.
 @Module({
-  imports: [ConfigModule, OrdersModule, VariantPriceResolverModule],
+  imports: [ConfigModule, OrdersModule, VariantPriceResolverModule, NotificationsModule],
   controllers: [JetController, JetWebhookController, JetLifecycleController],
   providers: [
     CredentialEncryptionService,
@@ -40,6 +42,7 @@ import { JetLifecycleController } from "./jet-lifecycle.controller";
     JetConnectionService,
     JetOrderService,
     JetOrderAckService,
+    JetOrderAlertService,
     JetLifecycleService,
     JetMenuPublishService,
     JetItemAvailabilityService,

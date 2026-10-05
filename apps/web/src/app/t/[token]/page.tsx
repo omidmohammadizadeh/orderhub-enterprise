@@ -132,6 +132,8 @@ export default function TableQrPage() {
   const [modalItem, setModalItem] = useState<MenuItem | null>(null);
   const [basketOpen, setBasketOpen] = useState(false);
   const [guestName, setGuestName] = useState("");
+  // Gulf (Tap) shops only — Tap won't take a card without the guest's email.
+  const [guestEmail, setGuestEmail] = useState("");
   const [kitchenNotes, setKitchenNotes] = useState("");
   // What the "done" overlay is celebrating: a round added to the tab, or a
   // basket that was paid for and is now on its way to the kitchen.
@@ -325,6 +327,7 @@ export default function TableQrPage() {
     return {
       items,
       customerName: guestName.trim() || undefined,
+      ...(guestEmail.trim() ? { customerEmail: guestEmail.trim() } : {}),
       notes: kitchenNotes.trim() || null,
       requestId: requestIdRef.current,
     };
@@ -355,6 +358,14 @@ export default function TableQrPage() {
   const checkout = useMutation({
     mutationFn: () => tableQrClient.checkout(token, buildPayload()),
     onSuccess: (res) => {
+      // Tap (Gulf shops): pay on Tap's own page. It sends the phone back to
+      // /t/<token>?paid=<orderId>, which the effect above turns into the
+      // confirmation. The basket stays put until then, so backing out of
+      // Tap's page leaves the guest their round.
+      if (res.checkoutUrl && !res.alreadyPaid) {
+        window.location.href = res.checkoutUrl;
+        return;
+      }
       if (res.alreadyPaid || !res.clientSecret || !res.stripeAccountId) {
         // A repeat of a basket that already went through — don't ask for
         // the money twice, just show them where it got to.
@@ -579,6 +590,9 @@ export default function TableQrPage() {
           tabOpen={table.tabOpen}
           guestName={guestName}
           setGuestName={setGuestName}
+          askEmail={prepay && table.cardProvider === "TAP"}
+          guestEmail={guestEmail}
+          setGuestEmail={setGuestEmail}
           notes={kitchenNotes}
           setNotes={setKitchenNotes}
           prepay={prepay}
@@ -929,6 +943,9 @@ function BasketSheet({
   tabOpen,
   guestName,
   setGuestName,
+  askEmail,
+  guestEmail,
+  setGuestEmail,
   notes,
   setNotes,
   prepay,
@@ -947,6 +964,10 @@ function BasketSheet({
   tabOpen: boolean;
   guestName: string;
   setGuestName: (v: string) => void;
+  /** Tap shops need the guest's email before they can pay by card. */
+  askEmail: boolean;
+  guestEmail: string;
+  setGuestEmail: (v: string) => void;
   notes: string;
   setNotes: (v: string) => void;
   /** This shop takes payment before the kitchen starts. */
@@ -1048,6 +1069,19 @@ function BasketSheet({
                 placeholder="Your name (optional)"
                 className="min-h-[48px] w-full rounded-xl border border-zinc-200 px-3 text-sm focus:border-zinc-900 focus:outline-none"
               />
+              {askEmail && (
+                <input
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  value={guestEmail}
+                  onChange={(e) => setGuestEmail(e.target.value)}
+                  placeholder="Email for your receipt"
+                  aria-label="Email for your receipt"
+                  required
+                  className="min-h-[48px] w-full rounded-xl border border-zinc-200 px-3 text-sm focus:border-zinc-900 focus:outline-none"
+                />
+              )}
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -1077,7 +1111,11 @@ function BasketSheet({
           </div>
           <button
             onClick={onSend}
-            disabled={sending || lines.length === 0}
+            disabled={
+              sending ||
+              lines.length === 0 ||
+              (askEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail.trim()))
+            }
             className="flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-zinc-900 text-base font-semibold text-white active:bg-zinc-800 disabled:opacity-60"
           >
             {sending ? (

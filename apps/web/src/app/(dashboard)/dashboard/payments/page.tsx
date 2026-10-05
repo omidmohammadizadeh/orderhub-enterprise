@@ -10,7 +10,11 @@ import {
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
-import { BrandConnectSection } from "@/components/payments/brand-connect-section";
+import {
+  BrandConnectSection,
+  type BrandConnectRow,
+} from "@/components/payments/brand-connect-section";
+import { useSelectedLocationStore } from "@/stores/selected-location.store";
 
 interface ConnectAccount {
   stripeAccountId: string;
@@ -33,6 +37,22 @@ export default function PaymentsPage() {
       apiClient.get("/v1/payments/connect/account").then((r) => r.data as ConnectAccount).catch(() => null),
   });
 
+  // Same query (and cache) as BrandConnectSection. When every brand in view
+  // trades in the Gulf, card money goes through Tap, so the tenant-level
+  // Stripe card below would only invite an onboarding nobody can use.
+  const locationId = useSelectedLocationStore((s) => s.selectedLocationId);
+  const { data: brandRows } = useQuery({
+    queryKey: ["brand-connect", locationId],
+    queryFn: () =>
+      apiClient
+        .get("/v1/payments/connect/brands", {
+          params: locationId ? { locationId } : undefined,
+        })
+        .then((r) => r.data as BrandConnectRow[]),
+  });
+  const gulfOnly =
+    !!brandRows?.length && brandRows.every((b) => b.provider === "TAP");
+
   const onboardMutation = useMutation({
     mutationFn: () =>
       apiClient.post("/v1/payments/connect/onboard").then((r) => r.data as { url: string }),
@@ -46,7 +66,7 @@ export default function PaymentsPage() {
       <div>
         <h1 className="text-xl font-semibold text-zinc-900">Payments</h1>
         <p className="text-sm text-zinc-500 mt-0.5">
-          Connect a shop to Stripe so it can take card payments. Payouts,
+          Connect a shop to Stripe (UK) or Tap (Gulf) so it can take card payments. Payouts,
           balances and the day&apos;s takings live on the Payouts page, where
           they are scoped per shop.
         </p>
@@ -56,6 +76,7 @@ export default function PaymentsPage() {
       <BrandConnectSection />
 
       {/* Stripe Connect status */}
+      {!gulfOnly && (
       <div className={cn(
         "rounded-2xl p-5 border",
         connectAccount?.onboardingComplete
@@ -110,6 +131,7 @@ export default function PaymentsPage() {
           )}
         </div>
       </div>
+      )}
 
     </div>
   );

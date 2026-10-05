@@ -169,9 +169,17 @@ export interface UpsellGroup {
 
 // ── Products (MenuItem) ────────────────────────────────────────────────────
 export const productsClient = {
-  list: (brandId: string) =>
+  /** The brand's item library. `locationId` narrows it to one shop's
+   *  products plus the brand-wide ones already on that shop's menus — what
+   *  the menu editor's picker wants, since a menu is served at a location,
+   *  not by a whole brand. */
+  list: (brandId: string, locationId?: string) =>
     apiClient
-      .get<CatalogProduct[]>(`/v1/brands/${brandId}/items`)
+      .get<CatalogProduct[]>(
+        `/v1/brands/${brandId}/items${
+          locationId ? `?locationId=${encodeURIComponent(locationId)}` : ""
+        }`,
+      )
       .then((r) => r.data),
   // Phase AP — Products tab is location-scoped. The brand list above
   // is kept for the menu editor's "Add from catalog" picker, which

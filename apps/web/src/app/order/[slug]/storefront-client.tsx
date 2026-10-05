@@ -33,6 +33,7 @@ import {
   useReducer,
 } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { readEmailRef, rememberEmailRef } from "@/lib/email-marketing/attribution";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   formatMoney,
@@ -387,6 +388,12 @@ function OrderPage() {
   // token comes from the share link (via the join page), never from state, so
   // a refresh or a returning tab picks the same basket back up.
   const groupToken = searchParams?.get("group") ?? null;
+  // A marketing email's link carries ?er=<recipient>. Remember it so the order
+  // it leads to — today or later this week — is credited to that campaign.
+  const emailRef = searchParams?.get("er") ?? null;
+  useEffect(() => {
+    if (emailRef) rememberEmailRef(emailRef);
+  }, [emailRef]);
   const router = useRouter();
   const queryClient = useQueryClient();
   const [cart, dispatch] = useReducer(cartReducer, []);
@@ -574,6 +581,10 @@ function OrderPage() {
   const [customerEmail, setCustomerEmail] = useState("");
   // "Keep me updated by SMS" — ticked by default, customer can opt out.
   const [smsMarketingConsent, setSmsMarketingConsent] = useState(true);
+  // "Email me offers" — ticked by default like the SMS box; the customer
+  // unticks it if they'd rather not. It goes to their ACCOUNT email (the one
+  // they signed in with), never the optional checkout field.
+  const [emailMarketingConsent, setEmailMarketingConsent] = useState(true);
   // Challenge 25 — "I'm 18 or over", asked only when the basket needs it.
   const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [addrFlat, setAddrFlat] = useState(""); // Phase AP fix #3 — house/flat number
@@ -1468,6 +1479,10 @@ function OrderPage() {
         loyaltyRewardId: useLoyaltyReward ? (loyaltyReward?.id ?? undefined) : undefined,
         // "Keep me updated by SMS" checkbox → SMS-marketing consent.
         marketingConsent: smsMarketingConsent,
+        // "Email me offers" → email-marketing consent, separate from SMS.
+        emailMarketingConsent,
+        // The marketing email this visit came from, if any (?er= on the link).
+        emailRecipientId: readEmailRef(),
         // Challenge 25 — the server refuses a restricted basket without it.
         ...(cartMinAge ? { ageConfirmed } : {}),
       };
@@ -1606,6 +1621,8 @@ function OrderPage() {
       }>(`${API_BASE}/v1/ordering/store/${slug}/promo`, {
         code,
         subtotal,
+        // Lets a once-per-customer code say "already used" here, not at payment.
+        customerAccountId: authCustomer?.id ?? undefined,
       });
       if (!res.data.valid) {
         setPromoApplied(null);
@@ -2573,6 +2590,9 @@ function OrderPage() {
           customerEmail={customerEmail}
           setCustomerEmail={setCustomerEmail}
           smsMarketingConsent={smsMarketingConsent}
+          emailMarketingConsent={emailMarketingConsent}
+          setEmailMarketingConsent={setEmailMarketingConsent}
+          accountEmail={authCustomer?.email ?? null}
           loyaltyReward={loyaltyReward}
           useLoyaltyReward={useLoyaltyReward}
           setUseLoyaltyReward={setUseLoyaltyReward}
@@ -3456,6 +3476,10 @@ interface CartPanelProps {
   customerPhone: string;
   setCustomerPhone: (v: string) => void;
   smsMarketingConsent: boolean;
+  emailMarketingConsent: boolean;
+  setEmailMarketingConsent: (v: boolean) => void;
+  /** The signed-in account's address — where offers would go. */
+  accountEmail: string | null;
   loyaltyReward: { id: string; label: string } | null;
   useLoyaltyReward: boolean;
   setUseLoyaltyReward: (v: boolean) => void;
@@ -3592,6 +3616,9 @@ function CartPanel(props: CartPanelProps) {
     customerEmail,
     setCustomerEmail,
     smsMarketingConsent,
+    emailMarketingConsent,
+    setEmailMarketingConsent,
+    accountEmail,
     loyaltyReward,
     useLoyaltyReward,
     setUseLoyaltyReward,
@@ -3827,6 +3854,19 @@ function CartPanel(props: CartPanelProps) {
               />
               <span>Keep me updated with offers &amp; news by SMS</span>
             </label>
+            {accountEmail && (
+              <label className="mt-1 flex cursor-pointer items-start gap-2 text-xs text-zinc-500">
+                <input
+                  type="checkbox"
+                  checked={emailMarketingConsent}
+                  onChange={(e) => setEmailMarketingConsent(e.target.checked)}
+                  className="mt-0.5 h-3.5 w-3.5 rounded border-zinc-300"
+                />
+                <span>
+                  Keep me updated with offers &amp; news by email ({accountEmail}). Unsubscribe any time.
+                </span>
+              </label>
+            )}
           </Section>
 
           {cartMinAge && (

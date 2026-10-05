@@ -208,8 +208,19 @@ services:
       - key: JET_DEFAULT_COUNTRY
         value: GB
       # ── JWT config ──
+      # This is the REVOCATION window, not just a tuning knob: nothing
+      # re-reads the database while an access token is valid, so a
+      # deactivated user keeps working until theirs expires. Keep the till
+      # and dashboard short.
       - key: JWT_ACCESS_TTL
         value: 15m
+      # Drivers only. They work out of signal, and every expiry forces a
+      # refresh that can fail in a tunnel; app builds older than 1.0.3 treat
+      # any failed refresh as a logout, so refreshing less often is the only
+      # relief that reaches the phones already in the field. A driver token
+      # also reaches far less than a till's: their own jobs, chat and pings.
+      - key: JWT_DRIVER_ACCESS_TTL
+        value: 8h
       # Long-lived refresh so the till / dashboard stays logged in until
       # the operator logs out manually. Sliding rotation extends it on
       # every refresh, so an actively-used device never drops out.
@@ -263,8 +274,17 @@ services:
     dockerfilePath: infrastructure/docker/Dockerfile.web
     dockerContext: .
     region: frankfurt
-    plan: starter
-    healthCheckPath: /
+    # standard = 1 CPU / 2 GB. Every browser API call is proxied through this
+    # service, so it carries the API's traffic. On Starter (0.5 CPU) its CPU
+    # sat at 100% through the Sat 3 Oct dinner rush and median response time
+    # went from ~120ms to 2.5-3.3s (p90 3-4s, peak 6s) while the API itself
+    # answered in <200ms.
+    plan: standard
+    # /healthz answers instantly with no rendering. "/" is the dynamic marketing
+    # home page: when the 0.5 CPU is saturated (every browser API call is
+    # proxied through this service) it took >5s, Render marked the instance
+    # failed and restarted it mid-service (2:51pm and 7:37pm, Sat 3 Oct).
+    healthCheckPath: /healthz
     numInstances: 1
     envVars:
       - key: NODE_ENV

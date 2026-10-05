@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { UberEatsOrderActionsPanel } from "./ubereats-order-actions-panel";
+import { TalabatOrderActionsPanel } from "./talabat-order-actions-panel";
 import { DojoRefundPanel } from "./dojo-refund-panel";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { X, Clock, CheckCircle, ChefHat, Bike, XCircle, Check, AlertCircle, Pencil, Printer, Loader2, QrCode, CreditCard, Banknote, ShoppingBag, MapPin } from "lucide-react";
+import { X, Clock, CheckCircle, ChefHat, Bike, XCircle, Check, AlertCircle, Pencil, Printer, Loader2, QrCode, CreditCard, Banknote, ShoppingBag, MapPin, Zap } from "lucide-react";
 import { PaymentLinkModal } from "../pos/payment-link-modal";
 import { SwitchFulfillmentModal } from "./switch-fulfillment-modal";
 import { ChargeReaderModal } from "../pos/charge-reader-modal";
@@ -26,7 +27,7 @@ import { yangoClient } from "../../lib/api/yango.client";
 import { unassignOrder } from "../../lib/api/dispatch.client";
 import { printOrderViaBridge } from "../../lib/printing/print-order";
 import type { Order } from "../../lib/api/orders.client";
-import { modifierDepth, formatMoney } from "@orderhub/shared";
+import { describeMaskedAddress, modifierDepth, formatMoney } from "@orderhub/shared";
 
 // Lazily loaded: it pulls in the Google Maps JS loader, which has no business
 // in the drawer's bundle for the orders nobody opens a map on.
@@ -67,6 +68,9 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
   // once, so this must not follow whichever one is selected.
   const money = (n: number | string | null | undefined) =>
     formatMoney(n, (order as any)?.location?.currency, { compact: true });
+  // How much of the tip was added at the card machine, after the bill was
+  // totalled. That part sits ON TOP of the total, not inside it.
+  const terminalTip = Number((order as any)?.metadata?.terminalTipsMinor ?? 0) / 100;
   const [cancelReason, setCancelReason] = useState("");
   const [showCancelInput, setShowCancelInput] = useState(false);
   const [printing, setPrinting] = useState(false);
@@ -96,6 +100,7 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
   const userRole = useAuthStore((s) => s.user?.role);
   const [showDispatch, setShowDispatch] = useState(false);
   const [showMap, setShowMap] = useState(false);
+  const [simulating, setSimulating] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [showPayModal, setShowPayModal] = useState(false);
   const [showSwitchModal, setShowSwitchModal] = useState(false);
@@ -154,6 +159,30 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
     ((order as any)?.paymentStatus ?? "").toString().toUpperCase() !== "PAID" &&
     !!(order as any)?.locationId;
   const queryClient = useQueryClient();
+
+  // JET Go staging only — walks a booked delivery through the real webhook
+  // sequence (ASSIGNED → … → DELIVERED) so the whole integration can be proved
+  // without a courier. The API refuses it on production.
+  async function handleSimulate(step?: string) {
+    if (!order) return;
+    setSimulating(true);
+    try {
+      await jetGoClient.simulate(order.id, {
+        ...(step ? { deliveryStep: step } : {}),
+        stepWaitDuration: 3000,
+      });
+      toast.success(
+        step
+          ? `JET Go simulating up to ${step.replaceAll("_", " ").toLowerCase()}`
+          : "JET Go simulating the full delivery — watch the status move",
+      );
+      queryClient.invalidateQueries({ queryKey: ["orders", "live"] });
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message ?? "Couldn't start the simulation");
+    } finally {
+      setSimulating(false);
+    }
+  }
 
   async function handleCancelDispatch() {
     if (!order) return;
@@ -359,13 +388,19 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
               )}
             </p>
           )}
-          {order.deliveryAddress && (
-            <p className="text-xs text-zinc-500 mt-1">
-              {[order.deliveryAddress.line1, order.deliveryAddress.line2, order.deliveryAddress.city, order.deliveryAddress.postcode]
-                .filter(Boolean)
-                .join(", ")}
-            </p>
-          )}
+          {order.deliveryAddress && (() => {
+            // Just Eat (and the others) mask the address when THEIR courier
+            // delivers. Rendering the asterisks looks like a broken screen.
+            const withheld = describeMaskedAddress(order.deliveryAddress as any);
+            return (
+              <p className={`text-xs mt-1 ${withheld ? "italic text-zinc-400" : "text-zinc-500"}`}>
+                {withheld ??
+                  [order.deliveryAddress.line1, order.deliveryAddress.line2, order.deliveryAddress.city, order.deliveryAddress.postcode]
+                    .filter(Boolean)
+                    .join(", ")}
+              </p>
+            );
+          })()}
         </div>
 
         {/* Phase BH — unified dispatch chooser + cancel. A delivery order is
@@ -450,6 +485,24 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
                     <MapPin className="h-4 w-4" />
                     Map
                   </button>
+                  {/* Sandbox testing. Shown only once a JET Go delivery exists,
+                      because the simulation is driven by its requestId. The API
+                      refuses on a production account, so this cannot move a real
+                      courier. */}
+                  {dispatched && courierProvider === "JET_GO" && (
+                    <button
+                      onClick={() => handleSimulate()}
+                      disabled={simulating}
+                      className="inline-flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800 hover:bg-amber-100 disabled:opacity-50"
+                    >
+                      {simulating ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Zap className="h-4 w-4" />
+                      )}
+                      Simulate delivery
+                    </button>
+                  )}
                 </div>
                 <p className="mt-1.5 text-[11px] text-zinc-400">{hint}</p>
               </div>
@@ -576,10 +629,10 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
                   <span>{money(Number((order as any).serviceCharge))}</span>
                 </div>
               )}
-              {Number((order as any).tipAmount ?? 0) > 0 && (
+              {Number((order as any).tipAmount ?? 0) - terminalTip > 0 && (
                 <div className="flex justify-between text-sm text-zinc-600">
                   <span>Tip</span>
-                  <span>{money(Number((order as any).tipAmount))}</span>
+                  <span>{money(Number((order as any).tipAmount) - terminalTip)}</span>
                 </div>
               )}
               {order.taxAmount > 0 && (
@@ -597,6 +650,19 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
           <div className="flex justify-between text-sm font-bold text-zinc-900">
             <span>Total</span><span>{money(order.total)}</span>
           </div>
+          {/* A tip added on the card machine is not part of the bill — the
+              customer chose to pay it on top — so it reads below the total,
+              with what they actually handed over. */}
+          {terminalTip > 0 && (
+            <>
+              <div className="flex justify-between text-sm text-zinc-600">
+                <span>Tip on card</span><span>{money(terminalTip)}</span>
+              </div>
+              <div className="flex justify-between text-sm font-semibold text-zinc-900">
+                <span>Paid</span><span>{money(order.total + terminalTip)}</span>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Special instructions */}
@@ -631,6 +697,9 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
           <UberEatsOrderActionsPanel
                 orderId={order.id}
                 currency={(order as any)?.location?.currency} />
+        )}
+      {order.platform === "TALABAT" && (
+          <TalabatOrderActionsPanel orderId={order.id} metadata={(order as any).metadata} />
         )}
         <DojoRefundPanel
           orderId={order.id}

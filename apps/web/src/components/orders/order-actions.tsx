@@ -30,6 +30,9 @@ interface Props {
   // buttons so staff can't accidentally lie to HubRise about the
   // driver state.
   deliveryType?: string | null;
+  /** Let the buttons wrap onto a second line instead of running off the
+   *  edge — the phone card wants this; the board's table row does not. */
+  wrap?: boolean;
 }
 
 interface ButtonSpec {
@@ -225,6 +228,7 @@ export function OrderActions({
   fulfillmentType,
   deliveryType,
   onDispatch,
+  wrap = false,
 }: Props) {
   const allButtons = buttonsForStatus(status, fulfillmentType);
   // Phase AV — for PLATFORM-courier orders, drop transitions past
@@ -288,7 +292,15 @@ export function OrderActions({
   };
 
   return (
-    <div className="flex flex-nowrap items-center gap-2 pt-1 whitespace-nowrap">
+    <div
+      // `contents` hands the buttons to the caller's own flex-wrap row, so
+      // they wrap alongside its print button instead of as one rigid block.
+      className={
+        wrap
+          ? "contents"
+          : "flex flex-nowrap items-center gap-2 pt-1 whitespace-nowrap"
+      }
+    >
       {buttons.map((b) => {
         const isPending = pendingStatus === b.toStatus;
         return (

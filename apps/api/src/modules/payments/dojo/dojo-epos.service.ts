@@ -56,6 +56,17 @@ export interface Money {
   currencyCode: string;
 }
 
+/**
+ * Dojo's waiter id, whatever shape it arrives in. It is an integer on their
+ * side and a label on ours — never arithmetic — and 0 is not a waiter.
+ */
+export function waiterLabel(raw: unknown): string | null {
+  if (raw === null || raw === undefined) return null;
+  const s = String(raw).trim();
+  if (!s || s === "0") return null;
+  return s.slice(0, 40);
+}
+
 export interface EposContext {
   loc: {
     id: string;
@@ -327,7 +338,7 @@ export class DojoEposService {
     await this.prisma.order.update({ where: { id: orderId }, data: { metadata: next as any } });
   }
 
-  async createLock(ctx: EposContext, orderId: string, body: { lockId?: string; expiry?: string }) {
+  async createLock(ctx: EposContext, orderId: string, body: { lockId?: string; expiry?: string; waiterId?: unknown }) {
     if (!body?.lockId || !body?.expiry || Number.isNaN(Date.parse(body.expiry))) {
       throw new EposError("InvalidRequest", "lockId and a valid expiry are required");
     }
@@ -339,7 +350,14 @@ export class DojoEposService {
     if (!(OPEN_TAB_STATUSES as readonly string[]).includes(order.status)) {
       throw new EposError("Conflict", "This table's order is already closed");
     }
-    await this.writeLock(order.id, order.metadata, { lockId: body.lockId, expiry: body.expiry });
+    await this.writeLock(order.id, order.metadata, {
+      lockId: body.lockId,
+      expiry: body.expiry,
+      // Dojo puts the waiter's id on the lock when they've identified
+      // themselves at the machine. It is an integer on their side; kept as a
+      // string because it is a label, never arithmetic.
+      ...(waiterLabel(body.waiterId) ? { waiterId: waiterLabel(body.waiterId)! } : {}),
+    });
     return this.getOrder(ctx, orderId);
   }
 
@@ -409,9 +427,62 @@ export class DojoEposService {
       // which is the safe direction (never an unrecorded charge).
       throw new EposError("UnexpectedError", `Couldn't verify the payment with Dojo: ${err?.message}`, 502);
     }
-    if (!this.dojo.intentCovers(pi, paidMinor, true)) {
-      throw new EposError("Conflict", "The payment on the card machine doesn't match the amount being recorded");
+    // The money check: does the intent HOLD what we're about to write down?
+    //
+    // This used to demand an exact match, and refused Philip Wells' table five
+    // times on 2026-10-02 — Dojo had taken the money and we wouldn't record it,
+    // so the tab never closed. Exact is the wrong test: a tip or a service
+    // charge legitimately makes the intent bigger than the share being
+    // recorded, and Dojo is free to report the parts however it likes. The
+    // rule that actually protects the shop is "never write down more than Dojo
+    // took", so that is the rule. A penny of slack for rounding.
+    const heldMinor = Math.max(
+      (pi.amount?.value ?? 0) + (pi.tipsAmount?.value ?? 0) + ((pi as any).serviceChargeAmount?.value ?? 0),
+      pi.totalAmount?.value ?? 0,
+      pi.amount?.value ?? 0,
+    );
+    const settled = pi.status === "Captured" || pi.status === "Authorized";
+    if (!settled || paidMinor > heldMinor + 1) {
+      // Say the numbers. The old message named nothing, so five refusals in a
+      // row left no way to tell whether the problem was the status, the tip or
+      // the amount — on either side of the integration.
+      const detail =
+        `recording ${(paidMinor / 100).toFixed(2)} against intent ${piId} which is ${pi.status} ` +
+        `and holds ${(heldMinor / 100).toFixed(2)} ` +
+        `(amount ${((pi.amount?.value ?? 0) / 100).toFixed(2)}, tips ${((pi.tipsAmount?.value ?? 0) / 100).toFixed(2)})`;
+      this.logger.warn(`Dojo Pay at Table refused: ${detail}`);
+      this.dojo.logActivity({
+        tenantId: ctx.tenantId,
+        locationId: ctx.loc.id,
+        action: "dojo.pay_at_table",
+        status: "ERROR",
+        message: `Refused a ${(paidMinor / 100).toFixed(2)} table payment — the card machine's total doesn't cover it`,
+        details: {
+          orderId,
+          paymentIntentId: piId,
+          recording: paidMinor / 100,
+          heldOnIntent: heldMinor / 100,
+          intentStatus: pi.status,
+          intentAmount: (pi.amount?.value ?? 0) / 100,
+          intentTips: (pi.tipsAmount?.value ?? 0) / 100,
+        },
+      });
+      throw new EposError(
+        "Conflict",
+        `The payment on the card machine doesn't cover the amount being recorded — ${detail}`,
+      );
     }
+
+    // Who took this payment. Dojo documents the waiter id in the payment
+    // INTENT's metadata ("if a waiter ID was provided on the payment device"),
+    // and sends it on the lock as well; the header is our own belt and braces.
+    // We were reading only the header, which is the one place it doesn't come
+    // from, so every table payment recorded no waiter at all.
+    const waiterId =
+      waiterLabel(requester.waiterId) ??
+      waiterLabel((pi as any)?.metadata?.waiterId) ??
+      waiterLabel(lock?.waiterId) ??
+      null;
 
     const paidGbp = paidMinor / 100;
     const tipGbp = tipsMinor / 100;
@@ -456,7 +527,7 @@ export class DojoEposService {
             split: true,
             dojoStatus: pi.status,
             ...(body.lockId ? { lockId: body.lockId } : {}),
-            ...(requester.waiterId ? { waiterId: requester.waiterId } : {}),
+            ...(waiterId ? { waiterId } : {}),
             ...(requester.deviceId ? { deviceId: requester.deviceId } : {}),
             ...(ctx.cfg.environment === "sandbox" ? { sandbox: true } : {}),
           },
@@ -465,6 +536,25 @@ export class DojoEposService {
     });
 
     await this.payments.settleCardPresentPayment(created, piId);
+    this.dojo.logActivity({
+      tenantId: ctx.tenantId,
+      locationId: ctx.loc.id,
+      action: "dojo.pay_at_table",
+      status: "SUCCESS",
+      message:
+        `Table paid ${paidGbp.toFixed(2)} on a Dojo machine` +
+        (tipGbp > 0 ? ` with a ${tipGbp.toFixed(2)} tip` : "") +
+        (waiterId ? ` — taken by waiter ${waiterId}` : ""),
+      details: {
+        orderId,
+        paymentIntentId: piId,
+        amount: paidGbp,
+        ...(tipGbp > 0 ? { tip: tipGbp } : {}),
+        ...(waiterId ? { waiterId } : {}),
+        ...(requester.deviceId ? { deviceId: requester.deviceId } : {}),
+        dojoStatus: pi.status,
+      },
+    });
     this.logger.log(
       `Dojo Pay at Table: recorded ${paidGbp.toFixed(2)}${tipGbp ? ` + ${tipGbp.toFixed(2)} tip` : ""} on order ${orderId} (${piId})`,
     );

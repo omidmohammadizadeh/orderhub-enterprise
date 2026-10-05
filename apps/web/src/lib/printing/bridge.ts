@@ -216,13 +216,46 @@ export function hasLanBridge(): boolean {
   return !!bt?.isReady && typeof bt.printLan === "function";
 }
 
+/**
+ * One job at a time per printer.
+ *
+ * Two orders landing in the same live-orders poll used to print at once: the
+ * auto-printer fires each order's print without waiting (`void printToAll`),
+ * and the tablet streams every job in 512-byte chunks with pauses between, on
+ * ONE shared socket, with no lock. The two jobs' chunks interleaved. When a
+ * text chunk landed inside a QR or logo raster (GS v 0 declares its byte
+ * count up front), the printer swallowed the text as pixels and then printed
+ * the rest of the bitmap as characters: a metre of garbage between two
+ * tickets. Seen at Jinty's on 2026-10-04 — Just Eat 962750959 and 962751121
+ * arrived 0.4 s apart and came out exactly like that.
+ *
+ * Chained per address, so a till printer and a kitchen printer still run in
+ * parallel. The native handler only resolves after the printer has drained,
+ * so "done" here means the paper is out, not just that the bytes left.
+ */
+const printerQueues = new Map<string, Promise<unknown>>();
+
+function enqueueForPrinter<T>(key: string, job: () => Promise<T>): Promise<T> {
+  const prev = printerQueues.get(key) ?? Promise.resolve();
+  // A failed job must not block the ones behind it.
+  const run = prev.catch(() => undefined).then(job);
+  const tail = run.catch(() => undefined);
+  printerQueues.set(key, tail);
+  void tail.then(() => {
+    if (printerQueues.get(key) === tail) printerQueues.delete(key);
+  });
+  return run;
+}
+
 export async function bridgePrint(
   mac: string,
   bytes: Uint8Array,
 ): Promise<void> {
   if (!hasNativeBridge()) throw new Error("Bluetooth bridge not available");
   const b64 = bytesToBase64(bytes);
-  await (window as BridgeWindow).OrderHubBT!.print(mac, b64);
+  await enqueueForPrinter(`bt:${mac.toUpperCase()}`, () =>
+    (window as BridgeWindow).OrderHubBT!.print(mac, b64),
+  );
 }
 
 export async function bridgeLanPrint(
@@ -236,7 +269,10 @@ export async function bridgeLanPrint(
       "LAN printing needs the latest tablet app — please update the app.",
     );
   }
-  await bt.printLan(ip, port || 9100, bytesToBase64(bytes));
+  const b64 = bytesToBase64(bytes);
+  await enqueueForPrinter(`lan:${ip}:${port || 9100}`, () =>
+    bt.printLan!(ip, port || 9100, b64),
+  );
 }
 
 // Route a print to the right transport based on the printer's

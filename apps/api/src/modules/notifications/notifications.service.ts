@@ -457,6 +457,21 @@ export class NotificationsService {
     );
   }
 
+  /**
+   * Text whoever runs the platform. System notification, so it goes straight
+   * to the provider and is NOT billed to any merchant's SMS wallet — our
+   * monitoring must not land on a restaurant's invoice.
+   */
+  async sendOpsSms(message: string, to: string): Promise<void> {
+    const number = (to ?? "").trim();
+    if (!number) return;
+    try {
+      await this.sendSms(number, message);
+    } catch (e: any) {
+      this.logger.warn(`Ops alert SMS failed: ${e?.message}`);
+    }
+  }
+
   async getNotificationHistory(
     tenantId: string,
     opts: { userId?: string; limit?: number; offset?: number },

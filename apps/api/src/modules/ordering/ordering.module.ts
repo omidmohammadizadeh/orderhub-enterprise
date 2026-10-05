@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { OrderingController } from "./ordering.controller";
+import { OrderConfirmationEmailService } from "./order-confirmation-email.service";
 import { OrderingService } from "./ordering.service";
 import { OrdersModule } from "../orders/orders.module";
 import { PromoCodesModule } from "../promo-codes/promo-codes.module";
@@ -10,6 +11,7 @@ import { VariantPriceResolverModule } from "../menus/variant-price-resolver.modu
 import { PauseModule } from "../pauses/pause.module";
 import { MarketingModule } from "../marketing/marketing.module";
 import { DeliveryZonesModule } from "../delivery-zones/delivery-zones.module";
+import { EmailMarketingModule } from "../email-marketing/email-marketing.module";
 
 @Module({
   // Phase AP-8 — PaymentsModule provides Stripe Checkout Session creation
@@ -37,9 +39,12 @@ import { DeliveryZonesModule } from "../delivery-zones/delivery-zones.module";
     // only ever charge the top band, because it had no way to measure how far
     // away the customer actually was.
     DeliveryZonesModule,
+    EmailMarketingModule,
   ],
   controllers: [OrderingController],
-  providers: [OrderingService],
+  providers: [OrderingService,
+    OrderConfirmationEmailService,
+  ],
   // Group orders place through OrderingService.checkout (server pricing).
   exports: [OrderingService],
 })

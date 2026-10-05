@@ -172,7 +172,7 @@ export class JetGoClientService {
   /** Cloudflare blocks production requests with no User-Agent, so this is
    *  mandatory on every call (the value itself is free-form). */
   private userAgent(): string {
-    return process.env.JET_GO_USER_AGENT ?? "OrderHub/1.0 (+https://orderhub.solutions)";
+    return process.env.JET_GO_USER_AGENT ?? "OrderHub/1.0 (+https://www.orderhubsolutions.com)";
   }
 
   private cacheKey(creds: JetGoCreds): string {

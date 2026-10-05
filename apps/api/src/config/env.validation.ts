@@ -110,6 +110,20 @@ const envSchema = z.object({
   // mispricing a whole menu by 100×. Confirm with Careem, then set this.
   CAREEM_PRICE_UNIT: z.enum(["major", "minor"]).default("major"),
 
+  // Talabat (Delivery Hero POS Middleware — the RESTAURANT integration, not
+  // developer.talabat.com's grocery Partner API). One username/password for
+  // the whole integration, issued PGP-encrypted by Talabat. The plugin secret
+  // verifies the JWT the middleware puts on every call to our plugin.
+  // Production has no documented host, so TALABAT_API_BASE is required there.
+  TALABAT_USERNAME: z.string().optional(),
+  TALABAT_PASSWORD: z.string().optional(),
+  TALABAT_PLUGIN_SECRET: z.string().optional(),
+  TALABAT_ENV: z.enum(["staging", "production"]).default("staging"),
+  TALABAT_API_BASE: z.string().url().optional(),
+  // Our own fake middleware, for driving the integration before credentials
+  // exist. Refused when TALABAT_ENV=production.
+  TALABAT_SANDBOX: z.string().optional(),
+
   // Billing enforcement. The guard reads the per-location subscriptions that
   // actually charge merchants, which nothing enforced before — so this ships
   // as "observe": it logs what it WOULD block and lets the request through.
@@ -207,6 +221,13 @@ const envSchema = z.object({
   // Unset just means that half of the notification is skipped (logged, not
   // sent) — the client still gets theirs.
   BILLING_ALERT_EMAIL: z.string().email().optional(),
+  // Email marketing (campaigns restaurants send to their own customers).
+  EMAIL_MARKETING_ENABLED: z.string().optional(),
+  EMAIL_MARKETING_FROM: z.string().optional(),
+  EMAIL_MARKETING_PRICE_PER_1000_MINOR: z.coerce.number().int().nonnegative().optional(),
+  EMAIL_MARKETING_FREE_PER_MONTH: z.coerce.number().int().nonnegative().optional(),
+  EMAIL_MARKETING_TOKEN_SECRET: z.string().optional(),
+  RESEND_WEBHOOK_SECRET: z.string().optional(),
 
   // Socket.IO
   SOCKET_CORS_ORIGIN: z.string().default("http://localhost:3000"),

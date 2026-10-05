@@ -21,6 +21,7 @@ import {
 import { loadConnectAndInitialize } from "@stripe/connect-js";
 import { apiClient } from "@/lib/api/client";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
+import { TapBrandRow, TapSetupStrip } from "./tap-brand-row";
 
 interface BrandConnectRow {
   brandId: string;
@@ -34,6 +35,17 @@ interface BrandConnectRow {
     mode: string | null;
     fixedAmount: string | number | null;
     percentage: string | number | null;
+  };
+  /** Where the brand trades — decides who takes its cards. */
+  country: string;
+  /** STRIPE everywhere but the Gulf, where it's TAP (Stripe's UAE rules
+   *  forbid our direct-charge model). */
+  provider: "STRIPE" | "TAP";
+  directOrderingEnabled?: boolean;
+  tap: {
+    merchantId: string | null;
+    onboardingStatus: string;
+    connectUrl: string | null;
   };
 }
 
@@ -84,8 +96,9 @@ export function BrandConnectSection() {
         <div>
           <h2 className="font-medium text-zinc-900">Brand payouts</h2>
           <p className="text-sm text-zinc-500 mt-0.5">
-            Each brand has its own Stripe Connect account. Merchants
-            complete onboarding or change their bank details right here.
+            Each brand has its own payout account — Stripe Connect in the
+            UK, Tap in the Gulf. Merchants complete onboarding or change their
+            bank details right here.
           </p>
         </div>
       </div>
@@ -97,13 +110,23 @@ export function BrandConnectSection() {
       ) : brands.length === 0 ? (
         <p className="text-sm text-zinc-500">
           {locationId
-            ? "No brands with online ordering enabled at this location. Switch to All locations or enable a brand's online ordering from Locations → Brands."
+            ? "No brands here need a payout account yet. UK brands appear once their online ordering is on (Locations → Brands); Gulf brands always appear."
             : "No brands with online ordering enabled yet. Create one from Locations → Brands first."}
         </p>
       ) : (
+        <>
+        {brands.some((b) => b.provider === "TAP") && <TapSetupStrip />}
         <ul className="divide-y divide-zinc-100">
           {brands.map((b) => (
             <li key={b.brandId} className="py-3">
+              {b.provider === "TAP" ? (
+                <TapBrandRow
+                  row={b}
+                  onChanged={() =>
+                    qc.invalidateQueries({ queryKey: ["brand-connect"] })
+                  }
+                />
+              ) : (
               <BrandRow
                 row={b}
                 isOpen={openPanel?.brandId === b.brandId}
@@ -114,9 +137,11 @@ export function BrandConnectSection() {
                   qc.invalidateQueries({ queryKey: ["brand-connect"] })
                 }
               />
+              )}
             </li>
           ))}
         </ul>
+        </>
       )}
     </div>
   );

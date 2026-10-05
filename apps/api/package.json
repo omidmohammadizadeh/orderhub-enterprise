@@ -14,10 +14,12 @@
     "db:migrate": "prisma migrate deploy --schema=../../packages/database/prisma/schema.prisma",
     "db:generate": "prisma generate --schema=../../packages/database/prisma/schema.prisma",
     "db:backfill-encryption": "ts-node -P tsconfig.json src/scripts/backfill-credential-encryption.ts",
+    "jet-go:smoke": "ts-node -P tsconfig.json src/scripts/jet-go-smoke.ts",
     "db:rotate-keys": "ts-node -P tsconfig.json src/scripts/rotate-credential-encryption.ts",
     "db:repair-refunded-orders": "ts-node -P tsconfig.json src/scripts/repair-refunded-orders.ts",
     "db:explain-order-payments": "ts-node -P tsconfig.json src/scripts/explain-order-payments.ts",
     "db:tidy-names": "ts-node -P tsconfig.json src/scripts/tidy-customer-facing-names.ts",
+    "db:backfill-terminal-tips": "ts-node -P tsconfig.json src/scripts/backfill-terminal-tips.ts",
     "deploy:preflight": "pnpm db:generate && pnpm type-check && pnpm test -- --no-coverage"
   },
   "dependencies": {

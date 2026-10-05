@@ -531,6 +531,47 @@ export default function CareemPage() {
                     ),
                 },
                 {
+                  sandboxOnly: false,
+                  label: "Preview the menu we send",
+                  hint: "Sends nothing. Shows which menu is used, how many items, and the exact catalog.",
+                  run: () =>
+                    apiClient.get(
+                      `/v1/integrations/careem/locations/${locationId}/menu/preview`,
+                    ),
+                },
+                // A pushed catalog is not enough to appear in the SuperApp: the
+                // branch must also be orderable (visibility) and open now
+                // (hours). These are the three checks when a mapped shop with
+                // a COMPLETED catalog still cannot be found.
+                {
+                  sandboxOnly: false,
+                  label: "Can customers see the shop?",
+                  hint: '"active" = orderable. "inactive" = run the next step. "offline" = only Careem operations can clear it.',
+                  run: () =>
+                    apiClient.get(
+                      `/v1/integrations/careem/locations/${locationId}/visibility`,
+                    ),
+                },
+                {
+                  sandboxOnly: false,
+                  label: "Open the shop to Careem customers",
+                  hint: "Sets the branch to active. It still shows as closed outside its opening hours.",
+                  run: () =>
+                    apiClient.post(
+                      `/v1/integrations/careem/locations/${locationId}/visibility`,
+                      { open: true },
+                    ),
+                },
+                {
+                  sandboxOnly: false,
+                  label: "Publish opening hours",
+                  hint: "Sends this shop's hours again — after changing them, or CAREEM_WEEK_START.",
+                  run: () =>
+                    apiClient.post(
+                      `/v1/integrations/careem/locations/${locationId}/hours`,
+                    ),
+                },
+                {
                   sandboxOnly: true,
                   label: "Send a Careem order",
                   hint: "Built from this shop's real menu. It should land on the orders board.",

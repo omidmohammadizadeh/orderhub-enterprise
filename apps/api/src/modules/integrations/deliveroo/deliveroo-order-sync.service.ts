@@ -10,7 +10,9 @@
 //               portal, and is fine)
 //   REJECTED  → PATCH {status:"rejected", reject_reason:"busy"}
 //   CANCELLED → POST /order/v1/orders/{id}/cancel
-//   PREPARING → POST /order/v1/orders/{id}/prep_stage {stage:"in_kitchen"}
+//   PREPARING → (scheduled orders first: PATCH {status:"confirmed"} — see
+//               deliveroo-scheduled.ts) then
+//               POST /order/v1/orders/{id}/prep_stage {stage:"in_kitchen"}
 //   READY     → prep_stage {stage:"ready_for_collection"}
 //   COMPLETED → prep_stage {stage:"collected"} (pickup orders only — rider
 //               orders complete via Deliveroo's own rider webhooks)
@@ -26,6 +28,11 @@ import { Injectable, Logger } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { DeliverooClientService } from "./deliveroo-client.service";
+import {
+  DELIVEROO_CONFIRMED_AT_KEY,
+  isDeliverooConfirmed,
+  needsDeliverooConfirm,
+} from "./deliveroo-scheduled";
 
 interface OrderStatusChangedEvent {
   orderId: string;
@@ -60,6 +67,8 @@ export class DeliverooOrderSyncService {
           viaHubrise: true,
           externalId: true,
           fulfillmentType: true,
+          scheduledFor: true,
+          metadata: true,
         },
       });
       if (
@@ -72,12 +81,67 @@ export class DeliverooOrderSyncService {
         return; // not a direct-Deliveroo order — HubRise path handles its own
       }
 
+      // A scheduled order is placed → accepted → CONFIRMED on Deliveroo's
+      // side, and "confirmed" means the site is starting to prepare it —
+      // which is exactly this transition.
+      if (ev.toStatus === "PREPARING" && needsDeliverooConfirm(order)) {
+        await this.confirmScheduled(order.id, order.externalId);
+      }
+
       await this.push(order.externalId, ev.toStatus, order.fulfillmentType);
     } catch (err: any) {
       this.logger.error(
         `Deliveroo status push failed for order ${ev.orderId} → ${ev.toStatus}: ${err?.message ?? err}`,
       );
     }
+  }
+
+  /**
+   * The second status call a scheduled order needs. Sent once: a repeat 409s
+   * their side, and the order is marked so the cron doesn't try again.
+   * Best-effort like every other push — a failure must not stop the kitchen.
+   */
+  async confirmScheduled(orderId: string, deliverooOrderId: string): Promise<boolean> {
+    try {
+      await this.tolerating409(
+        () =>
+          this.client.request("PATCH", `/order/v1/orders/${encodeURIComponent(deliverooOrderId)}`, {
+            status: "confirmed",
+          }),
+        "confirm",
+        deliverooOrderId,
+      );
+      await this.markConfirmed(orderId);
+      this.logger.log(`Deliveroo scheduled order ${deliverooOrderId} confirmed`);
+      return true;
+    } catch (err: any) {
+      this.logger.warn(
+        `Deliveroo confirm failed for scheduled order ${deliverooOrderId}: ${err?.message ?? err}`,
+      );
+      return false;
+    }
+  }
+
+  /** Stamp the order so the confirm is never sent twice. */
+  private async markConfirmed(orderId: string): Promise<void> {
+    const row = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      select: { metadata: true },
+    });
+    if (isDeliverooConfirmed(row?.metadata)) return;
+    const current =
+      row?.metadata && typeof row.metadata === "object" && !Array.isArray(row.metadata)
+        ? (row.metadata as Record<string, unknown>)
+        : {};
+    await this.prisma.order.update({
+      where: { id: orderId },
+      data: {
+        metadata: {
+          ...current,
+          [DELIVEROO_CONFIRMED_AT_KEY]: new Date().toISOString(),
+        } as any,
+      },
+    });
   }
 
   /** Map our status to the Deliveroo call(s) and fire them. */

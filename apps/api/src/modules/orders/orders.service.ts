@@ -1199,6 +1199,8 @@ export class OrdersService {
         paymentStatus: dto.paymentStatus,
         preparationMinutes: dto.preparationMinutes,
         isScheduled,
+        // The marketing email that brought this order in (online checkout).
+        ...(dto.emailAttribution ? { emailAttribution: dto.emailAttribution } : {}),
         // Retail — the due-diligence record for an age-restricted sale:
         // what was checked, how, and by whom, stamped by the server.
         ...(dto.ageCheck
@@ -1313,7 +1315,17 @@ export class OrdersService {
     // Promo code: bump usage AFTER persistence so we don't burn a use on a
     // failed write.
     if (dto.promoCode) {
-      void this.promoCodes.incrementUsage(tenantId, dto.promoCode);
+      // Also records WHO used it, so a once-per-customer code holds.
+      void this.promoCodes
+        .recordUse({
+          tenantId,
+          code: dto.promoCode,
+          orderId: order.id,
+          customerAccountId: (dto as any).customerAccountId ?? null,
+          customerEmail: dto.customerInfo?.email ?? null,
+          customerPhone: dto.customerInfo?.phone ?? null,
+        })
+        .catch(() => undefined);
     }
 
     // SMS-marketing consent from the POS "Send me offers by SMS" box. Only when
@@ -3059,21 +3071,8 @@ export class OrdersService {
 
     const where: Prisma.OrderWhereInput = {
       ...access,
-      // Simulated marketplace orders stay ours, here too.
-      //
-      // findLiveOrders hides them from everyone but a platform admin. History
-      // has to apply the same rule or the board hides a fake Deliveroo order
-      // and the history screen hands it straight back.
-      ...(user.role === "PLATFORM_ADMIN"
-        ? {}
-        : {
-            NOT: {
-              AND: [
-                { isSandbox: true },
-                { orderSource: { notIn: ["POS", "DIRECT"] } },
-              ],
-            },
-          }),
+      // Simulated marketplace orders are NOT filtered here, by design — see
+      // findLiveOrders: a test run is for the whole shop to see.
       ...(status && {
         status: Array.isArray(status) ? { in: status } : status,
       }),
@@ -3270,32 +3269,12 @@ export class OrdersService {
         // later.
         AND: [
           access,
-          // Simulated marketplace orders are ours, not the shop's.
-          //
-          // They exist so we can exercise the marketplace receipt path — the
-          // QR especially — against a real till without asking Uber or
-          // Deliveroo to send anything. A shop's staff seeing a Deliveroo
-          // order that nobody can deliver is worse than useless, so they are
-          // visible to platform admins only.
-          //
-          // The ordinary DIRECT test order is untouched: operators use that
-          // to check printer and board wiring, and it stays visible to them.
-          ...(user.role === "PLATFORM_ADMIN"
-            ? []
-            : [
-                {
-                  NOT: {
-                    AND: [
-                      { isSandbox: true },
-                      {
-                        orderSource: {
-                          notIn: ["POS", "DIRECT"],
-                        },
-                      },
-                    ],
-                  },
-                } satisfies Prisma.OrderWhereInput,
-              ]),
+          // Simulated marketplace orders show to everyone at the location —
+          // owner, manager, staff, driver — exactly like a real one. They used
+          // to be platform-admin only, which defeated the point: a simulation
+          // exists so the shop can rehearse a marketplace order on its own
+          // tills, and the person accepting and printing it is their staff,
+          // not us. `access` above still keeps them to that location.
           {
         // Phase AP-8 — card orders aren't real to the kitchen until the
         // customer's authorization webhook lands and we flip paymentStatus

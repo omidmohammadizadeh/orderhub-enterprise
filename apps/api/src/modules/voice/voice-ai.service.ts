@@ -5537,6 +5537,17 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
       area: mode === 'AREA' ? asked : undefined,
     });
     if (!match.matched) {
+      // A postcode (or distance) no zone recognises is a config gap, not a
+      // "no": online checkout takes the order at the highest configured fee,
+      // and so does the phone. Only an unlisted AREA is a refusal — those
+      // rows are the shop's whole list of where it goes.
+      const top = (ctx.deliveryZones ?? []).reduce(
+        (max, z: any) => Math.max(max, Number(z.fee) || 0),
+        0,
+      );
+      if (mode !== 'AREA' && top > 0) {
+        return `Delivers to ${asked}. Fee ${money(top, ctx.currency)}.`;
+      }
       return `The shop does NOT deliver to ${asked}. Tell them, and offer collection instead.`;
     }
     return `Delivers to ${match.label ?? asked}. Fee ${money(match.fee, ctx.currency)}${
@@ -6836,15 +6847,24 @@ THE ADDRESS CAN BE CHANGED AT ANY POINT
    *
    *  Same resolver as every other surface. Distance bands quote the TOP band
    *  here — a phone call collects no coordinates — and orders.create re-prices
-   *  them from the address, so the caller is never quoted less than they pay. */
+   *  them from the address, so the caller is never quoted less than they pay.
+   *
+   *  A postcode no zone recognises charges the HIGHEST configured fee, as
+   *  online checkout does — a config gap must never deliver free. Area mode
+   *  is the exception: an unlisted area is a refusal, settled before here. */
   private feeForAddress(
     address: { postcode?: string; area?: string } | undefined,
     ctx: VoiceContext,
   ): number {
-    return resolveZone(ctx.deliveryZones as any, {
+    const match = resolveZone(ctx.deliveryZones as any, {
       postcode: address?.postcode,
       area: address?.area,
-    }).fee;
+    });
+    if (match.matched || match.mode === 'AREA') return match.fee;
+    return (ctx.deliveryZones ?? []).reduce(
+      (max, z: any) => Math.max(max, Number(z.fee) || 0),
+      0,
+    );
   }
 
   /**

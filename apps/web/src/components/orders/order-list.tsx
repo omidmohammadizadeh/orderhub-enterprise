@@ -33,6 +33,7 @@ import {
   Check,
   CalendarClock,
   ListChecks,
+  Map as MapIcon,
 } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { usePendingCallerStore } from "@/stores/pending-caller.store";
@@ -57,6 +58,11 @@ import { OrdersFeedBanner, OrdersFeedError } from "./feed-status";
 // clients the board has no use for otherwise.
 const BulkDispatchModal = dynamic(
   () => import("./bulk-dispatch-modal").then((m) => m.BulkDispatchModal),
+  { ssr: false },
+);
+// Google Maps and the dispatch feed, only once someone opens the map.
+const DispatchMapModal = dynamic(
+  () => import("./dispatch-map-modal").then((m) => m.DispatchMapModal),
   { ssr: false },
 );
 
@@ -349,6 +355,8 @@ export function OrderList({ locationId }: Props) {
   const [bulkMode, setBulkMode] = useState(false);
   const [picks, setPicks] = useState<string[]>([]);
   const [bulkOpen, setBulkOpen] = useState(false);
+  // The dispatch map shares the pick above — it is bulk dispatch on a map.
+  const [mapOpen, setMapOpen] = useState(false);
   const orderById = useMemo(
     () => new Map(orders.map((o) => [o.id, o])),
     [orders],
@@ -474,7 +482,9 @@ export function OrderList({ locationId }: Props) {
       )}
 
       {/* Status dropdown + channel Filter, one tidy row */}
-      <div className="mb-3 flex items-center gap-2">
+      {/* Wraps on a phone: four controls don't fit in 375px, and a row
+          that can't wrap pushed Filter off the right edge. */}
+      <div className="mb-3 flex flex-wrap items-center gap-2 whitespace-nowrap">
         <div className="relative" ref={statusRef}>
           <button
             type="button"
@@ -567,6 +577,21 @@ export function OrderList({ locationId }: Props) {
             <ListChecks className="h-3.5 w-3.5" aria-hidden="true" />
           )}
           {bulkMode ? "Cancel bulk dispatch" : "Bulk dispatch"}
+        </button>
+
+        {/* Every delivery on one map, picked and dispatched from there. Opens
+            in bulk mode so whatever is picked on the map is still showing,
+            numbered, on the board when the map closes. */}
+        <button
+          type="button"
+          onClick={() => {
+            setBulkMode(true);
+            setMapOpen(true);
+          }}
+          className="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 transition-colors hover:border-zinc-300"
+        >
+          <MapIcon className="h-3.5 w-3.5" aria-hidden="true" />
+          Dispatch map
         </button>
 
         {/* Channel filter — Filter button with popover */}
@@ -819,6 +844,22 @@ export function OrderList({ locationId }: Props) {
         </div>
       )}
 
+      {mapOpen && (
+        <DispatchMapModal
+          locationId={locationId}
+          orders={orders}
+          pickedIds={pickedIds}
+          onTogglePick={togglePick}
+          onClearPicks={() => setPicks([])}
+          onDispatch={() => setBulkOpen(true)}
+          onClose={() => {
+            setMapOpen(false);
+            // Nothing picked: don't leave the board in pick mode for nothing.
+            if (pickedIds.length === 0) setBulkMode(false);
+          }}
+        />
+      )}
+
       {bulkOpen && pickedOrders.length > 0 && (
         <BulkDispatchModal
           orders={pickedOrders}
@@ -1020,15 +1061,17 @@ function OrderCard({
         )}
       </div>
 
-      {/* Actions. Scrolls sideways INSIDE the card when a status carries
-          three transitions — the card itself never grows past the viewport,
-          so the page body still can't scroll horizontally. */}
+      {/* Actions. Wrap onto a second line when a status carries three
+          transitions. They used to scroll sideways inside the card, which on
+          a phone just looked cut off — "Cancel" showed as "Ca" with nothing
+          to say there was more. */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="-mx-1 mt-3 flex items-center gap-1.5 overflow-x-auto px-1 pb-0.5"
+        className="mt-3 flex flex-wrap items-center gap-2 whitespace-nowrap"
       >
         <PrintOrderButton order={order} />
         <OrderActions
+          wrap
           orderId={order.id}
           status={order.status}
           fulfillmentType={order.fulfillmentType}
