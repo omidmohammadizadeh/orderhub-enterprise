@@ -175,7 +175,24 @@ async function writeChunks(
  *  stream the buffer in chunks, then wait for the printer to drain
  *  before returning. The socket is intentionally LEFT OPEN for reuse.
  *  Throws on any I/O failure so the caller can surface a clear error. */
-export async function sendBytesOverBt(
+// Every write goes through ONE chain. There is a single cached socket, so two
+// jobs streamed at once interleave their chunks on it — and a text chunk
+// landing inside a GS v 0 raster turns the rest of the bitmap into a metre of
+// printed garbage. The web app queues per printer too; this is the backstop.
+let btChain: Promise<unknown> = Promise.resolve();
+
+export function sendBytesOverBt(
+  address: string,
+  bytes: Uint8Array,
+): Promise<void> {
+  const run = btChain
+    .catch(() => undefined)
+    .then(() => sendBytesOverBtNow(address, bytes));
+  btChain = run.catch(() => undefined);
+  return run;
+}
+
+async function sendBytesOverBtNow(
   address: string,
   bytes: Uint8Array,
 ): Promise<void> {
