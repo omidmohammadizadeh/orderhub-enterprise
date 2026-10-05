@@ -50,6 +50,25 @@ export class PrintersController {
     return this.printers.findByLocation(locationId, user.tenantId);
   }
 
+  // GET /v1/printers/print-filter-catalog?locationId=
+  //
+  // The categories and products sold at this shop, for the "What this
+  // printer prints" setting (drinks to the bar printer, grill to the grill).
+  // The tablet also reads it at print time to tell which category an order
+  // line belongs to — order lines carry a menuItemId but no category.
+  // Read-only; nothing here changes how any printer behaves on its own.
+  @Get("print-filter-catalog")
+  @BillingExempt()
+  @ApiOperation({ summary: "Categories + items a printer can be limited to" })
+  async printFilterCatalog(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("locationId") locationId: string,
+  ) {
+    if (!locationId) throw new BadRequestException("locationId is required");
+    await this.access.assertAccess(user, locationId);
+    return this.printers.printFilterCatalog(locationId, user.tenantId);
+  }
+
   // Registering a new printer is a commercial action — blocked for UNPAID/CANCELLED tenants.
   // Existing printers continue to work (all other endpoints are billing-exempt).
   @Post()

@@ -33,6 +33,12 @@ import {
   printerRenderOptions,
 } from "../lib/printing/print-order";
 import { isAwaitingOurPayment } from "../lib/orders/awaiting-payment";
+import {
+  readPrintFilter,
+  loadFilterCatalog,
+  splitLinesForPrinters,
+  stationPayload,
+} from "../lib/printing/print-filter";
 
 const CANCELLED_STATUSES = new Set(["CANCELLED", "REJECTED", "CANCELED"]);
 
@@ -159,14 +165,39 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
       );
       // Retail R1 — the customer's receipt at a shop carries its returns QR.
       if (copiesField === "copiesNewOrder") applyReturnsCode(payload, order);
-      let printedAny = false;
-      for (const p of btPrinters) {
+      const copiesFor = (p: any) => {
         const fallback = copiesField === "copiesNewOrder" ? 1 : 0;
-        const copies = Math.max(
+        return Math.max(
           0,
           Math.floor(Number(p.defaults?.[copiesField] ?? fallback)) || 0,
         );
+      };
+      // "What this printer prints" — only when some printer has a filter, so
+      // a shop that never set one does no extra work and prints exactly as
+      // before. A customer note is for everyone and is never split.
+      let split = new Map<string, number[]>();
+      if (
+        label !== "customer note" &&
+        btPrinters.some((p: any) => readPrintFilter(p))
+      ) {
+        const catalog = await loadFilterCatalog(
+          locationId,
+          printersClient.printFilterCatalog,
+        );
+        split = splitLinesForPrinters(
+          order?.items ?? [],
+          btPrinters.filter((p: any) => copiesFor(p) >= 1),
+          catalog,
+        );
+      }
+      let printedAny = false;
+      for (const p of btPrinters) {
+        const copies = copiesFor(p);
         if (copies < 1) continue;
+        // Filtered printer with nothing of its own on this order: no paper.
+        const keep = split.get(p.id);
+        if (keep && keep.length === 0) continue;
+        const pPayload = keep ? stationPayload(payload, keep) : payload;
         try {
           // Resolve the printer's dialects through the SAME helpers reprint
           // uses. This block used to inline its own copy of the commandSet
@@ -176,7 +207,7 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
           // came out right. printFont was missing too, so the per-printer
           // typeface never applied to a first print either.
           const { receipt, receiptWithQr, qrSlip } = await renderReceiptParts(
-            payload,
+            pPayload,
             p.paperWidth ?? 80,
             printerRenderOptions(p),
           );

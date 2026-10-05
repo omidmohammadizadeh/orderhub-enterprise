@@ -23,6 +23,12 @@ import {
   buildDrawerKick,
 } from "./bridge";
 import { buildPrintPayload } from "./order-receipt";
+import {
+  readPrintFilter,
+  loadFilterCatalog,
+  splitLinesForPrinters,
+  stationPayload,
+} from "./print-filter";
 
 // Channels that should get a "scan to order online" QR. Online ordering
 // and WhatsApp are excluded (they're already direct); everything else —
@@ -248,7 +254,37 @@ export async function printOrderViaBridge(
   // the receipt at this till and the ticket in the kitchen — dropping
   // everything but the pinned printer would silently stop the kitchen copy,
   // which is a far worse bug than the one being fixed.
-  const targets = chooseReceiptPrinters(reachable, pinnedPrinter(order.locationId));
+  let targets = chooseReceiptPrinters(reachable, pinnedPrinter(order.locationId));
+  // "What this printer prints" — a printer limited to some categories is a
+  // station printer, not a till's receipt printer. The tablet pin above only
+  // chooses between receipt printers, so it must never drop a station (the
+  // grill printer is often FRONT_COUNTER too). A bill is for the customer,
+  // so it skips station printers unless they are all this shop has. With no
+  // filters anywhere none of this runs and targets are exactly as before.
+  const hasFilters = reachable.some((p: any) => readPrintFilter(p));
+  if (hasFilters) {
+    const receiptPrinters = reachable.filter((p: any) => !readPrintFilter(p));
+    const chosen = new Set(
+      chooseReceiptPrinters(receiptPrinters, pinnedPrinter(order.locationId)),
+    );
+    targets = reachable.filter(
+      (p: any) => chosen.has(p) || (!opts?.billMode && readPrintFilter(p)),
+    );
+    if (opts?.billMode && targets.length === 0) targets = reachable;
+  }
+  const split =
+    hasFilters && !opts?.billMode
+      ? splitLinesForPrinters(
+          order?.items ?? [],
+          targets,
+          await loadFilterCatalog(
+            order.locationId,
+            printersClient.printFilterCatalog,
+          ),
+        )
+      : new Map<string, number[]>();
+  // A filtered printer with none of its own lines on this order prints nothing.
+  targets = targets.filter((p: any) => split.get(p.id)?.length !== 0);
   if (targets.length === 0) {
     throw new Error(
       "No reachable printer for this location. Add a Bluetooth or LAN printer in Printers.",
@@ -294,8 +330,9 @@ export async function printOrderViaBridge(
       // Plain + QR-attached variants come back separately so extra copies
       // repeat the plain receipt — only the last (bag) copy carries the QR.
       const renderOpts = printerRenderOptions(p);
+      const keep = split.get(p.id);
       const { receipt, receiptWithQr, qrSlip } = await renderReceiptParts(
-        payload,
+        keep ? stationPayload(payload, keep) : payload,
         p.paperWidth ?? 80,
         renderOpts,
       );

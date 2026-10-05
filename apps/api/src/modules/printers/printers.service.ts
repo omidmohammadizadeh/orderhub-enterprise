@@ -25,6 +25,77 @@ export class PrintersService {
     }));
   }
 
+  /**
+   * Everything a printer can be limited to at this shop: category names and
+   * products, with each product's category names.
+   *
+   * Categories go out by NAME, not id. A shop running three brands has three
+   * "Drinks" categories, and the bar printer wants all of them; a cloned or
+   * republished menu also mints fresh ids, which would quietly empty a filter
+   * kept by id. Products carry their id (order lines reference it) and name
+   * (marketplace lines often arrive without a menuItemId).
+   *
+   * Menus in scope: built for this location, assigned to it on any channel,
+   * or the location's own brand's shared (location-less) menus.
+   */
+  async printFilterCatalog(locationId: string, tenantId: string) {
+    const loc = await this.assertLocationAccess(locationId, tenantId);
+    const assigned = await this.prisma.menuChannelAssignment.findMany({
+      where: { locationId },
+      select: { menuId: true },
+    });
+    const menus = await this.prisma.menu.findMany({
+      where: {
+        deletedAt: null,
+        brand: { tenantId },
+        OR: [
+          { locationId },
+          { id: { in: assigned.map((a) => a.menuId) } },
+          ...(loc.brandId ? [{ locationId: null, brandId: loc.brandId }] : []),
+        ],
+      },
+      select: { id: true },
+    });
+    const menuIds = menus.map((m) => m.id);
+    if (!menuIds.length) return { categories: [], items: [] };
+
+    const cats = await this.prisma.menuCategory.findMany({
+      where: {
+        OR: [{ menuId: { in: menuIds } }, { menuIds: { hasSome: menuIds } }],
+      },
+      select: {
+        name: true,
+        items: { select: { item: { select: { id: true, name: true } } } },
+      },
+    });
+
+    const catNames = new Map<string, { name: string; itemCount: number }>();
+    const items = new Map<string, { id: string; name: string; categories: Set<string> }>();
+    for (const c of cats) {
+      const name = (c.name ?? "").trim();
+      if (!name) continue;
+      const key = name.toLowerCase();
+      const entry = catNames.get(key) ?? { name, itemCount: 0 };
+      entry.itemCount += c.items.length;
+      catNames.set(key, entry);
+      for (const link of c.items) {
+        const it = link.item;
+        if (!it) continue;
+        const row = items.get(it.id) ?? { id: it.id, name: it.name, categories: new Set<string>() };
+        row.categories.add(name);
+        items.set(it.id, row);
+      }
+    }
+    return {
+      categories: Array.from(catNames.values()).sort((a, b) =>
+        a.name.localeCompare(b.name),
+      ),
+      items: Array.from(items.values())
+        .map((i) => ({ id: i.id, name: i.name, categories: Array.from(i.categories) }))
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    };
+  }
+
   /** Point (or unpoint) this location's auto-print receipt slot at the
    *  given printer. This is the single switch that turns automatic
    *  order printing on/off — the routing engine prints CUSTOMER_RECEIPT

@@ -1,4 +1,5 @@
 import { apiClient } from "./client";
+import type { FilterCatalogResponse } from "../printing/print-filter";
 
 export interface Printer {
   id: string;
@@ -156,6 +157,13 @@ export const printersClient = {
     apiClient.patch<Printer>(`/v1/printers/${id}`, body).then((r) => r.data),
   remove: (id: string) =>
     apiClient.delete(`/v1/printers/${id}`).then((r) => r.data),
+  // Categories + products this location sells, for per-printer filters.
+  printFilterCatalog: (locationId: string) =>
+    apiClient
+      .get<FilterCatalogResponse>("/v1/printers/print-filter-catalog", {
+        params: { locationId },
+      })
+      .then((r) => r.data),
   widgets: (locationId?: string) =>
     apiClient
       .get<Widgets>("/v1/print-jobs/widgets", {

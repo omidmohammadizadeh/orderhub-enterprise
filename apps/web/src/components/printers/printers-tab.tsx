@@ -28,6 +28,8 @@ import {
   type Printer,
 } from "@/lib/api/printers.client";
 import { locationsClient } from "@/lib/api/locations.client";
+import { readPrintFilter, type PrintFilter } from "@/lib/printing/print-filter";
+import { PrintFilterSection } from "./print-filter-section";
 
 export function PrintersTab({ locationId }: { locationId?: string }) {
   const qc = useQueryClient();
@@ -140,6 +142,23 @@ export function PrintersTab({ locationId }: { locationId?: string }) {
                           <CheckCircle2 className="h-2.5 w-2.5" /> Auto-print
                         </span>
                       )}
+                      {(() => {
+                        const f = readPrintFilter(p);
+                        if (!f) return null;
+                        const names = [...f.categories, ...f.items];
+                        const text = names.length
+                          ? `Only: ${names.slice(0, 3).join(", ")}${names.length > 3 ? ` +${names.length - 3}` : ""}`
+                          : "Only: unassigned items";
+                        return (
+                          <span
+                            title={`${names.join(", ")}${f.catchAll ? " + everything else" : ""}`}
+                            className="inline-flex max-w-[16rem] items-center truncate rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-semibold text-violet-700"
+                          >
+                            {text}
+                            {f.catchAll && names.length ? " + rest" : ""}
+                          </span>
+                        );
+                      })()}
                     </div>
                     <div className="text-[11px] text-zinc-500">
                       {p.ipAddress
@@ -794,6 +813,10 @@ function PrinterSettingsDrawer({
   // printer changes behaviour on save; shops that want a flat ticket untick it.
   const [boldItems, setBoldItems] = useState<boolean>(d.boldItems !== false);
   const [openDrawer, setOpenDrawer] = useState<boolean>(!!d.openCashDrawer);
+  // What this printer prints — null means everything (unchanged behaviour).
+  const [printFilter, setPrintFilter] = useState<PrintFilter | null>(
+    readPrintFilter(printer),
+  );
   const [autoCut, setAutoCut] = useState<boolean>(printer.supportsCut);
   // Command language. Star printers speak Star Line Mode; Epson/Sunmi/other
   // speak ESC/POS. Seed from the saved value (or the free-text model).
@@ -828,6 +851,7 @@ function PrinterSettingsDrawer({
           openCashDrawer: openDrawer,
           brand,
           commandSet: brand === "star" ? "STAR" : "ESCPOS",
+          printFilter,
         },
         supportsCut: autoCut,
       } as any),
@@ -867,6 +891,14 @@ function PrinterSettingsDrawer({
                 className="h-5 w-5"
               />
             </label>
+          </Section>
+
+          <Section title="What this printer prints">
+            <PrintFilterSection
+              locationId={printer.locationId}
+              value={printFilter}
+              onChange={setPrintFilter}
+            />
           </Section>
 
           <Section title="Printer brand / language">
