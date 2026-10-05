@@ -78,6 +78,11 @@ export interface AiMenuItem {
   sizes?: AiMenuSize[];
   /** Keys into draft.modifierGroups. */
   modifierGroupKeys?: string[];
+  /**
+   * Photo URL (JSON file import only — a photographed menu has none). The
+   * importer copies it to our storage before the write.
+   */
+  imageUrl?: string | null;
 }
 
 export interface AiMenuCategory {
@@ -229,7 +234,7 @@ export function classifyAiMenu(draft: AiMenuDraft, ns: string): NormalizedMenu {
         name: clean(it.name) || "Item",
         description: clean(it.description) || null,
         price: basePrice,
-        imageUrl: null,
+        imageUrl: /^https?:\/\//i.test(clean(it.imageUrl)) ? clean(it.imageUrl) : null,
         plu: clean(it.sku) || prodExt,
         isAvailable: true,
         outOfStock: false,

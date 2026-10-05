@@ -3,6 +3,7 @@ import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { MenuWriterService } from "./menu-writer.service";
 import { DeliverooClientService } from "../../integrations/deliveroo/deliveroo-client.service";
 import { SupabaseStorageService } from "../../uploads/supabase-storage.service";
+import { rehostProductImages } from "./rehost-product-images";
 import {
   classifyDeliverooMenu,
   type DeliverooMenuPayload,
@@ -199,58 +200,13 @@ export class DeliverooMenuImporter {
   private async rehostImages(normalized: {
     products: Array<{ imageUrl?: string | null }>;
   }): Promise<void> {
-    if (!this.storage?.isConfigured()) return;
-    const targets = normalized.products.filter(
-      (p) =>
-        p.imageUrl &&
-        /^https?:\/\//i.test(p.imageUrl) &&
-        !p.imageUrl.startsWith(`${PROD_API_ORIGIN}/`),
-    );
-    if (targets.length === 0) return;
-    this.logger.log(
-      `Deliveroo menu import: rehosting ${targets.length} images (sample: ${targets[0]!.imageUrl!.slice(0, 160)})`,
-    );
-    const cache = new Map<string, string | null>();
-    const rehostOne = async (url: string): Promise<string | null> => {
-      try {
-        const res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
-        if (!res.ok) {
-          this.logger.warn(
-            `Deliveroo image fetch ${res.status} for ${url.slice(0, 120)}`,
-          );
-          return null;
-        }
-        const ct = res.headers.get("content-type") ?? "image/jpeg";
-        if (!ct.startsWith("image/")) return null;
-        const buf = Buffer.from(await res.arrayBuffer());
-        if (buf.length === 0 || buf.length > 8 * 1024 * 1024) return null;
-        return await this.storage!.uploadDataUrl(
-          `data:${ct};base64,${buf.toString("base64")}`,
-          "deliveroo-import",
-        );
-      } catch (err: any) {
-        this.logger.warn(
-          `Deliveroo image rehost failed for ${url.slice(0, 120)}: ${err?.message ?? err}`,
-        );
-        return null;
-      }
-    };
-    // Small concurrency batches — imports are one-off, don't hammer the CDN.
-    const CHUNK = 5;
-    for (let i = 0; i < targets.length; i += CHUNK) {
-      await Promise.all(
-        targets.slice(i, i + CHUNK).map(async (p) => {
-          const url = p.imageUrl!;
-          if (!cache.has(url)) cache.set(url, await rehostOne(url));
-          const hosted = cache.get(url);
-          if (hosted) p.imageUrl = hosted;
-        }),
-      );
-    }
-    const ok = [...cache.values()].filter(Boolean).length;
-    this.logger.log(
-      `Deliveroo menu import: rehosted ${ok}/${cache.size} unique images`,
-    );
+    await rehostProductImages(this.storage, normalized.products, {
+      folder: "deliveroo-import",
+      label: "Deliveroo menu import",
+      logger: this.logger,
+      onFailure: "keep",
+      skipOrigins: [PROD_API_ORIGIN],
+    });
   }
 
   private async fetchFromDeliveroo(

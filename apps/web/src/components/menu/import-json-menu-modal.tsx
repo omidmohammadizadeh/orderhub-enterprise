@@ -183,6 +183,13 @@ export function ImportJsonMenuModal({
                     {report.summary.sizedItems === 1 ? " has" : "s have"} sizes.
                   </p>
                 )}
+                {report.summary.photos > 0 && (
+                  <p className="mt-1 text-[11px] text-emerald-700">
+                    {report.summary.photos} item
+                    {report.summary.photos === 1 ? " has a photo" : "s have photos"} — they
+                    are copied into your image storage, so importing takes a little longer.
+                  </p>
+                )}
               </div>
 
               {report.warnings.length > 0 && (

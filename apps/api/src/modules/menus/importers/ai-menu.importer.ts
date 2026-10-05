@@ -1,8 +1,10 @@
-import { BadRequestException, Injectable, Logger } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger, Optional } from "@nestjs/common";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { MenusService } from "../menus.service";
 import { MenuWriterService } from "./menu-writer.service";
 import { classifyAiMenu, type AiMenuDraft } from "./ai-menu.classifier";
+import { rehostProductImages } from "./rehost-product-images";
+import { SupabaseStorageService } from "../../uploads/supabase-storage.service";
 
 // ── AI menu importer (commit) ───────────────────────────────────────────────
 //
@@ -44,6 +46,9 @@ export class AiMenuImporter {
     private readonly prisma: PrismaService,
     private readonly menus: MenusService,
     private readonly writer: MenuWriterService,
+    // Photos in a JSON import are copied to our storage. Optional so the
+    // module still boots without storage — items then import without photos.
+    @Optional() private readonly storage?: SupabaseStorageService,
   ) {}
 
   async commit(args: CommitArgs) {
@@ -66,6 +71,7 @@ export class AiMenuImporter {
 
     try {
       const normalized = classifyAiMenu(draft, menu.id);
+      const photoWarnings = await this.rehostPhotos(normalized.products);
       const result = await this.writer.apply({
         menuId: menu.id,
         tenantId: args.tenantId,
@@ -79,7 +85,12 @@ export class AiMenuImporter {
       this.logger.log(
         `AI menu import committed: menu=${menu.id} created=${result.createdCount} warnings=${result.warnings.length}`,
       );
-      return { menuId: menu.id, menuName: menu.name, ...result };
+      return {
+        menuId: menu.id,
+        menuName: menu.name,
+        ...result,
+        warnings: [...photoWarnings, ...result.warnings],
+      };
     } catch (err: any) {
       // Don't leave an empty orphan menu behind on a failed write.
       await this.menus.remove(menu.id, args.tenantId).catch(() => undefined);
@@ -112,6 +123,41 @@ export class AiMenuImporter {
       }
       throw err;
     }
+  }
+
+  /**
+   * Copy each item's photo onto our storage before the write.
+   *
+   * A photo that cannot be fetched is dropped rather than kept: the link in
+   * the file is the only copy we were given, and an item with no photo looks
+   * better than one with a broken image. The commit sits behind the ~60s
+   * proxy (see the writer's round-trip notes), so photos get 25s of it.
+   */
+  private async rehostPhotos(
+    products: Array<{ imageUrl?: string | null }>,
+  ): Promise<string[]> {
+    const withPhoto = products.filter((p) => p.imageUrl).length;
+    if (!withPhoto) return [];
+    if (!this.storage?.isConfigured()) {
+      for (const p of products) p.imageUrl = null;
+      return [`Image storage is not configured, so ${withPhoto} photos were not imported.`];
+    }
+    const r = await rehostProductImages(this.storage, products, {
+      folder: "menu-import",
+      label: "JSON menu import",
+      logger: this.logger,
+      onFailure: "drop",
+      budgetMs: 25_000,
+      concurrency: 8,
+    });
+    const warnings: string[] = [];
+    if (r.failed) {
+      warnings.push(`${r.failed} photo${r.failed === 1 ? "" : "s"} could not be downloaded; those items were imported without one.`);
+    }
+    if (r.skipped) {
+      warnings.push(`${r.skipped} photo${r.skipped === 1 ? " was" : "s were"} linked rather than copied (the import ran out of time); re-upload them in the editor to keep them permanently.`);
+    }
+    return warnings;
   }
 
   /**

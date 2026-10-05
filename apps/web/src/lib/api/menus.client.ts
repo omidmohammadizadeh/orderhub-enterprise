@@ -206,6 +206,8 @@ export interface AiMenuItem {
   sku?: string | null;
   sizes?: AiMenuSize[];
   modifierGroupKeys?: string[];
+  /** JSON import only — copied to our storage on commit. */
+  imageUrl?: string | null;
 }
 export interface AiMenuCategory {
   name: string;

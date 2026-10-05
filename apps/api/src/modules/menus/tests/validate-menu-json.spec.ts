@@ -47,6 +47,7 @@ describe("validateMenuJson", () => {
       modifierGroups: 1,
       options: 2,
       sizedItems: 1,
+      photos: 0,
     });
   });
 
@@ -135,5 +136,18 @@ describe("validateMenuJson", () => {
     d.categories[0].items[0].price = "6.49";
     d.modifierGroups[0].selectionType = "SINGLE";
     expect(validateMenuJson(d).errors.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("counts item photos and rejects a photo that is not a web link", () => {
+    const d: any = ok();
+    d.categories[0].items[0].imageUrl = "https://cdn.example.com/chicken.jpg";
+    const good = validateMenuJson(d);
+    expect(good.ok).toBe(true);
+    expect(good.summary?.photos).toBe(1);
+
+    d.categories[0].items[1].imageUrl = "chicken.jpg";
+    const bad = validateMenuJson(d);
+    expect(bad.ok).toBe(false);
+    expect(bad.errors.join(" ")).toMatch(/Half Chicken.*imageUrl/);
   });
 });

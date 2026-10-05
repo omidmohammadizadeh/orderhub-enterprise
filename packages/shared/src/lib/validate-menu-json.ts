@@ -20,6 +20,7 @@ interface DraftGroup {
 }
 interface DraftItem {
   name?: unknown; price?: unknown; sizes?: DraftSize[]; modifierGroupKeys?: string[];
+  imageUrl?: unknown;
 }
 interface DraftCategory { name?: unknown; items?: DraftItem[] }
 export interface MenuJsonDraft {
@@ -40,6 +41,8 @@ export interface MenuJsonReport {
     modifierGroups: number;
     options: number;
     sizedItems: number;
+    /** Items carrying a photo URL — copied to our storage on import. */
+    photos: number;
   } | null;
 }
 
@@ -143,6 +146,7 @@ export function validateMenuJson(raw: unknown): MenuJsonReport {
 
   let items = 0;
   let sizedItems = 0;
+  let photos = 0;
   const usedKeys = new Set<string>();
 
   draft.categories.forEach((c, ci) => {
@@ -195,6 +199,15 @@ export function validateMenuJson(raw: unknown): MenuJsonReport {
         if (p === 0) warnings.push(`${iw}: priced at £0`);
       }
 
+      // Optional. A bad value would import silently as "no photo", so say so.
+      if (it.imageUrl !== undefined && it.imageUrl !== null && it.imageUrl !== "") {
+        if (typeof it.imageUrl !== "string" || !/^https?:\/\/\S+$/i.test(it.imageUrl.trim())) {
+          errors.push(`${iw}: imageUrl must be a web link starting with https://, got ${JSON.stringify(it.imageUrl)}`);
+        } else {
+          photos += 1;
+        }
+      }
+
       const keys = Array.isArray(it.modifierGroupKeys) ? it.modifierGroupKeys : [];
       keys.forEach((k) => {
         usedKeys.add(k);
@@ -226,6 +239,7 @@ export function validateMenuJson(raw: unknown): MenuJsonReport {
           modifierGroups: groups.length,
           options,
           sizedItems,
+          photos,
         }
       : null,
   };
