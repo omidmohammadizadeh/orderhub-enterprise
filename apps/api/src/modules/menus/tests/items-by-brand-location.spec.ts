@@ -34,6 +34,12 @@ type Item = {
   onMenusAt?: string[];
 };
 
+const BRANDS = [
+  { id: BRAND, tenantId: TENANT },
+  { id: "b2", tenantId: TENANT },
+  { id: "b9", tenantId: "t2" },
+];
+
 const ALL_ITEMS: Item[] = [
   { id: "i-dubai", brandId: BRAND, locationId: DUBAI },
   // Brand-only and on the Dubai menu — the shop sells it.
@@ -49,11 +55,12 @@ const ALL_ITEMS: Item[] = [
 
 /** Stand-in for Prisma's where matching, narrow to what this query uses. */
 function matches(it: Item, where: any): boolean {
-  if (where.brandId && it.brandId !== where.brandId) return false;
-  if (where.brand) {
-    if ((it.tenantId ?? TENANT) !== where.brand.tenantId) return false;
-    if (where.brand.id?.in && !where.brand.id.in.includes(it.brandId)) return false;
-  }
+  // MenuItem has a bare brandId and NO `brand` relation — Prisma rejects a
+  // filter through one, which is how the first version of this fix emptied
+  // the picker in production while this fake happily answered.
+  if ("brand" in where) throw new Error("Unknown argument `brand` on MenuItem");
+  if (typeof where.brandId === "string" && it.brandId !== where.brandId) return false;
+  if (where.brandId?.in && !where.brandId.in.includes(it.brandId)) return false;
   if (!where.OR) return true;
   return (where.OR as any[]).some((c) => {
     if (c.locationId === null) {
@@ -81,6 +88,12 @@ function makeService(opts: {
         where.id === BRAND && where.tenantId === TENANT
           ? { id: BRAND, tenantId: TENANT }
           : null,
+      findMany: async ({ where }: any) =>
+        BRANDS.filter(
+          (b) =>
+            b.tenantId === where.tenantId &&
+            (!where.id?.in || where.id.in.includes(b.id)),
+        ).map((b) => ({ id: b.id })),
     },
     location: {
       findFirst: async ({ where }: any) =>

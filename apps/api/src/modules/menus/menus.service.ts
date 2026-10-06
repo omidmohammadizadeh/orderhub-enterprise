@@ -1523,15 +1523,20 @@ export class MenusService {
     // the SOURCE menu's brand, so matching on brandId hid every product made
     // at the new shop under its own brand: visible in Products, missing from
     // "Add existing". Brand access still applies; the tenant guard replaces
-    // the brand match.
-    const brandWhere = locationId
-      ? {
-          brand: {
-            tenantId: user.tenantId,
-            ...(scope.brandIds !== null && { id: { in: scope.brandIds } }),
-          },
-        }
-      : { brandId };
+    // the brand match. MenuItem has a bare brandId and NO `brand` relation —
+    // filtering through one throws, and the picker showed nothing at all — so
+    // resolve the tenant's brand ids first.
+    let brandWhere: { brandId: string | { in: string[] } } = { brandId };
+    if (locationId) {
+      const tenantBrands = await this.prisma.brand.findMany({
+        where: {
+          tenantId: user.tenantId,
+          ...(scope.brandIds !== null && { id: { in: scope.brandIds } }),
+        },
+        select: { id: true },
+      });
+      brandWhere = { brandId: { in: tenantBrands.map((b: { id: string }) => b.id) } };
+    }
     return this.prisma.menuItem.findMany({
       where: {
         ...brandWhere,
