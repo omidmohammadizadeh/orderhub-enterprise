@@ -14,7 +14,6 @@ import { Card, CardContent } from "../ui/card";
 import { formatMoney } from "@orderhub/shared";
 import { PlatformBadge, FulfillmentBadge } from "./platform-badge";
 import { OrderActions } from "./order-actions";
-import { HowToBuildButton } from "../build-guides/how-to-build-button";
 import { ChartButton } from "../assembly-charts/chart-button";
 import type { Order } from "../../lib/api/orders.client";
 
@@ -145,12 +144,10 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
         )}
 
         {/* Kitchen build chart — only shows when a line has a guide */}
+        {/* Assembly chart for the burgers on this order. "How to build" guides
+            live in Kitchen training, not here — the chart is what the line
+            needs mid-service. */}
         <div className="flex gap-2 empty:hidden">
-          <HowToBuildButton
-            orderId={order.id}
-            itemNames={order.items.map((i) => i.name)}
-            orderLabel={order.displayId ? `#${order.displayId}` : order.orderNumber ? `#${order.orderNumber}` : undefined}
-          />
           <ChartButton
             orderId={order.id}
             itemNames={order.items.map((i) => i.name)}

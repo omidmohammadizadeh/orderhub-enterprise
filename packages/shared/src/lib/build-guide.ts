@@ -25,6 +25,8 @@ export interface BuildGuideStep {
    */
   onlyWith?: string[];
   skipWith?: string[];
+  /** Seconds into the guide's YouTube video where THIS step is shown */
+  videoStart?: number | null;
 }
 
 export interface BuildGuideDto {
@@ -34,6 +36,8 @@ export interface BuildGuideDto {
   nameKey: string;
   steps: BuildGuideStep[];
   packNote: string | null;
+  /** Unlisted/public YouTube video of the whole build (any YouTube URL form) */
+  videoUrl: string | null;
   updatedAt: string;
 }
 
@@ -106,4 +110,76 @@ export function buildStepState(
     return added.length ? { state: "added", matched: added } : { state: "notOrdered", matched: [] };
   }
   return { state: "always", matched: [] };
+}
+
+// ── YouTube ─────────────────────────────────────────────────────────────────
+// Guides store the URL the operator pasted; everything else derives from the
+// 11-character video id. Playback is a plain embed in the viewer's browser —
+// no YouTube Data API, no key, no quota, nothing passes through our server.
+
+const YT_ID = /^[A-Za-z0-9_-]{11}$/;
+
+/** Video id from watch / youtu.be / shorts / embed / live / m. links, or a bare id. */
+export function parseYouTubeId(input: string | null | undefined): string | null {
+  const raw = String(input ?? "").trim();
+  if (!raw) return null;
+  if (YT_ID.test(raw)) return raw;
+  let url: URL;
+  try {
+    url = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
+  } catch {
+    return null;
+  }
+  const host = url.hostname.replace(/^(www|m|music)\./, "").toLowerCase();
+  let id: string | null = null;
+  if (host === "youtu.be") id = url.pathname.split("/")[1] ?? null;
+  else if (host === "youtube.com" || host === "youtube-nocookie.com") {
+    if (url.pathname === "/watch") id = url.searchParams.get("v");
+    else {
+      const m = url.pathname.match(/^\/(?:shorts|embed|live|v)\/([^/?#]+)/);
+      id = m?.[1] ?? null;
+    }
+  }
+  return id && YT_ID.test(id) ? id : null;
+}
+
+/** "1:05", "65", "1m5s", "0:01:05" → seconds; null when blank or unreadable. */
+export function parseVideoTime(input: string | number | null | undefined): number | null {
+  if (typeof input === "number") return Number.isFinite(input) && input >= 0 ? Math.floor(input) : null;
+  const t = String(input ?? "").trim().toLowerCase();
+  if (!t) return null;
+  if (/^\d+$/.test(t)) return Number(t);
+  const hms = t.match(/^(?:(\d+):)?(\d{1,2}):(\d{1,2})$/);
+  if (hms) return Number(hms[1] ?? 0) * 3600 + Number(hms[2]) * 60 + Number(hms[3]);
+  const unit = t.match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/);
+  if (unit && (unit[1] || unit[2] || unit[3])) {
+    return Number(unit[1] ?? 0) * 3600 + Number(unit[2] ?? 0) * 60 + Number(unit[3] ?? 0);
+  }
+  return null;
+}
+
+export function formatVideoTime(seconds: number | null | undefined): string {
+  if (seconds == null || !Number.isFinite(seconds)) return "";
+  const s = Math.max(0, Math.floor(seconds));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = String(s % 60).padStart(2, "0");
+  return h ? `${h}:${String(m).padStart(2, "0")}:${sec}` : `${m}:${sec}`;
+}
+
+/** Privacy-enhanced embed; `start` jumps to a step. */
+export function youTubeEmbedUrl(id: string, opts: { start?: number | null; autoplay?: boolean } = {}): string {
+  const p = new URLSearchParams({ rel: "0", playsinline: "1", modestbranding: "1" });
+  if (opts.start) p.set("start", String(Math.floor(opts.start)));
+  if (opts.autoplay) p.set("autoplay", "1");
+  return `https://www.youtube-nocookie.com/embed/${id}?${p.toString()}`;
+}
+
+/** Normal watch link (for the printed QR code — opens the YouTube app on a phone). */
+export function youTubeWatchUrl(id: string, start?: number | null): string {
+  return `https://youtu.be/${id}${start ? `?t=${Math.floor(start)}` : ""}`;
+}
+
+export function youTubeThumbnail(id: string): string {
+  return `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 }

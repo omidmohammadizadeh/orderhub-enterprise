@@ -50,7 +50,7 @@ export const assemblyChartsClient = {
 
 export const CHART_KEYS_QUERY = ["assembly-chart-keys"] as const;
 
-/** Same trick as useBuildGuideKeys: one small request decides every button. */
+/** One small request decides every Chart button on the screen. */
 export function useAssemblyChartKeys() {
   const q = useQuery({
     queryKey: CHART_KEYS_QUERY,

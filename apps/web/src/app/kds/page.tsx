@@ -25,7 +25,6 @@ import {
   Monitor,
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
-import { HowToBuildButton } from "@/components/build-guides/how-to-build-button";
 import { ChartButton } from "@/components/assembly-charts/chart-button";
 import { useAuthStore } from "@/stores/auth.store";
 import { socketClient } from "@/lib/socket/socket.client";
@@ -905,12 +904,6 @@ function TicketCard({
               <Bike className="h-3 w-3" /> Rider waiting
             </span>
           )}
-          <HowToBuildButton
-            variant="kds"
-            orderId={order.id}
-            itemNames={items.map((i) => i.name)}
-            orderLabel={`#${order.displayId ?? order.orderNumber ?? order.id.slice(-4).toUpperCase()}`}
-          />
           <ChartButton
             variant="kds"
             orderId={order.id}

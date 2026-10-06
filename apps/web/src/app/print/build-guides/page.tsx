@@ -8,6 +8,8 @@ import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Printer } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
+import { formatVideoTime, parseYouTubeId, youTubeWatchUrl } from "@orderhub/shared";
 import { buildGuidesClient, type BuildGuidePrintFeed } from "@/lib/api/build-guides.client";
 
 export default function PrintBuildGuidesPage() {
@@ -98,6 +100,16 @@ function PrintBuildGuides() {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={item.imageUrl} alt="" className="h-[30mm] w-[40mm] shrink-0 rounded-md object-cover" />
               )}
+              {(() => {
+                const vid = parseYouTubeId(item.guide.videoUrl);
+                return vid ? (
+                  // Scan with a phone camera → the video opens in YouTube.
+                  <div className="flex shrink-0 flex-col items-center justify-center rounded-md border-2 border-red-600 px-1.5 pt-1.5">
+                    <QRCodeSVG value={youTubeWatchUrl(vid)} size={88} level="M" />
+                    <p className="py-0.5 text-[9px] font-black uppercase tracking-wider text-red-600">▶ Scan for video</p>
+                  </div>
+                ) : null;
+              })()}
             </header>
 
             <ol className="mt-4 grid grid-cols-3 gap-3">
@@ -125,6 +137,9 @@ function PrintBuildGuides() {
                           </span>
                         ))}
                       </div>
+                    )}
+                    {s.videoStart != null && parseYouTubeId(item.guide.videoUrl) && (
+                      <p className="mt-1 text-[10px] font-bold text-red-600">▶ VIDEO AT {formatVideoTime(s.videoStart)}</p>
                     )}
                     {(s.onlyWith?.length ?? 0) > 0 && (
                       <p className="mt-1 text-[10px] font-bold text-amber-700">ONLY WITH: {s.onlyWith!.join(", ")}</p>

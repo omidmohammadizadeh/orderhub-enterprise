@@ -3,6 +3,8 @@ import { randomUUID } from "node:crypto";
 import {
   BUILD_GUIDE_MAX_STEPS,
   buildGuideNameKey,
+  parseVideoTime,
+  parseYouTubeId,
   type BuildGuideDto,
   type BuildGuideStep,
 } from "@orderhub/shared";
@@ -14,6 +16,7 @@ import { pickKeysForOrderLines } from "./name-key-match";
 export interface SaveBuildGuideInput {
   steps?: unknown;
   packNote?: unknown;
+  videoUrl?: unknown;
 }
 
 const MAX_TEXT = 1000;
@@ -62,9 +65,14 @@ export class BuildGuidesService {
 
     const steps = await this.cleanSteps(input.steps, tenantId);
     const packNote = clip(input.packNote, MAX_TEXT);
+    // Stored in one canonical form whatever was pasted (youtu.be, shorts…).
+    const videoRaw = clip(input.videoUrl, 500);
+    const videoId = videoRaw ? parseYouTubeId(videoRaw) : null;
+    if (videoRaw && !videoId) throw new BadRequestException("That isn't a YouTube video link");
+    const videoUrl = videoId ? `https://www.youtube.com/watch?v=${videoId}` : null;
     const where = { brandId_nameKey: { brandId: item.brandId, nameKey } };
 
-    if (steps.length === 0 && !packNote) {
+    if (steps.length === 0 && !packNote && !videoUrl) {
       await this.prisma.buildGuide.deleteMany({ where: { brandId: item.brandId, nameKey } });
       return null;
     }
@@ -78,9 +86,10 @@ export class BuildGuidesService {
         name: item.name,
         steps: steps as any,
         packNote,
+        videoUrl,
         updatedBy: userId ?? null,
       },
-      update: { name: item.name, steps: steps as any, packNote, updatedBy: userId ?? null },
+      update: { name: item.name, steps: steps as any, packNote, videoUrl, updatedBy: userId ?? null },
     });
     return this.toDto(row);
   }
@@ -258,6 +267,7 @@ export class BuildGuidesService {
       const tools = tags(src.tools, 8);
       const onlyWith = tags(src.onlyWith, 20);
       const skipWith = tags(src.skipWith, 20);
+      const videoStart = parseVideoTime(src.videoStart as any);
       if (!text && !imageUrl) continue; // an empty card is not a step
       out.push({
         id: typeof src.id === "string" && src.id ? src.id.slice(0, 64) : randomUUID(),
@@ -267,6 +277,7 @@ export class BuildGuidesService {
         tools,
         ...(onlyWith.length ? { onlyWith } : {}),
         ...(skipWith.length ? { skipWith } : {}),
+        ...(videoStart != null && videoStart <= 86_400 ? { videoStart } : {}),
       });
     }
     return out;
@@ -280,6 +291,7 @@ export class BuildGuidesService {
       nameKey: row.nameKey,
       steps: Array.isArray(row.steps) ? row.steps : [],
       packNote: row.packNote ?? null,
+      videoUrl: row.videoUrl ?? null,
       updatedAt: row.updatedAt instanceof Date ? row.updatedAt.toISOString() : String(row.updatedAt),
     };
   }

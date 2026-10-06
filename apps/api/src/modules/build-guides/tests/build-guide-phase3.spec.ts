@@ -128,3 +128,59 @@ describe("AI draft", () => {
     await expect(svc.draft("i1", "t2")).rejects.toThrow("Menu item not found");
   });
 });
+
+describe("guide video", () => {
+  const { parseYouTubeId, parseVideoTime, formatVideoTime } = require("@orderhub/shared");
+  const { BuildGuidesService } = require("../build-guides.service");
+
+  it("reads every common YouTube link form", () => {
+    for (const u of [
+      "https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=30s",
+      "youtu.be/dQw4w9WgXcQ?si=abc",
+      "https://youtube.com/shorts/dQw4w9WgXcQ",
+      "https://m.youtube.com/watch?v=dQw4w9WgXcQ",
+      "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ",
+      "dQw4w9WgXcQ",
+    ]) expect(parseYouTubeId(u)).toBe("dQw4w9WgXcQ");
+    expect(parseYouTubeId("https://vimeo.com/123")).toBeNull();
+    expect(parseYouTubeId("https://evil.com/watch?v=dQw4w9WgXcQ")).toBeNull();
+  });
+
+  it("parses and formats start times", () => {
+    expect(parseVideoTime("1:05")).toBe(65);
+    expect(parseVideoTime("65")).toBe(65);
+    expect(parseVideoTime("1m5s")).toBe(65);
+    expect(parseVideoTime("0:01:05")).toBe(65);
+    expect(parseVideoTime("soon")).toBeNull();
+    expect(formatVideoTime(65)).toBe("1:05");
+  });
+
+  function svcWith(rows: any[]) {
+    const prisma: any = {
+      menuItem: { findUnique: async () => ({ id: "i1", brandId: "b1", name: "Taco" }) },
+      brand: { findFirst: async () => ({ id: "b1" }) },
+      buildGuide: {
+        upsert: async ({ create }: any) => (rows.push({ id: "g", ...create, updatedAt: new Date() }), rows[rows.length - 1]),
+        deleteMany: async () => ({ count: 0 }),
+      },
+    };
+    return new BuildGuidesService(prisma);
+  }
+
+  it("stores a canonical link and step start times; a video alone keeps the guide", async () => {
+    const rows: any[] = [];
+    const g = await svcWith(rows).saveForItem("i1", "t1", {
+      videoUrl: "https://youtu.be/dQw4w9WgXcQ?si=x",
+      steps: [{ text: "Fold", videoStart: "0:45" }, { text: "Wrap", videoStart: "nope" }],
+    });
+    expect(g.videoUrl).toBe("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+    expect(g.steps[0].videoStart).toBe(45);
+    expect(g.steps[1]).not.toHaveProperty("videoStart");
+    const onlyVideo = await svcWith([]).saveForItem("i1", "t1", { videoUrl: "dQw4w9WgXcQ", steps: [] });
+    expect(onlyVideo).not.toBeNull();
+  });
+
+  it("rejects a link that is not YouTube", async () => {
+    await expect(svcWith([]).saveForItem("i1", "t1", { videoUrl: "https://vimeo.com/1" })).rejects.toThrow("YouTube");
+  });
+});

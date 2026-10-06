@@ -11,16 +11,18 @@ import { ArrowDown, ArrowUp, BookmarkPlus, BookOpen, Check, ClipboardList, Eye, 
 import { StepLibraryPicker, STEP_LIBRARY_QUERY } from "./step-library-picker";
 import { productsClient } from "@/lib/api/catalog.client";
 import { ModifierTagInput } from "./modifier-tag-input";
-import { BUILD_GUIDE_MAX_STEPS } from "@orderhub/shared";
+import { BUILD_GUIDE_MAX_STEPS, formatVideoTime, parseVideoTime, parseYouTubeId } from "@orderhub/shared";
+import { YouTubePlayer } from "./youtube-player";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import { ImageUploader } from "@/components/products/image-uploader";
 import {
   BUILD_GUIDE_KEYS_QUERY,
   buildGuidesClient,
   type BuildGuideStep,
 } from "@/lib/api/build-guides.client";
-import { BuildGuideSteps } from "./build-guide-viewer-modal";
+import { BuildGuideSteps } from "./build-guide-steps";
 
 interface DraftStep {
   id: string;
@@ -30,6 +32,8 @@ interface DraftStep {
   tools: string;
   onlyWith: string[];
   skipWith: string[];
+  /** "0:45" as typed — parsed to seconds on save */
+  videoStart: string;
 }
 
 function newId() {
@@ -47,6 +51,7 @@ function toDraft(s: BuildGuideStep): DraftStep {
     tools: (s.tools ?? []).join(", "),
     onlyWith: s.onlyWith ?? [],
     skipWith: s.skipWith ?? [],
+    videoStart: formatVideoTime(s.videoStart),
   };
 }
 
@@ -59,10 +64,11 @@ function fromDraft(d: DraftStep): BuildGuideStep {
     tools: d.tools.split(",").map((t) => t.trim()).filter(Boolean),
     ...(d.onlyWith.length ? { onlyWith: d.onlyWith } : {}),
     ...(d.skipWith.length ? { skipWith: d.skipWith } : {}),
+    ...(parseVideoTime(d.videoStart) != null ? { videoStart: parseVideoTime(d.videoStart) } : {}),
   };
 }
 
-const emptyStep = (): DraftStep => ({ id: newId(), text: "", imageUrl: null, amount: "", tools: "", onlyWith: [], skipWith: [] });
+const emptyStep = (): DraftStep => ({ id: newId(), text: "", imageUrl: null, amount: "", tools: "", onlyWith: [], skipWith: [], videoStart: "" });
 
 interface Props {
   open: boolean;
@@ -75,6 +81,7 @@ export function BuildGuideEditorModal({ open, itemId, itemName, onClose }: Props
   const qc = useQueryClient();
   const [steps, setSteps] = useState<DraftStep[]>([]);
   const [packNote, setPackNote] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
   const [preview, setPreview] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -90,6 +97,7 @@ export function BuildGuideEditorModal({ open, itemId, itemName, onClose }: Props
     const g = guideQuery.data;
     setSteps(g?.steps?.length ? g.steps.map(toDraft) : [emptyStep()]);
     setPackNote(g?.packNote ?? "");
+    setVideoUrl(g?.videoUrl ?? "");
     setError(null);
     setPreview(false);
   }, [open, guideQuery.isLoading, guideQuery.data]);
@@ -157,6 +165,7 @@ export function BuildGuideEditorModal({ open, itemId, itemName, onClose }: Props
       buildGuidesClient.saveForItem(itemId, {
         steps: steps.map(fromDraft).filter((s) => s.text || s.imageUrl),
         packNote: packNote.trim() || null,
+        videoUrl: videoUrl.trim() || null,
       }),
     onSuccess: (guide) => {
       qc.setQueryData(["build-guide", itemId], guide);
@@ -183,6 +192,7 @@ export function BuildGuideEditorModal({ open, itemId, itemName, onClose }: Props
   const remove = (i: number) => setSteps((prev) => prev.filter((_, j) => j !== i));
 
   const filled = steps.map(fromDraft).filter((s) => s.text || s.imageUrl);
+  const videoId = parseYouTubeId(videoUrl);
 
   return (
     <div className="fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-black/40 backdrop-blur-sm sm:p-4">
@@ -259,6 +269,29 @@ export function BuildGuideEditorModal({ open, itemId, itemName, onClose }: Props
             </div>
           ) : (
             <div className="space-y-4">
+              <div className="rounded-xl border border-zinc-200 p-3 sm:p-4">
+                <label className="mb-1 block text-xs font-medium text-zinc-600">
+                  YouTube video (optional){" "}
+                  <span className="font-normal text-zinc-400">— upload as Unlisted; staff watch it in Kitchen training</span>
+                </label>
+                <Input
+                  value={videoUrl}
+                  onChange={(e) => setVideoUrl(e.target.value)}
+                  placeholder="https://youtu.be/…  or a youtube.com / Shorts link"
+                  maxLength={500}
+                />
+                {videoUrl.trim() && !videoId && (
+                  <p className="mt-1 text-xs text-red-600">That doesn&apos;t look like a YouTube video link.</p>
+                )}
+                {videoId && (
+                  <div className="mt-3 max-w-sm">
+                    <YouTubePlayer videoUrl={videoUrl} />
+                    <p className="mt-1 text-xs text-zinc-500">
+                      Add a start time to any step below and staff can jump straight to that part.
+                    </p>
+                  </div>
+                )}
+              </div>
               {steps.map((s, i) => (
                 <div key={s.id} className="rounded-xl border border-zinc-200 p-3 sm:p-4">
                   <div className="mb-3 flex items-center justify-between">
@@ -359,6 +392,20 @@ export function BuildGuideEditorModal({ open, itemId, itemName, onClose }: Props
                           suggestions={modifierNames}
                         />
                       </div>
+                      {videoId && (
+                        <div className="max-w-[12rem]">
+                          <label className="mb-1 block text-xs font-medium text-zinc-600">
+                            Video start <span className="font-normal text-zinc-400">— e.g. 0:45</span>
+                          </label>
+                          <Input
+                            value={s.videoStart}
+                            onChange={(e) => update(i, { videoStart: e.target.value })}
+                            placeholder="m:ss"
+                            maxLength={10}
+                            className={cn(s.videoStart.trim() && parseVideoTime(s.videoStart) == null && "border-red-400")}
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

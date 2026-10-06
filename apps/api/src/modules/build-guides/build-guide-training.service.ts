@@ -45,6 +45,7 @@ export class BuildGuideTrainingService {
         stepCount: steps.length,
         imageUrl: photo.get(`${g.brandId}|${g.nameKey}`) ?? steps.find((s: any) => s?.imageUrl)?.imageUrl ?? null,
         updatedAt: g.updatedAt,
+        hasVideo: !!g.videoUrl,
         myStatus: !mine ? "new" : new Date(mine.completedAt).getTime() >= updated ? "trained" : "refresher",
         trainedCount: current.length,
       };
@@ -65,6 +66,7 @@ export class BuildGuideTrainingService {
       nameKey: g.nameKey,
       steps: Array.isArray(g.steps) ? g.steps : [],
       packNote: g.packNote ?? null,
+      videoUrl: (g as any).videoUrl ?? null,
       updatedAt: g.updatedAt,
     };
   }

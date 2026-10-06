@@ -15,6 +15,7 @@ import {
   GraduationCap,
   Loader2,
   Package,
+  Play,
   RefreshCw,
   Search,
   Users,
@@ -25,6 +26,8 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth.store";
 import { buildGuidesClient, type TrainingOverviewRow } from "@/lib/api/build-guides.client";
+import { formatVideoTime } from "@orderhub/shared";
+import { VideoOverlay } from "@/components/build-guides/youtube-player";
 
 const MANAGERS = ["PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "DARK_KITCHEN_MANAGER", "MANAGER"];
 const OVERVIEW_QUERY = ["build-guide-training"] as const;
@@ -187,7 +190,14 @@ function GuideCard({ row, isManager, onOpen }: { row: TrainingOverviewRow; isMan
             <p className="font-semibold leading-tight text-zinc-900">{row.name}</p>
             <StatusBadge status={row.myStatus} />
           </div>
-          <p className="text-xs text-zinc-500">{row.stepCount} steps</p>
+          <p className="flex items-center gap-2 text-xs text-zinc-500">
+            {row.stepCount} steps
+            {row.hasVideo && (
+              <span className="inline-flex items-center gap-0.5 font-semibold text-red-600">
+                <Play className="h-3 w-3 fill-red-600" /> Video
+              </span>
+            )}
+          </p>
         </div>
       </button>
       {isManager && (
@@ -231,7 +241,9 @@ function Walkthrough({ guideId, onClose }: { guideId: string; onClose: () => voi
     queryFn: () => buildGuidesClient.trainingGuide(guideId),
   });
   const [i, setI] = useState(0);
+  const [video, setVideo] = useState<{ start: number | null } | null>(null);
   const steps = q.data?.steps ?? [];
+  const videoUrl = q.data?.videoUrl ?? null;
   const total = steps.length + 1; // + the pack / finish screen
   const atEnd = i >= steps.length;
 
@@ -247,13 +259,14 @@ function Walkthrough({ guideId, onClose }: { guideId: string; onClose: () => voi
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (video) return; // the video overlay owns the keyboard while open
       if (e.key === "Escape") onClose();
       if (e.key === "ArrowRight") setI((v) => Math.min(v + 1, total - 1));
       if (e.key === "ArrowLeft") setI((v) => Math.max(v - 1, 0));
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose, total]);
+  }, [onClose, total, video]);
 
   const step = steps[i];
   return createPortal(
@@ -263,9 +276,19 @@ function Walkthrough({ guideId, onClose }: { guideId: string; onClose: () => voi
           <p className="text-xs font-bold uppercase tracking-wider text-orange-400">{q.data?.brandName ?? "Training"}</p>
           <h2 className="truncate text-lg font-black">{q.data?.name ?? "…"}</h2>
         </div>
-        <button onClick={onClose} className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-white" aria-label="Close">
-          <X className="h-6 w-6" />
-        </button>
+        <div className="flex items-center gap-2">
+          {videoUrl && (
+            <button
+              onClick={() => setVideo({ start: null })}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-2 text-sm font-bold text-white hover:bg-red-500"
+            >
+              <Play className="h-4 w-4 fill-white" /> Watch video
+            </button>
+          )}
+          <button onClick={onClose} className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-white" aria-label="Close">
+            <X className="h-6 w-6" />
+          </button>
+        </div>
       </div>
       <div className="flex gap-1 px-4">
         {Array.from({ length: total }).map((_, k) => (
@@ -300,6 +323,16 @@ function Walkthrough({ guideId, onClose }: { guideId: string; onClose: () => voi
                 </span>
               ))}
             </div>
+            {videoUrl && step.videoStart != null && (
+              <div className="pl-16">
+                <button
+                  onClick={() => setVideo({ start: step.videoStart ?? null })}
+                  className="inline-flex items-center gap-2 rounded-lg bg-red-600/90 px-4 py-2 text-base font-bold text-white hover:bg-red-500"
+                >
+                  <Play className="h-4 w-4 fill-white" /> Watch this step ({formatVideoTime(step.videoStart)})
+                </button>
+              </div>
+            )}
             {(step.onlyWith?.length ?? 0) > 0 && (
               <p className="pl-16 text-base font-semibold text-amber-300">
                 Only when the customer adds: {step.onlyWith!.join(", ")}
@@ -358,6 +391,9 @@ function Walkthrough({ guideId, onClose }: { guideId: string; onClose: () => voi
           Next <ArrowRight className="h-5 w-5" />
         </button>
       </div>
+      {video && videoUrl && (
+        <VideoOverlay videoUrl={videoUrl} start={video.start} title={q.data?.name} onClose={() => setVideo(null)} />
+      )}
     </div>,
     document.body,
   );

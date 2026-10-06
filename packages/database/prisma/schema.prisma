@@ -5855,6 +5855,9 @@ model BuildGuide {
   // [{ id, text, imageUrl?, amount?, tools?: string[] }]
   steps     Json     @default("[]")
   packNote  String?
+  // YouTube link for the whole build (unlisted/public). Steps may carry a
+  // videoStart (seconds) inside `steps` to jump to their part.
+  videoUrl  String?
   updatedBy String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
