@@ -9,7 +9,7 @@
 //  • ASSIGNED does NOT mean a courier is coming. JET's own docs say an offer may
 //    go to several couriers and you can get several ASSIGNED events. The real
 //    confirmation is IN_TRANSIT_TO_COLLECT, so only that moves the order.
-//  • orderTrackerURL is CA-only and comes back as the literal string
+//  • orderTrackerURL is absent in STAGING and comes back as the literal string
 //    "Not available" elsewhere. Storing that would put a dead "Track courier"
 //    link in front of a customer.
 //  • CANCELJOBSTATUS carries status true/false — false means the cancellation
@@ -91,7 +91,15 @@ export class JetGoWebhookService {
     return Number.isFinite(d.getTime()) ? d : null;
   }
 
-  /** JET sends "Not available" (CA-only feature) rather than omitting the field. */
+  /**
+   * JET sends the literal "Not available" rather than omitting the field.
+   *
+   * Confirmed by JET 2026-10-06: the tracker IS live on the UK market — format
+   * `https://go-tracker.just-eat.co.uk/?id=<uuid>` — but it is NOT enabled in
+   * STAGING, which is why certification only ever sees "Not available". So this
+   * guard must stay, and it must stay domain-agnostic: a UK URL is as valid as
+   * the Canadian one, and hardcoding either host would drop real tracking links.
+   */
   private trackingUrl(v: unknown): string | null {
     const s = this.str(v);
     if (!s) return null;
