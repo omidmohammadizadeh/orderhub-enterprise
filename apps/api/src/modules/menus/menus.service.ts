@@ -1799,7 +1799,8 @@ export class MenusService {
           availableDineIn: (src as any).availableDineIn,
           allergens: src.allergens,
           dietaryTags: src.dietaryTags,
-          dietary: src.dietary,
+          // JSON column: a stored null must be left unset, not passed back.
+          dietary: (src.dietary ?? undefined) as any,
           calories: src.calories,
           prepTime: src.prepTime,
           minAge: (src as any).minAge ?? null,
