@@ -70,6 +70,7 @@
     },
     "plugins": [
       "./plugins/withCometUsb",
+      "./plugins/withBouncyCastleDedupe",
       "./plugins/withOptionalCamera",
       "expo-apple-authentication",
       "expo-secure-store",
