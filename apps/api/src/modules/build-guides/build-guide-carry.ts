@@ -13,13 +13,13 @@ const logger = new Logger("BuildGuideCarry");
  * product save that triggered it.
  */
 
-type Db = {
-  buildGuide: { findUnique: Function; create: Function; update: Function };
-  menuItem: { findMany: Function };
-};
+/** Every table keyed by brand + product name. Assembly charts ride the same rails. */
+export type NameKeyedModel = "buildGuide" | "assemblyChart";
 
-async function findGuide(db: Db, brandId: string, nameKey: string) {
-  return db.buildGuide.findUnique({ where: { brandId_nameKey: { brandId, nameKey } } });
+type Db = Record<string, any>;
+
+async function findGuide(db: Db, brandId: string, nameKey: string, model: NameKeyedModel) {
+  return db[model].findUnique({ where: { brandId_nameKey: { brandId, nameKey } } });
 }
 
 /**
@@ -31,14 +31,15 @@ async function findGuide(db: Db, brandId: string, nameKey: string) {
 export async function carryGuideOnRename(
   db: Db,
   args: { itemId: string; brandId: string; oldName: string; newName: string },
+  model: NameKeyedModel = "buildGuide",
 ): Promise<"moved" | "copied" | "none"> {
   try {
     const oldKey = buildGuideNameKey(args.oldName);
     const newKey = buildGuideNameKey(args.newName);
     if (!oldKey || !newKey || oldKey === newKey) return "none";
-    const guide = await findGuide(db, args.brandId, oldKey);
+    const guide = await findGuide(db, args.brandId, oldKey, model);
     if (!guide) return "none";
-    if (await findGuide(db, args.brandId, newKey)) return "none";
+    if (await findGuide(db, args.brandId, newKey, model)) return "none";
 
     const siblings: Array<{ name: string }> = await db.menuItem.findMany({
       where: { brandId: args.brandId, id: { not: args.itemId } },
@@ -47,10 +48,10 @@ export async function carryGuideOnRename(
     const stillUsed = siblings.some((s) => buildGuideNameKey(s.name) === oldKey);
 
     if (stillUsed) {
-      await db.buildGuide.create({ data: copyData(guide, newKey, args.newName) });
+      await db[model].create({ data: copyData(guide, newKey, args.newName) });
       return "copied";
     }
-    await db.buildGuide.update({ where: { id: guide.id }, data: { nameKey: newKey, name: args.newName } });
+    await db[model].update({ where: { id: guide.id }, data: { nameKey: newKey, name: args.newName } });
     return "moved";
   } catch (err: any) {
     logger.warn(`Guide did not follow rename of ${args.itemId}: ${err?.message ?? err}`);
@@ -62,14 +63,15 @@ export async function carryGuideOnRename(
 export async function copyGuideToName(
   db: Db,
   args: { brandId: string; fromName: string; newName: string },
+  model: NameKeyedModel = "buildGuide",
 ): Promise<boolean> {
   try {
     const fromKey = buildGuideNameKey(args.fromName);
     const newKey = buildGuideNameKey(args.newName);
     if (!fromKey || !newKey || fromKey === newKey) return false;
-    const guide = await findGuide(db, args.brandId, fromKey);
-    if (!guide || (await findGuide(db, args.brandId, newKey))) return false;
-    await db.buildGuide.create({ data: copyData(guide, newKey, args.newName) });
+    const guide = await findGuide(db, args.brandId, fromKey, model);
+    if (!guide || (await findGuide(db, args.brandId, newKey, model))) return false;
+    await db[model].create({ data: copyData(guide, newKey, args.newName) });
     return true;
   } catch (err: any) {
     logger.warn(`Guide not copied to "${args.newName}": ${err?.message ?? err}`);
@@ -77,14 +79,8 @@ export async function copyGuideToName(
   }
 }
 
-function copyData(guide: any, nameKey: string, name: string) {
-  return {
-    tenantId: guide.tenantId,
-    brandId: guide.brandId,
-    nameKey,
-    name,
-    steps: guide.steps ?? [],
-    packNote: guide.packNote ?? null,
-    updatedBy: guide.updatedBy ?? null,
-  };
+function copyData(row: any, nameKey: string, name: string) {
+  // Everything but identity — works for any brand+name keyed table.
+  const { id: _id, createdAt: _c, updatedAt: _u, nameKey: _k, name: _n, ...rest } = row ?? {};
+  return { ...rest, nameKey, name };
 }

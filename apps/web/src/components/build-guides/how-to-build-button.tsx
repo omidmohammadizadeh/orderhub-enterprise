@@ -18,7 +18,7 @@ interface Props {
 
 const STYLES: Record<NonNullable<Props["variant"]>, string> = {
   card:
-    "inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-orange-200 bg-orange-50 px-2 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100",
+    "inline-flex flex-1 items-center justify-center gap-1.5 rounded-md border border-orange-200 bg-orange-50 px-2 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100",
   kds:
     "inline-flex items-center gap-1.5 rounded-md bg-orange-500/15 px-2 py-1 text-xs font-bold text-orange-300 ring-1 ring-orange-500/40 hover:bg-orange-500/25",
   inline:

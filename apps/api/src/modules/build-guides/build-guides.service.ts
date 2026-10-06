@@ -3,13 +3,13 @@ import { randomUUID } from "node:crypto";
 import {
   BUILD_GUIDE_MAX_STEPS,
   buildGuideNameKey,
-  matchBuildGuideKey,
   type BuildGuideDto,
   type BuildGuideStep,
 } from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { SupabaseStorageService } from "../uploads/supabase-storage.service";
 import { rehostImageIfInline } from "../uploads/rehost-image";
+import { pickKeysForOrderLines } from "./name-key-match";
 
 export interface SaveBuildGuideInput {
   steps?: unknown;
@@ -116,45 +116,7 @@ export class BuildGuidesService {
     if (!order) throw new NotFoundException("Order not found");
 
     const keys = await this.listKeys(tenantId);
-    if (keys.length === 0) {
-      return { orderId: order.id, lines: order.items.map((l: any) => ({ ...this.line(l), guide: null })) };
-    }
-
-    const menuItemIds = order.items.map((l: any) => l.menuItemId).filter(Boolean) as string[];
-    const products = menuItemIds.length
-      ? await this.prisma.menuItem.findMany({
-          where: { id: { in: menuItemIds } },
-          select: { id: true, brandId: true, name: true },
-        })
-      : [];
-    const productById = new Map<string, { brandId: string; name: string }>(
-      products.map((p: any) => [p.id, p]),
-    );
-
-    const keysByBrand = new Map<string, Set<string>>();
-    const allKeys = new Set<string>();
-    for (const k of keys) {
-      allKeys.add(k.nameKey);
-      if (!keysByBrand.has(k.brandId)) keysByBrand.set(k.brandId, new Set());
-      keysByBrand.get(k.brandId)!.add(k.nameKey);
-    }
-
-    const picks: Array<{ brandId: string | null; nameKey: string } | null> = order.items.map((l: any) => {
-      const product = l.menuItemId ? productById.get(l.menuItemId) : undefined;
-      const names = [product?.name, l.name].filter(Boolean) as string[];
-      const brands = [product?.brandId, order.brandId].filter(Boolean) as string[];
-      for (const brandId of brands) {
-        for (const n of names) {
-          const k = matchBuildGuideKey(n, keysByBrand.get(brandId) ?? []);
-          if (k) return { brandId, nameKey: k };
-        }
-      }
-      for (const n of names) {
-        const k = matchBuildGuideKey(n, allKeys);
-        if (k) return { brandId: null, nameKey: k };
-      }
-      return null;
-    });
+    const picks = await pickKeysForOrderLines(this.prisma, order as any, keys);
 
     const wanted = picks.filter(Boolean) as Array<{ brandId: string | null; nameKey: string }>;
     const rows = wanted.length

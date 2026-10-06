@@ -51,6 +51,7 @@ import {
   ListTree,
   Copy,
   ClipboardList,
+  Sandwich,
 } from "lucide-react";
 import { MenuSettingsDrawer } from "@/components/menu/menu-settings-drawer";
 import { VariantsManagerModal } from "@/components/menu/variants-manager-modal";
@@ -66,6 +67,7 @@ import { cn } from "@/lib/utils";
 import { AttachModal } from "@/components/products/attach-modal";
 import { ProductEditorModal } from "@/components/products/product-editor-modal";
 import { BuildGuideEditorModal } from "@/components/build-guides/build-guide-editor-modal";
+import { ChartEditorModal } from "@/components/assembly-charts/chart-editor-modal";
 import { formatDisplayPrice } from "@/lib/menu/display-price";
 import { ChannelPricingModal } from "@/components/menu/channel-pricing-modal";
 import { BulkPriceModal } from "@/components/menu/bulk-price-modal";
@@ -197,6 +199,8 @@ export default function MenuEditorPage() {
   // for that product id.
   // "How to build" chart editor for one product.
   const [buildGuideTarget, setBuildGuideTarget] = useState<{ id: string; name: string } | null>(null);
+  // Poster-style assembly chart editor for one product.
+  const [chartTarget, setChartTarget] = useState<{ id: string; name: string } | null>(null);
   const [productEditorTarget, setProductEditorTarget] = useState<
     null | "new" | string
   >(null);
@@ -534,6 +538,18 @@ export default function MenuEditorPage() {
           >
             <ClipboardList className="h-4 w-4" />
             Build guides (A4)
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9 flex-shrink-0 gap-1.5"
+            title="Print the assembly board — every product's chart side by side, A4 landscape"
+            onClick={() =>
+              window.open(`/print/assembly-charts?menu=${encodeURIComponent(menuId)}`, "_blank")
+            }
+          >
+            <Sandwich className="h-4 w-4" />
+            Assembly board
           </Button>
           <Button
             variant="outline"
@@ -1045,6 +1061,14 @@ export default function MenuEditorPage() {
                               <ClipboardList className="h-3.5 w-3.5" />
                             </button>
                             <button
+                              onClick={() => setChartTarget({ id: p.id, name: p.name })}
+                              className="p-2 text-zinc-400 hover:text-pink-600 md:p-1"
+                              title="Assembly chart — the layer-by-layer build poster"
+                              aria-label={`Assembly chart for ${p.name}`}
+                            >
+                              <Sandwich className="h-3.5 w-3.5" />
+                            </button>
+                            <button
                               onClick={() => setProductEditorTarget(p.id)}
                               className="rounded-md px-2 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
                             >
@@ -1118,6 +1142,12 @@ export default function MenuEditorPage() {
       {/* In-place product editor — wraps the same ProductForm the
           Products tab uses. When "new" we also auto-attach the
           freshly-saved product to the active category. */}
+      <ChartEditorModal
+        open={chartTarget !== null}
+        itemId={chartTarget?.id ?? ""}
+        itemName={chartTarget?.name ?? ""}
+        onClose={() => setChartTarget(null)}
+      />
       <BuildGuideEditorModal
         open={buildGuideTarget !== null}
         itemId={buildGuideTarget?.id ?? ""}

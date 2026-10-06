@@ -492,6 +492,7 @@ model Brand {
   menus               Menu[]
   modifierGroups      ModifierGroup[]
   buildGuides         BuildGuide[]
+  assemblyCharts      AssemblyChart[]
   orders              Order[]
   mealDeals           MealDeal[]
   upsellGroups        UpsellGroup[]
@@ -5898,4 +5899,30 @@ model BuildGuideTraining {
   @@unique([guideId, userId])
   @@index([tenantId, userId])
   @@map("build_guide_trainings")
+}
+
+// Assembly chart — the poster-style layer stack for one product (bun, sauce,
+// onions, patty… top to bottom), shown from the "Chart" button next to "How
+// to build". Keyed by brand + product name exactly like BuildGuide, for the
+// same reasons (clones keep brand + name; marketplace lines have no item id).
+model AssemblyChart {
+  id           String   @id @default(cuid())
+  tenantId     String
+  brandId      String
+  brand        Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  nameKey      String
+  name         String
+  title        String
+  altTitle     String?
+  heroImageUrl String?
+  // [{ id, kind, label, color?, imageUrl?, callout? }] top → bottom
+  layers       Json     @default("[]")
+  footNote     String?
+  updatedBy    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([brandId, nameKey])
+  @@index([tenantId, nameKey])
+  @@map("assembly_charts")
 }

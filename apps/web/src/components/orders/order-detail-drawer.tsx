@@ -28,6 +28,7 @@ import { unassignOrder } from "../../lib/api/dispatch.client";
 import { printOrderViaBridge } from "../../lib/printing/print-order";
 import type { Order } from "../../lib/api/orders.client";
 import { HowToBuildButton } from "../build-guides/how-to-build-button";
+import { ChartButton } from "../assembly-charts/chart-button";
 import { describeMaskedAddress, modifierDepth, formatMoney } from "@orderhub/shared";
 
 // Lazily loaded: it pulls in the Google Maps JS loader, which has no business
@@ -586,6 +587,13 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
                   <span className="flex flex-wrap items-center gap-x-2 text-sm font-medium text-zinc-900">
                     {item.quantity}× {item.name}
                     <HowToBuildButton
+                      variant="inline"
+                      orderId={order.id}
+                      itemNames={[item.name]}
+                      focusLineName={item.name}
+                      orderLabel={order.displayId ? `#${order.displayId}` : order.orderNumber ? `#${order.orderNumber}` : undefined}
+                    />
+                    <ChartButton
                       variant="inline"
                       orderId={order.id}
                       itemNames={[item.name]}

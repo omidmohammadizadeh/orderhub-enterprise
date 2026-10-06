@@ -1746,12 +1746,9 @@ export class MenusService {
     });
     // "How to build" guides are keyed by name — keep this one attached.
     if (dto.name && dto.name !== before.name) {
-      await carryGuideOnRename(this.prisma as any, {
-        itemId,
-        brandId: before.brandId,
-        oldName: before.name,
-        newName: dto.name,
-      });
+      const rename = { itemId, brandId: before.brandId, oldName: before.name, newName: dto.name };
+      await carryGuideOnRename(this.prisma as any, rename, "buildGuide");
+      await carryGuideOnRename(this.prisma as any, rename, "assemblyChart");
     }
     return updated;
   }
@@ -1840,11 +1837,9 @@ export class MenusService {
       return created;
     });
     // The copy gets its own "How to build" guide (it follows a later rename).
-    await copyGuideToName(this.prisma as any, {
-      brandId: src.brandId,
-      fromName: src.name,
-      newName: created.name,
-    });
+    const copy = { brandId: src.brandId, fromName: src.name, newName: created.name };
+    await copyGuideToName(this.prisma as any, copy, "buildGuide");
+    await copyGuideToName(this.prisma as any, copy, "assemblyChart");
     return created;
   }
 

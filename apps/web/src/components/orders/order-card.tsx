@@ -15,6 +15,7 @@ import { formatMoney } from "@orderhub/shared";
 import { PlatformBadge, FulfillmentBadge } from "./platform-badge";
 import { OrderActions } from "./order-actions";
 import { HowToBuildButton } from "../build-guides/how-to-build-button";
+import { ChartButton } from "../assembly-charts/chart-button";
 import type { Order } from "../../lib/api/orders.client";
 
 interface OrderCardProps {
@@ -144,11 +145,18 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
         )}
 
         {/* Kitchen build chart — only shows when a line has a guide */}
-        <HowToBuildButton
-          orderId={order.id}
-          itemNames={order.items.map((i) => i.name)}
-          orderLabel={order.displayId ? `#${order.displayId}` : order.orderNumber ? `#${order.orderNumber}` : undefined}
-        />
+        <div className="flex gap-2 empty:hidden">
+          <HowToBuildButton
+            orderId={order.id}
+            itemNames={order.items.map((i) => i.name)}
+            orderLabel={order.displayId ? `#${order.displayId}` : order.orderNumber ? `#${order.orderNumber}` : undefined}
+          />
+          <ChartButton
+            orderId={order.id}
+            itemNames={order.items.map((i) => i.name)}
+            orderLabel={order.displayId ? `#${order.displayId}` : order.orderNumber ? `#${order.orderNumber}` : undefined}
+          />
+        </div>
 
         {/* Per-status action buttons (Phase AJ) */}
         <OrderActions

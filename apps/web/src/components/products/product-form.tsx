@@ -4,7 +4,8 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useCurrency } from "@/hooks/use-currency";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { locationsClient } from "@/lib/api/locations.client";
-import { ArrowLeft, Save, Trash2, Plus, X, Layers, GripVertical, ClipboardList } from "lucide-react";
+import { ArrowLeft, Save, Trash2, Plus, X, Layers, GripVertical, ClipboardList, Sandwich } from "lucide-react";
+import { ChartEditorModal } from "../assembly-charts/chart-editor-modal";
 import { BuildGuideEditorModal } from "../build-guides/build-guide-editor-modal";
 import toast from "react-hot-toast";
 import {
@@ -117,6 +118,7 @@ export function ProductForm({
   // ── Form state ──────────────────────────────────────────────────────
   const [name, setName] = useState("");
   const [guideOpen, setGuideOpen] = useState(false);
+  const [chartOpen, setChartOpen] = useState(false);
   const [description, setDescription] = useState("");
   const [plu, setPlu] = useState(genPlu());
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -421,6 +423,18 @@ export function ProductForm({
               How to build
             </Button>
           )}
+          {productId && (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => setChartOpen(true)}
+              className="border-pink-200 text-pink-700 hover:bg-pink-50"
+            >
+              <Sandwich className="h-3.5 w-3.5 mr-1.5" />
+              Chart
+            </Button>
+          )}
           <Button
             size="sm"
             onClick={() => saveMutation.mutate()}
@@ -437,6 +451,14 @@ export function ProductForm({
         </div>
       </div>
 
+      {productId && (
+        <ChartEditorModal
+          open={chartOpen}
+          itemId={productId}
+          itemName={name}
+          onClose={() => setChartOpen(false)}
+        />
+      )}
       {productId && (
         <BuildGuideEditorModal
           open={guideOpen}
