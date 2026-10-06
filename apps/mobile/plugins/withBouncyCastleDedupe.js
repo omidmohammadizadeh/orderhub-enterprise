@@ -14,24 +14,40 @@
 // card-reader SDK is the likeliest) still asks for the old one. iOS is
 // unaffected — it was the one platform that built.
 //
-// We drop the OLD artifact and pin the new one. They are the same classes, so
-// the library asking for 1.70 gets 1.78.1 and is satisfied; keeping 1.70
-// instead would mean shipping the older crypto to satisfy a dead artifact name.
+// BouncyCastle ships a FAMILY of artifacts — bcprov, bcutil, bcpkix, bcpg —
+// and every one of them was renamed. Excluding `bcprov-jdk15on` alone just
+// moved the failure to `bcutil-jdk15on`, so this substitutes the whole family
+// rather than naming members one at a time: any `org.bouncycastle:*-jdk15on`
+// is redirected to its `-jdk15to18` twin at a single version.
 //
-// `force` matters as well as `exclude`: without it a transitive bump could
-// reintroduce a second version of the SAME artifact later and fail the same
-// task again, with a more confusing message.
+// Substitution, not exclusion. `exclude` only worked for bcprov because
+// expo-updates happened to drag the replacement in; for an artifact nothing
+// else provides, excluding it would leave the consumer with missing classes at
+// runtime instead of a build error. Redirecting always leaves something on the
+// classpath that provides them.
+//
+// Pinning the version here also stops a later transitive bump reintroducing two
+// versions of the same artifact and failing the same task with a vaguer message.
 
 const { withAppBuildGradle } = require("@expo/config-plugins");
 
 const MARKER = "// orderhub: bouncycastle dedupe";
 
+const BC_VERSION = "1.78.1";
+
 const BLOCK = `
 ${MARKER}
 configurations.all {
-    exclude group: 'org.bouncycastle', module: 'bcprov-jdk15on'
-    resolutionStrategy {
-        force 'org.bouncycastle:bcprov-jdk15to18:1.78.1'
+    resolutionStrategy.eachDependency { details ->
+        if (details.requested.group == 'org.bouncycastle'
+                && details.requested.name.endsWith('-jdk15on')) {
+            details.useTarget(
+                group: 'org.bouncycastle',
+                name: details.requested.name.replace('-jdk15on', '-jdk15to18'),
+                version: '${BC_VERSION}'
+            )
+            details.because('jdk15on was renamed jdk15to18; both on the classpath fails checkReleaseDuplicateClasses')
+        }
     }
 }
 `;
