@@ -49,6 +49,7 @@ import {
   ChevronDown,
   X,
   ListTree,
+  Copy,
 } from "lucide-react";
 import { MenuSettingsDrawer } from "@/components/menu/menu-settings-drawer";
 import { VariantsManagerModal } from "@/components/menu/variants-manager-modal";
@@ -245,6 +246,21 @@ export default function MenuEditorPage() {
   const attachItemMutation = useMutation({
     mutationFn: ({ catId, itemId }: { catId: string; itemId: string }) =>
       menusClient.addItemToCategory(catId, { itemId }),
+  });
+  // Duplicate from a card: a new product (fresh PLU, same groups) placed in
+  // the same category, then opened for renaming —
+  // the Products tab's Duplicate, plus "and put it on this menu".
+  const duplicateItemMutation = useMutation({
+    mutationFn: async ({ catId, itemId }: { catId: string; itemId: string }) => {
+      const copy = await productsClient.duplicate(itemId);
+      await menusClient.addItemToCategory(catId, { itemId: copy.id });
+      return copy;
+    },
+    onSuccess: (copy) => {
+      qc.invalidateQueries({ queryKey: ["menu", menuId] });
+      qc.invalidateQueries({ queryKey: ["catalog", "products"] });
+      if (copy?.id) setProductEditorTarget(copy.id);
+    },
   });
   const detachItemMutation = useMutation({
     mutationFn: ({ catId, itemId }: { catId: string; itemId: string }) =>
@@ -910,17 +926,30 @@ export default function MenuEditorPage() {
                         <div className="absolute top-3 right-3 flex items-center gap-1">
                           <button
                             onClick={() => setPricingTarget(p)}
-                            className="p-2 text-zinc-400 hover:text-violet-600 md:p-1 md:text-zinc-300"
+                            className="p-2 text-zinc-400 hover:text-violet-600 md:p-1"
                             title="Channel pricing"
                           >
                             <Tag className="h-3.5 w-3.5" />
                           </button>
                           <button
                             onClick={() => setProductEditorTarget(p.id)}
-                            className="p-2 text-zinc-400 hover:text-zinc-900 md:p-1 md:text-zinc-300"
-                            title="Edit product"
+                            className="rounded-md px-2 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
                           >
-                            <Pencil className="h-3.5 w-3.5" />
+                            Edit
+                          </button>
+                          <button
+                            onClick={() =>
+                              duplicateItemMutation.mutate({
+                                catId: activeCat.id,
+                                itemId: p.id,
+                              })
+                            }
+                            disabled={duplicateItemMutation.isPending}
+                            className="p-2 text-zinc-400 hover:text-zinc-900 disabled:opacity-40 md:p-1"
+                            title="Duplicate — a new product with a new PLU, added to this category"
+                            aria-label={`Duplicate ${p.name}`}
+                          >
+                            <Copy className="h-3.5 w-3.5" />
                           </button>
                           <button
                             onClick={() => {
@@ -935,7 +964,7 @@ export default function MenuEditorPage() {
                                 });
                               }
                             }}
-                            className="p-2 text-zinc-400 hover:text-red-600 md:p-1 md:text-zinc-300"
+                            className="p-2 text-zinc-400 hover:text-red-600 md:p-1"
                             title="Remove from category"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
@@ -966,7 +995,7 @@ export default function MenuEditorPage() {
                             <ChevronDown className="h-4 w-4" />
                           </button>
                         </div>
-                        <div className="pl-7 pr-24 md:pl-3">
+                        <div className="pl-7 pr-36 md:pl-3">
                           <h3 className="font-bold text-zinc-900 text-base leading-tight mb-1">
                             {p.name}
                           </h3>
@@ -987,7 +1016,8 @@ export default function MenuEditorPage() {
                             )}
                           </div>
                           {(p.plu || p.sku) && (
-                            <p className="mt-2 text-[10px] font-mono text-zinc-400 truncate">
+                            <p className="mt-2 truncate font-mono text-xs text-zinc-500">
+                              <span className="text-zinc-400">PLU </span>
                               {p.plu ?? p.sku}
                             </p>
                           )}
