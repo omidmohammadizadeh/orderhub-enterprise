@@ -82,6 +82,62 @@ const NAME_COLLATOR = new Intl.Collator("en", {
   sensitivity: "base",
 });
 
+/**
+ * A product card's PLU, copyable. The card is draggable, which blocks text
+ * selection, so the code itself opts out of dragging (select-text) and a
+ * button copies it in one click.
+ */
+function CopyablePlu({ value }: { value: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(value);
+    } catch {
+      // Clipboard API refused (non-secure context): fall back to a selection.
+      const ta = document.createElement("textarea");
+      ta.value = value;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      ta.remove();
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+  return (
+    <p className="flex min-w-0 items-center gap-1 font-mono">
+      <span className="text-zinc-400">PLU</span>
+      <span
+        className="min-w-0 cursor-text select-text truncate"
+        draggable={false}
+        onDragStart={(e) => e.preventDefault()}
+        title={value}
+      >
+        {value}
+      </span>
+      <button
+        type="button"
+        onClick={copy}
+        className="shrink-0 rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-900"
+        aria-label={`Copy PLU ${value}`}
+        title="Copy PLU"
+      >
+        {copied ? (
+          <Check className="h-3 w-3 text-emerald-600" />
+        ) : (
+          <Copy className="h-3 w-3" />
+        )}
+      </button>
+      {copied && (
+        <span className="font-sans text-[11px] text-emerald-600" role="status">
+          Copied
+        </span>
+      )}
+    </p>
+  );
+}
+
 export default function MenuEditorPage() {
   const { menuId } = useParams<{ menuId: string }>();
   const router = useRouter();
@@ -1017,10 +1073,7 @@ export default function MenuEditorPage() {
                                 </p>
                               )}
                               {(p.plu || p.sku) && (
-                                <p className="truncate font-mono">
-                                  <span className="text-zinc-400">PLU </span>
-                                  {p.plu ?? p.sku}
-                                </p>
+                                <CopyablePlu value={(p.plu ?? p.sku) as string} />
                               )}
                             </div>
                             <span className="shrink-0 text-lg font-bold text-orange-500">
