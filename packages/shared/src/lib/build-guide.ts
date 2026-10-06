@@ -16,6 +16,15 @@ export interface BuildGuideStep {
   amount?: string | null;
   /** "Spatula", "Squeeze bottle" — optional tool tags */
   tools?: string[];
+  /**
+   * Modifier-aware steps. `onlyWith`: the step is for an extra — shown
+   * highlighted when the order has one of these modifiers, greyed out as
+   * "not ordered" otherwise. `skipWith`: a step the customer can remove
+   * ("No onion") — struck through when one of these is on the order.
+   * Both hold modifier option NAMES, matched with buildGuideNameKey.
+   */
+  onlyWith?: string[];
+  skipWith?: string[];
 }
 
 export interface BuildGuideDto {
@@ -61,4 +70,40 @@ export function matchBuildGuideKey(
     if (line.startsWith(key + " ") && (!best || key.length > best.length)) best = key;
   }
   return best;
+}
+
+/** Does an ordered modifier satisfy a step condition? Exact key, or the
+ *  condition's words appearing whole inside the modifier ("Cheese" matches
+ *  "Extra Cheese", never "Cheesecake"). */
+function modifierMatches(conditionKey: string, modifierKey: string): boolean {
+  if (!conditionKey || !modifierKey) return false;
+  if (conditionKey === modifierKey) return true;
+  return ` ${modifierKey} `.includes(` ${conditionKey} `);
+}
+
+export type BuildStepState = "always" | "added" | "notOrdered" | "skipped";
+
+/**
+ * How a step applies to THIS order line, given the names of its modifiers.
+ * A skip beats an add: "No sauce" wins even if the step also lists "Sauce".
+ */
+export function buildStepState(
+  step: Pick<BuildGuideStep, "onlyWith" | "skipWith">,
+  modifierNames: Array<string | null | undefined>,
+): { state: BuildStepState; matched: string[] } {
+  const mods = modifierNames
+    .map((n) => ({ name: String(n ?? ""), key: buildGuideNameKey(n) }))
+    .filter((m) => m.key);
+  const hits = (conds?: string[]) =>
+    mods
+      .filter((m) => (conds ?? []).some((c) => modifierMatches(buildGuideNameKey(c), m.key)))
+      .map((m) => m.name);
+
+  const skipped = hits(step.skipWith);
+  if (skipped.length) return { state: "skipped", matched: skipped };
+  if ((step.onlyWith ?? []).filter((c) => buildGuideNameKey(c)).length) {
+    const added = hits(step.onlyWith);
+    return added.length ? { state: "added", matched: added } : { state: "notOrdered", matched: [] };
+  }
+  return { state: "always", matched: [] };
 }

@@ -5,9 +5,11 @@
 // The guide is stored per BRAND + product name, so every location selling
 // this brand (including menus cloned to another shop) sees the same chart.
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowDown, ArrowUp, ClipboardList, Eye, Loader2, Plus, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, ClipboardList, Eye, Loader2, Plus, Printer, Trash2, X } from "lucide-react";
+import { productsClient } from "@/lib/api/catalog.client";
+import { ModifierTagInput } from "./modifier-tag-input";
 import { BUILD_GUIDE_MAX_STEPS } from "@orderhub/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +27,8 @@ interface DraftStep {
   imageUrl: string | null;
   amount: string;
   tools: string;
+  onlyWith: string[];
+  skipWith: string[];
 }
 
 function newId() {
@@ -40,6 +44,8 @@ function toDraft(s: BuildGuideStep): DraftStep {
     imageUrl: s.imageUrl ?? null,
     amount: s.amount ?? "",
     tools: (s.tools ?? []).join(", "),
+    onlyWith: s.onlyWith ?? [],
+    skipWith: s.skipWith ?? [],
   };
 }
 
@@ -50,10 +56,12 @@ function fromDraft(d: DraftStep): BuildGuideStep {
     imageUrl: d.imageUrl,
     amount: d.amount.trim() || null,
     tools: d.tools.split(",").map((t) => t.trim()).filter(Boolean),
+    ...(d.onlyWith.length ? { onlyWith: d.onlyWith } : {}),
+    ...(d.skipWith.length ? { skipWith: d.skipWith } : {}),
   };
 }
 
-const emptyStep = (): DraftStep => ({ id: newId(), text: "", imageUrl: null, amount: "", tools: "" });
+const emptyStep = (): DraftStep => ({ id: newId(), text: "", imageUrl: null, amount: "", tools: "", onlyWith: [], skipWith: [] });
 
 interface Props {
   open: boolean;
@@ -84,6 +92,24 @@ export function BuildGuideEditorModal({ open, itemId, itemName, onClose }: Props
     setError(null);
     setPreview(false);
   }, [open, guideQuery.isLoading, guideQuery.data]);
+
+  // The product's own modifier names, offered when a step is tied to one.
+  const productQuery = useQuery({
+    queryKey: ["catalog", "product", itemId, "build-guide-modifiers"],
+    queryFn: () => productsClient.get(itemId),
+    enabled: open && !!itemId,
+    staleTime: 60_000,
+  });
+  const modifierNames = useMemo(() => {
+    const p = productQuery.data;
+    const groups = [
+      ...(p?.modifierGroupLinks ?? []).map((l) => l.group),
+      ...(p?.skuModifierGroups ?? []),
+    ];
+    const names = new Set<string>();
+    for (const g of groups) for (const o of g?.options ?? []) if (o?.name) names.add(o.name);
+    return [...names].sort((a, b) => a.localeCompare(b));
+  }, [productQuery.data]);
 
   const save = useMutation({
     mutationFn: () =>
@@ -131,6 +157,18 @@ export function BuildGuideEditorModal({ open, itemId, itemName, onClose }: Props
             </p>
           </div>
           <div className="flex items-center gap-2">
+            {guideQuery.data && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => window.open(`/print/build-guides?item=${encodeURIComponent(itemId)}`, "_blank")}
+                title="Print this guide on A4 (saved version)"
+              >
+                <Printer className="mr-1.5 h-3.5 w-3.5" />
+                A4
+              </Button>
+            )}
             <Button
               type="button"
               variant="outline"
@@ -232,6 +270,24 @@ export function BuildGuideEditorModal({ open, itemId, itemName, onClose }: Props
                             placeholder="e.g. Spoodle, squeeze bottle"
                           />
                         </div>
+                      </div>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <ModifierTagInput
+                          label="Only with"
+                          hint="an extra; highlighted when ordered"
+                          tone="amber"
+                          value={s.onlyWith}
+                          onChange={(v) => update(i, { onlyWith: v })}
+                          suggestions={modifierNames}
+                        />
+                        <ModifierTagInput
+                          label="Skip if"
+                          hint="e.g. No onion; struck through"
+                          tone="red"
+                          value={s.skipWith}
+                          onChange={(v) => update(i, { skipWith: v })}
+                          suggestions={modifierNames}
+                        />
                       </div>
                     </div>
                   </div>

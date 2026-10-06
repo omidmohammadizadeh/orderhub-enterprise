@@ -176,6 +176,76 @@ export class BuildGuidesService {
     };
   }
 
+  /**
+   * Every product on a menu that has a guide, grouped by category in menu
+   * order — the feed for the printable A4 build charts.
+   */
+  async forMenu(menuId: string, tenantId: string) {
+    const menu = await this.prisma.menu.findFirst({
+      where: { id: menuId, deletedAt: null, brand: { tenantId } },
+      select: {
+        id: true,
+        name: true,
+        brand: { select: { name: true } },
+        categories: {
+          orderBy: { sortOrder: "asc" },
+          select: {
+            name: true,
+            items: {
+              orderBy: { sortOrder: "asc" },
+              select: { item: { select: { id: true, name: true, brandId: true, imageUrl: true } } },
+            },
+          },
+        },
+      },
+    });
+    if (!menu) throw new NotFoundException("Menu not found");
+
+    const items = menu.categories.flatMap((c: any) => c.items.map((l: any) => l.item).filter(Boolean));
+    const brandIds = [...new Set(items.map((i: any) => i.brandId))] as string[];
+    const rows = brandIds.length
+      ? await this.prisma.buildGuide.findMany({ where: { tenantId, brandId: { in: brandIds } } })
+      : [];
+    const byKey = new Map<string, any>(rows.map((r: any) => [`${r.brandId}|${r.nameKey}`, r]));
+
+    const seen = new Set<string>();
+    const categories = menu.categories
+      .map((c: any) => ({
+        name: c.name,
+        items: c.items
+          .map((l: any) => l.item)
+          .filter((i: any) => i && !seen.has(i.id))
+          .map((i: any) => {
+            const row = byKey.get(`${i.brandId}|${buildGuideNameKey(i.name)}`);
+            if (!row) return null;
+            seen.add(i.id);
+            return { id: i.id, name: i.name, imageUrl: i.imageUrl ?? null, guide: this.toDto(row) };
+          })
+          .filter(Boolean),
+      }))
+      .filter((c: any) => c.items.length > 0);
+
+    return { menuId: menu.id, menuName: menu.name, brandName: menu.brand?.name ?? null, categories };
+  }
+
+  /** One product with its guide, for printing a single chart. */
+  async forItemPrint(itemId: string, tenantId: string) {
+    const item = await this.prisma.menuItem.findUnique({
+      where: { id: itemId },
+      select: { id: true, name: true, brandId: true, imageUrl: true },
+    });
+    const guide = await this.getForItem(itemId, tenantId); // also the tenant check
+    const brand = await this.prisma.brand.findFirst({ where: { id: item!.brandId }, select: { name: true } });
+    return {
+      menuId: null,
+      menuName: null,
+      brandName: brand?.name ?? null,
+      categories: guide
+        ? [{ name: "", items: [{ id: item!.id, name: item!.name, imageUrl: item!.imageUrl ?? null, guide }] }]
+        : [],
+    };
+  }
+
   // ── helpers ────────────────────────────────────────────────────────────────
 
   private line(l: any) {
@@ -219,9 +289,13 @@ export class BuildGuidesService {
       // Photos come from the dashboard as data URIs when the upload endpoint
       // was unreachable — push them to storage so the JSON stays small.
       imageUrl = (await rehostImageIfInline(this.storage, imageUrl, `build-guides/${tenantId}`)) ?? null;
-      const tools = Array.isArray(src.tools)
-        ? (src.tools.map((t) => clip(t, MAX_SHORT)).filter(Boolean) as string[]).slice(0, 8)
-        : [];
+      const tags = (v: unknown, max: number) =>
+        Array.isArray(v)
+          ? ([...new Set(v.map((t) => clip(t, MAX_SHORT)).filter(Boolean))] as string[]).slice(0, max)
+          : [];
+      const tools = tags(src.tools, 8);
+      const onlyWith = tags(src.onlyWith, 20);
+      const skipWith = tags(src.skipWith, 20);
       if (!text && !imageUrl) continue; // an empty card is not a step
       out.push({
         id: typeof src.id === "string" && src.id ? src.id.slice(0, 64) : randomUUID(),
@@ -229,6 +303,8 @@ export class BuildGuidesService {
         imageUrl,
         amount: clip(src.amount, MAX_SHORT),
         tools,
+        ...(onlyWith.length ? { onlyWith } : {}),
+        ...(skipWith.length ? { skipWith } : {}),
       });
     }
     return out;

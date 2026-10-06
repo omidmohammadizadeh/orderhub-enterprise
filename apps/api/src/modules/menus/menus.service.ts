@@ -14,6 +14,7 @@ import type { Queue } from "bull";
 import type { Prisma } from "@orderhub/database";
 import { withDeliverooModifierType } from "./deliveroo-modifier-type";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { carryGuideOnRename, copyGuideToName } from "../build-guides/build-guide-carry";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 import { PluService, randomPlu } from "./plu.service";
 import { MenuAssignmentsService } from "./menu-assignments.service";
@@ -1680,8 +1681,8 @@ export class MenusService {
 
   async updateItem(itemId: string, tenantId: string, dto: UpdateMenuItemDto) {
     dto = await this.rehostInline(dto, ["imageUrl"], "products");
-    await this.assertItemAccess(itemId, tenantId);
-    return this.prisma.menuItem.update({
+    const before = await this.assertItemAccess(itemId, tenantId);
+    const updated = await this.prisma.menuItem.update({
       where: { id: itemId },
       data: {
         ...(dto.name && { name: dto.name }),
@@ -1743,6 +1744,16 @@ export class MenusService {
         modifierGroupLinks: { include: { group: { include: { options: true } } } },
       },
     });
+    // "How to build" guides are keyed by name — keep this one attached.
+    if (dto.name && dto.name !== before.name) {
+      await carryGuideOnRename(this.prisma as any, {
+        itemId,
+        brandId: before.brandId,
+        oldName: before.name,
+        newName: dto.name,
+      });
+    }
+    return updated;
   }
 
   async toggleAvailability(itemId: string, tenantId: string) {
@@ -1779,7 +1790,7 @@ export class MenusService {
       ? (src.productSkus as any[]).map((sku) => ({ ...sku, plu: null }))
       : (src.productSkus ?? []);
 
-    return this.prisma.$transaction(async (tx) => {
+    const created = await this.prisma.$transaction(async (tx) => {
       const created = await tx.menuItem.create({
         data: {
           brandId: src.brandId,
@@ -1828,6 +1839,13 @@ export class MenusService {
       }
       return created;
     });
+    // The copy gets its own "How to build" guide (it follows a later rename).
+    await copyGuideToName(this.prisma as any, {
+      brandId: src.brandId,
+      fromName: src.name,
+      newName: created.name,
+    });
+    return created;
   }
 
   // ── Bulk Operations ────────────────────────────────────────────────────────

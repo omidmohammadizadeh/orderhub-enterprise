@@ -25,6 +25,18 @@ export class BuildGuidesController {
     return this.guides.forOrder(orderId, user.tenantId);
   }
 
+  @Get("menu/:menuId/print")
+  @ApiOperation({ summary: "Every guided product on a menu, by category — for A4 printing" })
+  forMenu(@Param("menuId") menuId: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.guides.forMenu(menuId, user.tenantId);
+  }
+
+  @Get("item/:itemId/print")
+  @ApiOperation({ summary: "One product's guide in the print shape" })
+  forItemPrint(@Param("itemId") itemId: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.guides.forItemPrint(itemId, user.tenantId);
+  }
+
   @Get("item/:itemId")
   @ApiOperation({ summary: "The build guide for a product (null when none)" })
   async getForItem(@Param("itemId") itemId: string, @CurrentUser() user: AuthenticatedUser) {

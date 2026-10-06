@@ -527,6 +527,18 @@ export default function MenuEditorPage() {
             variant="outline"
             size="sm"
             className="h-9 flex-shrink-0 gap-1.5"
+            title="Print every product's How to build guide on this menu, one A4 sheet each"
+            onClick={() =>
+              window.open(`/print/build-guides?menu=${encodeURIComponent(menuId)}`, "_blank")
+            }
+          >
+            <ClipboardList className="h-4 w-4" />
+            Build guides (A4)
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9 flex-shrink-0 gap-1.5"
             onClick={() =>
               window.open(`/menu/${menuId}/preview`, "_blank")
             }

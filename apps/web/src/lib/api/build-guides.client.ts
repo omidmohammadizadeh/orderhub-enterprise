@@ -13,7 +13,21 @@ export interface BuildGuideOrderLine {
   guide: BuildGuideDto | null;
 }
 
+export interface BuildGuidePrintFeed {
+  menuId: string | null;
+  menuName: string | null;
+  brandName: string | null;
+  categories: Array<{
+    name: string;
+    items: Array<{ id: string; name: string; imageUrl: string | null; guide: BuildGuideDto }>;
+  }>;
+}
+
 export const buildGuidesClient = {
+  printMenu: (menuId: string) =>
+    apiClient.get<BuildGuidePrintFeed>(`/v1/build-guides/menu/${menuId}/print`).then((r) => r.data),
+  printItem: (itemId: string) =>
+    apiClient.get<BuildGuidePrintFeed>(`/v1/build-guides/item/${itemId}/print`).then((r) => r.data),
   getForItem: (itemId: string) =>
     apiClient
       .get<{ guide: BuildGuideDto | null }>(`/v1/build-guides/item/${itemId}`)
