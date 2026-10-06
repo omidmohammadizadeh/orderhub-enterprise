@@ -25,6 +25,9 @@ import { configureGoogleSignIn } from "@/services/google";
 // Requires `npx expo install @stripe/stripe-terminal-react-native` + an EAS
 // dev build (see src/services/terminal.ts).
 import { TerminalMount } from "@/services/terminal";
+// Over-the-air update prompt. Renders nothing until a bundle has downloaded,
+// then offers it — it never reloads the till on its own. See UpdateBanner.
+import { UpdateBanner } from "@/components/UpdateBanner";
 
 export default function App() {
   const { tokens, hydrated, fromFreshLogin, setTokens } = useAuth();
@@ -68,9 +71,13 @@ export default function App() {
           {/* Card-reader provider runs alongside the WebView (renders nothing),
               wired to it via the terminalController singleton — never wraps it. */}
           <TerminalMount />
+          <UpdateBanner />
         </>
       ) : (
-        <LoginScreen onSignedIn={(t) => setTokens(t)} />
+        <>
+          <LoginScreen onSignedIn={(t) => setTokens(t)} />
+          <UpdateBanner />
+        </>
       )}
     </SafeAreaProvider>
   );
