@@ -168,15 +168,19 @@ export function ProductsTab({ brandId, locationId, search }: Props) {
         </Button>
       </div>
 
-      <div className="rounded-xl border border-zinc-200 overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="rounded-xl border border-zinc-200 overflow-x-auto">
+        {/* Fixed layout: a long description used to widen the Name column
+            until PLU, Price, Status and the buttons fell off the right edge
+            (the wrapper clips) — only "Name" was visible. Now the other
+            columns keep their width and the name/description truncate. */}
+        <table className="w-full min-w-[760px] table-fixed text-sm">
           <thead className="bg-zinc-50 text-zinc-500">
             <tr>
               <th className="text-left font-medium px-4 py-2.5">Name</th>
-              <th className="text-left font-medium px-4 py-2.5">PLU</th>
-              <th className="text-right font-medium px-4 py-2.5">Price</th>
-              <th className="text-center font-medium px-4 py-2.5">Status</th>
-              <th className="w-32" />
+              <th className="w-40 text-left font-medium px-4 py-2.5">PLU</th>
+              <th className="w-24 text-right font-medium px-4 py-2.5">Price</th>
+              <th className="w-48 text-center font-medium px-4 py-2.5">Status</th>
+              <th className="w-36" />
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-100">
@@ -208,7 +212,10 @@ export function ProductsTab({ brandId, locationId, search }: Props) {
                     </div>
                   </div>
                 </td>
-                <td className="px-4 py-2.5 font-mono text-xs text-zinc-600">
+                <td
+                  className="truncate px-4 py-2.5 font-mono text-xs text-zinc-600"
+                  title={p.plu ?? undefined}
+                >
                   {p.plu ?? "—"}
                 </td>
                 <td className="px-4 py-2.5 text-right tabular-nums">
