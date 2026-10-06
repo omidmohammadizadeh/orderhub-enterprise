@@ -87,6 +87,35 @@ export function parseJetSignatureHeader(
   return { timestampMs, signature };
 }
 
+/**
+ * Whatever id JET puts on the response, so a support ticket can quote one.
+ *
+ * `/item-availability` answers 202 and applies asynchronously, so when an update
+ * silently does nothing (Jinty's 302649, Oct 2026) our logs can prove we called
+ * and nothing more. The first thing any platform asks is "give us a request
+ * ID", and we had none to give — the whole investigation stalled on it.
+ *
+ * Header name is not in JET's spec and differs per gateway, so take the first
+ * that is present rather than guessing one. Costs nothing when absent.
+ */
+const CORRELATION_HEADERS = [
+  "x-request-id",
+  "request-id",
+  "x-correlation-id",
+  "x-amzn-requestid",
+  "x-amz-request-id",
+  "traceparent",
+];
+
+function correlationRef(headers: Headers | undefined): string {
+  if (!headers?.get) return "";
+  for (const name of CORRELATION_HEADERS) {
+    const v = headers.get(name);
+    if (v) return `${name}=${v}`;
+  }
+  return "";
+}
+
 @Injectable()
 export class JetClientService {
   private readonly logger = new Logger(JetClientService.name);
@@ -273,6 +302,7 @@ export class JetClientService {
     const maxAttempts = Math.max(1, (opts.retries ?? 0) + 1);
     const baseDelay = opts.retryDelayMs ?? 500;
     let lastError = "";
+    let lastRef = "";
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       let status = 0;
@@ -281,12 +311,15 @@ export class JetClientService {
         const res = await call();
         status = res.status;
         text = await res.text();
+        const ref = correlationRef(res.headers);
         if (res.ok) {
           this.logger.log(
-            `JET ${method} ${path} → ${status} (key=${opts.keyType}/${source})`,
+            `JET ${method} ${path} → ${status} (key=${opts.keyType}/${source})` +
+              (ref ? ` ref=${ref}` : ""),
           );
           return (text ? JSON.parse(text) : null) as T;
         }
+        lastRef = ref;
         lastError = `${status}: ${text.slice(0, 200)}`;
         // 4xx other than 429 will not get better by asking again.
         if (status < 500 && status !== 429) break;
@@ -305,7 +338,9 @@ export class JetClientService {
       }
     }
 
-    this.logger.warn(`JET ${method} ${path} failed: ${lastError}`);
+    this.logger.warn(
+      `JET ${method} ${path} failed: ${lastError}` + (lastRef ? ` ref=${lastRef}` : ""),
+    );
     throw new BadRequestException(`JET ${method} ${path} → ${lastError}`);
   }
 }
