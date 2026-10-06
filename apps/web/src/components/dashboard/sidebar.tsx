@@ -27,6 +27,7 @@ import {
   Smartphone,
   Zap,
   ChefHat,
+  GraduationCap,
   FlaskConical,
   Layers,
   Globe,
@@ -232,6 +233,8 @@ const operationsNav: NavItem[] = [
     icon: ChefHat,
     roles: [...MANAGER_TIER, "KITCHEN_DISPLAY"],
   },
+  // "How to build" guides, learned step by step — everyone on shift.
+  { href: "/dashboard/training", label: "Kitchen training", icon: GraduationCap, roles: SHOP_FLOOR },
   { href: "/dashboard/dispatch", label: "Dispatch", icon: Truck, roles: SHOP_FLOOR },
   { href: "/dashboard/orders/cashier", label: "Cashier", icon: ShoppingBag, roles: MANAGER_TIER },
 ];

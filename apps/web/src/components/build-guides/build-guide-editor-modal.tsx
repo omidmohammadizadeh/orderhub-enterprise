@@ -7,7 +7,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowDown, ArrowUp, ClipboardList, Eye, Loader2, Plus, Printer, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, BookmarkPlus, BookOpen, Check, ClipboardList, Eye, Loader2, Plus, Printer, Sparkles, Trash2, X } from "lucide-react";
+import { StepLibraryPicker, STEP_LIBRARY_QUERY } from "./step-library-picker";
 import { productsClient } from "@/lib/api/catalog.client";
 import { ModifierTagInput } from "./modifier-tag-input";
 import { BUILD_GUIDE_MAX_STEPS } from "@orderhub/shared";
@@ -111,6 +112,46 @@ export function BuildGuideEditorModal({ open, itemId, itemName, onClose }: Props
     return [...names].sort((a, b) => a.localeCompare(b));
   }, [productQuery.data]);
 
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [savedToLibrary, setSavedToLibrary] = useState<Set<string>>(new Set());
+  const saveToLibrary = useMutation({
+    mutationFn: (d: DraftStep) =>
+      buildGuidesClient.saveToLibrary({
+        text: d.text.trim(),
+        imageUrl: d.imageUrl,
+        amount: d.amount.trim() || null,
+        tools: d.tools.split(",").map((t) => t.trim()).filter(Boolean),
+        brandId: guideQuery.data?.brandId ?? null,
+      }),
+    onSuccess: (_r, d) => {
+      setSavedToLibrary((prev) => new Set(prev).add(d.id));
+      qc.invalidateQueries({ queryKey: STEP_LIBRARY_QUERY });
+    },
+    onError: (e: any) => setError(e?.response?.data?.message ?? "Could not save the step to the library"),
+  });
+
+  const aiDraft = useMutation({
+    mutationFn: () => buildGuidesClient.aiDraft(itemId),
+    onSuccess: (draft) => {
+      if (!draft.steps.length) {
+        setError("The AI could not draft steps for this product.");
+        return;
+      }
+      // Photos stay with the operator: keep any photo already on the same step
+      // number so a re-draft does not wipe pictures that were taken.
+      setSteps((prev) =>
+        draft.steps.map((st, i) => ({
+          ...toDraft({ ...st, id: newId() }),
+          imageUrl: prev[i]?.imageUrl ?? null,
+        })),
+      );
+      if (draft.packNote) setPackNote(draft.packNote);
+      setError(null);
+      setPreview(false);
+    },
+    onError: (e: any) => setError(e?.response?.data?.message ?? "AI draft failed — try again."),
+  });
+
   const save = useMutation({
     mutationFn: () =>
       buildGuidesClient.saveForItem(itemId, {
@@ -157,6 +198,26 @@ export function BuildGuideEditorModal({ open, itemId, itemName, onClose }: Props
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={aiDraft.isPending || guideQuery.isLoading}
+              onClick={() => {
+                const hasWork = steps.some((st) => st.text.trim());
+                if (hasWork && !confirm("Replace the current steps with an AI draft? Photos on matching step numbers are kept. Nothing is saved until you press Save.")) return;
+                aiDraft.mutate();
+              }}
+              className="border-violet-200 text-violet-700 hover:bg-violet-50"
+              title="Draft steps from the product's name, photo and modifiers"
+            >
+              {aiDraft.isPending ? (
+                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+              )}
+              {aiDraft.isPending ? "Drafting…" : "Draft with AI"}
+            </Button>
             {guideQuery.data && (
               <Button
                 type="button"
@@ -205,6 +266,15 @@ export function BuildGuideEditorModal({ open, itemId, itemName, onClose }: Props
                       {i + 1}
                     </span>
                     <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => saveToLibrary.mutate(s)}
+                        disabled={(!s.text.trim() && !s.imageUrl) || savedToLibrary.has(s.id) || saveToLibrary.isPending}
+                        className="rounded p-1.5 text-zinc-400 hover:bg-orange-50 hover:text-orange-600 disabled:opacity-40"
+                        title={savedToLibrary.has(s.id) ? "Saved to the step library" : "Save this step to the library for reuse"}
+                      >
+                        {savedToLibrary.has(s.id) ? <Check className="h-4 w-4 text-emerald-600" /> : <BookmarkPlus className="h-4 w-4" />}
+                      </button>
                       <button
                         type="button"
                         onClick={() => move(i, -1)}
@@ -294,15 +364,26 @@ export function BuildGuideEditorModal({ open, itemId, itemName, onClose }: Props
                 </div>
               ))}
 
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setSteps((prev) => [...prev, emptyStep()])}
-                disabled={steps.length >= BUILD_GUIDE_MAX_STEPS}
-                className="w-full border-dashed"
-              >
-                <Plus className="mr-1.5 h-4 w-4" /> Add step
-              </Button>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setSteps((prev) => [...prev, emptyStep()])}
+                  disabled={steps.length >= BUILD_GUIDE_MAX_STEPS}
+                  className="w-full border-dashed"
+                >
+                  <Plus className="mr-1.5 h-4 w-4" /> Add step
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setLibraryOpen(true)}
+                  disabled={steps.length >= BUILD_GUIDE_MAX_STEPS}
+                  className="w-full border-dashed"
+                >
+                  <BookOpen className="mr-1.5 h-4 w-4" /> Add from library
+                </Button>
+              </div>
 
               <div>
                 <label className="mb-1 block text-xs font-medium text-zinc-600">Pack note (optional)</label>
@@ -331,6 +412,26 @@ export function BuildGuideEditorModal({ open, itemId, itemName, onClose }: Props
           </div>
         </div>
       </div>
+      <StepLibraryPicker
+        open={libraryOpen}
+        onClose={() => setLibraryOpen(false)}
+        onPick={(t) => {
+          const copy: DraftStep = {
+            ...emptyStep(),
+            text: t.text,
+            imageUrl: t.imageUrl,
+            amount: t.amount ?? "",
+            tools: (t.tools ?? []).join(", "),
+          };
+          // Replace a blank trailing card rather than leaving an empty step behind it.
+          setSteps((prev) => {
+            const last = prev[prev.length - 1];
+            const blank = last && !last.text.trim() && !last.imageUrl;
+            return [...(blank ? prev.slice(0, -1) : prev), copy];
+          });
+          setLibraryOpen(false);
+        }}
+      />
     </div>
   );
 }

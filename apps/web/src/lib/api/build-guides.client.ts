@@ -23,7 +23,56 @@ export interface BuildGuidePrintFeed {
   }>;
 }
 
+export interface BuildStepTemplate {
+  id: string;
+  brandId: string | null;
+  title: string;
+  text: string;
+  imageUrl: string | null;
+  amount: string | null;
+  tools: string[];
+  updatedAt: string;
+}
+
+export interface TrainingOverviewRow {
+  id: string;
+  name: string;
+  brandName: string | null;
+  stepCount: number;
+  imageUrl: string | null;
+  updatedAt: string;
+  myStatus: "new" | "trained" | "refresher";
+  trainedCount: number;
+}
+
+export interface TrainingGuide extends BuildGuideDto {
+  brandName: string | null;
+}
+
 export const buildGuidesClient = {
+  library: (q?: string) =>
+    apiClient
+      .get<BuildStepTemplate[]>("/v1/build-guides/library/steps", { params: q ? { q } : {} })
+      .then((r) => r.data),
+  saveToLibrary: (body: Partial<BuildStepTemplate> & { text: string }) =>
+    apiClient.post<BuildStepTemplate>("/v1/build-guides/library/steps", body).then((r) => r.data),
+  removeFromLibrary: (id: string) => apiClient.delete(`/v1/build-guides/library/steps/${id}`),
+  aiDraft: (itemId: string) =>
+    apiClient
+      .post<{ steps: BuildGuideStep[]; packNote: string | null }>(`/v1/build-guides/item/${itemId}/ai-draft`, {}, { timeout: 120_000 })
+      .then((r) => r.data),
+  trainingOverview: () =>
+    apiClient.get<TrainingOverviewRow[]>("/v1/build-guides/training/overview").then((r) => r.data),
+  trainingGuide: (guideId: string) =>
+    apiClient.get<TrainingGuide>(`/v1/build-guides/training/guide/${guideId}`).then((r) => r.data),
+  completeTraining: (guideId: string) =>
+    apiClient.post(`/v1/build-guides/training/guide/${guideId}/complete`, {}).then((r) => r.data),
+  whoTrained: (guideId: string) =>
+    apiClient
+      .get<Array<{ name: string; completedAt: string; current: boolean }>>(
+        `/v1/build-guides/training/guide/${guideId}/staff`,
+      )
+      .then((r) => r.data),
   printMenu: (menuId: string) =>
     apiClient.get<BuildGuidePrintFeed>(`/v1/build-guides/menu/${menuId}/print`).then((r) => r.data),
   printItem: (itemId: string) =>

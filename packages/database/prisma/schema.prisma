@@ -5857,8 +5857,45 @@ model BuildGuide {
   updatedBy String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  trainings BuildGuideTraining[]
 
   @@unique([brandId, nameKey])
   @@index([tenantId, nameKey])
   @@map("build_guides")
+}
+
+// A reusable "How to build" step — "Wrap in foil", "Toast the bun 30s" — saved
+// once and inserted into any guide. Inserting COPIES it, so editing the
+// library never silently changes a guide the kitchen already learned.
+model BuildStepTemplate {
+  id        String   @id @default(cuid())
+  tenantId  String
+  // Brand it was saved from (label only — every brand of the tenant may use it)
+  brandId   String?
+  title     String
+  text      String
+  imageUrl  String?
+  amount    String?
+  tools     String[] @default([])
+  createdBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("build_step_templates")
+}
+
+// Training mode — a staff member walked a guide start to finish. A guide
+// edited after completedAt shows as "needs a refresher" rather than trained.
+model BuildGuideTraining {
+  id          String     @id @default(cuid())
+  tenantId    String
+  guideId     String
+  guide       BuildGuide @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  userId      String
+  completedAt DateTime   @default(now())
+
+  @@unique([guideId, userId])
+  @@index([tenantId, userId])
+  @@map("build_guide_trainings")
 }
