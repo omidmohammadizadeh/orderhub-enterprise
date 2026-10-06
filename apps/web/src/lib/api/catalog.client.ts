@@ -201,6 +201,11 @@ export const productsClient = {
     apiClient.patch<CatalogProduct>(`/v1/items/${id}`, data).then((r) => r.data),
   remove: (id: string) =>
     apiClient.delete(`/v1/items/${id}`).then((r) => r.data),
+  /** New product with a fresh PLU, same modifier groups, on no menu. */
+  duplicate: (id: string) =>
+    apiClient
+      .post<CatalogProduct>(`/v1/items/${id}/duplicate`)
+      .then((r) => r.data),
   // The menus controller exposes /v1/items/:itemId/... — these three
   // endpoints were lagging on the old /v1/menu-items/ prefix, which
   // 404'd every save that attached a modifier group. The attach

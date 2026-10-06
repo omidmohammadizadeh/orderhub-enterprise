@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Package2, ImageIcon, Settings2, Trash2 } from "lucide-react";
+import { Plus, Package2, ImageIcon, Copy, Trash2 } from "lucide-react";
 import { productsClient } from "@/lib/api/catalog.client";
 import { menuAvailabilityClient } from "@/lib/api/menu-availability.client";
 import { Button } from "@/components/ui/button";
@@ -52,6 +52,16 @@ export function ProductsTab({ brandId, locationId, search }: Props) {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => productsClient.remove(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: listQueryKey }),
+  });
+
+  // Same as the Modifiers tab: copy with a fresh PLU, then open it so the
+  // operator can rename it straight away.
+  const duplicateMutation = useMutation({
+    mutationFn: (id: string) => productsClient.duplicate(id),
+    onSuccess: (created) => {
+      qc.invalidateQueries({ queryKey: listQueryKey });
+      if (created?.id) setEditingId(created.id);
+    },
   });
 
   const toggleMutation = useMutation({
@@ -166,7 +176,7 @@ export function ProductsTab({ brandId, locationId, search }: Props) {
               <th className="text-left font-medium px-4 py-2.5">PLU</th>
               <th className="text-right font-medium px-4 py-2.5">Price</th>
               <th className="text-center font-medium px-4 py-2.5">Status</th>
-              <th className="w-24" />
+              <th className="w-32" />
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-100">
@@ -270,10 +280,20 @@ export function ProductsTab({ brandId, locationId, search }: Props) {
                       variant="ghost"
                       size="sm"
                       onClick={() => setEditingId(p.id)}
-                      className="h-7 px-2"
-                      title="Edit"
+                      className="h-7 px-2 text-xs"
                     >
-                      <Settings2 className="h-3.5 w-3.5" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => duplicateMutation.mutate(p.id)}
+                      disabled={duplicateMutation.isPending}
+                      className="h-7 px-2 text-zinc-400 hover:text-zinc-900"
+                      title="Duplicate — creates a new product with a new PLU"
+                      aria-label={`Duplicate ${p.name}`}
+                    >
+                      <Copy className="h-3.5 w-3.5" />
                     </Button>
                     <Button
                       variant="ghost"

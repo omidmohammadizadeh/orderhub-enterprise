@@ -1758,6 +1758,77 @@ export class MenusService {
     await this.prisma.menuItem.delete({ where: { id: itemId } });
   }
 
+  /**
+   * Copy a product in the library: same brand, location, price and settings,
+   * a fresh PLU, linked to the SAME modifier groups (the library's groups —
+   * the operator is copying a product, not forking its options; that is what
+   * duplicating a group is for). Not placed on any menu: the copy is for
+   * editing first, then adding where it belongs.
+   *
+   * Size PLUs are cleared (they are unique codes); retail barcode variants
+   * are not copied, since a barcode can only ever be one product.
+   */
+  async duplicateItem(itemId: string, tenantId: string) {
+    const src = await this.assertItemAccess(itemId, tenantId);
+    const links = await this.prisma.modifierGroupOnItem.findMany({
+      where: { itemId },
+      select: { groupId: true, sortOrder: true },
+    });
+    const plu = await this.plu.generateUnique("product", tenantId);
+    const skus = Array.isArray(src.productSkus)
+      ? (src.productSkus as any[]).map((sku) => ({ ...sku, plu: null }))
+      : (src.productSkus ?? []);
+
+    return this.prisma.$transaction(async (tx) => {
+      const created = await tx.menuItem.create({
+        data: {
+          brandId: src.brandId,
+          locationId: src.locationId,
+          name: `${src.name} (copy)`,
+          description: src.description,
+          secondLanguageName: (src as any).secondLanguageName ?? null,
+          basePrice: src.basePrice,
+          imageUrl: src.imageUrl,
+          sku: null,
+          plu,
+          isAvailable: src.isAvailable,
+          visibleToCustomers: src.visibleToCustomers,
+          outOfStock: false,
+          availableCollection: (src as any).availableCollection,
+          availableDelivery: (src as any).availableDelivery,
+          availableDineIn: (src as any).availableDineIn,
+          allergens: src.allergens,
+          dietaryTags: src.dietaryTags,
+          dietary: src.dietary,
+          calories: src.calories,
+          prepTime: src.prepTime,
+          minAge: (src as any).minAge ?? null,
+          metadata: (src.metadata ?? {}) as any,
+          hasMultipleSkus: src.hasMultipleSkus,
+          productSkus: skus as any,
+          deliveryTax: src.deliveryTax,
+          takeawayTax: src.takeawayTax,
+          eatInTax: src.eatInTax,
+          brandIds: src.brandIds,
+          sortOrder: src.sortOrder,
+          isInventoryTracked: src.isInventoryTracked,
+          platformPricingOverrides: (src.platformPricingOverrides ?? {}) as any,
+        },
+      });
+      if (links.length > 0) {
+        await tx.modifierGroupOnItem.createMany({
+          data: links.map((l) => ({
+            itemId: created.id,
+            groupId: l.groupId,
+            sortOrder: l.sortOrder,
+          })),
+          skipDuplicates: true,
+        });
+      }
+      return created;
+    });
+  }
+
   // ── Bulk Operations ────────────────────────────────────────────────────────
 
   /**
@@ -2005,8 +2076,7 @@ export class MenusService {
    * here.
    */
   async findModifierGroupsByLocation(locationId: string, user: AuthenticatedUser) {
-    // Doubles as the brand lookup below — a Location belongs to exactly one.
-    const location = await this.assertLocationAccess(locationId, user.tenantId);
+    await this.assertLocationAccess(locationId, user.tenantId);
     // Never trust the client's locationId — a non-admin only sees modifier
     // groups for locations they're assigned to (mirrors findItemsByLocation).
     const scope = await this.resolveCatalogScope(user);
@@ -2017,25 +2087,20 @@ export class MenusService {
     const skuGroupIds = await this.skuGroupIdsAtLocation(locationId);
     const groups = await this.prisma.modifierGroup.findMany({
       where: {
+        // The location already passed the tenant check; this keeps a stray
+        // cross-tenant link from ever surfacing a group.
+        brand: { tenantId: user.tenantId },
         OR: [
           { locationId },
-          // Brand-level rows of this location's own brand — but only the ones
-          // this shop uses: hung off one of its products, directly or through
-          // a size. Admitting every brand-level row listed each menu import's
-          // groups (imports write them brand-only) and the importer's empty
-          // "__import_holding" groups at every site of the brand.
-          {
-            locationId: null,
-            brandId: location.brandId,
-            OR: [
-              {
-                itemLinks: {
-                  some: { item: this.itemAtLocation(locationId) },
-                },
-              },
-              ...(skuGroupIds.length > 0 ? [{ id: { in: skuGroupIds } }] : []),
-            ],
-          },
+          // Any group this shop's products use — hung off one directly or
+          // through a size — whatever its brand or stamp. This used to also
+          // require locationId null AND the LOCATION's brand, which is often
+          // the "Order Hub" placeholder rather than the brand its menus trade
+          // as. A menu cloned or imported under PIZZA UNO therefore listed
+          // zero groups. Unused brand-level rows (other sites' imports, the
+          // importer's empty "__import_holding" groups) stay out.
+          { itemLinks: { some: { item: this.itemAtLocation(locationId) } } },
+          ...(skuGroupIds.length > 0 ? [{ id: { in: skuGroupIds } }] : []),
         ],
       },
       include: {

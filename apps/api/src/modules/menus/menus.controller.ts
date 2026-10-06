@@ -797,6 +797,18 @@ export class MenusController {
     return this.menus.removeItem(itemId, user.tenantId);
   }
 
+  @Post("items/:itemId/duplicate")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({
+    summary: "Copy a product with a new PLU, linked to the same modifier groups",
+  })
+  duplicateItem(
+    @Param("itemId") itemId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.duplicateItem(itemId, user.tenantId);
+  }
+
   // ── Category ↔ Item links ─────────────────────────────────────────────────
 
   @Post("categories/:categoryId/items")
