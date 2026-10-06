@@ -14,6 +14,7 @@ import { Card, CardContent } from "../ui/card";
 import { formatMoney } from "@orderhub/shared";
 import { PlatformBadge, FulfillmentBadge } from "./platform-badge";
 import { OrderActions } from "./order-actions";
+import { HowToBuildButton } from "../build-guides/how-to-build-button";
 import type { Order } from "../../lib/api/orders.client";
 
 interface OrderCardProps {
@@ -141,6 +142,13 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
         {order.viaHubrise && (
           <div className="text-[10px] text-violet-500 font-medium">via HubRise</div>
         )}
+
+        {/* Kitchen build chart — only shows when a line has a guide */}
+        <HowToBuildButton
+          orderId={order.id}
+          itemNames={order.items.map((i) => i.name)}
+          orderLabel={order.displayId ? `#${order.displayId}` : order.orderNumber ? `#${order.orderNumber}` : undefined}
+        />
 
         {/* Per-status action buttons (Phase AJ) */}
         <OrderActions

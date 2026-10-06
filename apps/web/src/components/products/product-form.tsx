@@ -4,7 +4,8 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useCurrency } from "@/hooks/use-currency";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { locationsClient } from "@/lib/api/locations.client";
-import { ArrowLeft, Save, Trash2, Plus, X, Layers, GripVertical } from "lucide-react";
+import { ArrowLeft, Save, Trash2, Plus, X, Layers, GripVertical, ClipboardList } from "lucide-react";
+import { BuildGuideEditorModal } from "../build-guides/build-guide-editor-modal";
 import toast from "react-hot-toast";
 import {
   productsClient,
@@ -115,6 +116,7 @@ export function ProductForm({
 
   // ── Form state ──────────────────────────────────────────────────────
   const [name, setName] = useState("");
+  const [guideOpen, setGuideOpen] = useState(false);
   const [description, setDescription] = useState("");
   const [plu, setPlu] = useState(genPlu());
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -404,20 +406,45 @@ export function ProductForm({
           <ArrowLeft className="h-4 w-4" />
           Back to products
         </button>
-        <Button
-          size="sm"
-          onClick={() => saveMutation.mutate()}
-          disabled={!canSave || saveMutation.isPending}
-          className="bg-orange-500 hover:bg-orange-600 text-white"
-        >
-          <Save className="h-3.5 w-3.5 mr-1.5" />
-          {saveMutation.isPending
-            ? "Saving…"
-            : isEdit
-              ? "Save changes"
-              : "Create product"}
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* Build guides hang off a saved product (brand + name), so the
+              button only appears once there is one to attach it to. */}
+          {productId && (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => setGuideOpen(true)}
+              className="border-orange-200 text-orange-700 hover:bg-orange-50"
+            >
+              <ClipboardList className="h-3.5 w-3.5 mr-1.5" />
+              How to build
+            </Button>
+          )}
+          <Button
+            size="sm"
+            onClick={() => saveMutation.mutate()}
+            disabled={!canSave || saveMutation.isPending}
+            className="bg-orange-500 hover:bg-orange-600 text-white"
+          >
+            <Save className="h-3.5 w-3.5 mr-1.5" />
+            {saveMutation.isPending
+              ? "Saving…"
+              : isEdit
+                ? "Save changes"
+                : "Create product"}
+          </Button>
+        </div>
       </div>
+
+      {productId && (
+        <BuildGuideEditorModal
+          open={guideOpen}
+          itemId={productId}
+          itemName={name}
+          onClose={() => setGuideOpen(false)}
+        />
+      )}
 
       {saveMutation.error && (
         <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">

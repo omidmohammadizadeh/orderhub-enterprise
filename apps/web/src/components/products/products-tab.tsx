@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Package2, ImageIcon, Copy, Trash2 } from "lucide-react";
+import { Plus, Package2, ImageIcon, Copy, Trash2, ClipboardList } from "lucide-react";
+import { BuildGuideEditorModal } from "../build-guides/build-guide-editor-modal";
 import { productsClient } from "@/lib/api/catalog.client";
 import { menuAvailabilityClient } from "@/lib/api/menu-availability.client";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,7 @@ export function ProductsTab({ brandId, locationId, search }: Props) {
   const qc = useQueryClient();
   const [isCreating, setIsCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [guideFor, setGuideFor] = useState<{ id: string; name: string } | null>(null);
 
   // Query key includes locationId so switching locations triggers a
   // fresh fetch rather than reusing the previous location's cache.
@@ -180,7 +182,7 @@ export function ProductsTab({ brandId, locationId, search }: Props) {
               <th className="w-40 text-left font-medium px-4 py-2.5">PLU</th>
               <th className="w-24 text-right font-medium px-4 py-2.5">Price</th>
               <th className="w-48 text-center font-medium px-4 py-2.5">Status</th>
-              <th className="w-36" />
+              <th className="w-44" />
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-100">
@@ -294,6 +296,16 @@ export function ProductsTab({ brandId, locationId, search }: Props) {
                     <Button
                       variant="ghost"
                       size="sm"
+                      onClick={() => setGuideFor({ id: p.id, name: p.name })}
+                      className="h-7 px-2 text-zinc-400 hover:text-orange-600"
+                      title="How to build — kitchen build chart"
+                      aria-label={`How to build ${p.name}`}
+                    >
+                      <ClipboardList className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={() => duplicateMutation.mutate(p.id)}
                       disabled={duplicateMutation.isPending}
                       className="h-7 px-2 text-zinc-400 hover:text-zinc-900"
@@ -334,6 +346,12 @@ export function ProductsTab({ brandId, locationId, search }: Props) {
           </tbody>
         </table>
       </div>
+      <BuildGuideEditorModal
+        open={guideFor !== null}
+        itemId={guideFor?.id ?? ""}
+        itemName={guideFor?.name ?? ""}
+        onClose={() => setGuideFor(null)}
+      />
     </div>
   );
 }

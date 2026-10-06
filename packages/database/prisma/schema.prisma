@@ -491,6 +491,7 @@ model Brand {
   locations           Location[]
   menus               Menu[]
   modifierGroups      ModifierGroup[]
+  buildGuides         BuildGuide[]
   orders              Order[]
   mealDeals           MealDeal[]
   upsellGroups        UpsellGroup[]
@@ -5831,4 +5832,33 @@ model EmailCampaignRecipient {
   @@index([resendId])
   @@index([tenantId, createdAt])
   @@map("email_campaign_recipients")
+}
+
+// "How to build" — a kitchen build chart for one product: photo steps, the
+// amounts and tools for each, and how it gets packed. Opened from the order
+// card / KDS ticket when the order comes in, written from the product editor.
+//
+// Keyed by BRAND + product name, not by MenuItem id, on purpose: a menu cloned
+// to another location keeps its brand and copies every item with a new id, and
+// marketplace order lines often carry no menuItemId at all. Matching on the
+// (normalised) name lets one guide serve every location trading that brand.
+model BuildGuide {
+  id        String   @id @default(cuid())
+  tenantId  String
+  brandId   String
+  brand     Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  // lower-cased, whitespace-collapsed product name — see build-guide-key.ts
+  nameKey   String
+  // Display name as last saved (the product's name at the time).
+  name      String
+  // [{ id, text, imageUrl?, amount?, tools?: string[] }]
+  steps     Json     @default("[]")
+  packNote  String?
+  updatedBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([brandId, nameKey])
+  @@index([tenantId, nameKey])
+  @@map("build_guides")
 }

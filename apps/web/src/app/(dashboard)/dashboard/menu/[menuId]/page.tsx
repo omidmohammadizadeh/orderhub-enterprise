@@ -50,6 +50,7 @@ import {
   X,
   ListTree,
   Copy,
+  ClipboardList,
 } from "lucide-react";
 import { MenuSettingsDrawer } from "@/components/menu/menu-settings-drawer";
 import { VariantsManagerModal } from "@/components/menu/variants-manager-modal";
@@ -64,6 +65,7 @@ import { useAuthStore } from "@/stores/auth.store";
 import { cn } from "@/lib/utils";
 import { AttachModal } from "@/components/products/attach-modal";
 import { ProductEditorModal } from "@/components/products/product-editor-modal";
+import { BuildGuideEditorModal } from "@/components/build-guides/build-guide-editor-modal";
 import { formatDisplayPrice } from "@/lib/menu/display-price";
 import { ChannelPricingModal } from "@/components/menu/channel-pricing-modal";
 import { BulkPriceModal } from "@/components/menu/bulk-price-modal";
@@ -193,6 +195,8 @@ export default function MenuEditorPage() {
   // Phase AM — in-place product editor. `null` = closed. `"new"` opens
   // a blank form (Create New flow). Any other string opens edit mode
   // for that product id.
+  // "How to build" chart editor for one product.
+  const [buildGuideTarget, setBuildGuideTarget] = useState<{ id: string; name: string } | null>(null);
   const [productEditorTarget, setProductEditorTarget] = useState<
     null | "new" | string
   >(null);
@@ -1021,6 +1025,14 @@ export default function MenuEditorPage() {
                               <Tag className="h-3.5 w-3.5" />
                             </button>
                             <button
+                              onClick={() => setBuildGuideTarget({ id: p.id, name: p.name })}
+                              className="p-2 text-zinc-400 hover:text-orange-600 md:p-1"
+                              title="How to build — kitchen build chart"
+                              aria-label={`How to build ${p.name}`}
+                            >
+                              <ClipboardList className="h-3.5 w-3.5" />
+                            </button>
+                            <button
                               onClick={() => setProductEditorTarget(p.id)}
                               className="rounded-md px-2 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
                             >
@@ -1094,6 +1106,12 @@ export default function MenuEditorPage() {
       {/* In-place product editor — wraps the same ProductForm the
           Products tab uses. When "new" we also auto-attach the
           freshly-saved product to the active category. */}
+      <BuildGuideEditorModal
+        open={buildGuideTarget !== null}
+        itemId={buildGuideTarget?.id ?? ""}
+        itemName={buildGuideTarget?.name ?? ""}
+        onClose={() => setBuildGuideTarget(null)}
+      />
       <ProductEditorModal
         open={productEditorTarget !== null}
         brandId={brandId}
