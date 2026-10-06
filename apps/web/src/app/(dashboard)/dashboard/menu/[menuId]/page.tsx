@@ -921,55 +921,8 @@ export default function MenuEditorPage() {
                           });
                           draggingProdIdx.current = null;
                         }}
-                        className="group relative p-4 bg-white cursor-move hover:shadow-md transition-shadow"
+                        className="group relative flex flex-col p-4 bg-white cursor-move hover:shadow-md transition-shadow"
                       >
-                        <div className="absolute top-3 right-3 flex items-center gap-1">
-                          <button
-                            onClick={() => setPricingTarget(p)}
-                            className="p-2 text-zinc-400 hover:text-violet-600 md:p-1"
-                            title="Channel pricing"
-                          >
-                            <Tag className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            onClick={() => setProductEditorTarget(p.id)}
-                            className="rounded-md px-2 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() =>
-                              duplicateItemMutation.mutate({
-                                catId: activeCat.id,
-                                itemId: p.id,
-                              })
-                            }
-                            disabled={duplicateItemMutation.isPending}
-                            className="p-2 text-zinc-400 hover:text-zinc-900 disabled:opacity-40 md:p-1"
-                            title="Duplicate — a new product with a new PLU, added to this category"
-                            aria-label={`Duplicate ${p.name}`}
-                          >
-                            <Copy className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            onClick={() => {
-                              if (
-                                confirm(
-                                  `Remove "${p.name}" from this category?\n\nThe product itself stays in the catalog.`,
-                                )
-                              ) {
-                                detachItemMutation.mutate({
-                                  catId: activeCat.id,
-                                  itemId: p.id,
-                                });
-                              }
-                            }}
-                            className="p-2 text-zinc-400 hover:text-red-600 md:p-1"
-                            title="Remove from category"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
                         {/* The drag handle on a laptop; arrows on a phone,
                             where HTML5 drag never fires. Same mutation. */}
                         <div className="absolute bottom-0 left-0 top-0 hidden w-8 place-items-center text-zinc-200 transition-colors group-hover:text-zinc-400 md:grid">
@@ -995,32 +948,85 @@ export default function MenuEditorPage() {
                             <ChevronDown className="h-4 w-4" />
                           </button>
                         </div>
-                        <div className="pl-7 pr-36 md:pl-3">
-                          <h3 className="font-bold text-zinc-900 text-base leading-tight mb-1">
-                            {p.name}
-                          </h3>
+                        {/* Name and actions share the top row, so the name gets the full
+                            width instead of a narrow strip beside absolutely-placed icons.
+                            The footer pins to the bottom: PLU + groups left, price right. */}
+                        <div className="flex flex-1 flex-col pl-7 md:pl-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <h3 className="min-w-0 flex-1 text-base font-bold leading-tight text-zinc-900">
+                              {p.name}
+                            </h3>
+                            <div className="-mr-1 -mt-1 flex shrink-0 items-center gap-0.5">
+                            <button
+                              onClick={() => setPricingTarget(p)}
+                              className="p-2 text-zinc-400 hover:text-violet-600 md:p-1"
+                              title="Channel pricing"
+                            >
+                              <Tag className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              onClick={() => setProductEditorTarget(p.id)}
+                              className="rounded-md px-2 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() =>
+                                duplicateItemMutation.mutate({
+                                  catId: activeCat.id,
+                                  itemId: p.id,
+                                })
+                              }
+                              disabled={duplicateItemMutation.isPending}
+                              className="p-2 text-zinc-400 hover:text-zinc-900 disabled:opacity-40 md:p-1"
+                              title="Duplicate — a new product with a new PLU, added to this category"
+                              aria-label={`Duplicate ${p.name}`}
+                            >
+                              <Copy className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (
+                                  confirm(
+                                    `Remove "${p.name}" from this category?\n\nThe product itself stays in the catalog.`,
+                                  )
+                                ) {
+                                  detachItemMutation.mutate({
+                                    catId: activeCat.id,
+                                    itemId: p.id,
+                                  });
+                                }
+                              }}
+                              className="p-2 text-zinc-400 hover:text-red-600 md:p-1"
+                              title="Remove from category"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                            </div>
+                          </div>
                           {p.description && (
-                            <p className="text-sm text-zinc-600 leading-snug line-clamp-3">
+                            <p className="mt-1 line-clamp-2 text-sm leading-snug text-zinc-600">
                               {p.description}
                             </p>
                           )}
-                          <div className="mt-3 flex items-end justify-between gap-2">
-                            <span className="text-lg font-bold text-orange-500">
+                          <div className="mt-auto flex items-end justify-between gap-3 pt-3">
+                            <div className="min-w-0 text-xs text-zinc-500">
+                              {modCount > 0 && (
+                                <p>
+                                  {modCount} modifier group{modCount === 1 ? "" : "s"}
+                                </p>
+                              )}
+                              {(p.plu || p.sku) && (
+                                <p className="truncate font-mono">
+                                  <span className="text-zinc-400">PLU </span>
+                                  {p.plu ?? p.sku}
+                                </p>
+                              )}
+                            </div>
+                            <span className="shrink-0 text-lg font-bold text-orange-500">
                               {formatDisplayPrice(p as any)}
                             </span>
-                            {modCount > 0 && (
-                              <span className="text-xs text-zinc-500">
-                                {modCount} modifier group
-                                {modCount === 1 ? "" : "s"}
-                              </span>
-                            )}
                           </div>
-                          {(p.plu || p.sku) && (
-                            <p className="mt-2 truncate font-mono text-xs text-zinc-500">
-                              <span className="text-zinc-400">PLU </span>
-                              {p.plu ?? p.sku}
-                            </p>
-                          )}
                         </div>
                       </Card>
                     );
