@@ -1518,9 +1518,23 @@ export class MenusService {
             ],
           }
         : {};
+    // A location's menu offers the location's products whatever their brand —
+    // the same list as its Products tab. A menu cloned from another shop keeps
+    // the SOURCE menu's brand, so matching on brandId hid every product made
+    // at the new shop under its own brand: visible in Products, missing from
+    // "Add existing". Brand access still applies; the tenant guard replaces
+    // the brand match.
+    const brandWhere = locationId
+      ? {
+          brand: {
+            tenantId: user.tenantId,
+            ...(scope.brandIds !== null && { id: { in: scope.brandIds } }),
+          },
+        }
+      : { brandId };
     return this.prisma.menuItem.findMany({
       where: {
-        brandId,
+        ...brandWhere,
         ...locationWhere,
       },
       include: {
