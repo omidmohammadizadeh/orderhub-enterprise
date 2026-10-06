@@ -420,6 +420,8 @@ export class TableQrService {
         paymentMethod: "QR_CODE",
         paymentProvider: viaTap ? "TAP" : "STRIPE",
         paymentStatus: "PENDING",
+        // Keeps it off the board and out of history until the card clears.
+        guestPrepay: true,
         ...(input.requestId
           ? { idempotencyKey: `tableqrpay:${table.id}:${input.requestId}` }
           : {}),

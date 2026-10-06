@@ -391,6 +391,18 @@ export class OrderingService {
     brandIdOverride?: string,
     channel: "ONLINE" | "POS" = "ONLINE",
   ) {
+    // Where the time goes, logged only when it's slow. A table QR scan once
+    // waited 10 s here and the access log could say no more than that.
+    const t0 = Date.now();
+    const marks: string[] = [];
+    let tPrev = t0;
+    const timing = {
+      mark(label: string) {
+        const now = Date.now();
+        marks.push(`${label}=${now - tPrev}ms`);
+        tPrev = now;
+      },
+    };
     // Phase AN — `onlineOrderingSlug` is the new operator-facing slug;
     // older locations may still only have the legacy `slug`. Resolve
     // either so old printed flyers and QR codes keep working.
@@ -559,6 +571,7 @@ export class OrderingService {
     // so a half-set-up brand still shows the kitchen's menu rather
     // than an empty storefront.
     const menuBrandId = overrideBrand?.id ?? location.brandId;
+    timing.mark("location");
 
     // Phase BA — assignment-first: the publish flow writes one
     // MenuChannelAssignment per (location, ONLINE, brand); resolve that
@@ -622,6 +635,8 @@ export class OrderingService {
             orderBy: { updatedAt: "desc" },
             include: menuInclude,
           })));
+
+    timing.mark("menu");
 
     // Phase BF — variant-menu publish. Only set when the brand's Channels
     // settings name a source menu for ONLINE; null otherwise, in which
@@ -809,50 +824,45 @@ export class OrderingService {
     // productSkus[].modifierGroups (plain string arrays, no FK), so the
     // storefront's modifier modal needs this list to look them up,
     // same as POS already does.
-    // Phase AW — when a brand is pinned, scope modifier groups to
-    // THAT brand. Otherwise the storefront would resolve per-SKU
-    // group ids against the kitchen's primary-brand catalog and miss
-    // anything published only under the pinned virtual brand.
-    const brandModifierGroups = await this.prisma.modifierGroup.findMany({
-      where: { brandId: menuBrandId },
-      include: {
-        options: {
-          where: { isAvailable: true },
-          orderBy: { sortOrder: "asc" },
-        },
-      },
-    });
+    timing.mark("prices+zones+stock");
 
-    // A multi-SKU product's per-size modifier groups can belong to a
-    // DIFFERENT brand than the menu's brand (multi-brand catalogs), so the
-    // brand-scoped query above misses them and the storefront modal shows no
-    // modifiers for that size. Resolve any SKU-referenced groups by id and
-    // merge them in (brand-drift safe — same fix the dashboard uses).
-    const skuGroupIds = new Set<string>();
-    for (const cat of (menu as any)?.categories ?? []) {
-      for (const link of cat.items ?? []) {
-        const skus = link?.item?.productSkus;
-        if (Array.isArray(skus)) {
-          for (const s of skus)
-            for (const gid of s?.modifierGroups ?? [])
-              if (typeof gid === "string" && gid) skuGroupIds.add(gid);
-        }
-      }
-    }
-    const haveIds = new Set(brandModifierGroups.map((g) => g.id));
-    const missingIds = [...skuGroupIds].filter((id) => !haveIds.has(id));
-    if (missingIds.length) {
-      const extra = await this.prisma.modifierGroup.findMany({
-        where: { id: { in: missingIds } },
-        include: {
-          options: {
-            where: { isAvailable: true },
-            orderBy: { sortOrder: "asc" },
+    // The groups THIS MENU uses — not the brand's whole catalogue.
+    //
+    // This used to load every modifier group the brand owns, with all their
+    // options, then fold array-attached options and chase nested groups over
+    // that entire list (an unindexed array-overlap query keyed on every id).
+    // A brand that has run menu imports holds thousands of groups, most of
+    // them other imports' and empty "__import_holding" rows, so a table QR
+    // scan at the test shop waited 10 s for the menu and then downloaded all
+    // of it. The modal resolves groups by id from three places, and these
+    // are exactly those three:
+    //   - item links (item.modifierGroupLinks → groupId after the hoist),
+    //   - per-SIZE groups (bare ids in productSkus[].modifierGroups), which
+    //     may belong to another brand of the tenant — resolved by id,
+    //   - groups nested under an option, added by the Phase BN pass below.
+    // Deals and free items are anchored onto served menu items, so their
+    // groups are already among these.
+    const referencedGroupIds = referencedModifierGroupIds(menu);
+    const nestedTenant = await this.prisma.brand.findUnique({
+      where: { id: menuBrandId },
+      select: { tenantId: true },
+    });
+    const brandModifierGroups = referencedGroupIds.size && nestedTenant
+      ? await this.prisma.modifierGroup.findMany({
+          where: {
+            id: { in: [...referencedGroupIds] },
+            // Bare ids out of a JSON column: resolve them inside the tenant.
+            brand: { tenantId: nestedTenant.tenantId },
           },
-        },
-      });
-      brandModifierGroups.push(...extra);
-    }
+          include: {
+            options: {
+              where: { isAvailable: true },
+              orderBy: { sortOrder: "asc" },
+            },
+          },
+        })
+      : [];
+    timing.mark("groups");
 
     // Fold in modifiers attached via ModifierOption.modifierGroupIds[].
     //
@@ -884,10 +894,6 @@ export class OrderingService {
     // resolve them by id and merge them into the same catalogue the modal
     // already indexes by id. Runs AFTER the fold above so array-attached
     // options are present and their own nested groups get followed too.
-    const nestedTenant = await this.prisma.brand.findUnique({
-      where: { id: menuBrandId },
-      select: { tenantId: true },
-    });
     if (nestedTenant) {
       const nestedGroups = await resolveNestedModifierGroups(
         this.prisma,
@@ -921,6 +927,7 @@ export class OrderingService {
     // embedded copy. Dropping the copies without merging them in first would
     // make that product open with NO options — still orderable, at the base
     // price, with a ticket the kitchen cannot make. Merge first, then strip.
+    timing.mark("fold+nested");
     hoistModifierGroups(menu, brandModifierGroups);
 
     // Publish-pipeline bookkeeping the browser never reads. Applied to the
@@ -1196,6 +1203,14 @@ export class OrderingService {
     } catch {
       // Never fail the storefront over the optional WhatsApp CTA.
       whatsapp = null;
+    }
+
+    timing.mark("rest");
+    const totalMs = Date.now() - t0;
+    if (totalMs > 1000) {
+      this.logger.warn(
+        `storefront ${slug} channel=${channel} slow: ${totalMs}ms [${marks.join(" ")}] groups=${brandModifierGroups.length}`,
+      );
     }
 
     return {
@@ -2818,6 +2833,32 @@ export function stripInternalFields(node: any): void {
  * and the product opens with NO options — still orderable, at the base price,
  * with a ticket the kitchen cannot make.
  */
+/**
+ * Every modifier-group id a served menu can open directly: each item's linked
+ * groups and each size's groups (bare ids in productSkus[].modifierGroups).
+ * Groups nested under an option are not here; the caller resolves those from
+ * this set. The storefront loads exactly these instead of the brand's whole
+ * catalogue.
+ */
+export function referencedModifierGroupIds(menu: any): Set<string> {
+  const ids = new Set<string>();
+  for (const cat of menu?.categories ?? []) {
+    for (const link of cat?.items ?? []) {
+      for (const gl of link?.item?.modifierGroupLinks ?? []) {
+        const gid = gl?.groupId ?? gl?.group?.id;
+        if (typeof gid === "string" && gid) ids.add(gid);
+      }
+      const skus = link?.item?.productSkus;
+      if (Array.isArray(skus)) {
+        for (const sku of skus)
+          for (const gid of sku?.modifierGroups ?? [])
+            if (typeof gid === "string" && gid) ids.add(gid);
+      }
+    }
+  }
+  return ids;
+}
+
 export function hoistModifierGroups(menu: any, groups: any[]): void {
   const catalogue = new Set(groups.map((g) => g.id));
   for (const cat of menu?.categories ?? []) {

@@ -149,6 +149,26 @@ export function canAmendOrderPayment(input: {
  * write. POS and HUBRISE are deliberately absent: POS is what the ordinary
  * test order already is, and HubRise is a relay, not a channel.
  */
+/**
+ * A guest's table-QR "pay before it goes to the kitchen" order whose payment
+ * hasn't succeeded. The order row is written before the card is charged (the
+ * PaymentIntent needs an order to belong to), so without this it sat on the
+ * board as "Waiting for payment", and stayed there forever when the guest
+ * closed the sheet or the card was declined. Online card orders already work
+ * this way (PENDING + CARD is hidden); this is the table's equivalent.
+ * AUTHORIZED is deliberately excluded: that is money held, so a real order.
+ *
+ * Use it ONLY as a positive match (see unpaidGuestPrepayIds), never inside
+ * NOT. Postgres reads a missing JSON key as NULL, so `NOT (pending AND
+ * metadata.guestPrepay = true)` is NULL, not true, for every order without the
+ * key, and would hide EVERY order still awaiting payment: phone cash, staff
+ * payment links, all of them.
+ */
+export const GUEST_PREPAY_UNPAID: Prisma.OrderWhereInput = {
+  paymentStatus: { in: ["PENDING", "FAILED"] as any },
+  metadata: { path: ["guestPrepay"], equals: true },
+};
+
 export const SIMULATABLE_PLATFORMS = [
   "DELIVEROO",
   "UBER_EATS",
@@ -1199,6 +1219,11 @@ export class OrdersService {
         paymentStatus: dto.paymentStatus,
         preparationMinutes: dto.preparationMinutes,
         isScheduled,
+        // A guest paying at the table before anything reaches the kitchen.
+        // Hidden from the board and history until the card succeeds — see
+        // GUEST_PREPAY_UNPAID. A staff payment link / QR is NOT this: staff
+        // sent it and want it in "Waiting for payment".
+        ...((dto as any).guestPrepay === true ? { guestPrepay: true } : {}),
         // The marketing email that brought this order in (online checkout).
         ...(dto.emailAttribution ? { emailAttribution: dto.emailAttribution } : {}),
         // Retail — the due-diligence record for an age-restricted sale:
@@ -3068,11 +3093,15 @@ export class OrdersService {
 
     const access = await this.resolveOrderAccessWhere(user, locationId);
     if (!access) return { total: 0, page, limit, orders: [] };
+    const hiddenPrepay = await this.unpaidGuestPrepayIds(access);
 
     const where: Prisma.OrderWhereInput = {
       ...access,
       // Simulated marketplace orders are NOT filtered here, by design — see
       // findLiveOrders: a test run is for the whole shop to see.
+      // An unpaid table-QR prepay order is never real — hidden here too, or
+      // history hands back what the board deliberately keeps out.
+      ...(hiddenPrepay.length ? { id: { notIn: hiddenPrepay } } : {}),
       ...(status && {
         status: Array.isArray(status) ? { in: status } : status,
       }),
@@ -3227,6 +3256,21 @@ export class OrdersService {
     return new Date(todayReset.getTime() - drift);
   }
 
+  /** Ids of this scope's unpaid table-QR prepay orders, to leave out. */
+  private async unpaidGuestPrepayIds(
+    access: Prisma.OrderWhereInput,
+  ): Promise<string[]> {
+    const rows = await this.prisma.order.findMany({
+      where: { AND: [access, GUEST_PREPAY_UNPAID] },
+      select: { id: true },
+      // Abandoned ones accumulate; a shop with this many has a bigger problem
+      // than the board, and the list must stay a bounded query parameter.
+      take: 500,
+      orderBy: { createdAt: "desc" },
+    });
+    return rows.map((r) => r.id);
+  }
+
   async findLiveOrders(user: AuthenticatedUser, locationId?: string) {
     // Phase AW-23 — Business-day reset.
     //
@@ -3248,6 +3292,7 @@ export class OrdersService {
     // the rare "all locations" view.
     const access = await this.resolveOrderAccessWhere(user, locationId);
     if (!access) return [];
+    const hiddenPrepay = await this.unpaidGuestPrepayIds(access);
     let timezone: string | undefined;
     if (locationId) {
       const loc = await this.prisma.location.findUnique({
@@ -3269,6 +3314,10 @@ export class OrdersService {
         // later.
         AND: [
           access,
+          // A guest's table-QR prepay order doesn't exist for the shop until
+          // the card clears — same as an online card order. Abandoned,
+          // declined or closed payments never reach the board at all.
+          ...(hiddenPrepay.length ? [{ id: { notIn: hiddenPrepay } }] : []),
           // Simulated marketplace orders show to everyone at the location —
           // owner, manager, staff, driver — exactly like a real one. They used
           // to be platform-admin only, which defeated the point: a simulation

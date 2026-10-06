@@ -169,6 +169,10 @@ describe("checkout", () => {
     expect(dto.paymentStatus).toBe("PENDING");
     expect(dto.fulfillmentType).toBe("DINE_IN");
     expect(dto.tableId).toBe("tbl1");
+    // The marker that keeps it off the board and out of history until the
+    // card clears, like an online card order. A staff QR/payment link has no
+    // such marker and stays in "Waiting for payment" where staff want it.
+    expect(dto.guestPrepay).toBe(true);
 
     expect(intents).toEqual([{ tenantId: TENANT, orderId: "ord1" }]);
     expect(res.clientSecret).toBe("cs_test_1");
