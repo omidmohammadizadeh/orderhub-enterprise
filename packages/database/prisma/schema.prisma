@@ -488,6 +488,12 @@ model Brand {
   prepTime          Int?
   busyExtraPrepTime Int?
 
+  // "Trusted by" wall on the marketing homepage. Platform-admin only (Admin
+  // Dashboard → Website showcase): putting a merchant's name on our site is our
+  // call, never a tenant setting. Lower showcaseOrder shows first; null last.
+  showcaseOnWebsite Boolean @default(false)
+  showcaseOrder     Int?
+
   locations           Location[]
   menus               Menu[]
   modifierGroups      ModifierGroup[]

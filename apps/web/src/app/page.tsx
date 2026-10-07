@@ -14,6 +14,7 @@ import { redirect } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { SiteNav } from "@/components/marketing/site-nav";
 import { MarqueeLogos } from "@/components/marketing/marquee-logos";
+import { TrustedBrands, fetchShowcaseBrands } from "@/components/marketing/trusted-brands";
 import { StatCounters } from "@/components/marketing/stat-counters";
 import { FeatureBlocks } from "@/components/marketing/feature-blocks";
 import { InView } from "@/components/marketing/in-view";
@@ -134,6 +135,8 @@ export default async function MarketingHomePage({
     if (target) redirect(target);
   }
 
+  const showcase = await fetchShowcaseBrands(apiBase());
+
   const contactWebhookUrl =
     process.env.CONTACT_WEBHOOK_URL ??
     process.env.NEXT_PUBLIC_CONTACT_WEBHOOK_URL ??
@@ -143,6 +146,7 @@ export default async function MarketingHomePage({
     <div className="min-h-screen bg-white text-zinc-900">
       <SiteNav />
       <Hero brand={brand.shortName} />
+      <TrustedBrands brands={showcase} siteName={brand.shortName} />
       <MarqueeLogos brandKey={brand.key} />
       <StatCounters />
       <FeatureBlocks />

@@ -11,6 +11,7 @@ import Link from "next/link";
 import {
   ArrowRight,
   ClipboardCheck,
+  Globe,
   LayoutList,
   Lock,
   Rocket,
@@ -47,6 +48,13 @@ const TOOLS: AdminTool[] = [
     blurb:
       "Whether a location pays its courier dispatch fee. Waive it to test a sandbox flow without funding a wallet — and switch it back after.",
     icon: Wallet,
+  },
+  {
+    href: "/dashboard/admin/website-showcase",
+    title: "Website showcase",
+    blurb:
+      "Pick the brands shown with their logo in the \u201cTrusted by\u201d section of the homepage.",
+    icon: Globe,
   },
   {
     href: "/dashboard/admin/release-readiness",

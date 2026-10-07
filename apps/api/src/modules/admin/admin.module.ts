@@ -4,9 +4,14 @@ import { QUEUES } from "@orderhub/shared";
 import { AdminController } from "./admin.controller";
 import { DashboardAccessController } from "./dashboard-access.controller";
 import { DispatchChargingController } from "./dispatch-charging.controller";
+import {
+  PublicWebsiteShowcaseController,
+  WebsiteShowcaseController,
+} from "./website-showcase.controller";
 import { AdminService } from "./admin.service";
 import { DashboardAccessService } from "./dashboard-access.service";
 import { DispatchChargingService } from "./dispatch-charging.service";
+import { WebsiteShowcaseService } from "./website-showcase.service";
 import { DatabaseModule } from "../../infrastructure/database/database.module";
 
 @Module({
@@ -18,7 +23,18 @@ import { DatabaseModule } from "../../infrastructure/database/database.module";
       { name: QUEUES.PRINTING },
     ),
   ],
-  controllers: [AdminController, DashboardAccessController, DispatchChargingController],
-  providers: [AdminService, DashboardAccessService, DispatchChargingService],
+  controllers: [
+    AdminController,
+    DashboardAccessController,
+    DispatchChargingController,
+    WebsiteShowcaseController,
+    PublicWebsiteShowcaseController,
+  ],
+  providers: [
+    AdminService,
+    DashboardAccessService,
+    DispatchChargingService,
+    WebsiteShowcaseService,
+  ],
 })
 export class AdminModule {}
