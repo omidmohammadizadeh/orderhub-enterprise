@@ -7,6 +7,7 @@
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { useAuthHydrated } from "@/stores/auth.store";
 import { Loader2, Printer } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { formatVideoTime, parseYouTubeId, youTubeWatchUrl } from "@orderhub/shared";
@@ -29,15 +30,19 @@ function PrintBuildGuides() {
   const menuId = params.get("menu");
   const itemId = params.get("item");
 
+  // This page is outside the dashboard tree, so nothing has restored the
+  // signed-in session yet: wait for the persisted tokens before calling the
+  // API, or the first request goes out without them, 401s, and bounces to /login.
+  const hydrated = useAuthHydrated();
   const q = useQuery<BuildGuidePrintFeed>({
     queryKey: ["build-guides-print", menuId, itemId],
     queryFn: () => (menuId ? buildGuidesClient.printMenu(menuId) : buildGuidesClient.printItem(itemId!)),
-    enabled: !!(menuId || itemId),
+    enabled: hydrated && !!(menuId || itemId),
     retry: false,
   });
 
   if (!menuId && !itemId) return <Centered>Nothing to print — open this from a product or a menu.</Centered>;
-  if (q.isLoading)
+  if (q.isPending || !hydrated)
     return (
       <Centered>
         <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Loading build guides…

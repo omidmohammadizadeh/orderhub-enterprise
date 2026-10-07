@@ -9,6 +9,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { useAuthHydrated } from "@/stores/auth.store";
 import { Eye, ImageIcon, Loader2, Monitor, Smartphone, X } from "lucide-react";
 import { formatMoney } from "@orderhub/shared";
 import { cn } from "@/lib/utils";
@@ -90,10 +91,14 @@ export default function MenuPreviewPage() {
   const [activeCat, setActiveCat] = useState<string | null>(null);
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
+  // This page is outside the dashboard tree, so nothing has restored the
+  // signed-in session yet: wait for the persisted tokens before calling the
+  // API, or the first request goes out without them, 401s, and bounces to /login.
+  const hydrated = useAuthHydrated();
   const q = useQuery({
     queryKey: ["menu-preview", menuId],
     queryFn: () => menusClient.getMenu(menuId),
-    enabled: !!menuId,
+    enabled: hydrated && !!menuId,
     retry: false,
   });
 
@@ -170,7 +175,7 @@ export default function MenuPreviewPage() {
         )}
       >
         {/* A failed background refresh must not replace a menu already on screen. */}
-        {!menu && q.isLoading ? (
+        {!menu && (q.isPending || !hydrated) ? (
           <div className="flex items-center justify-center py-32 text-sm text-zinc-500">
             <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading menu…
           </div>
