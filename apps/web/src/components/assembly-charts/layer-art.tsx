@@ -5,7 +5,8 @@
 // the food itself. Every drawing shares one 200×64 box so a column of them
 // lines up whatever the mix. Pure SVG — prints crisp and costs no requests.
 
-import type { AssemblyLayerKind } from "@orderhub/shared";
+import { assemblyIngredient, type AssemblyLayerKind } from "@orderhub/shared";
+import { ShapeArt } from "./shape-art";
 
 const W = 200;
 const H = 64;
@@ -301,6 +302,16 @@ export function LayerArt({
     // eslint-disable-next-line @next/next/no-img-element
     return <img src={imageUrl} alt="" className={className} style={{ aspectRatio: `${W} / ${H}`, objectFit: "contain" }} />;
   }
+  // Library ingredients draw from their shape recipe; the original 18 keep
+  // their hand-drawn art below. `color` (sauces) overrides the main colour.
+  const ing = assemblyIngredient(kind);
+  if (ing && ing.shape !== "legacy") {
+    return (
+      <svg viewBox={`0 0 ${W} ${H}`} className={className} aria-hidden>
+        <ShapeArt shape={ing.shape} c1={color || ing.colors[0]} c2={ing.colors[1]} seedKey={ing.key} />
+      </svg>
+    );
+  }
   let art: React.ReactNode;
   switch (kind) {
     case "bun_top":
@@ -374,26 +385,14 @@ export function LayerArt({
   );
 }
 
-export const LAYER_DEFAULTS: Record<AssemblyLayerKind, { name: string; label: string }> = {
-  bun_top: { name: "Top bun", label: "Toasted" },
-  bun_bottom: { name: "Bottom bun", label: "Toasted" },
-  bun_upside_down: { name: "Upside-down bun", label: "Upside down bun" },
-  sauce: { name: "Sauce", label: "Sauce" },
-  onions: { name: "Diced onions", label: "Diced onions" },
-  pickles: { name: "Pickles", label: "4x pickles" },
-  patty_cheese: { name: "Patty + cheese", label: "85g smash patty with cheese" },
-  patty: { name: "Patty", label: "85g smash patty" },
-  cheese: { name: "Cheese slice", label: "1 slice American cheese" },
-  tomato: { name: "Tomato", label: "Tomato" },
-  lettuce: { name: "Lettuce", label: "Lettuce" },
-  bacon: { name: "Bacon", label: "2 bacon rashers" },
-  chicken: { name: "Chicken fillet", label: "Fried chicken fillet" },
-  jalapeno: { name: "Jalapeños", label: "Diced jalapeño" },
-  onion_rings: { name: "Onion rings", label: "Onion rings" },
-  egg: { name: "Egg", label: "Fried egg" },
-  mushrooms: { name: "Mushrooms", label: "Mushrooms" },
-  custom: { name: "Own photo", label: "" },
-};
+/** Palette name and default label for an ingredient key. */
+export function ingredientName(kind: AssemblyLayerKind): string {
+  return assemblyIngredient(kind)?.name ?? kind;
+}
+export function ingredientLabel(kind: AssemblyLayerKind): string {
+  const ing = assemblyIngredient(kind);
+  return ing ? (ing.label ?? ing.name) : "";
+}
 
 /** Buns carry their label printed ON the bread, like the board. */
 export const isBun = (k: AssemblyLayerKind) => k === "bun_top" || k === "bun_bottom" || k === "bun_upside_down";

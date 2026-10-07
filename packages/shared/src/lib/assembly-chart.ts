@@ -5,28 +5,16 @@
  * build guides: brand + buildGuideNameKey(product name).
  */
 
-export const ASSEMBLY_LAYER_KINDS = [
-  "bun_top",
-  "bun_bottom",
-  "bun_upside_down",
-  "sauce",
-  "onions",
-  "pickles",
-  "patty_cheese",
-  "patty",
-  "cheese",
-  "tomato",
-  "lettuce",
-  "bacon",
-  "chicken",
-  "jalapeno",
-  "onion_rings",
-  "egg",
-  "mushrooms",
-  "custom",
-] as const;
+import { ASSEMBLY_INGREDIENTS } from "./assembly-ingredients";
 
-export type AssemblyLayerKind = (typeof ASSEMBLY_LAYER_KINDS)[number];
+/**
+ * Every valid layer kind — the ingredient library's keys (see
+ * assembly-ingredients.ts). The first 18 originals keep their own drawings.
+ */
+export const ASSEMBLY_LAYER_KINDS: readonly string[] = ASSEMBLY_INGREDIENTS.map((i) => i.key);
+
+/** An ingredient key from ASSEMBLY_INGREDIENTS (kept as string so the library can grow). */
+export type AssemblyLayerKind = string;
 
 export interface AssemblyLayer {
   id: string;

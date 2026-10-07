@@ -8,7 +8,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowDown, ArrowUp, Copy, Loader2, Printer, Sandwich, Trash2, X } from "lucide-react";
 import {
-  ASSEMBLY_LAYER_KINDS,
+  INGREDIENT_CATEGORIES,
+  assemblyIngredient,
+  searchAssemblyIngredients,
+  type IngredientCategory,
   ASSEMBLY_MAX_LAYERS,
   ASSEMBLY_SAUCE_COLOURS,
   type AssemblyLayer,
@@ -20,7 +23,7 @@ import { ImageUploader } from "@/components/products/image-uploader";
 import { cn } from "@/lib/utils";
 import { assemblyChartsClient, CHART_KEYS_QUERY } from "@/lib/api/assembly-charts.client";
 import { BOARD_BG, ChartColumn } from "./chart-column";
-import { LAYER_DEFAULTS, LayerArt } from "./layer-art";
+import { LayerArt, ingredientLabel } from "./layer-art";
 
 function newId() {
   return typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -31,7 +34,7 @@ function newId() {
 const layer = (kind: AssemblyLayerKind, label?: string, color?: string): AssemblyLayer => ({
   id: newId(),
   kind,
-  label: label ?? LAYER_DEFAULTS[kind].label,
+  label: label ?? ingredientLabel(kind),
   ...(color ? { color } : {}),
 });
 
@@ -41,12 +44,12 @@ const TEMPLATES: Array<{ name: string; build: () => AssemblyLayer[] }> = [
     name: "Double smash burger",
     build: () => [
       layer("bun_top"),
-      layer("sauce", "Burger sauce", "#f39a2b"),
+      layer("burger_sauce"),
       layer("onions"),
       layer("pickles"),
       layer("patty_cheese"),
       layer("patty_cheese"),
-      layer("sauce", "Garlic mayo", "#efe2c4"),
+      layer("garlic_mayo"),
       layer("bun_bottom"),
     ],
   },
@@ -54,10 +57,10 @@ const TEMPLATES: Array<{ name: string; build: () => AssemblyLayer[] }> = [
     name: "Single smash burger",
     build: () => [
       layer("bun_top"),
-      layer("sauce", "Ketchup", "#d7261e"),
+      layer("ketchup"),
       layer("onions"),
       layer("patty_cheese"),
-      layer("sauce", "Garlic mayo", "#efe2c4"),
+      layer("garlic_mayo"),
       layer("bun_bottom"),
     ],
   },
@@ -65,20 +68,83 @@ const TEMPLATES: Array<{ name: string; build: () => AssemblyLayer[] }> = [
     name: "Fried chicken burger",
     build: () => [
       layer("bun_top"),
-      layer("sauce", "Burger sauce", "#f39a2b"),
+      layer("burger_sauce"),
       layer("pickles"),
       layer("chicken"),
       layer("lettuce"),
-      layer("sauce", "Garlic mayo", "#efe2c4"),
+      layer("garlic_mayo"),
       layer("bun_bottom"),
     ],
+  },
+  {
+    name: "Burrito",
+    build: () => [
+      layer("tortilla_12"),
+      layer("mexican_rice"),
+      layer("house_beans"),
+      layer("chicken_pastor"),
+      layer("grated_cheese"),
+      layer("pico_de_gallo"),
+      layer("sour_cream"),
+      layer("burrito_wrap"),
+      layer("tin_foil"),
+    ],
+  },
+  {
+    name: "Tacos (3)",
+    build: () => [
+      layer("corn_tortilla", "3x corn tortillas"),
+      layer("pulled_beef"),
+      layer("pickled_onions"),
+      layer("coriander"),
+      layer("medium_salsa"),
+      layer("lime_wedge"),
+      layer("taco_tray"),
+    ],
+  },
+  {
+    name: "Margherita pizza",
+    build: () => [
+      layer("pizza_dough"),
+      layer("tomato_base"),
+      layer("pizza_mozzarella"),
+      layer("oregano"),
+      layer("pizza_box"),
+    ],
+  },
+  {
+    name: "Pepperoni pizza",
+    build: () => [
+      layer("pizza_dough"),
+      layer("tomato_base"),
+      layer("pizza_mozzarella"),
+      layer("pepperoni"),
+      layer("oregano"),
+      layer("pizza_box"),
+    ],
+  },
+  {
+    name: "Doner wrap",
+    build: () => [
+      layer("wrap"),
+      layer("garlic_sauce"),
+      layer("doner"),
+      layer("salad_mix"),
+      layer("red_cabbage"),
+      layer("chilli_sauce"),
+      layer("greaseproof"),
+    ],
+  },
+  {
+    name: "Wings box",
+    build: () => [layer("fries"), layer("wings"), layer("buffalo"), layer("ranch"), layer("pot_2oz"), layer("kraft_clamshell")],
   },
   {
     name: "Grilled cheese (upside-down buns)",
     build: () => [
       layer("bun_upside_down"),
       layer("cheese"),
-      layer("sauce", "Burger sauce", "#f39a2b"),
+      layer("burger_sauce"),
       layer("onions"),
       layer("cheese"),
       layer("bun_upside_down"),
@@ -102,6 +168,8 @@ export function ChartEditorModal({ open, itemId, itemName, onClose }: Props) {
   const [layers, setLayers] = useState<AssemblyLayer[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [paletteQuery, setPaletteQuery] = useState("");
+  const [paletteCat, setPaletteCat] = useState<IngredientCategory | "all">("all");
 
   const q = useQuery({
     queryKey: ["assembly-chart", itemId],
@@ -158,6 +226,8 @@ export function ChartEditorModal({ open, itemId, itemName, onClose }: Props) {
 
   if (!open) return null;
 
+  const palette = searchAssemblyIngredients(paletteQuery, paletteQuery.trim() ? "all" : paletteCat);
+
   const update = (id: string, patch: Partial<AssemblyLayer>) =>
     setLayers((prev) => prev.map((l) => (l.id === id ? { ...l, ...patch } : l)));
   const move = (i: number, dir: -1 | 1) =>
@@ -171,7 +241,7 @@ export function ChartEditorModal({ open, itemId, itemName, onClose }: Props) {
     });
   const add = (kind: AssemblyLayerKind) => {
     // Built outside the updater: StrictMode runs updaters twice.
-    const l = layer(kind, undefined, kind === "sauce" ? "#f39a2b" : undefined);
+    const l = layer(kind);
     setSelected(l.id);
     setLayers((prev) => {
       if (prev.length >= ASSEMBLY_MAX_LAYERS) return prev;
@@ -282,20 +352,54 @@ export function ChartEditorModal({ open, itemId, itemName, onClose }: Props) {
               </details>
 
               <div>
-                <p className="mb-2 text-xs font-medium text-zinc-600">Add a layer</p>
-                <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-                  {ASSEMBLY_LAYER_KINDS.map((k) => (
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-xs font-medium text-zinc-600">
+                    Add an ingredient <span className="font-normal text-zinc-400">— {palette.length} shown</span>
+                  </p>
+                  <Input
+                    value={paletteQuery}
+                    onChange={(e) => setPaletteQuery(e.target.value)}
+                    placeholder="Search — peri, pepperoni, foil, rice…"
+                    className="h-8 w-full sm:w-64"
+                  />
+                </div>
+                <div className="mb-2 flex gap-1.5 overflow-x-auto pb-1">
+                  {[{ id: "all" as const, name: "All" }, ...INGREDIENT_CATEGORIES].map((c) => (
                     <button
-                      key={k}
+                      key={c.id}
                       type="button"
-                      onClick={() => add(k)}
-                      disabled={layers.length >= ASSEMBLY_MAX_LAYERS}
-                      className="flex flex-col items-center gap-1 rounded-lg border border-zinc-200 p-1.5 text-[11px] font-medium text-zinc-700 hover:border-pink-300 hover:bg-pink-50 disabled:opacity-40"
+                      onClick={() => setPaletteCat(c.id)}
+                      className={cn(
+                        "shrink-0 rounded-full px-2.5 py-1 text-xs font-medium",
+                        paletteCat === c.id ? "bg-pink-600 text-white" : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200",
+                      )}
                     >
-                      <LayerArt kind={k} color="#f39a2b" className="h-7 w-full" />
-                      {LAYER_DEFAULTS[k].name}
+                      {c.name}
                     </button>
                   ))}
+                </div>
+                <div className="max-h-72 overflow-y-auto rounded-lg border border-zinc-100 p-2">
+                  {palette.length === 0 ? (
+                    <p className="py-8 text-center text-sm text-zinc-500">
+                      Nothing matches — use “Own photo” for anything not in the library.
+                    </p>
+                  ) : (
+                    <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-6">
+                      {palette.map((ing) => (
+                        <button
+                          key={ing.key}
+                          type="button"
+                          onClick={() => add(ing.key)}
+                          disabled={layers.length >= ASSEMBLY_MAX_LAYERS}
+                          title={`Add ${ing.name}`}
+                          className="flex flex-col items-center gap-1 rounded-lg border border-zinc-200 p-1.5 text-center text-[11px] font-medium leading-tight text-zinc-700 hover:border-pink-300 hover:bg-pink-50 disabled:opacity-40"
+                        >
+                          <LayerArt kind={ing.key} className="h-7 w-full" />
+                          {ing.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -354,7 +458,7 @@ export function ChartEditorModal({ open, itemId, itemName, onClose }: Props) {
                         </div>
                         {selected === l.id && (
                           <div className="mt-2 grid gap-3 border-t border-zinc-100 pt-2 sm:grid-cols-2">
-                            {l.kind === "sauce" && (
+                            {assemblyIngredient(l.kind)?.recolourable && (
                               <div className="sm:col-span-2">
                                 <p className="mb-1 text-xs font-medium text-zinc-600">Sauce colour</p>
                                 <div className="flex flex-wrap items-center gap-1.5">
@@ -373,7 +477,7 @@ export function ChartEditorModal({ open, itemId, itemName, onClose }: Props) {
                                   ))}
                                   <input
                                     type="color"
-                                    value={l.color ?? "#f39a2b"}
+                                    value={l.color ?? assemblyIngredient(l.kind)?.colors[0] ?? "#f39a2b"}
                                     onChange={(e) => update(l.id, { color: e.target.value })}
                                     className="h-6 w-8 cursor-pointer rounded border border-zinc-200"
                                     title="Any colour"
