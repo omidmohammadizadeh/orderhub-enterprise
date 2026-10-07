@@ -151,6 +151,8 @@ export class MenusService {
       where: { brandId, deletedAt: null },
       include: {
         _count: { select: { categories: true, versions: true } },
+        // Auto publish badge on the Menus list.
+        autoPublish: { select: { enabled: true, nextRunAt: true, lastStatus: true, channels: true, timezone: true } },
         versions: { orderBy: { version: "desc" }, take: 1, select: { version: true, label: true, createdAt: true } },
       },
       orderBy: { createdAt: "desc" },
@@ -191,6 +193,8 @@ export class MenusService {
       },
       include: {
         _count: { select: { categories: true, versions: true } },
+        // Auto publish badge on the Menus list.
+        autoPublish: { select: { enabled: true, nextRunAt: true, lastStatus: true, channels: true, timezone: true } },
         versions: {
           orderBy: { version: "desc" },
           take: 1,
@@ -242,6 +246,8 @@ export class MenusService {
       },
       include: {
         _count: { select: { categories: true, versions: true } },
+        // Auto publish badge on the Menus list.
+        autoPublish: { select: { enabled: true, nextRunAt: true, lastStatus: true, channels: true, timezone: true } },
         versions: {
           orderBy: { version: "desc" },
           take: 1,

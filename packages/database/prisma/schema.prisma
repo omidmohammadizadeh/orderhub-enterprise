@@ -878,6 +878,7 @@ model Menu {
   categories       MenuCategory[]
   versions         MenuVersion[]
   assignments      MenuChannelAssignment[]
+  autoPublish      MenuAutoPublish?
   // Brands that point one of their channels' pricing at THIS menu (Phase BF
   // — this is the "Variant menu" other brands' Uber Eats/Deliveroo/
   // WhatsApp/Online channels borrow pricing from).
@@ -5934,4 +5935,38 @@ model AssemblyChart {
   @@unique([brandId, nameKey])
   @@index([tenantId, nameKey])
   @@map("assembly_charts")
+}
+
+// Auto publish — re-push a menu to its marketplace channels on a weekly
+// schedule (e.g. Just Eat every day at 10:45) without anyone pressing
+// Publish. Exists because JET order injection sometimes stops for a store
+// until its menu is published again; a scheduled re-publish keeps it healthy.
+// One schedule per menu; each run publishes to every location the menu
+// serves on each chosen channel, through the same services as the button.
+model MenuAutoPublish {
+  id        String    @id @default(cuid())
+  tenantId  String
+  menuId    String    @unique
+  menu      Menu      @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  enabled   Boolean   @default(true)
+  // JUST_EAT | DELIVEROO | UBER_EATS | HUBRISE
+  channels  String[]  @default([])
+  // 0 = Sunday … 6 = Saturday
+  days      Int[]     @default([])
+  // "HH:mm" wall-clock times in `timezone`
+  times     String[]  @default([])
+  timezone  String    @default("Europe/London")
+  nextRunAt DateTime?
+  lastRunAt DateTime?
+  // ok | partial | failed
+  lastStatus String?
+  // [{ channel, locationId?, ok, message }]
+  lastResult Json?
+  createdBy String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([enabled, nextRunAt])
+  @@index([tenantId])
+  @@map("menu_auto_publish")
 }

@@ -18,6 +18,8 @@ import { MenuAssignmentsModule } from './menu-assignments.module';
 import { VariantPriceResolverModule } from './variant-price-resolver.module';
 import { QUEUES } from '@orderhub/shared';
 import { MenuTranslationService } from "./menu-translation.service";
+import { MenuAutoPublishService } from "./auto-publish/menu-auto-publish.service";
+import { MenuAutoPublishController } from "./auto-publish/menu-auto-publish.controller";
 
 @Module({
   // HubRiseModule exports the catalog service used by the AW-11
@@ -41,7 +43,7 @@ import { MenuTranslationService } from "./menu-translation.service";
     // Phase BF — variant-menu publish resolver (cycle-free: only Prisma).
     VariantPriceResolverModule,
   ],
-  controllers: [MenusController],
+  controllers: [MenusController, MenuAutoPublishController],
   providers: [
     MenusService,
     PluService,
@@ -51,6 +53,7 @@ import { MenuTranslationService } from "./menu-translation.service";
     AiMenuParseService,
     AiMenuImporter,
     MenuTranslationService,
+    MenuAutoPublishService,
   ],
   exports: [
     MenusService,

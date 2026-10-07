@@ -39,7 +39,8 @@ import { CloneFromLocationModal } from "@/components/menu/clone-from-location-mo
 import { PublishMenuModal } from "@/components/menu/publish-menu-modal";
 import { PublishHoursModal } from "@/components/menu/publish-hours-modal";
 import { PlatformLogo, platformLabel } from "@/components/ui/platform-logo";
-import { Send, CheckCircle2, Clock, Tag, Layers } from "lucide-react";
+import { Send, CheckCircle2, Clock, Tag, Layers, CalendarClock } from "lucide-react";
+import { AutoPublishModal } from "@/components/menu/auto-publish-modal";
 import { TagBrandModal } from "@/components/menu/tag-brand-modal";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { locationsClient } from "@/lib/api/locations.client";
@@ -76,6 +77,8 @@ export default function MenuPage() {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   // Phase AM — publish target picker per menu card.
   const [publishingMenu, setPublishingMenu] = useState<Menu | null>(null);
+  // Auto publish — the weekly re-publish schedule editor for one menu.
+  const [autoPublishMenu, setAutoPublishMenu] = useState<Menu | null>(null);
   const [taggingMenu, setTaggingMenu] = useState<Menu | null>(null);
   const [publishHoursOpen, setPublishHoursOpen] = useState(false);
   // Phase AM — transient success toast after a publish, dismissed
@@ -625,6 +628,15 @@ export default function MenuPage() {
         source="pos"
         onCancel={() => setAddStep(null)}
       />
+      <AutoPublishModal
+        open={autoPublishMenu !== null}
+        menuId={autoPublishMenu?.id ?? ""}
+        menuName={autoPublishMenu?.name ?? ""}
+        onClose={() => {
+          setAutoPublishMenu(null);
+          qc.invalidateQueries({ queryKey: ["menus"] });
+        }}
+      />
       {selectedLocationId && (
         <CloneFromLocationModal
           open={addStep === "clone-location"}
@@ -704,6 +716,7 @@ export default function MenuPage() {
                 setPublishingMenu(menu);
                 setOpenMenuId(null);
               }}
+              onAutoPublish={() => { setAutoPublishMenu(menu); setOpenMenuId(null); }}
               onArchive={() => { archiveMutation.mutate(menu.id); setOpenMenuId(null); }}
               onClone={() => { cloneMutation.mutate({ menuId: menu.id, name: `${menu.name} (copy)` }); setOpenMenuId(null); }}
               onDelete={() => { deleteMutation.mutate(menu.id); setOpenMenuId(null); }}
@@ -844,6 +857,7 @@ interface MenuCardProps {
   isDropdownOpen: boolean;
   onToggleDropdown: () => void;
   onPublish: () => void;
+  onAutoPublish: () => void;
   onArchive: () => void;
   onClone: () => void;
   onDelete: () => void;
@@ -854,7 +868,7 @@ interface MenuCardProps {
   translating?: boolean;
 }
 
-function MenuCard({ menu, locationNameById, isDropdownOpen, onToggleDropdown, onPublish, onArchive, onClone, onDelete, onDetach, onTag, onTranslate, translating }: MenuCardProps) {
+function MenuCard({ menu, locationNameById, isDropdownOpen, onToggleDropdown, onPublish, onAutoPublish, onArchive, onClone, onDelete, onDetach, onTag, onTranslate, translating }: MenuCardProps) {
   // Phase AM — show the Live badge only when the menu is actually
   // published to at least one target. status=PUBLISHED alone isn't
   // enough; an operator might toggle every target off and that needs
@@ -968,6 +982,7 @@ function MenuCard({ menu, locationNameById, isDropdownOpen, onToggleDropdown, on
           <Send className="h-3 w-3" />
           Publish
         </Button>
+        <AutoPublishButton menu={menu} onClick={onAutoPublish} />
         <Button
           size="sm"
           variant="outline"
@@ -1053,3 +1068,46 @@ function DropItem({ icon: Icon, label, onClick, danger }: { icon: React.ElementT
     </button>
   );
 }
+
+/** Menus-list button for the schedule; shows the next run when one is on. */
+function AutoPublishButton({ menu, onClick }: { menu: Menu; onClick: () => void }) {
+  const ap = (menu as any).autoPublish as
+    | { enabled: boolean; nextRunAt: string | null; lastStatus: string | null; timezone?: string }
+    | null
+    | undefined;
+  const on = !!ap?.enabled && !!ap?.nextRunAt;
+  let next = "";
+  if (on) {
+    try {
+      next = new Intl.DateTimeFormat("en-GB", {
+        timeZone: ap!.timezone || "Europe/London",
+        weekday: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(new Date(ap!.nextRunAt!));
+    } catch {
+      next = "";
+    }
+  }
+  const failed = ap?.lastStatus === "failed" || ap?.lastStatus === "partial";
+  return (
+    <Button
+      size="sm"
+      variant="outline"
+      onClick={onClick}
+      className={
+        "h-8 gap-1.5 text-xs " +
+        (on ? (failed ? "border-amber-300 bg-amber-50 text-amber-800" : "border-orange-300 bg-orange-50 text-orange-800") : "")
+      }
+      title={
+        on
+          ? `Auto publish on — next run ${next}${failed ? " (last run had a problem)" : ""}`
+          : "Publish this menu automatically on chosen days and times"
+      }
+    >
+      <CalendarClock className="h-3 w-3" />
+      {on ? `Auto · ${next}` : "Auto publish"}
+    </Button>
+  );
+}
+

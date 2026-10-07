@@ -52,6 +52,7 @@ import {
   Copy,
   ClipboardList,
   Sandwich,
+  CalendarClock,
 } from "lucide-react";
 import { MenuSettingsDrawer } from "@/components/menu/menu-settings-drawer";
 import { VariantsManagerModal } from "@/components/menu/variants-manager-modal";
@@ -68,6 +69,7 @@ import { AttachModal } from "@/components/products/attach-modal";
 import { ProductEditorModal } from "@/components/products/product-editor-modal";
 import { BuildGuideEditorModal } from "@/components/build-guides/build-guide-editor-modal";
 import { ChartEditorModal } from "@/components/assembly-charts/chart-editor-modal";
+import { AutoPublishModal } from "@/components/menu/auto-publish-modal";
 import { formatDisplayPrice } from "@/lib/menu/display-price";
 import { ChannelPricingModal } from "@/components/menu/channel-pricing-modal";
 import { BulkPriceModal } from "@/components/menu/bulk-price-modal";
@@ -201,6 +203,7 @@ export default function MenuEditorPage() {
   const [buildGuideTarget, setBuildGuideTarget] = useState<{ id: string; name: string } | null>(null);
   // Poster-style assembly chart editor for one product.
   const [chartTarget, setChartTarget] = useState<{ id: string; name: string } | null>(null);
+  const [autoPublishOpen, setAutoPublishOpen] = useState(false);
   const [productEditorTarget, setProductEditorTarget] = useState<
     null | "new" | string
   >(null);
@@ -550,6 +553,16 @@ export default function MenuEditorPage() {
           >
             <Sandwich className="h-4 w-4" />
             Assembly board
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9 flex-shrink-0 gap-1.5"
+            title="Re-publish this menu automatically on chosen days and times"
+            onClick={() => setAutoPublishOpen(true)}
+          >
+            <CalendarClock className="h-4 w-4" />
+            Auto publish
           </Button>
           <Button
             variant="outline"
@@ -1142,6 +1155,12 @@ export default function MenuEditorPage() {
       {/* In-place product editor — wraps the same ProductForm the
           Products tab uses. When "new" we also auto-attach the
           freshly-saved product to the active category. */}
+      <AutoPublishModal
+        open={autoPublishOpen}
+        menuId={menuId}
+        menuName={menu?.name ?? ""}
+        onClose={() => setAutoPublishOpen(false)}
+      />
       <ChartEditorModal
         open={chartTarget !== null}
         itemId={chartTarget?.id ?? ""}
