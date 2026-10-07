@@ -10,8 +10,17 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 export class BuildGuideTrainingService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** Every guide in the tenant, with the caller's own status and team counts. */
-  async overview(tenantId: string, userId: string) {
+  /**
+   * Every guide with the caller's own status and team counts, tagged with the
+   * brands the product is really SOLD under. A guide is keyed to the product's
+   * own brandId, which is often the location's placeholder brand ("Order Hub"),
+   * so that is useless for "which training belongs to which brand". The real
+   * brands come from where the product sits: menu → channel assignments (the
+   * brand a menu is served as at a location), the item's own brandIds, then
+   * the menu's brand. With `locationId`, only guides for products sold at that
+   * location are returned, with that location's brands.
+   */
+  async overview(tenantId: string, userId: string, locationId?: string | null) {
     const guides = await this.prisma.buildGuide.findMany({
       where: { tenantId },
       orderBy: [{ brandId: "asc" }, { name: "asc" }],
@@ -22,28 +31,90 @@ export class BuildGuideTrainingService {
     });
     if (guides.length === 0) return [];
 
-    // A product photo for each card, matched the same way guides are (brand + name).
-    const items = await this.prisma.menuItem.findMany({
-      where: { brandId: { in: [...new Set(guides.map((g: any) => g.brandId))] as string[] }, imageUrl: { not: null } },
-      select: { brandId: true, name: true, imageUrl: true },
+    const items: any[] = await this.prisma.menuItem.findMany({
+      where: { brandId: { in: [...new Set(guides.map((g: any) => g.brandId))] as string[] } },
+      select: {
+        brandId: true,
+        name: true,
+        imageUrl: true,
+        brandIds: true,
+        locationId: true,
+        categories: {
+          select: {
+            category: {
+              select: {
+                menu: {
+                  select: {
+                    brandId: true,
+                    locationId: true,
+                    deletedAt: true,
+                    assignments: { select: { locationId: true, brandId: true } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     });
-    const photo = new Map<string, string>();
-    for (const i of items as any[]) {
+
+    // Where each product is sold: [locationId | null, brandIds[]] pairs.
+    type Placement = { locationId: string | null; brandIds: string[] };
+    const byKey = new Map<string, { photo: string | null; placements: Placement[] }>();
+    for (const i of items) {
       const k = `${i.brandId}|${buildGuideNameKey(i.name)}`;
-      if (!photo.has(k) && i.imageUrl) photo.set(k, i.imageUrl);
+      const entry = byKey.get(k) ?? { photo: null, placements: [] };
+      if (!entry.photo && i.imageUrl) entry.photo = i.imageUrl;
+      for (const link of i.categories ?? []) {
+        const menu = link?.category?.menu;
+        if (!menu || menu.deletedAt) continue;
+        if (menu.assignments?.length) {
+          for (const a of menu.assignments) entry.placements.push({ locationId: a.locationId, brandIds: [a.brandId] });
+        } else {
+          entry.placements.push({
+            locationId: menu.locationId ?? null,
+            brandIds: i.brandIds?.length ? i.brandIds : [menu.brandId],
+          });
+        }
+      }
+      if (i.brandIds?.length) entry.placements.push({ locationId: i.locationId ?? null, brandIds: i.brandIds });
+      byKey.set(k, entry);
     }
 
-    return guides.map((g: any) => {
+    const rows: any[] = [];
+    const brandIdsNeeded = new Set<string>();
+    for (const g of guides as any[]) {
+      const entry = byKey.get(`${g.brandId}|${g.nameKey}`);
+      const placements = (entry?.placements ?? []).filter((p) => !locationId || p.locationId === locationId);
+      if (locationId && placements.length === 0) continue; // not sold at this location
+      const brands = [...new Set(placements.flatMap((p) => p.brandIds))];
+      if (brands.length === 0) brands.push(g.brandId);
+      brands.forEach((b) => brandIdsNeeded.add(b));
+      rows.push({ g, brands, photo: entry?.photo ?? null });
+    }
+
+    const brandRows = await this.prisma.brand.findMany({
+      where: { id: { in: [...brandIdsNeeded] }, tenantId },
+      select: { id: true, name: true },
+    });
+    const brandName = new Map<string, string>(brandRows.map((b: any) => [b.id, b.name]));
+
+    return rows.map(({ g, brands, photo }) => {
       const updated = new Date(g.updatedAt).getTime();
       const mine = g.trainings.find((t: any) => t.userId === userId);
       const current = g.trainings.filter((t: any) => new Date(t.completedAt).getTime() >= updated);
       const steps = Array.isArray(g.steps) ? g.steps : [];
+      const named = brands
+        .filter((b: string) => brandName.has(b))
+        .map((b: string) => ({ id: b, name: brandName.get(b)! }))
+        .sort((a: any, b: any) => a.name.localeCompare(b.name));
       return {
         id: g.id,
         name: g.name,
-        brandName: g.brand?.name ?? null,
+        brandName: named[0]?.name ?? g.brand?.name ?? null,
+        brands: named,
         stepCount: steps.length,
-        imageUrl: photo.get(`${g.brandId}|${g.nameKey}`) ?? steps.find((s: any) => s?.imageUrl)?.imageUrl ?? null,
+        imageUrl: photo ?? steps.find((s: any) => s?.imageUrl)?.imageUrl ?? null,
         updatedAt: g.updatedAt,
         hasVideo: !!g.videoUrl,
         myStatus: !mine ? "new" : new Date(mine.completedAt).getTime() >= updated ? "trained" : "refresher",

@@ -28,7 +28,38 @@ describe("training mode", () => {
       findMany: async () => guides,
       findFirst: async ({ where }: any) => guides.find((g) => g.id === where.id && g.tenantId === where.tenantId) ?? null,
     },
-    menuItem: { findMany: async () => [{ brandId: "b1", name: "Chicken  Burrito", imageUrl: "https://x/product.jpg" }] },
+    menuItem: {
+      findMany: async () => [
+        {
+          // Product stamped with the placeholder brand b1, sold as two real brands.
+          brandId: "b1",
+          name: "Chicken  Burrito",
+          imageUrl: "https://x/product.jpg",
+          brandIds: [],
+          locationId: "loc-pelton",
+          categories: [
+            // Pelton menu served as Fiesta (POS) and Casa (Uber).
+            { category: { menu: { brandId: "b1", locationId: "loc-pelton", deletedAt: null, assignments: [
+              { locationId: "loc-pelton", brandId: "b-fiesta" },
+              { locationId: "loc-pelton", brandId: "b-casa" },
+            ] } } },
+            // Aylesbury menu with no assignments → item.brandIds empty → menu brand.
+            { category: { menu: { brandId: "b-aylesbury", locationId: "loc-aylesbury", deletedAt: null, assignments: [] } } },
+            // Deleted menu is ignored.
+            { category: { menu: { brandId: "b-old", locationId: "loc-pelton", deletedAt: new Date(), assignments: [] } } },
+          ],
+        },
+      ],
+    },
+    brand: {
+      findMany: async ({ where }: any) =>
+        [
+          { id: "b1", name: "Order Hub" },
+          { id: "b-fiesta", name: "Fiesta Mexica" },
+          { id: "b-casa", name: "Casa Mexa" },
+          { id: "b-aylesbury", name: "Aylesbury Grill" },
+        ].filter((b) => where.id.in.includes(b.id) && where.tenantId === "t1"),
+    },
     buildGuideTraining: {
       upserts: [] as any[],
       upsert: async (args: any) => prisma.buildGuideTraining.upserts.push(args),
@@ -48,6 +79,22 @@ describe("training mode", () => {
     expect(rows[0]).toMatchObject({ id: "g1", myStatus: "trained", trainedCount: 1, imageUrl: "https://x/product.jpg", stepCount: 1 });
     expect(rows[1]).toMatchObject({ id: "g2", myStatus: "refresher", trainedCount: 0 });
     expect((await svc.overview("t1", "u-new"))[0]!.myStatus).toBe("new");
+  });
+
+  it("tags guides with the brands they are really sold as, never the placeholder", async () => {
+    const all = await svc.overview("t1", "u-me");
+    expect(all[0]!.brands.map((b: any) => b.name)).toEqual(["Aylesbury Grill", "Casa Mexa", "Fiesta Mexica"]);
+    // Nachos has no product anywhere → falls back to its own brand.
+    expect(all[1]!.brands.map((b: any) => b.name)).toEqual(["Order Hub"]);
+  });
+
+  it("with a location: only guides sold there, with that location's brands", async () => {
+    const pelton = await svc.overview("t1", "u-me", "loc-pelton");
+    expect(pelton.map((r: any) => r.id)).toEqual(["g1"]);
+    expect(pelton[0]!.brands.map((b: any) => b.name)).toEqual(["Casa Mexa", "Fiesta Mexica"]);
+    const aylesbury = await svc.overview("t1", "u-me", "loc-aylesbury");
+    expect(aylesbury[0]!.brands.map((b: any) => b.name)).toEqual(["Aylesbury Grill"]);
+    expect(await svc.overview("t1", "u-me", "loc-nowhere")).toEqual([]);
   });
 
   it("records a completion for the caller only within their tenant", async () => {

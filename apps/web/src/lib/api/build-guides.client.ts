@@ -33,6 +33,8 @@ export interface TrainingOverviewRow {
   updatedAt: string;
   myStatus: "new" | "trained" | "refresher";
   hasVideo?: boolean;
+  /** Brands the product is really sold as (at the requested location) */
+  brands: Array<{ id: string; name: string }>;
   trainedCount: number;
 }
 
@@ -52,8 +54,12 @@ export const buildGuidesClient = {
     apiClient
       .post<{ steps: BuildGuideStep[]; packNote: string | null }>(`/v1/build-guides/item/${itemId}/ai-draft`, {}, { timeout: 120_000 })
       .then((r) => r.data),
-  trainingOverview: () =>
-    apiClient.get<TrainingOverviewRow[]>("/v1/build-guides/training/overview").then((r) => r.data),
+  trainingOverview: (locationId?: string | null) =>
+    apiClient
+      .get<TrainingOverviewRow[]>("/v1/build-guides/training/overview", {
+        params: locationId ? { locationId } : {},
+      })
+      .then((r) => r.data),
   trainingGuide: (guideId: string) =>
     apiClient.get<TrainingGuide>(`/v1/build-guides/training/guide/${guideId}`).then((r) => r.data),
   completeTraining: (guideId: string) =>

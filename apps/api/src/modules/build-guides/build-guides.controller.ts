@@ -48,8 +48,8 @@ export class BuildGuidesController {
 
   @Get("training/overview")
   @ApiOperation({ summary: "Every guide with my training status and the team's trained count" })
-  trainingOverview(@CurrentUser() user: AuthenticatedUser) {
-    return this.training.overview(user.tenantId, user.userId);
+  trainingOverview(@Query("locationId") locationId: string | undefined, @CurrentUser() user: AuthenticatedUser) {
+    return this.training.overview(user.tenantId, user.userId, locationId || null);
   }
 
   @Get("training/guide/:guideId")

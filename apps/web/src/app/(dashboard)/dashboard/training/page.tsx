@@ -25,6 +25,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth.store";
+import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { buildGuidesClient, type TrainingOverviewRow } from "@/lib/api/build-guides.client";
 import { formatVideoTime } from "@orderhub/shared";
 import { VideoOverlay } from "@/components/build-guides/youtube-player";
@@ -41,8 +42,42 @@ export default function TrainingPage() {
   const [search, setSearch] = useState("");
   const [openGuide, setOpenGuide] = useState<string | null>(null);
 
-  const q = useQuery({ queryKey: OVERVIEW_QUERY, queryFn: buildGuidesClient.trainingOverview });
-  const rows = q.data ?? [];
+  // Training follows the location picked in the sidebar: only products sold
+  // there, tagged with the brands that location sells them as.
+  const locationId = useSelectedLocationStore((s) => s.selectedLocationId);
+  const q = useQuery({
+    queryKey: [...OVERVIEW_QUERY, locationId ?? "all"],
+    queryFn: () => buildGuidesClient.trainingOverview(locationId),
+  });
+  const allRows = q.data ?? [];
+
+  // Brand picker — remembered per location on this device.
+  const brandKey = `training-brand:${locationId ?? "all"}`;
+  const [brandId, setBrandIdState] = useState<string>("");
+  useEffect(() => {
+    try {
+      setBrandIdState(localStorage.getItem(brandKey) ?? "");
+    } catch {
+      setBrandIdState("");
+    }
+  }, [brandKey]);
+  const setBrandId = (id: string) => {
+    setBrandIdState(id);
+    try {
+      if (id) localStorage.setItem(brandKey, id);
+      else localStorage.removeItem(brandKey);
+    } catch {
+      /* private mode — selection just isn't remembered */
+    }
+  };
+  const brandOptions = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const r of allRows) for (const b of r.brands ?? []) m.set(b.id, b.name);
+    return [...m.entries()].map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
+  }, [allRows]);
+  // A remembered brand that this location no longer sells falls back to all.
+  const activeBrand = brandOptions.some((b) => b.id === brandId) ? brandId : "";
+  const rows = activeBrand ? allRows.filter((r) => r.brands?.some((b) => b.id === activeBrand)) : allRows;
   const todo = rows.filter((r) => r.myStatus !== "trained").length;
 
   const shown = useMemo(() => {
@@ -51,19 +86,29 @@ export default function TrainingPage() {
       (r) =>
         (filter === "all" ||
           (filter === "todo" ? r.myStatus !== "trained" : r.myStatus === "trained")) &&
-        (!s || r.name.toLowerCase().includes(s) || (r.brandName ?? "").toLowerCase().includes(s)),
+        (!s ||
+          r.name.toLowerCase().includes(s) ||
+          (r.brands ?? []).some((b) => b.name.toLowerCase().includes(s))),
     );
   }, [rows, filter, search]);
 
+  // One section per brand; a product sold as two brands shows under both, so
+  // staff on either brand's line see it where they expect it.
   const byBrand = useMemo(() => {
     const m = new Map<string, TrainingOverviewRow[]>();
     for (const r of shown) {
-      const k = r.brandName ?? "Other";
-      if (!m.has(k)) m.set(k, []);
-      m.get(k)!.push(r);
+      const names = activeBrand
+        ? [brandOptions.find((b) => b.id === activeBrand)?.name ?? "Other"]
+        : (r.brands ?? []).length
+          ? r.brands.map((b) => b.name)
+          : [r.brandName ?? "Other"];
+      for (const k of names) {
+        if (!m.has(k)) m.set(k, []);
+        m.get(k)!.push(r);
+      }
     }
-    return [...m.entries()];
-  }, [shown]);
+    return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  }, [shown, activeBrand, brandOptions]);
 
   return (
     <div className="space-y-5 p-4 sm:p-6">
@@ -81,9 +126,24 @@ export default function TrainingPage() {
             )}
           </p>
         </div>
-        <div className="relative w-full sm:w-64">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search products" className="pl-8" />
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <select
+            value={activeBrand}
+            onChange={(e) => setBrandId(e.target.value)}
+            aria-label="Brand"
+            className="h-9 w-full rounded-md border border-zinc-200 bg-white px-3 text-sm font-medium text-zinc-800 sm:w-56"
+          >
+            <option value="">All brands{brandOptions.length ? ` (${brandOptions.length})` : ""}</option>
+            {brandOptions.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+          </select>
+          <div className="relative w-full sm:w-64">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search products" className="pl-8" />
+          </div>
         </div>
       </div>
 
@@ -126,7 +186,9 @@ export default function TrainingPage() {
       ) : rows.length === 0 ? (
         <div className="rounded-xl border border-dashed border-zinc-300 py-16 text-center">
           <GraduationCap className="mx-auto h-8 w-8 text-zinc-300" />
-          <p className="mt-2 text-sm text-zinc-600">No build guides yet.</p>
+          <p className="mt-2 text-sm text-zinc-600">
+            {locationId ? "No build guides for products sold at this location yet." : "No build guides yet."}
+          </p>
           <p className="text-xs text-zinc-400">Add one with “How to build” on any product in the menu editor.</p>
         </div>
       ) : shown.length === 0 ? (
