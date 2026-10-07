@@ -119,25 +119,29 @@ export function buildStepState(
 
 const YT_ID = /^[A-Za-z0-9_-]{11}$/;
 
-/** Video id from watch / youtu.be / shorts / embed / live / m. links, or a bare id. */
+/**
+ * Video id from watch / youtu.be / shorts / embed / live / m. links, or a bare id.
+ * Plain string parsing on purpose: this package compiles with neither the DOM
+ * lib nor @types/node in the Docker images, so the WHATWG `URL` global is not
+ * available to the type checker there (it broke every Render build once).
+ */
 export function parseYouTubeId(input: string | null | undefined): string | null {
   const raw = String(input ?? "").trim();
   if (!raw) return null;
   if (YT_ID.test(raw)) return raw;
-  let url: URL;
-  try {
-    url = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
-  } catch {
-    return null;
-  }
-  const host = url.hostname.replace(/^(www|m|music)\./, "").toLowerCase();
+  const m = raw.match(/^(?:https?:\/\/)?([^/?#]+)([^?#]*)(?:\?([^#]*))?/i);
+  if (!m) return null;
+  const host = (m[1] ?? "").toLowerCase().replace(/:\d+$/, "").replace(/^(www|m|music)\./, "");
+  const path = m[2] ?? "";
+  const query = m[3] ?? "";
   let id: string | null = null;
-  if (host === "youtu.be") id = url.pathname.split("/")[1] ?? null;
+  if (host === "youtu.be") id = path.split("/")[1] ?? null;
   else if (host === "youtube.com" || host === "youtube-nocookie.com") {
-    if (url.pathname === "/watch") id = url.searchParams.get("v");
-    else {
-      const m = url.pathname.match(/^\/(?:shorts|embed|live|v)\/([^/?#]+)/);
-      id = m?.[1] ?? null;
+    if (path === "/watch") {
+      const v = query.split("&").find((kv) => kv.startsWith("v="));
+      id = v ? decodeURIComponent(v.slice(2)) : null;
+    } else {
+      id = path.match(/^\/(?:shorts|embed|live|v)\/([^/]+)/)?.[1] ?? null;
     }
   }
   return id && YT_ID.test(id) ? id : null;
@@ -169,10 +173,10 @@ export function formatVideoTime(seconds: number | null | undefined): string {
 
 /** Privacy-enhanced embed; `start` jumps to a step. */
 export function youTubeEmbedUrl(id: string, opts: { start?: number | null; autoplay?: boolean } = {}): string {
-  const p = new URLSearchParams({ rel: "0", playsinline: "1", modestbranding: "1" });
-  if (opts.start) p.set("start", String(Math.floor(opts.start)));
-  if (opts.autoplay) p.set("autoplay", "1");
-  return `https://www.youtube-nocookie.com/embed/${id}?${p.toString()}`;
+  const q = ["rel=0", "playsinline=1", "modestbranding=1"];
+  if (opts.start) q.push(`start=${Math.floor(opts.start)}`);
+  if (opts.autoplay) q.push("autoplay=1");
+  return `https://www.youtube-nocookie.com/embed/${id}?${q.join("&")}`;
 }
 
 /** Normal watch link (for the printed QR code — opens the YouTube app on a phone). */
