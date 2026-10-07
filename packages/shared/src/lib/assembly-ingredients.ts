@@ -205,7 +205,17 @@ export const ASSEMBLY_INGREDIENTS: AssemblyIngredient[] = [
     ["bacon", "Bacon", "legacy", "#b8322b", "#f2b4a0", "2 bacon rashers", "streaky"],
     ["turkey_bacon", "Turkey bacon", "strips", "#c4553f", "#f2b4a0", "2 turkey bacon rashers", "halal"],
     ["ham", "Ham", "sheet", "#f1a7a0", "#f8cfc8", "Ham"],
-    ["pepperoni", "Pepperoni", "slices", "#b8321f", "#8a1f12", "Pepperoni", "salami"],
+    ["pepperoni", "Pepperoni", "slices", "#b8321f", "#8a1f12", "Pepperoni", "pizza"],
+    ["salami", "Salami", "slices", "#b8424a", "#f1c2c2", "Salami", "milano pizza"],
+    ["chicken_pieces", "Chicken", "chunks", "#e0b070", "#c98a3a", "Chicken", "cooked chicken pieces"],
+    ["diced_chicken", "Diced chicken", "diced", "#e6bd80", "#c98a3a", "Diced chicken", "cubed chicken breast"],
+    ["pulled_chicken", "Pulled chicken", "shreds", "#e0b070", "#b9853f", "Pulled chicken", "shredded"],
+    ["chicken_tikka_meat", "Chicken tikka", "chunks", "#d3552a", "#f08a4a", "Chicken tikka", "tikka pieces"],
+    ["diced_chicken_tikka", "Diced chicken tikka", "diced", "#d3552a", "#f08a4a", "Diced chicken tikka", "tikka cubed"],
+    ["tandoori_chicken", "Tandoori chicken", "wings", "#c8321f", "#e8682a", "Tandoori chicken", "tandori leg"],
+    ["diced_tandoori", "Diced tandoori chicken", "diced", "#c8321f", "#e8682a", "Diced tandoori chicken", "tandori cubed"],
+    ["doner_meat", "Doner meat", "strips", "#8a5434", "#b9835a", "Doner meat", "donner kebab lamb gyros"],
+    ["bolognese", "Bolognese beef", "dollop", "#8a2a1a", "#5a2a14", "Bolognese", "beef mince ragu sauce"],
     ["sausage", "Sausage", "sticks", "#8a4a2a", "#b06a3a", "Sausage", "banger"],
     ["hot_dog", "Hot dog", "sticks", "#c0532c", "#e07a4a", "Hot dog", "frankfurter"],
     ["pulled_beef", "Pulled beef", "chunks", "#5a2a1a", "#7b3f25", "Pulled beef", "brisket shredded"],
@@ -304,8 +314,8 @@ export const ASSEMBLY_INGREDIENTS: AssemblyIngredient[] = [
     ["calzone", "Calzone fold", "taco", "#e8b866", "#c98a3f", "Fold & seal", "folded"],
   ]),
   ...build("grill", [
-    ["doner", "Lamb doner", "strips", "#8a5434", "#b9835a", "Lamb doner", "kebab gyros"],
-    ["chicken_doner", "Chicken doner", "strips", "#d7a462", "#b17a3c", "Chicken doner", "shawarma gyros"],
+    ["doner", "Lamb doner", "strips", "#8a5434", "#b9835a", "Lamb doner", "donner kebab gyros meat"],
+    ["chicken_doner", "Chicken doner", "strips", "#d7a462", "#b17a3c", "Chicken doner", "donner shawarma gyros"],
     ["shawarma", "Shawarma", "strips", "#c98a4a", "#8a5a2a", "Shawarma"],
     ["lamb_shish", "Lamb shish", "chunks", "#7a4026", "#a8603a", "Lamb shish", "kebab cubes"],
     ["chicken_shish", "Chicken shish", "chunks", "#e0a050", "#b9742a", "Chicken shish", "kebab cubes"],
@@ -397,6 +407,8 @@ export const ASSEMBLY_INGREDIENTS: AssemblyIngredient[] = [
 /** Cross-listing so each cuisine tab holds everything its kitchen uses. */
 const ALSO_IN: Partial<Record<IngredientCategory, string[]>> = {
   pizza: [
+    "salami", "diced_chicken", "pulled_chicken", "diced_chicken_tikka",
+    "tandoori_chicken", "diced_tandoori", "doner_meat", "bolognese",
     "pepperoni", "ham", "turkey_bacon", "bacon", "meatballs", "mince", "tuna", "prawns", "grilled_chicken",
     "chicken_tikka", "doner", "mushrooms", "sliced_onion", "red_onion", "onions", "green_peppers", "red_peppers",
     "house_peppers", "sweetcorn", "pineapple", "black_olives", "green_olives", "jalapeno", "chillies",
@@ -405,12 +417,14 @@ const ALSO_IN: Partial<Record<IngredientCategory, string[]>> = {
     "pizza_box", "greaseproof", "pot_2oz",
   ],
   mexican: [
+    "pulled_chicken", "diced_chicken",
     "tortilla_12", "tortilla_6", "corn_tortilla", "burrito_wrap", "cheese_sauce", "grated_cheese", "pickled_onions",
     "coriander", "jalapeno", "house_peppers", "pulled_beef", "chipotle_mayo", "hot_sauce", "lime_wedge",
     "shredded_lettuce", "sweetcorn", "choc_sauce", "churros", "brownie_cheesecake", "cinnamon_sugar",
     "clamshell", "tin_foil", "taco_tray", "bowl", "pot_4oz",
   ],
   grill: [
+    "doner_meat", "diced_chicken", "diced_chicken_tikka", "tandoori_chicken", "diced_tandoori",
     "naan", "pitta", "wrap", "flatbread", "halloumi", "falafel", "wings", "bbq_wings", "drumsticks", "grilled_chicken",
     "steak", "salad_mix", "shredded_lettuce", "red_cabbage", "white_cabbage", "sliced_onion", "red_onion",
     "tomato", "cucumber", "chillies", "lemon_wedge", "garlic_sauce", "chilli_sauce", "gyros_sauce", "tzatziki",
@@ -419,6 +433,11 @@ const ALSO_IN: Partial<Record<IngredientCategory, string[]>> = {
   sides: ["chicken_tenders", "nuggets", "popcorn_chicken", "jalapeno_poppers", "cauliflower_bites", "coleslaw", "tortilla_chips", "chip_cone", "pot_2oz"],
   breakfast: ["egg", "bacon", "turkey_bacon", "sausage", "mushrooms", "toast", "tomato", "cheese", "hot_dog_bun"],
   desserts: ["churros", "whipped_cream"],
+  meat: [
+    "doner", "chicken_doner", "shawarma", "lamb_shish", "chicken_shish", "kofte",
+    "quarter_chicken", "lamb_chops", "spicy_beef", "sausage_slices", "chicken_pastor",
+    "birria", "carne_asada", "chipotle_chicken",
+  ],
 };
 for (const [cat, keys] of Object.entries(ALSO_IN) as Array<[IngredientCategory, string[]]>) {
   for (const k of keys) {
