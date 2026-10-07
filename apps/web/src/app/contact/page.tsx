@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CalendarDays, ArrowRight } from "lucide-react";
 import { SiteNav } from "@/components/marketing/site-nav";
 import { ContactForm } from "@/components/marketing/contact-form";
 
@@ -26,6 +27,18 @@ export default function ContactPage() {
             day — with pricing tailored to your setup. No hard sell.
           </p>
         </div>
+
+        <Link
+          href="/demo"
+          className="mx-auto mt-8 flex max-w-2xl items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 hover:bg-emerald-100"
+        >
+          <CalendarDays className="h-5 w-5 shrink-0 text-emerald-600" />
+          <span className="flex-1">
+            <span className="font-semibold">Prefer to talk?</span> Book a
+            30-minute call straight into our calendar.
+          </span>
+          <ArrowRight className="h-4 w-4 shrink-0" />
+        </Link>
 
         <div className="mt-10">
           <ContactForm />

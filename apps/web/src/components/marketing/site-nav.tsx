@@ -85,6 +85,7 @@ const INTEGRATIONS: MenuItem[] = [
 const RESOURCES: MenuItem[] = [
   { label: "How it works", description: "Three steps to live", href: "/#how" },
   { label: "Features", description: "What's in the box", href: "/#features" },
+  { label: "Book a demo", description: "Pick a 30-min call slot", href: "/demo" },
   { label: "Contact sales", description: "Send us a message", href: "/contact" },
 ];
 
@@ -127,6 +128,12 @@ export async function SiteNav() {
               className="rounded-md px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
             >
               Log in
+            </Link>
+            <Link
+              href="/demo"
+              className="rounded-md border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+            >
+              Book a demo
             </Link>
             <Link
               href="/login"

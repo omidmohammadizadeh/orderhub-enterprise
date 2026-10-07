@@ -192,10 +192,10 @@ function Hero({ brand }: { brand: string }) {
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
-              href="/contact"
+              href="/demo"
               className="rounded-lg border border-zinc-200 bg-white px-5 py-2.5 text-sm font-semibold text-zinc-700 hover:bg-zinc-50"
             >
-              Talk to sales
+              Book a demo
             </Link>
           </div>
           <p className="mt-3 text-xs text-zinc-500">
@@ -302,13 +302,21 @@ function _UnusedPricing() {
               line and we&apos;ll come back with what makes sense for your
               setup.
             </p>
-            <Link
-              href="/contact"
-              className="mt-6 inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
-            >
-              Contact sales
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <Link
+                href="/demo"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
+              >
+                Book a demo
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/contact"
+                className="rounded-lg border border-zinc-200 bg-white px-5 py-2.5 text-sm font-semibold text-zinc-700 hover:bg-zinc-50"
+              >
+                Contact sales
+              </Link>
+            </div>
           </div>
         </InView>
       </div>
@@ -422,6 +430,7 @@ function SiteFooter({ brand }: { brand: SiteBrand }) {
               { label: "Features", href: "/#features" },
               { label: "How it works", href: "/#how" },
               { label: "Pricing", href: "/#pricing" },
+              { label: "Book a demo", href: "/demo" },
               { label: "Contact sales", href: "/contact" },
               { label: "Log in", href: "/login" },
             ]}
