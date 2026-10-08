@@ -518,7 +518,7 @@ export default function AnalyticsPage() {
             <KpiCard
               label="Gross revenue"
               value={fmtGBP(data.summary.grossRevenue)}
-              hint="Subtotal + delivery + tax"
+              hint="Subtotal + delivery + service + tax"
               delta={pctDelta(
                 data.summary.grossRevenue,
                 data.summary.prevGrossRevenue,
@@ -528,7 +528,7 @@ export default function AnalyticsPage() {
             <KpiCard
               label="Net revenue"
               value={fmtGBP(data.summary.netRevenue)}
-              hint="After discounts"
+              hint="After discounts, excl. delivery"
               delta={pctDelta(
                 data.summary.netRevenue,
                 data.summary.prevNetRevenue,

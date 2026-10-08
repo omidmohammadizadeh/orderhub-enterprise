@@ -1174,6 +1174,7 @@ export class AnalyticsService {
           subtotal: true,
           discount: true,
           deliveryFee: true,
+          serviceCharge: true,
           taxAmount: true,
           total: true,
           createdAt: true,
@@ -1219,15 +1220,23 @@ export class AnalyticsService {
     const sumDec = <T extends keyof OrderRow>(rows: OrderRow[], key: T) =>
       rows.reduce((s, r) => s + Number(r[key] ?? 0), 0);
 
-    // Gross = before discount. Net = total customer paid (after
-    // discount). delivery + tax are reported separately so the
-    // operator can see what's restaurant revenue vs pass-through.
+    // GROSS is everything the customer was charged: subtotal, delivery, tax AND
+    // the service charge. The service charge was missing, so a Just Eat order
+    // billed at £17.12 (14.99 + 0.49 delivery + 1.64 service) reported £15.48 —
+    // the money was on the order, just not in the headline.
+    //
+    // NET is what the shop actually keeps, so the delivery fee comes back out:
+    // it is collected on the courier's behalf and passed straight through, and
+    // counting it as revenue flatters every delivery channel. Discounts come
+    // out too. Delivery and tax stay in the response as their own lines so the
+    // pass-through is still visible rather than merely absent.
     const subtotal = sumDec(successful, "subtotal");
     const discount = sumDec(successful, "discount");
     const deliveryFees = sumDec(successful, "deliveryFee");
+    const serviceCharge = sumDec(successful, "serviceCharge");
     const taxAmount = sumDec(successful, "taxAmount");
-    const grossRevenue = subtotal + deliveryFees + taxAmount;
-    const netRevenue = grossRevenue - discount;
+    const grossRevenue = subtotal + deliveryFees + taxAmount + serviceCharge;
+    const netRevenue = grossRevenue - discount - deliveryFees;
 
     const avgOrderValue =
       successful.length > 0 ? netRevenue / successful.length : 0;
@@ -1237,9 +1246,11 @@ export class AnalyticsService {
     const prevSubtotal = sumDec(prevSuccessful as any, "subtotal");
     const prevDiscount = sumDec(prevSuccessful as any, "discount");
     const prevDeliveryFees = sumDec(prevSuccessful as any, "deliveryFee");
+    const prevServiceCharge = sumDec(prevSuccessful as any, "serviceCharge");
     const prevTax = sumDec(prevSuccessful as any, "taxAmount");
-    const prevGross = prevSubtotal + prevDeliveryFees + prevTax;
-    const prevNet = prevGross - prevDiscount;
+    const prevGross =
+      prevSubtotal + prevDeliveryFees + prevTax + prevServiceCharge;
+    const prevNet = prevGross - prevDiscount - prevDeliveryFees;
     const prevAov =
       prevSuccessful.length > 0 ? prevNet / prevSuccessful.length : 0;
 
@@ -1540,6 +1551,7 @@ export class AnalyticsService {
         subtotal,
         discount,
         deliveryFees,
+        serviceCharge,
         taxAmount,
         successfulOrders: successful.length,
         cancelledOrders: cancelled.length,
