@@ -21,6 +21,7 @@ import {
   ArrowUpRight,
   Banknote,
   Building2,
+  Receipt,
   Calendar,
   Check,
   CreditCard,
@@ -304,6 +305,7 @@ export default function AnalyticsPage() {
     rows.push(`Summary,Net revenue,${s.netRevenue.toFixed(2)}`);
     rows.push(`Summary,Discount,${s.discount.toFixed(2)}`);
     rows.push(`Summary,Delivery fees,${s.deliveryFees.toFixed(2)}`);
+    rows.push(`Summary,Service charge,${s.serviceCharge.toFixed(2)}`);
     rows.push(`Summary,Tax,${s.taxAmount.toFixed(2)}`);
     rows.push(`Summary,Successful orders,${s.successfulOrders}`);
     rows.push(`Summary,Cancelled orders,${s.cancelledOrders}`);
@@ -563,7 +565,7 @@ export default function AnalyticsPage() {
             <KpiCard
               label="Net revenue"
               value={fmtGBP(data.summary.netRevenue)}
-              hint="After discounts, excl. delivery"
+              hint="After discounts, excl. delivery + service"
               delta={pctDelta(
                 data.summary.netRevenue,
                 data.summary.prevNetRevenue,
@@ -627,10 +629,21 @@ export default function AnalyticsPage() {
               value={fmtGBP(data.summary.discount)}
               icon={<TrendingDown className="h-4 w-4" />}
             />
+            {/* Delivery and service are both collected for someone else: in
+                gross because the customer paid them, out of net because the
+                shop never banks them. Shown on their own so the difference
+                between the two headline figures is accounted for on screen. */}
             <KpiCard
               label="Delivery fees"
               value={fmtGBP(data.summary.deliveryFees)}
+              hint="Passed to the courier"
               icon={<MapPin className="h-4 w-4" />}
+            />
+            <KpiCard
+              label="Service charge"
+              value={fmtGBP(data.summary.serviceCharge)}
+              hint="Platform fee, not yours"
+              icon={<Receipt className="h-4 w-4" />}
             />
             <KpiCard
               label="Tax collected"
@@ -712,7 +725,7 @@ export default function AnalyticsPage() {
 
           {/* Channel + Brand + Location */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-            <Card title="Sales by channel" subtitle="Revenue and order count">
+            <Card title="Sales by channel" subtitle="Gross revenue and order count">
               {data.byChannel.length === 0 ? (
                 <Empty />
               ) : (
@@ -741,7 +754,7 @@ export default function AnalyticsPage() {
                 headers={["Channel", "Revenue", "Orders"]}
               />
             </Card>
-            <Card title="Sales by brand" subtitle="Top → bottom">
+            <Card title="Sales by brand" subtitle="Gross revenue, top → bottom">
               {data.byBrand.length === 0 ? (
                 <Empty />
               ) : (
@@ -755,7 +768,7 @@ export default function AnalyticsPage() {
                 />
               )}
             </Card>
-            <Card title="Sales by location" subtitle="Top → bottom">
+            <Card title="Sales by location" subtitle="Gross revenue, top → bottom">
               {data.byLocation.length === 0 ? (
                 <Empty />
               ) : (

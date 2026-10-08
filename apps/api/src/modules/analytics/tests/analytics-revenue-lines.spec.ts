@@ -8,13 +8,18 @@ import { AnalyticsService } from "../analytics.service";
 // service charge, so £1.64 of real money was missing from the headline on
 // every marketplace order that carries one.
 //
-// And net was gross-minus-discount, which counted the delivery fee as revenue
-// the shop had earned. It is collected for the courier and passed straight
-// through, so it flatters every delivery channel against collection.
+// And net was gross-minus-discount, which counted BOTH pass-throughs as revenue
+// the shop had earned. The delivery fee is collected for the courier; the
+// service charge is the marketplace's own fee on the customer. Neither reaches
+// the shop, and counting them flatters every delivery channel against
+// collection.
 //
 // Gross = everything the customer was charged.
-// Net   = what the shop keeps: gross, minus discounts, minus the delivery
-//         pass-through.
+// Net   = what the shop keeps: gross, minus discounts, minus the delivery and
+//         service-charge pass-throughs.
+//
+// For 965460811 that is £17.12 gross and £14.99 net — the food, which is the
+// only part of that order Mulgrave was ever going to bank.
 
 type Seed = {
   subtotal: number;
@@ -86,17 +91,21 @@ describe("Analytics revenue — service charge in, delivery pass-through out", (
     expect(res.summary.grossRevenue).toBeCloseTo(17.12, 2);
   });
 
-  it("takes the delivery fee back out of net — it belongs to the courier", async () => {
+  it("takes delivery AND the service charge back out of net — neither is ours", async () => {
     const res: any = await overviewFor([jetOrder]);
 
-    expect(res.summary.netRevenue).toBeCloseTo(16.63, 2);
+    // 17.12 − 0.49 delivery − 1.64 service = 14.99, the food alone.
+    expect(res.summary.netRevenue).toBeCloseTo(14.99, 2);
   });
 
   it("still reports delivery and service as their own lines", async () => {
     const res: any = await overviewFor([jetOrder]);
 
-    // Removing the pass-through from net must not hide it: an operator still
-    // needs to see what was collected on the courier's behalf.
+    // Removing the pass-throughs from net must not hide them: an operator
+    // still needs to see what was collected on someone else's behalf, and the
+    // dashboard puts each on its own tile. The service charge in particular was
+    // reported by the API but had no tile, so it was invisible on the page
+    // even after it started counting towards gross.
     expect(res.summary.deliveryFees).toBeCloseTo(0.49, 2);
     expect(res.summary.serviceCharge).toBeCloseTo(1.64, 2);
   });
@@ -107,15 +116,15 @@ describe("Analytics revenue — service charge in, delivery pass-through out", (
     const direct: any = await overviewFor([{ ...jetOrder, orderSource: "DIRECT" }]);
 
     expect(direct.summary.grossRevenue).toBeCloseTo(17.12, 2);
-    expect(direct.summary.netRevenue).toBeCloseTo(16.63, 2);
+    expect(direct.summary.netRevenue).toBeCloseTo(14.99, 2);
   });
 
   it("subtracts discounts from net as well as the delivery fee", async () => {
     const res: any = await overviewFor([{ ...jetOrder, discount: 6 }]);
 
-    // gross 17.12 − 6 discount − 0.49 delivery
+    // gross 17.12 − 6 discount − 0.49 delivery − 1.64 service
     expect(res.summary.grossRevenue).toBeCloseTo(17.12, 2);
-    expect(res.summary.netRevenue).toBeCloseTo(10.63, 2);
+    expect(res.summary.netRevenue).toBeCloseTo(8.99, 2);
   });
 
   it("measures the prior period the same way, or the delta arrows lie", async () => {
@@ -127,7 +136,7 @@ describe("Analytics revenue — service charge in, delivery pass-through out", (
     // comparing a value to itself would pass even if BOTH were computed the old
     // way, which is exactly the regression this guards.
     expect(res.summary.prevGrossRevenue).toBeCloseTo(17.12, 2);
-    expect(res.summary.prevNetRevenue).toBeCloseTo(16.63, 2);
+    expect(res.summary.prevNetRevenue).toBeCloseTo(14.99, 2);
     expect(res.summary.netRevenue).toBeCloseTo(res.summary.prevNetRevenue, 2);
   });
 

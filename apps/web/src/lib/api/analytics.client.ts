@@ -9,6 +9,8 @@ export interface OverviewSummary {
   subtotal: number;
   discount: number;
   deliveryFees: number;
+  /** Collected for the platform, counted in gross, taken back out of net. */
+  serviceCharge: number;
   taxAmount: number;
   successfulOrders: number;
   cancelledOrders: number;

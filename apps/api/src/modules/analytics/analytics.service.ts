@@ -1280,18 +1280,22 @@ export class AnalyticsService {
     // billed at £17.12 (14.99 + 0.49 delivery + 1.64 service) reported £15.48 —
     // the money was on the order, just not in the headline.
     //
-    // NET is what the shop actually keeps, so the delivery fee comes back out:
-    // it is collected on the courier's behalf and passed straight through, and
-    // counting it as revenue flatters every delivery channel. Discounts come
-    // out too. Delivery and tax stay in the response as their own lines so the
-    // pass-through is still visible rather than merely absent.
+    // NET is what the shop actually keeps, so BOTH pass-throughs come back out.
+    // The delivery fee is collected on the courier's behalf; the service charge
+    // on a marketplace order is the platform's fee on the customer, which never
+    // reaches the shop either. Counting either as revenue flatters every
+    // delivery channel against collection. Discounts come out too.
+    //
+    // Every line stays in the response on its own — delivery, service, tax — so
+    // the pass-through is visible rather than merely absent, and the tiles can
+    // show what was collected for someone else.
     const subtotal = sumDec(successful, "subtotal");
     const discount = sumDec(successful, "discount");
     const deliveryFees = sumDec(successful, "deliveryFee");
     const serviceCharge = sumDec(successful, "serviceCharge");
     const taxAmount = sumDec(successful, "taxAmount");
     const grossRevenue = subtotal + deliveryFees + taxAmount + serviceCharge;
-    const netRevenue = grossRevenue - discount - deliveryFees;
+    const netRevenue = grossRevenue - discount - deliveryFees - serviceCharge;
 
     const avgOrderValue =
       successful.length > 0 ? netRevenue / successful.length : 0;
@@ -1305,7 +1309,8 @@ export class AnalyticsService {
     const prevTax = sumDec(prevSuccessful as any, "taxAmount");
     const prevGross =
       prevSubtotal + prevDeliveryFees + prevTax + prevServiceCharge;
-    const prevNet = prevGross - prevDiscount - prevDeliveryFees;
+    const prevNet =
+      prevGross - prevDiscount - prevDeliveryFees - prevServiceCharge;
     const prevAov =
       prevSuccessful.length > 0 ? prevNet / prevSuccessful.length : 0;
 
