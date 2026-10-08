@@ -497,7 +497,13 @@ export class JetGoDispatchService {
     });
 
     this.logger.log(
-      `JET Go dispatch OK order=${order.id} requestId=${estimate.requestId} courierFee=${estimate.dynamicDeliveryFee}p wallet=${waived ? "0 (charge waived for this location)" : `${feeMinor}p`} (${cfg.reseller ? "reseller" : "merchant account"})`,
+      `JET Go dispatch OK order=${order.id} requestId=${estimate.requestId} ` +
+        // Which mode we actually sent. Nothing used to say, so an advance order
+        // that slipped inside the 1-hour window and silently fell back to ASAP
+        // looked identical to one that didn't — and the two take OPPOSITE
+        // fields (ASAP must send targetCollectTime, advance must not).
+        `mode=${body.targetDeliverTime ? `ADVANCE deliverBy=${body.targetDeliverTime}` : `ASAP collectBy=${collectTime ?? "?"}`} ` +
+        `courierFee=${estimate.dynamicDeliveryFee}p wallet=${waived ? "0 (charge waived for this location)" : `${feeMinor}p`} (${cfg.reseller ? "reseller" : "merchant account"})`,
     );
 
     return {
