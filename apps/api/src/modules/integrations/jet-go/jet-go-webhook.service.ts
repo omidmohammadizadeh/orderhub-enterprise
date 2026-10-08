@@ -381,6 +381,21 @@ export class JetGoWebhookService {
     order: any,
     opts: { refund: boolean; reason: string; refundDescription?: string },
   ): Promise<void> {
+    // Already released by the other cancellation event.
+    //
+    // Clearing courierProvider was supposed to unroute the second one, but
+    // findOrder falls back to the metadata.orderId we put on every delivery, so
+    // it finds the order anyway — reads a courierStatus we have just blanked,
+    // concludes JET cancelled on us, and refunds a fee the operator forfeited by
+    // asking. Harmless while the charge is waived (it refunds £0) and a free
+    // cancel-and-re-dispatch loop as soon as it is not.
+    if (!order.courierProvider) {
+      this.logger.log(
+        `JET Go order=${order.id}: courier already released, ignoring the duplicate cancellation`,
+      );
+      return;
+    }
+
     await this.db().order.update({
       where: { id: order.id },
       data: { ...COURIER_FIELDS_CLEARED },

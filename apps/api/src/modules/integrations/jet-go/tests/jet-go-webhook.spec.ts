@@ -170,6 +170,32 @@ describe("COURIERJOBSTATUS", () => {
     expect(theirs.wallet.refundDispatch).toHaveBeenCalled();
   });
 
+  it("does not refund an operator's own cancellation via the second event", async () => {
+    // Both cancellation events arrive for one cancel. The first sees
+    // CANCELLATION_REQUESTED and correctly keeps the fee; the second used to
+    // read the courierStatus the first had just blanked, call it a JET-side
+    // cancellation, and hand the fee back — a free cancel/re-dispatch loop.
+    const { s, wallet } = svcWith([order({ courierStatus: "CANCELLATION_REQUESTED" })]);
+    await s.handle(evt("COURIERJOBSTATUS", { status: "CANCELLED" }));
+    await s.handle(evt("CANCELJOBSTATUS", { status: true }));
+    expect(wallet.refundDispatch).not.toHaveBeenCalled();
+  });
+
+  it("still releases when only CANCELJOBSTATUS arrives", async () => {
+    const { s, updates, orders } = svcWith([
+      order({ courierStatus: "CANCELLATION_REQUESTED" }),
+    ]);
+    await s.handle(evt("CANCELJOBSTATUS", { status: true }));
+    expect(lastFor(updates, "o1").courierProvider).toBeNull();
+    expect(orders.updateStatus).toHaveBeenCalledWith(
+      "o1",
+      "t1",
+      expect.objectContaining({ status: "READY" }),
+      "jet-go-webhook",
+      "WEBHOOK",
+    );
+  });
+
   it("does not release twice when both cancellation events arrive", async () => {
     // JET sends COURIERJOBSTATUS CANCELLED and CANCELJOBSTATUS for the same
     // event, in no guaranteed order. Clearing courierProvider unroutes the
