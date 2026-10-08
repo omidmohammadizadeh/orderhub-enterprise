@@ -347,12 +347,33 @@ export class JetGoDispatchService {
     return { order, location, cfg };
   }
 
+  /**
+   * A courier network's own 4xx is an answer, not a fault.
+   *
+   * The quote paths let the client's raw Error escape, so Nest turned
+   * "This location is out of range" into a bare 500 and the dispatch modal
+   * showed "Internal server error" — the one message that tells the operator
+   * nothing. `dispatch` already translated these; the quote paths did not.
+   */
+  private quoteFailed(err: any): never {
+    const raw = String(err?.message ?? err ?? "");
+    // Clients prefix the provider's text with "VERB /path → status: ".
+    const detail = raw.split(/\u2192 \d+: /).pop()?.trim() || "no price available";
+    this.logger.warn(`JET Go quote failed: ${raw}`);
+    throw new BadRequestException(`JET Go couldn't price this delivery: ${detail}`);
+  }
+
   /** Price + availability, no booking and no charge. Burns a requestId (they
    *  expire in 5 minutes on their own), which is why dispatch re-estimates. */
   async quote(args: { orderId: string; tenantId: string }) {
     const { order, location, cfg } = await this.load(args.orderId, args.tenantId);
     const { body, warnings } = await this.buildEstimateBody(order, location, cfg);
-    const est = await this.client.estimate(cfg, body);
+    let est: JetGoEstimateResponse;
+    try {
+      est = await this.client.estimate(cfg, body);
+    } catch (err: any) {
+      this.quoteFailed(err);
+    }
     const markup = await this.wallet.dispatchFeeMinorFor(args.tenantId, order.locationId);
     const courierMinor = Number(est?.dynamicDeliveryFee);
     return {

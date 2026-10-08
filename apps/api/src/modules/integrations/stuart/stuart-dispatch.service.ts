@@ -148,13 +148,34 @@ export class StuartDispatchService {
   /** Optional pre-flight quote (no wallet charge, no job created). */
   async quote(args: { orderId: string; tenantId: string }) {
     const { order, location, cfg } = await this.load(args.orderId, args.tenantId);
-    const pricing = await this.client.pricing(cfg, this.buildPayload(order, location));
+    let pricing: any;
+    try {
+      pricing = await this.client.pricing(cfg, this.buildPayload(order, location));
+    } catch (err: any) {
+      this.quoteFailed(err);
+    }
     return {
       currency: pricing?.currency ?? "GBP",
       amount: pricing?.amount ?? pricing?.price_tax_included ?? null,
       dispatchFeeMinor: await this.wallet.dispatchFeeMinorFor(args.tenantId, order.locationId),
       raw: pricing,
     };
+  }
+
+  /**
+   * A courier network's own 4xx is an answer, not a fault.
+   *
+   * The quote paths let the client's raw Error escape, so Nest turned
+   * "This location is out of range" into a bare 500 and the dispatch modal
+   * showed "Internal server error" — the one message that tells the operator
+   * nothing. `dispatch` already translated these; the quote paths did not.
+   */
+  private quoteFailed(err: any): never {
+    const raw = String(err?.message ?? err ?? "");
+    // Clients prefix the provider's text with "VERB /path → status: ".
+    const detail = raw.split(/\u2192 \d+: /).pop()?.trim() || "no price available";
+    this.logger.warn(`Stuart quote failed: ${raw}`);
+    throw new BadRequestException(`Stuart couldn't price this delivery: ${detail}`);
   }
 
   private async load(orderId: string, tenantId: string) {
@@ -497,7 +518,12 @@ export class StuartDispatchService {
   async quoteBulk(args: { orderIds: string[]; user: AuthenticatedUser }) {
     const { orders, location, cfg } = await this.loadBulk(args.orderIds, args.user);
     const { payload } = this.buildBulkPayload(orders, location);
-    const pricing = await this.client.pricing(cfg, payload);
+    let pricing: any;
+    try {
+      pricing = await this.client.pricing(cfg, payload);
+    } catch (err: any) {
+      this.quoteFailed(err);
+    }
     const feeEachMinor = await this.wallet.dispatchFeeMinorFor(
       args.user.tenantId,
       (location as any).id ?? null,

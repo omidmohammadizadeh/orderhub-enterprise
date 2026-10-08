@@ -146,9 +146,30 @@ export class UberDirectDispatchService {
     return { order, location, cfg };
   }
 
+  /**
+   * A courier network's own 4xx is an answer, not a fault.
+   *
+   * The quote paths let the client's raw Error escape, so Nest turned
+   * "This location is out of range" into a bare 500 and the dispatch modal
+   * showed "Internal server error" — the one message that tells the operator
+   * nothing. `dispatch` already translated these; the quote paths did not.
+   */
+  private quoteFailed(err: any): never {
+    const raw = String(err?.message ?? err ?? "");
+    // Clients prefix the provider's text with "VERB /path → status: ".
+    const detail = raw.split(/\u2192 \d+: /).pop()?.trim() || "no price available";
+    this.logger.warn(`Uber Direct quote failed: ${raw}`);
+    throw new BadRequestException(`Uber Direct couldn't price this delivery: ${detail}`);
+  }
+
   async quote(args: { orderId: string; tenantId: string }) {
     const { order, location, cfg } = await this.load(args.orderId, args.tenantId);
-    const q = await this.client.quote(cfg, this.buildQuoteBody(order, location));
+    let q: any;
+    try {
+      q = await this.client.quote(cfg, this.buildQuoteBody(order, location));
+    } catch (err: any) {
+      this.quoteFailed(err);
+    }
     // Uber Direct returns `fee` in minor units (pence).
     const feeMinor = typeof q?.fee === "number" ? q.fee : null;
     return {
