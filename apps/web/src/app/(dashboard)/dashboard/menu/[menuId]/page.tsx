@@ -53,6 +53,7 @@ import {
   ClipboardList,
   Sandwich,
   CalendarClock,
+  CopyPlus,
 } from "lucide-react";
 import { MenuSettingsDrawer } from "@/components/menu/menu-settings-drawer";
 import { VariantsManagerModal } from "@/components/menu/variants-manager-modal";
@@ -70,6 +71,7 @@ import { ProductEditorModal } from "@/components/products/product-editor-modal";
 import { BuildGuideEditorModal } from "@/components/build-guides/build-guide-editor-modal";
 import { ChartEditorModal } from "@/components/assembly-charts/chart-editor-modal";
 import { AutoPublishModal } from "@/components/menu/auto-publish-modal";
+import { CloneCategoryModal } from "@/components/menu/clone-category-modal";
 import { formatDisplayPrice } from "@/lib/menu/display-price";
 import { ChannelPricingModal } from "@/components/menu/channel-pricing-modal";
 import { BulkPriceModal } from "@/components/menu/bulk-price-modal";
@@ -204,6 +206,7 @@ export default function MenuEditorPage() {
   // Poster-style assembly chart editor for one product.
   const [chartTarget, setChartTarget] = useState<{ id: string; name: string } | null>(null);
   const [autoPublishOpen, setAutoPublishOpen] = useState(false);
+  const [cloneCategoryOpen, setCloneCategoryOpen] = useState(false);
   const [productEditorTarget, setProductEditorTarget] = useState<
     null | "new" | string
   >(null);
@@ -712,6 +715,16 @@ export default function MenuEditorPage() {
               Add category
             </Button>
           )}
+          {/* Copy whole categories from another menu — new products, new PLUs. */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCloneCategoryOpen(true)}
+            className="w-full h-10 mb-3 border-dashed border-zinc-300 text-zinc-600 hover:text-zinc-900"
+          >
+            <CopyPlus className="h-4 w-4 mr-1.5" />
+            Clone category
+          </Button>
 
           <ul className="space-y-1">
             {categories.map((cat: any, idx: number) => (
@@ -1155,6 +1168,12 @@ export default function MenuEditorPage() {
       {/* In-place product editor — wraps the same ProductForm the
           Products tab uses. When "new" we also auto-attach the
           freshly-saved product to the active category. */}
+      <CloneCategoryModal
+        open={cloneCategoryOpen}
+        menuId={menuId}
+        locationId={menuLocationId}
+        onClose={() => setCloneCategoryOpen(false)}
+      />
       <AutoPublishModal
         open={autoPublishOpen}
         menuId={menuId}

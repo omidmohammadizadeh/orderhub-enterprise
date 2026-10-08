@@ -685,6 +685,20 @@ export class MenusController {
     return this.menus.removeCategory(categoryId, user.tenantId);
   }
 
+  @Post("menus/:menuId/categories/clone")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({
+    summary:
+      "Clone categories from another menu into this one — every product deep-copied with a new PLU and its own modifier groups",
+  })
+  cloneCategories(
+    @Param("menuId") menuId: string,
+    @Body() body: { sourceMenuId?: string; categoryIds?: string[] },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.cloneCategories(menuId, user.tenantId, body ?? {});
+  }
+
   @Post("menus/:menuId/categories/reorder")
   @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @HttpCode(HttpStatus.NO_CONTENT)
