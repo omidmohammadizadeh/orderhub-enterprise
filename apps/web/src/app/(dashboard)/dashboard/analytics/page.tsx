@@ -57,7 +57,7 @@ import {
   type AnalyticsOverview,
 } from "@/lib/api/analytics.client";
 import { brandsClient, locationsClient } from "@/lib/api/locations.client";
-import { SearchableSelect } from "@/components/ui/searchable-select";
+import { SearchableMultiSelect } from "@/components/ui/searchable-multi-select";
 
 // Channel catalog for the Filter popover. Same list and same popover the
 // Orders board uses, so "which channels am I looking at" is answered the
@@ -190,8 +190,10 @@ export default function AnalyticsPage() {
   const [preset, setPreset] = useState<DatePreset>("7d");
   const [customFrom, setCustomFrom] = useState<string>("");
   const [customTo, setCustomTo] = useState<string>("");
-  const [locationId, setLocationId] = useState<string>("");
-  const [brandId, setBrandId] = useState<string>("");
+  // Several at once. Empty = all (that the caller can see), same convention as
+  // the channel filter beside them.
+  const [locationIds, setLocationIds] = useState<string[]>([]);
+  const [brandIds, setBrandIds] = useState<string[]>([]);
   // Empty = every channel. The request omits `channels` entirely in that
   // case, so the page opens showing everything rather than a subset.
   const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
@@ -234,8 +236,12 @@ export default function AnalyticsPage() {
     includeTest: isPlatformAdmin && includeTest,
     from: range.from.toISOString(),
     to: range.to.toISOString(),
-    locationId: locationId || undefined,
-    brandId: brandId || undefined,
+    locationIds: locationIds.length ? locationIds : undefined,
+    brandIds: brandIds.length ? brandIds : undefined,
+    // The dine-in and walk-in reports below take one location. They get it
+    // only when exactly one is picked; with several, they stay unfiltered
+    // rather than silently reporting on the first of them.
+    locationId: locationIds.length === 1 ? locationIds[0] : undefined,
     channels: selectedChannels.length ? selectedChannels : undefined,
   };
 
@@ -255,6 +261,39 @@ export default function AnalyticsPage() {
 
   const data = overviewQuery.data;
   const loading = overviewQuery.isLoading;
+
+  const locationOptions = useMemo(
+    () =>
+      ((data?.filterOptions?.locations ?? locationsQuery.data ?? []) as any[]).map(
+        (l) => ({ value: l.id, label: l.name }),
+      ),
+    [data?.filterOptions?.locations, locationsQuery.data],
+  );
+
+  // Scope the brand picker to the chosen locations. A group with 120 brands
+  // offering all of them while one shop is in view makes the filter useless —
+  // the API already works out which brands trade at the selection (assigned to
+  // a menu there, or holding orders there) and reports it back.
+  //
+  // A brand that is still ticked but is not on offer any more stays in the list
+  // with a note, rather than vanishing: ticking a location should not strand a
+  // selection the user can no longer see to undo. The report is then honestly
+  // empty for it.
+  const brandOptions = useMemo(() => {
+    const scoped = (data?.filterOptions?.brands ?? brandsQuery.data ?? []) as any[];
+    const opts = scoped.map((b) => ({ value: b.id, label: b.name }));
+    const present = new Set(opts.map((o) => o.value));
+    for (const id of brandIds) {
+      if (present.has(id)) continue;
+      const known = (brandsQuery.data ?? []).find((b: any) => b.id === id);
+      opts.push({
+        value: id,
+        label: known?.name ?? "Selected brand",
+        hint: "— no orders here",
+      } as any);
+    }
+    return opts;
+  }, [data?.filterOptions?.brands, brandsQuery.data, brandIds]);
 
   function exportCsv() {
     if (!data) return;
@@ -368,33 +407,29 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           {/* Typeable rather than a native select: a group with twenty
               locations turns a one-tap filter into a scroll-and-scan. */}
-          <SearchableSelect
+          <SearchableMultiSelect
             className="w-full"
             buttonClassName="px-2 py-1.5 text-xs"
             allLabel="All locations"
             placeholder="All locations"
+            pluralNoun="locations"
             searchPlaceholder="Search locations…"
             emptyLabel="No location by that name"
-            value={locationId || undefined}
-            onChange={(v) => setLocationId(v ?? "")}
-            options={(locationsQuery.data ?? []).map((l: any) => ({
-              value: l.id,
-              label: l.name,
-            }))}
+            values={locationIds}
+            onChange={setLocationIds}
+            options={locationOptions}
           />
-          <SearchableSelect
+          <SearchableMultiSelect
             className="w-full"
             buttonClassName="px-2 py-1.5 text-xs"
             allLabel="All brands"
             placeholder="All brands"
+            pluralNoun="brands"
             searchPlaceholder="Search brands…"
-            emptyLabel="No brand by that name"
-            value={brandId || undefined}
-            onChange={(v) => setBrandId(v ?? "")}
-            options={(brandsQuery.data ?? []).map((b: any) => ({
-              value: b.id,
-              label: b.name,
-            }))}
+            emptyLabel="No brand trades at the selected locations"
+            values={brandIds}
+            onChange={setBrandIds}
+            options={brandOptions}
           />
           {/* Channel filter — same Filter popover as the Orders board. */}
           <div className="relative" ref={channelFilterRef}>
@@ -741,9 +776,11 @@ export default function AnalyticsPage() {
             <Card
               title="Cash vs card"
               subtitle={
-                locationId
+                locationIds.length === 1
                   ? "This location only"
-                  : "Every location you can see"
+                  : locationIds.length > 1
+                    ? `${locationIds.length} locations`
+                    : "Every location you can see"
               }
             >
               {data.paymentMix.byMethod.length === 0 ? (

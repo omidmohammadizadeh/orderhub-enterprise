@@ -43,6 +43,7 @@ function overviewFor(seeds: OrderSeed[], opts: { locationId?: string } = {}) {
         .mockResolvedValueOnce(rows)
         .mockResolvedValue([]),
     },
+    menuChannelAssignment: { findMany: jest.fn().mockResolvedValue([]) },
     brand: { findMany: jest.fn().mockResolvedValue([]) },
     location: {
       findMany: jest.fn().mockResolvedValue([

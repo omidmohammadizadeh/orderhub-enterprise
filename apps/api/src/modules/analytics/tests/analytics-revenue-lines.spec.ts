@@ -60,6 +60,7 @@ function overviewFor(seeds: Seed[], prev: Seed[] = []) {
         .mockResolvedValueOnce(prev.map(order))
         .mockResolvedValue([]),
     },
+    menuChannelAssignment: { findMany: jest.fn().mockResolvedValue([]) },
     brand: { findMany: jest.fn().mockResolvedValue([]) },
     location: {
       findMany: jest.fn().mockResolvedValue([{ id: "loc-1", name: "Mulgrave" }]),
