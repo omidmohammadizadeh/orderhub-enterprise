@@ -36,7 +36,11 @@ const STATUS_MAP: Record<string, string | null> = {
   IN_TRANSIT_TO_DELIVER: "OUT_FOR_DELIVERY",
   ARRIVED_TO_DELIVER: "OUT_FOR_DELIVERY",
   DELIVERED: "COMPLETED",
-  CANCELLED: "CANCELLED",
+  // A cancelled COURIER is not a cancelled ORDER, and mapping it to one
+  // cancelled the customer's order every time an operator pressed "Cancel
+  // dispatch". The food is made and still owed; it just has no rider. Handled
+  // out of band by releaseCourier() — same as a confirmed CANCELJOBSTATUS.
+  CANCELLED: null,
   // A return means the food is coming back to the shop. That is a money and
   // refund decision, so it is surfaced and left to the operator rather than
   // silently cancelling a paid order.
@@ -223,6 +227,30 @@ export class JetGoWebhookService {
     const courier = data?.courier ?? {};
     const isReturn = data?.deliveryProperties?.isReturn === true;
 
+    // The job's own CANCELLED state, handled BEFORE anything else.
+    //
+    // It has to come first because the block below writes courierStatus, and
+    // whether we refund depends on reading the status the order arrived with:
+    // CANCELLATION_REQUESTED means the operator asked, anything else means JET
+    // cancelled on us and the fee goes back. Overwrite it first and that
+    // distinction is gone.
+    //
+    // JET sends this alongside CANCELJOBSTATUS for the same event, in no
+    // guaranteed order, so whichever lands first releases the courier and the
+    // other no longer resolves to this order.
+    if (status === "CANCELLED") {
+      const weAskedForIt = order.courierStatus === "CANCELLATION_REQUESTED";
+      await this.releaseCourier(order, {
+        refund: !weAskedForIt,
+        reason: "the JET Go courier job being cancelled",
+        refundDescription: "JET Go refund — Just Eat cancelled the delivery",
+      });
+      this.logger.log(
+        `JET Go COURIERJOBSTATUS order=${order.id} status=CANCELLED → courier released, order back on the board (${weAskedForIt ? "operator-requested" : "JET-initiated, fee refunded"})`,
+      );
+      return { ok: true, type };
+    }
+
     const updates: Record<string, any> = {};
     if (status) updates.courierStatus = status;
     const deliveryId = this.str(data?.deliveryId);
@@ -269,11 +297,7 @@ export class JetGoWebhookService {
         await this.orders.updateStatus(
           order.id,
           order.tenantId,
-          {
-            status: next as any,
-            cancelReason:
-              next === "CANCELLED" ? "JET Go courier cancelled the delivery" : undefined,
-          } as any,
+          { status: next as any } as any,
           "jet-go-webhook",
           "WEBHOOK" as any,
         );
@@ -340,6 +364,62 @@ export class JetGoWebhookService {
     return { ok: true, type };
   }
 
+  /**
+   * Take the courier off an order without touching the order itself.
+   *
+   * Used by BOTH cancellation signals JET sends — CANCELJOBSTATUS (the outcome
+   * of a cancel request) and COURIERJOBSTATUS status=CANCELLED (the job's own
+   * state). They arrive for the same event, in no guaranteed order, so this has
+   * to be idempotent: clearing courierProvider means the second one no longer
+   * resolves to this order and nothing refunds twice.
+   *
+   * The order survives on the board as READY. A cancelled courier is not a
+   * cancelled order — the kitchen has made the food and the customer is still
+   * owed it; the operator re-dispatches or drives it themselves.
+   */
+  private async releaseCourier(
+    order: any,
+    opts: { refund: boolean; reason: string; refundDescription?: string },
+  ): Promise<void> {
+    await this.db().order.update({
+      where: { id: order.id },
+      data: { ...COURIER_FIELDS_CLEARED },
+    });
+
+    if (opts.refund) {
+      try {
+        await this.wallet.refundDispatch({
+          tenantId: order.tenantId,
+          locationId: order.locationId,
+          orderId: order.id,
+          amountMinor: this.walletChargedMinor(order),
+          createdBy: null,
+          description: opts.refundDescription ?? "JET Go refund — delivery cancelled",
+        });
+      } catch (err: any) {
+        this.logger.warn(
+          `JET Go dispatch-fee refund failed for order ${order.id}: ${err?.message ?? err}`,
+        );
+      }
+    }
+
+    if (!["COMPLETED", "CANCELLED"].includes(String(order.status))) {
+      try {
+        await this.orders.updateStatus(
+          order.id,
+          order.tenantId,
+          { status: "READY" as any } as any,
+          "jet-go-webhook",
+          "WEBHOOK" as any,
+        );
+      } catch (err: any) {
+        this.logger.warn(
+          `Order ${order.id} → READY after ${opts.reason}: ${err?.message ?? err}`,
+        );
+      }
+    }
+  }
+
   /** Fires for our own cancel call AND when a JET agent or the platform's
    *  unassigned-delivery timeout cancels for us. */
   private async onCancelJobStatus(order: any, data: any, type: string) {
@@ -375,48 +455,11 @@ export class JetGoWebhookService {
     // be a free loop.
     const weAskedForIt = order.courierStatus === "CANCELLATION_REQUESTED";
 
-    // Clearing courierProvider is also the idempotency guard: a duplicate
-    // CANCELJOBSTATUS no longer resolves to this order, so nothing refunds twice.
-    await this.db().order.update({
-      where: { id: order.id },
-      data: { ...COURIER_FIELDS_CLEARED },
+    await this.releaseCourier(order, {
+      refund: !weAskedForIt,
+      reason: "a JET Go cancellation",
+      refundDescription: "JET Go refund — Just Eat cancelled the delivery",
     });
-
-    if (!weAskedForIt) {
-      try {
-        await this.wallet.refundDispatch({
-          tenantId: order.tenantId,
-          locationId: order.locationId,
-          orderId: order.id,
-          amountMinor: this.walletChargedMinor(order),
-          createdBy: null,
-          description: "JET Go refund — Just Eat cancelled the delivery",
-        });
-      } catch (err: any) {
-        this.logger.warn(
-          `JET Go dispatch-fee refund failed for order ${order.id}: ${err?.message ?? err}`,
-        );
-      }
-    }
-
-    // The order itself survives. The food is still made and still owed to the
-    // customer — it just has no courier — so it goes back on the board as READY
-    // for the operator to re-dispatch or drive themselves.
-    if (!["COMPLETED", "CANCELLED"].includes(String(order.status))) {
-      try {
-        await this.orders.updateStatus(
-          order.id,
-          order.tenantId,
-          { status: "READY" as any } as any,
-          "jet-go-webhook",
-          "WEBHOOK" as any,
-        );
-      } catch (err: any) {
-        this.logger.warn(
-          `Order ${order.id} → READY after JET Go cancellation rejected: ${err?.message ?? err}`,
-        );
-      }
-    }
 
     this.activity?.record({
       tenantId: order.tenantId,

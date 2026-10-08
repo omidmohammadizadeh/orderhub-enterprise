@@ -31,8 +31,56 @@ export class UberDirectWebhookService {
     if (["pickup"].includes(s)) return "ASSIGNED_DRIVER";
     if (["pickup_complete", "dropoff"].includes(s)) return "OUT_FOR_DELIVERY";
     if (["delivered"].includes(s)) return "COMPLETED";
-    if (["canceled", "cancelled", "returned"].includes(s)) return "CANCELLED";
+    // Cancelled/returned deliberately return null — handled by releaseCourier,
+    // because a cancelled courier must not cancel the customer's order.
     return null;
+  }
+
+  private isCancelled(status: string | undefined): boolean {
+    const s = (status ?? "").toLowerCase();
+    return ["canceled", "cancelled", "returned"].includes(s);
+  }
+
+  /**
+   * A cancelled COURIER is not a cancelled ORDER.
+   *
+   * Mapping it to one cancelled the customer's order every time an operator
+   * pressed "Cancel dispatch", and every time the network cancelled on us. The
+   * kitchen has made the food and the customer is still owed it — the order
+   * goes back on the board with no rider, to be re-dispatched or driven.
+   */
+  private async releaseCourier(order: any, reason: string): Promise<void> {
+    await this.db().order.update({
+      where: { id: order.id },
+      data: {
+        courierProvider: null,
+        courierJobId: null,
+        courierDeliveryId: null,
+        courierName: null,
+        courierPhone: null,
+        courierTrackingUrl: null,
+        courierStatus: null,
+        courierEtaAt: null,
+        courierPickupEtaAt: null,
+        courierLat: null,
+        courierLng: null,
+        courierLocationAt: null,
+        deliveryType: null,
+      },
+    });
+    if (!["COMPLETED", "CANCELLED"].includes(String(order.status))) {
+      try {
+        await this.orders.updateStatus(
+          order.id,
+          order.tenantId,
+          { status: "READY" as any } as any,
+          "uber-direct-webhook",
+          "WEBHOOK" as any,
+        );
+      } catch (err: any) {
+        this.logger.warn(`Order ${order.id} → READY after ${reason}: ${err?.message ?? err}`);
+      }
+    }
   }
 
   async handle(body: any): Promise<{ ok: boolean; reason?: string }> {
@@ -95,19 +143,21 @@ export class UberDirectWebhookService {
       await this.db().order.update({ where: { id: order.id }, data: updates });
     }
 
+    if (this.isCancelled(status)) {
+      await this.releaseCourier(order, "the Uber Direct delivery being cancelled");
+      this.logger.log(
+        `Uber Direct delivery=${deliveryId} order=${order.id} cancelled → courier released, order back on the board`,
+      );
+      return { ok: true };
+    }
+
     const nextStatus = this.mapStatus(status);
     if (nextStatus && nextStatus !== order.status) {
       try {
         await this.orders.updateStatus(
           order.id,
           order.tenantId,
-          {
-            status: nextStatus as any,
-            cancelReason:
-              nextStatus === "CANCELLED"
-                ? "Uber Direct courier cancelled the delivery"
-                : undefined,
-          } as any,
+          { status: nextStatus as any } as any,
           "uber-direct-webhook",
           "WEBHOOK" as any,
         );

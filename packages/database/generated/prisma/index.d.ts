@@ -746,6 +746,31 @@ export type EmailAutomation = $Result.DefaultSelection<Prisma.$EmailAutomationPa
  * 
  */
 export type EmailCampaignRecipient = $Result.DefaultSelection<Prisma.$EmailCampaignRecipientPayload>
+/**
+ * Model BuildGuide
+ * 
+ */
+export type BuildGuide = $Result.DefaultSelection<Prisma.$BuildGuidePayload>
+/**
+ * Model BuildStepTemplate
+ * 
+ */
+export type BuildStepTemplate = $Result.DefaultSelection<Prisma.$BuildStepTemplatePayload>
+/**
+ * Model BuildGuideTraining
+ * 
+ */
+export type BuildGuideTraining = $Result.DefaultSelection<Prisma.$BuildGuideTrainingPayload>
+/**
+ * Model AssemblyChart
+ * 
+ */
+export type AssemblyChart = $Result.DefaultSelection<Prisma.$AssemblyChartPayload>
+/**
+ * Model MenuAutoPublish
+ * 
+ */
+export type MenuAutoPublish = $Result.DefaultSelection<Prisma.$MenuAutoPublishPayload>
 
 /**
  * Enums
@@ -3165,6 +3190,56 @@ export class PrismaClient<
     * ```
     */
   get emailCampaignRecipient(): Prisma.EmailCampaignRecipientDelegate<ExtArgs>;
+
+  /**
+   * `prisma.buildGuide`: Exposes CRUD operations for the **BuildGuide** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more BuildGuides
+    * const buildGuides = await prisma.buildGuide.findMany()
+    * ```
+    */
+  get buildGuide(): Prisma.BuildGuideDelegate<ExtArgs>;
+
+  /**
+   * `prisma.buildStepTemplate`: Exposes CRUD operations for the **BuildStepTemplate** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more BuildStepTemplates
+    * const buildStepTemplates = await prisma.buildStepTemplate.findMany()
+    * ```
+    */
+  get buildStepTemplate(): Prisma.BuildStepTemplateDelegate<ExtArgs>;
+
+  /**
+   * `prisma.buildGuideTraining`: Exposes CRUD operations for the **BuildGuideTraining** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more BuildGuideTrainings
+    * const buildGuideTrainings = await prisma.buildGuideTraining.findMany()
+    * ```
+    */
+  get buildGuideTraining(): Prisma.BuildGuideTrainingDelegate<ExtArgs>;
+
+  /**
+   * `prisma.assemblyChart`: Exposes CRUD operations for the **AssemblyChart** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AssemblyCharts
+    * const assemblyCharts = await prisma.assemblyChart.findMany()
+    * ```
+    */
+  get assemblyChart(): Prisma.AssemblyChartDelegate<ExtArgs>;
+
+  /**
+   * `prisma.menuAutoPublish`: Exposes CRUD operations for the **MenuAutoPublish** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MenuAutoPublishes
+    * const menuAutoPublishes = await prisma.menuAutoPublish.findMany()
+    * ```
+    */
+  get menuAutoPublish(): Prisma.MenuAutoPublishDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -3750,7 +3825,12 @@ export namespace Prisma {
     EmailContact: 'EmailContact',
     EmailCampaign: 'EmailCampaign',
     EmailAutomation: 'EmailAutomation',
-    EmailCampaignRecipient: 'EmailCampaignRecipient'
+    EmailCampaignRecipient: 'EmailCampaignRecipient',
+    BuildGuide: 'BuildGuide',
+    BuildStepTemplate: 'BuildStepTemplate',
+    BuildGuideTraining: 'BuildGuideTraining',
+    AssemblyChart: 'AssemblyChart',
+    MenuAutoPublish: 'MenuAutoPublish'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -3766,7 +3846,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "promoCodeRedemption" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "productVariant" | "productStockLevel" | "productStockMovement" | "refundLine" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "yangoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "referralProgram" | "referralCode" | "referral" | "keetaAuthorization" | "emailContact" | "emailCampaign" | "emailAutomation" | "emailCampaignRecipient"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "promoCodeRedemption" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "productVariant" | "productStockLevel" | "productStockMovement" | "refundLine" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "yangoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "referralProgram" | "referralCode" | "referral" | "keetaAuthorization" | "emailContact" | "emailCampaign" | "emailAutomation" | "emailCampaignRecipient" | "buildGuide" | "buildStepTemplate" | "buildGuideTraining" | "assemblyChart" | "menuAutoPublish"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -13920,6 +14000,356 @@ export namespace Prisma {
           }
         }
       }
+      BuildGuide: {
+        payload: Prisma.$BuildGuidePayload<ExtArgs>
+        fields: Prisma.BuildGuideFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.BuildGuideFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BuildGuidePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.BuildGuideFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BuildGuidePayload>
+          }
+          findFirst: {
+            args: Prisma.BuildGuideFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BuildGuidePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.BuildGuideFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BuildGuidePayload>
+          }
+          findMany: {
+            args: Prisma.BuildGuideFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BuildGuidePayload>[]
+          }
+          create: {
+            args: Prisma.BuildGuideCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BuildGuidePayload>
+          }
+          createMany: {
+            args: Prisma.BuildGuideCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.BuildGuideCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BuildGuidePayload>[]
+          }
+          delete: {
+            args: Prisma.BuildGuideDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BuildGuidePayload>
+          }
+          update: {
+            args: Prisma.BuildGuideUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BuildGuidePayload>
+          }
+          deleteMany: {
+            args: Prisma.BuildGuideDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.BuildGuideUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.BuildGuideUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BuildGuidePayload>
+          }
+          aggregate: {
+            args: Prisma.BuildGuideAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateBuildGuide>
+          }
+          groupBy: {
+            args: Prisma.BuildGuideGroupByArgs<ExtArgs>
+            result: $Utils.Optional<BuildGuideGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.BuildGuideCountArgs<ExtArgs>
+            result: $Utils.Optional<BuildGuideCountAggregateOutputType> | number
+          }
+        }
+      }
+      BuildStepTemplate: {
+        payload: Prisma.$BuildStepTemplatePayload<ExtArgs>
+        fields: Prisma.BuildStepTemplateFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.BuildStepTemplateFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BuildStepTemplatePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.BuildStepTemplateFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BuildStepTemplatePayload>
+          }
+          findFirst: {
+            args: Prisma.BuildStepTemplateFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BuildStepTemplatePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.BuildStepTemplateFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BuildStepTemplatePayload>
+          }
+          findMany: {
+            args: Prisma.BuildStepTemplateFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BuildStepTemplatePayload>[]
+          }
+          create: {
+            args: Prisma.BuildStepTemplateCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BuildStepTemplatePayload>
+          }
+          createMany: {
+            args: Prisma.BuildStepTemplateCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.BuildStepTemplateCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BuildStepTemplatePayload>[]
+          }
+          delete: {
+            args: Prisma.BuildStepTemplateDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BuildStepTemplatePayload>
+          }
+          update: {
+            args: Prisma.BuildStepTemplateUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BuildStepTemplatePayload>
+          }
+          deleteMany: {
+            args: Prisma.BuildStepTemplateDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.BuildStepTemplateUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.BuildStepTemplateUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BuildStepTemplatePayload>
+          }
+          aggregate: {
+            args: Prisma.BuildStepTemplateAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateBuildStepTemplate>
+          }
+          groupBy: {
+            args: Prisma.BuildStepTemplateGroupByArgs<ExtArgs>
+            result: $Utils.Optional<BuildStepTemplateGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.BuildStepTemplateCountArgs<ExtArgs>
+            result: $Utils.Optional<BuildStepTemplateCountAggregateOutputType> | number
+          }
+        }
+      }
+      BuildGuideTraining: {
+        payload: Prisma.$BuildGuideTrainingPayload<ExtArgs>
+        fields: Prisma.BuildGuideTrainingFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.BuildGuideTrainingFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BuildGuideTrainingPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.BuildGuideTrainingFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BuildGuideTrainingPayload>
+          }
+          findFirst: {
+            args: Prisma.BuildGuideTrainingFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BuildGuideTrainingPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.BuildGuideTrainingFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BuildGuideTrainingPayload>
+          }
+          findMany: {
+            args: Prisma.BuildGuideTrainingFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BuildGuideTrainingPayload>[]
+          }
+          create: {
+            args: Prisma.BuildGuideTrainingCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BuildGuideTrainingPayload>
+          }
+          createMany: {
+            args: Prisma.BuildGuideTrainingCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.BuildGuideTrainingCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BuildGuideTrainingPayload>[]
+          }
+          delete: {
+            args: Prisma.BuildGuideTrainingDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BuildGuideTrainingPayload>
+          }
+          update: {
+            args: Prisma.BuildGuideTrainingUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BuildGuideTrainingPayload>
+          }
+          deleteMany: {
+            args: Prisma.BuildGuideTrainingDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.BuildGuideTrainingUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.BuildGuideTrainingUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BuildGuideTrainingPayload>
+          }
+          aggregate: {
+            args: Prisma.BuildGuideTrainingAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateBuildGuideTraining>
+          }
+          groupBy: {
+            args: Prisma.BuildGuideTrainingGroupByArgs<ExtArgs>
+            result: $Utils.Optional<BuildGuideTrainingGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.BuildGuideTrainingCountArgs<ExtArgs>
+            result: $Utils.Optional<BuildGuideTrainingCountAggregateOutputType> | number
+          }
+        }
+      }
+      AssemblyChart: {
+        payload: Prisma.$AssemblyChartPayload<ExtArgs>
+        fields: Prisma.AssemblyChartFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AssemblyChartFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssemblyChartPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AssemblyChartFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssemblyChartPayload>
+          }
+          findFirst: {
+            args: Prisma.AssemblyChartFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssemblyChartPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AssemblyChartFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssemblyChartPayload>
+          }
+          findMany: {
+            args: Prisma.AssemblyChartFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssemblyChartPayload>[]
+          }
+          create: {
+            args: Prisma.AssemblyChartCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssemblyChartPayload>
+          }
+          createMany: {
+            args: Prisma.AssemblyChartCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AssemblyChartCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssemblyChartPayload>[]
+          }
+          delete: {
+            args: Prisma.AssemblyChartDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssemblyChartPayload>
+          }
+          update: {
+            args: Prisma.AssemblyChartUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssemblyChartPayload>
+          }
+          deleteMany: {
+            args: Prisma.AssemblyChartDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AssemblyChartUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.AssemblyChartUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssemblyChartPayload>
+          }
+          aggregate: {
+            args: Prisma.AssemblyChartAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAssemblyChart>
+          }
+          groupBy: {
+            args: Prisma.AssemblyChartGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AssemblyChartGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AssemblyChartCountArgs<ExtArgs>
+            result: $Utils.Optional<AssemblyChartCountAggregateOutputType> | number
+          }
+        }
+      }
+      MenuAutoPublish: {
+        payload: Prisma.$MenuAutoPublishPayload<ExtArgs>
+        fields: Prisma.MenuAutoPublishFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MenuAutoPublishFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuAutoPublishPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MenuAutoPublishFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuAutoPublishPayload>
+          }
+          findFirst: {
+            args: Prisma.MenuAutoPublishFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuAutoPublishPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MenuAutoPublishFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuAutoPublishPayload>
+          }
+          findMany: {
+            args: Prisma.MenuAutoPublishFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuAutoPublishPayload>[]
+          }
+          create: {
+            args: Prisma.MenuAutoPublishCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuAutoPublishPayload>
+          }
+          createMany: {
+            args: Prisma.MenuAutoPublishCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MenuAutoPublishCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuAutoPublishPayload>[]
+          }
+          delete: {
+            args: Prisma.MenuAutoPublishDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuAutoPublishPayload>
+          }
+          update: {
+            args: Prisma.MenuAutoPublishUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuAutoPublishPayload>
+          }
+          deleteMany: {
+            args: Prisma.MenuAutoPublishDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MenuAutoPublishUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.MenuAutoPublishUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuAutoPublishPayload>
+          }
+          aggregate: {
+            args: Prisma.MenuAutoPublishAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMenuAutoPublish>
+          }
+          groupBy: {
+            args: Prisma.MenuAutoPublishGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MenuAutoPublishGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MenuAutoPublishCountArgs<ExtArgs>
+            result: $Utils.Optional<MenuAutoPublishCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -14456,6 +14886,8 @@ export namespace Prisma {
     locations: number
     menus: number
     modifierGroups: number
+    buildGuides: number
+    assemblyCharts: number
     orders: number
     mealDeals: number
     upsellGroups: number
@@ -14471,6 +14903,8 @@ export namespace Prisma {
     locations?: boolean | BrandCountOutputTypeCountLocationsArgs
     menus?: boolean | BrandCountOutputTypeCountMenusArgs
     modifierGroups?: boolean | BrandCountOutputTypeCountModifierGroupsArgs
+    buildGuides?: boolean | BrandCountOutputTypeCountBuildGuidesArgs
+    assemblyCharts?: boolean | BrandCountOutputTypeCountAssemblyChartsArgs
     orders?: boolean | BrandCountOutputTypeCountOrdersArgs
     mealDeals?: boolean | BrandCountOutputTypeCountMealDealsArgs
     upsellGroups?: boolean | BrandCountOutputTypeCountUpsellGroupsArgs
@@ -14512,6 +14946,20 @@ export namespace Prisma {
    */
   export type BrandCountOutputTypeCountModifierGroupsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ModifierGroupWhereInput
+  }
+
+  /**
+   * BrandCountOutputType without action
+   */
+  export type BrandCountOutputTypeCountBuildGuidesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BuildGuideWhereInput
+  }
+
+  /**
+   * BrandCountOutputType without action
+   */
+  export type BrandCountOutputTypeCountAssemblyChartsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AssemblyChartWhereInput
   }
 
   /**
@@ -16333,6 +16781,37 @@ export namespace Prisma {
    */
   export type EmailCampaignCountOutputTypeCountRecipientsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: EmailCampaignRecipientWhereInput
+  }
+
+
+  /**
+   * Count Type BuildGuideCountOutputType
+   */
+
+  export type BuildGuideCountOutputType = {
+    trainings: number
+  }
+
+  export type BuildGuideCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    trainings?: boolean | BuildGuideCountOutputTypeCountTrainingsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * BuildGuideCountOutputType without action
+   */
+  export type BuildGuideCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildGuideCountOutputType
+     */
+    select?: BuildGuideCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * BuildGuideCountOutputType without action
+   */
+  export type BuildGuideCountOutputTypeCountTrainingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BuildGuideTrainingWhereInput
   }
 
 
@@ -29263,6 +29742,7 @@ export namespace Prisma {
     applicationFeePercentage: Decimal | null
     prepTime: number | null
     busyExtraPrepTime: number | null
+    showcaseOrder: number | null
   }
 
   export type BrandSumAggregateOutputType = {
@@ -29270,6 +29750,7 @@ export namespace Prisma {
     applicationFeePercentage: Decimal | null
     prepTime: number | null
     busyExtraPrepTime: number | null
+    showcaseOrder: number | null
   }
 
   export type BrandMinAggregateOutputType = {
@@ -29307,6 +29788,8 @@ export namespace Prisma {
     applicationFeeMode: string | null
     prepTime: number | null
     busyExtraPrepTime: number | null
+    showcaseOnWebsite: boolean | null
+    showcaseOrder: number | null
     defaultStationId: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -29347,6 +29830,8 @@ export namespace Prisma {
     applicationFeeMode: string | null
     prepTime: number | null
     busyExtraPrepTime: number | null
+    showcaseOnWebsite: boolean | null
+    showcaseOrder: number | null
     defaultStationId: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -29391,6 +29876,8 @@ export namespace Prisma {
     openingHours: number
     prepTime: number
     busyExtraPrepTime: number
+    showcaseOnWebsite: number
+    showcaseOrder: number
     defaultStationId: number
     createdAt: number
     updatedAt: number
@@ -29403,6 +29890,7 @@ export namespace Prisma {
     applicationFeePercentage?: true
     prepTime?: true
     busyExtraPrepTime?: true
+    showcaseOrder?: true
   }
 
   export type BrandSumAggregateInputType = {
@@ -29410,6 +29898,7 @@ export namespace Prisma {
     applicationFeePercentage?: true
     prepTime?: true
     busyExtraPrepTime?: true
+    showcaseOrder?: true
   }
 
   export type BrandMinAggregateInputType = {
@@ -29447,6 +29936,8 @@ export namespace Prisma {
     applicationFeeMode?: true
     prepTime?: true
     busyExtraPrepTime?: true
+    showcaseOnWebsite?: true
+    showcaseOrder?: true
     defaultStationId?: true
     createdAt?: true
     updatedAt?: true
@@ -29487,6 +29978,8 @@ export namespace Prisma {
     applicationFeeMode?: true
     prepTime?: true
     busyExtraPrepTime?: true
+    showcaseOnWebsite?: true
+    showcaseOrder?: true
     defaultStationId?: true
     createdAt?: true
     updatedAt?: true
@@ -29531,6 +30024,8 @@ export namespace Prisma {
     openingHours?: true
     prepTime?: true
     busyExtraPrepTime?: true
+    showcaseOnWebsite?: true
+    showcaseOrder?: true
     defaultStationId?: true
     createdAt?: true
     updatedAt?: true
@@ -29662,6 +30157,8 @@ export namespace Prisma {
     openingHours: JsonValue
     prepTime: number | null
     busyExtraPrepTime: number | null
+    showcaseOnWebsite: boolean
+    showcaseOrder: number | null
     defaultStationId: string | null
     createdAt: Date
     updatedAt: Date
@@ -29725,6 +30222,8 @@ export namespace Prisma {
     openingHours?: boolean
     prepTime?: boolean
     busyExtraPrepTime?: boolean
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: boolean
     defaultStationId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -29733,6 +30232,8 @@ export namespace Prisma {
     locations?: boolean | Brand$locationsArgs<ExtArgs>
     menus?: boolean | Brand$menusArgs<ExtArgs>
     modifierGroups?: boolean | Brand$modifierGroupsArgs<ExtArgs>
+    buildGuides?: boolean | Brand$buildGuidesArgs<ExtArgs>
+    assemblyCharts?: boolean | Brand$assemblyChartsArgs<ExtArgs>
     orders?: boolean | Brand$ordersArgs<ExtArgs>
     mealDeals?: boolean | Brand$mealDealsArgs<ExtArgs>
     upsellGroups?: boolean | Brand$upsellGroupsArgs<ExtArgs>
@@ -29785,6 +30286,8 @@ export namespace Prisma {
     openingHours?: boolean
     prepTime?: boolean
     busyExtraPrepTime?: boolean
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: boolean
     defaultStationId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -29831,6 +30334,8 @@ export namespace Prisma {
     openingHours?: boolean
     prepTime?: boolean
     busyExtraPrepTime?: boolean
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: boolean
     defaultStationId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -29842,6 +30347,8 @@ export namespace Prisma {
     locations?: boolean | Brand$locationsArgs<ExtArgs>
     menus?: boolean | Brand$menusArgs<ExtArgs>
     modifierGroups?: boolean | Brand$modifierGroupsArgs<ExtArgs>
+    buildGuides?: boolean | Brand$buildGuidesArgs<ExtArgs>
+    assemblyCharts?: boolean | Brand$assemblyChartsArgs<ExtArgs>
     orders?: boolean | Brand$ordersArgs<ExtArgs>
     mealDeals?: boolean | Brand$mealDealsArgs<ExtArgs>
     upsellGroups?: boolean | Brand$upsellGroupsArgs<ExtArgs>
@@ -29867,6 +30374,8 @@ export namespace Prisma {
       locations: Prisma.$LocationPayload<ExtArgs>[]
       menus: Prisma.$MenuPayload<ExtArgs>[]
       modifierGroups: Prisma.$ModifierGroupPayload<ExtArgs>[]
+      buildGuides: Prisma.$BuildGuidePayload<ExtArgs>[]
+      assemblyCharts: Prisma.$AssemblyChartPayload<ExtArgs>[]
       orders: Prisma.$OrderPayload<ExtArgs>[]
       mealDeals: Prisma.$MealDealPayload<ExtArgs>[]
       upsellGroups: Prisma.$UpsellGroupPayload<ExtArgs>[]
@@ -29943,6 +30452,8 @@ export namespace Prisma {
       openingHours: Prisma.JsonValue
       prepTime: number | null
       busyExtraPrepTime: number | null
+      showcaseOnWebsite: boolean
+      showcaseOrder: number | null
       defaultStationId: string | null
       createdAt: Date
       updatedAt: Date
@@ -30315,6 +30826,8 @@ export namespace Prisma {
     locations<T extends Brand$locationsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$locationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findMany"> | Null>
     menus<T extends Brand$menusArgs<ExtArgs> = {}>(args?: Subset<T, Brand$menusArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuPayload<ExtArgs>, T, "findMany"> | Null>
     modifierGroups<T extends Brand$modifierGroupsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$modifierGroupsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ModifierGroupPayload<ExtArgs>, T, "findMany"> | Null>
+    buildGuides<T extends Brand$buildGuidesArgs<ExtArgs> = {}>(args?: Subset<T, Brand$buildGuidesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BuildGuidePayload<ExtArgs>, T, "findMany"> | Null>
+    assemblyCharts<T extends Brand$assemblyChartsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$assemblyChartsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssemblyChartPayload<ExtArgs>, T, "findMany"> | Null>
     orders<T extends Brand$ordersArgs<ExtArgs> = {}>(args?: Subset<T, Brand$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany"> | Null>
     mealDeals<T extends Brand$mealDealsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$mealDealsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MealDealPayload<ExtArgs>, T, "findMany"> | Null>
     upsellGroups<T extends Brand$upsellGroupsArgs<ExtArgs> = {}>(args?: Subset<T, Brand$upsellGroupsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UpsellGroupPayload<ExtArgs>, T, "findMany"> | Null>
@@ -30392,6 +30905,8 @@ export namespace Prisma {
     readonly openingHours: FieldRef<"Brand", 'Json'>
     readonly prepTime: FieldRef<"Brand", 'Int'>
     readonly busyExtraPrepTime: FieldRef<"Brand", 'Int'>
+    readonly showcaseOnWebsite: FieldRef<"Brand", 'Boolean'>
+    readonly showcaseOrder: FieldRef<"Brand", 'Int'>
     readonly defaultStationId: FieldRef<"Brand", 'String'>
     readonly createdAt: FieldRef<"Brand", 'DateTime'>
     readonly updatedAt: FieldRef<"Brand", 'DateTime'>
@@ -30785,6 +31300,46 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: ModifierGroupScalarFieldEnum | ModifierGroupScalarFieldEnum[]
+  }
+
+  /**
+   * Brand.buildGuides
+   */
+  export type Brand$buildGuidesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildGuide
+     */
+    select?: BuildGuideSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BuildGuideInclude<ExtArgs> | null
+    where?: BuildGuideWhereInput
+    orderBy?: BuildGuideOrderByWithRelationInput | BuildGuideOrderByWithRelationInput[]
+    cursor?: BuildGuideWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: BuildGuideScalarFieldEnum | BuildGuideScalarFieldEnum[]
+  }
+
+  /**
+   * Brand.assemblyCharts
+   */
+  export type Brand$assemblyChartsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssemblyChart
+     */
+    select?: AssemblyChartSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssemblyChartInclude<ExtArgs> | null
+    where?: AssemblyChartWhereInput
+    orderBy?: AssemblyChartOrderByWithRelationInput | AssemblyChartOrderByWithRelationInput[]
+    cursor?: AssemblyChartWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AssemblyChartScalarFieldEnum | AssemblyChartScalarFieldEnum[]
   }
 
   /**
@@ -35910,6 +36465,7 @@ export namespace Prisma {
     categories?: boolean | Menu$categoriesArgs<ExtArgs>
     versions?: boolean | Menu$versionsArgs<ExtArgs>
     assignments?: boolean | Menu$assignmentsArgs<ExtArgs>
+    autoPublish?: boolean | Menu$autoPublishArgs<ExtArgs>
     channelSourceFor?: boolean | Menu$channelSourceForArgs<ExtArgs>
     _count?: boolean | MenuCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["menu"]>
@@ -35994,6 +36550,7 @@ export namespace Prisma {
     categories?: boolean | Menu$categoriesArgs<ExtArgs>
     versions?: boolean | Menu$versionsArgs<ExtArgs>
     assignments?: boolean | Menu$assignmentsArgs<ExtArgs>
+    autoPublish?: boolean | Menu$autoPublishArgs<ExtArgs>
     channelSourceFor?: boolean | Menu$channelSourceForArgs<ExtArgs>
     _count?: boolean | MenuCountOutputTypeDefaultArgs<ExtArgs>
   }
@@ -36008,6 +36565,7 @@ export namespace Prisma {
       categories: Prisma.$MenuCategoryPayload<ExtArgs>[]
       versions: Prisma.$MenuVersionPayload<ExtArgs>[]
       assignments: Prisma.$MenuChannelAssignmentPayload<ExtArgs>[]
+      autoPublish: Prisma.$MenuAutoPublishPayload<ExtArgs> | null
       channelSourceFor: Prisma.$BrandChannelSourcePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -36413,6 +36971,7 @@ export namespace Prisma {
     categories<T extends Menu$categoriesArgs<ExtArgs> = {}>(args?: Subset<T, Menu$categoriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuCategoryPayload<ExtArgs>, T, "findMany"> | Null>
     versions<T extends Menu$versionsArgs<ExtArgs> = {}>(args?: Subset<T, Menu$versionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuVersionPayload<ExtArgs>, T, "findMany"> | Null>
     assignments<T extends Menu$assignmentsArgs<ExtArgs> = {}>(args?: Subset<T, Menu$assignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuChannelAssignmentPayload<ExtArgs>, T, "findMany"> | Null>
+    autoPublish<T extends Menu$autoPublishArgs<ExtArgs> = {}>(args?: Subset<T, Menu$autoPublishArgs<ExtArgs>>): Prisma__MenuAutoPublishClient<$Result.GetResult<Prisma.$MenuAutoPublishPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     channelSourceFor<T extends Menu$channelSourceForArgs<ExtArgs> = {}>(args?: Subset<T, Menu$channelSourceForArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BrandChannelSourcePayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -36852,6 +37411,21 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: MenuChannelAssignmentScalarFieldEnum | MenuChannelAssignmentScalarFieldEnum[]
+  }
+
+  /**
+   * Menu.autoPublish
+   */
+  export type Menu$autoPublishArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuAutoPublish
+     */
+    select?: MenuAutoPublishSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuAutoPublishInclude<ExtArgs> | null
+    where?: MenuAutoPublishWhereInput
   }
 
   /**
@@ -173511,6 +174085,5008 @@ export namespace Prisma {
 
 
   /**
+   * Model BuildGuide
+   */
+
+  export type AggregateBuildGuide = {
+    _count: BuildGuideCountAggregateOutputType | null
+    _min: BuildGuideMinAggregateOutputType | null
+    _max: BuildGuideMaxAggregateOutputType | null
+  }
+
+  export type BuildGuideMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    brandId: string | null
+    nameKey: string | null
+    name: string | null
+    packNote: string | null
+    videoUrl: string | null
+    updatedBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type BuildGuideMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    brandId: string | null
+    nameKey: string | null
+    name: string | null
+    packNote: string | null
+    videoUrl: string | null
+    updatedBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type BuildGuideCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    brandId: number
+    nameKey: number
+    name: number
+    steps: number
+    packNote: number
+    videoUrl: number
+    updatedBy: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type BuildGuideMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    brandId?: true
+    nameKey?: true
+    name?: true
+    packNote?: true
+    videoUrl?: true
+    updatedBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type BuildGuideMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    brandId?: true
+    nameKey?: true
+    name?: true
+    packNote?: true
+    videoUrl?: true
+    updatedBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type BuildGuideCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    brandId?: true
+    nameKey?: true
+    name?: true
+    steps?: true
+    packNote?: true
+    videoUrl?: true
+    updatedBy?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type BuildGuideAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BuildGuide to aggregate.
+     */
+    where?: BuildGuideWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BuildGuides to fetch.
+     */
+    orderBy?: BuildGuideOrderByWithRelationInput | BuildGuideOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: BuildGuideWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BuildGuides from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BuildGuides.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned BuildGuides
+    **/
+    _count?: true | BuildGuideCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: BuildGuideMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: BuildGuideMaxAggregateInputType
+  }
+
+  export type GetBuildGuideAggregateType<T extends BuildGuideAggregateArgs> = {
+        [P in keyof T & keyof AggregateBuildGuide]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateBuildGuide[P]>
+      : GetScalarType<T[P], AggregateBuildGuide[P]>
+  }
+
+
+
+
+  export type BuildGuideGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BuildGuideWhereInput
+    orderBy?: BuildGuideOrderByWithAggregationInput | BuildGuideOrderByWithAggregationInput[]
+    by: BuildGuideScalarFieldEnum[] | BuildGuideScalarFieldEnum
+    having?: BuildGuideScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: BuildGuideCountAggregateInputType | true
+    _min?: BuildGuideMinAggregateInputType
+    _max?: BuildGuideMaxAggregateInputType
+  }
+
+  export type BuildGuideGroupByOutputType = {
+    id: string
+    tenantId: string
+    brandId: string
+    nameKey: string
+    name: string
+    steps: JsonValue
+    packNote: string | null
+    videoUrl: string | null
+    updatedBy: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: BuildGuideCountAggregateOutputType | null
+    _min: BuildGuideMinAggregateOutputType | null
+    _max: BuildGuideMaxAggregateOutputType | null
+  }
+
+  type GetBuildGuideGroupByPayload<T extends BuildGuideGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<BuildGuideGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof BuildGuideGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], BuildGuideGroupByOutputType[P]>
+            : GetScalarType<T[P], BuildGuideGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type BuildGuideSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    brandId?: boolean
+    nameKey?: boolean
+    name?: boolean
+    steps?: boolean
+    packNote?: boolean
+    videoUrl?: boolean
+    updatedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+    trainings?: boolean | BuildGuide$trainingsArgs<ExtArgs>
+    _count?: boolean | BuildGuideCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["buildGuide"]>
+
+  export type BuildGuideSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    brandId?: boolean
+    nameKey?: boolean
+    name?: boolean
+    steps?: boolean
+    packNote?: boolean
+    videoUrl?: boolean
+    updatedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["buildGuide"]>
+
+  export type BuildGuideSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    brandId?: boolean
+    nameKey?: boolean
+    name?: boolean
+    steps?: boolean
+    packNote?: boolean
+    videoUrl?: boolean
+    updatedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type BuildGuideInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+    trainings?: boolean | BuildGuide$trainingsArgs<ExtArgs>
+    _count?: boolean | BuildGuideCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type BuildGuideIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+  }
+
+  export type $BuildGuidePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "BuildGuide"
+    objects: {
+      brand: Prisma.$BrandPayload<ExtArgs>
+      trainings: Prisma.$BuildGuideTrainingPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      brandId: string
+      nameKey: string
+      name: string
+      steps: Prisma.JsonValue
+      packNote: string | null
+      videoUrl: string | null
+      updatedBy: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["buildGuide"]>
+    composites: {}
+  }
+
+  type BuildGuideGetPayload<S extends boolean | null | undefined | BuildGuideDefaultArgs> = $Result.GetResult<Prisma.$BuildGuidePayload, S>
+
+  type BuildGuideCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<BuildGuideFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: BuildGuideCountAggregateInputType | true
+    }
+
+  export interface BuildGuideDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['BuildGuide'], meta: { name: 'BuildGuide' } }
+    /**
+     * Find zero or one BuildGuide that matches the filter.
+     * @param {BuildGuideFindUniqueArgs} args - Arguments to find a BuildGuide
+     * @example
+     * // Get one BuildGuide
+     * const buildGuide = await prisma.buildGuide.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends BuildGuideFindUniqueArgs>(args: SelectSubset<T, BuildGuideFindUniqueArgs<ExtArgs>>): Prisma__BuildGuideClient<$Result.GetResult<Prisma.$BuildGuidePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one BuildGuide that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {BuildGuideFindUniqueOrThrowArgs} args - Arguments to find a BuildGuide
+     * @example
+     * // Get one BuildGuide
+     * const buildGuide = await prisma.buildGuide.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends BuildGuideFindUniqueOrThrowArgs>(args: SelectSubset<T, BuildGuideFindUniqueOrThrowArgs<ExtArgs>>): Prisma__BuildGuideClient<$Result.GetResult<Prisma.$BuildGuidePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first BuildGuide that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BuildGuideFindFirstArgs} args - Arguments to find a BuildGuide
+     * @example
+     * // Get one BuildGuide
+     * const buildGuide = await prisma.buildGuide.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends BuildGuideFindFirstArgs>(args?: SelectSubset<T, BuildGuideFindFirstArgs<ExtArgs>>): Prisma__BuildGuideClient<$Result.GetResult<Prisma.$BuildGuidePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first BuildGuide that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BuildGuideFindFirstOrThrowArgs} args - Arguments to find a BuildGuide
+     * @example
+     * // Get one BuildGuide
+     * const buildGuide = await prisma.buildGuide.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends BuildGuideFindFirstOrThrowArgs>(args?: SelectSubset<T, BuildGuideFindFirstOrThrowArgs<ExtArgs>>): Prisma__BuildGuideClient<$Result.GetResult<Prisma.$BuildGuidePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more BuildGuides that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BuildGuideFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all BuildGuides
+     * const buildGuides = await prisma.buildGuide.findMany()
+     * 
+     * // Get first 10 BuildGuides
+     * const buildGuides = await prisma.buildGuide.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const buildGuideWithIdOnly = await prisma.buildGuide.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends BuildGuideFindManyArgs>(args?: SelectSubset<T, BuildGuideFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BuildGuidePayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a BuildGuide.
+     * @param {BuildGuideCreateArgs} args - Arguments to create a BuildGuide.
+     * @example
+     * // Create one BuildGuide
+     * const BuildGuide = await prisma.buildGuide.create({
+     *   data: {
+     *     // ... data to create a BuildGuide
+     *   }
+     * })
+     * 
+     */
+    create<T extends BuildGuideCreateArgs>(args: SelectSubset<T, BuildGuideCreateArgs<ExtArgs>>): Prisma__BuildGuideClient<$Result.GetResult<Prisma.$BuildGuidePayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many BuildGuides.
+     * @param {BuildGuideCreateManyArgs} args - Arguments to create many BuildGuides.
+     * @example
+     * // Create many BuildGuides
+     * const buildGuide = await prisma.buildGuide.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends BuildGuideCreateManyArgs>(args?: SelectSubset<T, BuildGuideCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many BuildGuides and returns the data saved in the database.
+     * @param {BuildGuideCreateManyAndReturnArgs} args - Arguments to create many BuildGuides.
+     * @example
+     * // Create many BuildGuides
+     * const buildGuide = await prisma.buildGuide.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many BuildGuides and only return the `id`
+     * const buildGuideWithIdOnly = await prisma.buildGuide.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends BuildGuideCreateManyAndReturnArgs>(args?: SelectSubset<T, BuildGuideCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BuildGuidePayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a BuildGuide.
+     * @param {BuildGuideDeleteArgs} args - Arguments to delete one BuildGuide.
+     * @example
+     * // Delete one BuildGuide
+     * const BuildGuide = await prisma.buildGuide.delete({
+     *   where: {
+     *     // ... filter to delete one BuildGuide
+     *   }
+     * })
+     * 
+     */
+    delete<T extends BuildGuideDeleteArgs>(args: SelectSubset<T, BuildGuideDeleteArgs<ExtArgs>>): Prisma__BuildGuideClient<$Result.GetResult<Prisma.$BuildGuidePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one BuildGuide.
+     * @param {BuildGuideUpdateArgs} args - Arguments to update one BuildGuide.
+     * @example
+     * // Update one BuildGuide
+     * const buildGuide = await prisma.buildGuide.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends BuildGuideUpdateArgs>(args: SelectSubset<T, BuildGuideUpdateArgs<ExtArgs>>): Prisma__BuildGuideClient<$Result.GetResult<Prisma.$BuildGuidePayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more BuildGuides.
+     * @param {BuildGuideDeleteManyArgs} args - Arguments to filter BuildGuides to delete.
+     * @example
+     * // Delete a few BuildGuides
+     * const { count } = await prisma.buildGuide.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends BuildGuideDeleteManyArgs>(args?: SelectSubset<T, BuildGuideDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more BuildGuides.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BuildGuideUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many BuildGuides
+     * const buildGuide = await prisma.buildGuide.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends BuildGuideUpdateManyArgs>(args: SelectSubset<T, BuildGuideUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one BuildGuide.
+     * @param {BuildGuideUpsertArgs} args - Arguments to update or create a BuildGuide.
+     * @example
+     * // Update or create a BuildGuide
+     * const buildGuide = await prisma.buildGuide.upsert({
+     *   create: {
+     *     // ... data to create a BuildGuide
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the BuildGuide we want to update
+     *   }
+     * })
+     */
+    upsert<T extends BuildGuideUpsertArgs>(args: SelectSubset<T, BuildGuideUpsertArgs<ExtArgs>>): Prisma__BuildGuideClient<$Result.GetResult<Prisma.$BuildGuidePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of BuildGuides.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BuildGuideCountArgs} args - Arguments to filter BuildGuides to count.
+     * @example
+     * // Count the number of BuildGuides
+     * const count = await prisma.buildGuide.count({
+     *   where: {
+     *     // ... the filter for the BuildGuides we want to count
+     *   }
+     * })
+    **/
+    count<T extends BuildGuideCountArgs>(
+      args?: Subset<T, BuildGuideCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], BuildGuideCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a BuildGuide.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BuildGuideAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends BuildGuideAggregateArgs>(args: Subset<T, BuildGuideAggregateArgs>): Prisma.PrismaPromise<GetBuildGuideAggregateType<T>>
+
+    /**
+     * Group by BuildGuide.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BuildGuideGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends BuildGuideGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: BuildGuideGroupByArgs['orderBy'] }
+        : { orderBy?: BuildGuideGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, BuildGuideGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetBuildGuideGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the BuildGuide model
+   */
+  readonly fields: BuildGuideFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for BuildGuide.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__BuildGuideClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    brand<T extends BrandDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BrandDefaultArgs<ExtArgs>>): Prisma__BrandClient<$Result.GetResult<Prisma.$BrandPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    trainings<T extends BuildGuide$trainingsArgs<ExtArgs> = {}>(args?: Subset<T, BuildGuide$trainingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BuildGuideTrainingPayload<ExtArgs>, T, "findMany"> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the BuildGuide model
+   */ 
+  interface BuildGuideFieldRefs {
+    readonly id: FieldRef<"BuildGuide", 'String'>
+    readonly tenantId: FieldRef<"BuildGuide", 'String'>
+    readonly brandId: FieldRef<"BuildGuide", 'String'>
+    readonly nameKey: FieldRef<"BuildGuide", 'String'>
+    readonly name: FieldRef<"BuildGuide", 'String'>
+    readonly steps: FieldRef<"BuildGuide", 'Json'>
+    readonly packNote: FieldRef<"BuildGuide", 'String'>
+    readonly videoUrl: FieldRef<"BuildGuide", 'String'>
+    readonly updatedBy: FieldRef<"BuildGuide", 'String'>
+    readonly createdAt: FieldRef<"BuildGuide", 'DateTime'>
+    readonly updatedAt: FieldRef<"BuildGuide", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * BuildGuide findUnique
+   */
+  export type BuildGuideFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildGuide
+     */
+    select?: BuildGuideSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BuildGuideInclude<ExtArgs> | null
+    /**
+     * Filter, which BuildGuide to fetch.
+     */
+    where: BuildGuideWhereUniqueInput
+  }
+
+  /**
+   * BuildGuide findUniqueOrThrow
+   */
+  export type BuildGuideFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildGuide
+     */
+    select?: BuildGuideSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BuildGuideInclude<ExtArgs> | null
+    /**
+     * Filter, which BuildGuide to fetch.
+     */
+    where: BuildGuideWhereUniqueInput
+  }
+
+  /**
+   * BuildGuide findFirst
+   */
+  export type BuildGuideFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildGuide
+     */
+    select?: BuildGuideSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BuildGuideInclude<ExtArgs> | null
+    /**
+     * Filter, which BuildGuide to fetch.
+     */
+    where?: BuildGuideWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BuildGuides to fetch.
+     */
+    orderBy?: BuildGuideOrderByWithRelationInput | BuildGuideOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BuildGuides.
+     */
+    cursor?: BuildGuideWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BuildGuides from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BuildGuides.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BuildGuides.
+     */
+    distinct?: BuildGuideScalarFieldEnum | BuildGuideScalarFieldEnum[]
+  }
+
+  /**
+   * BuildGuide findFirstOrThrow
+   */
+  export type BuildGuideFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildGuide
+     */
+    select?: BuildGuideSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BuildGuideInclude<ExtArgs> | null
+    /**
+     * Filter, which BuildGuide to fetch.
+     */
+    where?: BuildGuideWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BuildGuides to fetch.
+     */
+    orderBy?: BuildGuideOrderByWithRelationInput | BuildGuideOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BuildGuides.
+     */
+    cursor?: BuildGuideWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BuildGuides from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BuildGuides.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BuildGuides.
+     */
+    distinct?: BuildGuideScalarFieldEnum | BuildGuideScalarFieldEnum[]
+  }
+
+  /**
+   * BuildGuide findMany
+   */
+  export type BuildGuideFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildGuide
+     */
+    select?: BuildGuideSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BuildGuideInclude<ExtArgs> | null
+    /**
+     * Filter, which BuildGuides to fetch.
+     */
+    where?: BuildGuideWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BuildGuides to fetch.
+     */
+    orderBy?: BuildGuideOrderByWithRelationInput | BuildGuideOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing BuildGuides.
+     */
+    cursor?: BuildGuideWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BuildGuides from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BuildGuides.
+     */
+    skip?: number
+    distinct?: BuildGuideScalarFieldEnum | BuildGuideScalarFieldEnum[]
+  }
+
+  /**
+   * BuildGuide create
+   */
+  export type BuildGuideCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildGuide
+     */
+    select?: BuildGuideSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BuildGuideInclude<ExtArgs> | null
+    /**
+     * The data needed to create a BuildGuide.
+     */
+    data: XOR<BuildGuideCreateInput, BuildGuideUncheckedCreateInput>
+  }
+
+  /**
+   * BuildGuide createMany
+   */
+  export type BuildGuideCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many BuildGuides.
+     */
+    data: BuildGuideCreateManyInput | BuildGuideCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * BuildGuide createManyAndReturn
+   */
+  export type BuildGuideCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildGuide
+     */
+    select?: BuildGuideSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many BuildGuides.
+     */
+    data: BuildGuideCreateManyInput | BuildGuideCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BuildGuideIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * BuildGuide update
+   */
+  export type BuildGuideUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildGuide
+     */
+    select?: BuildGuideSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BuildGuideInclude<ExtArgs> | null
+    /**
+     * The data needed to update a BuildGuide.
+     */
+    data: XOR<BuildGuideUpdateInput, BuildGuideUncheckedUpdateInput>
+    /**
+     * Choose, which BuildGuide to update.
+     */
+    where: BuildGuideWhereUniqueInput
+  }
+
+  /**
+   * BuildGuide updateMany
+   */
+  export type BuildGuideUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update BuildGuides.
+     */
+    data: XOR<BuildGuideUpdateManyMutationInput, BuildGuideUncheckedUpdateManyInput>
+    /**
+     * Filter which BuildGuides to update
+     */
+    where?: BuildGuideWhereInput
+  }
+
+  /**
+   * BuildGuide upsert
+   */
+  export type BuildGuideUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildGuide
+     */
+    select?: BuildGuideSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BuildGuideInclude<ExtArgs> | null
+    /**
+     * The filter to search for the BuildGuide to update in case it exists.
+     */
+    where: BuildGuideWhereUniqueInput
+    /**
+     * In case the BuildGuide found by the `where` argument doesn't exist, create a new BuildGuide with this data.
+     */
+    create: XOR<BuildGuideCreateInput, BuildGuideUncheckedCreateInput>
+    /**
+     * In case the BuildGuide was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<BuildGuideUpdateInput, BuildGuideUncheckedUpdateInput>
+  }
+
+  /**
+   * BuildGuide delete
+   */
+  export type BuildGuideDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildGuide
+     */
+    select?: BuildGuideSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BuildGuideInclude<ExtArgs> | null
+    /**
+     * Filter which BuildGuide to delete.
+     */
+    where: BuildGuideWhereUniqueInput
+  }
+
+  /**
+   * BuildGuide deleteMany
+   */
+  export type BuildGuideDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BuildGuides to delete
+     */
+    where?: BuildGuideWhereInput
+  }
+
+  /**
+   * BuildGuide.trainings
+   */
+  export type BuildGuide$trainingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildGuideTraining
+     */
+    select?: BuildGuideTrainingSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BuildGuideTrainingInclude<ExtArgs> | null
+    where?: BuildGuideTrainingWhereInput
+    orderBy?: BuildGuideTrainingOrderByWithRelationInput | BuildGuideTrainingOrderByWithRelationInput[]
+    cursor?: BuildGuideTrainingWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: BuildGuideTrainingScalarFieldEnum | BuildGuideTrainingScalarFieldEnum[]
+  }
+
+  /**
+   * BuildGuide without action
+   */
+  export type BuildGuideDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildGuide
+     */
+    select?: BuildGuideSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BuildGuideInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model BuildStepTemplate
+   */
+
+  export type AggregateBuildStepTemplate = {
+    _count: BuildStepTemplateCountAggregateOutputType | null
+    _min: BuildStepTemplateMinAggregateOutputType | null
+    _max: BuildStepTemplateMaxAggregateOutputType | null
+  }
+
+  export type BuildStepTemplateMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    brandId: string | null
+    title: string | null
+    text: string | null
+    imageUrl: string | null
+    amount: string | null
+    createdBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type BuildStepTemplateMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    brandId: string | null
+    title: string | null
+    text: string | null
+    imageUrl: string | null
+    amount: string | null
+    createdBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type BuildStepTemplateCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    brandId: number
+    title: number
+    text: number
+    imageUrl: number
+    amount: number
+    tools: number
+    createdBy: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type BuildStepTemplateMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    brandId?: true
+    title?: true
+    text?: true
+    imageUrl?: true
+    amount?: true
+    createdBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type BuildStepTemplateMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    brandId?: true
+    title?: true
+    text?: true
+    imageUrl?: true
+    amount?: true
+    createdBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type BuildStepTemplateCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    brandId?: true
+    title?: true
+    text?: true
+    imageUrl?: true
+    amount?: true
+    tools?: true
+    createdBy?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type BuildStepTemplateAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BuildStepTemplate to aggregate.
+     */
+    where?: BuildStepTemplateWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BuildStepTemplates to fetch.
+     */
+    orderBy?: BuildStepTemplateOrderByWithRelationInput | BuildStepTemplateOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: BuildStepTemplateWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BuildStepTemplates from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BuildStepTemplates.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned BuildStepTemplates
+    **/
+    _count?: true | BuildStepTemplateCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: BuildStepTemplateMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: BuildStepTemplateMaxAggregateInputType
+  }
+
+  export type GetBuildStepTemplateAggregateType<T extends BuildStepTemplateAggregateArgs> = {
+        [P in keyof T & keyof AggregateBuildStepTemplate]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateBuildStepTemplate[P]>
+      : GetScalarType<T[P], AggregateBuildStepTemplate[P]>
+  }
+
+
+
+
+  export type BuildStepTemplateGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BuildStepTemplateWhereInput
+    orderBy?: BuildStepTemplateOrderByWithAggregationInput | BuildStepTemplateOrderByWithAggregationInput[]
+    by: BuildStepTemplateScalarFieldEnum[] | BuildStepTemplateScalarFieldEnum
+    having?: BuildStepTemplateScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: BuildStepTemplateCountAggregateInputType | true
+    _min?: BuildStepTemplateMinAggregateInputType
+    _max?: BuildStepTemplateMaxAggregateInputType
+  }
+
+  export type BuildStepTemplateGroupByOutputType = {
+    id: string
+    tenantId: string
+    brandId: string | null
+    title: string
+    text: string
+    imageUrl: string | null
+    amount: string | null
+    tools: string[]
+    createdBy: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: BuildStepTemplateCountAggregateOutputType | null
+    _min: BuildStepTemplateMinAggregateOutputType | null
+    _max: BuildStepTemplateMaxAggregateOutputType | null
+  }
+
+  type GetBuildStepTemplateGroupByPayload<T extends BuildStepTemplateGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<BuildStepTemplateGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof BuildStepTemplateGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], BuildStepTemplateGroupByOutputType[P]>
+            : GetScalarType<T[P], BuildStepTemplateGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type BuildStepTemplateSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    brandId?: boolean
+    title?: boolean
+    text?: boolean
+    imageUrl?: boolean
+    amount?: boolean
+    tools?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["buildStepTemplate"]>
+
+  export type BuildStepTemplateSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    brandId?: boolean
+    title?: boolean
+    text?: boolean
+    imageUrl?: boolean
+    amount?: boolean
+    tools?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["buildStepTemplate"]>
+
+  export type BuildStepTemplateSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    brandId?: boolean
+    title?: boolean
+    text?: boolean
+    imageUrl?: boolean
+    amount?: boolean
+    tools?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+
+  export type $BuildStepTemplatePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "BuildStepTemplate"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      brandId: string | null
+      title: string
+      text: string
+      imageUrl: string | null
+      amount: string | null
+      tools: string[]
+      createdBy: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["buildStepTemplate"]>
+    composites: {}
+  }
+
+  type BuildStepTemplateGetPayload<S extends boolean | null | undefined | BuildStepTemplateDefaultArgs> = $Result.GetResult<Prisma.$BuildStepTemplatePayload, S>
+
+  type BuildStepTemplateCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<BuildStepTemplateFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: BuildStepTemplateCountAggregateInputType | true
+    }
+
+  export interface BuildStepTemplateDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['BuildStepTemplate'], meta: { name: 'BuildStepTemplate' } }
+    /**
+     * Find zero or one BuildStepTemplate that matches the filter.
+     * @param {BuildStepTemplateFindUniqueArgs} args - Arguments to find a BuildStepTemplate
+     * @example
+     * // Get one BuildStepTemplate
+     * const buildStepTemplate = await prisma.buildStepTemplate.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends BuildStepTemplateFindUniqueArgs>(args: SelectSubset<T, BuildStepTemplateFindUniqueArgs<ExtArgs>>): Prisma__BuildStepTemplateClient<$Result.GetResult<Prisma.$BuildStepTemplatePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one BuildStepTemplate that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {BuildStepTemplateFindUniqueOrThrowArgs} args - Arguments to find a BuildStepTemplate
+     * @example
+     * // Get one BuildStepTemplate
+     * const buildStepTemplate = await prisma.buildStepTemplate.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends BuildStepTemplateFindUniqueOrThrowArgs>(args: SelectSubset<T, BuildStepTemplateFindUniqueOrThrowArgs<ExtArgs>>): Prisma__BuildStepTemplateClient<$Result.GetResult<Prisma.$BuildStepTemplatePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first BuildStepTemplate that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BuildStepTemplateFindFirstArgs} args - Arguments to find a BuildStepTemplate
+     * @example
+     * // Get one BuildStepTemplate
+     * const buildStepTemplate = await prisma.buildStepTemplate.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends BuildStepTemplateFindFirstArgs>(args?: SelectSubset<T, BuildStepTemplateFindFirstArgs<ExtArgs>>): Prisma__BuildStepTemplateClient<$Result.GetResult<Prisma.$BuildStepTemplatePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first BuildStepTemplate that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BuildStepTemplateFindFirstOrThrowArgs} args - Arguments to find a BuildStepTemplate
+     * @example
+     * // Get one BuildStepTemplate
+     * const buildStepTemplate = await prisma.buildStepTemplate.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends BuildStepTemplateFindFirstOrThrowArgs>(args?: SelectSubset<T, BuildStepTemplateFindFirstOrThrowArgs<ExtArgs>>): Prisma__BuildStepTemplateClient<$Result.GetResult<Prisma.$BuildStepTemplatePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more BuildStepTemplates that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BuildStepTemplateFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all BuildStepTemplates
+     * const buildStepTemplates = await prisma.buildStepTemplate.findMany()
+     * 
+     * // Get first 10 BuildStepTemplates
+     * const buildStepTemplates = await prisma.buildStepTemplate.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const buildStepTemplateWithIdOnly = await prisma.buildStepTemplate.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends BuildStepTemplateFindManyArgs>(args?: SelectSubset<T, BuildStepTemplateFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BuildStepTemplatePayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a BuildStepTemplate.
+     * @param {BuildStepTemplateCreateArgs} args - Arguments to create a BuildStepTemplate.
+     * @example
+     * // Create one BuildStepTemplate
+     * const BuildStepTemplate = await prisma.buildStepTemplate.create({
+     *   data: {
+     *     // ... data to create a BuildStepTemplate
+     *   }
+     * })
+     * 
+     */
+    create<T extends BuildStepTemplateCreateArgs>(args: SelectSubset<T, BuildStepTemplateCreateArgs<ExtArgs>>): Prisma__BuildStepTemplateClient<$Result.GetResult<Prisma.$BuildStepTemplatePayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many BuildStepTemplates.
+     * @param {BuildStepTemplateCreateManyArgs} args - Arguments to create many BuildStepTemplates.
+     * @example
+     * // Create many BuildStepTemplates
+     * const buildStepTemplate = await prisma.buildStepTemplate.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends BuildStepTemplateCreateManyArgs>(args?: SelectSubset<T, BuildStepTemplateCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many BuildStepTemplates and returns the data saved in the database.
+     * @param {BuildStepTemplateCreateManyAndReturnArgs} args - Arguments to create many BuildStepTemplates.
+     * @example
+     * // Create many BuildStepTemplates
+     * const buildStepTemplate = await prisma.buildStepTemplate.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many BuildStepTemplates and only return the `id`
+     * const buildStepTemplateWithIdOnly = await prisma.buildStepTemplate.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends BuildStepTemplateCreateManyAndReturnArgs>(args?: SelectSubset<T, BuildStepTemplateCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BuildStepTemplatePayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a BuildStepTemplate.
+     * @param {BuildStepTemplateDeleteArgs} args - Arguments to delete one BuildStepTemplate.
+     * @example
+     * // Delete one BuildStepTemplate
+     * const BuildStepTemplate = await prisma.buildStepTemplate.delete({
+     *   where: {
+     *     // ... filter to delete one BuildStepTemplate
+     *   }
+     * })
+     * 
+     */
+    delete<T extends BuildStepTemplateDeleteArgs>(args: SelectSubset<T, BuildStepTemplateDeleteArgs<ExtArgs>>): Prisma__BuildStepTemplateClient<$Result.GetResult<Prisma.$BuildStepTemplatePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one BuildStepTemplate.
+     * @param {BuildStepTemplateUpdateArgs} args - Arguments to update one BuildStepTemplate.
+     * @example
+     * // Update one BuildStepTemplate
+     * const buildStepTemplate = await prisma.buildStepTemplate.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends BuildStepTemplateUpdateArgs>(args: SelectSubset<T, BuildStepTemplateUpdateArgs<ExtArgs>>): Prisma__BuildStepTemplateClient<$Result.GetResult<Prisma.$BuildStepTemplatePayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more BuildStepTemplates.
+     * @param {BuildStepTemplateDeleteManyArgs} args - Arguments to filter BuildStepTemplates to delete.
+     * @example
+     * // Delete a few BuildStepTemplates
+     * const { count } = await prisma.buildStepTemplate.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends BuildStepTemplateDeleteManyArgs>(args?: SelectSubset<T, BuildStepTemplateDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more BuildStepTemplates.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BuildStepTemplateUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many BuildStepTemplates
+     * const buildStepTemplate = await prisma.buildStepTemplate.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends BuildStepTemplateUpdateManyArgs>(args: SelectSubset<T, BuildStepTemplateUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one BuildStepTemplate.
+     * @param {BuildStepTemplateUpsertArgs} args - Arguments to update or create a BuildStepTemplate.
+     * @example
+     * // Update or create a BuildStepTemplate
+     * const buildStepTemplate = await prisma.buildStepTemplate.upsert({
+     *   create: {
+     *     // ... data to create a BuildStepTemplate
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the BuildStepTemplate we want to update
+     *   }
+     * })
+     */
+    upsert<T extends BuildStepTemplateUpsertArgs>(args: SelectSubset<T, BuildStepTemplateUpsertArgs<ExtArgs>>): Prisma__BuildStepTemplateClient<$Result.GetResult<Prisma.$BuildStepTemplatePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of BuildStepTemplates.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BuildStepTemplateCountArgs} args - Arguments to filter BuildStepTemplates to count.
+     * @example
+     * // Count the number of BuildStepTemplates
+     * const count = await prisma.buildStepTemplate.count({
+     *   where: {
+     *     // ... the filter for the BuildStepTemplates we want to count
+     *   }
+     * })
+    **/
+    count<T extends BuildStepTemplateCountArgs>(
+      args?: Subset<T, BuildStepTemplateCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], BuildStepTemplateCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a BuildStepTemplate.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BuildStepTemplateAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends BuildStepTemplateAggregateArgs>(args: Subset<T, BuildStepTemplateAggregateArgs>): Prisma.PrismaPromise<GetBuildStepTemplateAggregateType<T>>
+
+    /**
+     * Group by BuildStepTemplate.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BuildStepTemplateGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends BuildStepTemplateGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: BuildStepTemplateGroupByArgs['orderBy'] }
+        : { orderBy?: BuildStepTemplateGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, BuildStepTemplateGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetBuildStepTemplateGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the BuildStepTemplate model
+   */
+  readonly fields: BuildStepTemplateFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for BuildStepTemplate.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__BuildStepTemplateClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the BuildStepTemplate model
+   */ 
+  interface BuildStepTemplateFieldRefs {
+    readonly id: FieldRef<"BuildStepTemplate", 'String'>
+    readonly tenantId: FieldRef<"BuildStepTemplate", 'String'>
+    readonly brandId: FieldRef<"BuildStepTemplate", 'String'>
+    readonly title: FieldRef<"BuildStepTemplate", 'String'>
+    readonly text: FieldRef<"BuildStepTemplate", 'String'>
+    readonly imageUrl: FieldRef<"BuildStepTemplate", 'String'>
+    readonly amount: FieldRef<"BuildStepTemplate", 'String'>
+    readonly tools: FieldRef<"BuildStepTemplate", 'String[]'>
+    readonly createdBy: FieldRef<"BuildStepTemplate", 'String'>
+    readonly createdAt: FieldRef<"BuildStepTemplate", 'DateTime'>
+    readonly updatedAt: FieldRef<"BuildStepTemplate", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * BuildStepTemplate findUnique
+   */
+  export type BuildStepTemplateFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildStepTemplate
+     */
+    select?: BuildStepTemplateSelect<ExtArgs> | null
+    /**
+     * Filter, which BuildStepTemplate to fetch.
+     */
+    where: BuildStepTemplateWhereUniqueInput
+  }
+
+  /**
+   * BuildStepTemplate findUniqueOrThrow
+   */
+  export type BuildStepTemplateFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildStepTemplate
+     */
+    select?: BuildStepTemplateSelect<ExtArgs> | null
+    /**
+     * Filter, which BuildStepTemplate to fetch.
+     */
+    where: BuildStepTemplateWhereUniqueInput
+  }
+
+  /**
+   * BuildStepTemplate findFirst
+   */
+  export type BuildStepTemplateFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildStepTemplate
+     */
+    select?: BuildStepTemplateSelect<ExtArgs> | null
+    /**
+     * Filter, which BuildStepTemplate to fetch.
+     */
+    where?: BuildStepTemplateWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BuildStepTemplates to fetch.
+     */
+    orderBy?: BuildStepTemplateOrderByWithRelationInput | BuildStepTemplateOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BuildStepTemplates.
+     */
+    cursor?: BuildStepTemplateWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BuildStepTemplates from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BuildStepTemplates.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BuildStepTemplates.
+     */
+    distinct?: BuildStepTemplateScalarFieldEnum | BuildStepTemplateScalarFieldEnum[]
+  }
+
+  /**
+   * BuildStepTemplate findFirstOrThrow
+   */
+  export type BuildStepTemplateFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildStepTemplate
+     */
+    select?: BuildStepTemplateSelect<ExtArgs> | null
+    /**
+     * Filter, which BuildStepTemplate to fetch.
+     */
+    where?: BuildStepTemplateWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BuildStepTemplates to fetch.
+     */
+    orderBy?: BuildStepTemplateOrderByWithRelationInput | BuildStepTemplateOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BuildStepTemplates.
+     */
+    cursor?: BuildStepTemplateWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BuildStepTemplates from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BuildStepTemplates.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BuildStepTemplates.
+     */
+    distinct?: BuildStepTemplateScalarFieldEnum | BuildStepTemplateScalarFieldEnum[]
+  }
+
+  /**
+   * BuildStepTemplate findMany
+   */
+  export type BuildStepTemplateFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildStepTemplate
+     */
+    select?: BuildStepTemplateSelect<ExtArgs> | null
+    /**
+     * Filter, which BuildStepTemplates to fetch.
+     */
+    where?: BuildStepTemplateWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BuildStepTemplates to fetch.
+     */
+    orderBy?: BuildStepTemplateOrderByWithRelationInput | BuildStepTemplateOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing BuildStepTemplates.
+     */
+    cursor?: BuildStepTemplateWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BuildStepTemplates from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BuildStepTemplates.
+     */
+    skip?: number
+    distinct?: BuildStepTemplateScalarFieldEnum | BuildStepTemplateScalarFieldEnum[]
+  }
+
+  /**
+   * BuildStepTemplate create
+   */
+  export type BuildStepTemplateCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildStepTemplate
+     */
+    select?: BuildStepTemplateSelect<ExtArgs> | null
+    /**
+     * The data needed to create a BuildStepTemplate.
+     */
+    data: XOR<BuildStepTemplateCreateInput, BuildStepTemplateUncheckedCreateInput>
+  }
+
+  /**
+   * BuildStepTemplate createMany
+   */
+  export type BuildStepTemplateCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many BuildStepTemplates.
+     */
+    data: BuildStepTemplateCreateManyInput | BuildStepTemplateCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * BuildStepTemplate createManyAndReturn
+   */
+  export type BuildStepTemplateCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildStepTemplate
+     */
+    select?: BuildStepTemplateSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many BuildStepTemplates.
+     */
+    data: BuildStepTemplateCreateManyInput | BuildStepTemplateCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * BuildStepTemplate update
+   */
+  export type BuildStepTemplateUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildStepTemplate
+     */
+    select?: BuildStepTemplateSelect<ExtArgs> | null
+    /**
+     * The data needed to update a BuildStepTemplate.
+     */
+    data: XOR<BuildStepTemplateUpdateInput, BuildStepTemplateUncheckedUpdateInput>
+    /**
+     * Choose, which BuildStepTemplate to update.
+     */
+    where: BuildStepTemplateWhereUniqueInput
+  }
+
+  /**
+   * BuildStepTemplate updateMany
+   */
+  export type BuildStepTemplateUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update BuildStepTemplates.
+     */
+    data: XOR<BuildStepTemplateUpdateManyMutationInput, BuildStepTemplateUncheckedUpdateManyInput>
+    /**
+     * Filter which BuildStepTemplates to update
+     */
+    where?: BuildStepTemplateWhereInput
+  }
+
+  /**
+   * BuildStepTemplate upsert
+   */
+  export type BuildStepTemplateUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildStepTemplate
+     */
+    select?: BuildStepTemplateSelect<ExtArgs> | null
+    /**
+     * The filter to search for the BuildStepTemplate to update in case it exists.
+     */
+    where: BuildStepTemplateWhereUniqueInput
+    /**
+     * In case the BuildStepTemplate found by the `where` argument doesn't exist, create a new BuildStepTemplate with this data.
+     */
+    create: XOR<BuildStepTemplateCreateInput, BuildStepTemplateUncheckedCreateInput>
+    /**
+     * In case the BuildStepTemplate was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<BuildStepTemplateUpdateInput, BuildStepTemplateUncheckedUpdateInput>
+  }
+
+  /**
+   * BuildStepTemplate delete
+   */
+  export type BuildStepTemplateDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildStepTemplate
+     */
+    select?: BuildStepTemplateSelect<ExtArgs> | null
+    /**
+     * Filter which BuildStepTemplate to delete.
+     */
+    where: BuildStepTemplateWhereUniqueInput
+  }
+
+  /**
+   * BuildStepTemplate deleteMany
+   */
+  export type BuildStepTemplateDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BuildStepTemplates to delete
+     */
+    where?: BuildStepTemplateWhereInput
+  }
+
+  /**
+   * BuildStepTemplate without action
+   */
+  export type BuildStepTemplateDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildStepTemplate
+     */
+    select?: BuildStepTemplateSelect<ExtArgs> | null
+  }
+
+
+  /**
+   * Model BuildGuideTraining
+   */
+
+  export type AggregateBuildGuideTraining = {
+    _count: BuildGuideTrainingCountAggregateOutputType | null
+    _min: BuildGuideTrainingMinAggregateOutputType | null
+    _max: BuildGuideTrainingMaxAggregateOutputType | null
+  }
+
+  export type BuildGuideTrainingMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    guideId: string | null
+    userId: string | null
+    completedAt: Date | null
+  }
+
+  export type BuildGuideTrainingMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    guideId: string | null
+    userId: string | null
+    completedAt: Date | null
+  }
+
+  export type BuildGuideTrainingCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    guideId: number
+    userId: number
+    completedAt: number
+    _all: number
+  }
+
+
+  export type BuildGuideTrainingMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    guideId?: true
+    userId?: true
+    completedAt?: true
+  }
+
+  export type BuildGuideTrainingMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    guideId?: true
+    userId?: true
+    completedAt?: true
+  }
+
+  export type BuildGuideTrainingCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    guideId?: true
+    userId?: true
+    completedAt?: true
+    _all?: true
+  }
+
+  export type BuildGuideTrainingAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BuildGuideTraining to aggregate.
+     */
+    where?: BuildGuideTrainingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BuildGuideTrainings to fetch.
+     */
+    orderBy?: BuildGuideTrainingOrderByWithRelationInput | BuildGuideTrainingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: BuildGuideTrainingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BuildGuideTrainings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BuildGuideTrainings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned BuildGuideTrainings
+    **/
+    _count?: true | BuildGuideTrainingCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: BuildGuideTrainingMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: BuildGuideTrainingMaxAggregateInputType
+  }
+
+  export type GetBuildGuideTrainingAggregateType<T extends BuildGuideTrainingAggregateArgs> = {
+        [P in keyof T & keyof AggregateBuildGuideTraining]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateBuildGuideTraining[P]>
+      : GetScalarType<T[P], AggregateBuildGuideTraining[P]>
+  }
+
+
+
+
+  export type BuildGuideTrainingGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BuildGuideTrainingWhereInput
+    orderBy?: BuildGuideTrainingOrderByWithAggregationInput | BuildGuideTrainingOrderByWithAggregationInput[]
+    by: BuildGuideTrainingScalarFieldEnum[] | BuildGuideTrainingScalarFieldEnum
+    having?: BuildGuideTrainingScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: BuildGuideTrainingCountAggregateInputType | true
+    _min?: BuildGuideTrainingMinAggregateInputType
+    _max?: BuildGuideTrainingMaxAggregateInputType
+  }
+
+  export type BuildGuideTrainingGroupByOutputType = {
+    id: string
+    tenantId: string
+    guideId: string
+    userId: string
+    completedAt: Date
+    _count: BuildGuideTrainingCountAggregateOutputType | null
+    _min: BuildGuideTrainingMinAggregateOutputType | null
+    _max: BuildGuideTrainingMaxAggregateOutputType | null
+  }
+
+  type GetBuildGuideTrainingGroupByPayload<T extends BuildGuideTrainingGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<BuildGuideTrainingGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof BuildGuideTrainingGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], BuildGuideTrainingGroupByOutputType[P]>
+            : GetScalarType<T[P], BuildGuideTrainingGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type BuildGuideTrainingSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    guideId?: boolean
+    userId?: boolean
+    completedAt?: boolean
+    guide?: boolean | BuildGuideDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["buildGuideTraining"]>
+
+  export type BuildGuideTrainingSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    guideId?: boolean
+    userId?: boolean
+    completedAt?: boolean
+    guide?: boolean | BuildGuideDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["buildGuideTraining"]>
+
+  export type BuildGuideTrainingSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    guideId?: boolean
+    userId?: boolean
+    completedAt?: boolean
+  }
+
+  export type BuildGuideTrainingInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    guide?: boolean | BuildGuideDefaultArgs<ExtArgs>
+  }
+  export type BuildGuideTrainingIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    guide?: boolean | BuildGuideDefaultArgs<ExtArgs>
+  }
+
+  export type $BuildGuideTrainingPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "BuildGuideTraining"
+    objects: {
+      guide: Prisma.$BuildGuidePayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      guideId: string
+      userId: string
+      completedAt: Date
+    }, ExtArgs["result"]["buildGuideTraining"]>
+    composites: {}
+  }
+
+  type BuildGuideTrainingGetPayload<S extends boolean | null | undefined | BuildGuideTrainingDefaultArgs> = $Result.GetResult<Prisma.$BuildGuideTrainingPayload, S>
+
+  type BuildGuideTrainingCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<BuildGuideTrainingFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: BuildGuideTrainingCountAggregateInputType | true
+    }
+
+  export interface BuildGuideTrainingDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['BuildGuideTraining'], meta: { name: 'BuildGuideTraining' } }
+    /**
+     * Find zero or one BuildGuideTraining that matches the filter.
+     * @param {BuildGuideTrainingFindUniqueArgs} args - Arguments to find a BuildGuideTraining
+     * @example
+     * // Get one BuildGuideTraining
+     * const buildGuideTraining = await prisma.buildGuideTraining.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends BuildGuideTrainingFindUniqueArgs>(args: SelectSubset<T, BuildGuideTrainingFindUniqueArgs<ExtArgs>>): Prisma__BuildGuideTrainingClient<$Result.GetResult<Prisma.$BuildGuideTrainingPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one BuildGuideTraining that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {BuildGuideTrainingFindUniqueOrThrowArgs} args - Arguments to find a BuildGuideTraining
+     * @example
+     * // Get one BuildGuideTraining
+     * const buildGuideTraining = await prisma.buildGuideTraining.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends BuildGuideTrainingFindUniqueOrThrowArgs>(args: SelectSubset<T, BuildGuideTrainingFindUniqueOrThrowArgs<ExtArgs>>): Prisma__BuildGuideTrainingClient<$Result.GetResult<Prisma.$BuildGuideTrainingPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first BuildGuideTraining that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BuildGuideTrainingFindFirstArgs} args - Arguments to find a BuildGuideTraining
+     * @example
+     * // Get one BuildGuideTraining
+     * const buildGuideTraining = await prisma.buildGuideTraining.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends BuildGuideTrainingFindFirstArgs>(args?: SelectSubset<T, BuildGuideTrainingFindFirstArgs<ExtArgs>>): Prisma__BuildGuideTrainingClient<$Result.GetResult<Prisma.$BuildGuideTrainingPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first BuildGuideTraining that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BuildGuideTrainingFindFirstOrThrowArgs} args - Arguments to find a BuildGuideTraining
+     * @example
+     * // Get one BuildGuideTraining
+     * const buildGuideTraining = await prisma.buildGuideTraining.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends BuildGuideTrainingFindFirstOrThrowArgs>(args?: SelectSubset<T, BuildGuideTrainingFindFirstOrThrowArgs<ExtArgs>>): Prisma__BuildGuideTrainingClient<$Result.GetResult<Prisma.$BuildGuideTrainingPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more BuildGuideTrainings that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BuildGuideTrainingFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all BuildGuideTrainings
+     * const buildGuideTrainings = await prisma.buildGuideTraining.findMany()
+     * 
+     * // Get first 10 BuildGuideTrainings
+     * const buildGuideTrainings = await prisma.buildGuideTraining.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const buildGuideTrainingWithIdOnly = await prisma.buildGuideTraining.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends BuildGuideTrainingFindManyArgs>(args?: SelectSubset<T, BuildGuideTrainingFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BuildGuideTrainingPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a BuildGuideTraining.
+     * @param {BuildGuideTrainingCreateArgs} args - Arguments to create a BuildGuideTraining.
+     * @example
+     * // Create one BuildGuideTraining
+     * const BuildGuideTraining = await prisma.buildGuideTraining.create({
+     *   data: {
+     *     // ... data to create a BuildGuideTraining
+     *   }
+     * })
+     * 
+     */
+    create<T extends BuildGuideTrainingCreateArgs>(args: SelectSubset<T, BuildGuideTrainingCreateArgs<ExtArgs>>): Prisma__BuildGuideTrainingClient<$Result.GetResult<Prisma.$BuildGuideTrainingPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many BuildGuideTrainings.
+     * @param {BuildGuideTrainingCreateManyArgs} args - Arguments to create many BuildGuideTrainings.
+     * @example
+     * // Create many BuildGuideTrainings
+     * const buildGuideTraining = await prisma.buildGuideTraining.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends BuildGuideTrainingCreateManyArgs>(args?: SelectSubset<T, BuildGuideTrainingCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many BuildGuideTrainings and returns the data saved in the database.
+     * @param {BuildGuideTrainingCreateManyAndReturnArgs} args - Arguments to create many BuildGuideTrainings.
+     * @example
+     * // Create many BuildGuideTrainings
+     * const buildGuideTraining = await prisma.buildGuideTraining.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many BuildGuideTrainings and only return the `id`
+     * const buildGuideTrainingWithIdOnly = await prisma.buildGuideTraining.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends BuildGuideTrainingCreateManyAndReturnArgs>(args?: SelectSubset<T, BuildGuideTrainingCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BuildGuideTrainingPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a BuildGuideTraining.
+     * @param {BuildGuideTrainingDeleteArgs} args - Arguments to delete one BuildGuideTraining.
+     * @example
+     * // Delete one BuildGuideTraining
+     * const BuildGuideTraining = await prisma.buildGuideTraining.delete({
+     *   where: {
+     *     // ... filter to delete one BuildGuideTraining
+     *   }
+     * })
+     * 
+     */
+    delete<T extends BuildGuideTrainingDeleteArgs>(args: SelectSubset<T, BuildGuideTrainingDeleteArgs<ExtArgs>>): Prisma__BuildGuideTrainingClient<$Result.GetResult<Prisma.$BuildGuideTrainingPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one BuildGuideTraining.
+     * @param {BuildGuideTrainingUpdateArgs} args - Arguments to update one BuildGuideTraining.
+     * @example
+     * // Update one BuildGuideTraining
+     * const buildGuideTraining = await prisma.buildGuideTraining.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends BuildGuideTrainingUpdateArgs>(args: SelectSubset<T, BuildGuideTrainingUpdateArgs<ExtArgs>>): Prisma__BuildGuideTrainingClient<$Result.GetResult<Prisma.$BuildGuideTrainingPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more BuildGuideTrainings.
+     * @param {BuildGuideTrainingDeleteManyArgs} args - Arguments to filter BuildGuideTrainings to delete.
+     * @example
+     * // Delete a few BuildGuideTrainings
+     * const { count } = await prisma.buildGuideTraining.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends BuildGuideTrainingDeleteManyArgs>(args?: SelectSubset<T, BuildGuideTrainingDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more BuildGuideTrainings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BuildGuideTrainingUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many BuildGuideTrainings
+     * const buildGuideTraining = await prisma.buildGuideTraining.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends BuildGuideTrainingUpdateManyArgs>(args: SelectSubset<T, BuildGuideTrainingUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one BuildGuideTraining.
+     * @param {BuildGuideTrainingUpsertArgs} args - Arguments to update or create a BuildGuideTraining.
+     * @example
+     * // Update or create a BuildGuideTraining
+     * const buildGuideTraining = await prisma.buildGuideTraining.upsert({
+     *   create: {
+     *     // ... data to create a BuildGuideTraining
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the BuildGuideTraining we want to update
+     *   }
+     * })
+     */
+    upsert<T extends BuildGuideTrainingUpsertArgs>(args: SelectSubset<T, BuildGuideTrainingUpsertArgs<ExtArgs>>): Prisma__BuildGuideTrainingClient<$Result.GetResult<Prisma.$BuildGuideTrainingPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of BuildGuideTrainings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BuildGuideTrainingCountArgs} args - Arguments to filter BuildGuideTrainings to count.
+     * @example
+     * // Count the number of BuildGuideTrainings
+     * const count = await prisma.buildGuideTraining.count({
+     *   where: {
+     *     // ... the filter for the BuildGuideTrainings we want to count
+     *   }
+     * })
+    **/
+    count<T extends BuildGuideTrainingCountArgs>(
+      args?: Subset<T, BuildGuideTrainingCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], BuildGuideTrainingCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a BuildGuideTraining.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BuildGuideTrainingAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends BuildGuideTrainingAggregateArgs>(args: Subset<T, BuildGuideTrainingAggregateArgs>): Prisma.PrismaPromise<GetBuildGuideTrainingAggregateType<T>>
+
+    /**
+     * Group by BuildGuideTraining.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BuildGuideTrainingGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends BuildGuideTrainingGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: BuildGuideTrainingGroupByArgs['orderBy'] }
+        : { orderBy?: BuildGuideTrainingGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, BuildGuideTrainingGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetBuildGuideTrainingGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the BuildGuideTraining model
+   */
+  readonly fields: BuildGuideTrainingFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for BuildGuideTraining.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__BuildGuideTrainingClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    guide<T extends BuildGuideDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BuildGuideDefaultArgs<ExtArgs>>): Prisma__BuildGuideClient<$Result.GetResult<Prisma.$BuildGuidePayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the BuildGuideTraining model
+   */ 
+  interface BuildGuideTrainingFieldRefs {
+    readonly id: FieldRef<"BuildGuideTraining", 'String'>
+    readonly tenantId: FieldRef<"BuildGuideTraining", 'String'>
+    readonly guideId: FieldRef<"BuildGuideTraining", 'String'>
+    readonly userId: FieldRef<"BuildGuideTraining", 'String'>
+    readonly completedAt: FieldRef<"BuildGuideTraining", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * BuildGuideTraining findUnique
+   */
+  export type BuildGuideTrainingFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildGuideTraining
+     */
+    select?: BuildGuideTrainingSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BuildGuideTrainingInclude<ExtArgs> | null
+    /**
+     * Filter, which BuildGuideTraining to fetch.
+     */
+    where: BuildGuideTrainingWhereUniqueInput
+  }
+
+  /**
+   * BuildGuideTraining findUniqueOrThrow
+   */
+  export type BuildGuideTrainingFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildGuideTraining
+     */
+    select?: BuildGuideTrainingSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BuildGuideTrainingInclude<ExtArgs> | null
+    /**
+     * Filter, which BuildGuideTraining to fetch.
+     */
+    where: BuildGuideTrainingWhereUniqueInput
+  }
+
+  /**
+   * BuildGuideTraining findFirst
+   */
+  export type BuildGuideTrainingFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildGuideTraining
+     */
+    select?: BuildGuideTrainingSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BuildGuideTrainingInclude<ExtArgs> | null
+    /**
+     * Filter, which BuildGuideTraining to fetch.
+     */
+    where?: BuildGuideTrainingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BuildGuideTrainings to fetch.
+     */
+    orderBy?: BuildGuideTrainingOrderByWithRelationInput | BuildGuideTrainingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BuildGuideTrainings.
+     */
+    cursor?: BuildGuideTrainingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BuildGuideTrainings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BuildGuideTrainings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BuildGuideTrainings.
+     */
+    distinct?: BuildGuideTrainingScalarFieldEnum | BuildGuideTrainingScalarFieldEnum[]
+  }
+
+  /**
+   * BuildGuideTraining findFirstOrThrow
+   */
+  export type BuildGuideTrainingFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildGuideTraining
+     */
+    select?: BuildGuideTrainingSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BuildGuideTrainingInclude<ExtArgs> | null
+    /**
+     * Filter, which BuildGuideTraining to fetch.
+     */
+    where?: BuildGuideTrainingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BuildGuideTrainings to fetch.
+     */
+    orderBy?: BuildGuideTrainingOrderByWithRelationInput | BuildGuideTrainingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BuildGuideTrainings.
+     */
+    cursor?: BuildGuideTrainingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BuildGuideTrainings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BuildGuideTrainings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BuildGuideTrainings.
+     */
+    distinct?: BuildGuideTrainingScalarFieldEnum | BuildGuideTrainingScalarFieldEnum[]
+  }
+
+  /**
+   * BuildGuideTraining findMany
+   */
+  export type BuildGuideTrainingFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildGuideTraining
+     */
+    select?: BuildGuideTrainingSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BuildGuideTrainingInclude<ExtArgs> | null
+    /**
+     * Filter, which BuildGuideTrainings to fetch.
+     */
+    where?: BuildGuideTrainingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BuildGuideTrainings to fetch.
+     */
+    orderBy?: BuildGuideTrainingOrderByWithRelationInput | BuildGuideTrainingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing BuildGuideTrainings.
+     */
+    cursor?: BuildGuideTrainingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BuildGuideTrainings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BuildGuideTrainings.
+     */
+    skip?: number
+    distinct?: BuildGuideTrainingScalarFieldEnum | BuildGuideTrainingScalarFieldEnum[]
+  }
+
+  /**
+   * BuildGuideTraining create
+   */
+  export type BuildGuideTrainingCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildGuideTraining
+     */
+    select?: BuildGuideTrainingSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BuildGuideTrainingInclude<ExtArgs> | null
+    /**
+     * The data needed to create a BuildGuideTraining.
+     */
+    data: XOR<BuildGuideTrainingCreateInput, BuildGuideTrainingUncheckedCreateInput>
+  }
+
+  /**
+   * BuildGuideTraining createMany
+   */
+  export type BuildGuideTrainingCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many BuildGuideTrainings.
+     */
+    data: BuildGuideTrainingCreateManyInput | BuildGuideTrainingCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * BuildGuideTraining createManyAndReturn
+   */
+  export type BuildGuideTrainingCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildGuideTraining
+     */
+    select?: BuildGuideTrainingSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many BuildGuideTrainings.
+     */
+    data: BuildGuideTrainingCreateManyInput | BuildGuideTrainingCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BuildGuideTrainingIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * BuildGuideTraining update
+   */
+  export type BuildGuideTrainingUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildGuideTraining
+     */
+    select?: BuildGuideTrainingSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BuildGuideTrainingInclude<ExtArgs> | null
+    /**
+     * The data needed to update a BuildGuideTraining.
+     */
+    data: XOR<BuildGuideTrainingUpdateInput, BuildGuideTrainingUncheckedUpdateInput>
+    /**
+     * Choose, which BuildGuideTraining to update.
+     */
+    where: BuildGuideTrainingWhereUniqueInput
+  }
+
+  /**
+   * BuildGuideTraining updateMany
+   */
+  export type BuildGuideTrainingUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update BuildGuideTrainings.
+     */
+    data: XOR<BuildGuideTrainingUpdateManyMutationInput, BuildGuideTrainingUncheckedUpdateManyInput>
+    /**
+     * Filter which BuildGuideTrainings to update
+     */
+    where?: BuildGuideTrainingWhereInput
+  }
+
+  /**
+   * BuildGuideTraining upsert
+   */
+  export type BuildGuideTrainingUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildGuideTraining
+     */
+    select?: BuildGuideTrainingSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BuildGuideTrainingInclude<ExtArgs> | null
+    /**
+     * The filter to search for the BuildGuideTraining to update in case it exists.
+     */
+    where: BuildGuideTrainingWhereUniqueInput
+    /**
+     * In case the BuildGuideTraining found by the `where` argument doesn't exist, create a new BuildGuideTraining with this data.
+     */
+    create: XOR<BuildGuideTrainingCreateInput, BuildGuideTrainingUncheckedCreateInput>
+    /**
+     * In case the BuildGuideTraining was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<BuildGuideTrainingUpdateInput, BuildGuideTrainingUncheckedUpdateInput>
+  }
+
+  /**
+   * BuildGuideTraining delete
+   */
+  export type BuildGuideTrainingDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildGuideTraining
+     */
+    select?: BuildGuideTrainingSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BuildGuideTrainingInclude<ExtArgs> | null
+    /**
+     * Filter which BuildGuideTraining to delete.
+     */
+    where: BuildGuideTrainingWhereUniqueInput
+  }
+
+  /**
+   * BuildGuideTraining deleteMany
+   */
+  export type BuildGuideTrainingDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BuildGuideTrainings to delete
+     */
+    where?: BuildGuideTrainingWhereInput
+  }
+
+  /**
+   * BuildGuideTraining without action
+   */
+  export type BuildGuideTrainingDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BuildGuideTraining
+     */
+    select?: BuildGuideTrainingSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BuildGuideTrainingInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model AssemblyChart
+   */
+
+  export type AggregateAssemblyChart = {
+    _count: AssemblyChartCountAggregateOutputType | null
+    _min: AssemblyChartMinAggregateOutputType | null
+    _max: AssemblyChartMaxAggregateOutputType | null
+  }
+
+  export type AssemblyChartMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    brandId: string | null
+    nameKey: string | null
+    name: string | null
+    title: string | null
+    altTitle: string | null
+    heroImageUrl: string | null
+    footNote: string | null
+    updatedBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type AssemblyChartMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    brandId: string | null
+    nameKey: string | null
+    name: string | null
+    title: string | null
+    altTitle: string | null
+    heroImageUrl: string | null
+    footNote: string | null
+    updatedBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type AssemblyChartCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    brandId: number
+    nameKey: number
+    name: number
+    title: number
+    altTitle: number
+    heroImageUrl: number
+    layers: number
+    footNote: number
+    updatedBy: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type AssemblyChartMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    brandId?: true
+    nameKey?: true
+    name?: true
+    title?: true
+    altTitle?: true
+    heroImageUrl?: true
+    footNote?: true
+    updatedBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type AssemblyChartMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    brandId?: true
+    nameKey?: true
+    name?: true
+    title?: true
+    altTitle?: true
+    heroImageUrl?: true
+    footNote?: true
+    updatedBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type AssemblyChartCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    brandId?: true
+    nameKey?: true
+    name?: true
+    title?: true
+    altTitle?: true
+    heroImageUrl?: true
+    layers?: true
+    footNote?: true
+    updatedBy?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type AssemblyChartAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AssemblyChart to aggregate.
+     */
+    where?: AssemblyChartWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AssemblyCharts to fetch.
+     */
+    orderBy?: AssemblyChartOrderByWithRelationInput | AssemblyChartOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: AssemblyChartWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AssemblyCharts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AssemblyCharts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned AssemblyCharts
+    **/
+    _count?: true | AssemblyChartCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AssemblyChartMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AssemblyChartMaxAggregateInputType
+  }
+
+  export type GetAssemblyChartAggregateType<T extends AssemblyChartAggregateArgs> = {
+        [P in keyof T & keyof AggregateAssemblyChart]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAssemblyChart[P]>
+      : GetScalarType<T[P], AggregateAssemblyChart[P]>
+  }
+
+
+
+
+  export type AssemblyChartGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AssemblyChartWhereInput
+    orderBy?: AssemblyChartOrderByWithAggregationInput | AssemblyChartOrderByWithAggregationInput[]
+    by: AssemblyChartScalarFieldEnum[] | AssemblyChartScalarFieldEnum
+    having?: AssemblyChartScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AssemblyChartCountAggregateInputType | true
+    _min?: AssemblyChartMinAggregateInputType
+    _max?: AssemblyChartMaxAggregateInputType
+  }
+
+  export type AssemblyChartGroupByOutputType = {
+    id: string
+    tenantId: string
+    brandId: string
+    nameKey: string
+    name: string
+    title: string
+    altTitle: string | null
+    heroImageUrl: string | null
+    layers: JsonValue
+    footNote: string | null
+    updatedBy: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: AssemblyChartCountAggregateOutputType | null
+    _min: AssemblyChartMinAggregateOutputType | null
+    _max: AssemblyChartMaxAggregateOutputType | null
+  }
+
+  type GetAssemblyChartGroupByPayload<T extends AssemblyChartGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AssemblyChartGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AssemblyChartGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AssemblyChartGroupByOutputType[P]>
+            : GetScalarType<T[P], AssemblyChartGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AssemblyChartSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    brandId?: boolean
+    nameKey?: boolean
+    name?: boolean
+    title?: boolean
+    altTitle?: boolean
+    heroImageUrl?: boolean
+    layers?: boolean
+    footNote?: boolean
+    updatedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["assemblyChart"]>
+
+  export type AssemblyChartSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    brandId?: boolean
+    nameKey?: boolean
+    name?: boolean
+    title?: boolean
+    altTitle?: boolean
+    heroImageUrl?: boolean
+    layers?: boolean
+    footNote?: boolean
+    updatedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["assemblyChart"]>
+
+  export type AssemblyChartSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    brandId?: boolean
+    nameKey?: boolean
+    name?: boolean
+    title?: boolean
+    altTitle?: boolean
+    heroImageUrl?: boolean
+    layers?: boolean
+    footNote?: boolean
+    updatedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type AssemblyChartInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+  }
+  export type AssemblyChartIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    brand?: boolean | BrandDefaultArgs<ExtArgs>
+  }
+
+  export type $AssemblyChartPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AssemblyChart"
+    objects: {
+      brand: Prisma.$BrandPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      brandId: string
+      nameKey: string
+      name: string
+      title: string
+      altTitle: string | null
+      heroImageUrl: string | null
+      layers: Prisma.JsonValue
+      footNote: string | null
+      updatedBy: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["assemblyChart"]>
+    composites: {}
+  }
+
+  type AssemblyChartGetPayload<S extends boolean | null | undefined | AssemblyChartDefaultArgs> = $Result.GetResult<Prisma.$AssemblyChartPayload, S>
+
+  type AssemblyChartCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<AssemblyChartFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: AssemblyChartCountAggregateInputType | true
+    }
+
+  export interface AssemblyChartDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AssemblyChart'], meta: { name: 'AssemblyChart' } }
+    /**
+     * Find zero or one AssemblyChart that matches the filter.
+     * @param {AssemblyChartFindUniqueArgs} args - Arguments to find a AssemblyChart
+     * @example
+     * // Get one AssemblyChart
+     * const assemblyChart = await prisma.assemblyChart.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AssemblyChartFindUniqueArgs>(args: SelectSubset<T, AssemblyChartFindUniqueArgs<ExtArgs>>): Prisma__AssemblyChartClient<$Result.GetResult<Prisma.$AssemblyChartPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one AssemblyChart that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {AssemblyChartFindUniqueOrThrowArgs} args - Arguments to find a AssemblyChart
+     * @example
+     * // Get one AssemblyChart
+     * const assemblyChart = await prisma.assemblyChart.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AssemblyChartFindUniqueOrThrowArgs>(args: SelectSubset<T, AssemblyChartFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AssemblyChartClient<$Result.GetResult<Prisma.$AssemblyChartPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first AssemblyChart that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssemblyChartFindFirstArgs} args - Arguments to find a AssemblyChart
+     * @example
+     * // Get one AssemblyChart
+     * const assemblyChart = await prisma.assemblyChart.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AssemblyChartFindFirstArgs>(args?: SelectSubset<T, AssemblyChartFindFirstArgs<ExtArgs>>): Prisma__AssemblyChartClient<$Result.GetResult<Prisma.$AssemblyChartPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first AssemblyChart that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssemblyChartFindFirstOrThrowArgs} args - Arguments to find a AssemblyChart
+     * @example
+     * // Get one AssemblyChart
+     * const assemblyChart = await prisma.assemblyChart.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AssemblyChartFindFirstOrThrowArgs>(args?: SelectSubset<T, AssemblyChartFindFirstOrThrowArgs<ExtArgs>>): Prisma__AssemblyChartClient<$Result.GetResult<Prisma.$AssemblyChartPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more AssemblyCharts that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssemblyChartFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AssemblyCharts
+     * const assemblyCharts = await prisma.assemblyChart.findMany()
+     * 
+     * // Get first 10 AssemblyCharts
+     * const assemblyCharts = await prisma.assemblyChart.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const assemblyChartWithIdOnly = await prisma.assemblyChart.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends AssemblyChartFindManyArgs>(args?: SelectSubset<T, AssemblyChartFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssemblyChartPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a AssemblyChart.
+     * @param {AssemblyChartCreateArgs} args - Arguments to create a AssemblyChart.
+     * @example
+     * // Create one AssemblyChart
+     * const AssemblyChart = await prisma.assemblyChart.create({
+     *   data: {
+     *     // ... data to create a AssemblyChart
+     *   }
+     * })
+     * 
+     */
+    create<T extends AssemblyChartCreateArgs>(args: SelectSubset<T, AssemblyChartCreateArgs<ExtArgs>>): Prisma__AssemblyChartClient<$Result.GetResult<Prisma.$AssemblyChartPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many AssemblyCharts.
+     * @param {AssemblyChartCreateManyArgs} args - Arguments to create many AssemblyCharts.
+     * @example
+     * // Create many AssemblyCharts
+     * const assemblyChart = await prisma.assemblyChart.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends AssemblyChartCreateManyArgs>(args?: SelectSubset<T, AssemblyChartCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AssemblyCharts and returns the data saved in the database.
+     * @param {AssemblyChartCreateManyAndReturnArgs} args - Arguments to create many AssemblyCharts.
+     * @example
+     * // Create many AssemblyCharts
+     * const assemblyChart = await prisma.assemblyChart.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many AssemblyCharts and only return the `id`
+     * const assemblyChartWithIdOnly = await prisma.assemblyChart.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends AssemblyChartCreateManyAndReturnArgs>(args?: SelectSubset<T, AssemblyChartCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssemblyChartPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a AssemblyChart.
+     * @param {AssemblyChartDeleteArgs} args - Arguments to delete one AssemblyChart.
+     * @example
+     * // Delete one AssemblyChart
+     * const AssemblyChart = await prisma.assemblyChart.delete({
+     *   where: {
+     *     // ... filter to delete one AssemblyChart
+     *   }
+     * })
+     * 
+     */
+    delete<T extends AssemblyChartDeleteArgs>(args: SelectSubset<T, AssemblyChartDeleteArgs<ExtArgs>>): Prisma__AssemblyChartClient<$Result.GetResult<Prisma.$AssemblyChartPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one AssemblyChart.
+     * @param {AssemblyChartUpdateArgs} args - Arguments to update one AssemblyChart.
+     * @example
+     * // Update one AssemblyChart
+     * const assemblyChart = await prisma.assemblyChart.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends AssemblyChartUpdateArgs>(args: SelectSubset<T, AssemblyChartUpdateArgs<ExtArgs>>): Prisma__AssemblyChartClient<$Result.GetResult<Prisma.$AssemblyChartPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more AssemblyCharts.
+     * @param {AssemblyChartDeleteManyArgs} args - Arguments to filter AssemblyCharts to delete.
+     * @example
+     * // Delete a few AssemblyCharts
+     * const { count } = await prisma.assemblyChart.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends AssemblyChartDeleteManyArgs>(args?: SelectSubset<T, AssemblyChartDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AssemblyCharts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssemblyChartUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AssemblyCharts
+     * const assemblyChart = await prisma.assemblyChart.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends AssemblyChartUpdateManyArgs>(args: SelectSubset<T, AssemblyChartUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one AssemblyChart.
+     * @param {AssemblyChartUpsertArgs} args - Arguments to update or create a AssemblyChart.
+     * @example
+     * // Update or create a AssemblyChart
+     * const assemblyChart = await prisma.assemblyChart.upsert({
+     *   create: {
+     *     // ... data to create a AssemblyChart
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AssemblyChart we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AssemblyChartUpsertArgs>(args: SelectSubset<T, AssemblyChartUpsertArgs<ExtArgs>>): Prisma__AssemblyChartClient<$Result.GetResult<Prisma.$AssemblyChartPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of AssemblyCharts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssemblyChartCountArgs} args - Arguments to filter AssemblyCharts to count.
+     * @example
+     * // Count the number of AssemblyCharts
+     * const count = await prisma.assemblyChart.count({
+     *   where: {
+     *     // ... the filter for the AssemblyCharts we want to count
+     *   }
+     * })
+    **/
+    count<T extends AssemblyChartCountArgs>(
+      args?: Subset<T, AssemblyChartCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AssemblyChartCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AssemblyChart.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssemblyChartAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AssemblyChartAggregateArgs>(args: Subset<T, AssemblyChartAggregateArgs>): Prisma.PrismaPromise<GetAssemblyChartAggregateType<T>>
+
+    /**
+     * Group by AssemblyChart.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssemblyChartGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends AssemblyChartGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AssemblyChartGroupByArgs['orderBy'] }
+        : { orderBy?: AssemblyChartGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AssemblyChartGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAssemblyChartGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AssemblyChart model
+   */
+  readonly fields: AssemblyChartFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AssemblyChart.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AssemblyChartClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    brand<T extends BrandDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BrandDefaultArgs<ExtArgs>>): Prisma__BrandClient<$Result.GetResult<Prisma.$BrandPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AssemblyChart model
+   */ 
+  interface AssemblyChartFieldRefs {
+    readonly id: FieldRef<"AssemblyChart", 'String'>
+    readonly tenantId: FieldRef<"AssemblyChart", 'String'>
+    readonly brandId: FieldRef<"AssemblyChart", 'String'>
+    readonly nameKey: FieldRef<"AssemblyChart", 'String'>
+    readonly name: FieldRef<"AssemblyChart", 'String'>
+    readonly title: FieldRef<"AssemblyChart", 'String'>
+    readonly altTitle: FieldRef<"AssemblyChart", 'String'>
+    readonly heroImageUrl: FieldRef<"AssemblyChart", 'String'>
+    readonly layers: FieldRef<"AssemblyChart", 'Json'>
+    readonly footNote: FieldRef<"AssemblyChart", 'String'>
+    readonly updatedBy: FieldRef<"AssemblyChart", 'String'>
+    readonly createdAt: FieldRef<"AssemblyChart", 'DateTime'>
+    readonly updatedAt: FieldRef<"AssemblyChart", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * AssemblyChart findUnique
+   */
+  export type AssemblyChartFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssemblyChart
+     */
+    select?: AssemblyChartSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssemblyChartInclude<ExtArgs> | null
+    /**
+     * Filter, which AssemblyChart to fetch.
+     */
+    where: AssemblyChartWhereUniqueInput
+  }
+
+  /**
+   * AssemblyChart findUniqueOrThrow
+   */
+  export type AssemblyChartFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssemblyChart
+     */
+    select?: AssemblyChartSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssemblyChartInclude<ExtArgs> | null
+    /**
+     * Filter, which AssemblyChart to fetch.
+     */
+    where: AssemblyChartWhereUniqueInput
+  }
+
+  /**
+   * AssemblyChart findFirst
+   */
+  export type AssemblyChartFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssemblyChart
+     */
+    select?: AssemblyChartSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssemblyChartInclude<ExtArgs> | null
+    /**
+     * Filter, which AssemblyChart to fetch.
+     */
+    where?: AssemblyChartWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AssemblyCharts to fetch.
+     */
+    orderBy?: AssemblyChartOrderByWithRelationInput | AssemblyChartOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AssemblyCharts.
+     */
+    cursor?: AssemblyChartWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AssemblyCharts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AssemblyCharts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AssemblyCharts.
+     */
+    distinct?: AssemblyChartScalarFieldEnum | AssemblyChartScalarFieldEnum[]
+  }
+
+  /**
+   * AssemblyChart findFirstOrThrow
+   */
+  export type AssemblyChartFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssemblyChart
+     */
+    select?: AssemblyChartSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssemblyChartInclude<ExtArgs> | null
+    /**
+     * Filter, which AssemblyChart to fetch.
+     */
+    where?: AssemblyChartWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AssemblyCharts to fetch.
+     */
+    orderBy?: AssemblyChartOrderByWithRelationInput | AssemblyChartOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AssemblyCharts.
+     */
+    cursor?: AssemblyChartWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AssemblyCharts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AssemblyCharts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AssemblyCharts.
+     */
+    distinct?: AssemblyChartScalarFieldEnum | AssemblyChartScalarFieldEnum[]
+  }
+
+  /**
+   * AssemblyChart findMany
+   */
+  export type AssemblyChartFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssemblyChart
+     */
+    select?: AssemblyChartSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssemblyChartInclude<ExtArgs> | null
+    /**
+     * Filter, which AssemblyCharts to fetch.
+     */
+    where?: AssemblyChartWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AssemblyCharts to fetch.
+     */
+    orderBy?: AssemblyChartOrderByWithRelationInput | AssemblyChartOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing AssemblyCharts.
+     */
+    cursor?: AssemblyChartWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AssemblyCharts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AssemblyCharts.
+     */
+    skip?: number
+    distinct?: AssemblyChartScalarFieldEnum | AssemblyChartScalarFieldEnum[]
+  }
+
+  /**
+   * AssemblyChart create
+   */
+  export type AssemblyChartCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssemblyChart
+     */
+    select?: AssemblyChartSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssemblyChartInclude<ExtArgs> | null
+    /**
+     * The data needed to create a AssemblyChart.
+     */
+    data: XOR<AssemblyChartCreateInput, AssemblyChartUncheckedCreateInput>
+  }
+
+  /**
+   * AssemblyChart createMany
+   */
+  export type AssemblyChartCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AssemblyCharts.
+     */
+    data: AssemblyChartCreateManyInput | AssemblyChartCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AssemblyChart createManyAndReturn
+   */
+  export type AssemblyChartCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssemblyChart
+     */
+    select?: AssemblyChartSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many AssemblyCharts.
+     */
+    data: AssemblyChartCreateManyInput | AssemblyChartCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssemblyChartIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AssemblyChart update
+   */
+  export type AssemblyChartUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssemblyChart
+     */
+    select?: AssemblyChartSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssemblyChartInclude<ExtArgs> | null
+    /**
+     * The data needed to update a AssemblyChart.
+     */
+    data: XOR<AssemblyChartUpdateInput, AssemblyChartUncheckedUpdateInput>
+    /**
+     * Choose, which AssemblyChart to update.
+     */
+    where: AssemblyChartWhereUniqueInput
+  }
+
+  /**
+   * AssemblyChart updateMany
+   */
+  export type AssemblyChartUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AssemblyCharts.
+     */
+    data: XOR<AssemblyChartUpdateManyMutationInput, AssemblyChartUncheckedUpdateManyInput>
+    /**
+     * Filter which AssemblyCharts to update
+     */
+    where?: AssemblyChartWhereInput
+  }
+
+  /**
+   * AssemblyChart upsert
+   */
+  export type AssemblyChartUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssemblyChart
+     */
+    select?: AssemblyChartSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssemblyChartInclude<ExtArgs> | null
+    /**
+     * The filter to search for the AssemblyChart to update in case it exists.
+     */
+    where: AssemblyChartWhereUniqueInput
+    /**
+     * In case the AssemblyChart found by the `where` argument doesn't exist, create a new AssemblyChart with this data.
+     */
+    create: XOR<AssemblyChartCreateInput, AssemblyChartUncheckedCreateInput>
+    /**
+     * In case the AssemblyChart was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AssemblyChartUpdateInput, AssemblyChartUncheckedUpdateInput>
+  }
+
+  /**
+   * AssemblyChart delete
+   */
+  export type AssemblyChartDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssemblyChart
+     */
+    select?: AssemblyChartSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssemblyChartInclude<ExtArgs> | null
+    /**
+     * Filter which AssemblyChart to delete.
+     */
+    where: AssemblyChartWhereUniqueInput
+  }
+
+  /**
+   * AssemblyChart deleteMany
+   */
+  export type AssemblyChartDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AssemblyCharts to delete
+     */
+    where?: AssemblyChartWhereInput
+  }
+
+  /**
+   * AssemblyChart without action
+   */
+  export type AssemblyChartDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssemblyChart
+     */
+    select?: AssemblyChartSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssemblyChartInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MenuAutoPublish
+   */
+
+  export type AggregateMenuAutoPublish = {
+    _count: MenuAutoPublishCountAggregateOutputType | null
+    _avg: MenuAutoPublishAvgAggregateOutputType | null
+    _sum: MenuAutoPublishSumAggregateOutputType | null
+    _min: MenuAutoPublishMinAggregateOutputType | null
+    _max: MenuAutoPublishMaxAggregateOutputType | null
+  }
+
+  export type MenuAutoPublishAvgAggregateOutputType = {
+    days: number | null
+  }
+
+  export type MenuAutoPublishSumAggregateOutputType = {
+    days: number[]
+  }
+
+  export type MenuAutoPublishMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    menuId: string | null
+    enabled: boolean | null
+    timezone: string | null
+    nextRunAt: Date | null
+    lastRunAt: Date | null
+    lastStatus: string | null
+    createdBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MenuAutoPublishMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    menuId: string | null
+    enabled: boolean | null
+    timezone: string | null
+    nextRunAt: Date | null
+    lastRunAt: Date | null
+    lastStatus: string | null
+    createdBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MenuAutoPublishCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    menuId: number
+    enabled: number
+    channels: number
+    days: number
+    times: number
+    timezone: number
+    nextRunAt: number
+    lastRunAt: number
+    lastStatus: number
+    lastResult: number
+    createdBy: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type MenuAutoPublishAvgAggregateInputType = {
+    days?: true
+  }
+
+  export type MenuAutoPublishSumAggregateInputType = {
+    days?: true
+  }
+
+  export type MenuAutoPublishMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    menuId?: true
+    enabled?: true
+    timezone?: true
+    nextRunAt?: true
+    lastRunAt?: true
+    lastStatus?: true
+    createdBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MenuAutoPublishMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    menuId?: true
+    enabled?: true
+    timezone?: true
+    nextRunAt?: true
+    lastRunAt?: true
+    lastStatus?: true
+    createdBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MenuAutoPublishCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    menuId?: true
+    enabled?: true
+    channels?: true
+    days?: true
+    times?: true
+    timezone?: true
+    nextRunAt?: true
+    lastRunAt?: true
+    lastStatus?: true
+    lastResult?: true
+    createdBy?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type MenuAutoPublishAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MenuAutoPublish to aggregate.
+     */
+    where?: MenuAutoPublishWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MenuAutoPublishes to fetch.
+     */
+    orderBy?: MenuAutoPublishOrderByWithRelationInput | MenuAutoPublishOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MenuAutoPublishWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MenuAutoPublishes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MenuAutoPublishes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MenuAutoPublishes
+    **/
+    _count?: true | MenuAutoPublishCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: MenuAutoPublishAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MenuAutoPublishSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MenuAutoPublishMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MenuAutoPublishMaxAggregateInputType
+  }
+
+  export type GetMenuAutoPublishAggregateType<T extends MenuAutoPublishAggregateArgs> = {
+        [P in keyof T & keyof AggregateMenuAutoPublish]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMenuAutoPublish[P]>
+      : GetScalarType<T[P], AggregateMenuAutoPublish[P]>
+  }
+
+
+
+
+  export type MenuAutoPublishGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MenuAutoPublishWhereInput
+    orderBy?: MenuAutoPublishOrderByWithAggregationInput | MenuAutoPublishOrderByWithAggregationInput[]
+    by: MenuAutoPublishScalarFieldEnum[] | MenuAutoPublishScalarFieldEnum
+    having?: MenuAutoPublishScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MenuAutoPublishCountAggregateInputType | true
+    _avg?: MenuAutoPublishAvgAggregateInputType
+    _sum?: MenuAutoPublishSumAggregateInputType
+    _min?: MenuAutoPublishMinAggregateInputType
+    _max?: MenuAutoPublishMaxAggregateInputType
+  }
+
+  export type MenuAutoPublishGroupByOutputType = {
+    id: string
+    tenantId: string
+    menuId: string
+    enabled: boolean
+    channels: string[]
+    days: number[]
+    times: string[]
+    timezone: string
+    nextRunAt: Date | null
+    lastRunAt: Date | null
+    lastStatus: string | null
+    lastResult: JsonValue | null
+    createdBy: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: MenuAutoPublishCountAggregateOutputType | null
+    _avg: MenuAutoPublishAvgAggregateOutputType | null
+    _sum: MenuAutoPublishSumAggregateOutputType | null
+    _min: MenuAutoPublishMinAggregateOutputType | null
+    _max: MenuAutoPublishMaxAggregateOutputType | null
+  }
+
+  type GetMenuAutoPublishGroupByPayload<T extends MenuAutoPublishGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MenuAutoPublishGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MenuAutoPublishGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MenuAutoPublishGroupByOutputType[P]>
+            : GetScalarType<T[P], MenuAutoPublishGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MenuAutoPublishSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    menuId?: boolean
+    enabled?: boolean
+    channels?: boolean
+    days?: boolean
+    times?: boolean
+    timezone?: boolean
+    nextRunAt?: boolean
+    lastRunAt?: boolean
+    lastStatus?: boolean
+    lastResult?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    menu?: boolean | MenuDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["menuAutoPublish"]>
+
+  export type MenuAutoPublishSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    menuId?: boolean
+    enabled?: boolean
+    channels?: boolean
+    days?: boolean
+    times?: boolean
+    timezone?: boolean
+    nextRunAt?: boolean
+    lastRunAt?: boolean
+    lastStatus?: boolean
+    lastResult?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    menu?: boolean | MenuDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["menuAutoPublish"]>
+
+  export type MenuAutoPublishSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    menuId?: boolean
+    enabled?: boolean
+    channels?: boolean
+    days?: boolean
+    times?: boolean
+    timezone?: boolean
+    nextRunAt?: boolean
+    lastRunAt?: boolean
+    lastStatus?: boolean
+    lastResult?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type MenuAutoPublishInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    menu?: boolean | MenuDefaultArgs<ExtArgs>
+  }
+  export type MenuAutoPublishIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    menu?: boolean | MenuDefaultArgs<ExtArgs>
+  }
+
+  export type $MenuAutoPublishPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MenuAutoPublish"
+    objects: {
+      menu: Prisma.$MenuPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      menuId: string
+      enabled: boolean
+      channels: string[]
+      days: number[]
+      times: string[]
+      timezone: string
+      nextRunAt: Date | null
+      lastRunAt: Date | null
+      lastStatus: string | null
+      lastResult: Prisma.JsonValue | null
+      createdBy: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["menuAutoPublish"]>
+    composites: {}
+  }
+
+  type MenuAutoPublishGetPayload<S extends boolean | null | undefined | MenuAutoPublishDefaultArgs> = $Result.GetResult<Prisma.$MenuAutoPublishPayload, S>
+
+  type MenuAutoPublishCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<MenuAutoPublishFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: MenuAutoPublishCountAggregateInputType | true
+    }
+
+  export interface MenuAutoPublishDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MenuAutoPublish'], meta: { name: 'MenuAutoPublish' } }
+    /**
+     * Find zero or one MenuAutoPublish that matches the filter.
+     * @param {MenuAutoPublishFindUniqueArgs} args - Arguments to find a MenuAutoPublish
+     * @example
+     * // Get one MenuAutoPublish
+     * const menuAutoPublish = await prisma.menuAutoPublish.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MenuAutoPublishFindUniqueArgs>(args: SelectSubset<T, MenuAutoPublishFindUniqueArgs<ExtArgs>>): Prisma__MenuAutoPublishClient<$Result.GetResult<Prisma.$MenuAutoPublishPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one MenuAutoPublish that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {MenuAutoPublishFindUniqueOrThrowArgs} args - Arguments to find a MenuAutoPublish
+     * @example
+     * // Get one MenuAutoPublish
+     * const menuAutoPublish = await prisma.menuAutoPublish.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MenuAutoPublishFindUniqueOrThrowArgs>(args: SelectSubset<T, MenuAutoPublishFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MenuAutoPublishClient<$Result.GetResult<Prisma.$MenuAutoPublishPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first MenuAutoPublish that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuAutoPublishFindFirstArgs} args - Arguments to find a MenuAutoPublish
+     * @example
+     * // Get one MenuAutoPublish
+     * const menuAutoPublish = await prisma.menuAutoPublish.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MenuAutoPublishFindFirstArgs>(args?: SelectSubset<T, MenuAutoPublishFindFirstArgs<ExtArgs>>): Prisma__MenuAutoPublishClient<$Result.GetResult<Prisma.$MenuAutoPublishPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first MenuAutoPublish that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuAutoPublishFindFirstOrThrowArgs} args - Arguments to find a MenuAutoPublish
+     * @example
+     * // Get one MenuAutoPublish
+     * const menuAutoPublish = await prisma.menuAutoPublish.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MenuAutoPublishFindFirstOrThrowArgs>(args?: SelectSubset<T, MenuAutoPublishFindFirstOrThrowArgs<ExtArgs>>): Prisma__MenuAutoPublishClient<$Result.GetResult<Prisma.$MenuAutoPublishPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more MenuAutoPublishes that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuAutoPublishFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MenuAutoPublishes
+     * const menuAutoPublishes = await prisma.menuAutoPublish.findMany()
+     * 
+     * // Get first 10 MenuAutoPublishes
+     * const menuAutoPublishes = await prisma.menuAutoPublish.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const menuAutoPublishWithIdOnly = await prisma.menuAutoPublish.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MenuAutoPublishFindManyArgs>(args?: SelectSubset<T, MenuAutoPublishFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuAutoPublishPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a MenuAutoPublish.
+     * @param {MenuAutoPublishCreateArgs} args - Arguments to create a MenuAutoPublish.
+     * @example
+     * // Create one MenuAutoPublish
+     * const MenuAutoPublish = await prisma.menuAutoPublish.create({
+     *   data: {
+     *     // ... data to create a MenuAutoPublish
+     *   }
+     * })
+     * 
+     */
+    create<T extends MenuAutoPublishCreateArgs>(args: SelectSubset<T, MenuAutoPublishCreateArgs<ExtArgs>>): Prisma__MenuAutoPublishClient<$Result.GetResult<Prisma.$MenuAutoPublishPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many MenuAutoPublishes.
+     * @param {MenuAutoPublishCreateManyArgs} args - Arguments to create many MenuAutoPublishes.
+     * @example
+     * // Create many MenuAutoPublishes
+     * const menuAutoPublish = await prisma.menuAutoPublish.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MenuAutoPublishCreateManyArgs>(args?: SelectSubset<T, MenuAutoPublishCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MenuAutoPublishes and returns the data saved in the database.
+     * @param {MenuAutoPublishCreateManyAndReturnArgs} args - Arguments to create many MenuAutoPublishes.
+     * @example
+     * // Create many MenuAutoPublishes
+     * const menuAutoPublish = await prisma.menuAutoPublish.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MenuAutoPublishes and only return the `id`
+     * const menuAutoPublishWithIdOnly = await prisma.menuAutoPublish.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MenuAutoPublishCreateManyAndReturnArgs>(args?: SelectSubset<T, MenuAutoPublishCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuAutoPublishPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a MenuAutoPublish.
+     * @param {MenuAutoPublishDeleteArgs} args - Arguments to delete one MenuAutoPublish.
+     * @example
+     * // Delete one MenuAutoPublish
+     * const MenuAutoPublish = await prisma.menuAutoPublish.delete({
+     *   where: {
+     *     // ... filter to delete one MenuAutoPublish
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MenuAutoPublishDeleteArgs>(args: SelectSubset<T, MenuAutoPublishDeleteArgs<ExtArgs>>): Prisma__MenuAutoPublishClient<$Result.GetResult<Prisma.$MenuAutoPublishPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one MenuAutoPublish.
+     * @param {MenuAutoPublishUpdateArgs} args - Arguments to update one MenuAutoPublish.
+     * @example
+     * // Update one MenuAutoPublish
+     * const menuAutoPublish = await prisma.menuAutoPublish.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MenuAutoPublishUpdateArgs>(args: SelectSubset<T, MenuAutoPublishUpdateArgs<ExtArgs>>): Prisma__MenuAutoPublishClient<$Result.GetResult<Prisma.$MenuAutoPublishPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more MenuAutoPublishes.
+     * @param {MenuAutoPublishDeleteManyArgs} args - Arguments to filter MenuAutoPublishes to delete.
+     * @example
+     * // Delete a few MenuAutoPublishes
+     * const { count } = await prisma.menuAutoPublish.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MenuAutoPublishDeleteManyArgs>(args?: SelectSubset<T, MenuAutoPublishDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MenuAutoPublishes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuAutoPublishUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MenuAutoPublishes
+     * const menuAutoPublish = await prisma.menuAutoPublish.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MenuAutoPublishUpdateManyArgs>(args: SelectSubset<T, MenuAutoPublishUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one MenuAutoPublish.
+     * @param {MenuAutoPublishUpsertArgs} args - Arguments to update or create a MenuAutoPublish.
+     * @example
+     * // Update or create a MenuAutoPublish
+     * const menuAutoPublish = await prisma.menuAutoPublish.upsert({
+     *   create: {
+     *     // ... data to create a MenuAutoPublish
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MenuAutoPublish we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MenuAutoPublishUpsertArgs>(args: SelectSubset<T, MenuAutoPublishUpsertArgs<ExtArgs>>): Prisma__MenuAutoPublishClient<$Result.GetResult<Prisma.$MenuAutoPublishPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of MenuAutoPublishes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuAutoPublishCountArgs} args - Arguments to filter MenuAutoPublishes to count.
+     * @example
+     * // Count the number of MenuAutoPublishes
+     * const count = await prisma.menuAutoPublish.count({
+     *   where: {
+     *     // ... the filter for the MenuAutoPublishes we want to count
+     *   }
+     * })
+    **/
+    count<T extends MenuAutoPublishCountArgs>(
+      args?: Subset<T, MenuAutoPublishCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MenuAutoPublishCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MenuAutoPublish.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuAutoPublishAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MenuAutoPublishAggregateArgs>(args: Subset<T, MenuAutoPublishAggregateArgs>): Prisma.PrismaPromise<GetMenuAutoPublishAggregateType<T>>
+
+    /**
+     * Group by MenuAutoPublish.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuAutoPublishGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MenuAutoPublishGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MenuAutoPublishGroupByArgs['orderBy'] }
+        : { orderBy?: MenuAutoPublishGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MenuAutoPublishGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMenuAutoPublishGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MenuAutoPublish model
+   */
+  readonly fields: MenuAutoPublishFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MenuAutoPublish.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MenuAutoPublishClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    menu<T extends MenuDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MenuDefaultArgs<ExtArgs>>): Prisma__MenuClient<$Result.GetResult<Prisma.$MenuPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MenuAutoPublish model
+   */ 
+  interface MenuAutoPublishFieldRefs {
+    readonly id: FieldRef<"MenuAutoPublish", 'String'>
+    readonly tenantId: FieldRef<"MenuAutoPublish", 'String'>
+    readonly menuId: FieldRef<"MenuAutoPublish", 'String'>
+    readonly enabled: FieldRef<"MenuAutoPublish", 'Boolean'>
+    readonly channels: FieldRef<"MenuAutoPublish", 'String[]'>
+    readonly days: FieldRef<"MenuAutoPublish", 'Int[]'>
+    readonly times: FieldRef<"MenuAutoPublish", 'String[]'>
+    readonly timezone: FieldRef<"MenuAutoPublish", 'String'>
+    readonly nextRunAt: FieldRef<"MenuAutoPublish", 'DateTime'>
+    readonly lastRunAt: FieldRef<"MenuAutoPublish", 'DateTime'>
+    readonly lastStatus: FieldRef<"MenuAutoPublish", 'String'>
+    readonly lastResult: FieldRef<"MenuAutoPublish", 'Json'>
+    readonly createdBy: FieldRef<"MenuAutoPublish", 'String'>
+    readonly createdAt: FieldRef<"MenuAutoPublish", 'DateTime'>
+    readonly updatedAt: FieldRef<"MenuAutoPublish", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MenuAutoPublish findUnique
+   */
+  export type MenuAutoPublishFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuAutoPublish
+     */
+    select?: MenuAutoPublishSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuAutoPublishInclude<ExtArgs> | null
+    /**
+     * Filter, which MenuAutoPublish to fetch.
+     */
+    where: MenuAutoPublishWhereUniqueInput
+  }
+
+  /**
+   * MenuAutoPublish findUniqueOrThrow
+   */
+  export type MenuAutoPublishFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuAutoPublish
+     */
+    select?: MenuAutoPublishSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuAutoPublishInclude<ExtArgs> | null
+    /**
+     * Filter, which MenuAutoPublish to fetch.
+     */
+    where: MenuAutoPublishWhereUniqueInput
+  }
+
+  /**
+   * MenuAutoPublish findFirst
+   */
+  export type MenuAutoPublishFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuAutoPublish
+     */
+    select?: MenuAutoPublishSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuAutoPublishInclude<ExtArgs> | null
+    /**
+     * Filter, which MenuAutoPublish to fetch.
+     */
+    where?: MenuAutoPublishWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MenuAutoPublishes to fetch.
+     */
+    orderBy?: MenuAutoPublishOrderByWithRelationInput | MenuAutoPublishOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MenuAutoPublishes.
+     */
+    cursor?: MenuAutoPublishWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MenuAutoPublishes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MenuAutoPublishes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MenuAutoPublishes.
+     */
+    distinct?: MenuAutoPublishScalarFieldEnum | MenuAutoPublishScalarFieldEnum[]
+  }
+
+  /**
+   * MenuAutoPublish findFirstOrThrow
+   */
+  export type MenuAutoPublishFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuAutoPublish
+     */
+    select?: MenuAutoPublishSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuAutoPublishInclude<ExtArgs> | null
+    /**
+     * Filter, which MenuAutoPublish to fetch.
+     */
+    where?: MenuAutoPublishWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MenuAutoPublishes to fetch.
+     */
+    orderBy?: MenuAutoPublishOrderByWithRelationInput | MenuAutoPublishOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MenuAutoPublishes.
+     */
+    cursor?: MenuAutoPublishWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MenuAutoPublishes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MenuAutoPublishes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MenuAutoPublishes.
+     */
+    distinct?: MenuAutoPublishScalarFieldEnum | MenuAutoPublishScalarFieldEnum[]
+  }
+
+  /**
+   * MenuAutoPublish findMany
+   */
+  export type MenuAutoPublishFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuAutoPublish
+     */
+    select?: MenuAutoPublishSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuAutoPublishInclude<ExtArgs> | null
+    /**
+     * Filter, which MenuAutoPublishes to fetch.
+     */
+    where?: MenuAutoPublishWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MenuAutoPublishes to fetch.
+     */
+    orderBy?: MenuAutoPublishOrderByWithRelationInput | MenuAutoPublishOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MenuAutoPublishes.
+     */
+    cursor?: MenuAutoPublishWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MenuAutoPublishes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MenuAutoPublishes.
+     */
+    skip?: number
+    distinct?: MenuAutoPublishScalarFieldEnum | MenuAutoPublishScalarFieldEnum[]
+  }
+
+  /**
+   * MenuAutoPublish create
+   */
+  export type MenuAutoPublishCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuAutoPublish
+     */
+    select?: MenuAutoPublishSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuAutoPublishInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MenuAutoPublish.
+     */
+    data: XOR<MenuAutoPublishCreateInput, MenuAutoPublishUncheckedCreateInput>
+  }
+
+  /**
+   * MenuAutoPublish createMany
+   */
+  export type MenuAutoPublishCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MenuAutoPublishes.
+     */
+    data: MenuAutoPublishCreateManyInput | MenuAutoPublishCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MenuAutoPublish createManyAndReturn
+   */
+  export type MenuAutoPublishCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuAutoPublish
+     */
+    select?: MenuAutoPublishSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many MenuAutoPublishes.
+     */
+    data: MenuAutoPublishCreateManyInput | MenuAutoPublishCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuAutoPublishIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MenuAutoPublish update
+   */
+  export type MenuAutoPublishUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuAutoPublish
+     */
+    select?: MenuAutoPublishSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuAutoPublishInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MenuAutoPublish.
+     */
+    data: XOR<MenuAutoPublishUpdateInput, MenuAutoPublishUncheckedUpdateInput>
+    /**
+     * Choose, which MenuAutoPublish to update.
+     */
+    where: MenuAutoPublishWhereUniqueInput
+  }
+
+  /**
+   * MenuAutoPublish updateMany
+   */
+  export type MenuAutoPublishUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MenuAutoPublishes.
+     */
+    data: XOR<MenuAutoPublishUpdateManyMutationInput, MenuAutoPublishUncheckedUpdateManyInput>
+    /**
+     * Filter which MenuAutoPublishes to update
+     */
+    where?: MenuAutoPublishWhereInput
+  }
+
+  /**
+   * MenuAutoPublish upsert
+   */
+  export type MenuAutoPublishUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuAutoPublish
+     */
+    select?: MenuAutoPublishSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuAutoPublishInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MenuAutoPublish to update in case it exists.
+     */
+    where: MenuAutoPublishWhereUniqueInput
+    /**
+     * In case the MenuAutoPublish found by the `where` argument doesn't exist, create a new MenuAutoPublish with this data.
+     */
+    create: XOR<MenuAutoPublishCreateInput, MenuAutoPublishUncheckedCreateInput>
+    /**
+     * In case the MenuAutoPublish was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MenuAutoPublishUpdateInput, MenuAutoPublishUncheckedUpdateInput>
+  }
+
+  /**
+   * MenuAutoPublish delete
+   */
+  export type MenuAutoPublishDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuAutoPublish
+     */
+    select?: MenuAutoPublishSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuAutoPublishInclude<ExtArgs> | null
+    /**
+     * Filter which MenuAutoPublish to delete.
+     */
+    where: MenuAutoPublishWhereUniqueInput
+  }
+
+  /**
+   * MenuAutoPublish deleteMany
+   */
+  export type MenuAutoPublishDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MenuAutoPublishes to delete
+     */
+    where?: MenuAutoPublishWhereInput
+  }
+
+  /**
+   * MenuAutoPublish without action
+   */
+  export type MenuAutoPublishDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuAutoPublish
+     */
+    select?: MenuAutoPublishSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuAutoPublishInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -173762,6 +179338,8 @@ export namespace Prisma {
     openingHours: 'openingHours',
     prepTime: 'prepTime',
     busyExtraPrepTime: 'busyExtraPrepTime',
+    showcaseOnWebsite: 'showcaseOnWebsite',
+    showcaseOrder: 'showcaseOrder',
     defaultStationId: 'defaultStationId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
@@ -176434,6 +182012,91 @@ export namespace Prisma {
   export type EmailCampaignRecipientScalarFieldEnum = (typeof EmailCampaignRecipientScalarFieldEnum)[keyof typeof EmailCampaignRecipientScalarFieldEnum]
 
 
+  export const BuildGuideScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    brandId: 'brandId',
+    nameKey: 'nameKey',
+    name: 'name',
+    steps: 'steps',
+    packNote: 'packNote',
+    videoUrl: 'videoUrl',
+    updatedBy: 'updatedBy',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type BuildGuideScalarFieldEnum = (typeof BuildGuideScalarFieldEnum)[keyof typeof BuildGuideScalarFieldEnum]
+
+
+  export const BuildStepTemplateScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    brandId: 'brandId',
+    title: 'title',
+    text: 'text',
+    imageUrl: 'imageUrl',
+    amount: 'amount',
+    tools: 'tools',
+    createdBy: 'createdBy',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type BuildStepTemplateScalarFieldEnum = (typeof BuildStepTemplateScalarFieldEnum)[keyof typeof BuildStepTemplateScalarFieldEnum]
+
+
+  export const BuildGuideTrainingScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    guideId: 'guideId',
+    userId: 'userId',
+    completedAt: 'completedAt'
+  };
+
+  export type BuildGuideTrainingScalarFieldEnum = (typeof BuildGuideTrainingScalarFieldEnum)[keyof typeof BuildGuideTrainingScalarFieldEnum]
+
+
+  export const AssemblyChartScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    brandId: 'brandId',
+    nameKey: 'nameKey',
+    name: 'name',
+    title: 'title',
+    altTitle: 'altTitle',
+    heroImageUrl: 'heroImageUrl',
+    layers: 'layers',
+    footNote: 'footNote',
+    updatedBy: 'updatedBy',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type AssemblyChartScalarFieldEnum = (typeof AssemblyChartScalarFieldEnum)[keyof typeof AssemblyChartScalarFieldEnum]
+
+
+  export const MenuAutoPublishScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    menuId: 'menuId',
+    enabled: 'enabled',
+    channels: 'channels',
+    days: 'days',
+    times: 'times',
+    timezone: 'timezone',
+    nextRunAt: 'nextRunAt',
+    lastRunAt: 'lastRunAt',
+    lastStatus: 'lastStatus',
+    lastResult: 'lastResult',
+    createdBy: 'createdBy',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type MenuAutoPublishScalarFieldEnum = (typeof MenuAutoPublishScalarFieldEnum)[keyof typeof MenuAutoPublishScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -178462,6 +184125,75 @@ export namespace Prisma {
   export type EmailCampaignRecipientOrderByRelevanceFieldEnum = (typeof EmailCampaignRecipientOrderByRelevanceFieldEnum)[keyof typeof EmailCampaignRecipientOrderByRelevanceFieldEnum]
 
 
+  export const BuildGuideOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    brandId: 'brandId',
+    nameKey: 'nameKey',
+    name: 'name',
+    packNote: 'packNote',
+    videoUrl: 'videoUrl',
+    updatedBy: 'updatedBy'
+  };
+
+  export type BuildGuideOrderByRelevanceFieldEnum = (typeof BuildGuideOrderByRelevanceFieldEnum)[keyof typeof BuildGuideOrderByRelevanceFieldEnum]
+
+
+  export const BuildStepTemplateOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    brandId: 'brandId',
+    title: 'title',
+    text: 'text',
+    imageUrl: 'imageUrl',
+    amount: 'amount',
+    tools: 'tools',
+    createdBy: 'createdBy'
+  };
+
+  export type BuildStepTemplateOrderByRelevanceFieldEnum = (typeof BuildStepTemplateOrderByRelevanceFieldEnum)[keyof typeof BuildStepTemplateOrderByRelevanceFieldEnum]
+
+
+  export const BuildGuideTrainingOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    guideId: 'guideId',
+    userId: 'userId'
+  };
+
+  export type BuildGuideTrainingOrderByRelevanceFieldEnum = (typeof BuildGuideTrainingOrderByRelevanceFieldEnum)[keyof typeof BuildGuideTrainingOrderByRelevanceFieldEnum]
+
+
+  export const AssemblyChartOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    brandId: 'brandId',
+    nameKey: 'nameKey',
+    name: 'name',
+    title: 'title',
+    altTitle: 'altTitle',
+    heroImageUrl: 'heroImageUrl',
+    footNote: 'footNote',
+    updatedBy: 'updatedBy'
+  };
+
+  export type AssemblyChartOrderByRelevanceFieldEnum = (typeof AssemblyChartOrderByRelevanceFieldEnum)[keyof typeof AssemblyChartOrderByRelevanceFieldEnum]
+
+
+  export const MenuAutoPublishOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    menuId: 'menuId',
+    channels: 'channels',
+    times: 'times',
+    timezone: 'timezone',
+    lastStatus: 'lastStatus',
+    createdBy: 'createdBy'
+  };
+
+  export type MenuAutoPublishOrderByRelevanceFieldEnum = (typeof MenuAutoPublishOrderByRelevanceFieldEnum)[keyof typeof MenuAutoPublishOrderByRelevanceFieldEnum]
+
+
   /**
    * Field references 
    */
@@ -180451,6 +186183,8 @@ export namespace Prisma {
     openingHours?: JsonFilter<"Brand">
     prepTime?: IntNullableFilter<"Brand"> | number | null
     busyExtraPrepTime?: IntNullableFilter<"Brand"> | number | null
+    showcaseOnWebsite?: BoolFilter<"Brand"> | boolean
+    showcaseOrder?: IntNullableFilter<"Brand"> | number | null
     defaultStationId?: StringNullableFilter<"Brand"> | string | null
     createdAt?: DateTimeFilter<"Brand"> | Date | string
     updatedAt?: DateTimeFilter<"Brand"> | Date | string
@@ -180459,6 +186193,8 @@ export namespace Prisma {
     locations?: LocationListRelationFilter
     menus?: MenuListRelationFilter
     modifierGroups?: ModifierGroupListRelationFilter
+    buildGuides?: BuildGuideListRelationFilter
+    assemblyCharts?: AssemblyChartListRelationFilter
     orders?: OrderListRelationFilter
     mealDeals?: MealDealListRelationFilter
     upsellGroups?: UpsellGroupListRelationFilter
@@ -180510,6 +186246,8 @@ export namespace Prisma {
     openingHours?: SortOrder
     prepTime?: SortOrderInput | SortOrder
     busyExtraPrepTime?: SortOrderInput | SortOrder
+    showcaseOnWebsite?: SortOrder
+    showcaseOrder?: SortOrderInput | SortOrder
     defaultStationId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -180518,6 +186256,8 @@ export namespace Prisma {
     locations?: LocationOrderByRelationAggregateInput
     menus?: MenuOrderByRelationAggregateInput
     modifierGroups?: ModifierGroupOrderByRelationAggregateInput
+    buildGuides?: BuildGuideOrderByRelationAggregateInput
+    assemblyCharts?: AssemblyChartOrderByRelationAggregateInput
     orders?: OrderOrderByRelationAggregateInput
     mealDeals?: MealDealOrderByRelationAggregateInput
     upsellGroups?: UpsellGroupOrderByRelationAggregateInput
@@ -180574,6 +186314,8 @@ export namespace Prisma {
     openingHours?: JsonFilter<"Brand">
     prepTime?: IntNullableFilter<"Brand"> | number | null
     busyExtraPrepTime?: IntNullableFilter<"Brand"> | number | null
+    showcaseOnWebsite?: BoolFilter<"Brand"> | boolean
+    showcaseOrder?: IntNullableFilter<"Brand"> | number | null
     defaultStationId?: StringNullableFilter<"Brand"> | string | null
     createdAt?: DateTimeFilter<"Brand"> | Date | string
     updatedAt?: DateTimeFilter<"Brand"> | Date | string
@@ -180582,6 +186324,8 @@ export namespace Prisma {
     locations?: LocationListRelationFilter
     menus?: MenuListRelationFilter
     modifierGroups?: ModifierGroupListRelationFilter
+    buildGuides?: BuildGuideListRelationFilter
+    assemblyCharts?: AssemblyChartListRelationFilter
     orders?: OrderListRelationFilter
     mealDeals?: MealDealListRelationFilter
     upsellGroups?: UpsellGroupListRelationFilter
@@ -180633,6 +186377,8 @@ export namespace Prisma {
     openingHours?: SortOrder
     prepTime?: SortOrderInput | SortOrder
     busyExtraPrepTime?: SortOrderInput | SortOrder
+    showcaseOnWebsite?: SortOrder
+    showcaseOrder?: SortOrderInput | SortOrder
     defaultStationId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -180685,6 +186431,8 @@ export namespace Prisma {
     openingHours?: JsonWithAggregatesFilter<"Brand">
     prepTime?: IntNullableWithAggregatesFilter<"Brand"> | number | null
     busyExtraPrepTime?: IntNullableWithAggregatesFilter<"Brand"> | number | null
+    showcaseOnWebsite?: BoolWithAggregatesFilter<"Brand"> | boolean
+    showcaseOrder?: IntNullableWithAggregatesFilter<"Brand"> | number | null
     defaultStationId?: StringNullableWithAggregatesFilter<"Brand"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Brand"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Brand"> | Date | string
@@ -181398,6 +187146,7 @@ export namespace Prisma {
     categories?: MenuCategoryListRelationFilter
     versions?: MenuVersionListRelationFilter
     assignments?: MenuChannelAssignmentListRelationFilter
+    autoPublish?: XOR<MenuAutoPublishNullableRelationFilter, MenuAutoPublishWhereInput> | null
     channelSourceFor?: BrandChannelSourceListRelationFilter
   }
 
@@ -181440,6 +187189,7 @@ export namespace Prisma {
     categories?: MenuCategoryOrderByRelationAggregateInput
     versions?: MenuVersionOrderByRelationAggregateInput
     assignments?: MenuChannelAssignmentOrderByRelationAggregateInput
+    autoPublish?: MenuAutoPublishOrderByWithRelationInput
     channelSourceFor?: BrandChannelSourceOrderByRelationAggregateInput
     _relevance?: MenuOrderByRelevanceInput
   }
@@ -181486,6 +187236,7 @@ export namespace Prisma {
     categories?: MenuCategoryListRelationFilter
     versions?: MenuVersionListRelationFilter
     assignments?: MenuChannelAssignmentListRelationFilter
+    autoPublish?: XOR<MenuAutoPublishNullableRelationFilter, MenuAutoPublishWhereInput> | null
     channelSourceFor?: BrandChannelSourceListRelationFilter
   }, "id">
 
@@ -194742,6 +200493,441 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"EmailCampaignRecipient"> | Date | string
   }
 
+  export type BuildGuideWhereInput = {
+    AND?: BuildGuideWhereInput | BuildGuideWhereInput[]
+    OR?: BuildGuideWhereInput[]
+    NOT?: BuildGuideWhereInput | BuildGuideWhereInput[]
+    id?: StringFilter<"BuildGuide"> | string
+    tenantId?: StringFilter<"BuildGuide"> | string
+    brandId?: StringFilter<"BuildGuide"> | string
+    nameKey?: StringFilter<"BuildGuide"> | string
+    name?: StringFilter<"BuildGuide"> | string
+    steps?: JsonFilter<"BuildGuide">
+    packNote?: StringNullableFilter<"BuildGuide"> | string | null
+    videoUrl?: StringNullableFilter<"BuildGuide"> | string | null
+    updatedBy?: StringNullableFilter<"BuildGuide"> | string | null
+    createdAt?: DateTimeFilter<"BuildGuide"> | Date | string
+    updatedAt?: DateTimeFilter<"BuildGuide"> | Date | string
+    brand?: XOR<BrandRelationFilter, BrandWhereInput>
+    trainings?: BuildGuideTrainingListRelationFilter
+  }
+
+  export type BuildGuideOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    nameKey?: SortOrder
+    name?: SortOrder
+    steps?: SortOrder
+    packNote?: SortOrderInput | SortOrder
+    videoUrl?: SortOrderInput | SortOrder
+    updatedBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    brand?: BrandOrderByWithRelationInput
+    trainings?: BuildGuideTrainingOrderByRelationAggregateInput
+    _relevance?: BuildGuideOrderByRelevanceInput
+  }
+
+  export type BuildGuideWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    brandId_nameKey?: BuildGuideBrandIdNameKeyCompoundUniqueInput
+    AND?: BuildGuideWhereInput | BuildGuideWhereInput[]
+    OR?: BuildGuideWhereInput[]
+    NOT?: BuildGuideWhereInput | BuildGuideWhereInput[]
+    tenantId?: StringFilter<"BuildGuide"> | string
+    brandId?: StringFilter<"BuildGuide"> | string
+    nameKey?: StringFilter<"BuildGuide"> | string
+    name?: StringFilter<"BuildGuide"> | string
+    steps?: JsonFilter<"BuildGuide">
+    packNote?: StringNullableFilter<"BuildGuide"> | string | null
+    videoUrl?: StringNullableFilter<"BuildGuide"> | string | null
+    updatedBy?: StringNullableFilter<"BuildGuide"> | string | null
+    createdAt?: DateTimeFilter<"BuildGuide"> | Date | string
+    updatedAt?: DateTimeFilter<"BuildGuide"> | Date | string
+    brand?: XOR<BrandRelationFilter, BrandWhereInput>
+    trainings?: BuildGuideTrainingListRelationFilter
+  }, "id" | "brandId_nameKey">
+
+  export type BuildGuideOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    nameKey?: SortOrder
+    name?: SortOrder
+    steps?: SortOrder
+    packNote?: SortOrderInput | SortOrder
+    videoUrl?: SortOrderInput | SortOrder
+    updatedBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: BuildGuideCountOrderByAggregateInput
+    _max?: BuildGuideMaxOrderByAggregateInput
+    _min?: BuildGuideMinOrderByAggregateInput
+  }
+
+  export type BuildGuideScalarWhereWithAggregatesInput = {
+    AND?: BuildGuideScalarWhereWithAggregatesInput | BuildGuideScalarWhereWithAggregatesInput[]
+    OR?: BuildGuideScalarWhereWithAggregatesInput[]
+    NOT?: BuildGuideScalarWhereWithAggregatesInput | BuildGuideScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"BuildGuide"> | string
+    tenantId?: StringWithAggregatesFilter<"BuildGuide"> | string
+    brandId?: StringWithAggregatesFilter<"BuildGuide"> | string
+    nameKey?: StringWithAggregatesFilter<"BuildGuide"> | string
+    name?: StringWithAggregatesFilter<"BuildGuide"> | string
+    steps?: JsonWithAggregatesFilter<"BuildGuide">
+    packNote?: StringNullableWithAggregatesFilter<"BuildGuide"> | string | null
+    videoUrl?: StringNullableWithAggregatesFilter<"BuildGuide"> | string | null
+    updatedBy?: StringNullableWithAggregatesFilter<"BuildGuide"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"BuildGuide"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"BuildGuide"> | Date | string
+  }
+
+  export type BuildStepTemplateWhereInput = {
+    AND?: BuildStepTemplateWhereInput | BuildStepTemplateWhereInput[]
+    OR?: BuildStepTemplateWhereInput[]
+    NOT?: BuildStepTemplateWhereInput | BuildStepTemplateWhereInput[]
+    id?: StringFilter<"BuildStepTemplate"> | string
+    tenantId?: StringFilter<"BuildStepTemplate"> | string
+    brandId?: StringNullableFilter<"BuildStepTemplate"> | string | null
+    title?: StringFilter<"BuildStepTemplate"> | string
+    text?: StringFilter<"BuildStepTemplate"> | string
+    imageUrl?: StringNullableFilter<"BuildStepTemplate"> | string | null
+    amount?: StringNullableFilter<"BuildStepTemplate"> | string | null
+    tools?: StringNullableListFilter<"BuildStepTemplate">
+    createdBy?: StringNullableFilter<"BuildStepTemplate"> | string | null
+    createdAt?: DateTimeFilter<"BuildStepTemplate"> | Date | string
+    updatedAt?: DateTimeFilter<"BuildStepTemplate"> | Date | string
+  }
+
+  export type BuildStepTemplateOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrderInput | SortOrder
+    title?: SortOrder
+    text?: SortOrder
+    imageUrl?: SortOrderInput | SortOrder
+    amount?: SortOrderInput | SortOrder
+    tools?: SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _relevance?: BuildStepTemplateOrderByRelevanceInput
+  }
+
+  export type BuildStepTemplateWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: BuildStepTemplateWhereInput | BuildStepTemplateWhereInput[]
+    OR?: BuildStepTemplateWhereInput[]
+    NOT?: BuildStepTemplateWhereInput | BuildStepTemplateWhereInput[]
+    tenantId?: StringFilter<"BuildStepTemplate"> | string
+    brandId?: StringNullableFilter<"BuildStepTemplate"> | string | null
+    title?: StringFilter<"BuildStepTemplate"> | string
+    text?: StringFilter<"BuildStepTemplate"> | string
+    imageUrl?: StringNullableFilter<"BuildStepTemplate"> | string | null
+    amount?: StringNullableFilter<"BuildStepTemplate"> | string | null
+    tools?: StringNullableListFilter<"BuildStepTemplate">
+    createdBy?: StringNullableFilter<"BuildStepTemplate"> | string | null
+    createdAt?: DateTimeFilter<"BuildStepTemplate"> | Date | string
+    updatedAt?: DateTimeFilter<"BuildStepTemplate"> | Date | string
+  }, "id">
+
+  export type BuildStepTemplateOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrderInput | SortOrder
+    title?: SortOrder
+    text?: SortOrder
+    imageUrl?: SortOrderInput | SortOrder
+    amount?: SortOrderInput | SortOrder
+    tools?: SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: BuildStepTemplateCountOrderByAggregateInput
+    _max?: BuildStepTemplateMaxOrderByAggregateInput
+    _min?: BuildStepTemplateMinOrderByAggregateInput
+  }
+
+  export type BuildStepTemplateScalarWhereWithAggregatesInput = {
+    AND?: BuildStepTemplateScalarWhereWithAggregatesInput | BuildStepTemplateScalarWhereWithAggregatesInput[]
+    OR?: BuildStepTemplateScalarWhereWithAggregatesInput[]
+    NOT?: BuildStepTemplateScalarWhereWithAggregatesInput | BuildStepTemplateScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"BuildStepTemplate"> | string
+    tenantId?: StringWithAggregatesFilter<"BuildStepTemplate"> | string
+    brandId?: StringNullableWithAggregatesFilter<"BuildStepTemplate"> | string | null
+    title?: StringWithAggregatesFilter<"BuildStepTemplate"> | string
+    text?: StringWithAggregatesFilter<"BuildStepTemplate"> | string
+    imageUrl?: StringNullableWithAggregatesFilter<"BuildStepTemplate"> | string | null
+    amount?: StringNullableWithAggregatesFilter<"BuildStepTemplate"> | string | null
+    tools?: StringNullableListFilter<"BuildStepTemplate">
+    createdBy?: StringNullableWithAggregatesFilter<"BuildStepTemplate"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"BuildStepTemplate"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"BuildStepTemplate"> | Date | string
+  }
+
+  export type BuildGuideTrainingWhereInput = {
+    AND?: BuildGuideTrainingWhereInput | BuildGuideTrainingWhereInput[]
+    OR?: BuildGuideTrainingWhereInput[]
+    NOT?: BuildGuideTrainingWhereInput | BuildGuideTrainingWhereInput[]
+    id?: StringFilter<"BuildGuideTraining"> | string
+    tenantId?: StringFilter<"BuildGuideTraining"> | string
+    guideId?: StringFilter<"BuildGuideTraining"> | string
+    userId?: StringFilter<"BuildGuideTraining"> | string
+    completedAt?: DateTimeFilter<"BuildGuideTraining"> | Date | string
+    guide?: XOR<BuildGuideRelationFilter, BuildGuideWhereInput>
+  }
+
+  export type BuildGuideTrainingOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    guideId?: SortOrder
+    userId?: SortOrder
+    completedAt?: SortOrder
+    guide?: BuildGuideOrderByWithRelationInput
+    _relevance?: BuildGuideTrainingOrderByRelevanceInput
+  }
+
+  export type BuildGuideTrainingWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    guideId_userId?: BuildGuideTrainingGuideIdUserIdCompoundUniqueInput
+    AND?: BuildGuideTrainingWhereInput | BuildGuideTrainingWhereInput[]
+    OR?: BuildGuideTrainingWhereInput[]
+    NOT?: BuildGuideTrainingWhereInput | BuildGuideTrainingWhereInput[]
+    tenantId?: StringFilter<"BuildGuideTraining"> | string
+    guideId?: StringFilter<"BuildGuideTraining"> | string
+    userId?: StringFilter<"BuildGuideTraining"> | string
+    completedAt?: DateTimeFilter<"BuildGuideTraining"> | Date | string
+    guide?: XOR<BuildGuideRelationFilter, BuildGuideWhereInput>
+  }, "id" | "guideId_userId">
+
+  export type BuildGuideTrainingOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    guideId?: SortOrder
+    userId?: SortOrder
+    completedAt?: SortOrder
+    _count?: BuildGuideTrainingCountOrderByAggregateInput
+    _max?: BuildGuideTrainingMaxOrderByAggregateInput
+    _min?: BuildGuideTrainingMinOrderByAggregateInput
+  }
+
+  export type BuildGuideTrainingScalarWhereWithAggregatesInput = {
+    AND?: BuildGuideTrainingScalarWhereWithAggregatesInput | BuildGuideTrainingScalarWhereWithAggregatesInput[]
+    OR?: BuildGuideTrainingScalarWhereWithAggregatesInput[]
+    NOT?: BuildGuideTrainingScalarWhereWithAggregatesInput | BuildGuideTrainingScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"BuildGuideTraining"> | string
+    tenantId?: StringWithAggregatesFilter<"BuildGuideTraining"> | string
+    guideId?: StringWithAggregatesFilter<"BuildGuideTraining"> | string
+    userId?: StringWithAggregatesFilter<"BuildGuideTraining"> | string
+    completedAt?: DateTimeWithAggregatesFilter<"BuildGuideTraining"> | Date | string
+  }
+
+  export type AssemblyChartWhereInput = {
+    AND?: AssemblyChartWhereInput | AssemblyChartWhereInput[]
+    OR?: AssemblyChartWhereInput[]
+    NOT?: AssemblyChartWhereInput | AssemblyChartWhereInput[]
+    id?: StringFilter<"AssemblyChart"> | string
+    tenantId?: StringFilter<"AssemblyChart"> | string
+    brandId?: StringFilter<"AssemblyChart"> | string
+    nameKey?: StringFilter<"AssemblyChart"> | string
+    name?: StringFilter<"AssemblyChart"> | string
+    title?: StringFilter<"AssemblyChart"> | string
+    altTitle?: StringNullableFilter<"AssemblyChart"> | string | null
+    heroImageUrl?: StringNullableFilter<"AssemblyChart"> | string | null
+    layers?: JsonFilter<"AssemblyChart">
+    footNote?: StringNullableFilter<"AssemblyChart"> | string | null
+    updatedBy?: StringNullableFilter<"AssemblyChart"> | string | null
+    createdAt?: DateTimeFilter<"AssemblyChart"> | Date | string
+    updatedAt?: DateTimeFilter<"AssemblyChart"> | Date | string
+    brand?: XOR<BrandRelationFilter, BrandWhereInput>
+  }
+
+  export type AssemblyChartOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    nameKey?: SortOrder
+    name?: SortOrder
+    title?: SortOrder
+    altTitle?: SortOrderInput | SortOrder
+    heroImageUrl?: SortOrderInput | SortOrder
+    layers?: SortOrder
+    footNote?: SortOrderInput | SortOrder
+    updatedBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    brand?: BrandOrderByWithRelationInput
+    _relevance?: AssemblyChartOrderByRelevanceInput
+  }
+
+  export type AssemblyChartWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    brandId_nameKey?: AssemblyChartBrandIdNameKeyCompoundUniqueInput
+    AND?: AssemblyChartWhereInput | AssemblyChartWhereInput[]
+    OR?: AssemblyChartWhereInput[]
+    NOT?: AssemblyChartWhereInput | AssemblyChartWhereInput[]
+    tenantId?: StringFilter<"AssemblyChart"> | string
+    brandId?: StringFilter<"AssemblyChart"> | string
+    nameKey?: StringFilter<"AssemblyChart"> | string
+    name?: StringFilter<"AssemblyChart"> | string
+    title?: StringFilter<"AssemblyChart"> | string
+    altTitle?: StringNullableFilter<"AssemblyChart"> | string | null
+    heroImageUrl?: StringNullableFilter<"AssemblyChart"> | string | null
+    layers?: JsonFilter<"AssemblyChart">
+    footNote?: StringNullableFilter<"AssemblyChart"> | string | null
+    updatedBy?: StringNullableFilter<"AssemblyChart"> | string | null
+    createdAt?: DateTimeFilter<"AssemblyChart"> | Date | string
+    updatedAt?: DateTimeFilter<"AssemblyChart"> | Date | string
+    brand?: XOR<BrandRelationFilter, BrandWhereInput>
+  }, "id" | "brandId_nameKey">
+
+  export type AssemblyChartOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    nameKey?: SortOrder
+    name?: SortOrder
+    title?: SortOrder
+    altTitle?: SortOrderInput | SortOrder
+    heroImageUrl?: SortOrderInput | SortOrder
+    layers?: SortOrder
+    footNote?: SortOrderInput | SortOrder
+    updatedBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: AssemblyChartCountOrderByAggregateInput
+    _max?: AssemblyChartMaxOrderByAggregateInput
+    _min?: AssemblyChartMinOrderByAggregateInput
+  }
+
+  export type AssemblyChartScalarWhereWithAggregatesInput = {
+    AND?: AssemblyChartScalarWhereWithAggregatesInput | AssemblyChartScalarWhereWithAggregatesInput[]
+    OR?: AssemblyChartScalarWhereWithAggregatesInput[]
+    NOT?: AssemblyChartScalarWhereWithAggregatesInput | AssemblyChartScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"AssemblyChart"> | string
+    tenantId?: StringWithAggregatesFilter<"AssemblyChart"> | string
+    brandId?: StringWithAggregatesFilter<"AssemblyChart"> | string
+    nameKey?: StringWithAggregatesFilter<"AssemblyChart"> | string
+    name?: StringWithAggregatesFilter<"AssemblyChart"> | string
+    title?: StringWithAggregatesFilter<"AssemblyChart"> | string
+    altTitle?: StringNullableWithAggregatesFilter<"AssemblyChart"> | string | null
+    heroImageUrl?: StringNullableWithAggregatesFilter<"AssemblyChart"> | string | null
+    layers?: JsonWithAggregatesFilter<"AssemblyChart">
+    footNote?: StringNullableWithAggregatesFilter<"AssemblyChart"> | string | null
+    updatedBy?: StringNullableWithAggregatesFilter<"AssemblyChart"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"AssemblyChart"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"AssemblyChart"> | Date | string
+  }
+
+  export type MenuAutoPublishWhereInput = {
+    AND?: MenuAutoPublishWhereInput | MenuAutoPublishWhereInput[]
+    OR?: MenuAutoPublishWhereInput[]
+    NOT?: MenuAutoPublishWhereInput | MenuAutoPublishWhereInput[]
+    id?: StringFilter<"MenuAutoPublish"> | string
+    tenantId?: StringFilter<"MenuAutoPublish"> | string
+    menuId?: StringFilter<"MenuAutoPublish"> | string
+    enabled?: BoolFilter<"MenuAutoPublish"> | boolean
+    channels?: StringNullableListFilter<"MenuAutoPublish">
+    days?: IntNullableListFilter<"MenuAutoPublish">
+    times?: StringNullableListFilter<"MenuAutoPublish">
+    timezone?: StringFilter<"MenuAutoPublish"> | string
+    nextRunAt?: DateTimeNullableFilter<"MenuAutoPublish"> | Date | string | null
+    lastRunAt?: DateTimeNullableFilter<"MenuAutoPublish"> | Date | string | null
+    lastStatus?: StringNullableFilter<"MenuAutoPublish"> | string | null
+    lastResult?: JsonNullableFilter<"MenuAutoPublish">
+    createdBy?: StringNullableFilter<"MenuAutoPublish"> | string | null
+    createdAt?: DateTimeFilter<"MenuAutoPublish"> | Date | string
+    updatedAt?: DateTimeFilter<"MenuAutoPublish"> | Date | string
+    menu?: XOR<MenuRelationFilter, MenuWhereInput>
+  }
+
+  export type MenuAutoPublishOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    menuId?: SortOrder
+    enabled?: SortOrder
+    channels?: SortOrder
+    days?: SortOrder
+    times?: SortOrder
+    timezone?: SortOrder
+    nextRunAt?: SortOrderInput | SortOrder
+    lastRunAt?: SortOrderInput | SortOrder
+    lastStatus?: SortOrderInput | SortOrder
+    lastResult?: SortOrderInput | SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    menu?: MenuOrderByWithRelationInput
+    _relevance?: MenuAutoPublishOrderByRelevanceInput
+  }
+
+  export type MenuAutoPublishWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    menuId?: string
+    AND?: MenuAutoPublishWhereInput | MenuAutoPublishWhereInput[]
+    OR?: MenuAutoPublishWhereInput[]
+    NOT?: MenuAutoPublishWhereInput | MenuAutoPublishWhereInput[]
+    tenantId?: StringFilter<"MenuAutoPublish"> | string
+    enabled?: BoolFilter<"MenuAutoPublish"> | boolean
+    channels?: StringNullableListFilter<"MenuAutoPublish">
+    days?: IntNullableListFilter<"MenuAutoPublish">
+    times?: StringNullableListFilter<"MenuAutoPublish">
+    timezone?: StringFilter<"MenuAutoPublish"> | string
+    nextRunAt?: DateTimeNullableFilter<"MenuAutoPublish"> | Date | string | null
+    lastRunAt?: DateTimeNullableFilter<"MenuAutoPublish"> | Date | string | null
+    lastStatus?: StringNullableFilter<"MenuAutoPublish"> | string | null
+    lastResult?: JsonNullableFilter<"MenuAutoPublish">
+    createdBy?: StringNullableFilter<"MenuAutoPublish"> | string | null
+    createdAt?: DateTimeFilter<"MenuAutoPublish"> | Date | string
+    updatedAt?: DateTimeFilter<"MenuAutoPublish"> | Date | string
+    menu?: XOR<MenuRelationFilter, MenuWhereInput>
+  }, "id" | "menuId">
+
+  export type MenuAutoPublishOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    menuId?: SortOrder
+    enabled?: SortOrder
+    channels?: SortOrder
+    days?: SortOrder
+    times?: SortOrder
+    timezone?: SortOrder
+    nextRunAt?: SortOrderInput | SortOrder
+    lastRunAt?: SortOrderInput | SortOrder
+    lastStatus?: SortOrderInput | SortOrder
+    lastResult?: SortOrderInput | SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: MenuAutoPublishCountOrderByAggregateInput
+    _avg?: MenuAutoPublishAvgOrderByAggregateInput
+    _max?: MenuAutoPublishMaxOrderByAggregateInput
+    _min?: MenuAutoPublishMinOrderByAggregateInput
+    _sum?: MenuAutoPublishSumOrderByAggregateInput
+  }
+
+  export type MenuAutoPublishScalarWhereWithAggregatesInput = {
+    AND?: MenuAutoPublishScalarWhereWithAggregatesInput | MenuAutoPublishScalarWhereWithAggregatesInput[]
+    OR?: MenuAutoPublishScalarWhereWithAggregatesInput[]
+    NOT?: MenuAutoPublishScalarWhereWithAggregatesInput | MenuAutoPublishScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"MenuAutoPublish"> | string
+    tenantId?: StringWithAggregatesFilter<"MenuAutoPublish"> | string
+    menuId?: StringWithAggregatesFilter<"MenuAutoPublish"> | string
+    enabled?: BoolWithAggregatesFilter<"MenuAutoPublish"> | boolean
+    channels?: StringNullableListFilter<"MenuAutoPublish">
+    days?: IntNullableListFilter<"MenuAutoPublish">
+    times?: StringNullableListFilter<"MenuAutoPublish">
+    timezone?: StringWithAggregatesFilter<"MenuAutoPublish"> | string
+    nextRunAt?: DateTimeNullableWithAggregatesFilter<"MenuAutoPublish"> | Date | string | null
+    lastRunAt?: DateTimeNullableWithAggregatesFilter<"MenuAutoPublish"> | Date | string | null
+    lastStatus?: StringNullableWithAggregatesFilter<"MenuAutoPublish"> | string | null
+    lastResult?: JsonNullableWithAggregatesFilter<"MenuAutoPublish">
+    createdBy?: StringNullableWithAggregatesFilter<"MenuAutoPublish"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"MenuAutoPublish"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"MenuAutoPublish"> | Date | string
+  }
+
   export type TenantCreateInput = {
     id?: string
     name: string
@@ -196060,6 +202246,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
@@ -196067,6 +202255,8 @@ export namespace Prisma {
     locations?: LocationCreateNestedManyWithoutBrandInput
     menus?: MenuCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartCreateNestedManyWithoutBrandInput
     orders?: OrderCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
@@ -196118,6 +202308,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -196125,6 +202317,8 @@ export namespace Prisma {
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideUncheckedCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartUncheckedCreateNestedManyWithoutBrandInput
     orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
@@ -196174,6 +202368,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
@@ -196181,6 +202377,8 @@ export namespace Prisma {
     locations?: LocationUpdateManyWithoutBrandNestedInput
     menus?: MenuUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUpdateManyWithoutBrandNestedInput
     orders?: OrderUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
@@ -196232,6 +202430,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -196239,6 +202439,8 @@ export namespace Prisma {
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUncheckedUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUncheckedUpdateManyWithoutBrandNestedInput
     orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
@@ -196289,6 +202491,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -196332,6 +202536,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -196375,6 +202581,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -197248,6 +203456,7 @@ export namespace Prisma {
     categories?: MenuCategoryCreateNestedManyWithoutMenuInput
     versions?: MenuVersionCreateNestedManyWithoutMenuInput
     assignments?: MenuChannelAssignmentCreateNestedManyWithoutMenuInput
+    autoPublish?: MenuAutoPublishCreateNestedOneWithoutMenuInput
     channelSourceFor?: BrandChannelSourceCreateNestedManyWithoutSourceMenuInput
   }
 
@@ -197289,6 +203498,7 @@ export namespace Prisma {
     categories?: MenuCategoryUncheckedCreateNestedManyWithoutMenuInput
     versions?: MenuVersionUncheckedCreateNestedManyWithoutMenuInput
     assignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutMenuInput
+    autoPublish?: MenuAutoPublishUncheckedCreateNestedOneWithoutMenuInput
     channelSourceFor?: BrandChannelSourceUncheckedCreateNestedManyWithoutSourceMenuInput
   }
 
@@ -197330,6 +203540,7 @@ export namespace Prisma {
     categories?: MenuCategoryUpdateManyWithoutMenuNestedInput
     versions?: MenuVersionUpdateManyWithoutMenuNestedInput
     assignments?: MenuChannelAssignmentUpdateManyWithoutMenuNestedInput
+    autoPublish?: MenuAutoPublishUpdateOneWithoutMenuNestedInput
     channelSourceFor?: BrandChannelSourceUpdateManyWithoutSourceMenuNestedInput
   }
 
@@ -197371,6 +203582,7 @@ export namespace Prisma {
     categories?: MenuCategoryUncheckedUpdateManyWithoutMenuNestedInput
     versions?: MenuVersionUncheckedUpdateManyWithoutMenuNestedInput
     assignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutMenuNestedInput
+    autoPublish?: MenuAutoPublishUncheckedUpdateOneWithoutMenuNestedInput
     channelSourceFor?: BrandChannelSourceUncheckedUpdateManyWithoutSourceMenuNestedInput
   }
 
@@ -212562,6 +218774,496 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type BuildGuideCreateInput = {
+    id?: string
+    tenantId: string
+    nameKey: string
+    name: string
+    steps?: JsonNullValueInput | InputJsonValue
+    packNote?: string | null
+    videoUrl?: string | null
+    updatedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutBuildGuidesInput
+    trainings?: BuildGuideTrainingCreateNestedManyWithoutGuideInput
+  }
+
+  export type BuildGuideUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    brandId: string
+    nameKey: string
+    name: string
+    steps?: JsonNullValueInput | InputJsonValue
+    packNote?: string | null
+    videoUrl?: string | null
+    updatedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    trainings?: BuildGuideTrainingUncheckedCreateNestedManyWithoutGuideInput
+  }
+
+  export type BuildGuideUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    nameKey?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    steps?: JsonNullValueInput | InputJsonValue
+    packNote?: NullableStringFieldUpdateOperationsInput | string | null
+    videoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutBuildGuidesNestedInput
+    trainings?: BuildGuideTrainingUpdateManyWithoutGuideNestedInput
+  }
+
+  export type BuildGuideUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    nameKey?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    steps?: JsonNullValueInput | InputJsonValue
+    packNote?: NullableStringFieldUpdateOperationsInput | string | null
+    videoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    trainings?: BuildGuideTrainingUncheckedUpdateManyWithoutGuideNestedInput
+  }
+
+  export type BuildGuideCreateManyInput = {
+    id?: string
+    tenantId: string
+    brandId: string
+    nameKey: string
+    name: string
+    steps?: JsonNullValueInput | InputJsonValue
+    packNote?: string | null
+    videoUrl?: string | null
+    updatedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BuildGuideUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    nameKey?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    steps?: JsonNullValueInput | InputJsonValue
+    packNote?: NullableStringFieldUpdateOperationsInput | string | null
+    videoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BuildGuideUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    nameKey?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    steps?: JsonNullValueInput | InputJsonValue
+    packNote?: NullableStringFieldUpdateOperationsInput | string | null
+    videoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BuildStepTemplateCreateInput = {
+    id?: string
+    tenantId: string
+    brandId?: string | null
+    title: string
+    text: string
+    imageUrl?: string | null
+    amount?: string | null
+    tools?: BuildStepTemplateCreatetoolsInput | string[]
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BuildStepTemplateUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    brandId?: string | null
+    title: string
+    text: string
+    imageUrl?: string | null
+    amount?: string | null
+    tools?: BuildStepTemplateCreatetoolsInput | string[]
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BuildStepTemplateUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    text?: StringFieldUpdateOperationsInput | string
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    amount?: NullableStringFieldUpdateOperationsInput | string | null
+    tools?: BuildStepTemplateUpdatetoolsInput | string[]
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BuildStepTemplateUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    text?: StringFieldUpdateOperationsInput | string
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    amount?: NullableStringFieldUpdateOperationsInput | string | null
+    tools?: BuildStepTemplateUpdatetoolsInput | string[]
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BuildStepTemplateCreateManyInput = {
+    id?: string
+    tenantId: string
+    brandId?: string | null
+    title: string
+    text: string
+    imageUrl?: string | null
+    amount?: string | null
+    tools?: BuildStepTemplateCreatetoolsInput | string[]
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BuildStepTemplateUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    text?: StringFieldUpdateOperationsInput | string
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    amount?: NullableStringFieldUpdateOperationsInput | string | null
+    tools?: BuildStepTemplateUpdatetoolsInput | string[]
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BuildStepTemplateUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    text?: StringFieldUpdateOperationsInput | string
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    amount?: NullableStringFieldUpdateOperationsInput | string | null
+    tools?: BuildStepTemplateUpdatetoolsInput | string[]
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BuildGuideTrainingCreateInput = {
+    id?: string
+    tenantId: string
+    userId: string
+    completedAt?: Date | string
+    guide: BuildGuideCreateNestedOneWithoutTrainingsInput
+  }
+
+  export type BuildGuideTrainingUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    guideId: string
+    userId: string
+    completedAt?: Date | string
+  }
+
+  export type BuildGuideTrainingUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    completedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    guide?: BuildGuideUpdateOneRequiredWithoutTrainingsNestedInput
+  }
+
+  export type BuildGuideTrainingUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    guideId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    completedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BuildGuideTrainingCreateManyInput = {
+    id?: string
+    tenantId: string
+    guideId: string
+    userId: string
+    completedAt?: Date | string
+  }
+
+  export type BuildGuideTrainingUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    completedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BuildGuideTrainingUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    guideId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    completedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AssemblyChartCreateInput = {
+    id?: string
+    tenantId: string
+    nameKey: string
+    name: string
+    title: string
+    altTitle?: string | null
+    heroImageUrl?: string | null
+    layers?: JsonNullValueInput | InputJsonValue
+    footNote?: string | null
+    updatedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutAssemblyChartsInput
+  }
+
+  export type AssemblyChartUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    brandId: string
+    nameKey: string
+    name: string
+    title: string
+    altTitle?: string | null
+    heroImageUrl?: string | null
+    layers?: JsonNullValueInput | InputJsonValue
+    footNote?: string | null
+    updatedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AssemblyChartUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    nameKey?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    altTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    layers?: JsonNullValueInput | InputJsonValue
+    footNote?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutAssemblyChartsNestedInput
+  }
+
+  export type AssemblyChartUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    nameKey?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    altTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    layers?: JsonNullValueInput | InputJsonValue
+    footNote?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AssemblyChartCreateManyInput = {
+    id?: string
+    tenantId: string
+    brandId: string
+    nameKey: string
+    name: string
+    title: string
+    altTitle?: string | null
+    heroImageUrl?: string | null
+    layers?: JsonNullValueInput | InputJsonValue
+    footNote?: string | null
+    updatedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AssemblyChartUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    nameKey?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    altTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    layers?: JsonNullValueInput | InputJsonValue
+    footNote?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AssemblyChartUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    nameKey?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    altTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    layers?: JsonNullValueInput | InputJsonValue
+    footNote?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuAutoPublishCreateInput = {
+    id?: string
+    tenantId: string
+    enabled?: boolean
+    channels?: MenuAutoPublishCreatechannelsInput | string[]
+    days?: MenuAutoPublishCreatedaysInput | number[]
+    times?: MenuAutoPublishCreatetimesInput | string[]
+    timezone?: string
+    nextRunAt?: Date | string | null
+    lastRunAt?: Date | string | null
+    lastStatus?: string | null
+    lastResult?: NullableJsonNullValueInput | InputJsonValue
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    menu: MenuCreateNestedOneWithoutAutoPublishInput
+  }
+
+  export type MenuAutoPublishUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    menuId: string
+    enabled?: boolean
+    channels?: MenuAutoPublishCreatechannelsInput | string[]
+    days?: MenuAutoPublishCreatedaysInput | number[]
+    times?: MenuAutoPublishCreatetimesInput | string[]
+    timezone?: string
+    nextRunAt?: Date | string | null
+    lastRunAt?: Date | string | null
+    lastStatus?: string | null
+    lastResult?: NullableJsonNullValueInput | InputJsonValue
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MenuAutoPublishUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    channels?: MenuAutoPublishUpdatechannelsInput | string[]
+    days?: MenuAutoPublishUpdatedaysInput | number[]
+    times?: MenuAutoPublishUpdatetimesInput | string[]
+    timezone?: StringFieldUpdateOperationsInput | string
+    nextRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    lastResult?: NullableJsonNullValueInput | InputJsonValue
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    menu?: MenuUpdateOneRequiredWithoutAutoPublishNestedInput
+  }
+
+  export type MenuAutoPublishUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    menuId?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    channels?: MenuAutoPublishUpdatechannelsInput | string[]
+    days?: MenuAutoPublishUpdatedaysInput | number[]
+    times?: MenuAutoPublishUpdatetimesInput | string[]
+    timezone?: StringFieldUpdateOperationsInput | string
+    nextRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    lastResult?: NullableJsonNullValueInput | InputJsonValue
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuAutoPublishCreateManyInput = {
+    id?: string
+    tenantId: string
+    menuId: string
+    enabled?: boolean
+    channels?: MenuAutoPublishCreatechannelsInput | string[]
+    days?: MenuAutoPublishCreatedaysInput | number[]
+    times?: MenuAutoPublishCreatetimesInput | string[]
+    timezone?: string
+    nextRunAt?: Date | string | null
+    lastRunAt?: Date | string | null
+    lastStatus?: string | null
+    lastResult?: NullableJsonNullValueInput | InputJsonValue
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MenuAutoPublishUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    channels?: MenuAutoPublishUpdatechannelsInput | string[]
+    days?: MenuAutoPublishUpdatedaysInput | number[]
+    times?: MenuAutoPublishUpdatetimesInput | string[]
+    timezone?: StringFieldUpdateOperationsInput | string
+    nextRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    lastResult?: NullableJsonNullValueInput | InputJsonValue
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuAutoPublishUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    menuId?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    channels?: MenuAutoPublishUpdatechannelsInput | string[]
+    days?: MenuAutoPublishUpdatedaysInput | number[]
+    times?: MenuAutoPublishUpdatetimesInput | string[]
+    timezone?: StringFieldUpdateOperationsInput | string
+    nextRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    lastResult?: NullableJsonNullValueInput | InputJsonValue
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -213870,6 +220572,18 @@ export namespace Prisma {
     none?: ModifierGroupWhereInput
   }
 
+  export type BuildGuideListRelationFilter = {
+    every?: BuildGuideWhereInput
+    some?: BuildGuideWhereInput
+    none?: BuildGuideWhereInput
+  }
+
+  export type AssemblyChartListRelationFilter = {
+    every?: AssemblyChartWhereInput
+    some?: AssemblyChartWhereInput
+    none?: AssemblyChartWhereInput
+  }
+
   export type MealDealListRelationFilter = {
     every?: MealDealWhereInput
     some?: MealDealWhereInput
@@ -213920,6 +220634,14 @@ export namespace Prisma {
   }
 
   export type ModifierGroupOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type BuildGuideOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type AssemblyChartOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -213997,6 +220719,8 @@ export namespace Prisma {
     openingHours?: SortOrder
     prepTime?: SortOrder
     busyExtraPrepTime?: SortOrder
+    showcaseOnWebsite?: SortOrder
+    showcaseOrder?: SortOrder
     defaultStationId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -214007,6 +220731,7 @@ export namespace Prisma {
     applicationFeePercentage?: SortOrder
     prepTime?: SortOrder
     busyExtraPrepTime?: SortOrder
+    showcaseOrder?: SortOrder
   }
 
   export type BrandMaxOrderByAggregateInput = {
@@ -214044,6 +220769,8 @@ export namespace Prisma {
     applicationFeeMode?: SortOrder
     prepTime?: SortOrder
     busyExtraPrepTime?: SortOrder
+    showcaseOnWebsite?: SortOrder
+    showcaseOrder?: SortOrder
     defaultStationId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -214084,6 +220811,8 @@ export namespace Prisma {
     applicationFeeMode?: SortOrder
     prepTime?: SortOrder
     busyExtraPrepTime?: SortOrder
+    showcaseOnWebsite?: SortOrder
+    showcaseOrder?: SortOrder
     defaultStationId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -214094,6 +220823,7 @@ export namespace Prisma {
     applicationFeePercentage?: SortOrder
     prepTime?: SortOrder
     busyExtraPrepTime?: SortOrder
+    showcaseOrder?: SortOrder
   }
 
   export type DecimalNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -214774,6 +221504,11 @@ export namespace Prisma {
     every?: MenuVersionWhereInput
     some?: MenuVersionWhereInput
     none?: MenuVersionWhereInput
+  }
+
+  export type MenuAutoPublishNullableRelationFilter = {
+    is?: MenuAutoPublishWhereInput | null
+    isNot?: MenuAutoPublishWhereInput | null
   }
 
   export type MenuCategoryOrderByRelationAggregateInput = {
@@ -224425,6 +231160,278 @@ export namespace Prisma {
     createdAt?: SortOrder
   }
 
+  export type BuildGuideTrainingListRelationFilter = {
+    every?: BuildGuideTrainingWhereInput
+    some?: BuildGuideTrainingWhereInput
+    none?: BuildGuideTrainingWhereInput
+  }
+
+  export type BuildGuideTrainingOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type BuildGuideOrderByRelevanceInput = {
+    fields: BuildGuideOrderByRelevanceFieldEnum | BuildGuideOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type BuildGuideBrandIdNameKeyCompoundUniqueInput = {
+    brandId: string
+    nameKey: string
+  }
+
+  export type BuildGuideCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    nameKey?: SortOrder
+    name?: SortOrder
+    steps?: SortOrder
+    packNote?: SortOrder
+    videoUrl?: SortOrder
+    updatedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BuildGuideMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    nameKey?: SortOrder
+    name?: SortOrder
+    packNote?: SortOrder
+    videoUrl?: SortOrder
+    updatedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BuildGuideMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    nameKey?: SortOrder
+    name?: SortOrder
+    packNote?: SortOrder
+    videoUrl?: SortOrder
+    updatedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BuildStepTemplateOrderByRelevanceInput = {
+    fields: BuildStepTemplateOrderByRelevanceFieldEnum | BuildStepTemplateOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type BuildStepTemplateCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    title?: SortOrder
+    text?: SortOrder
+    imageUrl?: SortOrder
+    amount?: SortOrder
+    tools?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BuildStepTemplateMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    title?: SortOrder
+    text?: SortOrder
+    imageUrl?: SortOrder
+    amount?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BuildStepTemplateMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    title?: SortOrder
+    text?: SortOrder
+    imageUrl?: SortOrder
+    amount?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BuildGuideRelationFilter = {
+    is?: BuildGuideWhereInput
+    isNot?: BuildGuideWhereInput
+  }
+
+  export type BuildGuideTrainingOrderByRelevanceInput = {
+    fields: BuildGuideTrainingOrderByRelevanceFieldEnum | BuildGuideTrainingOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type BuildGuideTrainingGuideIdUserIdCompoundUniqueInput = {
+    guideId: string
+    userId: string
+  }
+
+  export type BuildGuideTrainingCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    guideId?: SortOrder
+    userId?: SortOrder
+    completedAt?: SortOrder
+  }
+
+  export type BuildGuideTrainingMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    guideId?: SortOrder
+    userId?: SortOrder
+    completedAt?: SortOrder
+  }
+
+  export type BuildGuideTrainingMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    guideId?: SortOrder
+    userId?: SortOrder
+    completedAt?: SortOrder
+  }
+
+  export type AssemblyChartOrderByRelevanceInput = {
+    fields: AssemblyChartOrderByRelevanceFieldEnum | AssemblyChartOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type AssemblyChartBrandIdNameKeyCompoundUniqueInput = {
+    brandId: string
+    nameKey: string
+  }
+
+  export type AssemblyChartCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    nameKey?: SortOrder
+    name?: SortOrder
+    title?: SortOrder
+    altTitle?: SortOrder
+    heroImageUrl?: SortOrder
+    layers?: SortOrder
+    footNote?: SortOrder
+    updatedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AssemblyChartMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    nameKey?: SortOrder
+    name?: SortOrder
+    title?: SortOrder
+    altTitle?: SortOrder
+    heroImageUrl?: SortOrder
+    footNote?: SortOrder
+    updatedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AssemblyChartMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    nameKey?: SortOrder
+    name?: SortOrder
+    title?: SortOrder
+    altTitle?: SortOrder
+    heroImageUrl?: SortOrder
+    footNote?: SortOrder
+    updatedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type IntNullableListFilter<$PrismaModel = never> = {
+    equals?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    has?: number | IntFieldRefInput<$PrismaModel> | null
+    hasEvery?: number[] | ListIntFieldRefInput<$PrismaModel>
+    hasSome?: number[] | ListIntFieldRefInput<$PrismaModel>
+    isEmpty?: boolean
+  }
+
+  export type MenuAutoPublishOrderByRelevanceInput = {
+    fields: MenuAutoPublishOrderByRelevanceFieldEnum | MenuAutoPublishOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type MenuAutoPublishCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    menuId?: SortOrder
+    enabled?: SortOrder
+    channels?: SortOrder
+    days?: SortOrder
+    times?: SortOrder
+    timezone?: SortOrder
+    nextRunAt?: SortOrder
+    lastRunAt?: SortOrder
+    lastStatus?: SortOrder
+    lastResult?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MenuAutoPublishAvgOrderByAggregateInput = {
+    days?: SortOrder
+  }
+
+  export type MenuAutoPublishMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    menuId?: SortOrder
+    enabled?: SortOrder
+    timezone?: SortOrder
+    nextRunAt?: SortOrder
+    lastRunAt?: SortOrder
+    lastStatus?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MenuAutoPublishMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    menuId?: SortOrder
+    enabled?: SortOrder
+    timezone?: SortOrder
+    nextRunAt?: SortOrder
+    lastRunAt?: SortOrder
+    lastStatus?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MenuAutoPublishSumOrderByAggregateInput = {
+    days?: SortOrder
+  }
+
   export type BrandCreateNestedManyWithoutTenantInput = {
     create?: XOR<BrandCreateWithoutTenantInput, BrandUncheckedCreateWithoutTenantInput> | BrandCreateWithoutTenantInput[] | BrandUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: BrandCreateOrConnectWithoutTenantInput | BrandCreateOrConnectWithoutTenantInput[]
@@ -226286,6 +233293,20 @@ export namespace Prisma {
     connect?: ModifierGroupWhereUniqueInput | ModifierGroupWhereUniqueInput[]
   }
 
+  export type BuildGuideCreateNestedManyWithoutBrandInput = {
+    create?: XOR<BuildGuideCreateWithoutBrandInput, BuildGuideUncheckedCreateWithoutBrandInput> | BuildGuideCreateWithoutBrandInput[] | BuildGuideUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: BuildGuideCreateOrConnectWithoutBrandInput | BuildGuideCreateOrConnectWithoutBrandInput[]
+    createMany?: BuildGuideCreateManyBrandInputEnvelope
+    connect?: BuildGuideWhereUniqueInput | BuildGuideWhereUniqueInput[]
+  }
+
+  export type AssemblyChartCreateNestedManyWithoutBrandInput = {
+    create?: XOR<AssemblyChartCreateWithoutBrandInput, AssemblyChartUncheckedCreateWithoutBrandInput> | AssemblyChartCreateWithoutBrandInput[] | AssemblyChartUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: AssemblyChartCreateOrConnectWithoutBrandInput | AssemblyChartCreateOrConnectWithoutBrandInput[]
+    createMany?: AssemblyChartCreateManyBrandInputEnvelope
+    connect?: AssemblyChartWhereUniqueInput | AssemblyChartWhereUniqueInput[]
+  }
+
   export type OrderCreateNestedManyWithoutBrandInput = {
     create?: XOR<OrderCreateWithoutBrandInput, OrderUncheckedCreateWithoutBrandInput> | OrderCreateWithoutBrandInput[] | OrderUncheckedCreateWithoutBrandInput[]
     connectOrCreate?: OrderCreateOrConnectWithoutBrandInput | OrderCreateOrConnectWithoutBrandInput[]
@@ -226380,6 +233401,20 @@ export namespace Prisma {
     connectOrCreate?: ModifierGroupCreateOrConnectWithoutBrandInput | ModifierGroupCreateOrConnectWithoutBrandInput[]
     createMany?: ModifierGroupCreateManyBrandInputEnvelope
     connect?: ModifierGroupWhereUniqueInput | ModifierGroupWhereUniqueInput[]
+  }
+
+  export type BuildGuideUncheckedCreateNestedManyWithoutBrandInput = {
+    create?: XOR<BuildGuideCreateWithoutBrandInput, BuildGuideUncheckedCreateWithoutBrandInput> | BuildGuideCreateWithoutBrandInput[] | BuildGuideUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: BuildGuideCreateOrConnectWithoutBrandInput | BuildGuideCreateOrConnectWithoutBrandInput[]
+    createMany?: BuildGuideCreateManyBrandInputEnvelope
+    connect?: BuildGuideWhereUniqueInput | BuildGuideWhereUniqueInput[]
+  }
+
+  export type AssemblyChartUncheckedCreateNestedManyWithoutBrandInput = {
+    create?: XOR<AssemblyChartCreateWithoutBrandInput, AssemblyChartUncheckedCreateWithoutBrandInput> | AssemblyChartCreateWithoutBrandInput[] | AssemblyChartUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: AssemblyChartCreateOrConnectWithoutBrandInput | AssemblyChartCreateOrConnectWithoutBrandInput[]
+    createMany?: AssemblyChartCreateManyBrandInputEnvelope
+    connect?: AssemblyChartWhereUniqueInput | AssemblyChartWhereUniqueInput[]
   }
 
   export type OrderUncheckedCreateNestedManyWithoutBrandInput = {
@@ -226524,6 +233559,34 @@ export namespace Prisma {
     update?: ModifierGroupUpdateWithWhereUniqueWithoutBrandInput | ModifierGroupUpdateWithWhereUniqueWithoutBrandInput[]
     updateMany?: ModifierGroupUpdateManyWithWhereWithoutBrandInput | ModifierGroupUpdateManyWithWhereWithoutBrandInput[]
     deleteMany?: ModifierGroupScalarWhereInput | ModifierGroupScalarWhereInput[]
+  }
+
+  export type BuildGuideUpdateManyWithoutBrandNestedInput = {
+    create?: XOR<BuildGuideCreateWithoutBrandInput, BuildGuideUncheckedCreateWithoutBrandInput> | BuildGuideCreateWithoutBrandInput[] | BuildGuideUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: BuildGuideCreateOrConnectWithoutBrandInput | BuildGuideCreateOrConnectWithoutBrandInput[]
+    upsert?: BuildGuideUpsertWithWhereUniqueWithoutBrandInput | BuildGuideUpsertWithWhereUniqueWithoutBrandInput[]
+    createMany?: BuildGuideCreateManyBrandInputEnvelope
+    set?: BuildGuideWhereUniqueInput | BuildGuideWhereUniqueInput[]
+    disconnect?: BuildGuideWhereUniqueInput | BuildGuideWhereUniqueInput[]
+    delete?: BuildGuideWhereUniqueInput | BuildGuideWhereUniqueInput[]
+    connect?: BuildGuideWhereUniqueInput | BuildGuideWhereUniqueInput[]
+    update?: BuildGuideUpdateWithWhereUniqueWithoutBrandInput | BuildGuideUpdateWithWhereUniqueWithoutBrandInput[]
+    updateMany?: BuildGuideUpdateManyWithWhereWithoutBrandInput | BuildGuideUpdateManyWithWhereWithoutBrandInput[]
+    deleteMany?: BuildGuideScalarWhereInput | BuildGuideScalarWhereInput[]
+  }
+
+  export type AssemblyChartUpdateManyWithoutBrandNestedInput = {
+    create?: XOR<AssemblyChartCreateWithoutBrandInput, AssemblyChartUncheckedCreateWithoutBrandInput> | AssemblyChartCreateWithoutBrandInput[] | AssemblyChartUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: AssemblyChartCreateOrConnectWithoutBrandInput | AssemblyChartCreateOrConnectWithoutBrandInput[]
+    upsert?: AssemblyChartUpsertWithWhereUniqueWithoutBrandInput | AssemblyChartUpsertWithWhereUniqueWithoutBrandInput[]
+    createMany?: AssemblyChartCreateManyBrandInputEnvelope
+    set?: AssemblyChartWhereUniqueInput | AssemblyChartWhereUniqueInput[]
+    disconnect?: AssemblyChartWhereUniqueInput | AssemblyChartWhereUniqueInput[]
+    delete?: AssemblyChartWhereUniqueInput | AssemblyChartWhereUniqueInput[]
+    connect?: AssemblyChartWhereUniqueInput | AssemblyChartWhereUniqueInput[]
+    update?: AssemblyChartUpdateWithWhereUniqueWithoutBrandInput | AssemblyChartUpdateWithWhereUniqueWithoutBrandInput[]
+    updateMany?: AssemblyChartUpdateManyWithWhereWithoutBrandInput | AssemblyChartUpdateManyWithWhereWithoutBrandInput[]
+    deleteMany?: AssemblyChartScalarWhereInput | AssemblyChartScalarWhereInput[]
   }
 
   export type OrderUpdateManyWithoutBrandNestedInput = {
@@ -226712,6 +233775,34 @@ export namespace Prisma {
     update?: ModifierGroupUpdateWithWhereUniqueWithoutBrandInput | ModifierGroupUpdateWithWhereUniqueWithoutBrandInput[]
     updateMany?: ModifierGroupUpdateManyWithWhereWithoutBrandInput | ModifierGroupUpdateManyWithWhereWithoutBrandInput[]
     deleteMany?: ModifierGroupScalarWhereInput | ModifierGroupScalarWhereInput[]
+  }
+
+  export type BuildGuideUncheckedUpdateManyWithoutBrandNestedInput = {
+    create?: XOR<BuildGuideCreateWithoutBrandInput, BuildGuideUncheckedCreateWithoutBrandInput> | BuildGuideCreateWithoutBrandInput[] | BuildGuideUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: BuildGuideCreateOrConnectWithoutBrandInput | BuildGuideCreateOrConnectWithoutBrandInput[]
+    upsert?: BuildGuideUpsertWithWhereUniqueWithoutBrandInput | BuildGuideUpsertWithWhereUniqueWithoutBrandInput[]
+    createMany?: BuildGuideCreateManyBrandInputEnvelope
+    set?: BuildGuideWhereUniqueInput | BuildGuideWhereUniqueInput[]
+    disconnect?: BuildGuideWhereUniqueInput | BuildGuideWhereUniqueInput[]
+    delete?: BuildGuideWhereUniqueInput | BuildGuideWhereUniqueInput[]
+    connect?: BuildGuideWhereUniqueInput | BuildGuideWhereUniqueInput[]
+    update?: BuildGuideUpdateWithWhereUniqueWithoutBrandInput | BuildGuideUpdateWithWhereUniqueWithoutBrandInput[]
+    updateMany?: BuildGuideUpdateManyWithWhereWithoutBrandInput | BuildGuideUpdateManyWithWhereWithoutBrandInput[]
+    deleteMany?: BuildGuideScalarWhereInput | BuildGuideScalarWhereInput[]
+  }
+
+  export type AssemblyChartUncheckedUpdateManyWithoutBrandNestedInput = {
+    create?: XOR<AssemblyChartCreateWithoutBrandInput, AssemblyChartUncheckedCreateWithoutBrandInput> | AssemblyChartCreateWithoutBrandInput[] | AssemblyChartUncheckedCreateWithoutBrandInput[]
+    connectOrCreate?: AssemblyChartCreateOrConnectWithoutBrandInput | AssemblyChartCreateOrConnectWithoutBrandInput[]
+    upsert?: AssemblyChartUpsertWithWhereUniqueWithoutBrandInput | AssemblyChartUpsertWithWhereUniqueWithoutBrandInput[]
+    createMany?: AssemblyChartCreateManyBrandInputEnvelope
+    set?: AssemblyChartWhereUniqueInput | AssemblyChartWhereUniqueInput[]
+    disconnect?: AssemblyChartWhereUniqueInput | AssemblyChartWhereUniqueInput[]
+    delete?: AssemblyChartWhereUniqueInput | AssemblyChartWhereUniqueInput[]
+    connect?: AssemblyChartWhereUniqueInput | AssemblyChartWhereUniqueInput[]
+    update?: AssemblyChartUpdateWithWhereUniqueWithoutBrandInput | AssemblyChartUpdateWithWhereUniqueWithoutBrandInput[]
+    updateMany?: AssemblyChartUpdateManyWithWhereWithoutBrandInput | AssemblyChartUpdateManyWithWhereWithoutBrandInput[]
+    deleteMany?: AssemblyChartScalarWhereInput | AssemblyChartScalarWhereInput[]
   }
 
   export type OrderUncheckedUpdateManyWithoutBrandNestedInput = {
@@ -228135,6 +235226,12 @@ export namespace Prisma {
     connect?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
   }
 
+  export type MenuAutoPublishCreateNestedOneWithoutMenuInput = {
+    create?: XOR<MenuAutoPublishCreateWithoutMenuInput, MenuAutoPublishUncheckedCreateWithoutMenuInput>
+    connectOrCreate?: MenuAutoPublishCreateOrConnectWithoutMenuInput
+    connect?: MenuAutoPublishWhereUniqueInput
+  }
+
   export type BrandChannelSourceCreateNestedManyWithoutSourceMenuInput = {
     create?: XOR<BrandChannelSourceCreateWithoutSourceMenuInput, BrandChannelSourceUncheckedCreateWithoutSourceMenuInput> | BrandChannelSourceCreateWithoutSourceMenuInput[] | BrandChannelSourceUncheckedCreateWithoutSourceMenuInput[]
     connectOrCreate?: BrandChannelSourceCreateOrConnectWithoutSourceMenuInput | BrandChannelSourceCreateOrConnectWithoutSourceMenuInput[]
@@ -228161,6 +235258,12 @@ export namespace Prisma {
     connectOrCreate?: MenuChannelAssignmentCreateOrConnectWithoutMenuInput | MenuChannelAssignmentCreateOrConnectWithoutMenuInput[]
     createMany?: MenuChannelAssignmentCreateManyMenuInputEnvelope
     connect?: MenuChannelAssignmentWhereUniqueInput | MenuChannelAssignmentWhereUniqueInput[]
+  }
+
+  export type MenuAutoPublishUncheckedCreateNestedOneWithoutMenuInput = {
+    create?: XOR<MenuAutoPublishCreateWithoutMenuInput, MenuAutoPublishUncheckedCreateWithoutMenuInput>
+    connectOrCreate?: MenuAutoPublishCreateOrConnectWithoutMenuInput
+    connect?: MenuAutoPublishWhereUniqueInput
   }
 
   export type BrandChannelSourceUncheckedCreateNestedManyWithoutSourceMenuInput = {
@@ -228237,6 +235340,16 @@ export namespace Prisma {
     deleteMany?: MenuChannelAssignmentScalarWhereInput | MenuChannelAssignmentScalarWhereInput[]
   }
 
+  export type MenuAutoPublishUpdateOneWithoutMenuNestedInput = {
+    create?: XOR<MenuAutoPublishCreateWithoutMenuInput, MenuAutoPublishUncheckedCreateWithoutMenuInput>
+    connectOrCreate?: MenuAutoPublishCreateOrConnectWithoutMenuInput
+    upsert?: MenuAutoPublishUpsertWithoutMenuInput
+    disconnect?: MenuAutoPublishWhereInput | boolean
+    delete?: MenuAutoPublishWhereInput | boolean
+    connect?: MenuAutoPublishWhereUniqueInput
+    update?: XOR<XOR<MenuAutoPublishUpdateToOneWithWhereWithoutMenuInput, MenuAutoPublishUpdateWithoutMenuInput>, MenuAutoPublishUncheckedUpdateWithoutMenuInput>
+  }
+
   export type BrandChannelSourceUpdateManyWithoutSourceMenuNestedInput = {
     create?: XOR<BrandChannelSourceCreateWithoutSourceMenuInput, BrandChannelSourceUncheckedCreateWithoutSourceMenuInput> | BrandChannelSourceCreateWithoutSourceMenuInput[] | BrandChannelSourceUncheckedCreateWithoutSourceMenuInput[]
     connectOrCreate?: BrandChannelSourceCreateOrConnectWithoutSourceMenuInput | BrandChannelSourceCreateOrConnectWithoutSourceMenuInput[]
@@ -228291,6 +235404,16 @@ export namespace Prisma {
     update?: MenuChannelAssignmentUpdateWithWhereUniqueWithoutMenuInput | MenuChannelAssignmentUpdateWithWhereUniqueWithoutMenuInput[]
     updateMany?: MenuChannelAssignmentUpdateManyWithWhereWithoutMenuInput | MenuChannelAssignmentUpdateManyWithWhereWithoutMenuInput[]
     deleteMany?: MenuChannelAssignmentScalarWhereInput | MenuChannelAssignmentScalarWhereInput[]
+  }
+
+  export type MenuAutoPublishUncheckedUpdateOneWithoutMenuNestedInput = {
+    create?: XOR<MenuAutoPublishCreateWithoutMenuInput, MenuAutoPublishUncheckedCreateWithoutMenuInput>
+    connectOrCreate?: MenuAutoPublishCreateOrConnectWithoutMenuInput
+    upsert?: MenuAutoPublishUpsertWithoutMenuInput
+    disconnect?: MenuAutoPublishWhereInput | boolean
+    delete?: MenuAutoPublishWhereInput | boolean
+    connect?: MenuAutoPublishWhereUniqueInput
+    update?: XOR<XOR<MenuAutoPublishUpdateToOneWithWhereWithoutMenuInput, MenuAutoPublishUpdateWithoutMenuInput>, MenuAutoPublishUncheckedUpdateWithoutMenuInput>
   }
 
   export type BrandChannelSourceUncheckedUpdateManyWithoutSourceMenuNestedInput = {
@@ -234068,6 +241191,140 @@ export namespace Prisma {
     update?: XOR<XOR<EmailCampaignUpdateToOneWithWhereWithoutRecipientsInput, EmailCampaignUpdateWithoutRecipientsInput>, EmailCampaignUncheckedUpdateWithoutRecipientsInput>
   }
 
+  export type BrandCreateNestedOneWithoutBuildGuidesInput = {
+    create?: XOR<BrandCreateWithoutBuildGuidesInput, BrandUncheckedCreateWithoutBuildGuidesInput>
+    connectOrCreate?: BrandCreateOrConnectWithoutBuildGuidesInput
+    connect?: BrandWhereUniqueInput
+  }
+
+  export type BuildGuideTrainingCreateNestedManyWithoutGuideInput = {
+    create?: XOR<BuildGuideTrainingCreateWithoutGuideInput, BuildGuideTrainingUncheckedCreateWithoutGuideInput> | BuildGuideTrainingCreateWithoutGuideInput[] | BuildGuideTrainingUncheckedCreateWithoutGuideInput[]
+    connectOrCreate?: BuildGuideTrainingCreateOrConnectWithoutGuideInput | BuildGuideTrainingCreateOrConnectWithoutGuideInput[]
+    createMany?: BuildGuideTrainingCreateManyGuideInputEnvelope
+    connect?: BuildGuideTrainingWhereUniqueInput | BuildGuideTrainingWhereUniqueInput[]
+  }
+
+  export type BuildGuideTrainingUncheckedCreateNestedManyWithoutGuideInput = {
+    create?: XOR<BuildGuideTrainingCreateWithoutGuideInput, BuildGuideTrainingUncheckedCreateWithoutGuideInput> | BuildGuideTrainingCreateWithoutGuideInput[] | BuildGuideTrainingUncheckedCreateWithoutGuideInput[]
+    connectOrCreate?: BuildGuideTrainingCreateOrConnectWithoutGuideInput | BuildGuideTrainingCreateOrConnectWithoutGuideInput[]
+    createMany?: BuildGuideTrainingCreateManyGuideInputEnvelope
+    connect?: BuildGuideTrainingWhereUniqueInput | BuildGuideTrainingWhereUniqueInput[]
+  }
+
+  export type BrandUpdateOneRequiredWithoutBuildGuidesNestedInput = {
+    create?: XOR<BrandCreateWithoutBuildGuidesInput, BrandUncheckedCreateWithoutBuildGuidesInput>
+    connectOrCreate?: BrandCreateOrConnectWithoutBuildGuidesInput
+    upsert?: BrandUpsertWithoutBuildGuidesInput
+    connect?: BrandWhereUniqueInput
+    update?: XOR<XOR<BrandUpdateToOneWithWhereWithoutBuildGuidesInput, BrandUpdateWithoutBuildGuidesInput>, BrandUncheckedUpdateWithoutBuildGuidesInput>
+  }
+
+  export type BuildGuideTrainingUpdateManyWithoutGuideNestedInput = {
+    create?: XOR<BuildGuideTrainingCreateWithoutGuideInput, BuildGuideTrainingUncheckedCreateWithoutGuideInput> | BuildGuideTrainingCreateWithoutGuideInput[] | BuildGuideTrainingUncheckedCreateWithoutGuideInput[]
+    connectOrCreate?: BuildGuideTrainingCreateOrConnectWithoutGuideInput | BuildGuideTrainingCreateOrConnectWithoutGuideInput[]
+    upsert?: BuildGuideTrainingUpsertWithWhereUniqueWithoutGuideInput | BuildGuideTrainingUpsertWithWhereUniqueWithoutGuideInput[]
+    createMany?: BuildGuideTrainingCreateManyGuideInputEnvelope
+    set?: BuildGuideTrainingWhereUniqueInput | BuildGuideTrainingWhereUniqueInput[]
+    disconnect?: BuildGuideTrainingWhereUniqueInput | BuildGuideTrainingWhereUniqueInput[]
+    delete?: BuildGuideTrainingWhereUniqueInput | BuildGuideTrainingWhereUniqueInput[]
+    connect?: BuildGuideTrainingWhereUniqueInput | BuildGuideTrainingWhereUniqueInput[]
+    update?: BuildGuideTrainingUpdateWithWhereUniqueWithoutGuideInput | BuildGuideTrainingUpdateWithWhereUniqueWithoutGuideInput[]
+    updateMany?: BuildGuideTrainingUpdateManyWithWhereWithoutGuideInput | BuildGuideTrainingUpdateManyWithWhereWithoutGuideInput[]
+    deleteMany?: BuildGuideTrainingScalarWhereInput | BuildGuideTrainingScalarWhereInput[]
+  }
+
+  export type BuildGuideTrainingUncheckedUpdateManyWithoutGuideNestedInput = {
+    create?: XOR<BuildGuideTrainingCreateWithoutGuideInput, BuildGuideTrainingUncheckedCreateWithoutGuideInput> | BuildGuideTrainingCreateWithoutGuideInput[] | BuildGuideTrainingUncheckedCreateWithoutGuideInput[]
+    connectOrCreate?: BuildGuideTrainingCreateOrConnectWithoutGuideInput | BuildGuideTrainingCreateOrConnectWithoutGuideInput[]
+    upsert?: BuildGuideTrainingUpsertWithWhereUniqueWithoutGuideInput | BuildGuideTrainingUpsertWithWhereUniqueWithoutGuideInput[]
+    createMany?: BuildGuideTrainingCreateManyGuideInputEnvelope
+    set?: BuildGuideTrainingWhereUniqueInput | BuildGuideTrainingWhereUniqueInput[]
+    disconnect?: BuildGuideTrainingWhereUniqueInput | BuildGuideTrainingWhereUniqueInput[]
+    delete?: BuildGuideTrainingWhereUniqueInput | BuildGuideTrainingWhereUniqueInput[]
+    connect?: BuildGuideTrainingWhereUniqueInput | BuildGuideTrainingWhereUniqueInput[]
+    update?: BuildGuideTrainingUpdateWithWhereUniqueWithoutGuideInput | BuildGuideTrainingUpdateWithWhereUniqueWithoutGuideInput[]
+    updateMany?: BuildGuideTrainingUpdateManyWithWhereWithoutGuideInput | BuildGuideTrainingUpdateManyWithWhereWithoutGuideInput[]
+    deleteMany?: BuildGuideTrainingScalarWhereInput | BuildGuideTrainingScalarWhereInput[]
+  }
+
+  export type BuildStepTemplateCreatetoolsInput = {
+    set: string[]
+  }
+
+  export type BuildStepTemplateUpdatetoolsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type BuildGuideCreateNestedOneWithoutTrainingsInput = {
+    create?: XOR<BuildGuideCreateWithoutTrainingsInput, BuildGuideUncheckedCreateWithoutTrainingsInput>
+    connectOrCreate?: BuildGuideCreateOrConnectWithoutTrainingsInput
+    connect?: BuildGuideWhereUniqueInput
+  }
+
+  export type BuildGuideUpdateOneRequiredWithoutTrainingsNestedInput = {
+    create?: XOR<BuildGuideCreateWithoutTrainingsInput, BuildGuideUncheckedCreateWithoutTrainingsInput>
+    connectOrCreate?: BuildGuideCreateOrConnectWithoutTrainingsInput
+    upsert?: BuildGuideUpsertWithoutTrainingsInput
+    connect?: BuildGuideWhereUniqueInput
+    update?: XOR<XOR<BuildGuideUpdateToOneWithWhereWithoutTrainingsInput, BuildGuideUpdateWithoutTrainingsInput>, BuildGuideUncheckedUpdateWithoutTrainingsInput>
+  }
+
+  export type BrandCreateNestedOneWithoutAssemblyChartsInput = {
+    create?: XOR<BrandCreateWithoutAssemblyChartsInput, BrandUncheckedCreateWithoutAssemblyChartsInput>
+    connectOrCreate?: BrandCreateOrConnectWithoutAssemblyChartsInput
+    connect?: BrandWhereUniqueInput
+  }
+
+  export type BrandUpdateOneRequiredWithoutAssemblyChartsNestedInput = {
+    create?: XOR<BrandCreateWithoutAssemblyChartsInput, BrandUncheckedCreateWithoutAssemblyChartsInput>
+    connectOrCreate?: BrandCreateOrConnectWithoutAssemblyChartsInput
+    upsert?: BrandUpsertWithoutAssemblyChartsInput
+    connect?: BrandWhereUniqueInput
+    update?: XOR<XOR<BrandUpdateToOneWithWhereWithoutAssemblyChartsInput, BrandUpdateWithoutAssemblyChartsInput>, BrandUncheckedUpdateWithoutAssemblyChartsInput>
+  }
+
+  export type MenuAutoPublishCreatechannelsInput = {
+    set: string[]
+  }
+
+  export type MenuAutoPublishCreatedaysInput = {
+    set: number[]
+  }
+
+  export type MenuAutoPublishCreatetimesInput = {
+    set: string[]
+  }
+
+  export type MenuCreateNestedOneWithoutAutoPublishInput = {
+    create?: XOR<MenuCreateWithoutAutoPublishInput, MenuUncheckedCreateWithoutAutoPublishInput>
+    connectOrCreate?: MenuCreateOrConnectWithoutAutoPublishInput
+    connect?: MenuWhereUniqueInput
+  }
+
+  export type MenuAutoPublishUpdatechannelsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type MenuAutoPublishUpdatedaysInput = {
+    set?: number[]
+    push?: number | number[]
+  }
+
+  export type MenuAutoPublishUpdatetimesInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type MenuUpdateOneRequiredWithoutAutoPublishNestedInput = {
+    create?: XOR<MenuCreateWithoutAutoPublishInput, MenuUncheckedCreateWithoutAutoPublishInput>
+    connectOrCreate?: MenuCreateOrConnectWithoutAutoPublishInput
+    upsert?: MenuUpsertWithoutAutoPublishInput
+    connect?: MenuWhereUniqueInput
+    update?: XOR<XOR<MenuUpdateToOneWithWhereWithoutAutoPublishInput, MenuUpdateWithoutAutoPublishInput>, MenuUncheckedUpdateWithoutAutoPublishInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -235342,12 +242599,16 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutBrandInput
     locations?: LocationCreateNestedManyWithoutBrandInput
     menus?: MenuCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartCreateNestedManyWithoutBrandInput
     orders?: OrderCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
@@ -235398,6 +242659,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -235405,6 +242668,8 @@ export namespace Prisma {
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideUncheckedCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartUncheckedCreateNestedManyWithoutBrandInput
     orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
@@ -236650,6 +243915,8 @@ export namespace Prisma {
     openingHours?: JsonFilter<"Brand">
     prepTime?: IntNullableFilter<"Brand"> | number | null
     busyExtraPrepTime?: IntNullableFilter<"Brand"> | number | null
+    showcaseOnWebsite?: BoolFilter<"Brand"> | boolean
+    showcaseOrder?: IntNullableFilter<"Brand"> | number | null
     defaultStationId?: StringNullableFilter<"Brand"> | string | null
     createdAt?: DateTimeFilter<"Brand"> | Date | string
     updatedAt?: DateTimeFilter<"Brand"> | Date | string
@@ -238986,6 +246253,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
@@ -238993,6 +246262,8 @@ export namespace Prisma {
     locations?: LocationCreateNestedManyWithoutBrandInput
     menus?: MenuCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartCreateNestedManyWithoutBrandInput
     orders?: OrderCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
@@ -239043,6 +246314,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -239050,6 +246323,8 @@ export namespace Prisma {
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideUncheckedCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartUncheckedCreateNestedManyWithoutBrandInput
     orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
@@ -239179,6 +246454,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
@@ -239186,6 +246463,8 @@ export namespace Prisma {
     locations?: LocationUpdateManyWithoutBrandNestedInput
     menus?: MenuUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUpdateManyWithoutBrandNestedInput
     orders?: OrderUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
@@ -239236,6 +246515,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -239243,6 +246524,8 @@ export namespace Prisma {
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUncheckedUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUncheckedUpdateManyWithoutBrandNestedInput
     orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
@@ -241195,6 +248478,7 @@ export namespace Prisma {
     categories?: MenuCategoryCreateNestedManyWithoutMenuInput
     versions?: MenuVersionCreateNestedManyWithoutMenuInput
     assignments?: MenuChannelAssignmentCreateNestedManyWithoutMenuInput
+    autoPublish?: MenuAutoPublishCreateNestedOneWithoutMenuInput
     channelSourceFor?: BrandChannelSourceCreateNestedManyWithoutSourceMenuInput
   }
 
@@ -241235,6 +248519,7 @@ export namespace Prisma {
     categories?: MenuCategoryUncheckedCreateNestedManyWithoutMenuInput
     versions?: MenuVersionUncheckedCreateNestedManyWithoutMenuInput
     assignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutMenuInput
+    autoPublish?: MenuAutoPublishUncheckedCreateNestedOneWithoutMenuInput
     channelSourceFor?: BrandChannelSourceUncheckedCreateNestedManyWithoutSourceMenuInput
   }
 
@@ -241319,6 +248604,84 @@ export namespace Prisma {
 
   export type ModifierGroupCreateManyBrandInputEnvelope = {
     data: ModifierGroupCreateManyBrandInput | ModifierGroupCreateManyBrandInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type BuildGuideCreateWithoutBrandInput = {
+    id?: string
+    tenantId: string
+    nameKey: string
+    name: string
+    steps?: JsonNullValueInput | InputJsonValue
+    packNote?: string | null
+    videoUrl?: string | null
+    updatedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    trainings?: BuildGuideTrainingCreateNestedManyWithoutGuideInput
+  }
+
+  export type BuildGuideUncheckedCreateWithoutBrandInput = {
+    id?: string
+    tenantId: string
+    nameKey: string
+    name: string
+    steps?: JsonNullValueInput | InputJsonValue
+    packNote?: string | null
+    videoUrl?: string | null
+    updatedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    trainings?: BuildGuideTrainingUncheckedCreateNestedManyWithoutGuideInput
+  }
+
+  export type BuildGuideCreateOrConnectWithoutBrandInput = {
+    where: BuildGuideWhereUniqueInput
+    create: XOR<BuildGuideCreateWithoutBrandInput, BuildGuideUncheckedCreateWithoutBrandInput>
+  }
+
+  export type BuildGuideCreateManyBrandInputEnvelope = {
+    data: BuildGuideCreateManyBrandInput | BuildGuideCreateManyBrandInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type AssemblyChartCreateWithoutBrandInput = {
+    id?: string
+    tenantId: string
+    nameKey: string
+    name: string
+    title: string
+    altTitle?: string | null
+    heroImageUrl?: string | null
+    layers?: JsonNullValueInput | InputJsonValue
+    footNote?: string | null
+    updatedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AssemblyChartUncheckedCreateWithoutBrandInput = {
+    id?: string
+    tenantId: string
+    nameKey: string
+    name: string
+    title: string
+    altTitle?: string | null
+    heroImageUrl?: string | null
+    layers?: JsonNullValueInput | InputJsonValue
+    footNote?: string | null
+    updatedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AssemblyChartCreateOrConnectWithoutBrandInput = {
+    where: AssemblyChartWhereUniqueInput
+    create: XOR<AssemblyChartCreateWithoutBrandInput, AssemblyChartUncheckedCreateWithoutBrandInput>
+  }
+
+  export type AssemblyChartCreateManyBrandInputEnvelope = {
+    data: AssemblyChartCreateManyBrandInput | AssemblyChartCreateManyBrandInput[]
     skipDuplicates?: boolean
   }
 
@@ -242206,6 +249569,74 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"ModifierGroup"> | Date | string
   }
 
+  export type BuildGuideUpsertWithWhereUniqueWithoutBrandInput = {
+    where: BuildGuideWhereUniqueInput
+    update: XOR<BuildGuideUpdateWithoutBrandInput, BuildGuideUncheckedUpdateWithoutBrandInput>
+    create: XOR<BuildGuideCreateWithoutBrandInput, BuildGuideUncheckedCreateWithoutBrandInput>
+  }
+
+  export type BuildGuideUpdateWithWhereUniqueWithoutBrandInput = {
+    where: BuildGuideWhereUniqueInput
+    data: XOR<BuildGuideUpdateWithoutBrandInput, BuildGuideUncheckedUpdateWithoutBrandInput>
+  }
+
+  export type BuildGuideUpdateManyWithWhereWithoutBrandInput = {
+    where: BuildGuideScalarWhereInput
+    data: XOR<BuildGuideUpdateManyMutationInput, BuildGuideUncheckedUpdateManyWithoutBrandInput>
+  }
+
+  export type BuildGuideScalarWhereInput = {
+    AND?: BuildGuideScalarWhereInput | BuildGuideScalarWhereInput[]
+    OR?: BuildGuideScalarWhereInput[]
+    NOT?: BuildGuideScalarWhereInput | BuildGuideScalarWhereInput[]
+    id?: StringFilter<"BuildGuide"> | string
+    tenantId?: StringFilter<"BuildGuide"> | string
+    brandId?: StringFilter<"BuildGuide"> | string
+    nameKey?: StringFilter<"BuildGuide"> | string
+    name?: StringFilter<"BuildGuide"> | string
+    steps?: JsonFilter<"BuildGuide">
+    packNote?: StringNullableFilter<"BuildGuide"> | string | null
+    videoUrl?: StringNullableFilter<"BuildGuide"> | string | null
+    updatedBy?: StringNullableFilter<"BuildGuide"> | string | null
+    createdAt?: DateTimeFilter<"BuildGuide"> | Date | string
+    updatedAt?: DateTimeFilter<"BuildGuide"> | Date | string
+  }
+
+  export type AssemblyChartUpsertWithWhereUniqueWithoutBrandInput = {
+    where: AssemblyChartWhereUniqueInput
+    update: XOR<AssemblyChartUpdateWithoutBrandInput, AssemblyChartUncheckedUpdateWithoutBrandInput>
+    create: XOR<AssemblyChartCreateWithoutBrandInput, AssemblyChartUncheckedCreateWithoutBrandInput>
+  }
+
+  export type AssemblyChartUpdateWithWhereUniqueWithoutBrandInput = {
+    where: AssemblyChartWhereUniqueInput
+    data: XOR<AssemblyChartUpdateWithoutBrandInput, AssemblyChartUncheckedUpdateWithoutBrandInput>
+  }
+
+  export type AssemblyChartUpdateManyWithWhereWithoutBrandInput = {
+    where: AssemblyChartScalarWhereInput
+    data: XOR<AssemblyChartUpdateManyMutationInput, AssemblyChartUncheckedUpdateManyWithoutBrandInput>
+  }
+
+  export type AssemblyChartScalarWhereInput = {
+    AND?: AssemblyChartScalarWhereInput | AssemblyChartScalarWhereInput[]
+    OR?: AssemblyChartScalarWhereInput[]
+    NOT?: AssemblyChartScalarWhereInput | AssemblyChartScalarWhereInput[]
+    id?: StringFilter<"AssemblyChart"> | string
+    tenantId?: StringFilter<"AssemblyChart"> | string
+    brandId?: StringFilter<"AssemblyChart"> | string
+    nameKey?: StringFilter<"AssemblyChart"> | string
+    name?: StringFilter<"AssemblyChart"> | string
+    title?: StringFilter<"AssemblyChart"> | string
+    altTitle?: StringNullableFilter<"AssemblyChart"> | string | null
+    heroImageUrl?: StringNullableFilter<"AssemblyChart"> | string | null
+    layers?: JsonFilter<"AssemblyChart">
+    footNote?: StringNullableFilter<"AssemblyChart"> | string | null
+    updatedBy?: StringNullableFilter<"AssemblyChart"> | string | null
+    createdAt?: DateTimeFilter<"AssemblyChart"> | Date | string
+    updatedAt?: DateTimeFilter<"AssemblyChart"> | Date | string
+  }
+
   export type OrderUpsertWithWhereUniqueWithoutBrandInput = {
     where: OrderWhereUniqueInput
     update: XOR<OrderUpdateWithoutBrandInput, OrderUncheckedUpdateWithoutBrandInput>
@@ -242554,12 +249985,16 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutBrandInput
     menus?: MenuCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartCreateNestedManyWithoutBrandInput
     orders?: OrderCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
@@ -242611,12 +250046,16 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutBrandInput
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideUncheckedCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartUncheckedCreateNestedManyWithoutBrandInput
     orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
@@ -244282,12 +251721,16 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutBrandNestedInput
     menus?: MenuUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUpdateManyWithoutBrandNestedInput
     orders?: OrderUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
@@ -244339,12 +251782,16 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutBrandNestedInput
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUncheckedUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUncheckedUpdateManyWithoutBrandNestedInput
     orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
@@ -245526,6 +252973,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
@@ -245533,6 +252982,8 @@ export namespace Prisma {
     locations?: LocationCreateNestedManyWithoutBrandInput
     menus?: MenuCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartCreateNestedManyWithoutBrandInput
     orders?: OrderCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
@@ -245583,6 +253034,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -245590,6 +253043,8 @@ export namespace Prisma {
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideUncheckedCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartUncheckedCreateNestedManyWithoutBrandInput
     orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
@@ -245849,6 +253304,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
@@ -245856,6 +253313,8 @@ export namespace Prisma {
     locations?: LocationUpdateManyWithoutBrandNestedInput
     menus?: MenuUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUpdateManyWithoutBrandNestedInput
     orders?: OrderUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
@@ -245906,6 +253365,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -245913,6 +253374,8 @@ export namespace Prisma {
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUncheckedUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUncheckedUpdateManyWithoutBrandNestedInput
     orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
@@ -246558,12 +254021,16 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutBrandInput
     locations?: LocationCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartCreateNestedManyWithoutBrandInput
     orders?: OrderCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
@@ -246615,12 +254082,16 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutBrandInput
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideUncheckedCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartUncheckedCreateNestedManyWithoutBrandInput
     orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
@@ -246761,6 +254232,45 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type MenuAutoPublishCreateWithoutMenuInput = {
+    id?: string
+    tenantId: string
+    enabled?: boolean
+    channels?: MenuAutoPublishCreatechannelsInput | string[]
+    days?: MenuAutoPublishCreatedaysInput | number[]
+    times?: MenuAutoPublishCreatetimesInput | string[]
+    timezone?: string
+    nextRunAt?: Date | string | null
+    lastRunAt?: Date | string | null
+    lastStatus?: string | null
+    lastResult?: NullableJsonNullValueInput | InputJsonValue
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MenuAutoPublishUncheckedCreateWithoutMenuInput = {
+    id?: string
+    tenantId: string
+    enabled?: boolean
+    channels?: MenuAutoPublishCreatechannelsInput | string[]
+    days?: MenuAutoPublishCreatedaysInput | number[]
+    times?: MenuAutoPublishCreatetimesInput | string[]
+    timezone?: string
+    nextRunAt?: Date | string | null
+    lastRunAt?: Date | string | null
+    lastStatus?: string | null
+    lastResult?: NullableJsonNullValueInput | InputJsonValue
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MenuAutoPublishCreateOrConnectWithoutMenuInput = {
+    where: MenuAutoPublishWhereUniqueInput
+    create: XOR<MenuAutoPublishCreateWithoutMenuInput, MenuAutoPublishUncheckedCreateWithoutMenuInput>
+  }
+
   export type BrandChannelSourceCreateWithoutSourceMenuInput = {
     id?: string
     channel: string
@@ -246838,12 +254348,16 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutBrandNestedInput
     locations?: LocationUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUpdateManyWithoutBrandNestedInput
     orders?: OrderUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
@@ -246895,12 +254409,16 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutBrandNestedInput
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUncheckedUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUncheckedUpdateManyWithoutBrandNestedInput
     orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
@@ -247001,6 +254519,51 @@ export namespace Prisma {
     data: XOR<MenuChannelAssignmentUpdateManyMutationInput, MenuChannelAssignmentUncheckedUpdateManyWithoutMenuInput>
   }
 
+  export type MenuAutoPublishUpsertWithoutMenuInput = {
+    update: XOR<MenuAutoPublishUpdateWithoutMenuInput, MenuAutoPublishUncheckedUpdateWithoutMenuInput>
+    create: XOR<MenuAutoPublishCreateWithoutMenuInput, MenuAutoPublishUncheckedCreateWithoutMenuInput>
+    where?: MenuAutoPublishWhereInput
+  }
+
+  export type MenuAutoPublishUpdateToOneWithWhereWithoutMenuInput = {
+    where?: MenuAutoPublishWhereInput
+    data: XOR<MenuAutoPublishUpdateWithoutMenuInput, MenuAutoPublishUncheckedUpdateWithoutMenuInput>
+  }
+
+  export type MenuAutoPublishUpdateWithoutMenuInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    channels?: MenuAutoPublishUpdatechannelsInput | string[]
+    days?: MenuAutoPublishUpdatedaysInput | number[]
+    times?: MenuAutoPublishUpdatetimesInput | string[]
+    timezone?: StringFieldUpdateOperationsInput | string
+    nextRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    lastResult?: NullableJsonNullValueInput | InputJsonValue
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuAutoPublishUncheckedUpdateWithoutMenuInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    channels?: MenuAutoPublishUpdatechannelsInput | string[]
+    days?: MenuAutoPublishUpdatedaysInput | number[]
+    times?: MenuAutoPublishUpdatetimesInput | string[]
+    timezone?: StringFieldUpdateOperationsInput | string
+    nextRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    lastResult?: NullableJsonNullValueInput | InputJsonValue
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type BrandChannelSourceUpsertWithWhereUniqueWithoutSourceMenuInput = {
     where: BrandChannelSourceWhereUniqueInput
     update: XOR<BrandChannelSourceUpdateWithoutSourceMenuInput, BrandChannelSourceUncheckedUpdateWithoutSourceMenuInput>
@@ -247054,6 +254617,7 @@ export namespace Prisma {
     brand: BrandCreateNestedOneWithoutMenusInput
     categories?: MenuCategoryCreateNestedManyWithoutMenuInput
     versions?: MenuVersionCreateNestedManyWithoutMenuInput
+    autoPublish?: MenuAutoPublishCreateNestedOneWithoutMenuInput
     channelSourceFor?: BrandChannelSourceCreateNestedManyWithoutSourceMenuInput
   }
 
@@ -247094,6 +254658,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     categories?: MenuCategoryUncheckedCreateNestedManyWithoutMenuInput
     versions?: MenuVersionUncheckedCreateNestedManyWithoutMenuInput
+    autoPublish?: MenuAutoPublishUncheckedCreateNestedOneWithoutMenuInput
     channelSourceFor?: BrandChannelSourceUncheckedCreateNestedManyWithoutSourceMenuInput
   }
 
@@ -247345,6 +254910,7 @@ export namespace Prisma {
     brand?: BrandUpdateOneRequiredWithoutMenusNestedInput
     categories?: MenuCategoryUpdateManyWithoutMenuNestedInput
     versions?: MenuVersionUpdateManyWithoutMenuNestedInput
+    autoPublish?: MenuAutoPublishUpdateOneWithoutMenuNestedInput
     channelSourceFor?: BrandChannelSourceUpdateManyWithoutSourceMenuNestedInput
   }
 
@@ -247385,6 +254951,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     categories?: MenuCategoryUncheckedUpdateManyWithoutMenuNestedInput
     versions?: MenuVersionUncheckedUpdateManyWithoutMenuNestedInput
+    autoPublish?: MenuAutoPublishUncheckedUpdateOneWithoutMenuNestedInput
     channelSourceFor?: BrandChannelSourceUncheckedUpdateManyWithoutSourceMenuNestedInput
   }
 
@@ -247627,6 +255194,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
@@ -247634,6 +255203,8 @@ export namespace Prisma {
     locations?: LocationCreateNestedManyWithoutBrandInput
     menus?: MenuCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartCreateNestedManyWithoutBrandInput
     orders?: OrderCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
@@ -247684,6 +255255,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -247691,6 +255264,8 @@ export namespace Prisma {
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideUncheckedCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartUncheckedCreateNestedManyWithoutBrandInput
     orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
@@ -247744,6 +255319,7 @@ export namespace Prisma {
     categories?: MenuCategoryCreateNestedManyWithoutMenuInput
     versions?: MenuVersionCreateNestedManyWithoutMenuInput
     assignments?: MenuChannelAssignmentCreateNestedManyWithoutMenuInput
+    autoPublish?: MenuAutoPublishCreateNestedOneWithoutMenuInput
   }
 
   export type MenuUncheckedCreateWithoutChannelSourceForInput = {
@@ -247784,6 +255360,7 @@ export namespace Prisma {
     categories?: MenuCategoryUncheckedCreateNestedManyWithoutMenuInput
     versions?: MenuVersionUncheckedCreateNestedManyWithoutMenuInput
     assignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutMenuInput
+    autoPublish?: MenuAutoPublishUncheckedCreateNestedOneWithoutMenuInput
   }
 
   export type MenuCreateOrConnectWithoutChannelSourceForInput = {
@@ -247840,6 +255417,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
@@ -247847,6 +255426,8 @@ export namespace Prisma {
     locations?: LocationUpdateManyWithoutBrandNestedInput
     menus?: MenuUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUpdateManyWithoutBrandNestedInput
     orders?: OrderUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
@@ -247897,6 +255478,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -247904,6 +255487,8 @@ export namespace Prisma {
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUncheckedUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUncheckedUpdateManyWithoutBrandNestedInput
     orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
@@ -247963,6 +255548,7 @@ export namespace Prisma {
     categories?: MenuCategoryUpdateManyWithoutMenuNestedInput
     versions?: MenuVersionUpdateManyWithoutMenuNestedInput
     assignments?: MenuChannelAssignmentUpdateManyWithoutMenuNestedInput
+    autoPublish?: MenuAutoPublishUpdateOneWithoutMenuNestedInput
   }
 
   export type MenuUncheckedUpdateWithoutChannelSourceForInput = {
@@ -248003,6 +255589,7 @@ export namespace Prisma {
     categories?: MenuCategoryUncheckedUpdateManyWithoutMenuNestedInput
     versions?: MenuVersionUncheckedUpdateManyWithoutMenuNestedInput
     assignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutMenuNestedInput
+    autoPublish?: MenuAutoPublishUncheckedUpdateOneWithoutMenuNestedInput
   }
 
   export type MenuCreateWithoutCategoriesInput = {
@@ -248042,6 +255629,7 @@ export namespace Prisma {
     brand: BrandCreateNestedOneWithoutMenusInput
     versions?: MenuVersionCreateNestedManyWithoutMenuInput
     assignments?: MenuChannelAssignmentCreateNestedManyWithoutMenuInput
+    autoPublish?: MenuAutoPublishCreateNestedOneWithoutMenuInput
     channelSourceFor?: BrandChannelSourceCreateNestedManyWithoutSourceMenuInput
   }
 
@@ -248082,6 +255670,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     versions?: MenuVersionUncheckedCreateNestedManyWithoutMenuInput
     assignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutMenuInput
+    autoPublish?: MenuAutoPublishUncheckedCreateNestedOneWithoutMenuInput
     channelSourceFor?: BrandChannelSourceUncheckedCreateNestedManyWithoutSourceMenuInput
   }
 
@@ -248184,6 +255773,7 @@ export namespace Prisma {
     brand?: BrandUpdateOneRequiredWithoutMenusNestedInput
     versions?: MenuVersionUpdateManyWithoutMenuNestedInput
     assignments?: MenuChannelAssignmentUpdateManyWithoutMenuNestedInput
+    autoPublish?: MenuAutoPublishUpdateOneWithoutMenuNestedInput
     channelSourceFor?: BrandChannelSourceUpdateManyWithoutSourceMenuNestedInput
   }
 
@@ -248224,6 +255814,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     versions?: MenuVersionUncheckedUpdateManyWithoutMenuNestedInput
     assignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutMenuNestedInput
+    autoPublish?: MenuAutoPublishUncheckedUpdateOneWithoutMenuNestedInput
     channelSourceFor?: BrandChannelSourceUncheckedUpdateManyWithoutSourceMenuNestedInput
   }
 
@@ -250171,12 +257762,16 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
     directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutBrandInput
     locations?: LocationCreateNestedManyWithoutBrandInput
     menus?: MenuCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartCreateNestedManyWithoutBrandInput
     orders?: OrderCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
@@ -250228,12 +257823,16 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutBrandInput
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideUncheckedCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartUncheckedCreateNestedManyWithoutBrandInput
     orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
@@ -250523,12 +258122,16 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutBrandNestedInput
     locations?: LocationUpdateManyWithoutBrandNestedInput
     menus?: MenuUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUpdateManyWithoutBrandNestedInput
     orders?: OrderUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
@@ -250580,12 +258183,16 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutBrandNestedInput
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUncheckedUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUncheckedUpdateManyWithoutBrandNestedInput
     orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
@@ -252023,6 +259630,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
@@ -252030,6 +259639,8 @@ export namespace Prisma {
     locations?: LocationCreateNestedManyWithoutBrandInput
     menus?: MenuCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartCreateNestedManyWithoutBrandInput
     orders?: OrderCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
@@ -252080,6 +259691,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -252087,6 +259700,8 @@ export namespace Prisma {
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideUncheckedCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartUncheckedCreateNestedManyWithoutBrandInput
     orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
@@ -252151,6 +259766,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
@@ -252158,6 +259775,8 @@ export namespace Prisma {
     locations?: LocationUpdateManyWithoutBrandNestedInput
     menus?: MenuUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUpdateManyWithoutBrandNestedInput
     orders?: OrderUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
@@ -252208,6 +259827,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -252215,6 +259836,8 @@ export namespace Prisma {
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUncheckedUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUncheckedUpdateManyWithoutBrandNestedInput
     orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
@@ -252263,6 +259886,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
@@ -252270,6 +259895,8 @@ export namespace Prisma {
     locations?: LocationCreateNestedManyWithoutBrandInput
     menus?: MenuCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartCreateNestedManyWithoutBrandInput
     orders?: OrderCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
@@ -252320,6 +259947,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -252327,6 +259956,8 @@ export namespace Prisma {
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideUncheckedCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartUncheckedCreateNestedManyWithoutBrandInput
     orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
@@ -252391,6 +260022,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
@@ -252398,6 +260031,8 @@ export namespace Prisma {
     locations?: LocationUpdateManyWithoutBrandNestedInput
     menus?: MenuUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUpdateManyWithoutBrandNestedInput
     orders?: OrderUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
@@ -252448,6 +260083,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -252455,6 +260092,8 @@ export namespace Prisma {
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUncheckedUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUncheckedUpdateManyWithoutBrandNestedInput
     orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
@@ -252502,6 +260141,7 @@ export namespace Prisma {
     brand: BrandCreateNestedOneWithoutMenusInput
     categories?: MenuCategoryCreateNestedManyWithoutMenuInput
     assignments?: MenuChannelAssignmentCreateNestedManyWithoutMenuInput
+    autoPublish?: MenuAutoPublishCreateNestedOneWithoutMenuInput
     channelSourceFor?: BrandChannelSourceCreateNestedManyWithoutSourceMenuInput
   }
 
@@ -252542,6 +260182,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     categories?: MenuCategoryUncheckedCreateNestedManyWithoutMenuInput
     assignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutMenuInput
+    autoPublish?: MenuAutoPublishUncheckedCreateNestedOneWithoutMenuInput
     channelSourceFor?: BrandChannelSourceUncheckedCreateNestedManyWithoutSourceMenuInput
   }
 
@@ -252598,6 +260239,7 @@ export namespace Prisma {
     brand?: BrandUpdateOneRequiredWithoutMenusNestedInput
     categories?: MenuCategoryUpdateManyWithoutMenuNestedInput
     assignments?: MenuChannelAssignmentUpdateManyWithoutMenuNestedInput
+    autoPublish?: MenuAutoPublishUpdateOneWithoutMenuNestedInput
     channelSourceFor?: BrandChannelSourceUpdateManyWithoutSourceMenuNestedInput
   }
 
@@ -252638,6 +260280,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     categories?: MenuCategoryUncheckedUpdateManyWithoutMenuNestedInput
     assignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutMenuNestedInput
+    autoPublish?: MenuAutoPublishUncheckedUpdateOneWithoutMenuNestedInput
     channelSourceFor?: BrandChannelSourceUncheckedUpdateManyWithoutSourceMenuNestedInput
   }
 
@@ -253425,12 +261068,16 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
     locations?: LocationCreateNestedManyWithoutBrandInput
     menus?: MenuCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartCreateNestedManyWithoutBrandInput
     orders?: OrderCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
@@ -253482,12 +261129,16 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideUncheckedCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartUncheckedCreateNestedManyWithoutBrandInput
     orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
@@ -253754,12 +261405,16 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
     locations?: LocationUpdateManyWithoutBrandNestedInput
     menus?: MenuUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUpdateManyWithoutBrandNestedInput
     orders?: OrderUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
@@ -253811,12 +261466,16 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUncheckedUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUncheckedUpdateManyWithoutBrandNestedInput
     orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
@@ -254427,6 +262086,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
@@ -254434,6 +262095,8 @@ export namespace Prisma {
     locations?: LocationCreateNestedManyWithoutBrandInput
     menus?: MenuCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartCreateNestedManyWithoutBrandInput
     orders?: OrderCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
@@ -254484,6 +262147,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -254491,6 +262156,8 @@ export namespace Prisma {
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideUncheckedCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartUncheckedCreateNestedManyWithoutBrandInput
     orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
@@ -254666,6 +262333,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
@@ -254673,6 +262342,8 @@ export namespace Prisma {
     locations?: LocationUpdateManyWithoutBrandNestedInput
     menus?: MenuUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUpdateManyWithoutBrandNestedInput
     orders?: OrderUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
@@ -254723,6 +262394,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -254730,6 +262403,8 @@ export namespace Prisma {
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUncheckedUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUncheckedUpdateManyWithoutBrandNestedInput
     orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
@@ -255514,6 +263189,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
@@ -255521,6 +263198,8 @@ export namespace Prisma {
     locations?: LocationCreateNestedManyWithoutBrandInput
     menus?: MenuCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartCreateNestedManyWithoutBrandInput
     orders?: OrderCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
@@ -255571,6 +263250,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -255578,6 +263259,8 @@ export namespace Prisma {
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideUncheckedCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartUncheckedCreateNestedManyWithoutBrandInput
     orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
@@ -255843,6 +263526,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
@@ -255850,6 +263535,8 @@ export namespace Prisma {
     locations?: LocationUpdateManyWithoutBrandNestedInput
     menus?: MenuUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUpdateManyWithoutBrandNestedInput
     orders?: OrderUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
@@ -255900,6 +263587,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -255907,6 +263596,8 @@ export namespace Prisma {
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUncheckedUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUncheckedUpdateManyWithoutBrandNestedInput
     orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
@@ -256709,6 +264400,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
@@ -256716,6 +264409,8 @@ export namespace Prisma {
     locations?: LocationCreateNestedManyWithoutBrandInput
     menus?: MenuCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
@@ -256766,6 +264461,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -256773,6 +264470,8 @@ export namespace Prisma {
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideUncheckedCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartUncheckedCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
     platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
@@ -257529,6 +265228,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
@@ -257536,6 +265237,8 @@ export namespace Prisma {
     locations?: LocationUpdateManyWithoutBrandNestedInput
     menus?: MenuUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
@@ -257586,6 +265289,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -257593,6 +265298,8 @@ export namespace Prisma {
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUncheckedUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUncheckedUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
     platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
@@ -259325,6 +267032,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
@@ -259332,6 +267041,8 @@ export namespace Prisma {
     locations?: LocationCreateNestedManyWithoutBrandInput
     menus?: MenuCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartCreateNestedManyWithoutBrandInput
     orders?: OrderCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
@@ -259382,6 +267093,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -259389,6 +267102,8 @@ export namespace Prisma {
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideUncheckedCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartUncheckedCreateNestedManyWithoutBrandInput
     orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
@@ -259654,6 +267369,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
@@ -259661,6 +267378,8 @@ export namespace Prisma {
     locations?: LocationUpdateManyWithoutBrandNestedInput
     menus?: MenuUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUpdateManyWithoutBrandNestedInput
     orders?: OrderUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
@@ -259711,6 +267430,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -259718,6 +267439,8 @@ export namespace Prisma {
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUncheckedUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUncheckedUpdateManyWithoutBrandNestedInput
     orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
@@ -263987,6 +271710,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: TenantCreateNestedOneWithoutBrandsInput
@@ -263994,6 +271719,8 @@ export namespace Prisma {
     locations?: LocationCreateNestedManyWithoutBrandInput
     menus?: MenuCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartCreateNestedManyWithoutBrandInput
     orders?: OrderCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
@@ -264044,12 +271771,16 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutBrandInput
     locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
     menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
     modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideUncheckedCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartUncheckedCreateNestedManyWithoutBrandInput
     orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
     mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
     upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
@@ -280642,6 +288373,821 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type BrandCreateWithoutBuildGuidesInput = {
+    id?: string
+    name: string
+    slug: string
+    logoUrl?: string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
+    tapMerchantId?: string | null
+    tapLeadId?: string | null
+    tapOnboardingStatus?: string
+    tapConnectUrl?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    openingHours?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutBrandsInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutBrandInput
+    locations?: LocationCreateNestedManyWithoutBrandInput
+    menus?: MenuCreateNestedManyWithoutBrandInput
+    modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartCreateNestedManyWithoutBrandInput
+    orders?: OrderCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutBrandInput
+    defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
+  }
+
+  export type BrandUncheckedCreateWithoutBuildGuidesInput = {
+    id?: string
+    tenantId: string
+    name: string
+    slug: string
+    logoUrl?: string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
+    tapMerchantId?: string | null
+    tapLeadId?: string | null
+    tapOnboardingStatus?: string
+    tapConnectUrl?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    openingHours?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
+    defaultStationId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutBrandInput
+    locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
+    menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
+    modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    assemblyCharts?: AssemblyChartUncheckedCreateNestedManyWithoutBrandInput
+    orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutBrandInput
+  }
+
+  export type BrandCreateOrConnectWithoutBuildGuidesInput = {
+    where: BrandWhereUniqueInput
+    create: XOR<BrandCreateWithoutBuildGuidesInput, BrandUncheckedCreateWithoutBuildGuidesInput>
+  }
+
+  export type BuildGuideTrainingCreateWithoutGuideInput = {
+    id?: string
+    tenantId: string
+    userId: string
+    completedAt?: Date | string
+  }
+
+  export type BuildGuideTrainingUncheckedCreateWithoutGuideInput = {
+    id?: string
+    tenantId: string
+    userId: string
+    completedAt?: Date | string
+  }
+
+  export type BuildGuideTrainingCreateOrConnectWithoutGuideInput = {
+    where: BuildGuideTrainingWhereUniqueInput
+    create: XOR<BuildGuideTrainingCreateWithoutGuideInput, BuildGuideTrainingUncheckedCreateWithoutGuideInput>
+  }
+
+  export type BuildGuideTrainingCreateManyGuideInputEnvelope = {
+    data: BuildGuideTrainingCreateManyGuideInput | BuildGuideTrainingCreateManyGuideInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type BrandUpsertWithoutBuildGuidesInput = {
+    update: XOR<BrandUpdateWithoutBuildGuidesInput, BrandUncheckedUpdateWithoutBuildGuidesInput>
+    create: XOR<BrandCreateWithoutBuildGuidesInput, BrandUncheckedCreateWithoutBuildGuidesInput>
+    where?: BrandWhereInput
+  }
+
+  export type BrandUpdateToOneWithWhereWithoutBuildGuidesInput = {
+    where?: BrandWhereInput
+    data: XOR<BrandUpdateWithoutBuildGuidesInput, BrandUncheckedUpdateWithoutBuildGuidesInput>
+  }
+
+  export type BrandUpdateWithoutBuildGuidesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapMerchantId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapLeadId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapOnboardingStatus?: StringFieldUpdateOperationsInput | string
+    tapConnectUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    openingHours?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutBrandNestedInput
+    locations?: LocationUpdateManyWithoutBrandNestedInput
+    menus?: MenuUpdateManyWithoutBrandNestedInput
+    modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUpdateManyWithoutBrandNestedInput
+    orders?: OrderUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutBrandNestedInput
+    defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
+  }
+
+  export type BrandUncheckedUpdateWithoutBuildGuidesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapMerchantId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapLeadId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapOnboardingStatus?: StringFieldUpdateOperationsInput | string
+    tapConnectUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    openingHours?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutBrandNestedInput
+    locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
+    menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
+    modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUncheckedUpdateManyWithoutBrandNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutBrandNestedInput
+  }
+
+  export type BuildGuideTrainingUpsertWithWhereUniqueWithoutGuideInput = {
+    where: BuildGuideTrainingWhereUniqueInput
+    update: XOR<BuildGuideTrainingUpdateWithoutGuideInput, BuildGuideTrainingUncheckedUpdateWithoutGuideInput>
+    create: XOR<BuildGuideTrainingCreateWithoutGuideInput, BuildGuideTrainingUncheckedCreateWithoutGuideInput>
+  }
+
+  export type BuildGuideTrainingUpdateWithWhereUniqueWithoutGuideInput = {
+    where: BuildGuideTrainingWhereUniqueInput
+    data: XOR<BuildGuideTrainingUpdateWithoutGuideInput, BuildGuideTrainingUncheckedUpdateWithoutGuideInput>
+  }
+
+  export type BuildGuideTrainingUpdateManyWithWhereWithoutGuideInput = {
+    where: BuildGuideTrainingScalarWhereInput
+    data: XOR<BuildGuideTrainingUpdateManyMutationInput, BuildGuideTrainingUncheckedUpdateManyWithoutGuideInput>
+  }
+
+  export type BuildGuideTrainingScalarWhereInput = {
+    AND?: BuildGuideTrainingScalarWhereInput | BuildGuideTrainingScalarWhereInput[]
+    OR?: BuildGuideTrainingScalarWhereInput[]
+    NOT?: BuildGuideTrainingScalarWhereInput | BuildGuideTrainingScalarWhereInput[]
+    id?: StringFilter<"BuildGuideTraining"> | string
+    tenantId?: StringFilter<"BuildGuideTraining"> | string
+    guideId?: StringFilter<"BuildGuideTraining"> | string
+    userId?: StringFilter<"BuildGuideTraining"> | string
+    completedAt?: DateTimeFilter<"BuildGuideTraining"> | Date | string
+  }
+
+  export type BuildGuideCreateWithoutTrainingsInput = {
+    id?: string
+    tenantId: string
+    nameKey: string
+    name: string
+    steps?: JsonNullValueInput | InputJsonValue
+    packNote?: string | null
+    videoUrl?: string | null
+    updatedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutBuildGuidesInput
+  }
+
+  export type BuildGuideUncheckedCreateWithoutTrainingsInput = {
+    id?: string
+    tenantId: string
+    brandId: string
+    nameKey: string
+    name: string
+    steps?: JsonNullValueInput | InputJsonValue
+    packNote?: string | null
+    videoUrl?: string | null
+    updatedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BuildGuideCreateOrConnectWithoutTrainingsInput = {
+    where: BuildGuideWhereUniqueInput
+    create: XOR<BuildGuideCreateWithoutTrainingsInput, BuildGuideUncheckedCreateWithoutTrainingsInput>
+  }
+
+  export type BuildGuideUpsertWithoutTrainingsInput = {
+    update: XOR<BuildGuideUpdateWithoutTrainingsInput, BuildGuideUncheckedUpdateWithoutTrainingsInput>
+    create: XOR<BuildGuideCreateWithoutTrainingsInput, BuildGuideUncheckedCreateWithoutTrainingsInput>
+    where?: BuildGuideWhereInput
+  }
+
+  export type BuildGuideUpdateToOneWithWhereWithoutTrainingsInput = {
+    where?: BuildGuideWhereInput
+    data: XOR<BuildGuideUpdateWithoutTrainingsInput, BuildGuideUncheckedUpdateWithoutTrainingsInput>
+  }
+
+  export type BuildGuideUpdateWithoutTrainingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    nameKey?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    steps?: JsonNullValueInput | InputJsonValue
+    packNote?: NullableStringFieldUpdateOperationsInput | string | null
+    videoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutBuildGuidesNestedInput
+  }
+
+  export type BuildGuideUncheckedUpdateWithoutTrainingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    nameKey?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    steps?: JsonNullValueInput | InputJsonValue
+    packNote?: NullableStringFieldUpdateOperationsInput | string | null
+    videoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BrandCreateWithoutAssemblyChartsInput = {
+    id?: string
+    name: string
+    slug: string
+    logoUrl?: string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
+    tapMerchantId?: string | null
+    tapLeadId?: string | null
+    tapOnboardingStatus?: string
+    tapConnectUrl?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    openingHours?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutBrandsInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutBrandInput
+    locations?: LocationCreateNestedManyWithoutBrandInput
+    menus?: MenuCreateNestedManyWithoutBrandInput
+    modifierGroups?: ModifierGroupCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideCreateNestedManyWithoutBrandInput
+    orders?: OrderCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutBrandInput
+    defaultStation?: PrinterStationCreateNestedOneWithoutBrandDefaultsInput
+  }
+
+  export type BrandUncheckedCreateWithoutAssemblyChartsInput = {
+    id?: string
+    tenantId: string
+    name: string
+    slug: string
+    logoUrl?: string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    description?: string | null
+    cuisine?: string | null
+    isSuspended?: boolean
+    primaryLocationId?: string | null
+    topSellerItemIds?: BrandCreatetopSellerItemIdsInput | string[]
+    onlineOrderingSlug?: string | null
+    directOrderingEnabled?: boolean
+    about?: string | null
+    phone?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    customDomain?: string | null
+    customDomainStatus?: string
+    stripeConnectedAccountId?: string | null
+    tapDestinationId?: string | null
+    tapBusinessId?: string | null
+    tapMerchantId?: string | null
+    tapLeadId?: string | null
+    tapOnboardingStatus?: string
+    tapConnectUrl?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    openingHours?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
+    defaultStationId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutBrandInput
+    locations?: LocationUncheckedCreateNestedManyWithoutBrandInput
+    menus?: MenuUncheckedCreateNestedManyWithoutBrandInput
+    modifierGroups?: ModifierGroupUncheckedCreateNestedManyWithoutBrandInput
+    buildGuides?: BuildGuideUncheckedCreateNestedManyWithoutBrandInput
+    orders?: OrderUncheckedCreateNestedManyWithoutBrandInput
+    mealDeals?: MealDealUncheckedCreateNestedManyWithoutBrandInput
+    upsellGroups?: UpsellGroupUncheckedCreateNestedManyWithoutBrandInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutBrandInput
+    userBrands?: UserBrandUncheckedCreateNestedManyWithoutBrandInput
+    marketingCampaigns?: MarketingCampaignUncheckedCreateNestedManyWithoutBrandInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutBrandInput
+    channelSources?: BrandChannelSourceUncheckedCreateNestedManyWithoutBrandInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutBrandInput
+  }
+
+  export type BrandCreateOrConnectWithoutAssemblyChartsInput = {
+    where: BrandWhereUniqueInput
+    create: XOR<BrandCreateWithoutAssemblyChartsInput, BrandUncheckedCreateWithoutAssemblyChartsInput>
+  }
+
+  export type BrandUpsertWithoutAssemblyChartsInput = {
+    update: XOR<BrandUpdateWithoutAssemblyChartsInput, BrandUncheckedUpdateWithoutAssemblyChartsInput>
+    create: XOR<BrandCreateWithoutAssemblyChartsInput, BrandUncheckedCreateWithoutAssemblyChartsInput>
+    where?: BrandWhereInput
+  }
+
+  export type BrandUpdateToOneWithWhereWithoutAssemblyChartsInput = {
+    where?: BrandWhereInput
+    data: XOR<BrandUpdateWithoutAssemblyChartsInput, BrandUncheckedUpdateWithoutAssemblyChartsInput>
+  }
+
+  export type BrandUpdateWithoutAssemblyChartsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapMerchantId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapLeadId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapOnboardingStatus?: StringFieldUpdateOperationsInput | string
+    tapConnectUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    openingHours?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutBrandNestedInput
+    locations?: LocationUpdateManyWithoutBrandNestedInput
+    menus?: MenuUpdateManyWithoutBrandNestedInput
+    modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUpdateManyWithoutBrandNestedInput
+    orders?: OrderUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutBrandNestedInput
+    defaultStation?: PrinterStationUpdateOneWithoutBrandDefaultsNestedInput
+  }
+
+  export type BrandUncheckedUpdateWithoutAssemblyChartsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    primaryLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    topSellerItemIds?: BrandUpdatetopSellerItemIdsInput | string[]
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    directOrderingEnabled?: BoolFieldUpdateOperationsInput | boolean
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapDestinationId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapBusinessId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapMerchantId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapLeadId?: NullableStringFieldUpdateOperationsInput | string | null
+    tapOnboardingStatus?: StringFieldUpdateOperationsInput | string
+    tapConnectUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    openingHours?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutBrandNestedInput
+    locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
+    menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
+    modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUncheckedUpdateManyWithoutBrandNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
+    mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
+    upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutBrandNestedInput
+    userBrands?: UserBrandUncheckedUpdateManyWithoutBrandNestedInput
+    marketingCampaigns?: MarketingCampaignUncheckedUpdateManyWithoutBrandNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutBrandNestedInput
+    channelSources?: BrandChannelSourceUncheckedUpdateManyWithoutBrandNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutBrandNestedInput
+  }
+
+  export type MenuCreateWithoutAutoPublishInput = {
+    id?: string
+    locationId?: string | null
+    name: string
+    description?: string | null
+    menuType?: $Enums.MenuType
+    bannerImage?: string | null
+    heroImage?: string | null
+    logoImage?: string | null
+    status?: $Enums.MenuStatus
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    importStatus?: $Enums.MenuImportStatus
+    importLock?: boolean
+    importedAt?: Date | string | null
+    syncVersion?: number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    publishedTo?: MenuCreatepublishedToInput | string[]
+    lastPublishedAt?: Date | string | null
+    autoScheduleEnabled?: boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutMenusInput
+    categories?: MenuCategoryCreateNestedManyWithoutMenuInput
+    versions?: MenuVersionCreateNestedManyWithoutMenuInput
+    assignments?: MenuChannelAssignmentCreateNestedManyWithoutMenuInput
+    channelSourceFor?: BrandChannelSourceCreateNestedManyWithoutSourceMenuInput
+  }
+
+  export type MenuUncheckedCreateWithoutAutoPublishInput = {
+    id?: string
+    brandId: string
+    locationId?: string | null
+    name: string
+    description?: string | null
+    menuType?: $Enums.MenuType
+    bannerImage?: string | null
+    heroImage?: string | null
+    logoImage?: string | null
+    status?: $Enums.MenuStatus
+    isActive?: boolean
+    deletedAt?: Date | string | null
+    importStatus?: $Enums.MenuImportStatus
+    importLock?: boolean
+    importedAt?: Date | string | null
+    syncVersion?: number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: string | null
+    externalId?: string | null
+    externalParentId?: string | null
+    lastSyncedAt?: Date | string | null
+    syncStatus?: string | null
+    syncHash?: string | null
+    publishedTo?: MenuCreatepublishedToInput | string[]
+    lastPublishedAt?: Date | string | null
+    autoScheduleEnabled?: boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    categories?: MenuCategoryUncheckedCreateNestedManyWithoutMenuInput
+    versions?: MenuVersionUncheckedCreateNestedManyWithoutMenuInput
+    assignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutMenuInput
+    channelSourceFor?: BrandChannelSourceUncheckedCreateNestedManyWithoutSourceMenuInput
+  }
+
+  export type MenuCreateOrConnectWithoutAutoPublishInput = {
+    where: MenuWhereUniqueInput
+    create: XOR<MenuCreateWithoutAutoPublishInput, MenuUncheckedCreateWithoutAutoPublishInput>
+  }
+
+  export type MenuUpsertWithoutAutoPublishInput = {
+    update: XOR<MenuUpdateWithoutAutoPublishInput, MenuUncheckedUpdateWithoutAutoPublishInput>
+    create: XOR<MenuCreateWithoutAutoPublishInput, MenuUncheckedCreateWithoutAutoPublishInput>
+    where?: MenuWhereInput
+  }
+
+  export type MenuUpdateToOneWithWhereWithoutAutoPublishInput = {
+    where?: MenuWhereInput
+    data: XOR<MenuUpdateWithoutAutoPublishInput, MenuUncheckedUpdateWithoutAutoPublishInput>
+  }
+
+  export type MenuUpdateWithoutAutoPublishInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    menuType?: EnumMenuTypeFieldUpdateOperationsInput | $Enums.MenuType
+    bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImage?: NullableStringFieldUpdateOperationsInput | string | null
+    logoImage?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumMenuStatusFieldUpdateOperationsInput | $Enums.MenuStatus
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    importStatus?: EnumMenuImportStatusFieldUpdateOperationsInput | $Enums.MenuImportStatus
+    importLock?: BoolFieldUpdateOperationsInput | boolean
+    importedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncVersion?: IntFieldUpdateOperationsInput | number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedTo?: MenuUpdatepublishedToInput | string[]
+    lastPublishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoScheduleEnabled?: BoolFieldUpdateOperationsInput | boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutMenusNestedInput
+    categories?: MenuCategoryUpdateManyWithoutMenuNestedInput
+    versions?: MenuVersionUpdateManyWithoutMenuNestedInput
+    assignments?: MenuChannelAssignmentUpdateManyWithoutMenuNestedInput
+    channelSourceFor?: BrandChannelSourceUpdateManyWithoutSourceMenuNestedInput
+  }
+
+  export type MenuUncheckedUpdateWithoutAutoPublishInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    menuType?: EnumMenuTypeFieldUpdateOperationsInput | $Enums.MenuType
+    bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImage?: NullableStringFieldUpdateOperationsInput | string | null
+    logoImage?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumMenuStatusFieldUpdateOperationsInput | $Enums.MenuStatus
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    importStatus?: EnumMenuImportStatusFieldUpdateOperationsInput | $Enums.MenuImportStatus
+    importLock?: BoolFieldUpdateOperationsInput | boolean
+    importedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncVersion?: IntFieldUpdateOperationsInput | number
+    rawImportPayload?: JsonNullValueInput | InputJsonValue
+    menuData?: JsonNullValueInput | InputJsonValue
+    productModifierGroupLinks?: JsonNullValueInput | InputJsonValue
+    modifierGroupModifierLinks?: JsonNullValueInput | InputJsonValue
+    platformSource?: NullableStringFieldUpdateOperationsInput | string | null
+    externalId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalParentId?: NullableStringFieldUpdateOperationsInput | string | null
+    lastSyncedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    syncStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    syncHash?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedTo?: MenuUpdatepublishedToInput | string[]
+    lastPublishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    autoScheduleEnabled?: BoolFieldUpdateOperationsInput | boolean
+    autoSchedule?: JsonNullValueInput | InputJsonValue
+    pricingVariants?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    categories?: MenuCategoryUncheckedUpdateManyWithoutMenuNestedInput
+    versions?: MenuVersionUncheckedUpdateManyWithoutMenuNestedInput
+    assignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutMenuNestedInput
+    channelSourceFor?: BrandChannelSourceUncheckedUpdateManyWithoutSourceMenuNestedInput
+  }
+
   export type BrandCreateManyTenantInput = {
     id?: string
     name: string
@@ -280680,6 +289226,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     defaultStationId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -281124,12 +289672,16 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutBrandNestedInput
     locations?: LocationUpdateManyWithoutBrandNestedInput
     menus?: MenuUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUpdateManyWithoutBrandNestedInput
     orders?: OrderUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
@@ -281180,6 +289732,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -281187,6 +289741,8 @@ export namespace Prisma {
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUncheckedUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUncheckedUpdateManyWithoutBrandNestedInput
     orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
@@ -281236,6 +289792,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     defaultStationId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -283693,6 +292251,34 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type BuildGuideCreateManyBrandInput = {
+    id?: string
+    tenantId: string
+    nameKey: string
+    name: string
+    steps?: JsonNullValueInput | InputJsonValue
+    packNote?: string | null
+    videoUrl?: string | null
+    updatedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AssemblyChartCreateManyBrandInput = {
+    id?: string
+    tenantId: string
+    nameKey: string
+    name: string
+    title: string
+    altTitle?: string | null
+    heroImageUrl?: string | null
+    layers?: JsonNullValueInput | InputJsonValue
+    footNote?: string | null
+    updatedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type OrderCreateManyBrandInput = {
     id?: string
     tenantId: string
@@ -284197,6 +292783,7 @@ export namespace Prisma {
     categories?: MenuCategoryUpdateManyWithoutMenuNestedInput
     versions?: MenuVersionUpdateManyWithoutMenuNestedInput
     assignments?: MenuChannelAssignmentUpdateManyWithoutMenuNestedInput
+    autoPublish?: MenuAutoPublishUpdateOneWithoutMenuNestedInput
     channelSourceFor?: BrandChannelSourceUpdateManyWithoutSourceMenuNestedInput
   }
 
@@ -284237,6 +292824,7 @@ export namespace Prisma {
     categories?: MenuCategoryUncheckedUpdateManyWithoutMenuNestedInput
     versions?: MenuVersionUncheckedUpdateManyWithoutMenuNestedInput
     assignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutMenuNestedInput
+    autoPublish?: MenuAutoPublishUncheckedUpdateOneWithoutMenuNestedInput
     channelSourceFor?: BrandChannelSourceUncheckedUpdateManyWithoutSourceMenuNestedInput
   }
 
@@ -284363,6 +292951,92 @@ export namespace Prisma {
     syncHash?: NullableStringFieldUpdateOperationsInput | string | null
     rawModifierIds?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BuildGuideUpdateWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    nameKey?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    steps?: JsonNullValueInput | InputJsonValue
+    packNote?: NullableStringFieldUpdateOperationsInput | string | null
+    videoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    trainings?: BuildGuideTrainingUpdateManyWithoutGuideNestedInput
+  }
+
+  export type BuildGuideUncheckedUpdateWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    nameKey?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    steps?: JsonNullValueInput | InputJsonValue
+    packNote?: NullableStringFieldUpdateOperationsInput | string | null
+    videoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    trainings?: BuildGuideTrainingUncheckedUpdateManyWithoutGuideNestedInput
+  }
+
+  export type BuildGuideUncheckedUpdateManyWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    nameKey?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    steps?: JsonNullValueInput | InputJsonValue
+    packNote?: NullableStringFieldUpdateOperationsInput | string | null
+    videoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AssemblyChartUpdateWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    nameKey?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    altTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    layers?: JsonNullValueInput | InputJsonValue
+    footNote?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AssemblyChartUncheckedUpdateWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    nameKey?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    altTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    layers?: JsonNullValueInput | InputJsonValue
+    footNote?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AssemblyChartUncheckedUpdateManyWithoutBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    nameKey?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    altTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    layers?: JsonNullValueInput | InputJsonValue
+    footNote?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -289605,6 +298279,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: number | null
     busyExtraPrepTime?: number | null
+    showcaseOnWebsite?: boolean
+    showcaseOrder?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -289795,6 +298471,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: TenantUpdateOneRequiredWithoutBrandsNestedInput
@@ -289802,6 +298480,8 @@ export namespace Prisma {
     locations?: LocationUpdateManyWithoutBrandNestedInput
     menus?: MenuUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUpdateManyWithoutBrandNestedInput
     orders?: OrderUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUpdateManyWithoutBrandNestedInput
@@ -289852,12 +298532,16 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutBrandNestedInput
     locations?: LocationUncheckedUpdateManyWithoutBrandNestedInput
     menus?: MenuUncheckedUpdateManyWithoutBrandNestedInput
     modifierGroups?: ModifierGroupUncheckedUpdateManyWithoutBrandNestedInput
+    buildGuides?: BuildGuideUncheckedUpdateManyWithoutBrandNestedInput
+    assemblyCharts?: AssemblyChartUncheckedUpdateManyWithoutBrandNestedInput
     orders?: OrderUncheckedUpdateManyWithoutBrandNestedInput
     mealDeals?: MealDealUncheckedUpdateManyWithoutBrandNestedInput
     upsellGroups?: UpsellGroupUncheckedUpdateManyWithoutBrandNestedInput
@@ -289908,6 +298592,8 @@ export namespace Prisma {
     openingHours?: JsonNullValueInput | InputJsonValue
     prepTime?: NullableIntFieldUpdateOperationsInput | number | null
     busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    showcaseOnWebsite?: BoolFieldUpdateOperationsInput | boolean
+    showcaseOrder?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -292422,6 +301108,34 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type BuildGuideTrainingCreateManyGuideInput = {
+    id?: string
+    tenantId: string
+    userId: string
+    completedAt?: Date | string
+  }
+
+  export type BuildGuideTrainingUpdateWithoutGuideInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    completedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BuildGuideTrainingUncheckedUpdateWithoutGuideInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    completedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BuildGuideTrainingUncheckedUpdateManyWithoutGuideInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    completedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
 
 
   /**
@@ -292599,6 +301313,10 @@ export namespace Prisma {
      * @deprecated Use EmailCampaignCountOutputTypeDefaultArgs instead
      */
     export type EmailCampaignCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = EmailCampaignCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use BuildGuideCountOutputTypeDefaultArgs instead
+     */
+    export type BuildGuideCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = BuildGuideCountOutputTypeDefaultArgs<ExtArgs>
     /**
      * @deprecated Use TenantDefaultArgs instead
      */
@@ -293179,6 +301897,26 @@ export namespace Prisma {
      * @deprecated Use EmailCampaignRecipientDefaultArgs instead
      */
     export type EmailCampaignRecipientArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = EmailCampaignRecipientDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use BuildGuideDefaultArgs instead
+     */
+    export type BuildGuideArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = BuildGuideDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use BuildStepTemplateDefaultArgs instead
+     */
+    export type BuildStepTemplateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = BuildStepTemplateDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use BuildGuideTrainingDefaultArgs instead
+     */
+    export type BuildGuideTrainingArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = BuildGuideTrainingDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use AssemblyChartDefaultArgs instead
+     */
+    export type AssemblyChartArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = AssemblyChartDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use MenuAutoPublishDefaultArgs instead
+     */
+    export type MenuAutoPublishArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = MenuAutoPublishDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

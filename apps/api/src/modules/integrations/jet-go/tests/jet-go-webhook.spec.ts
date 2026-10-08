@@ -121,7 +121,6 @@ describe("COURIERJOBSTATUS", () => {
     ["IN_TRANSIT_TO_DELIVER", "OUT_FOR_DELIVERY"],
     ["ARRIVED_TO_DELIVER", "OUT_FOR_DELIVERY"],
     ["DELIVERED", "COMPLETED"],
-    ["CANCELLED", "CANCELLED"],
   ])("maps %s → %s", async (jet, ours) => {
     const { s, orders } = svcWith([order()]);
     await s.handle(evt("COURIERJOBSTATUS", { status: jet }));
@@ -132,6 +131,53 @@ describe("COURIERJOBSTATUS", () => {
       "jet-go-webhook",
       "WEBHOOK",
     );
+  });
+
+  it("a cancelled COURIER does not cancel the ORDER", async () => {
+    // The bug this replaces: CANCELLED mapped straight to order CANCELLED, so
+    // pressing "Cancel dispatch" cancelled the customer's order. The kitchen
+    // has made the food and the customer is still owed it — the order goes back
+    // on the board with no rider, to be re-dispatched or driven.
+    const { s, orders, updates } = svcWith([
+      order({ courierStatus: "CANCELLATION_REQUESTED" }),
+    ]);
+    await s.handle(evt("COURIERJOBSTATUS", { status: "CANCELLED" }));
+
+    expect(orders.updateStatus).toHaveBeenCalledWith(
+      "o1",
+      "t1",
+      expect.objectContaining({ status: "READY" }),
+      "jet-go-webhook",
+      "WEBHOOK",
+    );
+    expect(orders.updateStatus).not.toHaveBeenCalledWith(
+      "o1",
+      "t1",
+      expect.objectContaining({ status: "CANCELLED" }),
+      expect.anything(),
+      expect.anything(),
+    );
+    expect(lastFor(updates, "o1").courierProvider).toBeNull();
+  });
+
+  it("refunds when JET cancelled the job on us, not when we asked", async () => {
+    const asked = svcWith([order({ courierStatus: "CANCELLATION_REQUESTED" })]);
+    await asked.s.handle(evt("COURIERJOBSTATUS", { status: "CANCELLED" }));
+    expect(asked.wallet.refundDispatch).not.toHaveBeenCalled();
+
+    const theirs = svcWith([order({ courierStatus: "CREATED" })]);
+    await theirs.s.handle(evt("COURIERJOBSTATUS", { status: "CANCELLED" }));
+    expect(theirs.wallet.refundDispatch).toHaveBeenCalled();
+  });
+
+  it("does not release twice when both cancellation events arrive", async () => {
+    // JET sends COURIERJOBSTATUS CANCELLED and CANCELJOBSTATUS for the same
+    // event, in no guaranteed order. Clearing courierProvider unroutes the
+    // second, so the fee comes back once.
+    const { s, wallet } = svcWith([order({ courierStatus: "CREATED" })]);
+    await s.handle(evt("COURIERJOBSTATUS", { status: "CANCELLED" }));
+    await s.handle(evt("CANCELJOBSTATUS", { status: true }));
+    expect(wallet.refundDispatch).toHaveBeenCalledTimes(1);
   });
 
   it("stamps pickup and delivery times", async () => {

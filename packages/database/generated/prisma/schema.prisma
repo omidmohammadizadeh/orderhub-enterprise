@@ -488,9 +488,17 @@ model Brand {
   prepTime          Int?
   busyExtraPrepTime Int?
 
+  // "Trusted by" wall on the marketing homepage. Platform-admin only (Admin
+  // Dashboard → Website showcase): putting a merchant's name on our site is our
+  // call, never a tenant setting. Lower showcaseOrder shows first; null last.
+  showcaseOnWebsite Boolean @default(false)
+  showcaseOrder     Int?
+
   locations           Location[]
   menus               Menu[]
   modifierGroups      ModifierGroup[]
+  buildGuides         BuildGuide[]
+  assemblyCharts      AssemblyChart[]
   orders              Order[]
   mealDeals           MealDeal[]
   upsellGroups        UpsellGroup[]
@@ -704,7 +712,7 @@ model Location {
   lastTestOrderAt DateTime?
   lastTestPrintAt DateTime?
 
-  // ── Store Operations ─────���────────────────────────────
+  // ── Store Operations ──────────────────────────────────
   isOpen          Boolean   @default(true)
   isPaused        Boolean   @default(false)
   pauseUntil      DateTime?
@@ -870,6 +878,7 @@ model Menu {
   categories       MenuCategory[]
   versions         MenuVersion[]
   assignments      MenuChannelAssignment[]
+  autoPublish      MenuAutoPublish?
   // Brands that point one of their channels' pricing at THIS menu (Phase BF
   // — this is the "Variant menu" other brands' Uber Eats/Deliveroo/
   // WhatsApp/Online channels borrow pricing from).
@@ -1975,7 +1984,7 @@ model LocationPaymentConfig {
   @@map("location_payment_configs")
 }
 
-// ── Order ─────────────────────────────────────────────────────────────────────
+// ── Order ────────────────────────────────────────────────────────────────────��
 model Order {
   id                String           @id @default(cuid())
   tenantId          String
@@ -2736,7 +2745,7 @@ model PrintAgent {
   @@map("print_agents")
 }
 
-// ── AlertConfig ──────────────────────────────────────────────────────
+// ���─ AlertConfig ──────────────────────────────────────────────────────
 // Phase AS-4. Per-(location, trigger) alert rule. Drives the dashboard
 // sound + visual notification pipeline. Optional stationId narrows the
 // rule to a single kitchen station.
@@ -3779,7 +3788,7 @@ model UsageRecord {
   @@map("usage_records")
 }
 
-// ── Phase R: Stripe Webhook Idempotency Log ───────────────────────────────────
+// ── Phase R: Stripe Webhook Idempotency Log ───────────────��───────────────────
 // Every Stripe event we receive is stored here before processing.
 // If stripeEventId already exists → skip (idempotent).
 model StripeWebhookEvent {
@@ -3981,9 +3990,9 @@ model WebPushSubscription {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ══════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════���══════════════════════════════════════════════════════
 // PHASE AP — SYSTEM SECRETS VAULT (platform-admin only)
-// ══════════════════════════════════════════════════════════════════��═══════════
+// ══════════════════════════════════════════════════════════════════════════════
 
 // Phase AP — encrypted secret values used by other modules in place of
 // process.env. AES-256-GCM encryption with SECRETS_MASTER_KEY; the DB
@@ -5151,7 +5160,7 @@ model GroupOrderItem {
 
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE AX — CUSTOMER WEB PUSH (PWA order updates)
-// ════════════���═════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════════
 
 // A customer's browser, subscribed to hear about their order.
 //
@@ -5831,4 +5840,133 @@ model EmailCampaignRecipient {
   @@index([resendId])
   @@index([tenantId, createdAt])
   @@map("email_campaign_recipients")
+}
+
+// "How to build" — a kitchen build chart for one product: photo steps, the
+// amounts and tools for each, and how it gets packed. Opened from the order
+// card / KDS ticket when the order comes in, written from the product editor.
+//
+// Keyed by BRAND + product name, not by MenuItem id, on purpose: a menu cloned
+// to another location keeps its brand and copies every item with a new id, and
+// marketplace order lines often carry no menuItemId at all. Matching on the
+// (normalised) name lets one guide serve every location trading that brand.
+model BuildGuide {
+  id        String               @id @default(cuid())
+  tenantId  String
+  brandId   String
+  brand     Brand                @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  // lower-cased, whitespace-collapsed product name — see build-guide-key.ts
+  nameKey   String
+  // Display name as last saved (the product's name at the time).
+  name      String
+  // [{ id, text, imageUrl?, amount?, tools?: string[] }]
+  steps     Json                 @default("[]")
+  packNote  String?
+  // YouTube link for the whole build (unlisted/public). Steps may carry a
+  // videoStart (seconds) inside `steps` to jump to their part.
+  videoUrl  String?
+  updatedBy String?
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+  trainings BuildGuideTraining[]
+
+  @@unique([brandId, nameKey])
+  @@index([tenantId, nameKey])
+  @@map("build_guides")
+}
+
+// A reusable "How to build" step — "Wrap in foil", "Toast the bun 30s" — saved
+// once and inserted into any guide. Inserting COPIES it, so editing the
+// library never silently changes a guide the kitchen already learned.
+model BuildStepTemplate {
+  id        String   @id @default(cuid())
+  tenantId  String
+  // Brand it was saved from (label only — every brand of the tenant may use it)
+  brandId   String?
+  title     String
+  text      String
+  imageUrl  String?
+  amount    String?
+  tools     String[] @default([])
+  createdBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("build_step_templates")
+}
+
+// Training mode — a staff member walked a guide start to finish. A guide
+// edited after completedAt shows as "needs a refresher" rather than trained.
+model BuildGuideTraining {
+  id          String     @id @default(cuid())
+  tenantId    String
+  guideId     String
+  guide       BuildGuide @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  userId      String
+  completedAt DateTime   @default(now())
+
+  @@unique([guideId, userId])
+  @@index([tenantId, userId])
+  @@map("build_guide_trainings")
+}
+
+// Assembly chart — the poster-style layer stack for one product (bun, sauce,
+// onions, patty… top to bottom), shown from the "Chart" button next to "How
+// to build". Keyed by brand + product name exactly like BuildGuide, for the
+// same reasons (clones keep brand + name; marketplace lines have no item id).
+model AssemblyChart {
+  id           String   @id @default(cuid())
+  tenantId     String
+  brandId      String
+  brand        Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  nameKey      String
+  name         String
+  title        String
+  altTitle     String?
+  heroImageUrl String?
+  // [{ id, kind, label, color?, imageUrl?, callout? }] top → bottom
+  layers       Json     @default("[]")
+  footNote     String?
+  updatedBy    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([brandId, nameKey])
+  @@index([tenantId, nameKey])
+  @@map("assembly_charts")
+}
+
+// Auto publish — re-push a menu to its marketplace channels on a weekly
+// schedule (e.g. Just Eat every day at 10:45) without anyone pressing
+// Publish. Exists because JET order injection sometimes stops for a store
+// until its menu is published again; a scheduled re-publish keeps it healthy.
+// One schedule per menu; each run publishes to every location the menu
+// serves on each chosen channel, through the same services as the button.
+model MenuAutoPublish {
+  id         String    @id @default(cuid())
+  tenantId   String
+  menuId     String    @unique
+  menu       Menu      @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  enabled    Boolean   @default(true)
+  // JUST_EAT | DELIVEROO | UBER_EATS | HUBRISE
+  channels   String[]  @default([])
+  // 0 = Sunday … 6 = Saturday
+  days       Int[]     @default([])
+  // "HH:mm" wall-clock times in `timezone`
+  times      String[]  @default([])
+  timezone   String    @default("Europe/London")
+  nextRunAt  DateTime?
+  lastRunAt  DateTime?
+  // ok | partial | failed
+  lastStatus String?
+  // [{ channel, locationId?, ok, message }]
+  lastResult Json?
+  createdBy  String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([enabled, nextRunAt])
+  @@index([tenantId])
+  @@map("menu_auto_publish")
 }

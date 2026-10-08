@@ -35,9 +35,57 @@ export class StuartWebhookService {
     if (["delivering", "in_delivery", "almost_delivering"].includes(s))
       return "OUT_FOR_DELIVERY";
     if (["delivered", "finished"].includes(s)) return "COMPLETED";
-    if (["canceled", "cancelled", "expired", "voided"].includes(s))
-      return "CANCELLED";
+    // Cancelled/expired/voided deliberately return null — handled by
+    // releaseCourier, because a cancelled courier must not cancel the order.
     return null;
+  }
+
+  private isCancelled(status: string | undefined): boolean {
+    const s = (status ?? "").toLowerCase();
+    return ["canceled", "cancelled", "expired", "voided"].includes(s);
+  }
+
+  /**
+   * A cancelled COURIER is not a cancelled ORDER.
+   *
+   * Mapping it to one cancelled the customer's order every time an operator
+   * pressed "Cancel dispatch", and every time the network cancelled on us. The
+   * kitchen has made the food and the customer is still owed it — the order
+   * goes back on the board with no rider, to be re-dispatched or driven.
+   */
+  private async releaseCourier(order: any, reason: string): Promise<void> {
+    await this.db().order.update({
+      where: { id: order.id },
+      data: {
+        courierProvider: null,
+        courierJobId: null,
+        courierDeliveryId: null,
+        courierName: null,
+        courierPhone: null,
+        courierPhoneAccessCode: null,
+        courierTrackingUrl: null,
+        courierStatus: null,
+        courierEtaAt: null,
+        courierPickupEtaAt: null,
+        courierLat: null,
+        courierLng: null,
+        courierLocationAt: null,
+        deliveryType: null,
+      },
+    });
+    if (!["COMPLETED", "CANCELLED"].includes(String(order.status))) {
+      try {
+        await this.orders.updateStatus(
+          order.id,
+          order.tenantId,
+          { status: "READY" as any } as any,
+          "stuart-webhook",
+          "WEBHOOK" as any,
+        );
+      } catch (err: any) {
+        this.logger.warn(`Order ${order.id} → READY after ${reason}: ${err?.message ?? err}`);
+      }
+    }
   }
 
   /**
@@ -176,19 +224,23 @@ export class StuartWebhookService {
       await this.db().order.update({ where: { id: order.id }, data: updates });
     }
 
+    if (this.isCancelled(status)) {
+      await this.releaseCourier(order, "the Stuart delivery being cancelled");
+      this.logger.log(
+        `Stuart order=${order.id} cancelled → courier released, order back on the board`,
+      );
+      // true = this leg was handled; applyLeg's boolean is "did I touch an
+      // order", not "did the order change status".
+      return true;
+    }
+
     const nextStatus = this.mapStatus(status);
     if (nextStatus && nextStatus !== order.status) {
       try {
         await this.orders.updateStatus(
           order.id,
           order.tenantId,
-          {
-            status: nextStatus as any,
-            cancelReason:
-              nextStatus === "CANCELLED"
-                ? "Stuart courier cancelled the delivery"
-                : undefined,
-          } as any,
+          { status: nextStatus as any } as any,
           "stuart-webhook",
           "WEBHOOK" as any,
         );

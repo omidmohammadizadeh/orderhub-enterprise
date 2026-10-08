@@ -324,6 +324,8 @@ exports.Prisma.BrandScalarFieldEnum = {
   openingHours: 'openingHours',
   prepTime: 'prepTime',
   busyExtraPrepTime: 'busyExtraPrepTime',
+  showcaseOnWebsite: 'showcaseOnWebsite',
+  showcaseOrder: 'showcaseOrder',
   defaultStationId: 'defaultStationId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -2597,6 +2599,76 @@ exports.Prisma.EmailCampaignRecipientScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.BuildGuideScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  brandId: 'brandId',
+  nameKey: 'nameKey',
+  name: 'name',
+  steps: 'steps',
+  packNote: 'packNote',
+  videoUrl: 'videoUrl',
+  updatedBy: 'updatedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.BuildStepTemplateScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  brandId: 'brandId',
+  title: 'title',
+  text: 'text',
+  imageUrl: 'imageUrl',
+  amount: 'amount',
+  tools: 'tools',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.BuildGuideTrainingScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  guideId: 'guideId',
+  userId: 'userId',
+  completedAt: 'completedAt'
+};
+
+exports.Prisma.AssemblyChartScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  brandId: 'brandId',
+  nameKey: 'nameKey',
+  name: 'name',
+  title: 'title',
+  altTitle: 'altTitle',
+  heroImageUrl: 'heroImageUrl',
+  layers: 'layers',
+  footNote: 'footNote',
+  updatedBy: 'updatedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MenuAutoPublishScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  menuId: 'menuId',
+  enabled: 'enabled',
+  channels: 'channels',
+  days: 'days',
+  times: 'times',
+  timezone: 'timezone',
+  nextRunAt: 'nextRunAt',
+  lastRunAt: 'lastRunAt',
+  lastStatus: 'lastStatus',
+  lastResult: 'lastResult',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -4171,6 +4243,60 @@ exports.Prisma.EmailCampaignRecipientOrderByRelevanceFieldEnum = {
   resendId: 'resendId',
   error: 'error'
 };
+
+exports.Prisma.BuildGuideOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  brandId: 'brandId',
+  nameKey: 'nameKey',
+  name: 'name',
+  packNote: 'packNote',
+  videoUrl: 'videoUrl',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.BuildStepTemplateOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  brandId: 'brandId',
+  title: 'title',
+  text: 'text',
+  imageUrl: 'imageUrl',
+  amount: 'amount',
+  tools: 'tools',
+  createdBy: 'createdBy'
+};
+
+exports.Prisma.BuildGuideTrainingOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  guideId: 'guideId',
+  userId: 'userId'
+};
+
+exports.Prisma.AssemblyChartOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  brandId: 'brandId',
+  nameKey: 'nameKey',
+  name: 'name',
+  title: 'title',
+  altTitle: 'altTitle',
+  heroImageUrl: 'heroImageUrl',
+  footNote: 'footNote',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.MenuAutoPublishOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  menuId: 'menuId',
+  channels: 'channels',
+  times: 'times',
+  timezone: 'timezone',
+  lastStatus: 'lastStatus',
+  createdBy: 'createdBy'
+};
 exports.TenantPlan = exports.$Enums.TenantPlan = {
   STARTER: 'STARTER',
   PROFESSIONAL: 'PROFESSIONAL',
@@ -4782,7 +4908,12 @@ exports.Prisma.ModelName = {
   EmailContact: 'EmailContact',
   EmailCampaign: 'EmailCampaign',
   EmailAutomation: 'EmailAutomation',
-  EmailCampaignRecipient: 'EmailCampaignRecipient'
+  EmailCampaignRecipient: 'EmailCampaignRecipient',
+  BuildGuide: 'BuildGuide',
+  BuildStepTemplate: 'BuildStepTemplate',
+  BuildGuideTraining: 'BuildGuideTraining',
+  AssemblyChart: 'AssemblyChart',
+  MenuAutoPublish: 'MenuAutoPublish'
 };
 
 /**
