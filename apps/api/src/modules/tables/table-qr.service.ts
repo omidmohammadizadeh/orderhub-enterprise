@@ -1,11 +1,14 @@
 import {
   Injectable,
+  Logger,
   NotFoundException,
   BadRequestException,
   ForbiddenException,
 } from "@nestjs/common";
+import { OnEvent } from "@nestjs/event-emitter";
 import { usesTap } from "@orderhub/shared";
 import { TapService } from "../payments/tap.service";
+import { ReceiptEmailService } from "../payments/receipt-email.service";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { OrdersService } from "../orders/orders.service";
 import { PaymentsService } from "../payments/payments.service";
@@ -29,6 +32,20 @@ import { PaymentsService } from "../payments/payments.service";
 //     tab: a tab that is already settled can't be appended to (addRound
 //     refuses a PAID order), and "one paid ticket per round" is what the
 //     kitchen and the till both already understand.
+//
+//     There is therefore NO TAB to leave open, and the table is never put
+//     into OCCUPIED by this flow. A prepaid ticket is a finished sale that
+//     happens to carry a table number, exactly like a counter order; a floor
+//     plan that went busy on payment and stayed busy until somebody
+//     remembered to tap "Free table" was showing staff a bill that did not
+//     exist. The payment listener near the bottom of this file is the
+//     belt-and-braces half: when the money lands it frees a table this flow
+//     left occupied, and refuses to touch one a human seated.
+//
+//     PAY_NOW also takes a name and an email before the card step. The guest
+//     is paying in full and is owed a bill; an emailed one is the only kind a
+//     phone can be handed. The address gets the itemised receipt the moment
+//     the payment confirms, and lands in the restaurant's own customer list.
 //
 // The money path is the storefront's, unchanged: the order is written
 // FIRST as paymentMethod=QR_CODE / paymentStatus=PENDING, which the ingest
@@ -71,6 +88,21 @@ export function readTableQrPaymentMode(settings: unknown): TableQrPaymentMode {
   return raw === "PAY_NOW" ? "PAY_NOW" : "PAY_LATER";
 }
 
+/**
+ * Good enough for "will a receipt reach this?".
+ *
+ * Deliberately permissive — the job is catching the typo and the empty box,
+ * not adjudicating RFC 5322. A guest who has just been asked for an address
+ * and is one tap from their food should get "check that address", not a
+ * rejection of a perfectly legal one.
+ */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+export function isLikelyEmail(value: string | null | undefined): boolean {
+  const v = String(value ?? "").trim();
+  return v.length <= 254 && EMAIL_RE.test(v);
+}
+
 // Guest phones drop connections constantly (lock screen, lift, patchy
 // venue wifi). Without a guard, a retry after the request already
 // reached us plates the round twice — the one failure mode that costs
@@ -84,6 +116,14 @@ export function readTableQrPaymentMode(settings: unknown): TableQrPaymentMode {
 // Both paths additionally pass the id through to orders.create()'s
 // existing idempotencyKey, which IS durable.
 const REPLAY_TTL_MS = 5 * 60_000;
+
+/**
+ * How many of a phone's own order ids we'll look up at once. A party works
+ * through a handful of rounds in an evening; the cap is only there so a
+ * crafted query string can't turn one public request into a thousand-id
+ * lookup.
+ */
+const MAX_MY_ORDERS = 40;
 
 export interface TableQrRoundResult {
   orderId: string;
@@ -118,6 +158,7 @@ export interface TableQrCheckoutResult {
 
 @Injectable()
 export class TableQrService {
+  private readonly logger = new Logger(TableQrService.name);
   private readonly recent = new Map<string, { at: number; result: unknown }>();
 
   constructor(
@@ -125,6 +166,7 @@ export class TableQrService {
     private readonly orders: OrdersService,
     private readonly payments: PaymentsService,
     private readonly tap: TapService,
+    private readonly receipts: ReceiptEmailService,
   ) {}
 
   private replay<T>(key: string): T | null {
@@ -358,7 +400,25 @@ export class TableQrService {
     // here happens BEFORE an order is written, for the same reason as the
     // Stripe pre-flight below — an orphan unpaid order per failed guest.
     const viaTap = usesTap(table.location?.country);
-    const guestEmail = input.customerEmail?.trim() || "";
+
+    // A name and an email are required on this path, whichever provider
+    // takes the card. Tap has always needed the email (its hosted page
+    // can't ask after the fact); Stripe doesn't, but the guest does — they
+    // are paying in full, and an emailed bill is the only receipt a phone
+    // can be handed. Falling back to the table name, which PAY_LATER does
+    // quite reasonably for a round staff will settle face to face, would
+    // put "Table 4" in the restaurant's customer list.
+    const guestName = input.customerName?.trim() ?? "";
+    const guestEmail = input.customerEmail?.trim().toLowerCase() ?? "";
+    if (!guestName) {
+      throw new BadRequestException("Please enter your name");
+    }
+    if (!isLikelyEmail(guestEmail)) {
+      throw new BadRequestException(
+        "Please enter an email address so we can send your receipt",
+      );
+    }
+
     if (viaTap) {
       if (!this.tap.configured()) {
         throw new BadRequestException(
@@ -373,11 +433,6 @@ export class TableQrService {
         throw new BadRequestException(
           "This restaurant hasn't finished setting up card payments — please order with a member of staff",
         );
-      }
-      // Tap refuses a charge without a customer email, and its hosted page
-      // can't ask for one after the fact.
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) {
-        throw new BadRequestException("Please enter your email to pay by card");
       }
     } else {
       // Pre-flight the connected account BEFORE writing a row. A shop that
@@ -397,7 +452,6 @@ export class TableQrService {
 
     const items = this.cleanItems(input.items);
     const subtotal = items.reduce((s, i) => s + Number(i.totalPrice || 0), 0);
-    const guestName = input.customerName?.trim() || table.name;
 
     // Each paid basket is its own ticket — see the note at the top of the
     // file. The table is stamped on it so the kitchen, the board and the
@@ -409,7 +463,9 @@ export class TableQrService {
         orderSource: "POS",
         fulfillmentType: "DINE_IN",
         tableId: table.id,
-        customerInfo: { name: guestName },
+        // email rides in customerInfo because Order has no column for it —
+        // the same place the storefront puts it, and what the receipt reads.
+        customerInfo: { name: guestName, email: guestEmail },
         items: items as any,
         subtotal,
         total: subtotal,
@@ -429,17 +485,26 @@ export class TableQrService {
       tenantId,
     );
 
-    // The party is sitting there whether or not they've paid yet, so the
-    // floor plan should say so. currentOrderId is deliberately left alone:
-    // that field means "the open tab staff will settle", and a prepaid
-    // ticket is not one. Linking it would hand a waiter a tab that
-    // addRound refuses the moment it's paid.
-    if (table.status !== "OCCUPIED" || !table.openedAt) {
-      await this.prisma.table.update({
-        where: { id: table.id },
-        data: { status: "OCCUPIED", openedAt: table.openedAt ?? new Date() },
-      });
-    }
+    // The table is deliberately NOT touched. This used to mark it OCCUPIED,
+    // which reads on the floor plan as "there's a bill running here" — and it
+    // never cleared, because a prepaid ticket has no settle step to clear it.
+    // Staff were left tapping "Free table" after every guest who had already
+    // paid. A prepaid round is a finished sale with a table number on it; the
+    // Orders board and the kitchen screen are where it belongs.
+    //
+    // currentOrderId was never set here either, and still isn't: that field
+    // means "the open tab staff will settle", and linking a prepaid ticket
+    // would hand a waiter a tab addRound refuses the moment it is paid.
+
+    // The restaurant's own customer list. Best-effort on purpose: a CRM
+    // write failing is not a reason to refuse a guest who is mid-payment,
+    // and the address is already on the order either way.
+    await this.rememberGuest({
+      tenantId,
+      orderId: order.id,
+      email: guestEmail,
+      name: guestName,
+    }).catch(() => undefined);
 
     const svcLabel =
       (((settings as any) ?? {})?.serviceCharge?.label as string)?.trim() ||
@@ -556,6 +621,24 @@ export class TableQrService {
       if (fresh) Object.assign(order, fresh);
     }
 
+    // Second chance at the post-payment steps. `payment.authorized` only
+    // fires while the order is still PENDING, so a ticket staff accepted by
+    // hand before the webhook landed would never free its table or send its
+    // bill. This rides the poll the guest is already making; both halves are
+    // idempotent (the receipt has a marker, the table update is
+    // conditional), so the common case where the listener already did the
+    // work costs one read.
+    if (order.paymentStatus === "PAID") {
+      const tenantId = table.location?.brand?.tenantId;
+      if (tenantId) {
+        await this.settlePrepaidTableOrder(order.id, tenantId).catch((e) =>
+          this.logger.warn(
+            `Prepaid table order ${order.id}: catch-up settle failed: ${e?.message ?? e}`,
+          ),
+        );
+      }
+    }
+
     return {
       orderId: order.id,
       displayId: order.displayId ?? null,
@@ -571,32 +654,33 @@ export class TableQrService {
    * What's on my table so far. Guests get their own running total and
    * nothing else — no other tables, no staff notes, no payment data.
    *
-   * PAY_LATER reads the one growing tab. PAY_NOW has no tab to read, so it
-   * gathers this sitting's paid tickets for the table instead — same
-   * question ("what have we ordered?"), different shape underneath.
+   * PAY_LATER reads the one growing tab: it is the table's shared bill and
+   * everyone sitting there is on it.
+   *
+   * PAY_NOW has no tab, so the phone passes the ids of the orders IT paid
+   * for and gets those back. That is not just convenience — a prepaid table
+   * is never opened or freed, so there is no sitting boundary on the table
+   * row to scope by, and anything table-wide would show tonight's second
+   * party what the first one ate. Each id is still checked against this
+   * table, so a guessed one from elsewhere resolves to nothing.
    */
-  async myTab(token: string) {
+  async myTab(token: string, myOrderIds: string[] = []) {
     const { table, paymentMode } = await this.openTable(token);
 
     const orderIds: string[] = [];
     if (table.currentOrderId) orderIds.push(table.currentOrderId);
 
-    if (paymentMode === "PAY_NOW") {
-      // This sitting only. openedAt is set the moment the first basket is
-      // checked out; the midnight floor is for a table nobody ever freed,
-      // so last night's party doesn't reappear on today's bill.
-      const since = table.openedAt ?? startOfToday();
-      const paid = await this.prisma.order.findMany({
+    if (paymentMode === "PAY_NOW" && myOrderIds.length > 0) {
+      const mine = await this.prisma.order.findMany({
         where: {
+          id: { in: myOrderIds.slice(0, MAX_MY_ORDERS) },
           tableId: table.id,
-          createdAt: { gte: since },
-          paymentStatus: "PAID",
           status: { notIn: ["CANCELLED", "REJECTED", "FAILED"] },
         },
         select: { id: true },
         orderBy: { createdAt: "asc" },
       });
-      for (const o of paid) if (!orderIds.includes(o.id)) orderIds.push(o.id);
+      for (const o of mine) if (!orderIds.includes(o.id)) orderIds.push(o.id);
     }
 
     if (!orderIds.length) {
@@ -639,6 +723,170 @@ export class TableQrService {
     };
   }
 
+  // ── What happens when the money lands ──────────────────────────────────
+
+  /**
+   * A payment we collected has just confirmed.
+   *
+   * This is the same event the auto-accept listener runs on, fired by
+   * PaymentsService.confirmPaymentRow once the order is PAID — so by the
+   * time we read the row the money is genuinely in, not merely authorised.
+   * Tap reaches the same place: settleCharge calls confirmPaymentRow too,
+   * which is why one listener covers both providers.
+   *
+   * Everything below is best-effort and swallowed. A receipt that doesn't
+   * send, or a table that doesn't clear, must never stop the order reaching
+   * the kitchen.
+   */
+  @OnEvent("payment.authorized")
+  async onPaymentAuthorized(ev: {
+    orderId: string;
+    tenantId: string;
+  }): Promise<void> {
+    await this.settlePrepaidTableOrder(ev.orderId, ev.tenantId).catch((e) =>
+      this.logger.warn(
+        `Prepaid table order ${ev.orderId}: post-payment steps failed: ${e?.message ?? e}`,
+      ),
+    );
+  }
+
+  /**
+   * Close the table and send the bill, for a paid QR-at-table order.
+   *
+   * Scoped hard to THIS flow (`QR_CODE` + `PAID` + a table), because the
+   * listener above sees every payment the platform collects.
+   */
+  private async settlePrepaidTableOrder(orderId: string, tenantId: string) {
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, tenantId },
+      select: {
+        id: true,
+        tableId: true,
+        paymentMethod: true,
+        paymentStatus: true,
+        customerInfo: true,
+        metadata: true,
+      },
+    });
+    if (!order?.tableId) return;
+    if (order.paymentMethod !== "QR_CODE" || order.paymentStatus !== "PAID") {
+      return;
+    }
+
+    await this.freeTableIfNobodyClaimedIt(order.tableId, orderId);
+    await this.emailTheBill(tenantId, order);
+  }
+
+  /**
+   * Clear the table, unless a human is using it.
+   *
+   * Expressed as ONE conditional update rather than read-then-write, so two
+   * guests paying in the same second can't both decide the table is theirs
+   * to clear. Every condition is a reason to leave it alone:
+   *
+   *   status OCCUPIED  — nothing to do for a table already free.
+   *   currentOrderId   — a waiter has a real tab running. Freeing it would
+   *                      orphan a bill nobody has collected.
+   *   serverId/Name    — someone claimed this table as their section.
+   *   covers           — staff recorded a guest count, so this is a sitting.
+   *
+   * A PAY_NOW checkout no longer occupies anything, so this is mostly
+   * housekeeping: it clears tables left OCCUPIED by the first build of this
+   * feature, and any an earlier round of the guest's own had marked.
+   */
+  private async freeTableIfNobodyClaimedIt(tableId: string, orderId: string) {
+    const { count } = await this.prisma.table.updateMany({
+      where: {
+        id: tableId,
+        status: "OCCUPIED",
+        currentOrderId: null,
+        serverId: null,
+        serverName: null,
+        covers: null,
+      },
+      data: { status: "FREE", openedAt: null },
+    });
+    if (count > 0) {
+      this.logger.log(
+        `Table ${tableId} freed — prepaid order ${orderId} settled, no tab to collect`,
+      );
+    }
+  }
+
+  /**
+   * Email the itemised bill, once.
+   *
+   * Sent, THEN marked. The other order risks a guest who paid never getting
+   * a receipt because the send failed after the marker was written, and a
+   * duplicate receipt is a far smaller problem than a missing one. The
+   * marker only has to survive the webhook-versus-poll race, which is
+   * seconds wide.
+   */
+  private async emailTheBill(
+    tenantId: string,
+    order: { id: string; customerInfo: unknown; metadata: unknown },
+  ) {
+    const to = String((order.customerInfo as any)?.email ?? "").trim();
+    if (!isLikelyEmail(to)) return;
+
+    const metadata = ((order.metadata as any) ?? {}) as Record<string, unknown>;
+    if (metadata.tableQrReceiptEmailedAt) return;
+
+    await this.receipts.sendOrderReceipt({ tenantId, orderId: order.id, to });
+    await this.prisma.order.update({
+      where: { id: order.id },
+      data: {
+        metadata: {
+          ...metadata,
+          tableQrReceiptEmailedAt: new Date().toISOString(),
+        } as any,
+      },
+    });
+  }
+
+  /**
+   * Put the guest in the restaurant's own customer list, and point the order
+   * at them so it shows on their record.
+   *
+   * An existing row is never overwritten — a name the shop curated, or one
+   * from a previous visit, beats whatever was typed into a phone at a table
+   * tonight. The one exception is filling in a blank name, which is how a
+   * customer first created from a bare email address gets one.
+   *
+   * marketingConsent stays at its `false` default. This address was given so
+   * a bill could be sent; that is not permission to market to it.
+   */
+  private async rememberGuest(args: {
+    tenantId: string;
+    orderId: string;
+    email: string;
+    name: string;
+  }) {
+    const email = args.email.trim().toLowerCase();
+    const parts = args.name.trim().split(/\s+/).filter(Boolean);
+    const firstName = parts[0] ?? null;
+    const lastName = parts.length > 1 ? parts.slice(1).join(" ") : null;
+
+    const customer = await this.prisma.customer.upsert({
+      where: { tenantId_email: { tenantId: args.tenantId, email } },
+      update: {},
+      create: { tenantId: args.tenantId, email, firstName, lastName },
+      select: { id: true, firstName: true },
+    });
+
+    if (firstName && !String(customer.firstName ?? "").trim()) {
+      await this.prisma.customer.update({
+        where: { id: customer.id },
+        data: { firstName, lastName },
+      });
+    }
+
+    await this.prisma.order.update({
+      where: { id: args.orderId },
+      data: { customerId: customer.id },
+    });
+  }
+
   /** Drop the empty/zero lines a flaky phone can send, and refuse a
    *  genuinely empty basket rather than opening a £0 tab on the floor. */
   private cleanItems(raw: QrOrderItem[] | undefined): QrOrderItem[] {
@@ -648,10 +896,4 @@ export class TableQrService {
     if (!items.length) throw new BadRequestException("Your basket is empty");
     return items;
   }
-}
-
-function startOfToday(): Date {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  return d;
 }

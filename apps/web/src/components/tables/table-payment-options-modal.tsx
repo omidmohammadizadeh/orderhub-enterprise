@@ -44,7 +44,7 @@ const OPTIONS: Array<{
     title: "Take payment before the kitchen starts",
     blurb: "Apple Pay, Google Pay or card on the guest's phone.",
     detail:
-      "Nothing is cooked until the money arrives. Each paid basket lands on the Orders board and the kitchen screen as its own ticket with the table number on it — the way Nando's runs it.",
+      "Nothing is cooked until the money arrives. Each paid basket lands on the Orders board and the kitchen screen as its own ticket with the table number on it — the way Nando's runs it. Guests give a name and an email before they pay, get their itemised bill emailed the moment it clears, and are added to your customer list. The table is never held open, because there is no bill left to collect.",
   },
 ];
 

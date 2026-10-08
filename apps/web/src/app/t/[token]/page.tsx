@@ -171,9 +171,15 @@ export default function TableQrPage() {
   const currency = ((store as any)?.store?.currency ?? "GBP") as string;
   const money = useMemo(() => moneyFor(currency), [currency]);
 
+  // Everything this phone remembers between visits, keyed by table token.
+  const contactKey = `orderhub.tablecontact.${token}`;
+  const myOrdersKey = `orderhub.tableorders.${token}`;
+  // The orders THIS phone paid for — see the note by rememberPaidOrder.
+  const [myOrderIds, setMyOrderIds] = useState<string[]>([]);
+
   const tabQuery = useQuery({
-    queryKey: ["table-qr-tab", token],
-    queryFn: () => tableQrClient.tab(token),
+    queryKey: ["table-qr-tab", token, myOrderIds.join(",")],
+    queryFn: () => tableQrClient.tab(token, myOrderIds),
     enabled: !!table,
     // Staff and other phones add to the same tab, so a stale total on a
     // backgrounded phone is expected — refresh when the guest looks at it.
@@ -218,6 +224,58 @@ export default function TableQrPage() {
 
   // ── Pay-before-kitchen ───────────────────────────────────────────────────
 
+  // Who this phone is, and what it has already paid for. Both survive a
+  // lock screen, a refresh, and the round trip through Tap's page or 3-D
+  // Secure.
+  //
+  // The order ids are not decoration: a prepaid table is never opened or
+  // freed, so there is no sitting boundary on the table row to scope "my
+  // orders" by, and anything table-wide would show tonight's second party
+  // what the first one ate. The phone that paid is the only thing that
+  // knows, so it is what remembers.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(contactKey);
+      if (raw) {
+        const saved = JSON.parse(raw) as { name?: string; email?: string };
+        if (saved.name) setGuestName(saved.name);
+        if (saved.email) setGuestEmail(saved.email);
+      }
+      const paid = window.localStorage.getItem(myOrdersKey);
+      if (paid) {
+        const ids = JSON.parse(paid);
+        if (Array.isArray(ids)) {
+          setMyOrderIds(ids.filter((i) => typeof i === "string"));
+        }
+      }
+    } catch {
+      /* private mode — they'll just type it again */
+    }
+  }, [contactKey, myOrdersKey]);
+
+  const rememberContact = (name: string, email: string) => {
+    try {
+      window.localStorage.setItem(contactKey, JSON.stringify({ name, email }));
+    } catch {
+      /* quota / private mode — non-fatal */
+    }
+  };
+
+  const rememberPaidOrder = (orderId: string) => {
+    setMyOrderIds((prev) => {
+      if (prev.includes(orderId)) return prev;
+      // Newest last, and capped — the server caps it too.
+      const next = [...prev, orderId].slice(-40);
+      try {
+        window.localStorage.setItem(myOrdersKey, JSON.stringify(next));
+      } catch {
+        /* non-fatal */
+      }
+      return next;
+    });
+  };
+
   // Until the resolve lands we don't know which flow this shop runs, and the
   // basket bar is hidden anyway — so the PAY_LATER default here is never the
   // thing a guest acts on.
@@ -232,6 +290,7 @@ export default function TableQrPage() {
     if (typeof window === "undefined" || !hydrated) return;
     const paidId = new URLSearchParams(window.location.search).get("paid");
     if (!paidId) return;
+    rememberPaidOrder(paidId);
     dispatch({ type: "CLEAR" });
     setSent({ kind: "PAID", orderId: paidId });
     const url = new URL(window.location.href);
@@ -327,11 +386,18 @@ export default function TableQrPage() {
     return {
       items,
       customerName: guestName.trim() || undefined,
-      ...(guestEmail.trim() ? { customerEmail: guestEmail.trim() } : {}),
       notes: kitchenNotes.trim() || null,
       requestId: requestIdRef.current,
     };
   };
+
+  // Good enough for "will a receipt reach this?" — the same shape the API
+  // checks. The job is catching the typo and the empty box, not
+  // adjudicating RFC 5322 at a table with a hungry guest at it.
+  const emailLooksRight = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(
+    guestEmail.trim(),
+  );
+  const contactReady = !prepay || (!!guestName.trim() && emailLooksRight);
 
   const send = useMutation({
     mutationFn: () => tableQrClient.sendRound(token, buildPayload()),
@@ -356,7 +422,18 @@ export default function TableQrPage() {
   // basket is deliberately NOT cleared yet, because backing out of the card
   // sheet has to leave the guest their round rather than an empty phone.
   const checkout = useMutation({
-    mutationFn: () => tableQrClient.checkout(token, buildPayload()),
+    mutationFn: () => {
+      const name = guestName.trim();
+      const email = guestEmail.trim().toLowerCase();
+      // Saved before the request, not after: if the card is declined or the
+      // connection drops, they should not have to type it all again.
+      rememberContact(name, email);
+      return tableQrClient.checkout(token, {
+        ...buildPayload(),
+        customerName: name,
+        customerEmail: email,
+      });
+    },
     onSuccess: (res) => {
       // Tap (Gulf shops): pay on Tap's own page. It sends the phone back to
       // /t/<token>?paid=<orderId>, which the effect above turns into the
@@ -373,6 +450,7 @@ export default function TableQrPage() {
         dispatch({ type: "CLEAR" });
         setKitchenNotes("");
         setBasketOpen(false);
+        rememberPaidOrder(res.orderId);
         setSent({ kind: "PAID", orderId: res.orderId });
         return;
       }
@@ -387,6 +465,7 @@ export default function TableQrPage() {
 
   const handleSend = () => {
     if (sendingRef.current || busySending || basket.length === 0) return;
+    if (!contactReady) return;
     sendingRef.current = true;
     if (prepay) checkout.mutate();
     else send.mutate();
@@ -590,7 +669,7 @@ export default function TableQrPage() {
           tabOpen={table.tabOpen}
           guestName={guestName}
           setGuestName={setGuestName}
-          askEmail={prepay && table.cardProvider === "TAP"}
+          contactReady={contactReady}
           guestEmail={guestEmail}
           setGuestEmail={setGuestEmail}
           notes={kitchenNotes}
@@ -639,6 +718,7 @@ export default function TableQrPage() {
             setKitchenNotes("");
             setBasketOpen(false);
             setPay(null);
+            rememberPaidOrder(pay.orderId);
             setSent({ kind: "PAID", orderId: pay.orderId });
             tabQuery.refetch();
             tableQuery.refetch();
@@ -943,7 +1023,7 @@ function BasketSheet({
   tabOpen,
   guestName,
   setGuestName,
-  askEmail,
+  contactReady,
   guestEmail,
   setGuestEmail,
   notes,
@@ -965,7 +1045,8 @@ function BasketSheet({
   guestName: string;
   setGuestName: (v: string) => void;
   /** Tap shops need the guest's email before they can pay by card. */
-  askEmail: boolean;
+  /** Name + email are present and plausible (always true when not prepay). */
+  contactReady: boolean;
   guestEmail: string;
   setGuestEmail: (v: string) => void;
   notes: string;
@@ -1063,22 +1144,53 @@ function BasketSheet({
                 </div>
               ))}
 
-              <input
-                value={guestName}
-                onChange={(e) => setGuestName(e.target.value)}
-                placeholder="Your name (optional)"
-                className="min-h-[48px] w-full rounded-xl border border-zinc-200 px-3 text-sm focus:border-zinc-900 focus:outline-none"
-              />
-              {askEmail && (
+              {prepay ? (
+                // Asked for here rather than on the card step: Apple Pay,
+                // Google Pay and Tap's hosted page all take the guest
+                // straight out of our hands, so this is the last screen
+                // that belongs to us. The itemised bill is emailed the
+                // moment the payment confirms — no paper receipt reaches a
+                // phone.
+                <div className="space-y-2 rounded-xl bg-zinc-50 p-3">
+                  <p className="text-xs font-semibold text-zinc-700">
+                    Where should we send your receipt?
+                  </p>
+                  <label className="block">
+                    <span className="sr-only">Your name</span>
+                    <input
+                      value={guestName}
+                      onChange={(e) => setGuestName(e.target.value)}
+                      placeholder="Your name"
+                      autoComplete="name"
+                      required
+                      className="min-h-[48px] w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm focus:border-zinc-900 focus:outline-none"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="sr-only">Email address</span>
+                    <input
+                      value={guestEmail}
+                      onChange={(e) => setGuestEmail(e.target.value)}
+                      placeholder="Email address"
+                      type="email"
+                      inputMode="email"
+                      autoComplete="email"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      required
+                      className="min-h-[48px] w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm focus:border-zinc-900 focus:outline-none"
+                    />
+                  </label>
+                  <p className="text-[11px] text-zinc-500">
+                    We&rsquo;ll email your itemised bill here. Nothing else.
+                  </p>
+                </div>
+              ) : (
                 <input
-                  type="email"
-                  inputMode="email"
-                  autoComplete="email"
-                  value={guestEmail}
-                  onChange={(e) => setGuestEmail(e.target.value)}
-                  placeholder="Email for your receipt"
-                  aria-label="Email for your receipt"
-                  required
+                  value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
+                  placeholder="Your name (optional)"
+                  autoComplete="name"
                   className="min-h-[48px] w-full rounded-xl border border-zinc-200 px-3 text-sm focus:border-zinc-900 focus:outline-none"
                 />
               )}
@@ -1111,11 +1223,7 @@ function BasketSheet({
           </div>
           <button
             onClick={onSend}
-            disabled={
-              sending ||
-              lines.length === 0 ||
-              (askEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail.trim()))
-            }
+            disabled={sending || lines.length === 0 || !contactReady}
             className="flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-zinc-900 text-base font-semibold text-white active:bg-zinc-800 disabled:opacity-60"
           >
             {sending ? (
@@ -1135,6 +1243,11 @@ function BasketSheet({
           {/* Deliberately "continue to payment", not "pay {total}": the shop's
               service charge is worked out server-side, so the honest total is
               the one itemised on the card sheet, not the basket figure. */}
+          {prepay && !contactReady && lines.length > 0 && (
+            <p className="mt-2 text-center text-[11px] text-zinc-500">
+              Add your name and email above to continue.
+            </p>
+          )}
           <p className="mt-2 text-center text-[11px] text-zinc-400">
             {prepay
               ? "Apple Pay, Google Pay or card. Your order reaches the kitchen once it's paid."
