@@ -9,6 +9,8 @@ export interface OverviewSummary {
   subtotal: number;
   discount: number;
   deliveryFees: number;
+  /** Collected for the platform, counted in gross, taken back out of net. */
+  serviceCharge: number;
   taxAmount: number;
   successfulOrders: number;
   cancelledOrders: number;
@@ -89,6 +91,15 @@ export interface AnalyticsOverview {
     orders: number;
     revenue: number;
   }>;
+  /**
+   * What the pickers may offer for the current selection — already narrowed to
+   * the chosen locations and to the caller's own access. Optional so an older
+   * API build still renders.
+   */
+  filterOptions?: {
+    locations: Array<{ id: string; name: string }>;
+    brands: Array<{ id: string; name: string }>;
+  };
 }
 
 export interface OverviewFilters {
@@ -98,6 +109,9 @@ export interface OverviewFilters {
   to?: string;
   locationId?: string;
   brandId?: string;
+  /** Several at once. Merged with the singular params by the API. */
+  locationIds?: string[];
+  brandIds?: string[];
   channels?: string[];
   fulfillmentTypes?: string[];
 }
@@ -198,6 +212,8 @@ export const analyticsClient = {
     if (f.to) params.to = f.to;
     if (f.locationId) params.locationId = f.locationId;
     if (f.brandId) params.brandId = f.brandId;
+    if (f.locationIds?.length) params.locationIds = f.locationIds.join(",");
+    if (f.brandIds?.length) params.brandIds = f.brandIds.join(",");
     if (f.channels?.length) params.channels = f.channels.join(",");
     if (f.fulfillmentTypes?.length)
       params.fulfillmentTypes = f.fulfillmentTypes.join(",");

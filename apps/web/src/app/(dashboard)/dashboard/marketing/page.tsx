@@ -439,6 +439,8 @@ function CampaignsTable({
   onRemove: (id: string) => void;
   onTogglePause: (id: string, status: string) => void;
 }) {
+  // Campaign money is the shop's money — dirhams for a Dubai shop.
+  const { money } = useCurrency();
   return (
     <div className="rounded-xl border border-zinc-200 overflow-x-auto bg-white">
       <table className="w-full text-sm min-w-[1040px]">
@@ -467,7 +469,7 @@ function CampaignsTable({
                   <div className="text-[11px] text-zinc-400">
                     {prettyType(c.type)}
                     {c.percentageOff != null && ` · ${Number(c.percentageOff)}%`}
-                    {c.amountOff != null && ` · £${Number(c.amountOff)}`}
+                    {c.amountOff != null && ` · ${money(Number(c.amountOff))}`}
                   </div>
                 </td>
                 <td className="px-4 py-3">
@@ -661,6 +663,8 @@ function InsightsSummary({
   metrics: CampaignMetricsMap;
   rangeLabel: string;
 }) {
+  // Campaign money is the shop's money — dirhams for a Dubai shop.
+  const { money } = useCurrency();
   const totals = campaigns.reduce(
     (acc, c) => {
       const m: CampaignMetrics | undefined = metrics[c.id];
@@ -702,14 +706,6 @@ function InsightsSummary({
   );
 }
 
-// £ formatter — whole pounds unless there are pence, matching Uber's list.
-function money(n: number | undefined): string {
-  const v = Number(n ?? 0);
-  return `£${v.toLocaleString("en-GB", {
-    minimumFractionDigits: v % 1 === 0 ? 0 : 2,
-    maximumFractionDigits: 2,
-  })}`;
-}
 
 // Campaigns with the Uber Eats channel are mirrored to Uber's Promotions
 // API by the backend (created when ACTIVE, revoked on pause/delete). The
@@ -765,6 +761,8 @@ function TypePicker({
   onReferral: () => void;
   onCancel: () => void;
 }) {
+  // The worked examples quote amounts, so they get the shop's symbol too.
+  const { symbol } = useCurrency();
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 backdrop-blur-sm py-10"
@@ -797,7 +795,9 @@ function TypePicker({
                 )}
                 <Icon className="h-7 w-7 text-violet-600 mb-3" />
                 <p className="text-sm font-semibold text-zinc-900">{t.title}</p>
-                <p className="text-[11px] text-zinc-500 mt-0.5">{t.example}</p>
+                <p className="text-[11px] text-zinc-500 mt-0.5">
+                  {t.example.replace(/£/g, symbol)}
+                </p>
                 {!t.wired && (
                   <p className="text-[10px] text-amber-700 mt-2">
                     Coming soon

@@ -1,6 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useCurrency } from "@/hooks/use-currency";
+
+// Money here used to go through a local `$${(cents / 100).toFixed(2)}`. Two
+// bugs in one line: the symbol was a dollar on a UK till, and /v1/orders
+// returns decimal amounts, not cents — so a £17.12 order read as $0.17. Both
+// are gone; amounts now print through useCurrency, in the location's currency.
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ShoppingBag, CheckCircle, Clock, DollarSign, CreditCard, Banknote, Printer } from "lucide-react";
 
@@ -37,9 +43,6 @@ async function apiFetch<T>(path: string, opts?: RequestInit): Promise<T> {
   return res.json();
 }
 
-function fmt(cents: number) {
-  return `$${(cents / 100).toFixed(2)}`;
-}
 
 function ageMinutes(createdAt: string) {
   return Math.floor((Date.now() - new Date(createdAt).getTime()) / 60_000);
@@ -50,6 +53,7 @@ function OrderDetail({ order, onCollect, onPrint }: {
   onCollect: (id: string, method: string) => void;
   onPrint: (id: string) => void;
 }) {
+  const { money } = useCurrency();
   const [payMethod, setPayMethod] = useState<"CASH" | "CARD">("CARD");
 
   return (
@@ -82,7 +86,7 @@ function OrderDetail({ order, onCollect, onPrint }: {
               </p>
               {item.notes && <p className="text-xs text-orange-600 ml-5">{item.notes}</p>}
             </div>
-            <p className="text-sm text-gray-700 shrink-0">{fmt(item.price * item.quantity)}</p>
+            <p className="text-sm text-gray-700 shrink-0">{money(item.price * item.quantity)}</p>
           </div>
         ))}
       </div>
@@ -90,13 +94,13 @@ function OrderDetail({ order, onCollect, onPrint }: {
       {/* Totals */}
       <div className="p-5 border-t border-gray-100 space-y-1.5">
         <div className="flex justify-between text-sm text-gray-500">
-          <span>Subtotal</span><span>{fmt(order.subtotal)}</span>
+          <span>Subtotal</span><span>{money(order.subtotal)}</span>
         </div>
         <div className="flex justify-between text-sm text-gray-500">
-          <span>Tax</span><span>{fmt(order.tax)}</span>
+          <span>Tax</span><span>{money(order.tax)}</span>
         </div>
         <div className="flex justify-between text-base font-bold text-gray-900 pt-1 border-t border-gray-100">
-          <span>Total</span><span className="text-lg">{fmt(order.total)}</span>
+          <span>Total</span><span className="text-lg">{money(order.total)}</span>
         </div>
       </div>
 
@@ -124,7 +128,7 @@ function OrderDetail({ order, onCollect, onPrint }: {
             onClick={() => onCollect(order.id, payMethod)}
             className="w-full py-3 rounded-xl bg-gray-900 hover:bg-gray-700 text-white font-bold text-base transition-colors flex items-center justify-center gap-2"
           >
-            <CheckCircle className="w-5 h-5" /> Collect {fmt(order.total)}
+            <CheckCircle className="w-5 h-5" /> Collect {money(order.total)}
           </button>
         </div>
       )}
@@ -147,6 +151,7 @@ function OrderDetail({ order, onCollect, onPrint }: {
 }
 
 export default function CashierPage() {
+  const { money } = useCurrency();
   const qc = useQueryClient();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -228,7 +233,7 @@ export default function CashierPage() {
               >
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-gray-900">#{order.displayId}</span>
-                  <span className="text-sm font-semibold text-gray-700">{fmt(order.total)}</span>
+                  <span className="text-sm font-semibold text-gray-700">{money(order.total)}</span>
                 </div>
                 {order.customerName && (
                   <p className="text-xs text-gray-400 mt-0.5">{order.customerName}</p>

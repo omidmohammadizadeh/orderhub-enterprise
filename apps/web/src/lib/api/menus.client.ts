@@ -253,6 +253,16 @@ export const menusClient = {
   listMenusForTenant: () =>
     apiClient.get<Menu[]>(`/v1/menus`).then((r) => r.data),
 
+  /** Copy categories from another menu into this one — products deep-copied with new PLUs. */
+  cloneCategories: (menuId: string, body: { sourceMenuId: string; categoryIds: string[] }) =>
+    apiClient
+      .post<{ categories: Array<{ id: string; name: string; items: number }>; itemsCopied: number; groupsCopied: number }>(
+        `/v1/menus/${menuId}/categories/clone`,
+        body,
+        { timeout: 180_000 },
+      )
+      .then((r) => r.data),
+
   getMenu: (menuId: string) =>
     apiClient.get<MenuWithCategories>(`/v1/menus/${menuId}`).then((r) => r.data),
 

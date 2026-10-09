@@ -9,7 +9,19 @@
 // vs-prev delta and the revenue chart can overlay last week's line
 // on top of this week's.
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  currencySymbol,
+  formatMoney,
+  DEFAULT_CURRENCY,
+} from "@orderhub/shared";
 import { useCurrency } from "@/hooks/use-currency";
 import { useAuthStore } from "@/stores/auth.store";
 import { useQuery } from "@tanstack/react-query";
@@ -21,6 +33,7 @@ import {
   ArrowUpRight,
   Banknote,
   Building2,
+  Receipt,
   Calendar,
   Check,
   CreditCard,
@@ -57,7 +70,7 @@ import {
   type AnalyticsOverview,
 } from "@/lib/api/analytics.client";
 import { brandsClient, locationsClient } from "@/lib/api/locations.client";
-import { SearchableSelect } from "@/components/ui/searchable-select";
+import { SearchableMultiSelect } from "@/components/ui/searchable-multi-select";
 
 // Channel catalog for the Filter popover. Same list and same popover the
 // Orders board uses, so "which channels am I looking at" is answered the
@@ -144,14 +157,28 @@ const PRESETS: Array<{ id: DatePreset; label: string }> = [
   { id: "custom", label: "Custom" },
 ];
 
-const fmtGBP = (n: number) =>
-  new Intl.NumberFormat("en-GB", {
-    style: "currency",
-    currency: "GBP",
-    maximumFractionDigits: 2,
-  }).format(n);
-
+// No module-level money formatter on purpose. Currency belongs to the LOCATION,
+// so every amount here goes through useCurrency()'s `money` — a const bound to
+// GBP is exactly how this screen ended up printing pounds over dirhams for a
+// UAE shop. Counts are locale-formatted and currency-free, so they stay.
 const fmtNum = (n: number) => new Intl.NumberFormat("en-GB").format(n);
+
+// ONE currency for the whole screen.
+//
+// The charts, the heatmap and the tables all print money, and they are separate
+// components; putting the formatter in context means every amount on the page
+// is formatted by the same source and none of them can quietly fall back to a
+// pound. The default is only what renders if one of them is ever used outside
+// the page.
+const MoneyContext = createContext<{
+  money: (n: number | string | null | undefined) => string;
+  symbol: string;
+}>({
+  money: (n) => formatMoney(n, DEFAULT_CURRENCY, { compact: true }),
+  symbol: currencySymbol(DEFAULT_CURRENCY),
+});
+
+const useMoney = () => useContext(MoneyContext);
 
 // Cash / card / not-settled / other, in the order the donut is fed.
 const PAYMENT_COLORS = ["#16a34a", "#2563eb", "#f59e0b", "#a1a1aa"];
@@ -185,13 +212,17 @@ function pctDelta(curr: number, prev: number): number {
 }
 
 export default function AnalyticsPage() {
-  // Prices follow the selected location's currency, not a hardcoded pound.
-  const { money, symbol } = useCurrency();
+  // Prices follow the LOCATION's currency, never a hardcoded pound — a Dubai
+  // shop's takings are dirhams. When the report is scoped to exactly one
+  // location that location decides; with none or several, it falls back to
+  // whichever location the operator has selected in the sidebar.
   const [preset, setPreset] = useState<DatePreset>("7d");
   const [customFrom, setCustomFrom] = useState<string>("");
   const [customTo, setCustomTo] = useState<string>("");
-  const [locationId, setLocationId] = useState<string>("");
-  const [brandId, setBrandId] = useState<string>("");
+  // Several at once. Empty = all (that the caller can see), same convention as
+  // the channel filter beside them.
+  const [locationIds, setLocationIds] = useState<string[]>([]);
+  const [brandIds, setBrandIds] = useState<string[]>([]);
   // Empty = every channel. The request omits `channels` entirely in that
   // case, so the page opens showing everything rather than a subset.
   const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
@@ -234,8 +265,12 @@ export default function AnalyticsPage() {
     includeTest: isPlatformAdmin && includeTest,
     from: range.from.toISOString(),
     to: range.to.toISOString(),
-    locationId: locationId || undefined,
-    brandId: brandId || undefined,
+    locationIds: locationIds.length ? locationIds : undefined,
+    brandIds: brandIds.length ? brandIds : undefined,
+    // The dine-in and walk-in reports below take one location. They get it
+    // only when exactly one is picked; with several, they stay unfiltered
+    // rather than silently reporting on the first of them.
+    locationId: locationIds.length === 1 ? locationIds[0] : undefined,
     channels: selectedChannels.length ? selectedChannels : undefined,
   };
 
@@ -256,15 +291,69 @@ export default function AnalyticsPage() {
   const data = overviewQuery.data;
   const loading = overviewQuery.isLoading;
 
+  // Exactly one location in view → that shop's currency. Otherwise the sidebar's.
+  const { money, symbol, currency } = useCurrency(
+    locationIds.length === 1 ? locationIds[0] : undefined,
+  );
+
+  // A group trading in two countries can select both at once, and the totals
+  // would then be dirhams added to pounds — a number that means nothing. Say
+  // so rather than printing it under one symbol as though it were comparable.
+  const mixedCurrencies = useMemo(() => {
+    if (locationIds.length < 2) return [];
+    const picked = (locationsQuery.data ?? []).filter((l: any) =>
+      locationIds.includes(l.id),
+    );
+    const seen = Array.from(
+      new Set(picked.map((l: any) => l.currency || DEFAULT_CURRENCY)),
+    );
+    return seen.length > 1 ? seen : [];
+  }, [locationIds, locationsQuery.data]);
+
+  const locationOptions = useMemo(
+    () =>
+      ((data?.filterOptions?.locations ?? locationsQuery.data ?? []) as any[]).map(
+        (l) => ({ value: l.id, label: l.name }),
+      ),
+    [data?.filterOptions?.locations, locationsQuery.data],
+  );
+
+  // Scope the brand picker to the chosen locations. A group with 120 brands
+  // offering all of them while one shop is in view makes the filter useless —
+  // the API already works out which brands trade at the selection (assigned to
+  // a menu there, or holding orders there) and reports it back.
+  //
+  // A brand that is still ticked but is not on offer any more stays in the list
+  // with a note, rather than vanishing: ticking a location should not strand a
+  // selection the user can no longer see to undo. The report is then honestly
+  // empty for it.
+  const brandOptions = useMemo(() => {
+    const scoped = (data?.filterOptions?.brands ?? brandsQuery.data ?? []) as any[];
+    const opts = scoped.map((b) => ({ value: b.id, label: b.name }));
+    const present = new Set(opts.map((o) => o.value));
+    for (const id of brandIds) {
+      if (present.has(id)) continue;
+      const known = (brandsQuery.data ?? []).find((b: any) => b.id === id);
+      opts.push({
+        value: id,
+        label: known?.name ?? "Selected brand",
+        hint: "— no orders here",
+      } as any);
+    }
+    return opts;
+  }, [data?.filterOptions?.brands, brandsQuery.data, brandIds]);
+
   function exportCsv() {
     if (!data) return;
     const rows: string[] = [];
     rows.push("Section,Key,Value");
+    rows.push(`Summary,Currency,${currency}`);
     const s = data.summary;
     rows.push(`Summary,Gross revenue,${s.grossRevenue.toFixed(2)}`);
     rows.push(`Summary,Net revenue,${s.netRevenue.toFixed(2)}`);
     rows.push(`Summary,Discount,${s.discount.toFixed(2)}`);
     rows.push(`Summary,Delivery fees,${s.deliveryFees.toFixed(2)}`);
+    rows.push(`Summary,Service charge,${s.serviceCharge.toFixed(2)}`);
     rows.push(`Summary,Tax,${s.taxAmount.toFixed(2)}`);
     rows.push(`Summary,Successful orders,${s.successfulOrders}`);
     rows.push(`Summary,Cancelled orders,${s.cancelledOrders}`);
@@ -309,6 +398,8 @@ export default function AnalyticsPage() {
   }
 
   return (
+    // Everything below formats money through this one value.
+    <MoneyContext.Provider value={{ money, symbol }}>
     <div className="px-6 py-6 space-y-5">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
@@ -368,33 +459,29 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           {/* Typeable rather than a native select: a group with twenty
               locations turns a one-tap filter into a scroll-and-scan. */}
-          <SearchableSelect
+          <SearchableMultiSelect
             className="w-full"
             buttonClassName="px-2 py-1.5 text-xs"
             allLabel="All locations"
             placeholder="All locations"
+            pluralNoun="locations"
             searchPlaceholder="Search locations…"
             emptyLabel="No location by that name"
-            value={locationId || undefined}
-            onChange={(v) => setLocationId(v ?? "")}
-            options={(locationsQuery.data ?? []).map((l: any) => ({
-              value: l.id,
-              label: l.name,
-            }))}
+            values={locationIds}
+            onChange={setLocationIds}
+            options={locationOptions}
           />
-          <SearchableSelect
+          <SearchableMultiSelect
             className="w-full"
             buttonClassName="px-2 py-1.5 text-xs"
             allLabel="All brands"
             placeholder="All brands"
+            pluralNoun="brands"
             searchPlaceholder="Search brands…"
-            emptyLabel="No brand by that name"
-            value={brandId || undefined}
-            onChange={(v) => setBrandId(v ?? "")}
-            options={(brandsQuery.data ?? []).map((b: any) => ({
-              value: b.id,
-              label: b.name,
-            }))}
+            emptyLabel="No brand trades at the selected locations"
+            values={brandIds}
+            onChange={setBrandIds}
+            options={brandOptions}
           />
           {/* Channel filter — same Filter popover as the Orders board. */}
           <div className="relative" ref={channelFilterRef}>
@@ -503,6 +590,13 @@ export default function AnalyticsPage() {
             Showing test and simulated orders as well as real ones — these figures are not the shop&apos;s real sales.
           </p>
         )}
+        {mixedCurrencies.length > 0 && (
+          <p className="mt-2 text-[11px] font-medium text-amber-700">
+            These locations trade in {mixedCurrencies.join(" and ")}. The totals
+            add those amounts together and are shown in {currency}, so they are
+            not a real figure — pick locations from one country to compare them.
+          </p>
+        )}
       </section>
 
       {loading ? (
@@ -517,8 +611,8 @@ export default function AnalyticsPage() {
           <section className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
             <KpiCard
               label="Gross revenue"
-              value={fmtGBP(data.summary.grossRevenue)}
-              hint="Subtotal + delivery + tax"
+              value={money(data.summary.grossRevenue)}
+              hint="Subtotal + delivery + service + tax"
               delta={pctDelta(
                 data.summary.grossRevenue,
                 data.summary.prevGrossRevenue,
@@ -527,8 +621,8 @@ export default function AnalyticsPage() {
             />
             <KpiCard
               label="Net revenue"
-              value={fmtGBP(data.summary.netRevenue)}
-              hint="After discounts"
+              value={money(data.summary.netRevenue)}
+              hint="After discounts, excl. delivery + service"
               delta={pctDelta(
                 data.summary.netRevenue,
                 data.summary.prevNetRevenue,
@@ -548,7 +642,7 @@ export default function AnalyticsPage() {
             />
             <KpiCard
               label="Avg order value"
-              value={fmtGBP(data.summary.avgOrderValue)}
+              value={money(data.summary.avgOrderValue)}
               delta={pctDelta(
                 data.summary.avgOrderValue,
                 data.summary.prevAvgOrderValue,
@@ -560,28 +654,28 @@ export default function AnalyticsPage() {
               value={fmtNum(
                 data.summary.cancelledOrders + data.summary.failedOrders,
               )}
-              hint={`${fmtGBP(data.summary.cancelledRevenue + data.summary.failedRevenue)} lost`}
+              hint={`${money(data.summary.cancelledRevenue + data.summary.failedRevenue)} lost`}
               icon={<AlertTriangle className="h-4 w-4" />}
               tone="danger"
             />
             <KpiCard
               label="Cash taken"
-              value={fmtGBP(data.paymentMix.cash.revenue)}
+              value={money(data.paymentMix.cash.revenue)}
               hint={`${fmtNum(data.paymentMix.cash.orders)} orders`}
               icon={<Banknote className="h-4 w-4" />}
             />
             <KpiCard
               label="Card taken"
-              value={fmtGBP(data.paymentMix.card.revenue)}
+              value={money(data.paymentMix.card.revenue)}
               hint={`${fmtNum(data.paymentMix.card.orders)} orders`}
               icon={<CreditCard className="h-4 w-4" />}
             />
             <KpiCard
               label="Paid"
-              value={fmtGBP(data.paymentMix.paidRevenue)}
+              value={money(data.paymentMix.paidRevenue)}
               hint={
                 data.paymentMix.unpaidOrders > 0
-                  ? `${fmtGBP(data.paymentMix.unpaidRevenue)} outstanding`
+                  ? `${money(data.paymentMix.unpaidRevenue)} outstanding`
                   : "All settled"
               }
               icon={<Wallet className="h-4 w-4" />}
@@ -589,17 +683,28 @@ export default function AnalyticsPage() {
             />
             <KpiCard
               label="Discount given"
-              value={fmtGBP(data.summary.discount)}
+              value={money(data.summary.discount)}
               icon={<TrendingDown className="h-4 w-4" />}
             />
+            {/* Delivery and service are both collected for someone else: in
+                gross because the customer paid them, out of net because the
+                shop never banks them. Shown on their own so the difference
+                between the two headline figures is accounted for on screen. */}
             <KpiCard
               label="Delivery fees"
-              value={fmtGBP(data.summary.deliveryFees)}
+              value={money(data.summary.deliveryFees)}
+              hint="Passed to the courier"
               icon={<MapPin className="h-4 w-4" />}
             />
             <KpiCard
+              label="Service charge"
+              value={money(data.summary.serviceCharge)}
+              hint="Platform fee, not yours"
+              icon={<Receipt className="h-4 w-4" />}
+            />
+            <KpiCard
               label="Tax collected"
-              value={fmtGBP(data.summary.taxAmount)}
+              value={money(data.summary.taxAmount)}
               icon={<Building2 className="h-4 w-4" />}
             />
           </section>
@@ -677,7 +782,7 @@ export default function AnalyticsPage() {
 
           {/* Channel + Brand + Location */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-            <Card title="Sales by channel" subtitle="Revenue and order count">
+            <Card title="Sales by channel" subtitle="Gross revenue and order count">
               {data.byChannel.length === 0 ? (
                 <Empty />
               ) : (
@@ -689,7 +794,7 @@ export default function AnalyticsPage() {
                     <Tooltip
                       formatter={(value: number, key: string) =>
                         key === "revenue"
-                          ? [fmtGBP(value), "Revenue"]
+                          ? [money(value), "Revenue"]
                           : [fmtNum(value), "Orders"]
                       }
                     />
@@ -700,34 +805,34 @@ export default function AnalyticsPage() {
               <SmallTable
                 rows={data.byChannel.map((c) => [
                   c.name,
-                  fmtGBP(c.revenue),
+                  money(c.revenue),
                   fmtNum(c.orders),
                 ])}
                 headers={["Channel", "Revenue", "Orders"]}
               />
             </Card>
-            <Card title="Sales by brand" subtitle="Top → bottom">
+            <Card title="Sales by brand" subtitle="Gross revenue, top → bottom">
               {data.byBrand.length === 0 ? (
                 <Empty />
               ) : (
                 <SmallTable
                   rows={data.byBrand.map((b) => [
                     b.name,
-                    fmtGBP(b.revenue),
+                    money(b.revenue),
                     fmtNum(b.orders),
                   ])}
                   headers={["Brand", "Revenue", "Orders"]}
                 />
               )}
             </Card>
-            <Card title="Sales by location" subtitle="Top → bottom">
+            <Card title="Sales by location" subtitle="Gross revenue, top → bottom">
               {data.byLocation.length === 0 ? (
                 <Empty />
               ) : (
                 <SmallTable
                   rows={data.byLocation.map((l) => [
                     l.name,
-                    fmtGBP(l.revenue),
+                    money(l.revenue),
                     fmtNum(l.orders),
                   ])}
                   headers={["Location", "Revenue", "Orders"]}
@@ -741,9 +846,11 @@ export default function AnalyticsPage() {
             <Card
               title="Cash vs card"
               subtitle={
-                locationId
+                locationIds.length === 1
                   ? "This location only"
-                  : "Every location you can see"
+                  : locationIds.length > 1
+                    ? `${locationIds.length} locations`
+                    : "Every location you can see"
               }
             >
               {data.paymentMix.byMethod.length === 0 ? (
@@ -771,7 +878,7 @@ export default function AnalyticsPage() {
                           <Cell key={c} fill={c} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(v: number) => fmtGBP(v)} />
+                      <Tooltip formatter={(v: number) => money(v)} />
                       <Legend wrapperStyle={{ fontSize: 11 }} />
                     </PieChart>
                   </ResponsiveContainer>
@@ -779,19 +886,19 @@ export default function AnalyticsPage() {
                     rows={[
                       [
                         "Cash",
-                        fmtGBP(data.paymentMix.cash.revenue),
+                        money(data.paymentMix.cash.revenue),
                         fmtNum(data.paymentMix.cash.orders),
                       ],
                       [
                         "Card",
-                        fmtGBP(data.paymentMix.card.revenue),
+                        money(data.paymentMix.card.revenue),
                         fmtNum(data.paymentMix.card.orders),
                       ],
                       ...(data.paymentMix.pending.orders > 0
                         ? [
                             [
                               "Not settled yet",
-                              fmtGBP(data.paymentMix.pending.revenue),
+                              money(data.paymentMix.pending.revenue),
                               fmtNum(data.paymentMix.pending.orders),
                             ],
                           ]
@@ -800,7 +907,7 @@ export default function AnalyticsPage() {
                         ? [
                             [
                               "Other",
-                              fmtGBP(data.paymentMix.other.revenue),
+                              money(data.paymentMix.other.revenue),
                               fmtNum(data.paymentMix.other.orders),
                             ],
                           ]
@@ -821,7 +928,7 @@ export default function AnalyticsPage() {
                 <SmallTable
                   rows={data.paymentMix.byMethod.map((m) => [
                     PAYMENT_METHOD_LABELS[m.method] ?? titleCase(m.method),
-                    fmtGBP(m.revenue),
+                    money(m.revenue),
                     fmtNum(m.orders),
                   ])}
                   headers={["Method", "Revenue", "Orders"]}
@@ -833,12 +940,12 @@ export default function AnalyticsPage() {
                 rows={[
                   [
                     "Paid",
-                    fmtGBP(data.paymentMix.paidRevenue),
+                    money(data.paymentMix.paidRevenue),
                     fmtNum(data.paymentMix.paidOrders),
                   ],
                   [
                     "Not paid yet",
-                    fmtGBP(data.paymentMix.unpaidRevenue),
+                    money(data.paymentMix.unpaidRevenue),
                     fmtNum(data.paymentMix.unpaidOrders),
                   ],
                 ]}
@@ -868,10 +975,10 @@ export default function AnalyticsPage() {
               <SmallTable
                 rows={data.byLocation.map((l) => [
                   l.name,
-                  fmtGBP(l.revenue),
-                  fmtGBP(l.cashRevenue),
+                  money(l.revenue),
+                  money(l.cashRevenue),
                   `${fmtNum(l.cashOrders)}`,
-                  fmtGBP(l.cardRevenue),
+                  money(l.cardRevenue),
                   `${fmtNum(l.cardOrders)}`,
                   l.revenue > 0
                     ? `${Math.round((l.cashRevenue / l.revenue) * 100)}%`
@@ -900,7 +1007,7 @@ export default function AnalyticsPage() {
                   rows={data.topProducts.map((p) => [
                     p.name,
                     fmtNum(p.quantity),
-                    fmtGBP(p.revenue),
+                    money(p.revenue),
                   ])}
                   headers={["Product", "Qty", "Revenue"]}
                 />
@@ -914,7 +1021,7 @@ export default function AnalyticsPage() {
                   rows={data.topPostcodes.map((p) => [
                     p.postcode,
                     fmtNum(p.orders),
-                    fmtGBP(p.revenue),
+                    money(p.revenue),
                   ])}
                   headers={["Outer", "Orders", "Revenue"]}
                 />
@@ -928,7 +1035,7 @@ export default function AnalyticsPage() {
                   rows={data.weakestPostcodes.map((p) => [
                     p.postcode,
                     fmtNum(p.orders),
-                    fmtGBP(p.revenue),
+                    money(p.revenue),
                   ])}
                   headers={["Outer", "Orders", "Revenue"]}
                 />
@@ -952,6 +1059,7 @@ export default function AnalyticsPage() {
         </>
       )}
     </div>
+    </MoneyContext.Provider>
   );
 }
 
@@ -1316,6 +1424,7 @@ const TOOLTIP_PROPS = {
 } as const;
 
 function RevenueChart({ data }: { data: AnalyticsOverview["revenueTimeline"] }) {
+  const { money, symbol } = useMoney();
   return (
     <ResponsiveContainer width="100%" height={320}>
       <AreaChart data={data}>
@@ -1327,10 +1436,10 @@ function RevenueChart({ data }: { data: AnalyticsOverview["revenueTimeline"] }) 
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
         <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-        <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `£${v}`} />
+        <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${symbol}${v}`} />
         <Tooltip
           {...TOOLTIP_PROPS}
-          formatter={(v: number) => fmtGBP(v)}
+          formatter={(v: number) => money(v)}
           labelFormatter={(label) => `Day ${label}`}
         />
         <Legend wrapperStyle={{ fontSize: 11 }} />
@@ -1369,6 +1478,7 @@ function OrdersChart({ data }: { data: AnalyticsOverview["revenueTimeline"] }) {
 }
 
 function AovChart({ data }: { data: Array<{ date: string; aov: number }> }) {
+  const { money, symbol } = useMoney();
   return (
     <ResponsiveContainer width="100%" height={320}>
       <AreaChart data={data}>
@@ -1380,8 +1490,8 @@ function AovChart({ data }: { data: Array<{ date: string; aov: number }> }) {
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
         <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-        <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `£${v}`} />
-        <Tooltip {...TOOLTIP_PROPS} formatter={(v: number) => fmtGBP(v)} />
+        <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${symbol}${v}`} />
+        <Tooltip {...TOOLTIP_PROPS} formatter={(v: number) => money(v)} />
         <Area
           type="monotone"
           dataKey="aov"
@@ -1395,10 +1505,11 @@ function AovChart({ data }: { data: Array<{ date: string; aov: number }> }) {
 }
 
 function BreakdownPie({ data }: { data: AnalyticsOverview["byChannel"] }) {
+  const { money } = useMoney();
   return (
     <ResponsiveContainer width="100%" height={320}>
       <PieChart>
-        <Tooltip {...TOOLTIP_PROPS} formatter={(v: number) => fmtGBP(v)} />
+        <Tooltip {...TOOLTIP_PROPS} formatter={(v: number) => money(v)} />
         <Legend wrapperStyle={{ fontSize: 11 }} />
         <Pie
           data={data}
@@ -1407,7 +1518,7 @@ function BreakdownPie({ data }: { data: AnalyticsOverview["byChannel"] }) {
           cx="50%"
           cy="50%"
           outerRadius={110}
-          label={(entry: any) => `${entry.name}: ${fmtGBP(entry.revenue)}`}
+          label={(entry: any) => `${entry.name}: ${money(entry.revenue)}`}
         >
           {data.map((_, i) => (
             <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
@@ -1423,6 +1534,7 @@ function Heatmap({
 }: {
   data: AnalyticsOverview["hourlyHeatmap"];
 }) {
+  const { money } = useMoney();
   const max = Math.max(1, ...data.map((d) => d.orders));
 
   // Monday-first. The data keys days 0=Sunday (JS convention), but a
@@ -1488,7 +1600,7 @@ function Heatmap({
                   key={h}
                   title={`${label} ${h}:00 — ${cell.orders} order${
                     cell.orders === 1 ? "" : "s"
-                  } (${fmtGBP(cell.revenue)})`}
+                  } (${money(cell.revenue)})`}
                   className={`flex h-8 items-center justify-center rounded-sm text-[11px] font-semibold tabular-nums ${
                     i === MIDNIGHT_INDEX ? "border-l border-zinc-300" : ""
                   }`}

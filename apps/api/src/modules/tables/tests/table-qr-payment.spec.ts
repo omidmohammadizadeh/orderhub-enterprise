@@ -12,6 +12,8 @@ import { TableQrService, readTableQrPaymentMode } from "../table-qr.service";
 //      linked as the table's tab. Both halves matter: the flag is what the
 //      ingest path reads to hold the order out of the kitchen, and linking
 //      it would hand a waiter a tab that addRound refuses once it's paid.
+//   3. A prepaid round never leaves a table looking busy, and never frees
+//      one a human seated. The guest is owed a bill, and gets one.
 
 const TENANT = "t1";
 
@@ -22,12 +24,18 @@ function makeService(opts: {
   table?: Record<string, unknown>;
   tapConfigured?: boolean;
   tapMerchantId?: string | null;
+  /** Present = order.findFirst resolves, for the post-payment listener. */
+  order?: Record<string, unknown>;
 } = {}) {
   const tableUpdates: any[] = [];
+  const tableUpdateManys: any[] = [];
   const createdOrders: any[] = [];
+  const orderUpdates: any[] = [];
+  const customerUpserts: any[] = [];
   const intents: any[] = [];
   const tapCharges: any[] = [];
   const reconciled: string[] = [];
+  const receipts: any[] = [];
 
   const table = {
     id: "tbl1",
@@ -58,8 +66,43 @@ function makeService(opts: {
         tableUpdates.push(args);
         return table;
       },
+      updateMany: async (args: any) => {
+        tableUpdateManys.push(args);
+        // Mirror what Postgres does: the row only matches when every
+        // condition in the WHERE holds.
+        const matches = Object.entries(args.where ?? {}).every(
+          ([k, v]) => (table as any)[k] === v,
+        );
+        return { count: matches ? 1 : 0 };
+      },
     },
-    order: { findMany: async () => [], findFirst: async () => null, findUnique: async () => null },
+    order: {
+      findMany: async () => [],
+      findFirst: async () =>
+        opts.order === undefined
+          ? null
+          : {
+              id: "ord1",
+              tableId: "tbl1",
+              paymentMethod: "QR_CODE",
+              paymentStatus: "PAID",
+              customerInfo: { name: "Omid", email: "omid@example.com" },
+              metadata: {},
+              ...opts.order,
+            },
+      findUnique: async () => null,
+      update: async (args: any) => {
+        orderUpdates.push(args);
+        return { id: "ord1" };
+      },
+    },
+    customer: {
+      upsert: async (args: any) => {
+        customerUpserts.push(args);
+        return { id: "cus1", firstName: args.create?.firstName ?? null };
+      },
+      update: async () => ({ id: "cus1" }),
+    },
     brand: {
       findFirst: async () => ({
         id: "b1",
@@ -111,14 +154,36 @@ function makeService(opts: {
     },
   };
 
-  const svc = new TableQrService(prisma, orders, payments, tap);
-  return { svc, tableUpdates, createdOrders, intents, tapCharges, reconciled, table };
+  const receiptEmail: any = {
+    sendOrderReceipt: async (args: any) => {
+      receipts.push(args);
+      return { sent: true };
+    },
+  };
+
+  const svc = new TableQrService(prisma, orders, payments, tap, receiptEmail);
+  return {
+    svc,
+    tableUpdates,
+    tableUpdateManys,
+    createdOrders,
+    orderUpdates,
+    customerUpserts,
+    intents,
+    tapCharges,
+    reconciled,
+    receipts,
+    table,
+  };
 }
 
+const LINES = [{ name: "Margherita", quantity: 1, unitPrice: 12, totalPrice: 12 }];
+
+/** A pay-now basket, with the contact details this route now requires. */
 const BASKET = {
-  items: [
-    { name: "Margherita", quantity: 1, unitPrice: 12, totalPrice: 12 },
-  ],
+  items: LINES,
+  customerName: "Omid Mohammadizadeh",
+  customerEmail: "Omid@Example.com",
 };
 
 describe("readTableQrPaymentMode", () => {
@@ -183,17 +248,74 @@ describe("checkout", () => {
     expect(res.serviceCharge).toBe(2);
   });
 
-  it("occupies the table but never links it as the tab", async () => {
+  it("leaves the table alone — a prepaid round opens no tab", async () => {
     const { svc, tableUpdates } = makeService({ qrPayment: "PAY_NOW" });
     await svc.checkout("tok", BASKET);
 
-    expect(tableUpdates).toHaveLength(1);
-    const data = tableUpdates[0].data;
-    expect(data.status).toBe("OCCUPIED");
-    // currentOrderId means "the open tab staff will settle". A prepaid
-    // ticket is not one, and addRound refuses a PAID order — linking it
-    // would break the next waiter round on that table.
-    expect(data).not.toHaveProperty("currentOrderId");
+    // This used to mark the table OCCUPIED, which reads on the floor plan
+    // as "there's a bill running here" and never cleared, because a prepaid
+    // ticket has no settle step to clear it.
+    expect(tableUpdates).toHaveLength(0);
+  });
+
+  it("takes a name and an email, whoever takes the card", async () => {
+    // Tap has always needed the email. Stripe doesn't — but the guest does:
+    // they are paying in full, and an emailed bill is the only receipt a
+    // phone can be handed.
+    for (const country of ["GB", "AE"]) {
+      const { svc, createdOrders } = makeService({
+        qrPayment: "PAY_NOW",
+        country,
+      });
+
+      await expect(
+        svc.checkout("tok", { items: LINES, customerEmail: "a@b.co" }),
+      ).rejects.toThrow(/enter your name/i);
+      await expect(
+        svc.checkout("tok", { items: LINES, customerName: "Omid" }),
+      ).rejects.toThrow(/email address/i);
+      await expect(
+        svc.checkout("tok", { ...BASKET, customerEmail: "not-an-email" }),
+      ).rejects.toThrow(/email address/i);
+      // Nothing is written for a basket we are going to refuse.
+      expect(createdOrders).toHaveLength(0);
+
+      await svc.checkout("tok", BASKET);
+      // Lower-cased on the way in, and in customerInfo because Order has no
+      // email column — which is also where the receipt reads it from.
+      expect(createdOrders[0].customerInfo).toEqual({
+        name: "Omid Mohammadizadeh",
+        email: "omid@example.com",
+      });
+    }
+  });
+
+  it("puts the guest in the restaurant's customer list and links the order", async () => {
+    const { svc, customerUpserts, orderUpdates } = makeService({
+      qrPayment: "PAY_NOW",
+    });
+    await svc.checkout("tok", BASKET);
+
+    expect(customerUpserts).toHaveLength(1);
+    const up = customerUpserts[0];
+    expect(up.where).toEqual({
+      tenantId_email: { tenantId: TENANT, email: "omid@example.com" },
+    });
+    expect(up.create).toMatchObject({
+      tenantId: TENANT,
+      email: "omid@example.com",
+      firstName: "Omid",
+      lastName: "Mohammadizadeh",
+    });
+    // The address was given so a bill could be sent. That is not permission
+    // to market to it, so consent is left at its `false` default.
+    expect(up.create).not.toHaveProperty("marketingConsent");
+    // An existing customer is never overwritten by what was typed into a
+    // phone tonight — a name the shop curated wins.
+    expect(up.update).toEqual({});
+    expect(orderUpdates).toContainEqual(
+      expect.objectContaining({ data: { customerId: "cus1" } }),
+    );
   });
 
   it("refuses before writing anything when Stripe onboarding is unfinished", async () => {
@@ -241,16 +363,6 @@ describe("checkout", () => {
     expect(res.clientSecret).toBeUndefined();
   });
 
-  it("asks a Tap shop's guest for an email before writing anything", async () => {
-    // Tap refuses a charge without one, and its hosted page can't ask later.
-    const { svc, createdOrders } = makeService({ qrPayment: "PAY_NOW", country: "AE" });
-    await expect(svc.checkout("tok", BASKET)).rejects.toThrow(/email/i);
-    await expect(
-      svc.checkout("tok", { ...BASKET, customerEmail: "not-an-email" }),
-    ).rejects.toThrow(/email/i);
-    expect(createdOrders).toHaveLength(0);
-  });
-
   it("refuses before writing anything when the brand has no Tap merchant yet", async () => {
     const { svc, createdOrders } = makeService({
       qrPayment: "PAY_NOW",
@@ -296,6 +408,99 @@ describe("orderStatus", () => {
       await svc.orderStatus("tok", "ord1");
       expect(reconciled).toEqual([expected]);
     }
+  });
+});
+
+describe("when the money lands", () => {
+  const PAID = { orderId: "ord1", tenantId: TENANT, locationId: "loc1" };
+
+  it("frees a table this flow left occupied — there is no bill to collect", async () => {
+    const { svc, tableUpdateManys } = makeService({
+      qrPayment: "PAY_NOW",
+      order: {},
+      table: { status: "OCCUPIED" },
+    });
+    await svc.onPaymentAuthorized(PAID);
+
+    expect(tableUpdateManys).toHaveLength(1);
+    const call = tableUpdateManys[0];
+    expect(call.data).toEqual({ status: "FREE", openedAt: null });
+    // Every condition is a reason to leave the table alone, and they live
+    // in the WHERE rather than a read-then-write, so two guests paying in
+    // the same second can't both decide the table is theirs to clear.
+    expect(call.where).toEqual({
+      id: "tbl1",
+      status: "OCCUPIED",
+      currentOrderId: null,
+      serverId: null,
+      serverName: null,
+      covers: null,
+    });
+  });
+
+  it("never frees a table a waiter has a real tab on", async () => {
+    const { svc, tableUpdateManys } = makeService({
+      qrPayment: "PAY_NOW",
+      order: {},
+      table: { status: "OCCUPIED", currentOrderId: "ord-waiter-tab" },
+    });
+    await svc.onPaymentAuthorized(PAID);
+    // The update still runs; the WHERE no longer matches. That is the
+    // point — the database decides, not a race-prone read.
+    expect(tableUpdateManys[0].where.currentOrderId).toBeNull();
+  });
+
+  it("emails the itemised bill to the address the guest gave", async () => {
+    const { svc, receipts, orderUpdates } = makeService({
+      qrPayment: "PAY_NOW",
+      order: {},
+    });
+    await svc.onPaymentAuthorized(PAID);
+
+    expect(receipts).toEqual([
+      { tenantId: TENANT, orderId: "ord1", to: "omid@example.com" },
+    ]);
+    // Marked AFTER sending: a duplicate receipt is a far smaller problem
+    // than a guest who paid and never got one.
+    expect(orderUpdates.at(-1).data.metadata.tableQrReceiptEmailedAt).toEqual(
+      expect.any(String),
+    );
+  });
+
+  it("doesn't send the bill twice when the webhook and the poll race", async () => {
+    const { svc, receipts } = makeService({
+      qrPayment: "PAY_NOW",
+      order: { metadata: { tableQrReceiptEmailedAt: "2026-10-08T12:00:00Z" } },
+    });
+    await svc.onPaymentAuthorized(PAID);
+    expect(receipts).toHaveLength(0);
+  });
+
+  it("ignores every payment that isn't a prepaid table round", async () => {
+    // This listener sees every payment the platform collects, so the
+    // scoping is the whole safety story.
+    for (const order of [
+      { tableId: null },
+      { paymentMethod: "CARD" },
+      { paymentStatus: "PENDING" },
+    ]) {
+      const { svc, tableUpdateManys, receipts } = makeService({
+        qrPayment: "PAY_NOW",
+        order,
+        table: { status: "OCCUPIED" },
+      });
+      await svc.onPaymentAuthorized(PAID);
+      expect(tableUpdateManys).toHaveLength(0);
+      expect(receipts).toHaveLength(0);
+    }
+  });
+
+  it("never lets a failed receipt stop the order", async () => {
+    const { svc } = makeService({ qrPayment: "PAY_NOW", order: {} });
+    (svc as any).receipts.sendOrderReceipt = async () => {
+      throw new Error("Resend is down");
+    };
+    await expect(svc.onPaymentAuthorized(PAID)).resolves.toBeUndefined();
   });
 });
 

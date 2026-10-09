@@ -20,6 +20,15 @@ function parseDate(value: string | undefined, fallback: Date): Date {
   return isNaN(d.getTime()) ? fallback : d;
 }
 
+function csvIds(value: string | undefined): string[] | undefined {
+  if (!value) return undefined;
+  const ids = value
+    .split(",")
+    .map((v) => v.trim())
+    .filter(Boolean);
+  return ids.length > 0 ? ids : undefined;
+}
+
 function sevenDaysAgo(): Date {
   return new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 }
@@ -47,6 +56,8 @@ export class AnalyticsController {
   @ApiQuery({ name: "to", required: false })
   @ApiQuery({ name: "locationId", required: false })
   @ApiQuery({ name: "brandId", required: false })
+  @ApiQuery({ name: "locationIds", required: false, description: "Comma-separated location ids; merged with locationId. Ids the caller cannot access are dropped." })
+  @ApiQuery({ name: "brandIds", required: false, description: "Comma-separated brand ids; merged with brandId" })
   @ApiQuery({ name: "channels", required: false, description: "Comma-separated orderSource values" })
   @ApiQuery({ name: "fulfillmentTypes", required: false, description: "Comma-separated DELIVERY/PICKUP" })
   @ApiQuery({ name: "includeTest", required: false, description: "\"true\" counts test/simulated orders too (platform admins only)" })
@@ -56,6 +67,8 @@ export class AnalyticsController {
     @Query("to") to?: string,
     @Query("locationId") locationId?: string,
     @Query("brandId") brandId?: string,
+    @Query("locationIds") locationIds?: string,
+    @Query("brandIds") brandIds?: string,
     @Query("channels") channels?: string,
     @Query("fulfillmentTypes") fulfillmentTypes?: string,
     @Query("includeTest") includeTest?: string,
@@ -66,6 +79,10 @@ export class AnalyticsController {
       to: parseDate(to, now),
       locationId,
       brandId,
+      // Multi-select. The singular params stay for saved links and anything
+      // still sending one id; the service merges and de-duplicates both.
+      locationIds: csvIds(locationIds),
+      brandIds: csvIds(brandIds),
       channels: channels ? channels.split(",").filter(Boolean) : undefined,
       fulfillmentTypes: fulfillmentTypes
         ? fulfillmentTypes.split(",").filter(Boolean)

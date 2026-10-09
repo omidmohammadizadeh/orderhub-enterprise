@@ -1108,6 +1108,10 @@ export class AnalyticsService {
       to: Date;
       locationId?: string;
       brandId?: string;
+      /** Multi-select. Merged with the singular params above, which stay for
+       *  existing callers and saved links. */
+      locationIds?: string[];
+      brandIds?: string[];
       channels?: string[]; // matches Order.orderSource
       fulfillmentTypes?: string[]; // DELIVERY | PICKUP
       // Caller identity for location scoping. Tenant-wide roles see the whole
@@ -1133,21 +1137,40 @@ export class AnalyticsService {
       !tenantWide && opts.userId
         ? await this.accessibleLocationIds(tenantId, opts.userId)
         : null;
-    // Effective location filter: a specific pick (validated against scope), or
-    // the whole accessible set for a scoped user, or unrestricted tenant-wide.
-    let locationWhere: Prisma.OrderWhereInput = {};
-    if (opts.locationId) {
-      const inScope = !scopeIds || scopeIds.includes(opts.locationId);
-      locationWhere = { locationId: inScope ? opts.locationId : "__no_access__" };
+    // Effective location filter: the picked set (each id validated against the
+    // caller's scope), or the whole accessible set for a scoped user, or
+    // unrestricted tenant-wide.
+    //
+    // EVERY requested id is intersected with `scopeIds`. Accepting a list must
+    // not become a way to read a location you cannot otherwise see — asking for
+    // ten ids gets you only the ones you already had. A pick that survives none
+    // of them resolves to the impossible id rather than silently widening to
+    // "all", which would show MORE than was asked for.
+    const requestedLocationIds = Array.from(
+      new Set([opts.locationId, ...(opts.locationIds ?? [])].filter(Boolean) as string[]),
+    );
+    let effectiveLocationIds: string[] | null = null;
+    if (requestedLocationIds.length > 0) {
+      const allowed = scopeIds
+        ? requestedLocationIds.filter((id) => scopeIds.includes(id))
+        : requestedLocationIds;
+      effectiveLocationIds = allowed.length > 0 ? allowed : ["__no_access__"];
     } else if (scopeIds) {
-      locationWhere = { locationId: { in: scopeIds } };
+      effectiveLocationIds = scopeIds;
     }
+    const locationWhere: Prisma.OrderWhereInput = effectiveLocationIds
+      ? { locationId: { in: effectiveLocationIds } }
+      : {};
+
+    const requestedBrandIds = Array.from(
+      new Set([opts.brandId, ...(opts.brandIds ?? [])].filter(Boolean) as string[]),
+    );
 
     const baseWhere: Prisma.OrderWhereInput = {
       tenantId,
       ...(includeTest ? {} : { isSandbox: false }),
       ...locationWhere,
-      ...(opts.brandId && { brandId: opts.brandId }),
+      ...(requestedBrandIds.length > 0 && { brandId: { in: requestedBrandIds } }),
       ...(opts.channels?.length && {
         orderSource: { in: opts.channels as any },
       }),
@@ -1160,6 +1183,20 @@ export class AnalyticsService {
     const spanMs = opts.to.getTime() - opts.from.getTime();
     const prevTo = opts.from;
     const prevFrom = new Date(opts.from.getTime() - spanMs);
+
+    // Brands configured to trade at the chosen locations. There is no relation
+    // from Brand to MenuChannelAssignment, so this is looked up separately and
+    // OR-ed with "has orders here" below — a brand whose assignment was removed
+    // still owns its historical orders and must stay filterable.
+    const assignedBrandIds = effectiveLocationIds
+      ? (
+          await (this.prisma as any).menuChannelAssignment.findMany({
+            where: { locationId: { in: effectiveLocationIds } },
+            select: { brandId: true },
+            distinct: ["brandId"],
+          })
+        ).map((r: { brandId: string }) => r.brandId)
+      : [];
 
     const [currOrders, prevOrders, brands, locations] = await Promise.all([
       this.prisma.order.findMany({
@@ -1174,13 +1211,32 @@ export class AnalyticsService {
           subtotal: true,
           discount: true,
           deliveryFee: true,
+          serviceCharge: true,
           taxAmount: true,
           total: true,
           createdAt: true,
         },
       }),
+      // Scoped to the selected locations: a tenant with 120 brands should not
+      // offer all of them when one shop is in view, only the handful that
+      // actually trade there.
       this.prisma.brand.findMany({
-        where: { tenantId, deletedAt: null },
+        where: {
+          tenantId,
+          deletedAt: null,
+          ...(effectiveLocationIds
+            ? {
+                OR: [
+                  { id: { in: assignedBrandIds } },
+                  {
+                    orders: {
+                      some: { tenantId, locationId: { in: effectiveLocationIds } },
+                    },
+                  },
+                ],
+              }
+            : {}),
+        },
         select: { id: true, name: true },
       }),
       this.prisma.location.findMany({
@@ -1219,15 +1275,27 @@ export class AnalyticsService {
     const sumDec = <T extends keyof OrderRow>(rows: OrderRow[], key: T) =>
       rows.reduce((s, r) => s + Number(r[key] ?? 0), 0);
 
-    // Gross = before discount. Net = total customer paid (after
-    // discount). delivery + tax are reported separately so the
-    // operator can see what's restaurant revenue vs pass-through.
+    // GROSS is everything the customer was charged: subtotal, delivery, tax AND
+    // the service charge. The service charge was missing, so a Just Eat order
+    // billed at £17.12 (14.99 + 0.49 delivery + 1.64 service) reported £15.48 —
+    // the money was on the order, just not in the headline.
+    //
+    // NET is what the shop actually keeps, so BOTH pass-throughs come back out.
+    // The delivery fee is collected on the courier's behalf; the service charge
+    // on a marketplace order is the platform's fee on the customer, which never
+    // reaches the shop either. Counting either as revenue flatters every
+    // delivery channel against collection. Discounts come out too.
+    //
+    // Every line stays in the response on its own — delivery, service, tax — so
+    // the pass-through is visible rather than merely absent, and the tiles can
+    // show what was collected for someone else.
     const subtotal = sumDec(successful, "subtotal");
     const discount = sumDec(successful, "discount");
     const deliveryFees = sumDec(successful, "deliveryFee");
+    const serviceCharge = sumDec(successful, "serviceCharge");
     const taxAmount = sumDec(successful, "taxAmount");
-    const grossRevenue = subtotal + deliveryFees + taxAmount;
-    const netRevenue = grossRevenue - discount;
+    const grossRevenue = subtotal + deliveryFees + taxAmount + serviceCharge;
+    const netRevenue = grossRevenue - discount - deliveryFees - serviceCharge;
 
     const avgOrderValue =
       successful.length > 0 ? netRevenue / successful.length : 0;
@@ -1237,9 +1305,12 @@ export class AnalyticsService {
     const prevSubtotal = sumDec(prevSuccessful as any, "subtotal");
     const prevDiscount = sumDec(prevSuccessful as any, "discount");
     const prevDeliveryFees = sumDec(prevSuccessful as any, "deliveryFee");
+    const prevServiceCharge = sumDec(prevSuccessful as any, "serviceCharge");
     const prevTax = sumDec(prevSuccessful as any, "taxAmount");
-    const prevGross = prevSubtotal + prevDeliveryFees + prevTax;
-    const prevNet = prevGross - prevDiscount;
+    const prevGross =
+      prevSubtotal + prevDeliveryFees + prevTax + prevServiceCharge;
+    const prevNet =
+      prevGross - prevDiscount - prevDeliveryFees - prevServiceCharge;
     const prevAov =
       prevSuccessful.length > 0 ? prevNet / prevSuccessful.length : 0;
 
@@ -1540,6 +1611,7 @@ export class AnalyticsService {
         subtotal,
         discount,
         deliveryFees,
+        serviceCharge,
         taxAmount,
         successfulOrders: successful.length,
         cancelledOrders: cancelled.length,
@@ -1561,6 +1633,15 @@ export class AnalyticsService {
       topPostcodes,
       weakestPostcodes,
       hourlyHeatmap,
+      // What the pickers should offer for the CURRENT selection. `brands` is
+      // already narrowed to the chosen locations above, so selecting one shop
+      // stops the brand list offering brands that never trade there; both
+      // lists are access-scoped, so a manager never sees a shop or a brand
+      // outside their own locations.
+      filterOptions: {
+        locations: locations.map((l) => ({ id: l.id, name: l.name })),
+        brands: brands.map((b) => ({ id: b.id, name: b.name })),
+      },
     };
   }
 

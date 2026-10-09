@@ -145,6 +145,7 @@ import {
   itemAllowsFulfillment,
 } from "@orderhub/shared";
 import { displayPrice } from "@/lib/menu/display-price";
+import { cartIsStale, clearCart, loadCart, saveCart } from "@/lib/cart-storage";
 import type { SelectedModifier, ProductSku } from "@orderhub/shared";
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -403,6 +404,11 @@ function OrderPage() {
   // login / Google-OAuth redirect, or closing and reopening the browser
   // keeps the customer's cart. Hydrate once on mount; save on every change
   // after. Keyed by brand so a multi-brand kitchen doesn't mix baskets.
+  //
+  // It expires after twelve hours untouched — see lib/cart-storage. Keeping
+  // it across a refresh is the point; keeping it across a week is how a
+  // customer who changed their mind on Tuesday opens the site on Friday to
+  // find two pizzas waiting, at prices the shop may have changed since.
   const cartKey = `orderhub.cart.${slug}${brandId ? `:${brandId}` : ""}`;
   // WHICH key we've hydrated, not merely whether we have. The key contains
   // the brand, so it changes when ?brand= arrives or switches — and a plain
@@ -411,19 +417,12 @@ function OrderPage() {
   // deleted a perfectly good saved basket a beat before hydration could read
   // it. Comparing keys means we only ever write to a key we've read first.
   const [hydratedKey, setHydratedKey] = useState<string | null>(null);
+  // When this basket was last written, for the open-tab check below.
+  const cartTouchedAt = useRef<number | null>(null);
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const raw = window.localStorage.getItem(cartKey);
-      if (raw) {
-        const lines = JSON.parse(raw);
-        if (Array.isArray(lines) && lines.length > 0) {
-          dispatch({ type: "SET", lines });
-        }
-      }
-    } catch {
-      /* corrupt / unavailable storage — start empty */
-    }
+    const { lines, savedAt } = loadCart<CartLine>(cartKey);
+    if (lines.length > 0) dispatch({ type: "SET", lines });
+    cartTouchedAt.current = savedAt;
     setHydratedKey(cartKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cartKey]);
@@ -432,17 +431,31 @@ function OrderPage() {
     // pre-hydration commit isn't enough on its own: the key itself changes
     // when the brand does, and writing an empty cart to a key we haven't
     // hydrated yet is how a saved basket disappears.
-    if (typeof window === "undefined" || hydratedKey !== cartKey) return;
-    try {
-      if (cart.length > 0) {
-        window.localStorage.setItem(cartKey, JSON.stringify(cart));
-      } else {
-        window.localStorage.removeItem(cartKey);
-      }
-    } catch {
-      /* quota / private mode — non-fatal */
-    }
+    if (hydratedKey !== cartKey) return;
+    saveCart(cartKey, cart);
+    cartTouchedAt.current = cart.length > 0 ? Date.now() : null;
   }, [cart, cartKey, hydratedKey]);
+
+  // The tab somebody left open. Hydration runs once per key, so a laptop
+  // left on the storefront overnight still holds yesterday's basket in
+  // memory long after the stored copy expired. Catch it on the way back to
+  // the foreground.
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const check = () => {
+      if (document.visibilityState !== "visible") return;
+      if (cart.length > 0 && cartIsStale(cartTouchedAt.current)) {
+        dispatch({ type: "CLEAR" });
+        setCartOpen(false);
+      }
+    };
+    document.addEventListener("visibilitychange", check);
+    window.addEventListener("focus", check);
+    return () => {
+      document.removeEventListener("visibilitychange", check);
+      window.removeEventListener("focus", check);
+    };
+  }, [cart.length]);
 
   // Phase AP-5 — "Order again" hand-off from My Orders.
   //
@@ -1525,11 +1538,7 @@ function OrderPage() {
         // basket therefore survived the whole payment and was still sitting
         // there next time the customer opened the site — the "it remembers my
         // last order" complaint.
-        try {
-          window.localStorage.removeItem(cartKey);
-        } catch {
-          /* private mode — the dispatch below still clears the UI */
-        }
+        clearCart(cartKey);
         dispatch({ type: "CLEAR" });
         window.location.href = order.checkoutUrl;
         return;
@@ -2875,11 +2884,7 @@ function OrderPage() {
             // through the reducer — same reason the hosted path does: a
             // customer who reopens the site shouldn't find the order they
             // already paid for still sitting in their cart.
-            try {
-              window.localStorage.removeItem(cartKey);
-            } catch {
-              /* private mode — the dispatch below still clears the UI */
-            }
+            clearCart(cartKey);
             dispatch({ type: "CLEAR" });
             setPendingPayment(null);
             setConfirmedOrderId(pendingPayment.orderId);

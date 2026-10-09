@@ -8,6 +8,7 @@ function whereFor(opts: { role: string; includeTestOrders?: boolean }) {
   const findMany = jest.fn().mockResolvedValue([]);
   const prisma: any = {
     order: { findMany },
+    menuChannelAssignment: { findMany: jest.fn().mockResolvedValue([]) },
     brand: { findMany: jest.fn().mockResolvedValue([]) },
     location: { findMany: jest.fn().mockResolvedValue([]) },
     userLocation: { findMany: jest.fn().mockResolvedValue([]) },

@@ -1,6 +1,7 @@
 import { Module, forwardRef } from "@nestjs/common";
 import { PauseController } from "./pause.controller";
 import { PauseService } from "./pause.service";
+import { PauseReopenCron } from "./pause-reopen.cron";
 import { HubRiseModule } from "../integrations/hubrise/hubrise.module";
 import { DeliverooModule } from "../integrations/deliveroo/deliveroo.module";
 import { UberEatsModule } from "../integrations/ubereats/ubereats.module";
@@ -23,7 +24,7 @@ import { TalabatModule } from "../integrations/talabat/talabat.module";
     TalabatModule,
   ],
   controllers: [PauseController],
-  providers: [PauseService],
+  providers: [PauseService, PauseReopenCron],
   exports: [PauseService],
 })
 export class PauseModule {}

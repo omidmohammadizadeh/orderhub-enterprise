@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
 import { ApiTags, ApiOperation } from "@nestjs/swagger";
 import { TableQrService, type QrOrderItem } from "./table-qr.service";
 import { Public } from "../../common/decorators/public.decorator";
@@ -20,11 +20,19 @@ export class TableQrController {
     return this.qr.resolve(token);
   }
 
+  // `orders` is the phone's own list of ids, comma-separated. It only
+  // applies at a pay-at-the-table shop, which has no tab to read and no
+  // sitting boundary — see the note on myTab(). Ids are checked against
+  // this table, so passing someone else's returns nothing.
   @Get(":token/tab")
   @Public()
   @ApiOperation({ summary: "What's on my table so far" })
-  myTab(@Param("token") token: string) {
-    return this.qr.myTab(token);
+  myTab(@Param("token") token: string, @Query("orders") orders?: string) {
+    const ids = String(orders ?? "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    return this.qr.myTab(token, ids);
   }
 
   @Post(":token/order")
@@ -56,6 +64,9 @@ export class TableQrController {
     @Body()
     body: {
       items: QrOrderItem[];
+      /** Both required on this route: Tap won't take a charge without an
+       *  email, and every prepaying guest is owed a bill that an emailed
+       *  receipt can actually reach. */
       customerName?: string;
       customerEmail?: string;
       notes?: string | null;

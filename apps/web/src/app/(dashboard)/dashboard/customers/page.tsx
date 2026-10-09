@@ -41,6 +41,7 @@ import {
   YAxis,
 } from "recharts";
 import { apiClient } from "@/lib/api/client";
+import { useCurrency } from "@/hooks/use-currency";
 import { useAuthStore } from "@/stores/auth.store";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import {
@@ -107,12 +108,6 @@ function presetRange(p: DatePreset): { from: Date; to: Date } {
   }
 }
 
-const fmtGBP = (n: number) =>
-  new Intl.NumberFormat("en-GB", {
-    style: "currency",
-    currency: "GBP",
-    maximumFractionDigits: 0,
-  }).format(n);
 
 const fmtPct = (n: number) => `${(n * 100).toFixed(1)}%`;
 
@@ -596,6 +591,8 @@ function GroupCard({
   };
   totalRevenue: number;
 }) {
+  // Customer spend is the shop's money, so it follows the shop's currency.
+  const { money } = useCurrency();
   return (
     <div className="rounded-lg border border-zinc-200 bg-white p-4">
       <header className="mb-3 flex items-center gap-2">
@@ -609,7 +606,7 @@ function GroupCard({
       <ul className="space-y-2 text-sm text-zinc-800">
         <li className="flex items-center gap-2">
           <PoundSterling className="h-3.5 w-3.5 text-zinc-400" />
-          <span className="font-semibold">{fmtGBP(detail.revenue)}</span>
+          <span className="font-semibold">{money(detail.revenue)}</span>
           <span className="text-xs text-zinc-500">
             ({fmtPct(detail.revenueShare)} of sales)
           </span>
@@ -617,7 +614,7 @@ function GroupCard({
         <li className="flex items-center gap-2">
           <ShoppingBag className="h-3.5 w-3.5 text-zinc-400" />
           <span>
-            <strong>{fmtGBP(detail.avgOrderValue)}</strong>{" "}
+            <strong>{money(detail.avgOrderValue)}</strong>{" "}
             <span className="text-xs text-zinc-500">avg order value</span>
           </span>
         </li>

@@ -689,6 +689,100 @@ export class MenusService {
     );
   }
 
+  /**
+   * Clone CATEGORIES from another menu into this one — "Clone category" in
+   * the menu editor. Each picked category is created here with the same name
+   * and settings, and every product under it is DEEP-COPIED exactly like a
+   * whole-menu clone: a brand-new product with a fresh PLU, its own copies of
+   * its modifier groups and options (fresh PLUs too). Nothing is shared with
+   * the source, so marking a copy unavailable (inventory / 86) never touches
+   * the original menu's product, and HubRise/JET never see two rows with one
+   * PLU. Import linkage (externalId/platformSource) is deliberately NOT copied.
+   */
+  async cloneCategories(
+    targetMenuId: string,
+    tenantId: string,
+    body: { sourceMenuId?: string; categoryIds?: string[] },
+  ) {
+    const sourceMenuId = String(body?.sourceMenuId ?? "");
+    const wanted = Array.isArray(body?.categoryIds) ? [...new Set(body!.categoryIds!.map(String))] : [];
+    if (!sourceMenuId) throw new BadRequestException("Pick the menu to clone from");
+    if (wanted.length === 0) throw new BadRequestException("Pick at least one category");
+
+    // findOne enforces the tenant on both menus.
+    const target: any = await this.findOne(targetMenuId, tenantId);
+    const source: any = await this.findOne(sourceMenuId, tenantId);
+    const picked = (source.categories ?? []).filter((c: any) => wanted.includes(c.id));
+    if (picked.length === 0) throw new NotFoundException("Those categories are not on that menu");
+
+    const usedPlus = new Set<string>();
+    await this.seedUsedPlus(tenantId, usedPlus);
+    const targetLocationId: string | null = target.locationId ?? null;
+    const existingNames = new Set(
+      (target.categories ?? []).map((c: any) => String(c.name ?? "").trim().toLowerCase()),
+    );
+    let sortOrder =
+      Math.max(-1, ...(target.categories ?? []).map((c: any) => Number(c.sortOrder ?? 0))) + 1;
+
+    return this.prisma.$transaction(
+      async (tx) => {
+        const caches: DeepCopyCaches = { itemBySrc: new Map(), groupBySrc: new Map(), usedPlus };
+        const created: Array<{ id: string; name: string; items: number }> = [];
+        let itemsCopied = 0;
+
+        for (const cat of picked) {
+          let name = String(cat.name ?? "Category");
+          // Same name as an existing category here? Keep both, but tell them apart.
+          if (existingNames.has(name.trim().toLowerCase())) name = `${name} (copy)`;
+          existingNames.add(name.trim().toLowerCase());
+
+          const newCat = await tx.menuCategory.create({
+            data: {
+              menuId: target.id,
+              name,
+              description: cat.description ?? null,
+              secondLanguageName: cat.secondLanguageName ?? null,
+              imageUrl: cat.imageUrl ?? null,
+              sortOrder: sortOrder++,
+              isVisible: cat.isVisible ?? true,
+              available: cat.available ?? true,
+              visibleToCustomers: cat.visibleToCustomers ?? true,
+              availableCollection: cat.availableCollection ?? true,
+              availableDelivery: cat.availableDelivery ?? true,
+              availableDineIn: cat.availableDineIn ?? true,
+            },
+          });
+
+          const linked = new Set<string>();
+          for (const link of cat.items ?? []) {
+            const src = link?.item;
+            if (!src) continue;
+            const isNew = !caches.itemBySrc.has(src.id);
+            // Cached per source item, so a product in two picked categories is
+            // copied once and linked under both.
+            const newItemId = await this.deepCopyItemTx(tx, src, tenantId, targetLocationId, caches);
+            if (isNew) itemsCopied++;
+            if (linked.has(newItemId)) continue;
+            linked.add(newItemId);
+            await tx.menuItemOnCategory.create({
+              data: {
+                categoryId: newCat.id,
+                itemId: newItemId,
+                sortOrder: link.sortOrder ?? 0,
+                priceOverride: link.priceOverride ?? null,
+              },
+            });
+          }
+          created.push({ id: newCat.id, name, items: linked.size });
+        }
+
+        return { categories: created, itemsCopied, groupsCopied: caches.groupBySrc.size };
+      },
+      // Deep-copy writes many rows; same budget as a whole-menu clone.
+      { timeout: 120_000, maxWait: 20_000 },
+    );
+  }
+
   // ── Deep-copy helpers (clone + master menu) ──────────────────────────────
   //
   // A clone/master menu must be FULLY independent: new products, new modifier
