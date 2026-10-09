@@ -75,22 +75,38 @@ describe("registering a shop with JET Go", () => {
     expect(s.client.onboardCollectPoint).not.toHaveBeenCalled();
   });
 
-  it("splits the name into brand and branch, the two halves JET renders", async () => {
-    const { s } = svc();
-    await s.onboard(args);
-    const body = s.client.onboardCollectPoint.mock.calls[0][1];
-    // JET displays this as "Pizza Uno (Pelton)".
-    expect(body.collectPointName).toBe("Pizza Uno");
-    expect(body.locationName).toBe("Pelton");
-  });
-
-  it("doesn't send the same name twice for a single-site brand", async () => {
+  it("names the collect point after the SHOPFRONT, never the brand record", async () => {
+    // Location.brand is routinely a placeholder ("Order Hub") or, on a cloned
+    // site, the brand it was copied from. Registering KINGSTON PIZZA by brand
+    // produced "Order Hub (KINGSTON PIZZA)" and would send riders looking for
+    // a shop that doesn't exist on the high street.
     const { s } = svc({
-      location: LOC({ name: "Pizza Uno", brand: { tenantId: "t1", name: "Pizza Uno" } }),
+      location: LOC({
+        name: "KINGSTON PIZZA",
+        city: "Washington",
+        brand: { tenantId: "t1", name: "Order Hub" },
+      }),
     });
     await s.onboard(args);
     const body = s.client.onboardCollectPoint.mock.calls[0][1];
-    expect(body.collectPointName).toBe("Pizza Uno");
+    expect(body.collectPointName).toBe("KINGSTON PIZZA");
+    expect(body.locationName).toBe("Washington");
+  });
+
+  it("puts the town in the bracket, not the shop name again", async () => {
+    const { s } = svc();
+    await s.onboard(args);
+    const body = s.client.onboardCollectPoint.mock.calls[0][1];
+    // JET displays this as "Pelton (Liverpool)".
+    expect(body.collectPointName).toBe("Pelton");
+    expect(body.locationName).toBe("Liverpool");
+  });
+
+  it("doesn't read \"Shop (Shop)\" when the site is named after its town", async () => {
+    const { s } = svc({ location: LOC({ name: "Liverpool", city: "Liverpool" }) });
+    await s.onboard(args);
+    const body = s.client.onboardCollectPoint.mock.calls[0][1];
+    expect(body.collectPointName).toBe("Liverpool");
     expect(body.locationName).toBe("Liverpool");
   });
 
@@ -143,7 +159,7 @@ describe("resolving the collect point JET created", () => {
     const { s } = svc({
       points: [
         { id: "cp-other", name: "Someone Else", corporateIdentifier: "loc9" },
-        { id: "cp-ours", name: "Pizza Uno (Pelton)", corporateIdentifier: "loc1" },
+        { id: "cp-ours", name: "Pelton (Liverpool)", corporateIdentifier: "loc1" },
       ],
     });
     const r = await s.resolve(args);
@@ -155,7 +171,7 @@ describe("resolving the collect point JET created", () => {
     // Two shops of the same brand in different towns is the normal case, and
     // taking the wrong one sends this shop's food from the other one's door.
     const { s } = svc({
-      points: [{ id: "cp-wrong", name: "Pizza Uno (Pelton)", postalCode: "M1 1AA" }],
+      points: [{ id: "cp-wrong", name: "Pelton (Liverpool)", postalCode: "M1 1AA" }],
     });
     const r = await s.resolve(args);
     expect(r.collectPointId).toBeNull();
@@ -165,8 +181,8 @@ describe("resolving the collect point JET created", () => {
   it("will not guess when two collect points carry the same name", async () => {
     const { s } = svc({
       points: [
-        { id: "cp-a", name: "Pizza Uno (Pelton)", postalCode: "L2 3PS" },
-        { id: "cp-b", name: "Pizza Uno (Pelton)", postalCode: "L2 3PS" },
+        { id: "cp-a", name: "Pelton (Liverpool)", postalCode: "L2 3PS" },
+        { id: "cp-b", name: "Pelton (Liverpool)", postalCode: "L2 3PS" },
       ],
     });
     expect((await s.resolve(args)).pending).toBe(true);
@@ -174,7 +190,7 @@ describe("resolving the collect point JET created", () => {
 
   it("accepts an unambiguous name match when the postcode agrees", async () => {
     const { s, updates } = svc({
-      points: [{ id: "cp-a", name: "Pizza Uno (Pelton)", postalCode: "l23ps" }],
+      points: [{ id: "cp-a", name: "Pelton (Liverpool)", postalCode: "l23ps" }],
     });
     const r = await s.resolve(args);
     expect(r.collectPointId).toBe("cp-a");

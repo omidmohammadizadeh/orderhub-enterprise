@@ -72,16 +72,27 @@ export class JetGoOnboardingService {
     return { location, cfg };
   }
 
-  /** The two halves of the name JET renders as "Brand (Branch)". */
+  /**
+   * The two halves of the name JET renders as "Name (Location)".
+   *
+   * This is what a COURIER reads on their phone, so it has to be the name on
+   * the shopfront. That is `Location.name` — NOT `Location.brand.name`, which
+   * is routinely a placeholder ("Order Hub") or, on a cloned site, the brand
+   * it was copied from. Registering by brand produced
+   * "Order Hub (KINGSTON PIZZA)", sending riders to look for a shop that does
+   * not exist on the high street.
+   *
+   * A virtual estate runs many brands out of one kitchen, and the courier
+   * still collects from the one physical place, so the site always wins.
+   */
   private names(location: any): { collectPointName: string; locationName: string } {
-    const brand = this.str(location.brand?.name);
-    const branch = this.str(location.name);
-    // A single-site brand usually names both the same; sending the same string
-    // twice would read "Pizza Uno (Pizza Uno)" on JET's side.
-    if (!brand || brand.toLowerCase() === branch.toLowerCase()) {
-      return { collectPointName: branch || "Store", locationName: this.str(location.city) || branch || "Store" };
-    }
-    return { collectPointName: brand, locationName: branch || this.str(location.city) || brand };
+    const site = this.str(location.name) || this.str(location.brand?.name) || "Store";
+    const where = this.str(location.city) || this.str(location.postcode);
+    // The bracket is a branch identifier. Repeating the shop name in it reads
+    // "Kingston Pizza (Kingston Pizza)", so fall back only when there is
+    // nothing better.
+    const inBracket = where && where.toLowerCase() !== site.toLowerCase() ? where : site;
+    return { collectPointName: site, locationName: inBracket };
   }
 
   private country(location: any): string {
