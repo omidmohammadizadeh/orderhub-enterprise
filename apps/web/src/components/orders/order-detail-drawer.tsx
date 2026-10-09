@@ -154,9 +154,13 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
   const switchTo =
     (order as any)?.fulfillmentType === "DELIVERY" ? "PICKUP" : "DELIVERY";
 
+  // Any unpaid till order that isn't already on a link/QR (those get "Resend"
+  // above) — not just cash. A collection taken as card-at-the-counter and then
+  // switched to DELIVERY lost its Card/Cash counter buttons and had no way at
+  // all to take payment; the link is exactly what a delivery needs.
   const canSendPaymentLink =
     (order as any)?.orderSource === "POS" &&
-    payMethodUpper === "CASH" &&
+    !isLinkOrQrOrder &&
     ((order as any)?.paymentStatus ?? "").toString().toUpperCase() !== "PAID" &&
     !!(order as any)?.locationId;
   const queryClient = useQueryClient();

@@ -1838,15 +1838,20 @@ export class PaymentsService {
     // driver or the counter is collecting money that is already being paid
     // online. Stripe's webhook settles it to CARD PAID from there.
     //
-    // Only from CASH, and only while unpaid: an order already on a link or a
-    // QR keeps the method it was placed under.
-    if (order.paymentMethod === "CASH") {
+    // Any unpaid method moves onto the link — not just CASH. A collection
+    // taken as "card at the counter" (CARD_TERMINAL) and then switched to
+    // delivery can no longer be paid at the counter, so the link is the only
+    // way left to take the money; leaving it on CARD_TERMINAL had the board
+    // still expecting a card machine at the door. An order already on a link
+    // or a QR keeps the method it was placed under.
+    const current = String(order.paymentMethod ?? "");
+    if (current !== "PAYMENT_LINK" && current !== "QR_CODE") {
       await this.prisma.order.update({
         where: { id: order.id },
         data: { paymentMethod: "PAYMENT_LINK" as any },
       });
       this.logger.log(
-        `Order ${order.id} switched from cash to payment link at the operator's request`,
+        `Order ${order.id} switched from ${current || "no method"} to payment link at the operator's request`,
       );
     }
 
