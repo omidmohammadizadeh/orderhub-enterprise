@@ -92,7 +92,19 @@ export class JetGoOnboardingService {
     // "Kingston Pizza (Kingston Pizza)", so fall back only when there is
     // nothing better.
     const inBracket = where && where.toLowerCase() !== site.toLowerCase() ? where : site;
-    return { collectPointName: site, locationName: inBracket };
+    return { collectPointName: site, locationName: this.tidyTown(inBracket) };
+  }
+
+  /**
+   * "newcastle" → "Newcastle". The town is typed by an operator and lands in
+   * front of a courier exactly as stored.
+   *
+   * Only touched when it is plainly a lower-case name, so a postcode
+   * ("L2 3PS") and anything already capitalised are left alone.
+   */
+  private tidyTown(v: string): string {
+    if (!/^[a-z][a-z\s'-]*$/.test(v)) return v;
+    return v.replace(/(^|[\s'-])([a-z])/g, (_m, sep, c) => sep + c.toUpperCase());
   }
 
   private country(location: any): string {

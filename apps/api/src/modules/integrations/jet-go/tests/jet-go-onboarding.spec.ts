@@ -110,6 +110,22 @@ describe("registering a shop with JET Go", () => {
     expect(body.locationName).toBe("Liverpool");
   });
 
+  it("capitalises a lower-case town but leaves a postcode alone", async () => {
+    // The town is operator-typed and lands in front of a courier as stored.
+    const a = svc({ location: LOC({ name: "KINGSTON PIZZA", city: "newcastle" }) });
+    await a.s.onboard(args);
+    expect(a.s.client.onboardCollectPoint.mock.calls[0][1].locationName).toBe("Newcastle");
+
+    // Onboarding requires a city, but an update doesn't — and there the
+    // bracket falls back to the postcode, which must not be title-cased.
+    const b = svc({
+      location: LOC({ name: "KINGSTON PIZZA", city: "", postcode: "L2 3PS" }),
+      cfg: { collectPointId: "cp-1" },
+    });
+    await b.s.syncDetails(args);
+    expect(b.s.client.updateCollectPoint.mock.calls[0][2].locationName).toBe("L2 3PS");
+  });
+
   it("geocodes a shop that has none rather than sending the operator away", async () => {
     // Only distance-based delivery zones ever write Location.latitude, so a
     // flat-fee shop has no coordinates and "go and save the postcode" would
