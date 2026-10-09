@@ -9,6 +9,7 @@
 
 import { BadRequestException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
+import { DeliveryZonesService } from "../../delivery-zones/delivery-zones.service";
 import {
   JetGoClientService,
   JetGoOnboardCollectPointBody,
@@ -38,6 +39,7 @@ export class JetGoOnboardingService {
     private readonly prisma: PrismaService,
     private readonly client: JetGoClientService,
     private readonly config: JetGoConfigService,
+    private readonly zones: DeliveryZonesService,
   ) {}
 
   private db(): any {
@@ -118,16 +120,34 @@ export class JetGoOnboardingService {
 
     const address = this.str(location.addressLine1);
     const city = this.str(location.city);
-    const lat = Number(location.latitude);
-    const lng = Number(location.longitude);
     if (!address || !city) {
       throw new BadRequestException(
         "This location needs an address line and a city before JET Go can register it.",
       );
     }
+
+    // Geocode here rather than telling the operator to go and do it.
+    //
+    // Nothing else in the app writes Location.latitude — only distance-based
+    // delivery zones do, lazily, on first use — so a shop that charges a flat
+    // delivery fee has no coordinates and never will. Sending them to
+    // "save the postcode" was advice that geocodes nothing, which is exactly
+    // the loop this replaces. locateShop caches the answer, so the second
+    // caller (delivery pricing) gets it free.
+    let lat = Number(location.latitude);
+    let lng = Number(location.longitude);
     if (!Number.isFinite(lat) || !Number.isFinite(lng) || (lat === 0 && lng === 0)) {
-      throw new BadRequestException(
-        "This location has no coordinates yet. Save its postcode in Location settings so it geocodes, then register it.",
+      const geo = await this.zones.locateShop(args.locationId);
+      if (!geo) {
+        throw new BadRequestException(
+          `We couldn't find "${[address, city, this.str(location.postcode)].filter(Boolean).join(", ")}" on the map, ` +
+            "and JET Go needs coordinates to register a collect point. Check the shop's postcode in Location settings.",
+        );
+      }
+      lat = geo.lat;
+      lng = geo.lng;
+      this.logger.log(
+        `JET Go onboarding geocoded location=${args.locationId} → ${lat},${lng}`,
       );
     }
     const phone = this.str(location.phone) || this.str(location.brand?.phone);

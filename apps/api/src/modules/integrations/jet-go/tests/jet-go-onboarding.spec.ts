@@ -22,10 +22,15 @@ const LOC = (over: Row = {}): Row => ({
   ...over,
 });
 
-function svc(over: { location?: Row; cfg?: Row; points?: Row[] } = {}) {
+function svc(over: { location?: Row; cfg?: Row; points?: Row[]; geo?: Row | null } = {}) {
   const updates: Row[] = [];
   const s: any = Object.create(JetGoOnboardingService.prototype);
   s.logger = { log: jest.fn(), warn: jest.fn(), error: jest.fn() };
+  s.zones = {
+    locateShop: jest.fn().mockResolvedValue(
+      over.geo === undefined ? { lat: 53.40824, lng: -2.99145 } : over.geo,
+    ),
+  };
   s.config = {
     getDecrypted: async () => ({
       tenantId: "t1",
@@ -89,9 +94,28 @@ describe("registering a shop with JET Go", () => {
     expect(body.locationName).toBe("Liverpool");
   });
 
-  it("refuses without coordinates — a wrong pin misprices every later delivery", async () => {
+  it("geocodes a shop that has none rather than sending the operator away", async () => {
+    // Only distance-based delivery zones ever write Location.latitude, so a
+    // flat-fee shop has no coordinates and "go and save the postcode" would
+    // geocode nothing — it just loops.
     const { s } = svc({ location: LOC({ latitude: null, longitude: null }) });
-    await expect(s.onboard(args)).rejects.toThrow(/postcode/i);
+    await s.onboard(args);
+    expect(s.zones.locateShop).toHaveBeenCalledWith("loc1");
+    const body = s.client.onboardCollectPoint.mock.calls[0][1];
+    expect(body.location.latitude).toBe(53.40824);
+    expect(body.location.longitude).toBe(-2.99145);
+  });
+
+  it("doesn't re-geocode a shop that already has coordinates", async () => {
+    const { s } = svc();
+    await s.onboard(args);
+    expect(s.zones.locateShop).not.toHaveBeenCalled();
+  });
+
+  it("refuses when the address can't be found — a wrong pin misprices every delivery", async () => {
+    const { s } = svc({ location: LOC({ latitude: null, longitude: null }), geo: null });
+    await expect(s.onboard(args)).rejects.toThrow(/couldn't find/i);
+    expect(s.client.onboardCollectPoint).not.toHaveBeenCalled();
   });
 
   it("stays PENDING when JET accepts but hasn't built the collect point", async () => {
