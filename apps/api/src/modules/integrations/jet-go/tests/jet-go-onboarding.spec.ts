@@ -1,0 +1,176 @@
+import { JetGoOnboardingService } from "../jet-go-onboarding.service";
+
+// Collect-point onboarding. Two things here are worth a test rather than a
+// comment: the country code (JET wants alpha-3, we store alpha-2) and the
+// resolve matching, where picking the wrong collect point would quietly send
+// one shop's deliveries from another shop's door.
+
+type Row = Record<string, any>;
+
+const LOC = (over: Row = {}): Row => ({
+  id: "loc1",
+  name: "Pelton",
+  brand: { tenantId: "t1", name: "Pizza Uno", phone: null },
+  addressLine1: "38 Exchange St E",
+  addressLine2: null,
+  city: "Liverpool",
+  postcode: "L2 3PS",
+  country: "GB",
+  phone: "+447700900000",
+  latitude: 53.40824,
+  longitude: -2.99145,
+  ...over,
+});
+
+function svc(over: { location?: Row; cfg?: Row; points?: Row[] } = {}) {
+  const updates: Row[] = [];
+  const s: any = Object.create(JetGoOnboardingService.prototype);
+  s.logger = { log: jest.fn(), warn: jest.fn(), error: jest.fn() };
+  s.config = {
+    getDecrypted: async () => ({
+      tenantId: "t1",
+      locationId: "loc1",
+      clientId: "id",
+      clientSecret: "sec",
+      collectPointId: null,
+      collectPointName: null,
+      ...(over.cfg ?? {}),
+    }),
+  };
+  s.client = {
+    onboardCollectPoint: jest.fn().mockResolvedValue(undefined),
+    updateCollectPoint: jest.fn().mockResolvedValue(undefined),
+    collectPoints: jest.fn().mockResolvedValue(over.points ?? []),
+  };
+  s.db = () => ({
+    location: { findFirst: async () => over.location ?? LOC() },
+    jetGoConfig: {
+      update: async (a: Row) => {
+        updates.push(a.data);
+        return {};
+      },
+    },
+  });
+  return { s, updates };
+}
+
+const args = { locationId: "loc1", tenantId: "t1" };
+
+describe("registering a shop with JET Go", () => {
+  it("sends the alpha-3 country code JET asks for, not the alpha-2 we store", async () => {
+    const { s } = svc();
+    await s.onboard(args);
+    const body = s.client.onboardCollectPoint.mock.calls[0][1];
+    expect(body.location.country).toBe("GBR");
+  });
+
+  it("refuses a country it has no JET code for rather than guessing one", async () => {
+    const { s } = svc({ location: LOC({ country: "ZZ" }) });
+    await expect(s.onboard(args)).rejects.toThrow(/country code/i);
+    expect(s.client.onboardCollectPoint).not.toHaveBeenCalled();
+  });
+
+  it("splits the name into brand and branch, the two halves JET renders", async () => {
+    const { s } = svc();
+    await s.onboard(args);
+    const body = s.client.onboardCollectPoint.mock.calls[0][1];
+    // JET displays this as "Pizza Uno (Pelton)".
+    expect(body.collectPointName).toBe("Pizza Uno");
+    expect(body.locationName).toBe("Pelton");
+  });
+
+  it("doesn't send the same name twice for a single-site brand", async () => {
+    const { s } = svc({
+      location: LOC({ name: "Pizza Uno", brand: { tenantId: "t1", name: "Pizza Uno" } }),
+    });
+    await s.onboard(args);
+    const body = s.client.onboardCollectPoint.mock.calls[0][1];
+    expect(body.collectPointName).toBe("Pizza Uno");
+    expect(body.locationName).toBe("Liverpool");
+  });
+
+  it("refuses without coordinates — a wrong pin misprices every later delivery", async () => {
+    const { s } = svc({ location: LOC({ latitude: null, longitude: null }) });
+    await expect(s.onboard(args)).rejects.toThrow(/postcode/i);
+  });
+
+  it("stays PENDING when JET accepts but hasn't built the collect point", async () => {
+    // POST /onboarding answers 202 with no id. "Registered" is not "ready".
+    const { s, updates } = svc({ points: [] });
+    const r = await s.onboard(args);
+    expect(r.status).toBe("PENDING");
+    expect(r.collectPointId).toBeNull();
+    expect(updates.some((u) => u.onboardingStatus === "PENDING")).toBe(true);
+  });
+
+  it("records the failure instead of leaving the screen silent", async () => {
+    const { s, updates } = svc();
+    s.client.onboardCollectPoint.mockRejectedValue(
+      new Error("JET Go POST /v1/collect-point/onboarding → 400: Invalid phone number format."),
+    );
+    await expect(s.onboard(args)).rejects.toThrow(/Invalid phone number format/);
+    const failed = updates.find((u) => u.onboardingStatus === "FAILED");
+    expect(failed?.onboardingError).toBe("Invalid phone number format.");
+  });
+});
+
+describe("resolving the collect point JET created", () => {
+  it("matches on the location id we sent, not on the name", async () => {
+    const { s } = svc({
+      points: [
+        { id: "cp-other", name: "Someone Else", corporateIdentifier: "loc9" },
+        { id: "cp-ours", name: "Pizza Uno (Pelton)", corporateIdentifier: "loc1" },
+      ],
+    });
+    const r = await s.resolve(args);
+    expect(r.collectPointId).toBe("cp-ours");
+    expect(r.pending).toBe(false);
+  });
+
+  it("will not accept a name match whose postcode disagrees", async () => {
+    // Two shops of the same brand in different towns is the normal case, and
+    // taking the wrong one sends this shop's food from the other one's door.
+    const { s } = svc({
+      points: [{ id: "cp-wrong", name: "Pizza Uno (Pelton)", postalCode: "M1 1AA" }],
+    });
+    const r = await s.resolve(args);
+    expect(r.collectPointId).toBeNull();
+    expect(r.pending).toBe(true);
+  });
+
+  it("will not guess when two collect points carry the same name", async () => {
+    const { s } = svc({
+      points: [
+        { id: "cp-a", name: "Pizza Uno (Pelton)", postalCode: "L2 3PS" },
+        { id: "cp-b", name: "Pizza Uno (Pelton)", postalCode: "L2 3PS" },
+      ],
+    });
+    expect((await s.resolve(args)).pending).toBe(true);
+  });
+
+  it("accepts an unambiguous name match when the postcode agrees", async () => {
+    const { s, updates } = svc({
+      points: [{ id: "cp-a", name: "Pizza Uno (Pelton)", postalCode: "l23ps" }],
+    });
+    const r = await s.resolve(args);
+    expect(r.collectPointId).toBe("cp-a");
+    expect(updates.some((u) => u.onboardingStatus === "COMPLETE")).toBe(true);
+  });
+});
+
+describe("updating a collect point", () => {
+  it("spells pickUpInstructions the PATCH way, not the POST way", async () => {
+    // POST says PickupInstructions, PATCH says pickUpInstructions. They are
+    // not interchangeable and a wrong key is silently dropped.
+    const { s } = svc({ cfg: { collectPointId: "cp-1" } });
+    await s.syncDetails({ ...args, pickupInstructions: "Side door" });
+    const body = s.client.updateCollectPoint.mock.calls[0][2];
+    expect(body.pickUpInstructions).toBe("Side door");
+    expect((body as Row).PickupInstructions).toBeUndefined();
+  });
+
+  it("refuses before there is anything to update", async () => {
+    const { s } = svc();
+    await expect(s.syncDetails(args)).rejects.toThrow(/register it first/i);
+  });
+});

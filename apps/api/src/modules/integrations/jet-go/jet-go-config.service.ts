@@ -46,6 +46,12 @@ export interface DecryptedJetGoConfig extends JetGoCreds {
   webhookToken: string;
   webhookSecret: string;
   active: boolean;
+  /** Ask JET for a PIN the customer must give the courier to close the job. */
+  requirePinOnDelivery: boolean;
+  /** Age to check at the door, and whether the courier scans ID, when the
+   *  order carries an age-restricted line. */
+  alcoholAgeRestriction: number;
+  alcoholIdScan: boolean;
   /**
    * True when these are OUR credentials, so JET invoices us for the courier and
    * the wallet must recover that cost on top of our margin. False when the
@@ -114,6 +120,12 @@ export class JetGoConfigService {
         clientIdMasked: null,
         collectPointId: null,
         collectPointName: null,
+        requirePinOnDelivery: false,
+        alcoholAgeRestriction: 18,
+        alcoholIdScan: true,
+        onboardingStatus: null,
+        onboardingReference: null,
+        onboardingError: null,
         /** Dispatch needs all three: credentials, a collect point, and active. */
         readyToDispatch: false,
       };
@@ -135,6 +147,12 @@ export class JetGoConfigService {
       clientIdMasked: id ? `${id.slice(0, 4)}…${id.slice(-4)}` : null,
       collectPointId: row.collectPointId,
       collectPointName: row.collectPointName,
+      requirePinOnDelivery: Boolean(row.requirePinOnDelivery),
+      alcoholAgeRestriction: Number(row.alcoholAgeRestriction) || 18,
+      alcoholIdScan: row.alcoholIdScan ?? true,
+      onboardingStatus: row.onboardingStatus ?? null,
+      onboardingReference: row.onboardingReference ?? null,
+      onboardingError: row.onboardingError ?? null,
       readyToDispatch: Boolean(row.active && row.collectPointId),
     };
   }
@@ -259,6 +277,47 @@ export class JetGoConfigService {
     return { ok: true, collectPointId: id };
   }
 
+  /**
+   * PIN proof of delivery and alcohol handling for this location.
+   *
+   * Both change what the courier is told to do at the door, so they are
+   * deliberately explicit rather than inferred: a shop that sells beer and
+   * never ticks the item is the one that loses its licence, not us.
+   */
+  async setDeliveryOptions(
+    locationId: string,
+    tenantId: string,
+    dto: {
+      requirePinOnDelivery?: boolean;
+      alcoholAgeRestriction?: number;
+      alcoholIdScan?: boolean;
+    },
+  ) {
+    await this.assertLocation(locationId, tenantId);
+    const row = await this.db().jetGoConfig.findUnique({
+      where: { locationId },
+      select: { id: true },
+    });
+    if (!row) {
+      throw new BadRequestException("Add your JET Go credentials before changing these.");
+    }
+    const data: Record<string, any> = {};
+    if (dto.requirePinOnDelivery !== undefined) {
+      data.requirePinOnDelivery = Boolean(dto.requirePinOnDelivery);
+    }
+    if (dto.alcoholIdScan !== undefined) data.alcoholIdScan = Boolean(dto.alcoholIdScan);
+    if (dto.alcoholAgeRestriction !== undefined) {
+      const age = Number(dto.alcoholAgeRestriction);
+      if (!Number.isInteger(age) || age < 16 || age > 25) {
+        throw new BadRequestException("Age restriction must be a whole number between 16 and 25.");
+      }
+      data.alcoholAgeRestriction = age;
+    }
+    if (!Object.keys(data).length) return { ok: true };
+    await this.db().jetGoConfig.update({ where: { locationId }, data });
+    return { ok: true, ...data };
+  }
+
   async setActive(locationId: string, tenantId: string, active: boolean) {
     await this.assertLocation(locationId, tenantId);
     const row = await this.db().jetGoConfig.findUnique({
@@ -325,6 +384,11 @@ export class JetGoConfigService {
       webhookToken: row.webhookToken,
       webhookSecret: row.webhookSecret ?? "",
       active: row.active,
+      requirePinOnDelivery: Boolean(row.requirePinOnDelivery),
+      // Fall back to JET's own defaults rather than 0/false, so a row written
+      // before these columns existed still asks for a legal check.
+      alcoholAgeRestriction: Number(row.alcoholAgeRestriction) || 18,
+      alcoholIdScan: row.alcoholIdScan ?? true,
       reseller: Boolean(platform),
     };
   }

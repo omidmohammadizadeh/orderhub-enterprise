@@ -162,6 +162,38 @@ export class JetGoDispatchService {
     return new Date(t).toISOString();
   }
 
+  /**
+   * The strictest age restriction on this order, or 0 if there is none.
+   *
+   * Reads `MenuItem.minAge` — the flag retail, Talabat and the voice line
+   * already use — rather than a JET-specific one, so a shop ticks an item as
+   * age-restricted ONCE and every channel honours it.
+   *
+   * JET's only lever for "check ID at the door" is `hasAlcohol`, so that is
+   * what an age-restricted line sets, whether the item is beer or a carving
+   * knife. The effect we need is identical and there is no generic field.
+   *
+   * Via the menu item, not the order line: the line is a copy taken at
+   * checkout, and a shop that flags a product afterwards would never be
+   * believed. Lines with no menuItemId (imported marketplace orders) can't be
+   * checked this way — `metadata.hasAlcohol` is the override for those.
+   */
+  private async orderMinAge(orderId: string): Promise<number> {
+    const lines = await this.db().orderItem.findMany({
+      where: { orderId },
+      select: { menuItemId: true },
+    });
+    const ids = Array.from(
+      new Set(lines.map((l: any) => l.menuItemId).filter(Boolean) as string[]),
+    );
+    if (!ids.length) return 0;
+    const rows = await this.db().menuItem.findMany({
+      where: { id: { in: ids }, minAge: { not: null } },
+      select: { minAge: true },
+    });
+    return rows.reduce((max: number, r: any) => Math.max(max, Number(r.minAge) || 0), 0);
+  }
+
   private async buildEstimateBody(
     order: any,
     location: any,
@@ -236,10 +268,20 @@ export class JetGoDispatchService {
       );
     }
 
-    // Alcohol. We have no per-item alcohol flag, so we only claim it when the
-    // order explicitly says so — and we never claim the opposite is verified.
+    // Alcohol. Read from the menu items actually on the order; the metadata
+    // flag stays as an override for orders that arrive from a channel with no
+    // menu item behind the line (marketplace imports, voice).
     const meta = (order.metadata ?? {}) as Record<string, any>;
-    const hasAlcohol = meta.hasAlcohol === true;
+    const itemAge = await this.orderMinAge(order.id);
+    const hasAlcohol = meta.hasAlcohol === true || itemAge > 0;
+    // The item's own restriction wins when it is stricter than the shop's
+    // default: an 18 item on a shop set to 16 must still be checked at 18.
+    const ageRestriction = Math.max(itemAge, cfg.alcoholAgeRestriction);
+    if (hasAlcohol) {
+      warnings.push(
+        `This order has an age-restricted item. The courier will ask for ID and refuse the handover to anyone under ${ageRestriction}.`,
+      );
+    }
 
     const body: JetGoEstimateBody = {
       collect: { id: cfg.collectPointId },
@@ -267,13 +309,28 @@ export class JetGoDispatchService {
         // accepts it, and sending it keeps one code path.
         preparationDuration: prep,
         hasAlcohol,
-        ...(hasAlcohol ? { ageRestriction: 18 } : {}),
+        // JET only accepts these two when hasAlcohol is true — ageRestriction
+        // is required alongside it, and ageVerificationWithId is documented as
+        // "only supported when hasAlcohol is true".
+        ...(hasAlcohol
+          ? {
+              ageRestriction,
+              ageVerificationWithId: cfg.alcoholIdScan,
+            }
+          : {}),
       },
       deliveryOptions: {
         // A courier who can't find the customer should hand the food back rather
         // than leave a paid order on a doorstep we can't prove.
         ...(isEu ? {} : { unreachablePreference: "RETURN" as const }),
         dropoffAction: "MEET_AT_DOOR" as const,
+        // PIN proof of delivery. JET generates the code and sends it to US on
+        // the PROOFOFDELIVERY webhook — it never reaches the customer on its
+        // own, so asking for one without showing it to them would simply stop
+        // the courier being able to close the job.
+        ...(cfg.requirePinOnDelivery
+          ? { proofOfDelivery: { pinCode: { type: "DSP_GENERATED" as const } } }
+          : {}),
       },
       ...(advance ? { targetDeliverTime: advance } : {}),
     };

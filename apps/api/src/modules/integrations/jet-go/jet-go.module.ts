@@ -6,6 +6,7 @@ import { GeocodingService } from "../../dispatch/geocoding.service";
 import { JetGoClientService } from "./jet-go-client.service";
 import { JetGoConfigService } from "./jet-go-config.service";
 import { JetGoDispatchService } from "./jet-go-dispatch.service";
+import { JetGoOnboardingService } from "./jet-go-onboarding.service";
 import { JetGoWebhookService } from "./jet-go-webhook.service";
 import { JetGoController } from "./jet-go.controller";
 import { JetGoWebhookController } from "./jet-go-webhook.controller";
@@ -22,6 +23,7 @@ import { JetGoWebhookController } from "./jet-go-webhook.controller";
     JetGoClientService,
     JetGoConfigService,
     JetGoDispatchService,
+    JetGoOnboardingService,
     JetGoWebhookService,
     CredentialEncryptionService,
     GeocodingService,

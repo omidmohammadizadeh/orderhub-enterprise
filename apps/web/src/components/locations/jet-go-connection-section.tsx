@@ -141,11 +141,92 @@ export function JetGoConnectionSection({ locationId }: { locationId: string }) {
       if (!r.ok) setPointsErr(r.message ?? "Couldn't load collect points.");
       else if ((r.collectPoints ?? []).length === 0) {
         setPointsErr(
-          "JET Go returned no collect points for these credentials. Ask the JET Go team to onboard this shop as a collect point.",
+          "JET Go has no collect points for these credentials yet. Use “Register this shop” below to create one.",
         );
       }
     } catch (e: any) {
       setPointsErr(e?.response?.data?.message ?? "Couldn't load collect points.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  /**
+   * Register this shop with JET Go.
+   *
+   * JET answers 202 — accepted, not created — so a successful call usually
+   * leaves us PENDING with no collect point. The message says so rather than
+   * implying the shop can now dispatch.
+   */
+  async function onboard() {
+    setBusy("onboard");
+    setMsg(null);
+    setPointsErr(null);
+    try {
+      const r = await jetGoClient.onboardCollectPoint(locationId);
+      setMsg(
+        r.collectPointId
+          ? { kind: "ok", text: `Registered — this shop collects from “${r.collectPointName ?? r.collectPointId}”.` }
+          : {
+              kind: "ok",
+              text: `Sent to JET Go (reference ${r.referenceId ?? "—"}). They create the collect point at their end; press “Check again” in a few minutes.`,
+            },
+      );
+      await load();
+    } catch (e) {
+      fail(e, "Couldn't register this shop with JET Go.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function checkOnboarding() {
+    setBusy("resolve");
+    setMsg(null);
+    try {
+      const r = await jetGoClient.resolveCollectPoint(locationId);
+      setMsg(
+        r.pending
+          ? {
+              kind: "err",
+              text: "JET Go hasn't created the collect point yet. This can take a while — try again shortly.",
+            }
+          : { kind: "ok", text: `Ready — collecting from “${r.collectPointName ?? r.collectPointId}”.` },
+      );
+      await load();
+    } catch (e) {
+      fail(e, "Couldn't check the registration.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function syncDetails() {
+    setBusy("sync");
+    setMsg(null);
+    try {
+      await jetGoClient.syncCollectPoint(locationId);
+      setMsg({ kind: "ok", text: "JET Go now has this shop's current address and phone number." });
+      await load();
+    } catch (e) {
+      fail(e, "Couldn't update the collect point.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function saveOptions(patch: {
+    requirePinOnDelivery?: boolean;
+    alcoholAgeRestriction?: number;
+    alcoholIdScan?: boolean;
+  }) {
+    setBusy("options");
+    setMsg(null);
+    try {
+      await jetGoClient.setDeliveryOptions(locationId, patch);
+      await load();
+    } catch (e) {
+      fail(e, "Couldn't save the delivery options.");
     } finally {
       setBusy(null);
     }
@@ -437,6 +518,55 @@ export function JetGoConnectionSection({ locationId }: { locationId: string }) {
             </div>
           )}
 
+          {/* Register with JET rather than emailing them. JET accepts the form
+              (202) and builds the collect point afterwards, so "registered" and
+              "ready" are two different states and the screen says which. */}
+          <div className="flex flex-wrap items-center gap-2">
+            {!cfg.collectPointId && (
+              <button
+                type="button"
+                onClick={onboard}
+                disabled={busy !== null}
+                className="rounded-md bg-violet-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-violet-500 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600"
+              >
+                {busy === "onboard" ? "Registering…" : "Register this shop"}
+              </button>
+            )}
+            {cfg.onboardingStatus === "PENDING" && !cfg.collectPointId && (
+              <button
+                type="button"
+                onClick={checkOnboarding}
+                disabled={busy !== null}
+                className="rounded-md border border-zinc-200 px-2.5 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600"
+              >
+                {busy === "resolve" ? "Checking…" : "Check again"}
+              </button>
+            )}
+            {cfg.collectPointId && (
+              <button
+                type="button"
+                onClick={syncDetails}
+                disabled={busy !== null}
+                className="rounded-md border border-zinc-200 px-2.5 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600"
+              >
+                {busy === "sync" ? "Updating…" : "Update details at JET"}
+              </button>
+            )}
+          </div>
+
+          {cfg.onboardingStatus === "PENDING" && !cfg.collectPointId && (
+            <p className="text-[11px] text-zinc-500">
+              Registered with JET Go
+              {cfg.onboardingReference ? ` (reference ${cfg.onboardingReference})` : ""} — waiting
+              for them to create the collect point. Nothing can be dispatched until it appears.
+            </p>
+          )}
+          {cfg.onboardingStatus === "FAILED" && cfg.onboardingError && (
+            <p role="alert" className="text-[11px] text-red-600">
+              JET Go refused the last registration: {cfg.onboardingError}
+            </p>
+          )}
+
           {pointsErr && (
             <p role="alert" className="text-[11px] text-red-600">
               {pointsErr}
@@ -473,6 +603,67 @@ export function JetGoConnectionSection({ locationId }: { locationId: string }) {
               })}
             </div>
           )}
+        </div>
+      )}
+
+      {/* 2b — what the courier is told to do at the door */}
+      {cfg?.configured && (
+        <div className="space-y-2.5 border-t border-zinc-100 pt-3">
+          <p className="text-[11px] font-medium text-zinc-600">At the door</p>
+
+          <label className="flex items-start gap-2 text-[11px] text-zinc-600">
+            <input
+              type="checkbox"
+              checked={cfg.requirePinOnDelivery}
+              disabled={busy !== null}
+              onChange={(e) => saveOptions({ requirePinOnDelivery: e.target.checked })}
+              className="mt-0.5 h-3.5 w-3.5 rounded border-zinc-300 text-violet-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600"
+            />
+            <span>
+              <strong className="font-medium text-zinc-700">Require a PIN on delivery.</strong>{" "}
+              JET generates a code the customer must read out before the courier can close the
+              job. The code is sent to us, not to the customer — it shows on the order, so
+              whoever takes the order has to pass it on.
+            </span>
+          </label>
+
+          <div className="rounded-md bg-zinc-50 px-2.5 py-2">
+            <p className="text-[11px] text-zinc-600">
+              <strong className="font-medium text-zinc-700">Age-restricted items.</strong>{" "}
+              Applied only to orders carrying an item with a minimum age set in the menu. The
+              item&apos;s own age wins when it is higher than this one, and JET is never told an
+              order is age-restricted unless an item says so.
+            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-3">
+              <label className="flex items-center gap-1.5 text-[11px] text-zinc-600">
+                Minimum age at the door
+                <input
+                  type="number"
+                  min={16}
+                  max={25}
+                  defaultValue={cfg.alcoholAgeRestriction}
+                  disabled={busy !== null}
+                  onBlur={(e) => {
+                    const age = Number(e.target.value);
+                    if (Number.isInteger(age) && age !== cfg.alcoholAgeRestriction) {
+                      saveOptions({ alcoholAgeRestriction: age });
+                    }
+                  }}
+                  className="w-16 rounded-md border border-zinc-200 px-2 py-1 text-[11px] text-zinc-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600"
+                />
+              </label>
+              <label className="flex items-center gap-1.5 text-[11px] text-zinc-600">
+                <input
+                  type="checkbox"
+                  checked={cfg.alcoholIdScan}
+                  disabled={busy !== null}
+                  onChange={(e) => saveOptions({ alcoholIdScan: e.target.checked })}
+                  className="h-3.5 w-3.5 rounded border-zinc-300 text-violet-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600"
+                />
+                Courier scans ID
+              </label>
+            </div>
+          </div>
         </div>
       )}
 

@@ -21,8 +21,29 @@ export interface JetGoConfig {
   clientIdMasked: string | null;
   collectPointId: string | null;
   collectPointName: string | null;
+  /** Ask JET for a PIN the customer must read out before the courier can close
+   *  the job. JET sends the code to US, never to the customer. */
+  requirePinOnDelivery: boolean;
+  /** Applied only when a line on the order is flagged as containing alcohol. */
+  alcoholAgeRestriction: number;
+  alcoholIdScan: boolean;
+  /** PENDING = registration submitted, JET hasn't produced a collect point yet. */
+  onboardingStatus: string | null;
+  onboardingReference: string | null;
+  onboardingError: string | null;
   /** Credentials AND a collect point AND active. Dispatch needs all three. */
   readyToDispatch: boolean;
+}
+
+export interface JetGoOnboardResult {
+  referenceId?: string;
+  status?: string;
+  collectPointId: string | null;
+  collectPointName: string | null;
+  /** True while JET has accepted the registration but not yet created the
+   *  collect point — the location cannot dispatch until this clears. */
+  pending: boolean;
+  candidates?: number;
 }
 
 export interface JetGoCollectPoint {
@@ -112,6 +133,49 @@ export const jetGoClient = {
   webhookStatus: (locationId: string) =>
     apiClient
       .get<JetGoWebhookStatus>(`/v1/jet-go/locations/${locationId}/webhook-status`)
+      .then((r) => r.data),
+
+  /** Register this location with JET Go. Answers 202 at JET's end, so the
+   *  collect point id usually arrives on a later resolve() rather than here. */
+  onboardCollectPoint: (
+    locationId: string,
+    body: { email?: string; pickupInstructions?: string; force?: boolean } = {},
+  ) =>
+    apiClient
+      .post<JetGoOnboardResult>(
+        `/v1/jet-go/locations/${locationId}/onboard-collect-point`,
+        body,
+      )
+      .then((r) => r.data),
+
+  /** Has JET created it yet? Stores the id when it has. */
+  resolveCollectPoint: (locationId: string) =>
+    apiClient
+      .post<JetGoOnboardResult>(
+        `/v1/jet-go/locations/${locationId}/resolve-collect-point`,
+        {},
+      )
+      .then((r) => r.data),
+
+  /** Push the location's current address and contact details to JET. */
+  syncCollectPoint: (locationId: string, pickupInstructions?: string) =>
+    apiClient
+      .post<{ ok: boolean; collectPointId: string }>(
+        `/v1/jet-go/locations/${locationId}/sync-collect-point`,
+        { pickupInstructions },
+      )
+      .then((r) => r.data),
+
+  setDeliveryOptions: (
+    locationId: string,
+    body: {
+      requirePinOnDelivery?: boolean;
+      alcoholAgeRestriction?: number;
+      alcoholIdScan?: boolean;
+    },
+  ) =>
+    apiClient
+      .put(`/v1/jet-go/locations/${locationId}/delivery-options`, body)
       .then((r) => r.data),
 
   toggle: (locationId: string, active: boolean) =>

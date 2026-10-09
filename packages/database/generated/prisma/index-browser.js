@@ -2203,6 +2203,13 @@ exports.Prisma.JetGoConfigScalarFieldEnum = {
   webhookToken: 'webhookToken',
   webhookSecret: 'webhookSecret',
   active: 'active',
+  requirePinOnDelivery: 'requirePinOnDelivery',
+  alcoholAgeRestriction: 'alcoholAgeRestriction',
+  alcoholIdScan: 'alcoholIdScan',
+  onboardingReference: 'onboardingReference',
+  onboardingStatus: 'onboardingStatus',
+  onboardingError: 'onboardingError',
+  onboardingAt: 'onboardingAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -3981,7 +3988,10 @@ exports.Prisma.JetGoConfigOrderByRelevanceFieldEnum = {
   collectPointId: 'collectPointId',
   collectPointName: 'collectPointName',
   webhookToken: 'webhookToken',
-  webhookSecret: 'webhookSecret'
+  webhookSecret: 'webhookSecret',
+  onboardingReference: 'onboardingReference',
+  onboardingStatus: 'onboardingStatus',
+  onboardingError: 'onboardingError'
 };
 
 exports.Prisma.YangoConfigOrderByRelevanceFieldEnum = {

@@ -510,6 +510,41 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
             );
           })()}
 
+        {/* JET Go PIN proof of delivery.
+            JET generates the code and sends it to US — it never reaches the
+            customer on its own. If nobody here passes it on, the courier turns
+            up and cannot close the job, so this sits above the courier panel
+            and is big enough to read out over the phone. */}
+        {(() => {
+          const jetGo = ((order as any).metadata?.jetGo ?? {}) as Record<string, any>;
+          const pin = typeof jetGo.pinCode === "string" ? jetGo.pinCode.trim() : "";
+          if (!pin) return null;
+          const status = String(jetGo.pinStatus ?? "").toUpperCase();
+          return (
+            <div className="border-b border-zinc-100 px-5 py-4">
+              <div className="rounded-lg border border-violet-200 bg-violet-50 px-4 py-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-violet-700">
+                      Delivery PIN
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-violet-800">
+                      {status === "VALID"
+                        ? "The courier has entered this code — the handover is done."
+                        : status === "INVALID"
+                          ? "A courier entered the wrong code. Read it out again before they leave."
+                          : "Give this to the customer. The courier cannot complete the delivery without it."}
+                    </p>
+                  </div>
+                  <span className="shrink-0 font-mono text-2xl font-bold tracking-[0.2em] text-violet-900">
+                    {pin}
+                  </span>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Phase AV-2 — Courier panel for PLATFORM orders. Populated
             from HubRise delivery.* webhooks. The phone number is a
             tel: link so the operator can call the driver in one tap

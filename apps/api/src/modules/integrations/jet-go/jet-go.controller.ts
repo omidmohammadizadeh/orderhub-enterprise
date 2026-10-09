@@ -18,6 +18,7 @@ import type { AuthenticatedUser } from "../../auth/interfaces/jwt-payload.interf
 import { JetGoConfigService } from "./jet-go-config.service";
 import { JetGoDispatchService } from "./jet-go-dispatch.service";
 import { JetGoClientService } from "./jet-go-client.service";
+import { JetGoOnboardingService } from "./jet-go-onboarding.service";
 
 const SIMULATE_STEPS = [
   "ASSIGNED",
@@ -46,6 +47,21 @@ class CollectPointDto {
   @IsString() collectPointId!: string;
   @IsOptional() @IsString() collectPointName?: string;
 }
+class OnboardCollectPointDto {
+  @IsOptional() @IsString() email?: string;
+  @IsOptional() @IsString() pickupInstructions?: string;
+  /** Re-register a location that already has a collect point. JET support asks
+   *  for this occasionally; it is never the normal path. */
+  @IsOptional() @IsBoolean() force?: boolean;
+}
+class SyncCollectPointDto {
+  @IsOptional() @IsString() pickupInstructions?: string;
+}
+class DeliveryOptionsDto {
+  @IsOptional() @IsBoolean() requirePinOnDelivery?: boolean;
+  @IsOptional() @IsInt() @Min(16) @Max(25) alcoholAgeRestriction?: number;
+  @IsOptional() @IsBoolean() alcoholIdScan?: boolean;
+}
 class SimulateDto {
   @IsOptional() @IsIn(SIMULATE_STEPS) deliveryStep?: string;
   // JET's own bounds: 0–300000ms between steps.
@@ -61,6 +77,7 @@ export class JetGoController {
     private readonly dispatch: JetGoDispatchService,
     private readonly client: JetGoClientService,
     private readonly cfg: ConfigService,
+    private readonly onboarding: JetGoOnboardingService,
   ) {}
 
   private apiBase(): string {
@@ -199,6 +216,61 @@ export class JetGoController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.config.setActive(locationId, user.tenantId, !!dto.active);
+  }
+
+  @Post("locations/:locationId/onboard-collect-point")
+  @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "FINANCIAL_AGENT")
+  @ApiOperation({ summary: "Register this location with JET Go as a collect point" })
+  onboardCollectPoint(
+    @Param("locationId") locationId: string,
+    @Body() dto: OnboardCollectPointDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.onboarding.onboard({
+      locationId,
+      tenantId: user.tenantId,
+      email: dto.email,
+      pickupInstructions: dto.pickupInstructions,
+      force: dto.force,
+    });
+  }
+
+  @Post("locations/:locationId/resolve-collect-point")
+  @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "FINANCIAL_AGENT")
+  @ApiOperation({
+    summary: "Check whether JET has created the collect point yet, and store its id",
+  })
+  resolveCollectPoint(
+    @Param("locationId") locationId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.onboarding.resolve({ locationId, tenantId: user.tenantId });
+  }
+
+  @Post("locations/:locationId/sync-collect-point")
+  @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "FINANCIAL_AGENT")
+  @ApiOperation({ summary: "Push this location's address and contact details to JET Go" })
+  syncCollectPoint(
+    @Param("locationId") locationId: string,
+    @Body() dto: SyncCollectPointDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.onboarding.syncDetails({
+      locationId,
+      tenantId: user.tenantId,
+      pickupInstructions: dto.pickupInstructions,
+    });
+  }
+
+  @Put("locations/:locationId/delivery-options")
+  @Roles("PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "FINANCIAL_AGENT")
+  @ApiOperation({ summary: "PIN proof of delivery and alcohol handling for this location" })
+  setDeliveryOptions(
+    @Param("locationId") locationId: string,
+    @Body() dto: DeliveryOptionsDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.config.setDeliveryOptions(locationId, user.tenantId, dto);
   }
 
   @Post("orders/:orderId/quote")

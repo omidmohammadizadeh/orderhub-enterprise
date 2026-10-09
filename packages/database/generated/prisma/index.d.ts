@@ -150289,8 +150289,18 @@ export namespace Prisma {
 
   export type AggregateJetGoConfig = {
     _count: JetGoConfigCountAggregateOutputType | null
+    _avg: JetGoConfigAvgAggregateOutputType | null
+    _sum: JetGoConfigSumAggregateOutputType | null
     _min: JetGoConfigMinAggregateOutputType | null
     _max: JetGoConfigMaxAggregateOutputType | null
+  }
+
+  export type JetGoConfigAvgAggregateOutputType = {
+    alcoholAgeRestriction: number | null
+  }
+
+  export type JetGoConfigSumAggregateOutputType = {
+    alcoholAgeRestriction: number | null
   }
 
   export type JetGoConfigMinAggregateOutputType = {
@@ -150304,6 +150314,13 @@ export namespace Prisma {
     webhookToken: string | null
     webhookSecret: string | null
     active: boolean | null
+    requirePinOnDelivery: boolean | null
+    alcoholAgeRestriction: number | null
+    alcoholIdScan: boolean | null
+    onboardingReference: string | null
+    onboardingStatus: string | null
+    onboardingError: string | null
+    onboardingAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -150319,6 +150336,13 @@ export namespace Prisma {
     webhookToken: string | null
     webhookSecret: string | null
     active: boolean | null
+    requirePinOnDelivery: boolean | null
+    alcoholAgeRestriction: number | null
+    alcoholIdScan: boolean | null
+    onboardingReference: string | null
+    onboardingStatus: string | null
+    onboardingError: string | null
+    onboardingAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -150335,11 +150359,26 @@ export namespace Prisma {
     webhookToken: number
     webhookSecret: number
     active: number
+    requirePinOnDelivery: number
+    alcoholAgeRestriction: number
+    alcoholIdScan: number
+    onboardingReference: number
+    onboardingStatus: number
+    onboardingError: number
+    onboardingAt: number
     createdAt: number
     updatedAt: number
     _all: number
   }
 
+
+  export type JetGoConfigAvgAggregateInputType = {
+    alcoholAgeRestriction?: true
+  }
+
+  export type JetGoConfigSumAggregateInputType = {
+    alcoholAgeRestriction?: true
+  }
 
   export type JetGoConfigMinAggregateInputType = {
     id?: true
@@ -150352,6 +150391,13 @@ export namespace Prisma {
     webhookToken?: true
     webhookSecret?: true
     active?: true
+    requirePinOnDelivery?: true
+    alcoholAgeRestriction?: true
+    alcoholIdScan?: true
+    onboardingReference?: true
+    onboardingStatus?: true
+    onboardingError?: true
+    onboardingAt?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -150367,6 +150413,13 @@ export namespace Prisma {
     webhookToken?: true
     webhookSecret?: true
     active?: true
+    requirePinOnDelivery?: true
+    alcoholAgeRestriction?: true
+    alcoholIdScan?: true
+    onboardingReference?: true
+    onboardingStatus?: true
+    onboardingError?: true
+    onboardingAt?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -150383,6 +150436,13 @@ export namespace Prisma {
     webhookToken?: true
     webhookSecret?: true
     active?: true
+    requirePinOnDelivery?: true
+    alcoholAgeRestriction?: true
+    alcoholIdScan?: true
+    onboardingReference?: true
+    onboardingStatus?: true
+    onboardingError?: true
+    onboardingAt?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -150426,6 +150486,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
+     * Select which fields to average
+    **/
+    _avg?: JetGoConfigAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: JetGoConfigSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: JetGoConfigMinAggregateInputType
@@ -150456,6 +150528,8 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: JetGoConfigCountAggregateInputType | true
+    _avg?: JetGoConfigAvgAggregateInputType
+    _sum?: JetGoConfigSumAggregateInputType
     _min?: JetGoConfigMinAggregateInputType
     _max?: JetGoConfigMaxAggregateInputType
   }
@@ -150472,9 +150546,18 @@ export namespace Prisma {
     webhookToken: string
     webhookSecret: string
     active: boolean
+    requirePinOnDelivery: boolean
+    alcoholAgeRestriction: number
+    alcoholIdScan: boolean
+    onboardingReference: string | null
+    onboardingStatus: string | null
+    onboardingError: string | null
+    onboardingAt: Date | null
     createdAt: Date
     updatedAt: Date
     _count: JetGoConfigCountAggregateOutputType | null
+    _avg: JetGoConfigAvgAggregateOutputType | null
+    _sum: JetGoConfigSumAggregateOutputType | null
     _min: JetGoConfigMinAggregateOutputType | null
     _max: JetGoConfigMaxAggregateOutputType | null
   }
@@ -150505,6 +150588,13 @@ export namespace Prisma {
     webhookToken?: boolean
     webhookSecret?: boolean
     active?: boolean
+    requirePinOnDelivery?: boolean
+    alcoholAgeRestriction?: boolean
+    alcoholIdScan?: boolean
+    onboardingReference?: boolean
+    onboardingStatus?: boolean
+    onboardingError?: boolean
+    onboardingAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     location?: boolean | LocationDefaultArgs<ExtArgs>
@@ -150522,6 +150612,13 @@ export namespace Prisma {
     webhookToken?: boolean
     webhookSecret?: boolean
     active?: boolean
+    requirePinOnDelivery?: boolean
+    alcoholAgeRestriction?: boolean
+    alcoholIdScan?: boolean
+    onboardingReference?: boolean
+    onboardingStatus?: boolean
+    onboardingError?: boolean
+    onboardingAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     location?: boolean | LocationDefaultArgs<ExtArgs>
@@ -150539,6 +150636,13 @@ export namespace Prisma {
     webhookToken?: boolean
     webhookSecret?: boolean
     active?: boolean
+    requirePinOnDelivery?: boolean
+    alcoholAgeRestriction?: boolean
+    alcoholIdScan?: boolean
+    onboardingReference?: boolean
+    onboardingStatus?: boolean
+    onboardingError?: boolean
+    onboardingAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -150567,6 +150671,13 @@ export namespace Prisma {
       webhookToken: string
       webhookSecret: string
       active: boolean
+      requirePinOnDelivery: boolean
+      alcoholAgeRestriction: number
+      alcoholIdScan: boolean
+      onboardingReference: string | null
+      onboardingStatus: string | null
+      onboardingError: string | null
+      onboardingAt: Date | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["jetGoConfig"]>
@@ -150974,6 +151085,13 @@ export namespace Prisma {
     readonly webhookToken: FieldRef<"JetGoConfig", 'String'>
     readonly webhookSecret: FieldRef<"JetGoConfig", 'String'>
     readonly active: FieldRef<"JetGoConfig", 'Boolean'>
+    readonly requirePinOnDelivery: FieldRef<"JetGoConfig", 'Boolean'>
+    readonly alcoholAgeRestriction: FieldRef<"JetGoConfig", 'Int'>
+    readonly alcoholIdScan: FieldRef<"JetGoConfig", 'Boolean'>
+    readonly onboardingReference: FieldRef<"JetGoConfig", 'String'>
+    readonly onboardingStatus: FieldRef<"JetGoConfig", 'String'>
+    readonly onboardingError: FieldRef<"JetGoConfig", 'String'>
+    readonly onboardingAt: FieldRef<"JetGoConfig", 'DateTime'>
     readonly createdAt: FieldRef<"JetGoConfig", 'DateTime'>
     readonly updatedAt: FieldRef<"JetGoConfig", 'DateTime'>
   }
@@ -181550,6 +181668,13 @@ export namespace Prisma {
     webhookToken: 'webhookToken',
     webhookSecret: 'webhookSecret',
     active: 'active',
+    requirePinOnDelivery: 'requirePinOnDelivery',
+    alcoholAgeRestriction: 'alcoholAgeRestriction',
+    alcoholIdScan: 'alcoholIdScan',
+    onboardingReference: 'onboardingReference',
+    onboardingStatus: 'onboardingStatus',
+    onboardingError: 'onboardingError',
+    onboardingAt: 'onboardingAt',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -183796,7 +183921,10 @@ export namespace Prisma {
     collectPointId: 'collectPointId',
     collectPointName: 'collectPointName',
     webhookToken: 'webhookToken',
-    webhookSecret: 'webhookSecret'
+    webhookSecret: 'webhookSecret',
+    onboardingReference: 'onboardingReference',
+    onboardingStatus: 'onboardingStatus',
+    onboardingError: 'onboardingError'
   };
 
   export type JetGoConfigOrderByRelevanceFieldEnum = (typeof JetGoConfigOrderByRelevanceFieldEnum)[keyof typeof JetGoConfigOrderByRelevanceFieldEnum]
@@ -198055,6 +198183,13 @@ export namespace Prisma {
     webhookToken?: StringFilter<"JetGoConfig"> | string
     webhookSecret?: StringFilter<"JetGoConfig"> | string
     active?: BoolFilter<"JetGoConfig"> | boolean
+    requirePinOnDelivery?: BoolFilter<"JetGoConfig"> | boolean
+    alcoholAgeRestriction?: IntFilter<"JetGoConfig"> | number
+    alcoholIdScan?: BoolFilter<"JetGoConfig"> | boolean
+    onboardingReference?: StringNullableFilter<"JetGoConfig"> | string | null
+    onboardingStatus?: StringNullableFilter<"JetGoConfig"> | string | null
+    onboardingError?: StringNullableFilter<"JetGoConfig"> | string | null
+    onboardingAt?: DateTimeNullableFilter<"JetGoConfig"> | Date | string | null
     createdAt?: DateTimeFilter<"JetGoConfig"> | Date | string
     updatedAt?: DateTimeFilter<"JetGoConfig"> | Date | string
     location?: XOR<LocationRelationFilter, LocationWhereInput>
@@ -198072,6 +198207,13 @@ export namespace Prisma {
     webhookToken?: SortOrder
     webhookSecret?: SortOrder
     active?: SortOrder
+    requirePinOnDelivery?: SortOrder
+    alcoholAgeRestriction?: SortOrder
+    alcoholIdScan?: SortOrder
+    onboardingReference?: SortOrderInput | SortOrder
+    onboardingStatus?: SortOrderInput | SortOrder
+    onboardingError?: SortOrderInput | SortOrder
+    onboardingAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     location?: LocationOrderByWithRelationInput
@@ -198093,6 +198235,13 @@ export namespace Prisma {
     webhookToken?: StringFilter<"JetGoConfig"> | string
     webhookSecret?: StringFilter<"JetGoConfig"> | string
     active?: BoolFilter<"JetGoConfig"> | boolean
+    requirePinOnDelivery?: BoolFilter<"JetGoConfig"> | boolean
+    alcoholAgeRestriction?: IntFilter<"JetGoConfig"> | number
+    alcoholIdScan?: BoolFilter<"JetGoConfig"> | boolean
+    onboardingReference?: StringNullableFilter<"JetGoConfig"> | string | null
+    onboardingStatus?: StringNullableFilter<"JetGoConfig"> | string | null
+    onboardingError?: StringNullableFilter<"JetGoConfig"> | string | null
+    onboardingAt?: DateTimeNullableFilter<"JetGoConfig"> | Date | string | null
     createdAt?: DateTimeFilter<"JetGoConfig"> | Date | string
     updatedAt?: DateTimeFilter<"JetGoConfig"> | Date | string
     location?: XOR<LocationRelationFilter, LocationWhereInput>
@@ -198110,11 +198259,20 @@ export namespace Prisma {
     webhookToken?: SortOrder
     webhookSecret?: SortOrder
     active?: SortOrder
+    requirePinOnDelivery?: SortOrder
+    alcoholAgeRestriction?: SortOrder
+    alcoholIdScan?: SortOrder
+    onboardingReference?: SortOrderInput | SortOrder
+    onboardingStatus?: SortOrderInput | SortOrder
+    onboardingError?: SortOrderInput | SortOrder
+    onboardingAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: JetGoConfigCountOrderByAggregateInput
+    _avg?: JetGoConfigAvgOrderByAggregateInput
     _max?: JetGoConfigMaxOrderByAggregateInput
     _min?: JetGoConfigMinOrderByAggregateInput
+    _sum?: JetGoConfigSumOrderByAggregateInput
   }
 
   export type JetGoConfigScalarWhereWithAggregatesInput = {
@@ -198132,6 +198290,13 @@ export namespace Prisma {
     webhookToken?: StringWithAggregatesFilter<"JetGoConfig"> | string
     webhookSecret?: StringWithAggregatesFilter<"JetGoConfig"> | string
     active?: BoolWithAggregatesFilter<"JetGoConfig"> | boolean
+    requirePinOnDelivery?: BoolWithAggregatesFilter<"JetGoConfig"> | boolean
+    alcoholAgeRestriction?: IntWithAggregatesFilter<"JetGoConfig"> | number
+    alcoholIdScan?: BoolWithAggregatesFilter<"JetGoConfig"> | boolean
+    onboardingReference?: StringNullableWithAggregatesFilter<"JetGoConfig"> | string | null
+    onboardingStatus?: StringNullableWithAggregatesFilter<"JetGoConfig"> | string | null
+    onboardingError?: StringNullableWithAggregatesFilter<"JetGoConfig"> | string | null
+    onboardingAt?: DateTimeNullableWithAggregatesFilter<"JetGoConfig"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"JetGoConfig"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"JetGoConfig"> | Date | string
   }
@@ -215917,6 +216082,13 @@ export namespace Prisma {
     webhookToken: string
     webhookSecret?: string
     active?: boolean
+    requirePinOnDelivery?: boolean
+    alcoholAgeRestriction?: number
+    alcoholIdScan?: boolean
+    onboardingReference?: string | null
+    onboardingStatus?: string | null
+    onboardingError?: string | null
+    onboardingAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     location: LocationCreateNestedOneWithoutJetGoConfigInput
@@ -215934,6 +216106,13 @@ export namespace Prisma {
     webhookToken: string
     webhookSecret?: string
     active?: boolean
+    requirePinOnDelivery?: boolean
+    alcoholAgeRestriction?: number
+    alcoholIdScan?: boolean
+    onboardingReference?: string | null
+    onboardingStatus?: string | null
+    onboardingError?: string | null
+    onboardingAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -215949,6 +216128,13 @@ export namespace Prisma {
     webhookToken?: StringFieldUpdateOperationsInput | string
     webhookSecret?: StringFieldUpdateOperationsInput | string
     active?: BoolFieldUpdateOperationsInput | boolean
+    requirePinOnDelivery?: BoolFieldUpdateOperationsInput | boolean
+    alcoholAgeRestriction?: IntFieldUpdateOperationsInput | number
+    alcoholIdScan?: BoolFieldUpdateOperationsInput | boolean
+    onboardingReference?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingError?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     location?: LocationUpdateOneRequiredWithoutJetGoConfigNestedInput
@@ -215966,6 +216152,13 @@ export namespace Prisma {
     webhookToken?: StringFieldUpdateOperationsInput | string
     webhookSecret?: StringFieldUpdateOperationsInput | string
     active?: BoolFieldUpdateOperationsInput | boolean
+    requirePinOnDelivery?: BoolFieldUpdateOperationsInput | boolean
+    alcoholAgeRestriction?: IntFieldUpdateOperationsInput | number
+    alcoholIdScan?: BoolFieldUpdateOperationsInput | boolean
+    onboardingReference?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingError?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -215982,6 +216175,13 @@ export namespace Prisma {
     webhookToken: string
     webhookSecret?: string
     active?: boolean
+    requirePinOnDelivery?: boolean
+    alcoholAgeRestriction?: number
+    alcoholIdScan?: boolean
+    onboardingReference?: string | null
+    onboardingStatus?: string | null
+    onboardingError?: string | null
+    onboardingAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -215997,6 +216197,13 @@ export namespace Prisma {
     webhookToken?: StringFieldUpdateOperationsInput | string
     webhookSecret?: StringFieldUpdateOperationsInput | string
     active?: BoolFieldUpdateOperationsInput | boolean
+    requirePinOnDelivery?: BoolFieldUpdateOperationsInput | boolean
+    alcoholAgeRestriction?: IntFieldUpdateOperationsInput | number
+    alcoholIdScan?: BoolFieldUpdateOperationsInput | boolean
+    onboardingReference?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingError?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -216013,6 +216220,13 @@ export namespace Prisma {
     webhookToken?: StringFieldUpdateOperationsInput | string
     webhookSecret?: StringFieldUpdateOperationsInput | string
     active?: BoolFieldUpdateOperationsInput | boolean
+    requirePinOnDelivery?: BoolFieldUpdateOperationsInput | boolean
+    alcoholAgeRestriction?: IntFieldUpdateOperationsInput | number
+    alcoholIdScan?: BoolFieldUpdateOperationsInput | boolean
+    onboardingReference?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingError?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -229608,8 +229822,19 @@ export namespace Prisma {
     webhookToken?: SortOrder
     webhookSecret?: SortOrder
     active?: SortOrder
+    requirePinOnDelivery?: SortOrder
+    alcoholAgeRestriction?: SortOrder
+    alcoholIdScan?: SortOrder
+    onboardingReference?: SortOrder
+    onboardingStatus?: SortOrder
+    onboardingError?: SortOrder
+    onboardingAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type JetGoConfigAvgOrderByAggregateInput = {
+    alcoholAgeRestriction?: SortOrder
   }
 
   export type JetGoConfigMaxOrderByAggregateInput = {
@@ -229623,6 +229848,13 @@ export namespace Prisma {
     webhookToken?: SortOrder
     webhookSecret?: SortOrder
     active?: SortOrder
+    requirePinOnDelivery?: SortOrder
+    alcoholAgeRestriction?: SortOrder
+    alcoholIdScan?: SortOrder
+    onboardingReference?: SortOrder
+    onboardingStatus?: SortOrder
+    onboardingError?: SortOrder
+    onboardingAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -229638,8 +229870,19 @@ export namespace Prisma {
     webhookToken?: SortOrder
     webhookSecret?: SortOrder
     active?: SortOrder
+    requirePinOnDelivery?: SortOrder
+    alcoholAgeRestriction?: SortOrder
+    alcoholIdScan?: SortOrder
+    onboardingReference?: SortOrder
+    onboardingStatus?: SortOrder
+    onboardingError?: SortOrder
+    onboardingAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type JetGoConfigSumOrderByAggregateInput = {
+    alcoholAgeRestriction?: SortOrder
   }
 
   export type YangoConfigOrderByRelevanceInput = {
@@ -251503,6 +251746,13 @@ export namespace Prisma {
     webhookToken: string
     webhookSecret?: string
     active?: boolean
+    requirePinOnDelivery?: boolean
+    alcoholAgeRestriction?: number
+    alcoholIdScan?: boolean
+    onboardingReference?: string | null
+    onboardingStatus?: string | null
+    onboardingError?: string | null
+    onboardingAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -251518,6 +251768,13 @@ export namespace Prisma {
     webhookToken: string
     webhookSecret?: string
     active?: boolean
+    requirePinOnDelivery?: boolean
+    alcoholAgeRestriction?: number
+    alcoholIdScan?: boolean
+    onboardingReference?: string | null
+    onboardingStatus?: string | null
+    onboardingError?: string | null
+    onboardingAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -252777,6 +253034,13 @@ export namespace Prisma {
     webhookToken?: StringFieldUpdateOperationsInput | string
     webhookSecret?: StringFieldUpdateOperationsInput | string
     active?: BoolFieldUpdateOperationsInput | boolean
+    requirePinOnDelivery?: BoolFieldUpdateOperationsInput | boolean
+    alcoholAgeRestriction?: IntFieldUpdateOperationsInput | number
+    alcoholIdScan?: BoolFieldUpdateOperationsInput | boolean
+    onboardingReference?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingError?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -252792,6 +253056,13 @@ export namespace Prisma {
     webhookToken?: StringFieldUpdateOperationsInput | string
     webhookSecret?: StringFieldUpdateOperationsInput | string
     active?: BoolFieldUpdateOperationsInput | boolean
+    requirePinOnDelivery?: BoolFieldUpdateOperationsInput | boolean
+    alcoholAgeRestriction?: IntFieldUpdateOperationsInput | number
+    alcoholIdScan?: BoolFieldUpdateOperationsInput | boolean
+    onboardingReference?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingError?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

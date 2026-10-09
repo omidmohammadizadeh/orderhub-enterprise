@@ -5,9 +5,35 @@ import { JetGoDispatchService } from "../jet-go-dispatch.service";
 
 type Row = Record<string, any>;
 
-function svc(over: { geocode?: any } = {}) {
+/**
+ * Minimal Prisma stand-in for the age-restriction lookup.
+ *
+ * Unknown keys throw rather than returning undefined: a fake that quietly
+ * answers "no such model" turns a real schema mistake into a passing test.
+ */
+function prismaFake(minAges: (number | null)[] = []) {
+  return new Proxy(
+    {
+      orderItem: {
+        findMany: async () => minAges.map((_, i) => ({ menuItemId: `mi-${i}` })),
+      },
+      menuItem: {
+        findMany: async () =>
+          minAges.filter((a) => a != null).map((minAge) => ({ minAge })),
+      },
+    } as Record<string, any>,
+    {
+      get(t, k: string) {
+        if (!(k in t)) throw new Error(`prismaFake: no model "${String(k)}"`);
+        return t[k];
+      },
+    },
+  );
+}
+
+function svc(over: { geocode?: any; minAges?: (number | null)[] } = {}) {
   const s: any = Object.create(JetGoDispatchService.prototype);
-  s.prisma = {};
+  s.prisma = prismaFake(over.minAges ?? []);
   s.wallet = { dispatchFeeMinor: () => 50 };
   s.geocoding = { geocode: over.geocode ?? jest.fn().mockResolvedValue(null) };
   s.logger = { log: jest.fn(), warn: jest.fn(), error: jest.fn() };
@@ -25,6 +51,9 @@ const cfg = (over: Row = {}): any => ({
   collectPointName: "Shop",
   webhookToken: "tok",
   active: true,
+  requirePinOnDelivery: false,
+  alcoholAgeRestriction: 18,
+  alcoholIdScan: true,
   ...over,
 });
 
@@ -199,6 +228,76 @@ describe("JET Go estimate payload", () => {
     expect((body as any).hasAlcohol).toBeUndefined();
     expect(body.deliveryDetails!.hasAlcohol).toBe(true);
     expect(body.deliveryDetails!.ageRestriction).toBe(18);
+  });
+
+  it("flags an age-restricted item from the menu, not from the order line", async () => {
+    // The line is a copy taken at checkout; the menu item is the record.
+    const { body, warnings } = await svc({ minAges: [18] }).buildEstimateBody(
+      order(),
+      location(),
+      cfg(),
+    );
+    expect(body.deliveryDetails!.hasAlcohol).toBe(true);
+    expect(body.deliveryDetails!.ageRestriction).toBe(18);
+    expect(body.deliveryDetails!.ageVerificationWithId).toBe(true);
+    expect(warnings.join(" ")).toMatch(/age-restricted/i);
+  });
+
+  it("sends no age fields at all when nothing on the order is restricted", async () => {
+    // JET documents ageVerificationWithId as supported ONLY when hasAlcohol is
+    // true, so sending it on an ordinary order risks a 400 for no benefit.
+    const { body } = await svc({ minAges: [null, null] }).buildEstimateBody(
+      order(),
+      location(),
+      cfg(),
+    );
+    expect(body.deliveryDetails!.hasAlcohol).toBe(false);
+    expect(body.deliveryDetails!.ageRestriction).toBeUndefined();
+    expect(body.deliveryDetails!.ageVerificationWithId).toBeUndefined();
+  });
+
+  it("takes the STRICTEST age when the item and the shop disagree", async () => {
+    // A shop set to 16 must still check an 18 item at 18.
+    const { body } = await svc({ minAges: [16, 18] }).buildEstimateBody(
+      order(),
+      location(),
+      cfg({ alcoholAgeRestriction: 16 }),
+    );
+    expect(body.deliveryDetails!.ageRestriction).toBe(18);
+  });
+
+  it("honours a shop age higher than the item's", async () => {
+    const { body } = await svc({ minAges: [18] }).buildEstimateBody(
+      order(),
+      location(),
+      cfg({ alcoholAgeRestriction: 21 }),
+    );
+    expect(body.deliveryDetails!.ageRestriction).toBe(21);
+  });
+
+  it("carries the shop's ID-scan choice through", async () => {
+    const { body } = await svc({ minAges: [18] }).buildEstimateBody(
+      order(),
+      location(),
+      cfg({ alcoholIdScan: false }),
+    );
+    expect(body.deliveryDetails!.ageVerificationWithId).toBe(false);
+  });
+
+  it("asks for a delivery PIN only when the location turned it on", async () => {
+    // DSP_GENERATED is the only provider JET supports — there is no option to
+    // supply our own code, and a wrong `type` is a 400.
+    const off = await svc().buildEstimateBody(order(), location(), cfg());
+    expect(off.body.deliveryOptions!.proofOfDelivery).toBeUndefined();
+
+    const on = await svc().buildEstimateBody(
+      order(),
+      location(),
+      cfg({ requirePinOnDelivery: true }),
+    );
+    expect(on.body.deliveryOptions!.proofOfDelivery).toEqual({
+      pinCode: { type: "DSP_GENERATED" },
+    });
   });
 
   it("schedules an advance order only inside JET's 1h–5d window", async () => {

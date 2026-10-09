@@ -4911,6 +4911,29 @@ model JetGoConfig {
   // Master on/off for this location. Dispatch refuses when false.
   active           Boolean @default(false)
 
+  // PIN proof of delivery. JET generates the code (DSP_GENERATED is the only
+  // provider it supports), sends it to us on the PROOFOFDELIVERY webhook, and
+  // the courier cannot close the job without it. We are the ones who must get
+  // it to the customer — JET never does.
+  requirePinOnDelivery Boolean @default(false)
+
+  // Alcohol handling, read only when a line on the order is age-restricted.
+  // These live here rather than on Location because JET Go is the only thing
+  // that consumes them today; move them up if a second courier ever does.
+  // 18 is the UK minimum. JET's own default for the ID scan is true, so ours
+  // matches: a shop that turns it off is making a deliberate choice.
+  alcoholAgeRestriction Int     @default(18)
+  alcoholIdScan         Boolean @default(true)
+
+  // Collect-point onboarding (POST /v1/collect-point/onboarding). JET answers
+  // 202 with NO id — the collect point appears in GET /collect-points some time
+  // later — so we keep our own reference and resolve the id by polling.
+  // Status: PENDING (submitted, no id yet) | COMPLETE | FAILED.
+  onboardingReference String?
+  onboardingStatus    String?
+  onboardingError     String?
+  onboardingAt        DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
