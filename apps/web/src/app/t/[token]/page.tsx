@@ -51,6 +51,7 @@ import {
   itemAllowsMode, round2, buildCartItemName, toOrderLineModifier } from "@orderhub/shared";
 import type { SelectedModifier } from "@orderhub/shared";
 import { cn } from "@/lib/utils";
+import { cartIsStale, loadCart, saveCart } from "@/lib/cart-storage";
 import { ModifierSelectionModal } from "@/components/pos/modifier-selection-modal";
 import type { MenuItem, MenuCategory } from "@/lib/api/menus.client";
 import {
@@ -192,35 +193,47 @@ export default function TableQrPage() {
   // Keyed by token so a phone lock, an accidental back, or hopping between
   // Safari tabs doesn't lose a half-built round. Hydrate once, then save on
   // every change (guarded so the empty mount state can't wipe a saved one).
+  //
+  // It expires after twelve hours untouched — see lib/cart-storage. A table
+  // QR is the sharpest version of the problem: a phone that scanned last
+  // Friday and never ordered should open on a clean basket, not last week's
+  // round at last week's prices.
   const basketKey = `orderhub.tablebasket.${token}`;
   const [hydrated, setHydrated] = useState(false);
+  // When this basket was last written, for the open-tab check below.
+  const touchedAt = useRef<number | null>(null);
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const raw = window.localStorage.getItem(basketKey);
-      if (raw) {
-        const lines = JSON.parse(raw);
-        if (Array.isArray(lines) && lines.length > 0) {
-          dispatch({ type: "SET", lines });
-        }
-      }
-    } catch {
-      /* corrupt / unavailable storage — start empty */
-    }
+    const { lines, savedAt } = loadCart<BasketLine>(basketKey);
+    if (lines.length > 0) dispatch({ type: "SET", lines });
+    touchedAt.current = savedAt;
     setHydrated(true);
   }, [basketKey]);
   useEffect(() => {
-    if (typeof window === "undefined" || !hydrated) return;
-    try {
-      if (basket.length > 0) {
-        window.localStorage.setItem(basketKey, JSON.stringify(basket));
-      } else {
-        window.localStorage.removeItem(basketKey);
-      }
-    } catch {
-      /* quota / private mode — non-fatal */
-    }
+    if (!hydrated) return;
+    saveCart(basketKey, basket);
+    touchedAt.current = basket.length > 0 ? Date.now() : null;
   }, [basket, basketKey, hydrated]);
+
+  // The tab somebody left open. Hydration runs once, on mount, so a phone
+  // that sat in a background Safari tab overnight still holds yesterday's
+  // basket in memory long after the stored copy expired. Catch it on the way
+  // back to the foreground.
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const check = () => {
+      if (document.visibilityState !== "visible") return;
+      if (basket.length > 0 && cartIsStale(touchedAt.current)) {
+        dispatch({ type: "CLEAR" });
+        setBasketOpen(false);
+      }
+    };
+    document.addEventListener("visibilitychange", check);
+    window.addEventListener("focus", check);
+    return () => {
+      document.removeEventListener("visibilitychange", check);
+      window.removeEventListener("focus", check);
+    };
+  }, [basket.length]);
 
   // ── Pay-before-kitchen ───────────────────────────────────────────────────
 
