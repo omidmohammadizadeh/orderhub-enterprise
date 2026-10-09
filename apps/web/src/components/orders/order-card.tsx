@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { Card, CardContent } from "../ui/card";
 import { formatMoney } from "@orderhub/shared";
-import { PlatformBadge, FulfillmentBadge } from "./platform-badge";
+import { PlatformBadge, FulfillmentBadge, TableBadge } from "./platform-badge";
 import { OrderActions } from "./order-actions";
 import { ChartButton } from "../assembly-charts/chart-button";
 import type { Order } from "../../lib/api/orders.client";
@@ -47,6 +47,7 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
           <div className="flex items-center gap-2 flex-wrap">
             <PlatformBadge platform={order.platform} />
             <FulfillmentBadge type={order.fulfillmentType} />
+            <TableBadge name={order.tableName} />
           </div>
           <span className="text-xs text-zinc-400 whitespace-nowrap shrink-0">
             {timeAgo(order.createdAt)}

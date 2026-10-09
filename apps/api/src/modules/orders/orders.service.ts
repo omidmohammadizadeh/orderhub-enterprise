@@ -3128,6 +3128,8 @@ export class OrdersService {
       }),
     ]);
 
+    await this.attachTableNames(orders);
+
     return { total, page, limit, orders };
   }
 
@@ -3269,6 +3271,43 @@ export class OrdersService {
       orderBy: { createdAt: "desc" },
     });
     return rows.map((r) => r.id);
+  }
+
+  /**
+   * Stamp the table's NAME onto any row that carries a tableId.
+   *
+   * Order.tableId has no Prisma relation, so it can't ride along on an
+   * include — it needs this second, indexed lookup, batched for the whole
+   * page. Shared by the live board and order history because "which table
+   * is this?" is the same question on both, and a dine-in order that
+   * identified itself only by the guest's name on one of them sent staff
+   * hunting round the room.
+   *
+   * Cosmetic, and treated as such: a failure here must never take down a
+   * board. Rows come back without the name and everything else still works.
+   */
+  private async attachTableNames(rows: unknown[]): Promise<void> {
+    try {
+      const tableIds = [
+        ...new Set(
+          rows
+            .map((r) => (r as any).tableId as string | null | undefined)
+            .filter((id): id is string => !!id),
+        ),
+      ];
+      if (!tableIds.length) return;
+      const tables = await this.prisma.table.findMany({
+        where: { id: { in: tableIds } },
+        select: { id: true, name: true },
+      });
+      const byId = new Map(tables.map((t) => [t.id, t.name]));
+      for (const r of rows) {
+        const tid = (r as any).tableId;
+        if (tid) (r as any).tableName = byId.get(tid) ?? null;
+      }
+    } catch {
+      /* table names are cosmetic — never fail the board over them */
+    }
   }
 
   async findLiveOrders(user: AuthenticatedUser, locationId?: string) {
@@ -3563,31 +3602,7 @@ export class OrdersService {
   ): Promise<Array<T & { customerVisitCount: number; customerVisitTag: string }>> {
     if (rows.length === 0) return [] as any;
 
-    // Table Tabs — stamp the table's NAME onto dine-in rows (Order.tableId
-    // has no Prisma relation). The board shows it and the tablet print
-    // bridge prints "TABLE X" from the same field.
-    try {
-      const tableIds = [
-        ...new Set(
-          rows
-            .map((r) => (r as any).tableId as string | null | undefined)
-            .filter((id): id is string => !!id),
-        ),
-      ];
-      if (tableIds.length) {
-        const tables = await this.prisma.table.findMany({
-          where: { id: { in: tableIds } },
-          select: { id: true, name: true },
-        });
-        const byId = new Map(tables.map((t) => [t.id, t.name]));
-        for (const r of rows) {
-          const tid = (r as any).tableId;
-          if (tid) (r as any).tableName = byId.get(tid) ?? null;
-        }
-      }
-    } catch {
-      /* table names are cosmetic — never fail the board over them */
-    }
+    await this.attachTableNames(rows);
 
     // Build a per-row identity key. Marketplaces mask the customer
     // phone (Uber / Just Eat / Deliveroo / HubRise rotate the number
