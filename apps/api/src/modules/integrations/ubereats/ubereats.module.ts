@@ -15,6 +15,7 @@ import { UberEatsPromotionsService } from "./ubereats-promotions.service";
 import { UberEatsReportingService } from "./ubereats-reporting.service";
 import { UberEatsController } from "./ubereats.controller";
 import { UberEatsWebhookController } from "./ubereats-webhook.controller";
+import { UberEatsStoreControlAdapter } from "./ubereats-store-control.adapter";
 
 // Phase UE — Uber Eats DIRECT integration (off HubRise). OAuth client +
 // webhook receiver (UE-1), merchant OAuth + store provisioning + store
@@ -46,6 +47,7 @@ import { UberEatsWebhookController } from "./ubereats-webhook.controller";
     UberEatsOrderActionsService,
     UberEatsPromotionsService,
     UberEatsReportingService,
+    UberEatsStoreControlAdapter,
   ],
   exports: [
     UberEatsClientService,
@@ -54,6 +56,7 @@ import { UberEatsWebhookController } from "./ubereats-webhook.controller";
     UberEatsMenuPublishService,
     UberEatsPromotionsService,
     UberEatsReportingService,
+    UberEatsStoreControlAdapter,
   ],
 })
 export class UberEatsModule {}
