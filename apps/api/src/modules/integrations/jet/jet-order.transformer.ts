@@ -253,10 +253,12 @@ export function transformJetOrder(payload: any): JetTransformResult | null {
   };
 
   const promoItems: any[] = [];
+  const discountItems: any[] = [];
   let discountPromotions = 0;
   for (const promo of promotions) {
     if (isDiscountPromotion(promo)) {
       discountPromotions += 1;
+      if (Array.isArray(promo?.items)) discountItems.push(...promo.items);
       continue;
     }
     const offerId = String(promo?.offer_id ?? "").trim();
@@ -272,12 +274,56 @@ export function transformJetOrder(payload: any): JetTransformResult | null {
       });
     }
   }
+  // ...but JET does NOT always leave the discounted item in the top-level
+  // array. Greek Bite order 967563678 (10 Oct 2026): a Buffalo Gyros&Rice Bowl
+  // and a Dirty Greek Platter, each 20% off, arrived ONLY in promotions[].items.
+  // Skipping every discount item dropped both — the ticket showed a hummus and
+  // two Cokes, the kitchen made neither main. Same promotion type, opposite
+  // shape, so the type alone cannot decide either.
+  //
+  // What decides is the money: `items_in_cart` is the full-price basket. If the
+  // top-level lines already account for it, the discount items are repeats
+  // (963789475); if they only add up to it WITH the discount items, those items
+  // are food the customer bought (967563678). With no usable cart total, fall
+  // back to merging each discount item the top level does not already hold.
+  const priceOf = (list: any[]) =>
+    list.reduce((sum: number, i: any) => sum + jetMoney(i?.price), 0);
+  const cartTotalForPromos = jetMoney(payload?.payment?.items_in_cart?.inc_tax);
+  const baseSum = priceOf(rawItems) + priceOf(promoItems);
+  const discountSum = priceOf(discountItems);
+  let mergedDiscountItems: any[] = [];
+  if (discountItems.length) {
+    if (cartTotalForPromos > 0 && Math.abs(baseSum - cartTotalForPromos) < 0.005) {
+      mergedDiscountItems = [];
+    } else if (
+      cartTotalForPromos > 0 &&
+      Math.abs(baseSum + discountSum - cartTotalForPromos) < 0.005
+    ) {
+      mergedDiscountItems = discountItems;
+    } else {
+      const unclaimed = new Map<string, number>();
+      for (const i of rawItems) {
+        const sig = jetItemSignature(i);
+        unclaimed.set(sig, (unclaimed.get(sig) ?? 0) + 1);
+      }
+      for (const i of discountItems) {
+        const sig = jetItemSignature(i);
+        const left = unclaimed.get(sig) ?? 0;
+        if (left > 0) unclaimed.set(sig, left - 1);
+        else mergedDiscountItems.push(i);
+      }
+    }
+  }
   if (discountPromotions) {
     warnings.push(
-      `${discountPromotions} discount promotion(s) name an already-charged ` +
-        `item — not merged (the discount itself comes from payment.adjustments)`,
+      mergedDiscountItems.length
+        ? `${mergedDiscountItems.length} discounted item(s) appeared only in ` +
+            `promotions[] — merged so the kitchen makes them`
+        : `${discountPromotions} discount promotion(s) name an already-charged ` +
+            `item — not merged (the discount itself comes from payment.adjustments)`,
     );
   }
+  promoItems.push(...mergedDiscountItems);
   if (promoItems.length) {
     warnings.push(
       `${promoItems.length} promotional item(s) merged in from promotions[] ` +
