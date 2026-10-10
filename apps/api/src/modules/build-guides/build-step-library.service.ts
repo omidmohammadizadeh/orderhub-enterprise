@@ -42,7 +42,7 @@ export class BuildStepLibraryService {
     const text = clip(body.text, 1000);
     let imageUrl = clip(body.imageUrl, 4_000_000);
     if (!text && !imageUrl) throw new BadRequestException("A library step needs an instruction or a photo");
-    if (imageUrl && !/^(https?:|data:image\/)/i.test(imageUrl)) imageUrl = null;
+    if (imageUrl && !/^(https?:|data:image\/|\/api\/v1\/)/i.test(imageUrl)) imageUrl = null;
     imageUrl = (await rehostImageIfInline(this.storage, imageUrl, `build-guides/${tenantId}`)) ?? null;
 
     let brandId = clip(body.brandId, 64);

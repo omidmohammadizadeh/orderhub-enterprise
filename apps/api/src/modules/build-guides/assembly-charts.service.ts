@@ -53,7 +53,7 @@ export class AssemblyChartsService {
     }
     const heroRaw = clip(body.heroImageUrl, 4_000_000);
     const heroImageUrl =
-      heroRaw && /^(https?:|data:image\/)/i.test(heroRaw)
+      heroRaw && /^(https?:|data:image\/|\/api\/v1\/)/i.test(heroRaw)
         ? ((await rehostImageIfInline(this.storage, heroRaw, `assembly-charts/${tenantId}`)) ?? null)
         : null;
     const data = {
@@ -203,7 +203,7 @@ export class AssemblyChartsService {
       const src = l as Record<string, unknown>;
       const kind = (typeof src.kind === "string" && KINDS.has(src.kind) ? src.kind : "custom") as AssemblyLayerKind;
       let imageUrl = clip(src.imageUrl, 4_000_000);
-      if (imageUrl && !/^(https?:|data:image\/)/i.test(imageUrl)) imageUrl = null;
+      if (imageUrl && !/^(https?:|data:image\/|\/api\/v1\/)/i.test(imageUrl)) imageUrl = null;
       imageUrl = (await rehostImageIfInline(this.storage, imageUrl, `assembly-charts/${tenantId}`)) ?? null;
       const label = clip(src.label, 80) ?? "";
       if (kind === "custom" && !imageUrl && !label) continue; // nothing to draw

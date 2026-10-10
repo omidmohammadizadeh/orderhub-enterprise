@@ -111,3 +111,24 @@ describe("AssemblyChartsService", () => {
     expect(prisma.charts[0].nameKey).toBe("the proper fitty");
   });
 });
+
+describe("assembly chart photo layers", () => {
+  it("keeps Order Hub's own proxied photos (/api/v1/…) and drops unsafe links", async () => {
+    const prisma: any = {
+      menuItem: { findUnique: async () => ({ id: "i1", brandId: "b1", name: "Monster Burger Combo", imageUrl: null }) },
+      brand: { findFirst: async () => ({ id: "b1" }) },
+      assemblyChart: { upsert: async ({ create }: any) => ({ id: "c1", ...create, updatedAt: new Date() }) },
+    };
+    const svc = new AssemblyChartsService(prisma);
+    const c = await svc.saveForItem("i1", "t1", {
+      layers: [
+        { kind: "custom", label: "Selected burger", imageUrl: "/api/v1/menus/hubrise-image/q33e7/nej669e" },
+        { kind: "custom", label: "Bad", imageUrl: "javascript:alert(1)" },
+        { kind: "custom", label: "Protocol-relative", imageUrl: "//evil.example/x.png" },
+      ],
+    });
+    expect(c!.layers[0]!.imageUrl).toBe("/api/v1/menus/hubrise-image/q33e7/nej669e");
+    expect(c!.layers[1]).not.toHaveProperty("imageUrl");
+    expect(c!.layers[2]).not.toHaveProperty("imageUrl");
+  });
+});
