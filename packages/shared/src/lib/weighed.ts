@@ -102,6 +102,27 @@ export function parseScaleBarcode(code: string, format: ScaleFormatId): ScaleLab
   return format.startsWith("PRICE") ? { itemCode, price: value / 100 } : { itemCode, grams: value };
 }
 
+/**
+ * The barcode a label scale would print, in this shop's layout — for test
+ * labels. The inverse of parseScaleBarcode. Null when the value doesn't fit.
+ */
+export function buildScaleBarcode(
+  itemCode: string,
+  format: ScaleFormatId,
+  value: { price?: number; grams?: number },
+): string | null {
+  const code = String(itemCode ?? "").replace(/\D/g, "");
+  if (!code || code.length > 5) return null;
+  const raw = format.startsWith("PRICE") ? Math.round(Number(value.price ?? 0) * 100) : Math.round(Number(value.grams ?? 0));
+  const width = format.endsWith("_CHECK") ? 4 : 5;
+  if (!(raw > 0) || String(raw).length > width) return null;
+  // The price check digit some scales print isn't read back; 0 keeps it valid.
+  const twelve = `20${code.padStart(5, "0")}${format.endsWith("_CHECK") ? "0" : ""}${String(raw).padStart(width, "0")}`;
+  let sum = 0;
+  for (let i = 0; i < 12; i++) sum += Number(twelve[i]) * (i % 2 === 0 ? 1 : 3);
+  return twelve + String((10 - (sum % 10)) % 10);
+}
+
 /** Scale codes compare as numbers: "00412" and "412" are the same product. */
 export function sameScaleCode(a: unknown, b: unknown): boolean {
   const n = (v: unknown) => String(v ?? "").trim().replace(/^0+/, "");

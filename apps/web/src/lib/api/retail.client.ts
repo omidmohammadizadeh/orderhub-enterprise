@@ -41,6 +41,10 @@ export interface RetailProduct {
   imageUrl: string | null;
   /** Weighed products: priced per kg / 100 g and stocked in grams. */
   sellBy?: "KG" | "100G" | null;
+  /** Its number on the shop's label scale (weighed products). */
+  scaleCode?: string | null;
+  /** Challenge 25: 16 / 18 when age-restricted. */
+  minAge?: number | null;
   variants: RetailVariant[];
 }
 
@@ -204,6 +208,12 @@ const base = (locationId: string) => `/v1/retail/locations/${locationId}`;
 export const retailClient = {
   barcodes: (locationId: string) =>
     apiClient.get<BarcodeEntry[]>(`${base(locationId)}/barcodes`).then((r) => r.data),
+
+  /** Testing aid (managers): give unbarcoded products a 049… test barcode. */
+  assignTestBarcodes: (locationId: string) =>
+    apiClient
+      .post<{ assigned: number; created: number }>(`${base(locationId)}/test-barcodes`)
+      .then((r) => r.data),
 
   /** Multi-buys live on this till (POS channel). */
   deals: (locationId: string) =>

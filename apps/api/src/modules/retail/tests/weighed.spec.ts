@@ -1,4 +1,5 @@
 import {
+  buildScaleBarcode,
   formatWeight,
   parseScaleBarcode,
   priceForWeight,
@@ -35,6 +36,18 @@ describe("scale label barcodes", () => {
     expect(parseScaleBarcode("2100412001233", "PRICE_5")).toBeNull(); // bad check digit
     expect(parseScaleBarcode("5000112637922", "PRICE_5")).toBeNull(); // a manufacturer barcode
     expect(parseScaleBarcode("2000412000009", "PRICE_5")).toBeNull(); // £0.00
+  });
+
+  it("builds test labels the till reads back exactly", () => {
+    for (const format of ["PRICE_5", "WEIGHT_5", "PRICE_4_CHECK", "WEIGHT_4_CHECK"] as const) {
+      const code = buildScaleBarcode("77", format, { price: 3.74, grams: 150 })!;
+      expect(code).toMatch(/^2\d{12}$/);
+      expect(parseScaleBarcode(code, format)).toEqual(
+        format.startsWith("PRICE") ? { itemCode: "77", price: 3.74 } : { itemCode: "77", grams: 150 },
+      );
+    }
+    expect(buildScaleBarcode("123456", "PRICE_5", { price: 1 })).toBeNull();
+    expect(buildScaleBarcode("1", "PRICE_4_CHECK", { price: 120 })).toBeNull();
   });
 
   it("matches scale codes regardless of leading zeros", () => {
