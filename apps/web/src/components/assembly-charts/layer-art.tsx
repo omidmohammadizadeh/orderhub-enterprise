@@ -300,7 +300,16 @@ export function LayerArt({
 }) {
   if (imageUrl) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={imageUrl} alt="" className={className} style={{ aspectRatio: `${W} / ${H}`, objectFit: "contain" }} />;
+    // A real photo (a meal's burger, fries, drink…) needs a photo's shape —
+    // squeezed into the 200×64 drawing strip it came out a thumbnail.
+    return (
+      <img
+        src={imageUrl}
+        alt=""
+        className={className}
+        style={{ aspectRatio: "4 / 3", objectFit: "cover", borderRadius: 10 }}
+      />
+    );
   }
   // Library ingredients draw from their shape recipe; the original 18 keep
   // their hand-drawn art below. `color` (sauces) overrides the main colour.
