@@ -4,7 +4,7 @@
 // navy title bar, then the charts side by side, six to an A4 landscape sheet.
 // ?menu=… prints every charted product on a menu; ?item=… prints one.
 
-import { Suspense } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthHydrated } from "@/stores/auth.store";
@@ -112,14 +112,52 @@ function PrintAssemblyCharts() {
                 </span>
               )}
             </header>
-            <div className="flex flex-1 items-start justify-center gap-[5mm]">
-              {sheet.map((c) => (
-                <ChartColumn key={c.id} chart={c} size="sm" className="w-[42mm]" />
-              ))}
-            </div>
+            <FitToSheet>
+              <div className="flex items-start justify-center gap-[5mm]">
+                {sheet.map((c) => (
+                  <ChartColumn key={c.id} chart={c} size="sm" className="w-[42mm]" />
+                ))}
+              </div>
+            </FitToSheet>
           </section>
         ))
       )}
     </div>
   );
 }
+
+/**
+ * Shrinks a sheet's columns to fit the A4 page. A tall build (a quadruple
+ * patty burger is ~11 layers) ran past the bottom of the fixed-height sheet
+ * and the bottom bun was cut off in print. transform: scale doesn't change
+ * layout, so the natural height stays measurable; a ResizeObserver re-fits
+ * when product photos finish loading and the column grows.
+ */
+function FitToSheet({ children }: { children: React.ReactNode }) {
+  const outer = useRef<HTMLDivElement>(null);
+  const inner = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+  useEffect(() => {
+    const fit = () => {
+      const o = outer.current;
+      const i = inner.current;
+      if (!o || !i) return;
+      const natural = i.offsetHeight;
+      const room = o.clientHeight;
+      setScale(natural > room && room > 0 ? room / natural : 1);
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    if (inner.current) ro.observe(inner.current);
+    if (outer.current) ro.observe(outer.current);
+    return () => ro.disconnect();
+  }, []);
+  return (
+    <div ref={outer} className="relative min-h-0 flex-1 overflow-hidden">
+      <div ref={inner} style={{ transform: `scale(${scale})`, transformOrigin: "top center" }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
