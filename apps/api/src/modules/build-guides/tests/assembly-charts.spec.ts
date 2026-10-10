@@ -109,6 +109,8 @@ describe("AssemblyChartsService", () => {
     );
     expect(r).toBe("moved");
     expect(prisma.charts[0].nameKey).toBe("the proper fitty");
+    // The printed header follows the new product name.
+    expect(prisma.charts[0].title).toBe("The Proper Fitty");
   });
 });
 
@@ -130,5 +132,31 @@ describe("assembly chart photo layers", () => {
     expect(c!.layers[0]!.imageUrl).toBe("/api/v1/menus/hubrise-image/q33e7/nej669e");
     expect(c!.layers[1]).not.toHaveProperty("imageUrl");
     expect(c!.layers[2]).not.toHaveProperty("imageUrl");
+  });
+});
+
+
+describe("chart titles across copies and renames", () => {
+  it("a copy for a renamed clone takes the new name; a custom title is kept", async () => {
+    const charts: any[] = [
+      { id: "c1", tenantId: "t1", brandId: "b1", nameKey: "juicy lucy", name: "Juicy Lucy", title: "Juicy Lucy", layers: [] },
+      { id: "c2", tenantId: "t1", brandId: "b1", nameKey: "big tower", name: "Big Tower", title: "THE TOWER (special)", layers: [] },
+    ];
+    let seq = 9;
+    const db: any = {
+      assemblyChart: {
+        findUnique: async ({ where }: any) => charts.find((c) => c.brandId === where.brandId_nameKey.brandId && c.nameKey === where.brandId_nameKey.nameKey) ?? null,
+        create: async ({ data }: any) => { const r = { id: `c${++seq}`, ...data }; charts.push(r); return r; },
+        update: async ({ where, data }: any) => Object.assign(charts.find((c) => c.id === where.id), data),
+      },
+      // Another location's clone still uses the old names → copy, not move.
+      menuItem: { findMany: async () => [{ name: "Juicy Lucy" }, { name: "Big Tower" }] },
+    };
+    await carryGuideOnRename(db, { itemId: "i1", brandId: "b1", oldName: "Juicy Lucy", newName: "Juicy Lucy Deluxe" }, "assemblyChart");
+    await carryGuideOnRename(db, { itemId: "i2", brandId: "b1", oldName: "Big Tower", newName: "Big Tower XL" }, "assemblyChart");
+    expect(charts.find((c) => c.nameKey === "juicy lucy deluxe")?.title).toBe("Juicy Lucy Deluxe");
+    expect(charts.find((c) => c.nameKey === "big tower xl")?.title).toBe("THE TOWER (special)");
+    // Originals untouched for the location that still sells the old names.
+    expect(charts.find((c) => c.id === "c1")?.title).toBe("Juicy Lucy");
   });
 });

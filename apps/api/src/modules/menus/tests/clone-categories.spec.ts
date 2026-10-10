@@ -117,6 +117,12 @@ describe("MenusService.cloneCategories", () => {
       expect(it.locationId).toBe("loc-pelton"); // homed to the target menu's location
     }
     expect(new Set(created.items.map((i) => i.plu)).size).toBe(2);
+    // Same brand + same name → the copy finds the original's How to build guide
+    // and Assembly chart (both keyed by brand + product name), so they carry over.
+    expect(created.items.map((i) => [i.brandId, i.name])).toEqual([
+      ["b1", "Pollo Burrito"],
+      ["b1", "Mixed Bowl"],
+    ]);
 
     // The shared modifier group is copied ONCE, with new PLUs on group + option.
     expect(created.groups).toHaveLength(1);
