@@ -34,6 +34,12 @@ export class AssemblyChartsController {
     return this.charts.boards(user.tenantId, locationId || null);
   }
 
+  @Get("menu/:menuId/presentation")
+  @ApiOperation({ summary: "A menu's customer-facing data for the virtual-brand menu presentation" })
+  presentation(@Param("menuId") menuId: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.charts.presentation(menuId, user.tenantId);
+  }
+
   @Get("menu/:menuId/print")
   forMenu(@Param("menuId") menuId: string, @CurrentUser() user: AuthenticatedUser) {
     return this.charts.forMenu(menuId, user.tenantId);

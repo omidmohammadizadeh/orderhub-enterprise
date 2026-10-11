@@ -31,6 +31,23 @@ export interface AssemblyBoard {
   chartCount: number;
 }
 
+/** A menu as the virtual-brand presentation draws it. */
+export interface PresentationMenu {
+  name: string;
+  categories: Array<{
+    name: string;
+    items: Array<{
+      name: string;
+      description: string;
+      price: number;
+      imageUrl: string | null;
+      groupIds: string[];
+      skus: Array<{ name: string; price: number }>;
+    }>;
+  }>;
+  groups: Record<string, { name: string; options: Array<{ name: string; price: number }> }>;
+}
+
 export const assemblyChartsClient = {
   getForItem: (itemId: string) =>
     apiClient
@@ -54,6 +71,8 @@ export const assemblyChartsClient = {
     apiClient
       .get<AssemblyBoard[]>("/v1/assembly-charts/boards", { params: locationId ? { locationId } : {} })
       .then((r) => r.data),
+  presentation: (menuId: string) =>
+    apiClient.get<PresentationMenu>(`/v1/assembly-charts/menu/${menuId}/presentation`).then((r) => r.data),
   printMenu: (menuId: string) =>
     apiClient
       .get<{ menuName: string; brandName: string | null; charts: AssemblyChartDto[] }>(
