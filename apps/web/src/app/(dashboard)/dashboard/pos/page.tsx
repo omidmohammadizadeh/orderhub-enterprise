@@ -1428,8 +1428,22 @@ export default function PosPage() {
     [notify, money],
   );
   const addScanned = useCallback(
-    (entry: BarcodeEntry) => gateAge(entry.menuItemId, entry.name, () => addScannedNow(entry), entry.minAge),
-    [gateAge, addScannedNow],
+    (entry: BarcodeEntry) => {
+      // A loose product's ordinary barcode (a bag or shelf sticker with no
+      // weight in it) says WHAT it is, not how much: ask for the weight, the
+      // same as tapping its tile. Adding "1" would charge the per-kg price.
+      if (normaliseSellBy(entry.sellBy)) {
+        let item: MenuItem | undefined;
+        for (const c of categories)
+          for (const l of c.items ?? []) if (!item && l.item?.id === entry.menuItemId) item = l.item as MenuItem;
+        if (item) {
+          setWeighItem(item);
+          return;
+        }
+      }
+      gateAge(entry.menuItemId, entry.name, () => addScannedNow(entry), entry.minAge);
+    },
+    [gateAge, addScannedNow, categories],
   );
 
   const handleScan = useCallback(
