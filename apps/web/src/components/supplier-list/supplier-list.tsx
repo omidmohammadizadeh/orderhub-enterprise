@@ -1,36 +1,51 @@
-"use client";
+'use client';
 
 // A brand's supplier & ingredient list — shared by the Kitchen training tab
 // and the printable sheet (/print/supplier-list).
 
-import toast from "react-hot-toast";
-import { Copy, ExternalLink, Package } from "lucide-react";
-import { cn } from "@/lib/utils";
+import toast from 'react-hot-toast';
+import { Copy, ExternalLink, Package } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import {
   SUPPLIER_CATEGORIES,
   SUPPLIERS,
   supplierImage,
   type SupplierItem,
   type SupplierList,
-} from "@/lib/supplier-lists";
+} from '@/lib/supplier-lists';
 
 export function groupByCategory(items: SupplierItem[]) {
-  return SUPPLIER_CATEGORIES.map((c) => [c, items.filter((it) => it.category === c)] as const).filter(([, list]) => list.length);
+  return SUPPLIER_CATEGORIES.map(
+    (c) => [c, items.filter((it) => it.category === c)] as const,
+  ).filter(([, list]) => list.length);
 }
 
-const host = (url: string) => url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/.*$/, "");
+const host = (url: string) => url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/.*$/, '');
 
 function copyCode(code: string) {
   navigator.clipboard?.writeText(code).then(
     () => toast.success(`Copied ${code}`),
-    () => toast.error("Could not copy"),
+    () => toast.error('Could not copy'),
   );
 }
 
-function Photo({ list, item, className }: { list: SupplierList; item: SupplierItem; className?: string }) {
+function Photo({
+  list,
+  item,
+  className,
+}: {
+  list: SupplierList;
+  item: SupplierItem;
+  className?: string;
+}) {
   const src = supplierImage(list, item);
   return (
-    <div className={cn("flex shrink-0 items-center justify-center overflow-hidden rounded-lg border border-zinc-100 bg-white", className)}>
+    <div
+      className={cn(
+        'flex shrink-0 items-center justify-center overflow-hidden rounded-lg border border-zinc-100 bg-white',
+        className,
+      )}
+    >
       {src ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={src} alt="" loading="lazy" className="h-full w-full object-contain p-1" />
@@ -50,7 +65,9 @@ function Where({ item }: { item: SupplierItem }) {
         {item.suppliers.map((k, i) => (
           <span key={k}>
             {i > 0 && <span className="text-zinc-400"> or </span>}
-            <span className={i === 0 ? "font-semibold text-zinc-900" : undefined}>{SUPPLIERS[k].name}</span>
+            <span className={i === 0 ? 'font-semibold text-zinc-900' : undefined}>
+              {SUPPLIERS[k].name}
+            </span>
           </span>
         ))}
       </span>
@@ -61,7 +78,7 @@ function Where({ item }: { item: SupplierItem }) {
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1 text-xs font-medium text-orange-600 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-500 print:text-zinc-500"
         >
-          {item.link ? "Buy here" : host(url)} <ExternalLink className="h-3 w-3 print:hidden" />
+          {item.link ? 'Buy here' : host(url)} <ExternalLink className="h-3 w-3 print:hidden" />
         </a>
       )}
     </div>
@@ -96,13 +113,21 @@ export function SupplierItems({ list, items }: { list: SupplierList; items: Supp
 
           <ul className="space-y-2 sm:hidden print:hidden">
             {rows.map((it) => (
-              <li key={it.slug} className="flex gap-3 rounded-xl border border-zinc-200 bg-white p-3">
+              <li
+                key={it.slug}
+                className="flex gap-3 rounded-xl border border-zinc-200 bg-white p-3"
+              >
                 <Photo list={list} item={it} className="h-16 w-16" />
                 <div className="min-w-0 flex-1 space-y-1.5">
                   <p className="font-semibold leading-snug text-zinc-900">
                     {it.name}
-                    {it.itemBrand && <span className="ml-1.5 text-xs font-medium text-zinc-500">· {it.itemBrand}</span>}
+                    {it.itemBrand && (
+                      <span className="ml-1.5 text-xs font-medium text-zinc-500">
+                        · {it.itemBrand}
+                      </span>
+                    )}
                   </p>
+                  {it.note && <p className="text-xs text-zinc-500">{it.note}</p>}
                   <Where item={it} />
                   {it.code && <Code code={it.code} />}
                 </div>
@@ -117,10 +142,18 @@ export function SupplierItems({ list, items }: { list: SupplierList; items: Supp
                   <th scope="col" className="w-16 px-3 py-2">
                     <span className="sr-only">Photo</span>
                   </th>
-                  <th scope="col" className="px-3 py-2">Ingredient</th>
-                  <th scope="col" className="px-3 py-2">Brand / type</th>
-                  <th scope="col" className="px-3 py-2">Where to buy</th>
-                  <th scope="col" className="w-32 px-3 py-2">Item code</th>
+                  <th scope="col" className="px-3 py-2">
+                    Ingredient
+                  </th>
+                  <th scope="col" className="px-3 py-2">
+                    Brand / type
+                  </th>
+                  <th scope="col" className="px-3 py-2">
+                    Where to buy
+                  </th>
+                  <th scope="col" className="w-32 px-3 py-2">
+                    Item code
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100">
@@ -129,8 +162,13 @@ export function SupplierItems({ list, items }: { list: SupplierList; items: Supp
                     <td className="px-3 py-2">
                       <Photo list={list} item={it} className="h-12 w-12" />
                     </td>
-                    <td className="px-3 py-2 text-sm font-semibold text-zinc-900">{it.name}</td>
-                    <td className="px-3 py-2 text-sm text-zinc-600">{it.itemBrand ?? <span className="text-zinc-300">—</span>}</td>
+                    <td className="px-3 py-2">
+                      <p className="text-sm font-semibold text-zinc-900">{it.name}</p>
+                      {it.note && <p className="text-xs text-zinc-500">{it.note}</p>}
+                    </td>
+                    <td className="px-3 py-2 text-sm text-zinc-600">
+                      {it.itemBrand ?? <span className="text-zinc-300">—</span>}
+                    </td>
                     <td className="px-3 py-2">
                       <Where item={it} />
                     </td>

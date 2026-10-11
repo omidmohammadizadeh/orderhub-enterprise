@@ -10,6 +10,7 @@ export type SupplierCategory =
   | 'Sides'
   | 'Sauces & dips'
   | 'Seasoning'
+  | 'Oil & coatings'
   | 'Desserts'
   | 'Drinks'
   | 'Packaging'
@@ -22,6 +23,7 @@ export const SUPPLIER_CATEGORIES: SupplierCategory[] = [
   'Sides',
   'Sauces & dips',
   'Seasoning',
+  'Oil & coatings',
   'Desserts',
   'Drinks',
   'Packaging',
@@ -35,7 +37,7 @@ export interface Supplier {
 
 // One place for each supplier's name and site, so a list can't spell JJ two ways.
 const SUPPLIER_DATA = {
-  jj: { name: 'JJ Foodservice', website: 'https://www.jjfoodservice.co.uk' },
+  jj: { name: 'JJ Foodservice', website: 'https://www.jjfoodservice.com' },
   booker: { name: 'Booker', website: 'https://www.booker.co.uk' },
   brakes: { name: 'Brakes', website: 'https://www.brake.co.uk' },
   costco: { name: 'Costco', website: 'https://www.costco.co.uk' },
@@ -66,6 +68,8 @@ export interface SupplierItem {
   link?: string;
   /** The list names a site other than the supplier's own. */
   site?: string;
+  /** What it's for on this brand's menu, e.g. "Seoul Fire fillet". */
+  note?: string;
   image?: boolean;
 }
 
@@ -234,6 +238,267 @@ const GREEK_GYROS: SupplierList = {
   ],
 };
 
+// Built from the Korean Fried Chicken — DUXTON TURN menu's assembly charts and
+// options, each matched to a JJ Foodservice product (searched 2026-10-11).
+// Signature dips JJ doesn't sell ready-made list their base product.
+const KOREAN_FRIED_CHICKEN: SupplierList = {
+  slug: 'korean-fried-chicken',
+  name: 'Korean Fried Chicken',
+  accent: '#dc2626',
+  items: [
+    item(
+      'chicken-drumsticks',
+      'Halal raw chicken drumsticks, frozen (10kg)',
+      'Meat & protein',
+      ['jj'],
+      { code: 'CHI426', note: 'Golden Classic chicken on the bone — breaded in store' },
+    ),
+    item(
+      'chicken-thighs',
+      'Halal oyster-cut chicken thigh, frozen (10kg)',
+      'Meat & protein',
+      ['jj'],
+      { code: 'CHI740', note: 'Golden Classic chicken on the bone — breaded in store' },
+    ),
+    item(
+      'crunch-fillet',
+      'Southern fried chicken fillets, whole muscle',
+      'Meat & protein',
+      ['jj'],
+      { itemBrand: 'Tyson', code: 'CHI753', note: 'Crunch fillet — burgers, wraps, rice bowls' },
+    ),
+    item('seoul-fire-fillet', 'Hot & spicy chicken fillets (18 × 110g)', 'Meat & protein', ['jj'], {
+      code: 'CHI742',
+      note: 'Seoul Fire fillet',
+    }),
+    item('mini-fillet', 'Halal raw chicken breast mini fillets', 'Meat & protein', ['jj'], {
+      code: 'CHI846',
+      note: 'Mini crunch fillet (kids) — breaded in store',
+    }),
+    item('tenders', 'Crispy southern fried chicken strips (2kg)', 'Meat & protein', ['jj'], {
+      code: 'CHI264',
+      note: 'Golden Tenders',
+    }),
+    item('wings', 'Halal raw chicken mid wings, frozen (10kg)', 'Meat & protein', ['jj'], {
+      code: 'CHI349',
+      note: 'Fire Wings',
+    }),
+    item('popcorn-chicken', 'Southern fried poppin chicken (1kg)', 'Meat & protein', ['jj'], {
+      code: 'CHI490',
+      note: 'K-Pop Chicken',
+    }),
+    item('glazed-bites', 'Southern fried chunky chicken bites', 'Meat & protein', ['jj'], {
+      code: 'CHI606',
+      note: 'Kansas BBQ / Sweet Chilli glazed bites',
+    }),
+    item('quorn-fillet', 'Quorn vegan fillets (2kg)', 'Meat & protein', ['jj'], {
+      itemBrand: 'Quorn',
+      code: 'VEG958',
+      note: 'Vegan fillet burger / wrap',
+    }),
+    item('mozzarella-sticks', 'Breaded mozzarella sticks (1kg)', 'Meat & protein', ['jj'], {
+      code: 'VGT231',
+      note: 'Molten Mozza Sticks',
+    }),
+    item('cheese-slice', 'Burger cheese slices (112)', 'Meat & protein', ['jj'], {
+      itemBrand: 'Kerrymaid',
+      code: 'CHE142',
+    }),
+    item('sesame-bun', '4.5" seeded burger buns (48)', 'Bread & buns', ['jj'], {
+      code: 'BUN038',
+      note: 'Glazed sesame bun',
+    }),
+    item('mini-bun', '4" seeded burger buns (48)', 'Bread & buns', ['jj'], {
+      code: 'BUN037',
+      note: 'Mini / kids burger',
+    }),
+    item('tortilla-12', '12" flour tortilla wraps (6 × 12)', 'Bread & buns', ['jj'], {
+      code: 'BAK306',
+      note: 'Wraps',
+    }),
+    item('tortilla-10', '10" flour tortilla wraps (6 × 12)', 'Bread & buns', ['jj'], {
+      code: 'BAK307',
+      note: 'Kids wraps',
+    }),
+    item('lettuce', 'Iceberg lettuce (10–12)', 'Fresh veg & salad', ['jj'], { code: 'VEG476' }),
+    item('mixed-leaves', 'Mixed leaves (2 × 500g)', 'Fresh veg & salad', ['jj'], {
+      code: 'VEG790',
+      note: 'Garden salad',
+    }),
+    item('red-cabbage', 'Red cabbage (10kg)', 'Fresh veg & salad', ['jj'], {
+      code: 'VEG001',
+      note: 'Crunchy pickled slaw',
+    }),
+    item('jalapeno', 'Sliced green jalapeños in brine (3kg)', 'Fresh veg & salad', ['jj'], {
+      code: 'VEG993',
+      note: 'Jalapeño Ranch dip',
+    }),
+    item('corn-cob', 'Corn on the cob (2 × 24)', 'Fresh veg & salad', ['jj'], {
+      code: 'VEG027',
+      note: 'Golden Corn Cob, charred Cajun corn',
+    }),
+    item('sweet-potato', 'Frozen diced sweet potato (1kg)', 'Fresh veg & salad', ['jj'], {
+      itemBrand: 'Greens',
+      code: 'VEG856',
+      note: 'Roasted sweet potato',
+    }),
+    item('fries', 'Super Crisp Double Crunch 9/16 chips (4 × 2.27kg)', 'Sides', ['jj'], {
+      code: 'CHP181',
+      note: 'Crunch Fries, Loaded Seoul Fries',
+    }),
+    item('hash-brown', 'Hash browns (4 × 2.27kg)', 'Sides', ['jj'], { code: 'POT097' }),
+    item('baked-beans', 'Baked beans (6 × 2.65kg)', 'Sides', ['jj'], {
+      code: 'VEG072',
+      note: 'Smoky Beans',
+    }),
+    item('rice', 'Easy cook long grain rice (5kg)', 'Sides', ['jj'], {
+      itemBrand: 'Aunt Caroline',
+      code: 'RIC024',
+      note: 'Cajun Dirty Rice, rice bowls',
+    }),
+    item('coleslaw', 'Coleslaw (2kg)', 'Sides', ['jj'], { code: 'SAN105', note: 'Kids coleslaw' }),
+    item('mayo', 'Real mayonnaise bucket (10L)', 'Sauces & dips', ['jj'], {
+      itemBrand: 'Heinz',
+      code: 'SAU043',
+      note: 'Mayo, pepper mayo, Golden Mayo; base for Golden House Sauce & Garlic Parmesan dip',
+    }),
+    item('vegan-mayo', 'Vegan mayonnaise (5L)', 'Sauces & dips', ['jj'], {
+      itemBrand: 'Heinz',
+      code: 'SAU972',
+    }),
+    item('ranch', 'Ranch dressing (2 × 2.27L)', 'Sauces & dips', ['jj'], {
+      itemBrand: 'Lion',
+      code: 'SAU823',
+      note: 'Golden ranch, Seoul Fire ranch, Jalapeño Ranch dip',
+    }),
+    item('bbq-sauce', 'Smoky BBQ sauce (2 × 2.27L)', 'Sauces & dips', ['jj'], {
+      itemBrand: 'Crucials',
+      code: 'SAU049',
+      note: 'Smokehouse BBQ dip, Kansas BBQ glaze',
+    }),
+    item('gochujang', 'Halal gochujang sauce (300g)', 'Sauces & dips', ['jj'], {
+      itemBrand: "O'Food",
+      code: 'SAU991',
+      note: 'Gochu Blaze sauce, dip & mayo',
+    }),
+    item('sweet-chilli-sauce', 'Sweet chilli sauce (6 × 1L)', 'Sauces & dips', ['jj'], {
+      itemBrand: 'Crucials',
+      code: 'SAU246',
+      note: 'Sweet chilli glaze; base for Mango Chilli dip',
+    }),
+    item('honey-mustard', 'Honey & mustard dressing (2 × 2.27L)', 'Sauces & dips', ['jj'], {
+      itemBrand: 'Lion',
+      code: 'SAU729',
+      note: 'Honey Mustard dip',
+    }),
+    item('teriyaki', 'Teriyaki marinade (975ml)', 'Sauces & dips', ['jj'], {
+      itemBrand: 'Kikkoman',
+      code: 'SAU994',
+      note: 'Sesame Teriyaki dip',
+    }),
+    item('chilli-honey', 'Chilli Fusion honey (680g)', 'Sauces & dips', ['jj'], {
+      itemBrand: 'Rowse',
+      code: 'SPR069',
+      note: 'Hot Honey Habanero dip',
+    }),
+    item('salsa', 'Salsa sauce (950g)', 'Sauces & dips', ['jj'], {
+      itemBrand: 'Santa Maria',
+      code: 'SAU666',
+      note: 'Spicy salsa',
+    }),
+    item('ketchup', 'SQ-easy tomato ketchup (6 × 1L)', 'Sauces & dips', ['jj'], { code: 'SAU024' }),
+    item('cajun-seasoning', 'Blackened Cajun seasoning', 'Seasoning', ['jj'], {
+      itemBrand: 'Schwartz',
+      code: 'SPI366',
+      note: 'Cajun Dirty Rice, Cajun corn',
+    }),
+    item('black-pepper', 'Black pepper powder (1.75kg)', 'Seasoning', ['jj'], {
+      code: 'SPI596',
+      note: 'Black pepper mayo',
+    }),
+    item('breading', 'Chicken breading (25kg)', 'Oil & coatings', ['jj'], {
+      code: 'FLO012',
+      note: 'Golden Classic chicken, mini fillets',
+    }),
+    item('frying-oil', 'Rapeseed cooking oil drum (20L)', 'Oil & coatings', ['jj'], {
+      itemBrand: 'Pride',
+      code: 'OIL055',
+      note: 'Fryers',
+    }),
+    item('cookie', 'Milk chocolate cookie dough (90 × 50g)', 'Desserts', ['jj'], {
+      itemBrand: 'Baker and Baker',
+      code: 'BAK168',
+      note: 'Choc chip cookie, kids treat',
+    }),
+    item('can-pepsi-max', 'Pepsi Max cans (24 × 330ml)', 'Drinks', ['jj'], { code: 'DRK698' }),
+    item('can-tango-orange', 'Tango Orange cans (24 × 330ml)', 'Drinks', ['jj'], {
+      code: 'DRK115',
+    }),
+    item(
+      'can-7up-zero',
+      '7UP Zero Sugar Lemon & Lime cans (24 × 330ml)',
+      'Drinks',
+      ['booker', 'cashCarry'],
+      { image: false, note: 'Not stocked in cans at JJ' },
+    ),
+    item('bottle-pepsi-max', 'Pepsi Max bottles (12 × 1.5L)', 'Drinks', ['jj'], { code: 'DRN377' }),
+    item('bottle-diet-pepsi', 'Diet Pepsi bottles (12 × 1.5L)', 'Drinks', ['jj'], {
+      code: 'DRN380',
+    }),
+    item('bottle-7up-zero', '7UP Zero Sugar bottles (12 × 1.5L)', 'Drinks', ['jj'], {
+      code: 'DRN376',
+    }),
+    item('bottle-tango-orange', 'Tango Orange bottles (12 × 1.5L)', 'Drinks', ['jj'], {
+      code: 'DRK111',
+    }),
+    item('fruit-shoot-apple', 'Fruit Shoot Apple & Blackcurrant (24 × 275ml)', 'Drinks', ['jj'], {
+      code: 'DRK142',
+    }),
+    item('fruit-shoot-orange', 'Fruit Shoot Orange (24 × 275ml)', 'Drinks', ['jj'], {
+      code: 'DRK141',
+    }),
+    item('still-water', 'Still spring water (24 × 500ml)', 'Drinks', ['jj'], {
+      itemBrand: 'Vivat',
+      code: 'DRN837',
+    }),
+    item('chicken-box', 'FC3 large chicken boxes', 'Packaging', ['jj'], {
+      code: 'BOX117',
+      note: 'Feast box, snack box',
+    }),
+    item('chicken-bucket', 'Chicken bucket with lid', 'Packaging', ['booker', 'cashCarry'], {
+      image: false,
+      note: 'Buckets — not stocked at JJ',
+    }),
+    item('burger-box', '5" white bagasse burger box (50)', 'Packaging', ['jj'], {
+      code: 'BOX151',
+      note: 'Burgers, Little Champ box',
+    }),
+    item('loaded-fries-box', 'S9 bagasse burger & chips box', 'Packaging', ['jj'], {
+      code: 'BOX179',
+      note: 'Loaded fries',
+    }),
+    item('rice-bowl', '32oz bagasse round bowl (200)', 'Packaging', ['jj'], {
+      code: 'BOX194',
+      note: 'Rice bowls',
+    }),
+    item('rice-bowl-lid', 'Lids for bagasse round bowl (200)', 'Packaging', ['jj'], {
+      code: 'CON261',
+    }),
+    item('sauce-cup', '2oz hinged sauce cups (1000)', 'Packaging', ['jj'], {
+      code: 'CON096',
+      note: 'Dips',
+    }),
+    item('meal-bag', 'Medium brown paper carrier bags', 'Packaging', ['jj'], {
+      code: 'BAG184',
+      note: 'Meal bag',
+    }),
+    item('cookie-bag', 'Hot food bag 5" × 8"', 'Packaging', ['jj'], {
+      code: 'BAG208',
+      note: 'Cookie bag',
+    }),
+  ],
+};
+
 // Burgerz and Friez runs the Monster Burgerz recipe and Greek Bite the Greek
 // Gyros one — same ingredients, same suppliers, same photos.
 export const SUPPLIER_LISTS: SupplierList[] = [
@@ -253,6 +518,7 @@ export const SUPPLIER_LISTS: SupplierList[] = [
     accent: '#0891b2',
     photos: GREEK_GYROS.slug,
   },
+  KOREAN_FRIED_CHICKEN,
 ];
 
 export const supplierListBySlug = (slug: string | null) =>
