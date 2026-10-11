@@ -49,6 +49,8 @@ const SUPPLIER_DATA = {
   hollandBazaar: { name: 'Holland Bazaar' },
   cashCarry: { name: 'Cash & carry' },
   ebay: { name: 'eBay', website: 'https://www.ebay.co.uk' },
+  // Fiesta Mexica's relaunch tracker lists branded packaging under "BY".
+  brandPackaging: { name: 'BY (branded packaging)' },
 } satisfies Record<string, Supplier>;
 
 export type SupplierKey = keyof typeof SUPPLIER_DATA;
@@ -1069,6 +1071,209 @@ const CHICAGO_PIZZERIA: SupplierList = {
   ],
 };
 
+// From the client's Mexican Re-Launch Tracker (Oct 2026). Codes checked on
+// jjfoodservice.com; the eight new relaunch lines (salsas, guacamole, chipotle
+// chicken, pulled beef, churros, taquitos, 4" tortillas, Jarritos mango) aren't
+// on the website yet, so they keep the tracker's code and have no photo.
+const NOT_ONLINE = 'not on the JJ website yet';
+const FIESTA_MEXICA: SupplierList = {
+  slug: 'fiesta-mexica',
+  name: 'Fiesta Mexica',
+  accent: '#16a34a',
+  items: [
+    item('chipotle-chicken', 'Halal chipotle chicken (6 × 1kg)', 'Meat & protein', ['jj'], {
+      code: 'RDY105',
+      note: `Frozen · ${NOT_ONLINE}`,
+      image: false,
+    }),
+    item('pulled-beef', 'Halal Mexican pulled beef (6 × 1kg)', 'Meat & protein', ['jj'], {
+      code: 'RDY106',
+      note: `Frozen · ${NOT_ONLINE}`,
+      image: false,
+    }),
+    item('grated-cheese', 'Grated white cheese (2kg)', 'Meat & protein', ['jj'], {
+      itemBrand: 'Kerrymaid',
+      code: 'CHE148',
+      note: 'Chilled',
+    }),
+    item('tortilla-12', '12" ambient flour tortilla wraps (6 × 18)', 'Bread & buns', ['jj'], {
+      itemBrand: 'Letsdough',
+      code: 'BAK461',
+      note: 'Ambient · burritos',
+    }),
+    item('tortilla-6', '6" flour tortilla wraps (10 × 15)', 'Bread & buns', ['jj'], {
+      itemBrand: 'Santa Maria',
+      code: 'BAK156',
+      note: 'Frozen · tacos',
+    }),
+    item('tortilla-4', '4" tortillas (6 × 24)', 'Bread & buns', ['jj'], {
+      code: 'BRE165',
+      note: `Frozen · ${NOT_ONLINE}`,
+      image: false,
+    }),
+    item('lettuce', 'Iceberg lettuce (10–12)', 'Fresh veg & salad', ['jj'], {
+      code: 'VEG476',
+      note: 'Chilled',
+    }),
+    item('tomatoes', 'Loose tomatoes, class I (6kg)', 'Fresh veg & salad', ['jj'], {
+      code: 'VEG007',
+      note: 'Chilled',
+    }),
+    item('onions', 'Spanish onions', 'Fresh veg & salad', ['jj'], {
+      code: 'VGT215',
+      note: 'Chilled',
+    }),
+    item(
+      'coriander',
+      'Fresh coriander, bunched (100g)',
+      'Fresh veg & salad',
+      ['supermarket', 'jj'],
+      {
+        note: 'Self-sourced (tracker SSV007) · JJ sells VEG668, 20 bunches',
+      },
+    ),
+    item('pickled-onions', 'Pink pickled onions (5 × 1kg)', 'Fresh veg & salad', ['jj'], {
+      code: 'SAU931',
+      note: 'Frozen',
+    }),
+    item('burrito-rice', 'Veg burrito rice (6 × 1kg)', 'Sides', ['jj'], {
+      code: 'RIC124',
+      note: 'Frozen',
+    }),
+    item('black-beans', 'Black turtle beans in water (2.5kg tin)', 'Sides', ['jj'], {
+      code: 'VGT050',
+      note: 'Ambient',
+    }),
+    item('tortilla-chips', 'Salted corn tortilla chips (12 × 475g)', 'Sides', ['jj'], {
+      itemBrand: 'Santa Maria',
+      code: 'CRP191',
+      note: 'Ambient · nachos',
+    }),
+    item('jalapeno-bites', 'Green jalapeño & cheese snacks (1kg)', 'Sides', ['jj'], {
+      itemBrand: 'Aviko',
+      code: 'VEG909',
+      note: 'Frozen',
+    }),
+    item('taquitos', 'Chilli cheese taquitos (48 × 80g)', 'Sides', ['jj'], {
+      code: 'BAK484',
+      note: `Frozen · ${NOT_ONLINE}`,
+      image: false,
+    }),
+    item(
+      'cauliflower-bites',
+      'Gluten free & vegan Moroccan style cauliflower bites (3 × 1kg)',
+      'Sides',
+      ['jj'],
+      { itemBrand: 'KaterVeg', code: 'VGT027', note: 'Frozen · no photo on JJ', image: false },
+    ),
+    item('chips', 'Super Crisp double crunch 3/8 skin-on chips (4 × 2.27kg)', 'Sides', ['jj'], {
+      code: 'CHP165',
+      note: 'Frozen',
+    }),
+    item('nacho-cheese', 'Nacho cheese sauce (1L)', 'Sauces & dips', ['jj'], {
+      itemBrand: 'Macphie',
+      code: 'SAU731',
+      note: 'Ambient',
+    }),
+    item('green-salsa', 'Green Mexican salsa (6 × 2.8kg)', 'Sauces & dips', ['jj'], {
+      itemBrand: 'Del Sol',
+      code: 'SAU923',
+      note: 'Ambient',
+    }),
+    item('chipotle-salsa', 'Chipotle salsa sauce (6 × 2.8kg)', 'Sauces & dips', ['jj'], {
+      code: 'SAU920',
+      note: `Ambient · ${NOT_ONLINE}`,
+      image: false,
+    }),
+    item('roasted-salsa', 'Roasted salsa (8 × 1kg)', 'Sauces & dips', ['jj'], {
+      code: 'SAU921',
+      note: 'Frozen · code found on JJ (blank on the tracker)',
+    }),
+    item('guacamole', 'Premium guacamole (6 × 500g)', 'Sauces & dips', ['jj'], {
+      code: 'SAU922',
+      note: `Frozen · ${NOT_ONLINE}`,
+      image: false,
+    }),
+    item('sour-cream', 'Set sour cream (2kg)', 'Sauces & dips', ['jj'], {
+      code: 'CRE033',
+      note: 'Chilled',
+    }),
+    item('lime-juice', 'Lime juice (1L)', 'Seasoning', ['jj'], {
+      itemBrand: 'Gomo',
+      code: 'SAU783',
+      note: 'Chilled',
+    }),
+    item('rapeseed-oil', 'Extended life rapeseed oil (20L drum)', 'Oil & coatings', ['jj'], {
+      code: 'OIL115',
+      note: 'Ambient · fryer',
+    }),
+    item('churros', 'Churros loops (4 × 1kg)', 'Desserts', ['jj'], {
+      itemBrand: 'Aviko',
+      code: 'DES458',
+      note: `Frozen · ${NOT_ONLINE}`,
+      image: false,
+    }),
+    item('toffee-sauce', 'Toffee & Devon cream drizzle sauce (500g)', 'Desserts', ['jj'], {
+      itemBrand: 'DaVinci Gourmet',
+      code: 'ICE261',
+      note: 'Ambient · churros',
+    }),
+    item('sugar', 'Granulated sugar (5kg)', 'Desserts', ['jj', 'supermarket'], {
+      itemBrand: 'Tate & Lyle',
+      code: 'SPI524',
+      note: 'Ambient · churros · tracker says self-source',
+    }),
+    item('coke', 'Coca-Cola cans (24 × 330ml)', 'Drinks', ['jj'], { code: 'DRK063' }),
+    item('coke-zero', 'Coca-Cola Zero Sugar cans (24 × 330ml)', 'Drinks', ['jj'], {
+      code: 'DRK329',
+    }),
+    item('diet-coke', 'Diet Coke cans (24 × 330ml)', 'Drinks', ['jj'], { code: 'DRK062' }),
+    item('water', 'Harrogate still spring water (24 × 500ml)', 'Drinks', ['jj'], {
+      code: 'DRK025',
+    }),
+    item('jarritos-lime', 'Jarritos lime, glass bottle (12 × 370ml)', 'Drinks', ['jj'], {
+      code: 'DRN786',
+    }),
+    item('jarritos-mango', 'Jarritos mango, glass bottle (12 × 370ml)', 'Drinks', ['jj'], {
+      code: 'DRN788',
+      note: NOT_ONLINE,
+      image: false,
+    }),
+    item('burger-box', '6" white bagasse burger box (500)', 'Packaging', ['jj'], {
+      code: 'BOX152',
+    }),
+    item('sauce-cup-4oz', '4oz hinged sauce cups (500)', 'Packaging', ['jj'], { code: 'CON097' }),
+    item(
+      'kraft-container-750',
+      '750ml kraft rectangular food container (300)',
+      'Packaging',
+      ['jj'],
+      {
+        code: 'CON220',
+        note: 'Lid CON222',
+      },
+    ),
+    item(
+      'kraft-container-1000',
+      '1000ml kraft rectangular food container (300)',
+      'Packaging',
+      ['jj'],
+      { code: 'CON221', note: 'Lid CON222' },
+    ),
+    item('kraft-lids', 'Kraft food container lids, 500–1000ml (300)', 'Packaging', ['jj'], {
+      code: 'CON222',
+    }),
+    item('stickers', 'Branded stickers (500)', 'Packaging', ['brandPackaging'], { image: false }),
+    item('bags', 'Branded bags (250)', 'Packaging', ['brandPackaging'], { image: false }),
+    item('honeycomb-foil', 'Honeycomb foil (500)', 'Packaging', ['brandPackaging'], {
+      image: false,
+    }),
+    item('greaseproof', 'Mexican stack greaseproof (1000)', 'Packaging', ['brandPackaging'], {
+      image: false,
+    }),
+  ],
+};
+
 // Burgerz and Friez runs the Monster Burgerz recipe and Greek Bite the Greek
 // Gyros one — same ingredients, same suppliers, same photos.
 export const SUPPLIER_LISTS: SupplierList[] = [
@@ -1090,6 +1295,7 @@ export const SUPPLIER_LISTS: SupplierList[] = [
   },
   KOREAN_FRIED_CHICKEN,
   CHICAGO_PIZZERIA,
+  FIESTA_MEXICA,
 ];
 
 export const supplierListBySlug = (slug: string | null) =>
