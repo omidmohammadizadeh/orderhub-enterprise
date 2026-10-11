@@ -499,6 +499,576 @@ const KOREAN_FRIED_CHICKEN: SupplierList = {
   ],
 };
 
+// Built from the CHICAGO PIZZERIA-AYLESBURY menu's 192 assembly charts and its
+// options (toppings, sauces, drinks), each matched to a JJ Foodservice product
+// (searched 2026-10-11). Rows without a code aren't stocked at JJ.
+const CHICAGO_PIZZERIA: SupplierList = {
+  slug: 'chicago-pizzeria',
+  name: 'Chicago Pizzeria',
+  accent: '#b91c1c',
+  items: [
+    item('pizza-flour', 'Pizza flour (16kg)', 'Oil & coatings', ['jj'], {
+      code: 'PIZ199',
+      note: 'Pizza dough, garlic bread',
+    }),
+    item('yeast', 'Instant yeast (500g)', 'Oil & coatings', ['jj'], {
+      code: 'MIS078',
+      itemBrand: 'Fermipan',
+      note: 'Pizza dough',
+    }),
+    item('frying-oil', 'Rapeseed cooking oil drum (20L)', 'Oil & coatings', ['jj'], {
+      code: 'OIL055',
+      itemBrand: 'Pride',
+      note: 'Fryers',
+    }),
+    item('pizza-sauce', 'Spiced pizza sauce (6 × 2.95kg)', 'Sauces & dips', ['jj'], {
+      code: 'PIZ080',
+      itemBrand: 'Falcon',
+      note: 'Pizza base',
+    }),
+    item('mozzarella', 'Grated pure mozzarella (5 × 2kg)', 'Meat & protein', ['jj'], {
+      code: 'PIZ359',
+      itemBrand: 'Buffalo',
+      note: 'Pizzas, garlic bread, parmesans',
+    }),
+    item('grated-cheddar', 'Grated red cheddar (2kg)', 'Meat & protein', ['jj'], {
+      code: 'CHE169',
+      itemBrand: 'Buttercup',
+      note: 'Tacos, burritos, cheesy chips',
+    }),
+    item('parmesan', 'Grated Grana Padano (1kg)', 'Meat & protein', ['jj'], {
+      code: 'CHE056',
+      note: 'Parmesan sauce',
+    }),
+    item('cheese-sauce', 'Cheddar cheese sauce (1kg)', 'Sauces & dips', ['jj'], {
+      code: 'SAU932',
+      itemBrand: 'Kerrymaid',
+      note: 'Cheese sauce, parmesans',
+    }),
+    item('cheese-slice', 'Burger cheese slices (112)', 'Meat & protein', ['jj'], {
+      code: 'CHE142',
+      itemBrand: 'Kerrymaid',
+      note: 'Smashed & chicken burgers',
+    }),
+    item('pepperoni', 'Halal sliced pepperoni (1kg)', 'Meat & protein', ['jj'], {
+      code: 'PIZ026',
+      note: 'Pizza topping',
+    }),
+    item('salami', 'Halal sliced salami (1kg)', 'Meat & protein', ['jj'], {
+      code: 'PIZ034',
+      note: 'Pizza topping',
+    }),
+    item('turkey-ham', 'Halal julienne turkey ham (1kg)', 'Meat & protein', ['jj'], {
+      code: 'PIZ041',
+      note: 'Ham topping',
+    }),
+    item('pizza-chicken', 'Halal cooked plain chicken dices 12mm (1kg)', 'Meat & protein', ['jj'], {
+      code: 'PIZ004',
+      note: 'Chicken topping',
+    }),
+    item('tikka-chicken', 'Halal cooked tikka chicken dices 12mm (1kg)', 'Meat & protein', ['jj'], {
+      code: 'PIZ002',
+      note: 'Chicken tikka pizza',
+    }),
+    item(
+      'tandoori-chicken',
+      'Halal cooked tandoori chicken dices 12mm (1kg)',
+      'Meat & protein',
+      ['jj'],
+      { code: 'PIZ003', note: 'Tandoori pizza' },
+    ),
+    item('spicy-beef', 'Halal spicy beef chunks (1kg)', 'Meat & protein', ['jj'], {
+      code: 'PIZ031',
+      note: 'Spicy beef topping',
+    }),
+    item('meatballs', 'Halal mini beef meatballs (1kg)', 'Meat & protein', ['jj'], {
+      code: 'MEA508',
+      note: 'Meatball pizzas',
+    }),
+    item('beef-mince', 'UK halal minced beef 10% fat (2 × 1kg)', 'Meat & protein', ['jj'], {
+      code: 'MEA379',
+      note: 'Bolognese (with chopped tomatoes)',
+    }),
+    item('doner', 'Halal cooked & cut doner kebab (2 × 2.27kg)', 'Meat & protein', ['jj'], {
+      code: 'DON034',
+      itemBrand: 'Ali Baba',
+      note: 'Donner kebab, kebab pizza, kebab butty',
+    }),
+    item('chicken-gyros', 'Halal pre-cooked & cut chicken doner (1kg)', 'Meat & protein', ['jj'], {
+      code: 'DON175',
+      note: 'Chicken gyros wraps, bowls, platters',
+    }),
+    item('chicken-shish', 'Halal marinated chicken breast shish (2kg)', 'Meat & protein', ['jj'], {
+      code: 'CHI169',
+      itemBrand: 'Premiumeat',
+      note: 'Chicken souvlaki, peri peri chicken',
+    }),
+    item('kofte', 'Halal kofte (24 × 125g)', 'Meat & protein', ['jj'], {
+      code: 'MEA011',
+      note: 'Grill bar',
+    }),
+    item('chicken-thigh', 'Halal raw boneless chicken thigh (10kg)', 'Meat & protein', ['jj'], {
+      code: 'CHI476',
+      note: 'Chicken pastor — marinate with fajita spice',
+    }),
+    item('hot-dog', 'Halal beef hot dogs 22cm (10)', 'Meat & protein', ['jj'], {
+      code: 'SGS230',
+      itemBrand: 'The Sausage Man',
+      note: 'Hot dog crust',
+    }),
+    item('turkey-bacon', 'Halal turkey rashers (1kg)', 'Meat & protein', ['jj'], {
+      code: 'TUR022',
+      itemBrand: 'Volys',
+      note: 'Bacon topping, burgers',
+    }),
+    item('tuna', 'Tuna chunks in brine (6 × 1.7kg)', 'Meat & protein', ['jj'], {
+      code: 'FSH832',
+      note: 'Tuna pizzas',
+    }),
+    item('prawns', 'Raw vannamei prawns, peeled (1.8kg)', 'Meat & protein', ['jj'], {
+      code: 'FSH659',
+      note: 'Pescatore',
+    }),
+    item('anchovies', 'Anchovies (365g)', 'Meat & protein', ['jj'], {
+      code: 'PIZ024',
+      note: 'Pescatore',
+    }),
+    item('crunch-fillet', 'Southern fried chicken fillets', 'Meat & protein', ['jj'], {
+      code: 'CHI753',
+      itemBrand: 'Tyson',
+      note: 'Chicken burgers, parmesans',
+    }),
+    item('hot-fillet', 'Hot & spicy chicken fillets (18 × 110g)', 'Meat & protein', ['jj'], {
+      code: 'CHI742',
+      note: 'Hot chicken burger',
+    }),
+    item('chicken-kiev', 'Chicken kievs (12 × 150g)', 'Meat & protein', ['jj'], {
+      code: 'CHI122',
+      itemBrand: 'Shyres',
+      note: 'Chicken Kiev pizza & parmesan',
+    }),
+    item('tenders', 'Crispy southern fried chicken strips (2kg)', 'Meat & protein', ['jj'], {
+      code: 'CHI264',
+      note: 'Chicken strips',
+    }),
+    item('popcorn-chicken', 'Southern fried poppin chicken (1kg)', 'Meat & protein', ['jj'], {
+      code: 'CHI490',
+      note: 'Kids popcorn chicken',
+    }),
+    item('nuggets', 'Halal battered chicken nuggets (2kg)', 'Meat & protein', ['jj'], {
+      code: 'CHI743',
+      note: 'Nuggets, kids meal',
+    }),
+    item('hot-wings', 'Halal battered hot wings (2kg)', 'Meat & protein', ['jj'], {
+      code: 'CHI016',
+      note: 'Hot chicken wings',
+    }),
+    item('halloumi', 'Cyprus style cheese / halloumi (5 × 200g)', 'Meat & protein', ['jj'], {
+      code: 'CHE149',
+      itemBrand: 'Gonendere',
+      note: 'Grilled halloumi',
+    }),
+    item('feta', 'Greek feta (900g)', 'Meat & protein', ['jj'], {
+      code: 'CHE180',
+      note: 'Greek bowls & salads',
+    }),
+    item('falafel', 'Moroccan falafel bites (2 × 1kg)', 'Meat & protein', ['jj'], {
+      code: 'VGT017',
+      itemBrand: 'Gosh',
+      note: 'Falafel wrap / bowl',
+    }),
+    item('pulled-beef', 'Pulled beef (barbacoa)', 'Meat & protein', ['halal', 'cashCarry'], {
+      image: false,
+      note: 'Tacos, burritos — not stocked ready-made at JJ',
+    }),
+    item('brioche-bun', '4.5" gourmet sliced brioche buns (48)', 'Bread & buns', ['jj'], {
+      code: 'BUN028',
+      itemBrand: 'Letsdough',
+      note: 'Burgers',
+    }),
+    item('pitta', 'Large frozen pitta breads (20 × 6)', 'Bread & buns', ['jj'], {
+      code: 'BRE026',
+      note: 'Kebabs, gyros, platters',
+    }),
+    item('tortilla-12', '12" flour tortilla wraps (6 × 12)', 'Bread & buns', ['jj'], {
+      code: 'BAK306',
+      note: 'Burritos, quesadillas, wraps',
+    }),
+    item('tortilla-6', '6" flour tortilla wraps (10 × 15)', 'Bread & buns', ['jj'], {
+      code: 'BAK156',
+      itemBrand: 'Santa Maria',
+      note: 'Tacos',
+    }),
+    item('lettuce', 'Iceberg lettuce (10–12)', 'Fresh veg & salad', ['jj'], { code: 'VEG476' }),
+    item('tomato', 'Tomatoes', 'Fresh veg & salad', ['jj', 'supermarket'], {
+      image: false,
+      note: 'Salads, burgers, pico de gallo',
+    }),
+    item('white-onion', 'White onions', 'Fresh veg & salad', ['jj', 'supermarket'], {
+      image: false,
+      note: 'Pizza topping, kebabs',
+    }),
+    item('red-onion', 'Red onions (10kg)', 'Fresh veg & salad', ['jj'], { code: 'VEG490' }),
+    item('cucumber', 'Cucumbers (4)', 'Fresh veg & salad', ['jj'], {
+      code: 'VEG902',
+      note: 'Greek salad, tzatziki',
+    }),
+    item('mushrooms', 'Sliced mushrooms (2.55kg)', 'Fresh veg & salad', ['jj'], {
+      code: 'VEG064',
+      note: 'Pizza topping, garlic mushrooms',
+    }),
+    item('green-peppers', 'Green peppers (5kg)', 'Fresh veg & salad', ['jj'], {
+      code: 'VEG605',
+      note: 'Pizza topping',
+    }),
+    item('green-chillies', 'Green chilli peppers (3kg)', 'Fresh veg & salad', ['jj'], {
+      code: 'VEG765',
+      note: 'Chilli topping',
+    }),
+    item('jalapeno', 'Sliced green jalapeños in brine (3kg)', 'Fresh veg & salad', ['jj'], {
+      code: 'VEG993',
+    }),
+    item('sweetcorn', 'Sweetcorn (2.23kg)', 'Fresh veg & salad', ['jj'], { code: 'VGT138' }),
+    item('pineapple', 'Pineapple pizza-cut pieces (3kg)', 'Fresh veg & salad', ['jj'], {
+      code: 'PIZ033',
+      note: 'Hawaiian',
+    }),
+    item('black-olives', 'Sliced black olives (3kg)', 'Fresh veg & salad', ['jj'], {
+      code: 'VEG074',
+      note: 'Pizza topping',
+    }),
+    item('kalamata-olives', 'Mixed marinated pitted olives (3.2kg)', 'Fresh veg & salad', ['jj'], {
+      code: 'VEG866',
+      itemBrand: 'Gomo',
+      note: 'Greek dishes',
+    }),
+    item('gherkins', 'Sliced dill gherkins (2.45kg)', 'Fresh veg & salad', ['jj'], {
+      code: 'VEG749',
+      itemBrand: 'Kuhne',
+      note: 'Burgers',
+    }),
+    item('pickled-onions', 'Pink pickled onions (5 × 1kg)', 'Fresh veg & salad', ['jj'], {
+      code: 'SAU931',
+      note: 'Tacos, gyros',
+    }),
+    item('coriander', 'Fresh coriander (20 bunches)', 'Fresh veg & salad', ['jj'], {
+      code: 'VEG668',
+      note: 'Pico de gallo, tacos',
+    }),
+    item('spring-onion', 'Spring onions (12–14 bunches)', 'Fresh veg & salad', ['jj'], {
+      code: 'VEG402',
+    }),
+    item('edamame', 'Edamame in pods (1kg)', 'Fresh veg & salad', ['jj'], {
+      code: 'VGT194',
+      note: 'Bowls',
+    }),
+    item('chopped-tomatoes', 'Chopped tomatoes (6 × 2.95kg)', 'Fresh veg & salad', ['jj'], {
+      code: 'VGT028',
+      note: 'Bolognese',
+    }),
+    item('chips', 'Blue Label 9/16 chips (4 × 2.27kg)', 'Sides', ['jj'], {
+      code: 'CHP098',
+      note: 'Chips, cheesy chips, meal deals',
+    }),
+    item('potato-wedges', 'Double Crunch spicy wedges (4 × 2.27kg)', 'Sides', ['jj'], {
+      code: 'POT142',
+    }),
+    item('onion-rings', 'Battered onion rings (1kg)', 'Sides', ['jj'], {
+      code: 'VEG908',
+      itemBrand: 'Aviko',
+    }),
+    item('mozzarella-sticks', 'Breaded mozzarella sticks (1kg)', 'Sides', ['jj'], {
+      code: 'VGT231',
+    }),
+    item('jalapeno-bites', 'Green jalapeño & cheese snacks (1kg)', 'Sides', ['jj'], {
+      code: 'VEG909',
+      itemBrand: 'Aviko',
+      note: 'Jalapeño bites',
+    }),
+    item('halloumi-fries', 'Breaded halloumi fries (1kg)', 'Sides', ['jj'], {
+      code: 'CHE193',
+      itemBrand: 'Yamas',
+    }),
+    item('cauliflower-bites', 'Vegan Moroccan-style cauliflower bites', 'Sides', ['jj'], {
+      code: 'VGT027',
+      itemBrand: 'KaterVeg',
+      note: 'Cauliflower tacos & bowls',
+    }),
+    item('coleslaw', 'Coleslaw (2kg)', 'Sides', ['jj'], { code: 'SAN105' }),
+    item('burrito-rice', 'Veg burrito rice (6 × 1kg)', 'Sides', ['jj'], {
+      code: 'RIC124',
+      note: 'Mexican rice',
+    }),
+    item('basmati-rice', 'Basmati rice (5kg)', 'Sides', ['jj'], {
+      code: 'RIC036',
+      itemBrand: 'Laila',
+      note: 'Gyros & rice bowls',
+    }),
+    item('tortilla-chips', 'Salted corn tortilla chips (12 × 475g)', 'Sides', ['jj'], {
+      code: 'CRP191',
+      itemBrand: 'Santa Maria',
+      note: 'Nachos',
+    }),
+    item('mayo', 'SQ-easy mayo + garlic mayo + burger sauce (3 × 1L)', 'Sauces & dips', ['jj'], {
+      code: 'SAU240',
+      note: 'Mayo, garlic mayo',
+    }),
+    item('vegan-mayo', 'Vegan mayonnaise (5L)', 'Sauces & dips', ['jj'], {
+      code: 'SAU972',
+      itemBrand: 'Heinz',
+    }),
+    item('garlic-sauce', 'Garlic & herb sauce (6 × 1L)', 'Sauces & dips', ['jj'], {
+      code: 'SAU716',
+      itemBrand: 'Harrisons',
+      note: 'Kebab garlic sauce',
+    }),
+    item('chilli-sauce', 'SQ-easy extra hot chilli sauce (6 × 1L)', 'Sauces & dips', ['jj'], {
+      code: 'SAU023',
+      note: 'Kebab chilli sauce, chilli base',
+    }),
+    item('bbq-sauce', 'SQ-easy BBQ sauce (6 × 1L)', 'Sauces & dips', ['jj'], {
+      code: 'SAU144',
+      note: 'BBQ base, burger sauce choice',
+    }),
+    item('burger-sauce', 'SQ-easy burger sauce (6 × 1L)', 'Sauces & dips', ['jj'], {
+      code: 'SAU031',
+    }),
+    item('ketchup', 'SQ-easy tomato ketchup (6 × 1L)', 'Sauces & dips', ['jj'], { code: 'SAU024' }),
+    item('mustard', 'SQ-easy American mild mustard (6 × 1L)', 'Sauces & dips', ['jj'], {
+      code: 'SAU033',
+    }),
+    item('sweet-chilli-sauce', 'Sweet chilli sauce (6 × 1L)', 'Sauces & dips', ['jj'], {
+      code: 'SAU246',
+      itemBrand: 'Crucials',
+    }),
+    item('buffalo-sauce', 'Red Hot buffalo wing sauce (3.78L)', 'Sauces & dips', ['jj'], {
+      code: 'SAU608',
+      itemBrand: "Frank's",
+    }),
+    item('peri-peri-sauce', 'Original piri piri hot sauce (2 × 2.27L)', 'Sauces & dips', ['jj'], {
+      code: 'SAU507',
+      itemBrand: 'Lion',
+    }),
+    item('blue-cheese', 'Blue cheese dressing (2 × 2.27L)', 'Sauces & dips', ['jj'], {
+      code: 'SAU730',
+      itemBrand: 'Lion',
+      note: 'Wings',
+    }),
+    item('sriracha', 'Sriracha hot chilli sauce (570ml)', 'Sauces & dips', ['jj'], {
+      code: 'SAU981',
+      itemBrand: 'Panich',
+      note: 'Sriracha honey sauce',
+    }),
+    item('korean-bbq', 'Sticky Korean barbecue sauce (875ml)', 'Sauces & dips', ['jj'], {
+      code: 'SAU983',
+      itemBrand: 'Heinz',
+      note: 'Korean BBQ drizzle',
+    }),
+    item('curry-sauce', 'Curry sauce mix, no sultanas (4.54kg)', 'Sauces & dips', ['jj'], {
+      code: 'SAU097',
+      itemBrand: 'Dinaclass',
+      note: 'Curry dip',
+    }),
+    item('tikka-paste', 'Tikka masala curry paste (2 × 2.3kg)', 'Sauces & dips', ['jj'], {
+      code: 'SPI265',
+      itemBrand: 'Patak’s',
+      note: 'Tikka base',
+    }),
+    item('garlic-butter', 'Garlic & butter flavoured sauce (6 × 2L)', 'Sauces & dips', ['jj'], {
+      code: 'OIL154',
+      note: 'Garlic bread, crust brush',
+    }),
+    item('garlic-puree', 'Garlic purée (1.2kg)', 'Sauces & dips', ['jj'], {
+      code: 'SPI485',
+      itemBrand: 'Cooks & Co',
+      note: 'Garlic mushrooms',
+    }),
+    item('chipotle-mayo', 'Chipotle mayo', 'Sauces & dips', ['booker'], {
+      image: false,
+      note: 'Not stocked at JJ',
+    }),
+    item('caramelised-onion', 'Caramelised onion chutney', 'Sauces & dips', ['booker'], {
+      image: false,
+      note: 'Burgers — not stocked at JJ',
+    }),
+    item('sour-cream', 'Set sour cream (2kg)', 'Sauces & dips', ['jj'], {
+      code: 'CRE033',
+      note: 'Tacos, burritos',
+    }),
+    item('guacamole', 'Frozen guacamole (1kg)', 'Sauces & dips', ['jj'], {
+      code: 'SAU784',
+      itemBrand: 'Santa Maria',
+    }),
+    item('roasted-salsa', 'Roasted salsa (8 × 1kg)', 'Sauces & dips', ['jj'], {
+      code: 'SAU921',
+      note: 'Roasted salsa; base for chipotle salsa',
+    }),
+    item('salsa-verde', 'Green Mexican salsa (6 × 2.8kg)', 'Sauces & dips', ['jj'], {
+      code: 'SAU923',
+      itemBrand: 'Del Sol',
+      note: 'Salsa verde dip',
+    }),
+    item('hummus', 'Houmous (2kg)', 'Sauces & dips', ['jj'], { code: 'SAU014' }),
+    item('tzatziki', 'Tzatziki (1.9kg)', 'Sauces & dips', ['jj'], {
+      code: 'SAN162',
+      itemBrand: 'Mr.Dips',
+    }),
+    item('miso', 'White miso paste (1kg)', 'Sauces & dips', ['jj'], {
+      code: 'SAU963',
+      itemBrand: 'Emma Basic',
+      note: 'Miso mayo rice',
+    }),
+    item('oregano', 'Oregano (800g)', 'Seasoning', ['jj'], {
+      code: 'SPI597',
+      note: 'Pizzas, oregano fries',
+    }),
+    item('paprika', 'Mild paprika (1.3kg)', 'Seasoning', ['jj'], { code: 'SPI534' }),
+    item('parsley', 'Dried parsley (700g)', 'Seasoning', ['jj'], { code: 'SPI617' }),
+    item('tandoori-masala', 'Tandoori masala (1kg)', 'Seasoning', ['jj'], {
+      code: 'SPI749',
+      itemBrand: 'Natco',
+      note: 'Tandoori powder',
+    }),
+    item('fajita-spice', 'Mexican fajita spice mix (504g)', 'Seasoning', ['jj'], {
+      code: 'SPI645',
+      itemBrand: 'Santa Maria',
+      note: 'Chicken pastor, Mexican rice',
+    }),
+    item('cinnamon', 'Ground cinnamon (390g)', 'Seasoning', ['jj'], {
+      code: 'SPI389',
+      itemBrand: 'Schwartz',
+      note: 'Churros cinnamon sugar',
+    }),
+    item('churros', 'Churros loops (2 × 2kg)', 'Desserts', ['jj'], {
+      code: 'DES414',
+      itemBrand: 'Comida Latina',
+    }),
+    item('toffee-sauce', 'Toffee drizzle (500g)', 'Desserts', ['jj'], {
+      code: 'ICE261',
+      itemBrand: 'DaVinci Gourmet',
+      note: 'Churros toffee sauce',
+    }),
+    item('fudge-cake', 'Devil’s fudge cake, pre-sliced (12)', 'Desserts', ['jj'], {
+      code: 'DES420',
+      itemBrand: 'Letscake',
+      note: 'Chocolate fudge cake',
+    }),
+    item('cheesecake', 'Deep & creamy cheesecake, pre-sliced (12)', 'Desserts', ['jj'], {
+      code: 'DES204',
+      itemBrand: 'Mademoiselle',
+      note: 'Mexican cheesecake',
+    }),
+    item('vegan-brownie', 'Vegan salted caramel brownie', 'Desserts', ['booker'], {
+      image: false,
+      note: 'Not stocked at JJ',
+    }),
+    item('ben-jerrys', "Ben & Jerry's tubs (8 × 465ml)", 'Desserts', ['jj'], {
+      code: 'ICE098',
+      note: 'Ben & Jerry’s tub — order other flavours to match',
+    }),
+    item('vanilla-ice-cream', 'Vanilla soft scoop ice cream (4L)', 'Desserts', ['jj'], {
+      code: 'ICE237',
+      itemBrand: 'Summertime',
+      note: 'Milkshakes',
+    }),
+    item('whipped-cream', 'Aerosol real dairy cream (500g)', 'Desserts', ['jj'], {
+      code: 'CRE017',
+      note: 'Milkshake topping',
+    }),
+    item('oreo', 'Oreo snack packs (20)', 'Desserts', ['jj'], {
+      code: 'SNA060',
+      note: 'Oreo milkshake',
+    }),
+    item('biscoff', 'Lotus Biscoff biscuits (300)', 'Desserts', ['jj'], {
+      code: 'SNA110',
+      note: 'Biscoff milkshake',
+    }),
+    item('strawberries', 'Frozen strawberries (450g)', 'Desserts', ['jj'], {
+      code: 'VEG268',
+      itemBrand: 'Greens',
+      note: 'Strawberry milkshake',
+    }),
+    item('bananas', 'Bananas', 'Desserts', ['supermarket'], {
+      image: false,
+      note: 'Banana milkshake',
+    }),
+    item('chocolate-sauce', 'Chocolate sauce / spread', 'Desserts', ['supermarket', 'booker'], {
+      image: false,
+      note: 'Chocolate milkshake',
+    }),
+    item('milk', 'Whole milk', 'Desserts', ['supermarket'], { image: false, note: 'Milkshakes' }),
+    item('can-coke', 'Coca-Cola cans (24 × 330ml)', 'Drinks', ['jj'], { code: 'DRK063' }),
+    item('can-diet-coke', 'Diet Coke cans (24 × 330ml)', 'Drinks', ['jj'], { code: 'DRK062' }),
+    item('can-fanta', 'Fanta Orange cans (24 × 330ml)', 'Drinks', ['jj'], { code: 'DRK075' }),
+    item('can-sprite', 'Sprite cans (24 × 330ml)', 'Drinks', ['jj'], { code: 'DRK447' }),
+    item('can-dr-pepper', 'Dr Pepper cans (24 × 330ml)', 'Drinks', ['jj'], { code: 'DRK448' }),
+    item('bottle-coke', 'Coca-Cola bottles (12 × 1.5L)', 'Drinks', ['jj'], { code: 'DRK051' }),
+    item('bottle-diet-coke', 'Diet Coke bottles (12 × 1.5L)', 'Drinks', ['jj'], { code: 'DRK053' }),
+    item('bottle-fanta', 'Fanta Orange bottles (12 × 1.5L)', 'Drinks', ['jj'], { code: 'DRN342' }),
+    item('pizza-box-10', '10" plain brown pizza boxes (100)', 'Packaging', ['jj'], {
+      code: 'PIZ282',
+    }),
+    item('pizza-box-12', '12" plain brown pizza boxes (100)', 'Packaging', ['jj'], {
+      code: 'PIZ283',
+    }),
+    item('pizza-box-14', '14" pizza boxes', 'Packaging', ['booker', 'cashCarry'], {
+      image: false,
+      note: 'Not stocked at JJ',
+    }),
+    item('pizza-box-18', '18" pizza boxes', 'Packaging', ['booker', 'cashCarry'], {
+      image: false,
+      note: 'Not stocked at JJ',
+    }),
+    item('burger-box', '5" white bagasse burger box (500)', 'Packaging', ['jj'], {
+      code: 'BOX151',
+    }),
+    item('clamshell', 'Large kraft clamshell food box (200)', 'Packaging', ['jj'], {
+      code: 'BOX137',
+      note: 'Kebab, platter & salad box',
+    }),
+    item('kraft-bowl', '32oz round kraft bowl (200)', 'Packaging', ['jj'], {
+      code: 'CON240',
+      note: 'Bowls',
+    }),
+    item('kraft-bowl-lid', '32oz round kraft bowl lids (200)', 'Packaging', ['jj'], {
+      code: 'CON241',
+    }),
+    item('salad-tub', 'Oval salad container 500ml (500)', 'Packaging', ['jj'], {
+      code: 'BOW011',
+      note: 'Salad tub',
+    }),
+    item('sauce-cup-2oz', '2oz hinged sauce cups (1000)', 'Packaging', ['jj'], {
+      code: 'CON096',
+      note: 'Dips',
+    }),
+    item('sauce-cup-4oz', '4oz hinged sauce cups (500)', 'Packaging', ['jj'], {
+      code: 'CON097',
+      note: 'Extras, toffee sauce',
+    }),
+    item('taco-tray', 'Large white bagasse tray (500)', 'Packaging', ['jj'], {
+      code: 'TRA024',
+      note: 'Taco tray',
+    }),
+    item('greaseproof', 'Greaseproof paper 25 × 37.5cm (2000)', 'Packaging', ['jj'], {
+      code: 'WRA016',
+      note: 'Burritos, wraps',
+    }),
+    item('foil', 'Kitchen foil with cutter 30cm × 200m', 'Packaging', ['jj'], {
+      code: 'WRA058',
+      note: 'Burritos, wraps',
+    }),
+    item('milkshake-cup', '540ml milkshake cups + lids', 'Packaging', ['booker', 'cashCarry'], {
+      image: false,
+      note: 'Not stocked at JJ in 540ml',
+    }),
+    item('straws', 'Jumbo paper smoothie straws', 'Packaging', ['jj'], {
+      code: 'CUP207',
+      note: 'Milkshakes',
+    }),
+    item('carrier-bag', 'Medium brown paper carrier bags', 'Packaging', ['jj'], { code: 'BAG184' }),
+  ],
+};
+
 // Burgerz and Friez runs the Monster Burgerz recipe and Greek Bite the Greek
 // Gyros one — same ingredients, same suppliers, same photos.
 export const SUPPLIER_LISTS: SupplierList[] = [
@@ -519,6 +1089,7 @@ export const SUPPLIER_LISTS: SupplierList[] = [
     photos: GREEK_GYROS.slug,
   },
   KOREAN_FRIED_CHICKEN,
+  CHICAGO_PIZZERIA,
 ];
 
 export const supplierListBySlug = (slug: string | null) =>
