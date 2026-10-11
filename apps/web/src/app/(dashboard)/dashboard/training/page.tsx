@@ -22,6 +22,7 @@ import {
   RefreshCw,
   Sandwich,
   Search,
+  Truck,
   Users,
   Wrench,
   X,
@@ -34,6 +35,8 @@ import { buildGuidesClient, type TrainingOverviewRow } from "@/lib/api/build-gui
 import { assemblyChartsClient } from "@/lib/api/assembly-charts.client";
 import { PRESENTATIONS } from "@/lib/menu-presentations";
 import { CoverThumb } from "@/components/menu-presentation/presentation";
+import { SUPPLIER_LISTS, SUPPLIERS, suppliersOf, type SupplierKey } from "@/lib/supplier-lists";
+import { SupplierItems } from "@/components/supplier-list/supplier-list";
 import { formatVideoTime } from "@orderhub/shared";
 import { VideoOverlay } from "@/components/build-guides/youtube-player";
 
@@ -41,12 +44,13 @@ const MANAGERS = ["PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "DARK_KITCHEN_MANAG
 const OVERVIEW_QUERY = ["build-guide-training"] as const;
 
 type Filter = "todo" | "trained" | "all";
-type Tab = "build" | "charts" | "presentations";
+type Tab = "build" | "charts" | "presentations" | "suppliers";
 const TAB_KEY = "training-tab";
 const TABS: ReadonlyArray<readonly [Tab, string, typeof Wrench]> = [
   ["build", "How to build", Wrench],
   ["charts", "Charts", Sandwich],
   ["presentations", "Menu presentations", Presentation],
+  ["suppliers", "Suppliers & ingredients", Truck],
 ];
 
 export default function TrainingPage() {
@@ -161,8 +165,10 @@ export default function TrainingPage() {
               </>
             ) : tab === "charts" ? (
               "Assembly boards for this location's menus — browse on screen or print them for the wall."
-            ) : (
+            ) : tab === "presentations" ? (
               "Our virtual brands' menus, ready to show or send."
+            ) : (
+              "What every kitchen buys for each brand, where to buy it and the supplier's item code."
             )}
           </p>
         </div>
@@ -208,6 +214,7 @@ export default function TrainingPage() {
 
       {tab === "charts" && <AssemblyBoards locationId={locationId} />}
       {tab === "presentations" && <MenuPresentations />}
+      {tab === "suppliers" && <SupplierLists />}
 
       {tab === "build" && (
         <>
@@ -275,6 +282,103 @@ export default function TrainingPage() {
       )}
 
       {openGuide && <Walkthrough guideId={openGuide} onClose={() => setOpenGuide(null)} />}
+    </div>
+  );
+}
+
+// Each virtual brand's supplier & ingredient list (lib/supplier-lists) —
+// filter by supplier for a shopping run, or print it for the kitchen wall.
+function SupplierLists() {
+  const [slug, setSlug] = useState(SUPPLIER_LISTS[0]!.slug);
+  const [supplier, setSupplier] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const list = SUPPLIER_LISTS.find((l) => l.slug === slug) ?? SUPPLIER_LISTS[0]!;
+  const suppliers = useMemo(() => suppliersOf(list), [list]);
+  const items = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return list.items.filter(
+      (it) =>
+        (!supplier || it.suppliers.includes(supplier as SupplierKey)) &&
+        (!term || [it.name, it.itemBrand, it.code, ...it.suppliers.map((k) => SUPPLIERS[k].name)].some((v) => v?.toLowerCase().includes(term))),
+    );
+  }, [list, supplier, search]);
+  const href = (download = false) => `/print/supplier-list?brand=${encodeURIComponent(list.slug)}${download ? "&download=1" : ""}`;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div role="group" aria-label="Brand" className="flex flex-wrap gap-1.5">
+          {SUPPLIER_LISTS.map((l) => (
+            <button
+              key={l.slug}
+              aria-pressed={l.slug === list.slug}
+              onClick={() => {
+                setSlug(l.slug);
+                setSupplier(null);
+              }}
+              className={cn(
+                "rounded-full px-4 py-2 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500",
+                l.slug === list.slug ? "text-white" : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200",
+              )}
+              style={l.slug === list.slug ? { background: l.accent } : undefined}
+            >
+              {l.name} <span className="font-medium opacity-75">({l.items.length})</span>
+            </button>
+          ))}
+        </div>
+        <div className="flex w-full gap-2 sm:w-auto">
+          <a
+            href={href()}
+            target="_blank"
+            rel="noopener"
+            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 sm:flex-none"
+          >
+            <ExternalLink className="h-4 w-4" /> Open sheet
+          </a>
+          <a
+            href={href(true)}
+            target="_blank"
+            rel="noopener"
+            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-orange-500 px-3 py-2 text-sm font-semibold text-white hover:bg-orange-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 sm:flex-none"
+          >
+            <Download className="h-4 w-4" /> Download PDF
+          </a>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="relative w-full sm:w-64">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search ingredients or codes"
+            aria-label="Search ingredients or codes"
+            className="pl-8"
+          />
+        </div>
+        <div role="group" aria-label="Supplier" className="flex gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+          {[{ key: null, name: "All suppliers", count: list.items.length }, ...suppliers].map((s) => (
+            <button
+              key={s.key ?? "all"}
+              aria-pressed={supplier === s.key}
+              onClick={() => setSupplier(s.key)}
+              className={cn(
+                "shrink-0 rounded-full px-3 py-1.5 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-500",
+                supplier === s.key ? "bg-zinc-900 text-white" : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200",
+              )}
+            >
+              {s.name} ({s.count})
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {items.length === 0 ? (
+        <p className="py-16 text-center text-sm text-zinc-500">Nothing matches.</p>
+      ) : (
+        <SupplierItems list={list} items={items} />
+      )}
     </div>
   );
 }
