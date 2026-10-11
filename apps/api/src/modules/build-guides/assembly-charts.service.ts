@@ -163,6 +163,55 @@ export class AssemblyChartsService {
     return { menuName: menu.name, brandName: menu.brand?.name ?? null, charts };
   }
 
+  /**
+   * Menus with at least one charted product — the boards Kitchen training
+   * offers. With a location: menus homed or served there (same rule as the
+   * Menu tab); without: every menu in the tenant.
+   */
+  async boards(tenantId: string, locationId: string | null) {
+    const menus = await this.prisma.menu.findMany({
+      where: {
+        deletedAt: null,
+        brand: { tenantId },
+        ...(locationId && { OR: [{ locationId }, { assignments: { some: { locationId } } }] }),
+      },
+      orderBy: { name: "asc" },
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        brand: { select: { name: true } },
+        assignments: { select: { locationId: true } },
+        categories: { select: { items: { select: { item: { select: { name: true, brandId: true } } } } } },
+      },
+    });
+    const rows = await this.prisma.assemblyChart.findMany({
+      where: { tenantId },
+      select: { id: true, brandId: true, nameKey: true },
+    });
+    const byKey = new Map<string, string>(rows.map((r: any) => [`${r.brandId}|${r.nameKey}`, r.id]));
+    const out = [];
+    for (const m of menus as any[]) {
+      const items = m.categories.flatMap((c: any) => c.items.map((l: any) => l.item).filter(Boolean));
+      const charted = new Set<string>();
+      for (const i of items) {
+        const id = byKey.get(`${i.brandId}|${buildGuideNameKey(i.name)}`);
+        if (id) charted.add(id);
+      }
+      if (!charted.size) continue;
+      out.push({
+        menuId: m.id,
+        name: m.name,
+        brandName: m.brand?.name ?? null,
+        status: m.status,
+        live: locationId ? m.assignments.some((a: any) => a.locationId === locationId) : m.assignments.length > 0,
+        chartCount: charted.size,
+      });
+    }
+    // Live menus first — that's what the kitchen is cooking today.
+    return out.sort((a, b) => Number(b.live) - Number(a.live) || a.name.localeCompare(b.name));
+  }
+
   // ── helpers ────────────────────────────────────────────────────────────────
 
   private async productImages(rows: any[]) {

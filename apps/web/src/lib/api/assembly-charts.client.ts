@@ -21,6 +21,16 @@ export interface ChartSaveBody {
   layers: AssemblyLayer[];
 }
 
+/** A menu with charted products — one printable assembly board. */
+export interface AssemblyBoard {
+  menuId: string;
+  name: string;
+  brandName: string | null;
+  status: string;
+  live: boolean;
+  chartCount: number;
+}
+
 export const assemblyChartsClient = {
   getForItem: (itemId: string) =>
     apiClient
@@ -39,6 +49,10 @@ export const assemblyChartsClient = {
   forOrder: (orderId: string) =>
     apiClient
       .get<{ orderId: string; lines: ChartOrderLine[] }>(`/v1/assembly-charts/order/${orderId}`)
+      .then((r) => r.data),
+  boards: (locationId?: string | null) =>
+    apiClient
+      .get<AssemblyBoard[]>("/v1/assembly-charts/boards", { params: locationId ? { locationId } : {} })
       .then((r) => r.data),
   printMenu: (menuId: string) =>
     apiClient

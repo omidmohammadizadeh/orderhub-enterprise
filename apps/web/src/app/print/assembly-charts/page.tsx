@@ -53,6 +53,28 @@ function PrintAssemblyCharts() {
     },
   });
 
+  // ?download=1 (Kitchen training's "Download PDF") opens the browser's
+  // print / Save-as-PDF dialog once, after the photos have loaded.
+  const download = params.get("download") === "1";
+  const printed = useRef(false);
+  const ready = !!q.data && q.data.charts.length > 0;
+  useEffect(() => {
+    if (!download || !ready || printed.current) return;
+    printed.current = true;
+    const imgs = [...document.images].filter((img) => !img.complete);
+    const loaded = Promise.all(
+      imgs.map(
+        (img) =>
+          new Promise((r) => {
+            img.addEventListener("load", r, { once: true });
+            img.addEventListener("error", r, { once: true });
+          }),
+      ),
+    );
+    const timeout = new Promise((r) => setTimeout(r, 8000));
+    Promise.race([loaded, timeout]).then(() => window.print());
+  }, [download, ready]);
+
   if (!menuId && !itemId) return <Centered>Nothing to print — open this from a product or a menu.</Centered>;
   if (q.isPending || !hydrated)
     return (

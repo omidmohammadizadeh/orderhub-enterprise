@@ -12,11 +12,14 @@ import {
   ArrowLeft,
   ArrowRight,
   CheckCircle2,
+  Download,
+  ExternalLink,
   GraduationCap,
   Loader2,
   Package,
   Play,
   RefreshCw,
+  Sandwich,
   Search,
   Users,
   Wrench,
@@ -27,6 +30,7 @@ import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth.store";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { buildGuidesClient, type TrainingOverviewRow } from "@/lib/api/build-guides.client";
+import { assemblyChartsClient } from "@/lib/api/assembly-charts.client";
 import { formatVideoTime } from "@orderhub/shared";
 import { VideoOverlay } from "@/components/build-guides/youtube-player";
 
@@ -156,6 +160,8 @@ export default function TrainingPage() {
         </div>
       )}
 
+      <AssemblyBoards locationId={locationId} />
+
       <div className="flex gap-1.5">
         {(
           [
@@ -210,6 +216,68 @@ export default function TrainingPage() {
 
       {openGuide && <Walkthrough guideId={openGuide} onClose={() => setOpenGuide(null)} />}
     </div>
+  );
+}
+
+// The location's assembly boards — the same wall poster as "Assembly board"
+// in the menu editor, one per menu that has charted products.
+function AssemblyBoards({ locationId }: { locationId: string | null | undefined }) {
+  const q = useQuery({
+    queryKey: ["assembly-boards", locationId ?? "all"],
+    queryFn: () => assemblyChartsClient.boards(locationId),
+  });
+  const boards = q.data ?? [];
+  if (!boards.length) return null;
+  const href = (menuId: string, download = false) =>
+    `/print/assembly-charts?menu=${encodeURIComponent(menuId)}${download ? "&download=1" : ""}`;
+  return (
+    <section className="space-y-2">
+      <h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-zinc-400">
+        <Sandwich className="h-3.5 w-3.5" /> Assembly boards
+      </h2>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {boards.map((b) => (
+          <div
+            key={b.menuId}
+            className="flex flex-col gap-3 rounded-xl border border-pink-200 bg-gradient-to-br from-pink-50 to-white p-3"
+          >
+            <div className="flex items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#d81b6a] text-white">
+                <Sandwich className="h-5 w-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="truncate font-semibold text-zinc-900" title={b.name}>
+                  {b.name}
+                </p>
+                <p className="text-xs text-zinc-500">
+                  {b.chartCount} {b.chartCount === 1 ? "chart" : "charts"} ·{" "}
+                  {Math.ceil(b.chartCount / 6)} A4 {Math.ceil(b.chartCount / 6) === 1 ? "sheet" : "sheets"}
+                  {!b.live && <span className="ml-1.5 rounded bg-zinc-200 px-1.5 py-0.5 font-medium text-zinc-600">Not live</span>}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <a
+                href={href(b.menuId)}
+                target="_blank"
+                rel="noopener"
+                className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#d81b6a] px-3 py-2 text-sm font-semibold text-white hover:bg-pink-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-600"
+              >
+                <ExternalLink className="h-4 w-4" /> Browse
+              </a>
+              <a
+                href={href(b.menuId, true)}
+                target="_blank"
+                rel="noopener"
+                className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-600"
+              >
+                <Download className="h-4 w-4" /> Download PDF
+              </a>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
