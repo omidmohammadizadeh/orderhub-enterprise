@@ -49,6 +49,7 @@ const config: Config = {
         "spin-slow": "spin 3s linear infinite",
         "fade-in": "fadeIn 0.15s ease-out",
         "slide-in-left": "slideInLeft 0.2s ease-out",
+        "slide-in-right": "slideInRight 0.22s cubic-bezier(.2,.8,.2,1)",
       },
       keyframes: {
         fadeIn: {
@@ -58,6 +59,10 @@ const config: Config = {
         slideInLeft: {
           from: { opacity: "0", transform: "translateX(-8px)" },
           to: { opacity: "1", transform: "translateX(0)" },
+        },
+        slideInRight: {
+          from: { transform: "translateX(100%)" },
+          to: { transform: "translateX(0)" },
         },
       },
       borderRadius: {

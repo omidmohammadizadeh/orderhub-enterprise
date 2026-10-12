@@ -76,6 +76,23 @@ export class ReservationsController {
     };
   }
 
+  @Get("public/slots")
+  @Public()
+  @ApiOperation({ summary: "Every bookable start time on one day (guest time picker)" })
+  publicSlots(
+    @Query("locationId") locationId: string,
+    @Query("from") from: string,
+    @Query("to") to: string,
+    @Query("partySize") partySize: string,
+  ) {
+    return this.reservations.publicSlots(
+      locationId,
+      new Date(from),
+      new Date(to),
+      Number(partySize) || 2,
+    );
+  }
+
   @Post("public")
   @Public()
   @ApiOperation({ summary: "Book a table from the storefront" })
@@ -141,7 +158,11 @@ export class ReservationsController {
   @ApiOperation({ summary: "Edit a booking" })
   update(
     @Param("id") id: string,
-    @Body() body: Partial<CreateReservationInput> & { status?: ReservationStatus },
+    @Body()
+    body: Partial<CreateReservationInput> & {
+      status?: ReservationStatus;
+      notifyCustomer?: boolean;
+    },
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.reservations.update(user.tenantId, id, body);
@@ -153,10 +174,20 @@ export class ReservationsController {
   @ApiOperation({ summary: "Confirm / cancel / no-show a booking" })
   setStatus(
     @Param("id") id: string,
-    @Body() body: { status: ReservationStatus },
+    @Body() body: { status: ReservationStatus; notifyCustomer?: boolean },
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.reservations.setStatus(user.tenantId, id, body.status);
+    return this.reservations.setStatus(user.tenantId, id, body.status, {
+      notifyCustomer: body.notifyCustomer,
+    });
+  }
+
+  @Post(":id/resend-email")
+  @ApiBearerAuth()
+  @Roles(...OPERATE)
+  @ApiOperation({ summary: "Email the guest their booking details again" })
+  resendEmail(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.reservations.resendConfirmation(user.tenantId, id);
   }
 
   @Post(":id/seat")
@@ -169,6 +200,16 @@ export class ReservationsController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.reservations.seat(user.tenantId, id, body?.tableId);
+  }
+
+  // Declared after every literal GET path (availability, public/*) so
+  // ":id" can never swallow them.
+  @Get(":id")
+  @ApiBearerAuth()
+  @Roles(...OPERATE)
+  @ApiOperation({ summary: "One booking with the guest's other visits" })
+  get(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.reservations.get(user.tenantId, id);
   }
 
   @Delete(":id")
