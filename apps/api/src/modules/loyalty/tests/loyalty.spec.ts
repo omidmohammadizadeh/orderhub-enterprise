@@ -17,6 +17,7 @@ const svc = (over: Record<string, any> = {}) => {
       update: jest.fn(),
     },
     location: { findFirst: jest.fn().mockResolvedValue({ id: "loc-1" }) },
+    loyaltyMember: { findUnique: jest.fn().mockResolvedValue(null) },
     brand: { findMany: jest.fn().mockResolvedValue([{ id: "brand-1" }]) },
     menuItem: { findFirst: jest.fn().mockResolvedValue({ id: "item-1" }) },
     ...over,
@@ -263,6 +264,15 @@ describe("the order.status_changed listener", () => {
       data: expect.objectContaining({ memberId: "mem-1", orderId: "order-1" }),
     });
     expect(prisma.loyaltyStamp.create.mock.calls[0][0].data).not.toHaveProperty("customerAccountId");
+  });
+
+  it("stamps BOTH ids when the online account is linked to a wallet card", async () => {
+    const { s, prisma } = listen();
+    prisma.loyaltyMember.findUnique.mockResolvedValue({ id: "mem-9" });
+    await s.onOrderStatusChanged({ orderId: "order-1", toStatus: "COMPLETED" });
+    expect(prisma.loyaltyStamp.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ customerAccountId: "cust-1", memberId: "mem-9" }),
+    });
   });
 
   it("waits for the money before stamping a walk-in card", async () => {

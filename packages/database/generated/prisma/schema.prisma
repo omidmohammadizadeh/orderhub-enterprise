@@ -5578,13 +5578,18 @@ model LoyaltyMember {
   /// key (lower-cased, unique per card): codes and card links go by email,
   /// which costs nothing. Phone is the older key, kept for members who joined
   /// with one; unique per card too.
-  email            String?
+  email             String?
   /// E.164.
-  phone            String?
-  firstName        String?
-  marketingConsent Boolean @default(false)
+  phone             String?
+  /// The storefront account this card is linked to (opened from the online
+  /// Rewards page). Once linked, every stamp and reward carries BOTH ids, so
+  /// online orders and till visits fill the same card and the wallet pass
+  /// shows them all. Bare id: CustomerAccount is global, not per tenant.
+  customerAccountId String?
+  firstName         String?
+  marketingConsent  Boolean @default(false)
   /// SELF (joined from the counter QR) | TILL (signed up by staff).
-  source           String  @default("SELF")
+  source            String  @default("SELF")
 
   /// Bumped whenever what the pass shows changes; Apple asks "anything
   /// newer than X?" and Google is patched on the same change.
@@ -5607,6 +5612,7 @@ model LoyaltyMember {
 
   @@unique([cardId, phone])
   @@unique([cardId, email])
+  @@unique([cardId, customerAccountId])
   @@index([tenantId])
   @@index([locationId])
   @@map("loyalty_members")

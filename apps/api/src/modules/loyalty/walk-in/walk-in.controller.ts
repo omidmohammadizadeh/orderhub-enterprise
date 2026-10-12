@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Header, Param, Post, Query, Res } from "@nestjs/common";
+import { Body, Controller, Get, Header, Param, Post, Query, Res, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
 import type { Response } from "express";
@@ -6,6 +6,7 @@ import { Public } from "../../../common/decorators/public.decorator";
 import { MARKETING_ROLES, Roles, TILL_ROLES } from "../../../common/decorators/roles.decorator";
 import { CurrentUser } from "../../../common/decorators/current-user.decorator";
 import type { AuthenticatedUser } from "../../auth/interfaces/jwt-payload.interface";
+import { CurrentCustomer, CustomerJwtGuard } from "../../customer-auth/customer.decorator";
 import { fetchImage, renderIcon, renderStampStrip } from "./pass-art";
 import { WalkInLoyaltyService } from "./walk-in-loyalty.service";
 
@@ -45,6 +46,15 @@ export class WalkInLoyaltyController {
   @ApiOperation({ summary: "Open an existing card on this phone with the emailed code" })
   verify(@Param("shop") shop: string, @Body() body: { email?: string; phone?: string; code?: string }) {
     return this.walkIn.verify(shop, body ?? {});
+  }
+
+  /** The online Rewards page: this signed-in customer's wallet card here. */
+  @Public()
+  @UseGuards(CustomerJwtGuard)
+  @Post("link-account")
+  @ApiOperation({ summary: "Link my online account to this shop's wallet card" })
+  linkAccount(@Body() body: { locationId?: string }, @CurrentCustomer() customer: { id: string }) {
+    return this.walkIn.linkAccount(customer.id, String(body?.locationId ?? ""));
   }
 
   @Public()

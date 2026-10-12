@@ -5581,6 +5581,11 @@ model LoyaltyMember {
   email            String?
   /// E.164.
   phone            String?
+  /// The storefront account this card is linked to (opened from the online
+  /// Rewards page). Once linked, every stamp and reward carries BOTH ids, so
+  /// online orders and till visits fill the same card and the wallet pass
+  /// shows them all. Bare id: CustomerAccount is global, not per tenant.
+  customerAccountId String?
   firstName        String?
   marketingConsent Boolean @default(false)
   /// SELF (joined from the counter QR) | TILL (signed up by staff).
@@ -5607,6 +5612,7 @@ model LoyaltyMember {
 
   @@unique([cardId, phone])
   @@unique([cardId, email])
+  @@unique([cardId, customerAccountId])
   @@index([tenantId])
   @@index([locationId])
   @@map("loyalty_members")

@@ -263,12 +263,16 @@ export class LoyaltyService {
       return none;
     }
 
+    // A storefront account linked to a wallet card (or the reverse) stamps
+    // BOTH ids, so the online card and the wallet pass count the same stamps.
+    const owners = await this.ownerIds(card.id, holder);
+
     try {
       await this.prisma.loyaltyStamp.create({
         data: {
           tenantId: order.tenantId,
           cardId: card.id,
-          ...holder,
+          ...owners,
           orderId: order.id,
           spend,
         },
@@ -280,8 +284,8 @@ export class LoyaltyService {
       throw err;
     }
 
-    const earnedReward = await this.maybeMintReward(card, holder);
-    this.memberChanged(holder);
+    const earnedReward = await this.maybeMintReward(card, holder, owners);
+    this.memberChanged(owners);
     return { stamped: true, earnedReward };
   }
 
@@ -311,7 +315,7 @@ export class LoyaltyService {
       select: { id: true, stampsRequired: true },
     });
     if (!card || !holder) return;
-    this.memberChanged(holder);
+    this.memberChanged({ memberId: stamp.memberId });
 
     const [stamps, rewards] = await Promise.all([
       this.prisma.loyaltyStamp.count({
@@ -360,6 +364,7 @@ export class LoyaltyService {
       rewardExpiryDays: number | null;
     },
     holder: LoyaltyHolder,
+    owners: { customerAccountId?: string; memberId?: string } = holder,
   ): Promise<boolean> {
     const [stamps, rewards] = await Promise.all([
       this.prisma.loyaltyStamp.count({
@@ -381,7 +386,7 @@ export class LoyaltyService {
         // card at all, so a reward has to know its own shop.
         locationId: card.locationId,
         source: "LOYALTY",
-        ...holder,
+        ...owners,
         // Frozen. Tomorrow's offer does not rewrite today's promise.
         label: card.rewardLabel,
         rewardItemId: card.rewardItemId,
@@ -473,9 +478,41 @@ export class LoyaltyService {
     });
   }
 
+  /**
+   * Both ids a stamp or reward should carry: the holder's own, plus the other
+   * side of a storefront-account ↔ wallet-card link when there is one.
+   */
+  async ownerIds(cardId: string, holder: LoyaltyHolder): Promise<{ customerAccountId?: string; memberId?: string }> {
+    if ("customerAccountId" in holder) {
+      const member = await this.prisma.loyaltyMember.findUnique({
+        where: { cardId_customerAccountId: { cardId, customerAccountId: holder.customerAccountId } },
+        select: { id: true },
+      });
+      return { customerAccountId: holder.customerAccountId, ...(member ? { memberId: member.id } : {}) };
+    }
+    const member = await this.prisma.loyaltyMember.findUnique({
+      where: { id: holder.memberId },
+      select: { customerAccountId: true },
+    });
+    return { memberId: holder.memberId, ...(member?.customerAccountId ? { customerAccountId: member.customerAccountId } : {}) };
+  }
+
+  /**
+   * Mint whatever rewards a card is now owed — after two halves of one
+   * customer's stamps were joined, the total can complete a card at once.
+   */
+  async settleRewards(cardId: string, holder: LoyaltyHolder): Promise<void> {
+    const card = await this.prisma.loyaltyCard.findUnique({ where: { id: cardId } });
+    if (!card) return;
+    const owners = await this.ownerIds(cardId, holder);
+    for (let i = 0; i < 20; i++) {
+      if (!(await this.maybeMintReward(card, holder, owners))) break;
+    }
+  }
+
   /** A walk-in card changed — its wallet pass has to follow. */
-  private memberChanged(holder: LoyaltyHolder) {
-    if ("memberId" in holder) this.events?.emit(MEMBER_CHANGED, { memberId: holder.memberId });
+  private memberChanged(ids: { memberId?: string | null }) {
+    if (ids.memberId) this.events?.emit(MEMBER_CHANGED, { memberId: ids.memberId });
   }
 
   private async brandIds(tenantId: string): Promise<string[]> {

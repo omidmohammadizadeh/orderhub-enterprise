@@ -10,28 +10,16 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
-import { Gift, Loader2, Smartphone } from "lucide-react";
+import { Gift, Loader2 } from "lucide-react";
+import { WalletButtons } from "@/components/loyalty/wallet-buttons";
 import { WalletCard } from "@/components/loyalty/wallet-card";
 import { walkInPublic, type PublicCard } from "@/lib/api/loyalty-walk-in.client";
-
-type Platform = "ios" | "android" | "other";
-
-function detectPlatform(): Platform {
-  if (typeof navigator === "undefined") return "other";
-  const ua = navigator.userAgent;
-  if (/iPhone|iPad|iPod/i.test(ua) || (/Macintosh/.test(ua) && "ontouchend" in document)) return "ios";
-  if (/Android/i.test(ua)) return "android";
-  return "other";
-}
 
 export default function LoyaltyCardPage() {
   const { token } = useParams<{ token: string }>();
   const [isNew, setIsNew] = useState(false);
   const [card, setCard] = useState<PublicCard | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [platform, setPlatform] = useState<Platform>("other");
-  const [googleBusy, setGoogleBusy] = useState(false);
-  const [walletError, setWalletError] = useState<string | null>(null);
   const [popStamp, setPopStamp] = useState(false);
   const lastStamps = useRef<number | null>(null);
 
@@ -49,7 +37,6 @@ export default function LoyaltyCardPage() {
   }, [token]);
 
   useEffect(() => {
-    setPlatform(detectPlatform());
     setIsNew(new URLSearchParams(window.location.search).get("new") === "1");
     void load();
     const timer = window.setInterval(() => {
@@ -57,18 +44,6 @@ export default function LoyaltyCardPage() {
     }, 15_000);
     return () => window.clearInterval(timer);
   }, [load]);
-
-  async function addToGoogle() {
-    setWalletError(null);
-    setGoogleBusy(true);
-    try {
-      const { url } = await walkInPublic.googleUrl(token);
-      window.location.href = url;
-    } catch (e) {
-      setWalletError((e as Error).message);
-      setGoogleBusy(false);
-    }
-  }
 
   if (error && !card) {
     return (
@@ -88,8 +63,6 @@ export default function LoyaltyCardPage() {
     );
   }
 
-  const apple = card.wallet.apple && platform !== "android";
-  const google = card.wallet.google && platform !== "ios";
   const ready = card.rewards.length;
 
   return (
@@ -141,44 +114,9 @@ export default function LoyaltyCardPage() {
           </div>
         )}
 
-        {(apple || google) && (
-          <div className="mt-6 space-y-3">
-            {apple && (
-              <a
-                href={walkInPublic.appleUrl(token)}
-                className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-black text-base font-semibold text-white ring-1 ring-white/25 transition active:scale-[0.99]"
-              >
-                <AppleWalletGlyph />
-                Add to Apple Wallet
-              </a>
-            )}
-            {google && (
-              <button
-                type="button"
-                onClick={addToGoogle}
-                disabled={googleBusy}
-                className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-white text-base font-semibold text-zinc-950 transition active:scale-[0.99] disabled:opacity-60"
-              >
-                {googleBusy ? <Loader2 className="h-5 w-5 animate-spin" /> : <GoogleWalletGlyph />}
-                Add to Google Wallet
-              </button>
-            )}
-            {walletError && <p className="text-center text-sm text-red-300">{walletError}</p>}
-            <p className="text-center text-xs text-white/50">
-              Once it&apos;s in your wallet, stamps appear on it by themselves.
-            </p>
-          </div>
-        )}
-
-        {!apple && !google && (
-          <div className="mt-6 flex items-start gap-3 rounded-2xl bg-white/[0.06] px-4 py-3.5 text-sm text-white/70">
-            <Smartphone className="mt-0.5 h-5 w-5 shrink-0" />
-            <p>
-              Bookmark this page or add it to your home screen, and show the QR at the till each time you
-              order.
-            </p>
-          </div>
-        )}
+        <div className="mt-6">
+          <WalletButtons token={token} wallet={card.wallet} />
+        </div>
 
         <section className="mt-8 space-y-3 text-sm text-white/65">
           <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-white/45">How it works</h2>
@@ -188,29 +126,5 @@ export default function LoyaltyCardPage() {
         </section>
       </div>
     </main>
-  );
-}
-
-function AppleWalletGlyph() {
-  // Stacked cards — the Wallet motif, drawn rather than Apple's badge artwork.
-  return (
-    <svg viewBox="0 0 28 22" className="h-6 w-7" aria-hidden>
-      <rect x="1" y="1" width="26" height="20" rx="4" fill="#fff" />
-      <rect x="3" y="3" width="22" height="6" rx="1.5" fill="#3D9BF4" />
-      <rect x="3" y="6" width="22" height="6" rx="1.5" fill="#F7B500" />
-      <rect x="3" y="9" width="22" height="6" rx="1.5" fill="#FF5B3A" />
-      <path d="M1 13h7.5a5.5 5.5 0 0 0 11 0H27v4a4 4 0 0 1-4 4H5a4 4 0 0 1-4-4z" fill="#D9D9D9" />
-    </svg>
-  );
-}
-
-function GoogleWalletGlyph() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden>
-      <path d="M3 7.5A3.5 3.5 0 0 1 6.5 4h11A3.5 3.5 0 0 1 21 7.5V9H3z" fill="#4285F4" />
-      <path d="M3 9h18v2.5H3z" fill="#34A853" />
-      <path d="M3 11.5h18V14H3z" fill="#FBBC04" />
-      <path d="M3 14h18v2.5A3.5 3.5 0 0 1 17.5 20h-11A3.5 3.5 0 0 1 3 16.5z" fill="#EA4335" />
-    </svg>
   );
 }

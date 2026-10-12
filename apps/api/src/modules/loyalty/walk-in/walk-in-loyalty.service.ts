@@ -186,6 +186,82 @@ export class WalkInLoyaltyService {
     return { token: member.publicToken };
   }
 
+  // ── Storefront account → wallet card ─────────────────────────────────────
+
+  /**
+   * A signed-in online customer opening their Rewards page. Finds (or makes)
+   * their wallet card at this shop and links it to the account — matching an
+   * in-store card they already hold by email — then joins the two halves of
+   * their history so online orders and till visits fill ONE card and ONE pass.
+   * Returns the card link token for the page to show and add to a wallet.
+   */
+  async linkAccount(customerAccountId: string, locationId: string): Promise<{ token: string }> {
+    const card = await this.loadCard(locationId);
+    if (!card?.isActive) throw new BadRequestException("This shop isn't running a loyalty card right now.");
+
+    const linked = await this.prisma.loyaltyMember.findUnique({
+      where: { cardId_customerAccountId: { cardId: card.id, customerAccountId } },
+      select: { id: true, publicToken: true },
+    });
+    if (linked) return { token: linked.publicToken };
+
+    const account = await this.prisma.customerAccount.findUnique({
+      where: { id: customerAccountId },
+      select: { email: true, firstName: true },
+    });
+    if (!account) throw new NotFoundException("Account not found");
+    const email = normaliseEmail(account.email);
+
+    // Already joined in store with the same email: that card becomes theirs.
+    const byEmail = email
+      ? await this.prisma.loyaltyMember.findUnique({
+          where: { cardId_email: { cardId: card.id, email } },
+          select: { id: true, publicToken: true, customerAccountId: true },
+        })
+      : null;
+
+    let member: { id: string; publicToken: string };
+    if (byEmail && !byEmail.customerAccountId) {
+      member = await this.prisma.loyaltyMember.update({
+        where: { id: byEmail.id },
+        data: { customerAccountId },
+        select: { id: true, publicToken: true },
+      });
+    } else {
+      // A fresh card. It keeps the account's email unless another card here
+      // already uses it (linked to a different account) — then the link alone.
+      member = await this.createMember(card, {
+        ...(email && !byEmail ? { email } : {}),
+        customerAccountId,
+        firstName: this.cleanName(account.firstName),
+        source: "ONLINE",
+      } as { email: string } & { customerAccountId: string; firstName: string | null; source: "ONLINE" });
+    }
+
+    // Join the two histories: every stamp and reward now carries both ids.
+    await this.prisma.$transaction([
+      this.prisma.loyaltyStamp.updateMany({
+        where: { cardId: card.id, customerAccountId, memberId: null },
+        data: { memberId: member.id },
+      }),
+      this.prisma.loyaltyStamp.updateMany({
+        where: { cardId: card.id, memberId: member.id, customerAccountId: null },
+        data: { customerAccountId },
+      }),
+      this.prisma.loyaltyReward.updateMany({
+        where: { locationId: card.locationId, customerAccountId, memberId: null },
+        data: { memberId: member.id },
+      }),
+      this.prisma.loyaltyReward.updateMany({
+        where: { locationId: card.locationId, memberId: member.id, customerAccountId: null },
+        data: { customerAccountId },
+      }),
+    ]);
+    await this.loyalty.settleRewards(card.id, { memberId: member.id });
+    this.events.emit(MEMBER_CHANGED, { memberId: member.id });
+    return { token: member.publicToken };
+  }
+
   // ── Public: the customer's card ──────────────────────────────────────────
 
   async publicCard(token: string) {
@@ -649,7 +725,11 @@ export class WalkInLoyaltyService {
 
   private async createMember(
     card: CardWithShop,
-    data: Contact & { firstName: string | null; source: "SELF" | "TILL" },
+    data: (Contact | { customerAccountId: string }) & {
+      firstName: string | null;
+      source: "SELF" | "TILL" | "ONLINE";
+      customerAccountId?: string;
+    },
   ) {
     // A code collision is ~1 in 650 billion; retry rather than reason about it.
     for (let attempt = 0; attempt < 5; attempt++) {
@@ -663,6 +743,7 @@ export class WalkInLoyaltyService {
             publicToken: newPublicToken(),
             email: "email" in data ? data.email : null,
             phone: "phone" in data ? data.phone : null,
+            customerAccountId: data.customerAccountId ?? null,
             firstName: data.firstName,
             source: data.source,
           },
@@ -670,8 +751,14 @@ export class WalkInLoyaltyService {
         });
       } catch (err) {
         if ((err as { code?: string; meta?: { target?: unknown } }).code !== "P2002") throw err;
-        // Same address joined twice at once: hand back the one that won.
-        const raced = await this.findByContact(card.id, data);
+        // Same customer joined twice at once: hand back the one that won.
+        const raced =
+          "email" in data || "phone" in data
+            ? await this.findByContact(card.id, data as Contact)
+            : await this.prisma.loyaltyMember.findUnique({
+                where: { cardId_customerAccountId: { cardId: card.id, customerAccountId: data.customerAccountId! } },
+                select: MEMBER_LOOKUP_SELECT,
+              });
         if (raced) return raced;
       }
     }

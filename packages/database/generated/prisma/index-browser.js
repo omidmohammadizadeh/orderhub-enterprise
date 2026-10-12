@@ -2458,6 +2458,7 @@ exports.Prisma.LoyaltyMemberScalarFieldEnum = {
   publicToken: 'publicToken',
   email: 'email',
   phone: 'phone',
+  customerAccountId: 'customerAccountId',
   firstName: 'firstName',
   marketingConsent: 'marketingConsent',
   source: 'source',
@@ -4207,6 +4208,7 @@ exports.Prisma.LoyaltyMemberOrderByRelevanceFieldEnum = {
   publicToken: 'publicToken',
   email: 'email',
   phone: 'phone',
+  customerAccountId: 'customerAccountId',
   firstName: 'firstName',
   source: 'source',
   verifyCodeHash: 'verifyCodeHash'
