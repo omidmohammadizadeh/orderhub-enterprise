@@ -5,7 +5,7 @@
 // (@orderhub/shared multi-buy) at the till, in the online cart and at
 // checkout, so all three agree.
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Check, Layers, Loader2, Plus, Trash2, X } from "lucide-react";
 import toast from "react-hot-toast";
@@ -13,7 +13,7 @@ import { describeMultiBuy, validateMultiBuy, type MultiBuyMode } from "@orderhub
 import { useCurrency } from "@/hooks/use-currency";
 import { marketingClient } from "@/lib/api/marketing.client";
 import { brandsClient, type Brand } from "@/lib/api/locations.client";
-import { menusClient } from "@/lib/api/menus.client";
+import { useCampaignMenu } from "./use-campaign-menu";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { ItemPicker, Section } from "./bogo-form";
 
@@ -77,21 +77,8 @@ export function MultiBuyCampaignForm({ onCancel, onSaved }: Props) {
     if (!brandId && (brandsQuery.data ?? []).length > 0) setBrandId(brandsQuery.data![0]!.id);
   }, [brandsQuery.data, brandId]);
 
-  const menusQuery = useQuery({
-    queryKey: ["marketing", "brand-menus", brandId],
-    queryFn: () => menusClient.listMenus(brandId!),
-    enabled: !!brandId,
-  });
-  const activeMenu = useMemo(() => {
-    const list = menusQuery.data ?? [];
-    return list.find((m) => m.isActive) ?? list[0] ?? null;
-  }, [menusQuery.data]);
-  const menuQuery = useQuery({
-    queryKey: ["marketing", "menu", activeMenu?.id],
-    queryFn: () => menusClient.getMenu(activeMenu!.id),
-    enabled: !!activeMenu?.id,
-  });
-  const categories = menuQuery.data?.categories ?? [];
+  const menuQuery = useCampaignMenu(brandId, selectedLocationId);
+  const categories = menuQuery.categories;
 
   const qty = Math.trunc(Number(quantity));
   const priceNum = Math.round(Number(price) * 100) / 100;
@@ -274,7 +261,7 @@ export function MultiBuyCampaignForm({ onCancel, onSaved }: Props) {
               </p>
               <ItemPicker
                 categories={categories}
-                loading={menuQuery.isLoading}
+                loading={menuQuery.loading}
                 selected={itemIds}
                 setSelected={setItemIds}
                 accent="violet"
@@ -319,7 +306,7 @@ export function MultiBuyCampaignForm({ onCancel, onSaved }: Props) {
                       <div className="border-t border-zinc-100 p-2">
                         <ItemPicker
                           categories={categories}
-                          loading={menuQuery.isLoading}
+                          loading={menuQuery.loading}
                           selected={slot.itemIds}
                           setSelected={setSlotItems(slot.key)}
                           accent="violet"

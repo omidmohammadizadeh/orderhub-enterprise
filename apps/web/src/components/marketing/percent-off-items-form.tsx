@@ -11,7 +11,7 @@
 //      to opt in). Storefront paints strikethrough + percent badge
 //      based on this itemIds list.
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useCurrency } from "@/hooks/use-currency";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { X, Loader2, Check, ChevronDown, ChevronRight } from "lucide-react";
@@ -21,7 +21,7 @@ import {
   type CampaignAudience,
 } from "@/lib/api/marketing.client";
 import { brandsClient, type Brand } from "@/lib/api/locations.client";
-import { menusClient } from "@/lib/api/menus.client";
+import { useCampaignMenu } from "./use-campaign-menu";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 
 interface Props {
@@ -88,24 +88,8 @@ export function PercentOffItemsCampaignForm({ onCancel, onSaved }: Props) {
   // List menus for the brand, then pull each menu's full category +
   // item tree. We pick the first ACTIVE menu — operators rarely have
   // more than one published menu per brand on the same channel.
-  const menusQuery = useQuery({
-    queryKey: ["marketing", "brand-menus", brandId],
-    queryFn: () => menusClient.listMenus(brandId!),
-    enabled: !!brandId,
-  });
-
-  const activeMenu = useMemo(() => {
-    const list = menusQuery.data ?? [];
-    return list.find((m) => m.isActive) ?? list[0] ?? null;
-  }, [menusQuery.data]);
-
-  const menuQuery = useQuery({
-    queryKey: ["marketing", "menu", activeMenu?.id],
-    queryFn: () => menusClient.getMenu(activeMenu!.id),
-    enabled: !!activeMenu?.id,
-  });
-
-  const categories = menuQuery.data?.categories ?? [];
+  const menuQuery = useCampaignMenu(brandId, selectedLocationId);
+  const categories = menuQuery.categories;
 
   function toggleItem(itemId: string) {
     setSelectedItemIds((prev) => {
@@ -270,7 +254,7 @@ export function PercentOffItemsCampaignForm({ onCancel, onSaved }: Props) {
               Tick whole categories or pick individual items. The percent off
               applies on the storefront with a strikethrough price.
             </p>
-            {menuQuery.isLoading ? (
+            {menuQuery.loading ? (
               <div className="flex items-center justify-center py-6 text-zinc-400">
                 <Loader2 className="h-4 w-4 animate-spin" />
               </div>
