@@ -98,6 +98,7 @@ import { ProviderRegistryModule } from "./modules/provider-registry/provider-reg
 import { MobileModule } from "./modules/mobile/mobile.module";
 import { InventoryModule } from "./modules/inventory/inventory.module";
 import { RetailModule } from "./modules/retail/retail.module";
+import { SalonModule } from "./modules/salon/salon.module";
 import { MarketingModule } from "./modules/marketing/marketing.module";
 import { LoyaltyModule } from "./modules/loyalty/loyalty.module";
 import { PauseModule } from "./modules/pauses/pause.module";
@@ -310,6 +311,7 @@ function bullRedisOptions(raw: string | undefined): Record<string, unknown> {
     InventoryModule,
     // Retail R1 — barcoded variants, per-location stock, item-level returns.
     RetailModule,
+    SalonModule,
     MarketingModule,
     LoyaltyModule,
     PauseModule,

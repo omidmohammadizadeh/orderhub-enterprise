@@ -42,7 +42,7 @@ import {
 import type { CreateOrderDto } from "./dto/create-order.dto";
 import type { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
 import { activeDojoLock } from "../payments/dojo/dojo-lock";
-import { isRetailType } from "../retail/retail.logic";
+import { isCounterSaleType } from "../retail/retail.logic";
 import { WalkInLoyaltyService } from "../loyalty/walk-in/walk-in-loyalty.service";
 import type { CanonicalOrder } from "@orderhub/shared";
 
@@ -401,7 +401,7 @@ export class OrdersService {
       // human, so it still governs everything else at a shop. The payment
       // guards further down still hold an unpaid sale back.
       const shopCounterSale =
-        isRetailType(location?.businessType) &&
+        isCounterSaleType(location?.businessType) &&
         (await this.prisma.order.count({
           where: { id: orderId, orderSource: "POS", isWalkIn: true, tableId: null },
         })) > 0;
@@ -2884,7 +2884,7 @@ export class OrdersService {
         location: { select: { businessType: true } },
       },
     });
-    if (!o || !isRetailType(o.location?.businessType)) return false;
+    if (!o || !isCounterSaleType(o.location?.businessType)) return false;
     if (o.orderSource !== "POS" || o.isWalkIn !== true || o.tableId) return false;
     if (o.paymentStatus !== "PAID" || o.status !== "ACCEPTED") return false;
 

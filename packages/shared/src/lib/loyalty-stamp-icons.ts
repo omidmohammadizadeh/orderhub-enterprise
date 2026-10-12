@@ -274,6 +274,8 @@ export function suggestedStampIcon(businessType: string | null | undefined): Sta
       return "basket";
     case "RETAIL":
       return "bag";
+    case "SALON":
+      return "scissors";
     default:
       return DEFAULT_STAMP_ICON;
   }

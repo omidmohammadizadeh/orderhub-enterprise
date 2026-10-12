@@ -284,6 +284,31 @@ export type KioskDevice = $Result.DefaultSelection<Prisma.$KioskDevicePayload>
  */
 export type TableReservation = $Result.DefaultSelection<Prisma.$TableReservationPayload>
 /**
+ * Model SalonService
+ * 
+ */
+export type SalonService = $Result.DefaultSelection<Prisma.$SalonServicePayload>
+/**
+ * Model SalonStaff
+ * 
+ */
+export type SalonStaff = $Result.DefaultSelection<Prisma.$SalonStaffPayload>
+/**
+ * Model SalonTimeOff
+ * 
+ */
+export type SalonTimeOff = $Result.DefaultSelection<Prisma.$SalonTimeOffPayload>
+/**
+ * Model SalonAppointment
+ * 
+ */
+export type SalonAppointment = $Result.DefaultSelection<Prisma.$SalonAppointmentPayload>
+/**
+ * Model SalonQueueEntry
+ * 
+ */
+export type SalonQueueEntry = $Result.DefaultSelection<Prisma.$SalonQueueEntryPayload>
+/**
  * Model KdsTicket
  * 
  */
@@ -868,7 +893,8 @@ export type OAuthProvider = (typeof OAuthProvider)[keyof typeof OAuthProvider]
 export const BusinessType: {
   RESTAURANT: 'RESTAURANT',
   GROCERY: 'GROCERY',
-  RETAIL: 'RETAIL'
+  RETAIL: 'RETAIL',
+  SALON: 'SALON'
 };
 
 export type BusinessType = (typeof BusinessType)[keyof typeof BusinessType]
@@ -2289,6 +2315,56 @@ export class PrismaClient<
     * ```
     */
   get tableReservation(): Prisma.TableReservationDelegate<ExtArgs>;
+
+  /**
+   * `prisma.salonService`: Exposes CRUD operations for the **SalonService** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more SalonServices
+    * const salonServices = await prisma.salonService.findMany()
+    * ```
+    */
+  get salonService(): Prisma.SalonServiceDelegate<ExtArgs>;
+
+  /**
+   * `prisma.salonStaff`: Exposes CRUD operations for the **SalonStaff** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more SalonStaffs
+    * const salonStaffs = await prisma.salonStaff.findMany()
+    * ```
+    */
+  get salonStaff(): Prisma.SalonStaffDelegate<ExtArgs>;
+
+  /**
+   * `prisma.salonTimeOff`: Exposes CRUD operations for the **SalonTimeOff** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more SalonTimeOffs
+    * const salonTimeOffs = await prisma.salonTimeOff.findMany()
+    * ```
+    */
+  get salonTimeOff(): Prisma.SalonTimeOffDelegate<ExtArgs>;
+
+  /**
+   * `prisma.salonAppointment`: Exposes CRUD operations for the **SalonAppointment** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more SalonAppointments
+    * const salonAppointments = await prisma.salonAppointment.findMany()
+    * ```
+    */
+  get salonAppointment(): Prisma.SalonAppointmentDelegate<ExtArgs>;
+
+  /**
+   * `prisma.salonQueueEntry`: Exposes CRUD operations for the **SalonQueueEntry** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more SalonQueueEntries
+    * const salonQueueEntries = await prisma.salonQueueEntry.findMany()
+    * ```
+    */
+  get salonQueueEntry(): Prisma.SalonQueueEntryDelegate<ExtArgs>;
 
   /**
    * `prisma.kdsTicket`: Exposes CRUD operations for the **KdsTicket** model.
@@ -3773,6 +3849,11 @@ export namespace Prisma {
     Table: 'Table',
     KioskDevice: 'KioskDevice',
     TableReservation: 'TableReservation',
+    SalonService: 'SalonService',
+    SalonStaff: 'SalonStaff',
+    SalonTimeOff: 'SalonTimeOff',
+    SalonAppointment: 'SalonAppointment',
+    SalonQueueEntry: 'SalonQueueEntry',
     KdsTicket: 'KdsTicket',
     Printer: 'Printer',
     PrintJob: 'PrintJob',
@@ -3887,7 +3968,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "promoCodeRedemption" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "productVariant" | "productStockLevel" | "productStockMovement" | "refundLine" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "yangoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "loyaltyMember" | "loyaltyPassDevice" | "referralProgram" | "referralCode" | "referral" | "keetaAuthorization" | "emailContact" | "emailCampaign" | "emailAutomation" | "emailCampaignRecipient" | "buildGuide" | "buildStepTemplate" | "buildGuideTraining" | "assemblyChart" | "menuAutoPublish"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "promoCodeRedemption" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "salonService" | "salonStaff" | "salonTimeOff" | "salonAppointment" | "salonQueueEntry" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "productVariant" | "productStockLevel" | "productStockMovement" | "refundLine" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "yangoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "loyaltyMember" | "loyaltyPassDevice" | "referralProgram" | "referralCode" | "referral" | "keetaAuthorization" | "emailContact" | "emailCampaign" | "emailAutomation" | "emailCampaignRecipient" | "buildGuide" | "buildStepTemplate" | "buildGuideTraining" | "assemblyChart" | "menuAutoPublish"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -7598,6 +7679,356 @@ export namespace Prisma {
           count: {
             args: Prisma.TableReservationCountArgs<ExtArgs>
             result: $Utils.Optional<TableReservationCountAggregateOutputType> | number
+          }
+        }
+      }
+      SalonService: {
+        payload: Prisma.$SalonServicePayload<ExtArgs>
+        fields: Prisma.SalonServiceFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.SalonServiceFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonServicePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.SalonServiceFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonServicePayload>
+          }
+          findFirst: {
+            args: Prisma.SalonServiceFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonServicePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.SalonServiceFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonServicePayload>
+          }
+          findMany: {
+            args: Prisma.SalonServiceFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonServicePayload>[]
+          }
+          create: {
+            args: Prisma.SalonServiceCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonServicePayload>
+          }
+          createMany: {
+            args: Prisma.SalonServiceCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.SalonServiceCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonServicePayload>[]
+          }
+          delete: {
+            args: Prisma.SalonServiceDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonServicePayload>
+          }
+          update: {
+            args: Prisma.SalonServiceUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonServicePayload>
+          }
+          deleteMany: {
+            args: Prisma.SalonServiceDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.SalonServiceUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.SalonServiceUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonServicePayload>
+          }
+          aggregate: {
+            args: Prisma.SalonServiceAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSalonService>
+          }
+          groupBy: {
+            args: Prisma.SalonServiceGroupByArgs<ExtArgs>
+            result: $Utils.Optional<SalonServiceGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.SalonServiceCountArgs<ExtArgs>
+            result: $Utils.Optional<SalonServiceCountAggregateOutputType> | number
+          }
+        }
+      }
+      SalonStaff: {
+        payload: Prisma.$SalonStaffPayload<ExtArgs>
+        fields: Prisma.SalonStaffFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.SalonStaffFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonStaffPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.SalonStaffFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonStaffPayload>
+          }
+          findFirst: {
+            args: Prisma.SalonStaffFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonStaffPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.SalonStaffFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonStaffPayload>
+          }
+          findMany: {
+            args: Prisma.SalonStaffFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonStaffPayload>[]
+          }
+          create: {
+            args: Prisma.SalonStaffCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonStaffPayload>
+          }
+          createMany: {
+            args: Prisma.SalonStaffCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.SalonStaffCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonStaffPayload>[]
+          }
+          delete: {
+            args: Prisma.SalonStaffDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonStaffPayload>
+          }
+          update: {
+            args: Prisma.SalonStaffUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonStaffPayload>
+          }
+          deleteMany: {
+            args: Prisma.SalonStaffDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.SalonStaffUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.SalonStaffUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonStaffPayload>
+          }
+          aggregate: {
+            args: Prisma.SalonStaffAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSalonStaff>
+          }
+          groupBy: {
+            args: Prisma.SalonStaffGroupByArgs<ExtArgs>
+            result: $Utils.Optional<SalonStaffGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.SalonStaffCountArgs<ExtArgs>
+            result: $Utils.Optional<SalonStaffCountAggregateOutputType> | number
+          }
+        }
+      }
+      SalonTimeOff: {
+        payload: Prisma.$SalonTimeOffPayload<ExtArgs>
+        fields: Prisma.SalonTimeOffFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.SalonTimeOffFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonTimeOffPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.SalonTimeOffFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonTimeOffPayload>
+          }
+          findFirst: {
+            args: Prisma.SalonTimeOffFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonTimeOffPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.SalonTimeOffFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonTimeOffPayload>
+          }
+          findMany: {
+            args: Prisma.SalonTimeOffFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonTimeOffPayload>[]
+          }
+          create: {
+            args: Prisma.SalonTimeOffCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonTimeOffPayload>
+          }
+          createMany: {
+            args: Prisma.SalonTimeOffCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.SalonTimeOffCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonTimeOffPayload>[]
+          }
+          delete: {
+            args: Prisma.SalonTimeOffDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonTimeOffPayload>
+          }
+          update: {
+            args: Prisma.SalonTimeOffUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonTimeOffPayload>
+          }
+          deleteMany: {
+            args: Prisma.SalonTimeOffDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.SalonTimeOffUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.SalonTimeOffUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonTimeOffPayload>
+          }
+          aggregate: {
+            args: Prisma.SalonTimeOffAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSalonTimeOff>
+          }
+          groupBy: {
+            args: Prisma.SalonTimeOffGroupByArgs<ExtArgs>
+            result: $Utils.Optional<SalonTimeOffGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.SalonTimeOffCountArgs<ExtArgs>
+            result: $Utils.Optional<SalonTimeOffCountAggregateOutputType> | number
+          }
+        }
+      }
+      SalonAppointment: {
+        payload: Prisma.$SalonAppointmentPayload<ExtArgs>
+        fields: Prisma.SalonAppointmentFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.SalonAppointmentFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonAppointmentPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.SalonAppointmentFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonAppointmentPayload>
+          }
+          findFirst: {
+            args: Prisma.SalonAppointmentFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonAppointmentPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.SalonAppointmentFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonAppointmentPayload>
+          }
+          findMany: {
+            args: Prisma.SalonAppointmentFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonAppointmentPayload>[]
+          }
+          create: {
+            args: Prisma.SalonAppointmentCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonAppointmentPayload>
+          }
+          createMany: {
+            args: Prisma.SalonAppointmentCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.SalonAppointmentCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonAppointmentPayload>[]
+          }
+          delete: {
+            args: Prisma.SalonAppointmentDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonAppointmentPayload>
+          }
+          update: {
+            args: Prisma.SalonAppointmentUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonAppointmentPayload>
+          }
+          deleteMany: {
+            args: Prisma.SalonAppointmentDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.SalonAppointmentUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.SalonAppointmentUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonAppointmentPayload>
+          }
+          aggregate: {
+            args: Prisma.SalonAppointmentAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSalonAppointment>
+          }
+          groupBy: {
+            args: Prisma.SalonAppointmentGroupByArgs<ExtArgs>
+            result: $Utils.Optional<SalonAppointmentGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.SalonAppointmentCountArgs<ExtArgs>
+            result: $Utils.Optional<SalonAppointmentCountAggregateOutputType> | number
+          }
+        }
+      }
+      SalonQueueEntry: {
+        payload: Prisma.$SalonQueueEntryPayload<ExtArgs>
+        fields: Prisma.SalonQueueEntryFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.SalonQueueEntryFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonQueueEntryPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.SalonQueueEntryFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonQueueEntryPayload>
+          }
+          findFirst: {
+            args: Prisma.SalonQueueEntryFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonQueueEntryPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.SalonQueueEntryFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonQueueEntryPayload>
+          }
+          findMany: {
+            args: Prisma.SalonQueueEntryFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonQueueEntryPayload>[]
+          }
+          create: {
+            args: Prisma.SalonQueueEntryCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonQueueEntryPayload>
+          }
+          createMany: {
+            args: Prisma.SalonQueueEntryCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.SalonQueueEntryCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonQueueEntryPayload>[]
+          }
+          delete: {
+            args: Prisma.SalonQueueEntryDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonQueueEntryPayload>
+          }
+          update: {
+            args: Prisma.SalonQueueEntryUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonQueueEntryPayload>
+          }
+          deleteMany: {
+            args: Prisma.SalonQueueEntryDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.SalonQueueEntryUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.SalonQueueEntryUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SalonQueueEntryPayload>
+          }
+          aggregate: {
+            args: Prisma.SalonQueueEntryAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSalonQueueEntry>
+          }
+          groupBy: {
+            args: Prisma.SalonQueueEntryGroupByArgs<ExtArgs>
+            result: $Utils.Optional<SalonQueueEntryGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.SalonQueueEntryCountArgs<ExtArgs>
+            result: $Utils.Optional<SalonQueueEntryCountAggregateOutputType> | number
           }
         }
       }
@@ -15231,6 +15662,10 @@ export namespace Prisma {
     itemChannelSnoozes: number
     homeDrivers: number
     productStockLevels: number
+    salonServices: number
+    salonStaff: number
+    salonAppointments: number
+    salonQueueEntries: number
     loyaltyRewards: number
   }
 
@@ -15254,6 +15689,10 @@ export namespace Prisma {
     itemChannelSnoozes?: boolean | LocationCountOutputTypeCountItemChannelSnoozesArgs
     homeDrivers?: boolean | LocationCountOutputTypeCountHomeDriversArgs
     productStockLevels?: boolean | LocationCountOutputTypeCountProductStockLevelsArgs
+    salonServices?: boolean | LocationCountOutputTypeCountSalonServicesArgs
+    salonStaff?: boolean | LocationCountOutputTypeCountSalonStaffArgs
+    salonAppointments?: boolean | LocationCountOutputTypeCountSalonAppointmentsArgs
+    salonQueueEntries?: boolean | LocationCountOutputTypeCountSalonQueueEntriesArgs
     loyaltyRewards?: boolean | LocationCountOutputTypeCountLoyaltyRewardsArgs
   }
 
@@ -15399,6 +15838,34 @@ export namespace Prisma {
    */
   export type LocationCountOutputTypeCountProductStockLevelsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ProductStockLevelWhereInput
+  }
+
+  /**
+   * LocationCountOutputType without action
+   */
+  export type LocationCountOutputTypeCountSalonServicesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SalonServiceWhereInput
+  }
+
+  /**
+   * LocationCountOutputType without action
+   */
+  export type LocationCountOutputTypeCountSalonStaffArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SalonStaffWhereInput
+  }
+
+  /**
+   * LocationCountOutputType without action
+   */
+  export type LocationCountOutputTypeCountSalonAppointmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SalonAppointmentWhereInput
+  }
+
+  /**
+   * LocationCountOutputType without action
+   */
+  export type LocationCountOutputTypeCountSalonQueueEntriesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SalonQueueEntryWhereInput
   }
 
   /**
@@ -15967,6 +16434,46 @@ export namespace Prisma {
    */
   export type TableCountOutputTypeCountReservationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: TableReservationWhereInput
+  }
+
+
+  /**
+   * Count Type SalonStaffCountOutputType
+   */
+
+  export type SalonStaffCountOutputType = {
+    timeOff: number
+    appointments: number
+  }
+
+  export type SalonStaffCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    timeOff?: boolean | SalonStaffCountOutputTypeCountTimeOffArgs
+    appointments?: boolean | SalonStaffCountOutputTypeCountAppointmentsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * SalonStaffCountOutputType without action
+   */
+  export type SalonStaffCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonStaffCountOutputType
+     */
+    select?: SalonStaffCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * SalonStaffCountOutputType without action
+   */
+  export type SalonStaffCountOutputTypeCountTimeOffArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SalonTimeOffWhereInput
+  }
+
+  /**
+   * SalonStaffCountOutputType without action
+   */
+  export type SalonStaffCountOutputTypeCountAppointmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SalonAppointmentWhereInput
   }
 
 
@@ -32504,6 +33011,10 @@ export namespace Prisma {
     itemChannelSnoozes?: boolean | Location$itemChannelSnoozesArgs<ExtArgs>
     homeDrivers?: boolean | Location$homeDriversArgs<ExtArgs>
     productStockLevels?: boolean | Location$productStockLevelsArgs<ExtArgs>
+    salonServices?: boolean | Location$salonServicesArgs<ExtArgs>
+    salonStaff?: boolean | Location$salonStaffArgs<ExtArgs>
+    salonAppointments?: boolean | Location$salonAppointmentsArgs<ExtArgs>
+    salonQueueEntries?: boolean | Location$salonQueueEntriesArgs<ExtArgs>
     defaultKitchenStation?: boolean | Location$defaultKitchenStationArgs<ExtArgs>
     receiptPrinter?: boolean | Location$receiptPrinterArgs<ExtArgs>
     dispatchPrinter?: boolean | Location$dispatchPrinterArgs<ExtArgs>
@@ -32679,6 +33190,10 @@ export namespace Prisma {
     itemChannelSnoozes?: boolean | Location$itemChannelSnoozesArgs<ExtArgs>
     homeDrivers?: boolean | Location$homeDriversArgs<ExtArgs>
     productStockLevels?: boolean | Location$productStockLevelsArgs<ExtArgs>
+    salonServices?: boolean | Location$salonServicesArgs<ExtArgs>
+    salonStaff?: boolean | Location$salonStaffArgs<ExtArgs>
+    salonAppointments?: boolean | Location$salonAppointmentsArgs<ExtArgs>
+    salonQueueEntries?: boolean | Location$salonQueueEntriesArgs<ExtArgs>
     defaultKitchenStation?: boolean | Location$defaultKitchenStationArgs<ExtArgs>
     receiptPrinter?: boolean | Location$receiptPrinterArgs<ExtArgs>
     dispatchPrinter?: boolean | Location$dispatchPrinterArgs<ExtArgs>
@@ -32724,6 +33239,10 @@ export namespace Prisma {
       itemChannelSnoozes: Prisma.$MenuItemChannelAvailabilityPayload<ExtArgs>[]
       homeDrivers: Prisma.$DriverPayload<ExtArgs>[]
       productStockLevels: Prisma.$ProductStockLevelPayload<ExtArgs>[]
+      salonServices: Prisma.$SalonServicePayload<ExtArgs>[]
+      salonStaff: Prisma.$SalonStaffPayload<ExtArgs>[]
+      salonAppointments: Prisma.$SalonAppointmentPayload<ExtArgs>[]
+      salonQueueEntries: Prisma.$SalonQueueEntryPayload<ExtArgs>[]
       defaultKitchenStation: Prisma.$PrinterStationPayload<ExtArgs> | null
       receiptPrinter: Prisma.$PrinterPayload<ExtArgs> | null
       dispatchPrinter: Prisma.$PrinterPayload<ExtArgs> | null
@@ -33191,6 +33710,10 @@ export namespace Prisma {
     itemChannelSnoozes<T extends Location$itemChannelSnoozesArgs<ExtArgs> = {}>(args?: Subset<T, Location$itemChannelSnoozesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuItemChannelAvailabilityPayload<ExtArgs>, T, "findMany"> | Null>
     homeDrivers<T extends Location$homeDriversArgs<ExtArgs> = {}>(args?: Subset<T, Location$homeDriversArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DriverPayload<ExtArgs>, T, "findMany"> | Null>
     productStockLevels<T extends Location$productStockLevelsArgs<ExtArgs> = {}>(args?: Subset<T, Location$productStockLevelsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProductStockLevelPayload<ExtArgs>, T, "findMany"> | Null>
+    salonServices<T extends Location$salonServicesArgs<ExtArgs> = {}>(args?: Subset<T, Location$salonServicesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SalonServicePayload<ExtArgs>, T, "findMany"> | Null>
+    salonStaff<T extends Location$salonStaffArgs<ExtArgs> = {}>(args?: Subset<T, Location$salonStaffArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SalonStaffPayload<ExtArgs>, T, "findMany"> | Null>
+    salonAppointments<T extends Location$salonAppointmentsArgs<ExtArgs> = {}>(args?: Subset<T, Location$salonAppointmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SalonAppointmentPayload<ExtArgs>, T, "findMany"> | Null>
+    salonQueueEntries<T extends Location$salonQueueEntriesArgs<ExtArgs> = {}>(args?: Subset<T, Location$salonQueueEntriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SalonQueueEntryPayload<ExtArgs>, T, "findMany"> | Null>
     defaultKitchenStation<T extends Location$defaultKitchenStationArgs<ExtArgs> = {}>(args?: Subset<T, Location$defaultKitchenStationArgs<ExtArgs>>): Prisma__PrinterStationClient<$Result.GetResult<Prisma.$PrinterStationPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     receiptPrinter<T extends Location$receiptPrinterArgs<ExtArgs> = {}>(args?: Subset<T, Location$receiptPrinterArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     dispatchPrinter<T extends Location$dispatchPrinterArgs<ExtArgs> = {}>(args?: Subset<T, Location$dispatchPrinterArgs<ExtArgs>>): Prisma__PrinterClient<$Result.GetResult<Prisma.$PrinterPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
@@ -34034,6 +34557,86 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: ProductStockLevelScalarFieldEnum | ProductStockLevelScalarFieldEnum[]
+  }
+
+  /**
+   * Location.salonServices
+   */
+  export type Location$salonServicesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonService
+     */
+    select?: SalonServiceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonServiceInclude<ExtArgs> | null
+    where?: SalonServiceWhereInput
+    orderBy?: SalonServiceOrderByWithRelationInput | SalonServiceOrderByWithRelationInput[]
+    cursor?: SalonServiceWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: SalonServiceScalarFieldEnum | SalonServiceScalarFieldEnum[]
+  }
+
+  /**
+   * Location.salonStaff
+   */
+  export type Location$salonStaffArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonStaff
+     */
+    select?: SalonStaffSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonStaffInclude<ExtArgs> | null
+    where?: SalonStaffWhereInput
+    orderBy?: SalonStaffOrderByWithRelationInput | SalonStaffOrderByWithRelationInput[]
+    cursor?: SalonStaffWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: SalonStaffScalarFieldEnum | SalonStaffScalarFieldEnum[]
+  }
+
+  /**
+   * Location.salonAppointments
+   */
+  export type Location$salonAppointmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonAppointment
+     */
+    select?: SalonAppointmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonAppointmentInclude<ExtArgs> | null
+    where?: SalonAppointmentWhereInput
+    orderBy?: SalonAppointmentOrderByWithRelationInput | SalonAppointmentOrderByWithRelationInput[]
+    cursor?: SalonAppointmentWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: SalonAppointmentScalarFieldEnum | SalonAppointmentScalarFieldEnum[]
+  }
+
+  /**
+   * Location.salonQueueEntries
+   */
+  export type Location$salonQueueEntriesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonQueueEntry
+     */
+    select?: SalonQueueEntrySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonQueueEntryInclude<ExtArgs> | null
+    where?: SalonQueueEntryWhereInput
+    orderBy?: SalonQueueEntryOrderByWithRelationInput | SalonQueueEntryOrderByWithRelationInput[]
+    cursor?: SalonQueueEntryWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: SalonQueueEntryScalarFieldEnum | SalonQueueEntryScalarFieldEnum[]
   }
 
   /**
@@ -77739,6 +78342,5814 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: TableReservationInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model SalonService
+   */
+
+  export type AggregateSalonService = {
+    _count: SalonServiceCountAggregateOutputType | null
+    _avg: SalonServiceAvgAggregateOutputType | null
+    _sum: SalonServiceSumAggregateOutputType | null
+    _min: SalonServiceMinAggregateOutputType | null
+    _max: SalonServiceMaxAggregateOutputType | null
+  }
+
+  export type SalonServiceAvgAggregateOutputType = {
+    price: Decimal | null
+    durationMins: number | null
+    bufferMins: number | null
+    processingStartMins: number | null
+    processingMins: number | null
+    depositValue: Decimal | null
+    sortOrder: number | null
+  }
+
+  export type SalonServiceSumAggregateOutputType = {
+    price: Decimal | null
+    durationMins: number | null
+    bufferMins: number | null
+    processingStartMins: number | null
+    processingMins: number | null
+    depositValue: Decimal | null
+    sortOrder: number | null
+  }
+
+  export type SalonServiceMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    category: string | null
+    name: string | null
+    description: string | null
+    price: Decimal | null
+    priceFrom: boolean | null
+    durationMins: number | null
+    bufferMins: number | null
+    processingStartMins: number | null
+    processingMins: number | null
+    depositType: string | null
+    depositValue: Decimal | null
+    requiresPatchTest: boolean | null
+    bookableOnline: boolean | null
+    isActive: boolean | null
+    sortOrder: number | null
+    imageUrl: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type SalonServiceMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    category: string | null
+    name: string | null
+    description: string | null
+    price: Decimal | null
+    priceFrom: boolean | null
+    durationMins: number | null
+    bufferMins: number | null
+    processingStartMins: number | null
+    processingMins: number | null
+    depositType: string | null
+    depositValue: Decimal | null
+    requiresPatchTest: boolean | null
+    bookableOnline: boolean | null
+    isActive: boolean | null
+    sortOrder: number | null
+    imageUrl: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type SalonServiceCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    category: number
+    name: number
+    description: number
+    price: number
+    priceFrom: number
+    durationMins: number
+    bufferMins: number
+    processingStartMins: number
+    processingMins: number
+    depositType: number
+    depositValue: number
+    requiresPatchTest: number
+    bookableOnline: number
+    isActive: number
+    sortOrder: number
+    imageUrl: number
+    addons: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type SalonServiceAvgAggregateInputType = {
+    price?: true
+    durationMins?: true
+    bufferMins?: true
+    processingStartMins?: true
+    processingMins?: true
+    depositValue?: true
+    sortOrder?: true
+  }
+
+  export type SalonServiceSumAggregateInputType = {
+    price?: true
+    durationMins?: true
+    bufferMins?: true
+    processingStartMins?: true
+    processingMins?: true
+    depositValue?: true
+    sortOrder?: true
+  }
+
+  export type SalonServiceMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    category?: true
+    name?: true
+    description?: true
+    price?: true
+    priceFrom?: true
+    durationMins?: true
+    bufferMins?: true
+    processingStartMins?: true
+    processingMins?: true
+    depositType?: true
+    depositValue?: true
+    requiresPatchTest?: true
+    bookableOnline?: true
+    isActive?: true
+    sortOrder?: true
+    imageUrl?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type SalonServiceMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    category?: true
+    name?: true
+    description?: true
+    price?: true
+    priceFrom?: true
+    durationMins?: true
+    bufferMins?: true
+    processingStartMins?: true
+    processingMins?: true
+    depositType?: true
+    depositValue?: true
+    requiresPatchTest?: true
+    bookableOnline?: true
+    isActive?: true
+    sortOrder?: true
+    imageUrl?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type SalonServiceCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    category?: true
+    name?: true
+    description?: true
+    price?: true
+    priceFrom?: true
+    durationMins?: true
+    bufferMins?: true
+    processingStartMins?: true
+    processingMins?: true
+    depositType?: true
+    depositValue?: true
+    requiresPatchTest?: true
+    bookableOnline?: true
+    isActive?: true
+    sortOrder?: true
+    imageUrl?: true
+    addons?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type SalonServiceAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SalonService to aggregate.
+     */
+    where?: SalonServiceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SalonServices to fetch.
+     */
+    orderBy?: SalonServiceOrderByWithRelationInput | SalonServiceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: SalonServiceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SalonServices from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SalonServices.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned SalonServices
+    **/
+    _count?: true | SalonServiceCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: SalonServiceAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: SalonServiceSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: SalonServiceMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: SalonServiceMaxAggregateInputType
+  }
+
+  export type GetSalonServiceAggregateType<T extends SalonServiceAggregateArgs> = {
+        [P in keyof T & keyof AggregateSalonService]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSalonService[P]>
+      : GetScalarType<T[P], AggregateSalonService[P]>
+  }
+
+
+
+
+  export type SalonServiceGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SalonServiceWhereInput
+    orderBy?: SalonServiceOrderByWithAggregationInput | SalonServiceOrderByWithAggregationInput[]
+    by: SalonServiceScalarFieldEnum[] | SalonServiceScalarFieldEnum
+    having?: SalonServiceScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: SalonServiceCountAggregateInputType | true
+    _avg?: SalonServiceAvgAggregateInputType
+    _sum?: SalonServiceSumAggregateInputType
+    _min?: SalonServiceMinAggregateInputType
+    _max?: SalonServiceMaxAggregateInputType
+  }
+
+  export type SalonServiceGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string
+    category: string
+    name: string
+    description: string | null
+    price: Decimal
+    priceFrom: boolean
+    durationMins: number
+    bufferMins: number
+    processingStartMins: number | null
+    processingMins: number | null
+    depositType: string
+    depositValue: Decimal | null
+    requiresPatchTest: boolean
+    bookableOnline: boolean
+    isActive: boolean
+    sortOrder: number
+    imageUrl: string | null
+    addons: JsonValue
+    createdAt: Date
+    updatedAt: Date
+    _count: SalonServiceCountAggregateOutputType | null
+    _avg: SalonServiceAvgAggregateOutputType | null
+    _sum: SalonServiceSumAggregateOutputType | null
+    _min: SalonServiceMinAggregateOutputType | null
+    _max: SalonServiceMaxAggregateOutputType | null
+  }
+
+  type GetSalonServiceGroupByPayload<T extends SalonServiceGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<SalonServiceGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof SalonServiceGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], SalonServiceGroupByOutputType[P]>
+            : GetScalarType<T[P], SalonServiceGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type SalonServiceSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    category?: boolean
+    name?: boolean
+    description?: boolean
+    price?: boolean
+    priceFrom?: boolean
+    durationMins?: boolean
+    bufferMins?: boolean
+    processingStartMins?: boolean
+    processingMins?: boolean
+    depositType?: boolean
+    depositValue?: boolean
+    requiresPatchTest?: boolean
+    bookableOnline?: boolean
+    isActive?: boolean
+    sortOrder?: boolean
+    imageUrl?: boolean
+    addons?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["salonService"]>
+
+  export type SalonServiceSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    category?: boolean
+    name?: boolean
+    description?: boolean
+    price?: boolean
+    priceFrom?: boolean
+    durationMins?: boolean
+    bufferMins?: boolean
+    processingStartMins?: boolean
+    processingMins?: boolean
+    depositType?: boolean
+    depositValue?: boolean
+    requiresPatchTest?: boolean
+    bookableOnline?: boolean
+    isActive?: boolean
+    sortOrder?: boolean
+    imageUrl?: boolean
+    addons?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["salonService"]>
+
+  export type SalonServiceSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    category?: boolean
+    name?: boolean
+    description?: boolean
+    price?: boolean
+    priceFrom?: boolean
+    durationMins?: boolean
+    bufferMins?: boolean
+    processingStartMins?: boolean
+    processingMins?: boolean
+    depositType?: boolean
+    depositValue?: boolean
+    requiresPatchTest?: boolean
+    bookableOnline?: boolean
+    isActive?: boolean
+    sortOrder?: boolean
+    imageUrl?: boolean
+    addons?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type SalonServiceInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+  export type SalonServiceIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+
+  export type $SalonServicePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "SalonService"
+    objects: {
+      location: Prisma.$LocationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string
+      category: string
+      name: string
+      description: string | null
+      price: Prisma.Decimal
+      priceFrom: boolean
+      durationMins: number
+      bufferMins: number
+      processingStartMins: number | null
+      processingMins: number | null
+      depositType: string
+      depositValue: Prisma.Decimal | null
+      requiresPatchTest: boolean
+      bookableOnline: boolean
+      isActive: boolean
+      sortOrder: number
+      imageUrl: string | null
+      addons: Prisma.JsonValue
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["salonService"]>
+    composites: {}
+  }
+
+  type SalonServiceGetPayload<S extends boolean | null | undefined | SalonServiceDefaultArgs> = $Result.GetResult<Prisma.$SalonServicePayload, S>
+
+  type SalonServiceCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<SalonServiceFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: SalonServiceCountAggregateInputType | true
+    }
+
+  export interface SalonServiceDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['SalonService'], meta: { name: 'SalonService' } }
+    /**
+     * Find zero or one SalonService that matches the filter.
+     * @param {SalonServiceFindUniqueArgs} args - Arguments to find a SalonService
+     * @example
+     * // Get one SalonService
+     * const salonService = await prisma.salonService.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends SalonServiceFindUniqueArgs>(args: SelectSubset<T, SalonServiceFindUniqueArgs<ExtArgs>>): Prisma__SalonServiceClient<$Result.GetResult<Prisma.$SalonServicePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one SalonService that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {SalonServiceFindUniqueOrThrowArgs} args - Arguments to find a SalonService
+     * @example
+     * // Get one SalonService
+     * const salonService = await prisma.salonService.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends SalonServiceFindUniqueOrThrowArgs>(args: SelectSubset<T, SalonServiceFindUniqueOrThrowArgs<ExtArgs>>): Prisma__SalonServiceClient<$Result.GetResult<Prisma.$SalonServicePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first SalonService that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonServiceFindFirstArgs} args - Arguments to find a SalonService
+     * @example
+     * // Get one SalonService
+     * const salonService = await prisma.salonService.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends SalonServiceFindFirstArgs>(args?: SelectSubset<T, SalonServiceFindFirstArgs<ExtArgs>>): Prisma__SalonServiceClient<$Result.GetResult<Prisma.$SalonServicePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first SalonService that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonServiceFindFirstOrThrowArgs} args - Arguments to find a SalonService
+     * @example
+     * // Get one SalonService
+     * const salonService = await prisma.salonService.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends SalonServiceFindFirstOrThrowArgs>(args?: SelectSubset<T, SalonServiceFindFirstOrThrowArgs<ExtArgs>>): Prisma__SalonServiceClient<$Result.GetResult<Prisma.$SalonServicePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more SalonServices that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonServiceFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all SalonServices
+     * const salonServices = await prisma.salonService.findMany()
+     * 
+     * // Get first 10 SalonServices
+     * const salonServices = await prisma.salonService.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const salonServiceWithIdOnly = await prisma.salonService.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends SalonServiceFindManyArgs>(args?: SelectSubset<T, SalonServiceFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SalonServicePayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a SalonService.
+     * @param {SalonServiceCreateArgs} args - Arguments to create a SalonService.
+     * @example
+     * // Create one SalonService
+     * const SalonService = await prisma.salonService.create({
+     *   data: {
+     *     // ... data to create a SalonService
+     *   }
+     * })
+     * 
+     */
+    create<T extends SalonServiceCreateArgs>(args: SelectSubset<T, SalonServiceCreateArgs<ExtArgs>>): Prisma__SalonServiceClient<$Result.GetResult<Prisma.$SalonServicePayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many SalonServices.
+     * @param {SalonServiceCreateManyArgs} args - Arguments to create many SalonServices.
+     * @example
+     * // Create many SalonServices
+     * const salonService = await prisma.salonService.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends SalonServiceCreateManyArgs>(args?: SelectSubset<T, SalonServiceCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many SalonServices and returns the data saved in the database.
+     * @param {SalonServiceCreateManyAndReturnArgs} args - Arguments to create many SalonServices.
+     * @example
+     * // Create many SalonServices
+     * const salonService = await prisma.salonService.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many SalonServices and only return the `id`
+     * const salonServiceWithIdOnly = await prisma.salonService.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends SalonServiceCreateManyAndReturnArgs>(args?: SelectSubset<T, SalonServiceCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SalonServicePayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a SalonService.
+     * @param {SalonServiceDeleteArgs} args - Arguments to delete one SalonService.
+     * @example
+     * // Delete one SalonService
+     * const SalonService = await prisma.salonService.delete({
+     *   where: {
+     *     // ... filter to delete one SalonService
+     *   }
+     * })
+     * 
+     */
+    delete<T extends SalonServiceDeleteArgs>(args: SelectSubset<T, SalonServiceDeleteArgs<ExtArgs>>): Prisma__SalonServiceClient<$Result.GetResult<Prisma.$SalonServicePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one SalonService.
+     * @param {SalonServiceUpdateArgs} args - Arguments to update one SalonService.
+     * @example
+     * // Update one SalonService
+     * const salonService = await prisma.salonService.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends SalonServiceUpdateArgs>(args: SelectSubset<T, SalonServiceUpdateArgs<ExtArgs>>): Prisma__SalonServiceClient<$Result.GetResult<Prisma.$SalonServicePayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more SalonServices.
+     * @param {SalonServiceDeleteManyArgs} args - Arguments to filter SalonServices to delete.
+     * @example
+     * // Delete a few SalonServices
+     * const { count } = await prisma.salonService.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends SalonServiceDeleteManyArgs>(args?: SelectSubset<T, SalonServiceDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more SalonServices.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonServiceUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many SalonServices
+     * const salonService = await prisma.salonService.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends SalonServiceUpdateManyArgs>(args: SelectSubset<T, SalonServiceUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one SalonService.
+     * @param {SalonServiceUpsertArgs} args - Arguments to update or create a SalonService.
+     * @example
+     * // Update or create a SalonService
+     * const salonService = await prisma.salonService.upsert({
+     *   create: {
+     *     // ... data to create a SalonService
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the SalonService we want to update
+     *   }
+     * })
+     */
+    upsert<T extends SalonServiceUpsertArgs>(args: SelectSubset<T, SalonServiceUpsertArgs<ExtArgs>>): Prisma__SalonServiceClient<$Result.GetResult<Prisma.$SalonServicePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of SalonServices.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonServiceCountArgs} args - Arguments to filter SalonServices to count.
+     * @example
+     * // Count the number of SalonServices
+     * const count = await prisma.salonService.count({
+     *   where: {
+     *     // ... the filter for the SalonServices we want to count
+     *   }
+     * })
+    **/
+    count<T extends SalonServiceCountArgs>(
+      args?: Subset<T, SalonServiceCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], SalonServiceCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a SalonService.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonServiceAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends SalonServiceAggregateArgs>(args: Subset<T, SalonServiceAggregateArgs>): Prisma.PrismaPromise<GetSalonServiceAggregateType<T>>
+
+    /**
+     * Group by SalonService.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonServiceGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends SalonServiceGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: SalonServiceGroupByArgs['orderBy'] }
+        : { orderBy?: SalonServiceGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, SalonServiceGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSalonServiceGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the SalonService model
+   */
+  readonly fields: SalonServiceFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for SalonService.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__SalonServiceClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the SalonService model
+   */ 
+  interface SalonServiceFieldRefs {
+    readonly id: FieldRef<"SalonService", 'String'>
+    readonly tenantId: FieldRef<"SalonService", 'String'>
+    readonly locationId: FieldRef<"SalonService", 'String'>
+    readonly category: FieldRef<"SalonService", 'String'>
+    readonly name: FieldRef<"SalonService", 'String'>
+    readonly description: FieldRef<"SalonService", 'String'>
+    readonly price: FieldRef<"SalonService", 'Decimal'>
+    readonly priceFrom: FieldRef<"SalonService", 'Boolean'>
+    readonly durationMins: FieldRef<"SalonService", 'Int'>
+    readonly bufferMins: FieldRef<"SalonService", 'Int'>
+    readonly processingStartMins: FieldRef<"SalonService", 'Int'>
+    readonly processingMins: FieldRef<"SalonService", 'Int'>
+    readonly depositType: FieldRef<"SalonService", 'String'>
+    readonly depositValue: FieldRef<"SalonService", 'Decimal'>
+    readonly requiresPatchTest: FieldRef<"SalonService", 'Boolean'>
+    readonly bookableOnline: FieldRef<"SalonService", 'Boolean'>
+    readonly isActive: FieldRef<"SalonService", 'Boolean'>
+    readonly sortOrder: FieldRef<"SalonService", 'Int'>
+    readonly imageUrl: FieldRef<"SalonService", 'String'>
+    readonly addons: FieldRef<"SalonService", 'Json'>
+    readonly createdAt: FieldRef<"SalonService", 'DateTime'>
+    readonly updatedAt: FieldRef<"SalonService", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * SalonService findUnique
+   */
+  export type SalonServiceFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonService
+     */
+    select?: SalonServiceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonServiceInclude<ExtArgs> | null
+    /**
+     * Filter, which SalonService to fetch.
+     */
+    where: SalonServiceWhereUniqueInput
+  }
+
+  /**
+   * SalonService findUniqueOrThrow
+   */
+  export type SalonServiceFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonService
+     */
+    select?: SalonServiceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonServiceInclude<ExtArgs> | null
+    /**
+     * Filter, which SalonService to fetch.
+     */
+    where: SalonServiceWhereUniqueInput
+  }
+
+  /**
+   * SalonService findFirst
+   */
+  export type SalonServiceFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonService
+     */
+    select?: SalonServiceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonServiceInclude<ExtArgs> | null
+    /**
+     * Filter, which SalonService to fetch.
+     */
+    where?: SalonServiceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SalonServices to fetch.
+     */
+    orderBy?: SalonServiceOrderByWithRelationInput | SalonServiceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SalonServices.
+     */
+    cursor?: SalonServiceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SalonServices from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SalonServices.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SalonServices.
+     */
+    distinct?: SalonServiceScalarFieldEnum | SalonServiceScalarFieldEnum[]
+  }
+
+  /**
+   * SalonService findFirstOrThrow
+   */
+  export type SalonServiceFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonService
+     */
+    select?: SalonServiceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonServiceInclude<ExtArgs> | null
+    /**
+     * Filter, which SalonService to fetch.
+     */
+    where?: SalonServiceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SalonServices to fetch.
+     */
+    orderBy?: SalonServiceOrderByWithRelationInput | SalonServiceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SalonServices.
+     */
+    cursor?: SalonServiceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SalonServices from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SalonServices.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SalonServices.
+     */
+    distinct?: SalonServiceScalarFieldEnum | SalonServiceScalarFieldEnum[]
+  }
+
+  /**
+   * SalonService findMany
+   */
+  export type SalonServiceFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonService
+     */
+    select?: SalonServiceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonServiceInclude<ExtArgs> | null
+    /**
+     * Filter, which SalonServices to fetch.
+     */
+    where?: SalonServiceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SalonServices to fetch.
+     */
+    orderBy?: SalonServiceOrderByWithRelationInput | SalonServiceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing SalonServices.
+     */
+    cursor?: SalonServiceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SalonServices from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SalonServices.
+     */
+    skip?: number
+    distinct?: SalonServiceScalarFieldEnum | SalonServiceScalarFieldEnum[]
+  }
+
+  /**
+   * SalonService create
+   */
+  export type SalonServiceCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonService
+     */
+    select?: SalonServiceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonServiceInclude<ExtArgs> | null
+    /**
+     * The data needed to create a SalonService.
+     */
+    data: XOR<SalonServiceCreateInput, SalonServiceUncheckedCreateInput>
+  }
+
+  /**
+   * SalonService createMany
+   */
+  export type SalonServiceCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many SalonServices.
+     */
+    data: SalonServiceCreateManyInput | SalonServiceCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * SalonService createManyAndReturn
+   */
+  export type SalonServiceCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonService
+     */
+    select?: SalonServiceSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many SalonServices.
+     */
+    data: SalonServiceCreateManyInput | SalonServiceCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonServiceIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * SalonService update
+   */
+  export type SalonServiceUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonService
+     */
+    select?: SalonServiceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonServiceInclude<ExtArgs> | null
+    /**
+     * The data needed to update a SalonService.
+     */
+    data: XOR<SalonServiceUpdateInput, SalonServiceUncheckedUpdateInput>
+    /**
+     * Choose, which SalonService to update.
+     */
+    where: SalonServiceWhereUniqueInput
+  }
+
+  /**
+   * SalonService updateMany
+   */
+  export type SalonServiceUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update SalonServices.
+     */
+    data: XOR<SalonServiceUpdateManyMutationInput, SalonServiceUncheckedUpdateManyInput>
+    /**
+     * Filter which SalonServices to update
+     */
+    where?: SalonServiceWhereInput
+  }
+
+  /**
+   * SalonService upsert
+   */
+  export type SalonServiceUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonService
+     */
+    select?: SalonServiceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonServiceInclude<ExtArgs> | null
+    /**
+     * The filter to search for the SalonService to update in case it exists.
+     */
+    where: SalonServiceWhereUniqueInput
+    /**
+     * In case the SalonService found by the `where` argument doesn't exist, create a new SalonService with this data.
+     */
+    create: XOR<SalonServiceCreateInput, SalonServiceUncheckedCreateInput>
+    /**
+     * In case the SalonService was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<SalonServiceUpdateInput, SalonServiceUncheckedUpdateInput>
+  }
+
+  /**
+   * SalonService delete
+   */
+  export type SalonServiceDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonService
+     */
+    select?: SalonServiceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonServiceInclude<ExtArgs> | null
+    /**
+     * Filter which SalonService to delete.
+     */
+    where: SalonServiceWhereUniqueInput
+  }
+
+  /**
+   * SalonService deleteMany
+   */
+  export type SalonServiceDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SalonServices to delete
+     */
+    where?: SalonServiceWhereInput
+  }
+
+  /**
+   * SalonService without action
+   */
+  export type SalonServiceDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonService
+     */
+    select?: SalonServiceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonServiceInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model SalonStaff
+   */
+
+  export type AggregateSalonStaff = {
+    _count: SalonStaffCountAggregateOutputType | null
+    _avg: SalonStaffAvgAggregateOutputType | null
+    _sum: SalonStaffSumAggregateOutputType | null
+    _min: SalonStaffMinAggregateOutputType | null
+    _max: SalonStaffMaxAggregateOutputType | null
+  }
+
+  export type SalonStaffAvgAggregateOutputType = {
+    sortOrder: number | null
+    commissionPercent: Decimal | null
+  }
+
+  export type SalonStaffSumAggregateOutputType = {
+    sortOrder: number | null
+    commissionPercent: Decimal | null
+  }
+
+  export type SalonStaffMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    userId: string | null
+    name: string | null
+    title: string | null
+    bio: string | null
+    avatarUrl: string | null
+    colour: string | null
+    bookableOnline: boolean | null
+    acceptsWalkIns: boolean | null
+    isActive: boolean | null
+    sortOrder: number | null
+    commissionPercent: Decimal | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type SalonStaffMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    userId: string | null
+    name: string | null
+    title: string | null
+    bio: string | null
+    avatarUrl: string | null
+    colour: string | null
+    bookableOnline: boolean | null
+    acceptsWalkIns: boolean | null
+    isActive: boolean | null
+    sortOrder: number | null
+    commissionPercent: Decimal | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type SalonStaffCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    userId: number
+    name: number
+    title: number
+    bio: number
+    avatarUrl: number
+    colour: number
+    bookableOnline: number
+    acceptsWalkIns: number
+    isActive: number
+    sortOrder: number
+    weeklyHours: number
+    serviceIds: number
+    priceOverrides: number
+    commissionPercent: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type SalonStaffAvgAggregateInputType = {
+    sortOrder?: true
+    commissionPercent?: true
+  }
+
+  export type SalonStaffSumAggregateInputType = {
+    sortOrder?: true
+    commissionPercent?: true
+  }
+
+  export type SalonStaffMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    userId?: true
+    name?: true
+    title?: true
+    bio?: true
+    avatarUrl?: true
+    colour?: true
+    bookableOnline?: true
+    acceptsWalkIns?: true
+    isActive?: true
+    sortOrder?: true
+    commissionPercent?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type SalonStaffMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    userId?: true
+    name?: true
+    title?: true
+    bio?: true
+    avatarUrl?: true
+    colour?: true
+    bookableOnline?: true
+    acceptsWalkIns?: true
+    isActive?: true
+    sortOrder?: true
+    commissionPercent?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type SalonStaffCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    userId?: true
+    name?: true
+    title?: true
+    bio?: true
+    avatarUrl?: true
+    colour?: true
+    bookableOnline?: true
+    acceptsWalkIns?: true
+    isActive?: true
+    sortOrder?: true
+    weeklyHours?: true
+    serviceIds?: true
+    priceOverrides?: true
+    commissionPercent?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type SalonStaffAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SalonStaff to aggregate.
+     */
+    where?: SalonStaffWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SalonStaffs to fetch.
+     */
+    orderBy?: SalonStaffOrderByWithRelationInput | SalonStaffOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: SalonStaffWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SalonStaffs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SalonStaffs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned SalonStaffs
+    **/
+    _count?: true | SalonStaffCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: SalonStaffAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: SalonStaffSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: SalonStaffMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: SalonStaffMaxAggregateInputType
+  }
+
+  export type GetSalonStaffAggregateType<T extends SalonStaffAggregateArgs> = {
+        [P in keyof T & keyof AggregateSalonStaff]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSalonStaff[P]>
+      : GetScalarType<T[P], AggregateSalonStaff[P]>
+  }
+
+
+
+
+  export type SalonStaffGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SalonStaffWhereInput
+    orderBy?: SalonStaffOrderByWithAggregationInput | SalonStaffOrderByWithAggregationInput[]
+    by: SalonStaffScalarFieldEnum[] | SalonStaffScalarFieldEnum
+    having?: SalonStaffScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: SalonStaffCountAggregateInputType | true
+    _avg?: SalonStaffAvgAggregateInputType
+    _sum?: SalonStaffSumAggregateInputType
+    _min?: SalonStaffMinAggregateInputType
+    _max?: SalonStaffMaxAggregateInputType
+  }
+
+  export type SalonStaffGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string
+    userId: string | null
+    name: string
+    title: string | null
+    bio: string | null
+    avatarUrl: string | null
+    colour: string
+    bookableOnline: boolean
+    acceptsWalkIns: boolean
+    isActive: boolean
+    sortOrder: number
+    weeklyHours: JsonValue
+    serviceIds: string[]
+    priceOverrides: JsonValue
+    commissionPercent: Decimal | null
+    createdAt: Date
+    updatedAt: Date
+    _count: SalonStaffCountAggregateOutputType | null
+    _avg: SalonStaffAvgAggregateOutputType | null
+    _sum: SalonStaffSumAggregateOutputType | null
+    _min: SalonStaffMinAggregateOutputType | null
+    _max: SalonStaffMaxAggregateOutputType | null
+  }
+
+  type GetSalonStaffGroupByPayload<T extends SalonStaffGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<SalonStaffGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof SalonStaffGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], SalonStaffGroupByOutputType[P]>
+            : GetScalarType<T[P], SalonStaffGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type SalonStaffSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    userId?: boolean
+    name?: boolean
+    title?: boolean
+    bio?: boolean
+    avatarUrl?: boolean
+    colour?: boolean
+    bookableOnline?: boolean
+    acceptsWalkIns?: boolean
+    isActive?: boolean
+    sortOrder?: boolean
+    weeklyHours?: boolean
+    serviceIds?: boolean
+    priceOverrides?: boolean
+    commissionPercent?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+    timeOff?: boolean | SalonStaff$timeOffArgs<ExtArgs>
+    appointments?: boolean | SalonStaff$appointmentsArgs<ExtArgs>
+    _count?: boolean | SalonStaffCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["salonStaff"]>
+
+  export type SalonStaffSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    userId?: boolean
+    name?: boolean
+    title?: boolean
+    bio?: boolean
+    avatarUrl?: boolean
+    colour?: boolean
+    bookableOnline?: boolean
+    acceptsWalkIns?: boolean
+    isActive?: boolean
+    sortOrder?: boolean
+    weeklyHours?: boolean
+    serviceIds?: boolean
+    priceOverrides?: boolean
+    commissionPercent?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["salonStaff"]>
+
+  export type SalonStaffSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    userId?: boolean
+    name?: boolean
+    title?: boolean
+    bio?: boolean
+    avatarUrl?: boolean
+    colour?: boolean
+    bookableOnline?: boolean
+    acceptsWalkIns?: boolean
+    isActive?: boolean
+    sortOrder?: boolean
+    weeklyHours?: boolean
+    serviceIds?: boolean
+    priceOverrides?: boolean
+    commissionPercent?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type SalonStaffInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+    timeOff?: boolean | SalonStaff$timeOffArgs<ExtArgs>
+    appointments?: boolean | SalonStaff$appointmentsArgs<ExtArgs>
+    _count?: boolean | SalonStaffCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type SalonStaffIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+
+  export type $SalonStaffPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "SalonStaff"
+    objects: {
+      location: Prisma.$LocationPayload<ExtArgs>
+      timeOff: Prisma.$SalonTimeOffPayload<ExtArgs>[]
+      appointments: Prisma.$SalonAppointmentPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string
+      userId: string | null
+      name: string
+      title: string | null
+      bio: string | null
+      avatarUrl: string | null
+      colour: string
+      bookableOnline: boolean
+      acceptsWalkIns: boolean
+      isActive: boolean
+      sortOrder: number
+      weeklyHours: Prisma.JsonValue
+      serviceIds: string[]
+      priceOverrides: Prisma.JsonValue
+      commissionPercent: Prisma.Decimal | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["salonStaff"]>
+    composites: {}
+  }
+
+  type SalonStaffGetPayload<S extends boolean | null | undefined | SalonStaffDefaultArgs> = $Result.GetResult<Prisma.$SalonStaffPayload, S>
+
+  type SalonStaffCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<SalonStaffFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: SalonStaffCountAggregateInputType | true
+    }
+
+  export interface SalonStaffDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['SalonStaff'], meta: { name: 'SalonStaff' } }
+    /**
+     * Find zero or one SalonStaff that matches the filter.
+     * @param {SalonStaffFindUniqueArgs} args - Arguments to find a SalonStaff
+     * @example
+     * // Get one SalonStaff
+     * const salonStaff = await prisma.salonStaff.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends SalonStaffFindUniqueArgs>(args: SelectSubset<T, SalonStaffFindUniqueArgs<ExtArgs>>): Prisma__SalonStaffClient<$Result.GetResult<Prisma.$SalonStaffPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one SalonStaff that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {SalonStaffFindUniqueOrThrowArgs} args - Arguments to find a SalonStaff
+     * @example
+     * // Get one SalonStaff
+     * const salonStaff = await prisma.salonStaff.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends SalonStaffFindUniqueOrThrowArgs>(args: SelectSubset<T, SalonStaffFindUniqueOrThrowArgs<ExtArgs>>): Prisma__SalonStaffClient<$Result.GetResult<Prisma.$SalonStaffPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first SalonStaff that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonStaffFindFirstArgs} args - Arguments to find a SalonStaff
+     * @example
+     * // Get one SalonStaff
+     * const salonStaff = await prisma.salonStaff.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends SalonStaffFindFirstArgs>(args?: SelectSubset<T, SalonStaffFindFirstArgs<ExtArgs>>): Prisma__SalonStaffClient<$Result.GetResult<Prisma.$SalonStaffPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first SalonStaff that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonStaffFindFirstOrThrowArgs} args - Arguments to find a SalonStaff
+     * @example
+     * // Get one SalonStaff
+     * const salonStaff = await prisma.salonStaff.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends SalonStaffFindFirstOrThrowArgs>(args?: SelectSubset<T, SalonStaffFindFirstOrThrowArgs<ExtArgs>>): Prisma__SalonStaffClient<$Result.GetResult<Prisma.$SalonStaffPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more SalonStaffs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonStaffFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all SalonStaffs
+     * const salonStaffs = await prisma.salonStaff.findMany()
+     * 
+     * // Get first 10 SalonStaffs
+     * const salonStaffs = await prisma.salonStaff.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const salonStaffWithIdOnly = await prisma.salonStaff.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends SalonStaffFindManyArgs>(args?: SelectSubset<T, SalonStaffFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SalonStaffPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a SalonStaff.
+     * @param {SalonStaffCreateArgs} args - Arguments to create a SalonStaff.
+     * @example
+     * // Create one SalonStaff
+     * const SalonStaff = await prisma.salonStaff.create({
+     *   data: {
+     *     // ... data to create a SalonStaff
+     *   }
+     * })
+     * 
+     */
+    create<T extends SalonStaffCreateArgs>(args: SelectSubset<T, SalonStaffCreateArgs<ExtArgs>>): Prisma__SalonStaffClient<$Result.GetResult<Prisma.$SalonStaffPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many SalonStaffs.
+     * @param {SalonStaffCreateManyArgs} args - Arguments to create many SalonStaffs.
+     * @example
+     * // Create many SalonStaffs
+     * const salonStaff = await prisma.salonStaff.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends SalonStaffCreateManyArgs>(args?: SelectSubset<T, SalonStaffCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many SalonStaffs and returns the data saved in the database.
+     * @param {SalonStaffCreateManyAndReturnArgs} args - Arguments to create many SalonStaffs.
+     * @example
+     * // Create many SalonStaffs
+     * const salonStaff = await prisma.salonStaff.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many SalonStaffs and only return the `id`
+     * const salonStaffWithIdOnly = await prisma.salonStaff.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends SalonStaffCreateManyAndReturnArgs>(args?: SelectSubset<T, SalonStaffCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SalonStaffPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a SalonStaff.
+     * @param {SalonStaffDeleteArgs} args - Arguments to delete one SalonStaff.
+     * @example
+     * // Delete one SalonStaff
+     * const SalonStaff = await prisma.salonStaff.delete({
+     *   where: {
+     *     // ... filter to delete one SalonStaff
+     *   }
+     * })
+     * 
+     */
+    delete<T extends SalonStaffDeleteArgs>(args: SelectSubset<T, SalonStaffDeleteArgs<ExtArgs>>): Prisma__SalonStaffClient<$Result.GetResult<Prisma.$SalonStaffPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one SalonStaff.
+     * @param {SalonStaffUpdateArgs} args - Arguments to update one SalonStaff.
+     * @example
+     * // Update one SalonStaff
+     * const salonStaff = await prisma.salonStaff.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends SalonStaffUpdateArgs>(args: SelectSubset<T, SalonStaffUpdateArgs<ExtArgs>>): Prisma__SalonStaffClient<$Result.GetResult<Prisma.$SalonStaffPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more SalonStaffs.
+     * @param {SalonStaffDeleteManyArgs} args - Arguments to filter SalonStaffs to delete.
+     * @example
+     * // Delete a few SalonStaffs
+     * const { count } = await prisma.salonStaff.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends SalonStaffDeleteManyArgs>(args?: SelectSubset<T, SalonStaffDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more SalonStaffs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonStaffUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many SalonStaffs
+     * const salonStaff = await prisma.salonStaff.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends SalonStaffUpdateManyArgs>(args: SelectSubset<T, SalonStaffUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one SalonStaff.
+     * @param {SalonStaffUpsertArgs} args - Arguments to update or create a SalonStaff.
+     * @example
+     * // Update or create a SalonStaff
+     * const salonStaff = await prisma.salonStaff.upsert({
+     *   create: {
+     *     // ... data to create a SalonStaff
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the SalonStaff we want to update
+     *   }
+     * })
+     */
+    upsert<T extends SalonStaffUpsertArgs>(args: SelectSubset<T, SalonStaffUpsertArgs<ExtArgs>>): Prisma__SalonStaffClient<$Result.GetResult<Prisma.$SalonStaffPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of SalonStaffs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonStaffCountArgs} args - Arguments to filter SalonStaffs to count.
+     * @example
+     * // Count the number of SalonStaffs
+     * const count = await prisma.salonStaff.count({
+     *   where: {
+     *     // ... the filter for the SalonStaffs we want to count
+     *   }
+     * })
+    **/
+    count<T extends SalonStaffCountArgs>(
+      args?: Subset<T, SalonStaffCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], SalonStaffCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a SalonStaff.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonStaffAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends SalonStaffAggregateArgs>(args: Subset<T, SalonStaffAggregateArgs>): Prisma.PrismaPromise<GetSalonStaffAggregateType<T>>
+
+    /**
+     * Group by SalonStaff.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonStaffGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends SalonStaffGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: SalonStaffGroupByArgs['orderBy'] }
+        : { orderBy?: SalonStaffGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, SalonStaffGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSalonStaffGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the SalonStaff model
+   */
+  readonly fields: SalonStaffFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for SalonStaff.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__SalonStaffClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    timeOff<T extends SalonStaff$timeOffArgs<ExtArgs> = {}>(args?: Subset<T, SalonStaff$timeOffArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SalonTimeOffPayload<ExtArgs>, T, "findMany"> | Null>
+    appointments<T extends SalonStaff$appointmentsArgs<ExtArgs> = {}>(args?: Subset<T, SalonStaff$appointmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SalonAppointmentPayload<ExtArgs>, T, "findMany"> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the SalonStaff model
+   */ 
+  interface SalonStaffFieldRefs {
+    readonly id: FieldRef<"SalonStaff", 'String'>
+    readonly tenantId: FieldRef<"SalonStaff", 'String'>
+    readonly locationId: FieldRef<"SalonStaff", 'String'>
+    readonly userId: FieldRef<"SalonStaff", 'String'>
+    readonly name: FieldRef<"SalonStaff", 'String'>
+    readonly title: FieldRef<"SalonStaff", 'String'>
+    readonly bio: FieldRef<"SalonStaff", 'String'>
+    readonly avatarUrl: FieldRef<"SalonStaff", 'String'>
+    readonly colour: FieldRef<"SalonStaff", 'String'>
+    readonly bookableOnline: FieldRef<"SalonStaff", 'Boolean'>
+    readonly acceptsWalkIns: FieldRef<"SalonStaff", 'Boolean'>
+    readonly isActive: FieldRef<"SalonStaff", 'Boolean'>
+    readonly sortOrder: FieldRef<"SalonStaff", 'Int'>
+    readonly weeklyHours: FieldRef<"SalonStaff", 'Json'>
+    readonly serviceIds: FieldRef<"SalonStaff", 'String[]'>
+    readonly priceOverrides: FieldRef<"SalonStaff", 'Json'>
+    readonly commissionPercent: FieldRef<"SalonStaff", 'Decimal'>
+    readonly createdAt: FieldRef<"SalonStaff", 'DateTime'>
+    readonly updatedAt: FieldRef<"SalonStaff", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * SalonStaff findUnique
+   */
+  export type SalonStaffFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonStaff
+     */
+    select?: SalonStaffSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonStaffInclude<ExtArgs> | null
+    /**
+     * Filter, which SalonStaff to fetch.
+     */
+    where: SalonStaffWhereUniqueInput
+  }
+
+  /**
+   * SalonStaff findUniqueOrThrow
+   */
+  export type SalonStaffFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonStaff
+     */
+    select?: SalonStaffSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonStaffInclude<ExtArgs> | null
+    /**
+     * Filter, which SalonStaff to fetch.
+     */
+    where: SalonStaffWhereUniqueInput
+  }
+
+  /**
+   * SalonStaff findFirst
+   */
+  export type SalonStaffFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonStaff
+     */
+    select?: SalonStaffSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonStaffInclude<ExtArgs> | null
+    /**
+     * Filter, which SalonStaff to fetch.
+     */
+    where?: SalonStaffWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SalonStaffs to fetch.
+     */
+    orderBy?: SalonStaffOrderByWithRelationInput | SalonStaffOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SalonStaffs.
+     */
+    cursor?: SalonStaffWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SalonStaffs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SalonStaffs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SalonStaffs.
+     */
+    distinct?: SalonStaffScalarFieldEnum | SalonStaffScalarFieldEnum[]
+  }
+
+  /**
+   * SalonStaff findFirstOrThrow
+   */
+  export type SalonStaffFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonStaff
+     */
+    select?: SalonStaffSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonStaffInclude<ExtArgs> | null
+    /**
+     * Filter, which SalonStaff to fetch.
+     */
+    where?: SalonStaffWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SalonStaffs to fetch.
+     */
+    orderBy?: SalonStaffOrderByWithRelationInput | SalonStaffOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SalonStaffs.
+     */
+    cursor?: SalonStaffWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SalonStaffs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SalonStaffs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SalonStaffs.
+     */
+    distinct?: SalonStaffScalarFieldEnum | SalonStaffScalarFieldEnum[]
+  }
+
+  /**
+   * SalonStaff findMany
+   */
+  export type SalonStaffFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonStaff
+     */
+    select?: SalonStaffSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonStaffInclude<ExtArgs> | null
+    /**
+     * Filter, which SalonStaffs to fetch.
+     */
+    where?: SalonStaffWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SalonStaffs to fetch.
+     */
+    orderBy?: SalonStaffOrderByWithRelationInput | SalonStaffOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing SalonStaffs.
+     */
+    cursor?: SalonStaffWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SalonStaffs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SalonStaffs.
+     */
+    skip?: number
+    distinct?: SalonStaffScalarFieldEnum | SalonStaffScalarFieldEnum[]
+  }
+
+  /**
+   * SalonStaff create
+   */
+  export type SalonStaffCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonStaff
+     */
+    select?: SalonStaffSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonStaffInclude<ExtArgs> | null
+    /**
+     * The data needed to create a SalonStaff.
+     */
+    data: XOR<SalonStaffCreateInput, SalonStaffUncheckedCreateInput>
+  }
+
+  /**
+   * SalonStaff createMany
+   */
+  export type SalonStaffCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many SalonStaffs.
+     */
+    data: SalonStaffCreateManyInput | SalonStaffCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * SalonStaff createManyAndReturn
+   */
+  export type SalonStaffCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonStaff
+     */
+    select?: SalonStaffSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many SalonStaffs.
+     */
+    data: SalonStaffCreateManyInput | SalonStaffCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonStaffIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * SalonStaff update
+   */
+  export type SalonStaffUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonStaff
+     */
+    select?: SalonStaffSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonStaffInclude<ExtArgs> | null
+    /**
+     * The data needed to update a SalonStaff.
+     */
+    data: XOR<SalonStaffUpdateInput, SalonStaffUncheckedUpdateInput>
+    /**
+     * Choose, which SalonStaff to update.
+     */
+    where: SalonStaffWhereUniqueInput
+  }
+
+  /**
+   * SalonStaff updateMany
+   */
+  export type SalonStaffUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update SalonStaffs.
+     */
+    data: XOR<SalonStaffUpdateManyMutationInput, SalonStaffUncheckedUpdateManyInput>
+    /**
+     * Filter which SalonStaffs to update
+     */
+    where?: SalonStaffWhereInput
+  }
+
+  /**
+   * SalonStaff upsert
+   */
+  export type SalonStaffUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonStaff
+     */
+    select?: SalonStaffSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonStaffInclude<ExtArgs> | null
+    /**
+     * The filter to search for the SalonStaff to update in case it exists.
+     */
+    where: SalonStaffWhereUniqueInput
+    /**
+     * In case the SalonStaff found by the `where` argument doesn't exist, create a new SalonStaff with this data.
+     */
+    create: XOR<SalonStaffCreateInput, SalonStaffUncheckedCreateInput>
+    /**
+     * In case the SalonStaff was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<SalonStaffUpdateInput, SalonStaffUncheckedUpdateInput>
+  }
+
+  /**
+   * SalonStaff delete
+   */
+  export type SalonStaffDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonStaff
+     */
+    select?: SalonStaffSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonStaffInclude<ExtArgs> | null
+    /**
+     * Filter which SalonStaff to delete.
+     */
+    where: SalonStaffWhereUniqueInput
+  }
+
+  /**
+   * SalonStaff deleteMany
+   */
+  export type SalonStaffDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SalonStaffs to delete
+     */
+    where?: SalonStaffWhereInput
+  }
+
+  /**
+   * SalonStaff.timeOff
+   */
+  export type SalonStaff$timeOffArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonTimeOff
+     */
+    select?: SalonTimeOffSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonTimeOffInclude<ExtArgs> | null
+    where?: SalonTimeOffWhereInput
+    orderBy?: SalonTimeOffOrderByWithRelationInput | SalonTimeOffOrderByWithRelationInput[]
+    cursor?: SalonTimeOffWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: SalonTimeOffScalarFieldEnum | SalonTimeOffScalarFieldEnum[]
+  }
+
+  /**
+   * SalonStaff.appointments
+   */
+  export type SalonStaff$appointmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonAppointment
+     */
+    select?: SalonAppointmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonAppointmentInclude<ExtArgs> | null
+    where?: SalonAppointmentWhereInput
+    orderBy?: SalonAppointmentOrderByWithRelationInput | SalonAppointmentOrderByWithRelationInput[]
+    cursor?: SalonAppointmentWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: SalonAppointmentScalarFieldEnum | SalonAppointmentScalarFieldEnum[]
+  }
+
+  /**
+   * SalonStaff without action
+   */
+  export type SalonStaffDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonStaff
+     */
+    select?: SalonStaffSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonStaffInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model SalonTimeOff
+   */
+
+  export type AggregateSalonTimeOff = {
+    _count: SalonTimeOffCountAggregateOutputType | null
+    _min: SalonTimeOffMinAggregateOutputType | null
+    _max: SalonTimeOffMaxAggregateOutputType | null
+  }
+
+  export type SalonTimeOffMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    staffId: string | null
+    startsAt: Date | null
+    endsAt: Date | null
+    reason: string | null
+    createdAt: Date | null
+  }
+
+  export type SalonTimeOffMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    staffId: string | null
+    startsAt: Date | null
+    endsAt: Date | null
+    reason: string | null
+    createdAt: Date | null
+  }
+
+  export type SalonTimeOffCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    staffId: number
+    startsAt: number
+    endsAt: number
+    reason: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type SalonTimeOffMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    staffId?: true
+    startsAt?: true
+    endsAt?: true
+    reason?: true
+    createdAt?: true
+  }
+
+  export type SalonTimeOffMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    staffId?: true
+    startsAt?: true
+    endsAt?: true
+    reason?: true
+    createdAt?: true
+  }
+
+  export type SalonTimeOffCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    staffId?: true
+    startsAt?: true
+    endsAt?: true
+    reason?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type SalonTimeOffAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SalonTimeOff to aggregate.
+     */
+    where?: SalonTimeOffWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SalonTimeOffs to fetch.
+     */
+    orderBy?: SalonTimeOffOrderByWithRelationInput | SalonTimeOffOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: SalonTimeOffWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SalonTimeOffs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SalonTimeOffs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned SalonTimeOffs
+    **/
+    _count?: true | SalonTimeOffCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: SalonTimeOffMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: SalonTimeOffMaxAggregateInputType
+  }
+
+  export type GetSalonTimeOffAggregateType<T extends SalonTimeOffAggregateArgs> = {
+        [P in keyof T & keyof AggregateSalonTimeOff]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSalonTimeOff[P]>
+      : GetScalarType<T[P], AggregateSalonTimeOff[P]>
+  }
+
+
+
+
+  export type SalonTimeOffGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SalonTimeOffWhereInput
+    orderBy?: SalonTimeOffOrderByWithAggregationInput | SalonTimeOffOrderByWithAggregationInput[]
+    by: SalonTimeOffScalarFieldEnum[] | SalonTimeOffScalarFieldEnum
+    having?: SalonTimeOffScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: SalonTimeOffCountAggregateInputType | true
+    _min?: SalonTimeOffMinAggregateInputType
+    _max?: SalonTimeOffMaxAggregateInputType
+  }
+
+  export type SalonTimeOffGroupByOutputType = {
+    id: string
+    tenantId: string
+    staffId: string
+    startsAt: Date
+    endsAt: Date
+    reason: string | null
+    createdAt: Date
+    _count: SalonTimeOffCountAggregateOutputType | null
+    _min: SalonTimeOffMinAggregateOutputType | null
+    _max: SalonTimeOffMaxAggregateOutputType | null
+  }
+
+  type GetSalonTimeOffGroupByPayload<T extends SalonTimeOffGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<SalonTimeOffGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof SalonTimeOffGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], SalonTimeOffGroupByOutputType[P]>
+            : GetScalarType<T[P], SalonTimeOffGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type SalonTimeOffSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    staffId?: boolean
+    startsAt?: boolean
+    endsAt?: boolean
+    reason?: boolean
+    createdAt?: boolean
+    staff?: boolean | SalonStaffDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["salonTimeOff"]>
+
+  export type SalonTimeOffSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    staffId?: boolean
+    startsAt?: boolean
+    endsAt?: boolean
+    reason?: boolean
+    createdAt?: boolean
+    staff?: boolean | SalonStaffDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["salonTimeOff"]>
+
+  export type SalonTimeOffSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    staffId?: boolean
+    startsAt?: boolean
+    endsAt?: boolean
+    reason?: boolean
+    createdAt?: boolean
+  }
+
+  export type SalonTimeOffInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    staff?: boolean | SalonStaffDefaultArgs<ExtArgs>
+  }
+  export type SalonTimeOffIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    staff?: boolean | SalonStaffDefaultArgs<ExtArgs>
+  }
+
+  export type $SalonTimeOffPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "SalonTimeOff"
+    objects: {
+      staff: Prisma.$SalonStaffPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      staffId: string
+      startsAt: Date
+      endsAt: Date
+      reason: string | null
+      createdAt: Date
+    }, ExtArgs["result"]["salonTimeOff"]>
+    composites: {}
+  }
+
+  type SalonTimeOffGetPayload<S extends boolean | null | undefined | SalonTimeOffDefaultArgs> = $Result.GetResult<Prisma.$SalonTimeOffPayload, S>
+
+  type SalonTimeOffCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<SalonTimeOffFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: SalonTimeOffCountAggregateInputType | true
+    }
+
+  export interface SalonTimeOffDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['SalonTimeOff'], meta: { name: 'SalonTimeOff' } }
+    /**
+     * Find zero or one SalonTimeOff that matches the filter.
+     * @param {SalonTimeOffFindUniqueArgs} args - Arguments to find a SalonTimeOff
+     * @example
+     * // Get one SalonTimeOff
+     * const salonTimeOff = await prisma.salonTimeOff.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends SalonTimeOffFindUniqueArgs>(args: SelectSubset<T, SalonTimeOffFindUniqueArgs<ExtArgs>>): Prisma__SalonTimeOffClient<$Result.GetResult<Prisma.$SalonTimeOffPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one SalonTimeOff that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {SalonTimeOffFindUniqueOrThrowArgs} args - Arguments to find a SalonTimeOff
+     * @example
+     * // Get one SalonTimeOff
+     * const salonTimeOff = await prisma.salonTimeOff.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends SalonTimeOffFindUniqueOrThrowArgs>(args: SelectSubset<T, SalonTimeOffFindUniqueOrThrowArgs<ExtArgs>>): Prisma__SalonTimeOffClient<$Result.GetResult<Prisma.$SalonTimeOffPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first SalonTimeOff that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonTimeOffFindFirstArgs} args - Arguments to find a SalonTimeOff
+     * @example
+     * // Get one SalonTimeOff
+     * const salonTimeOff = await prisma.salonTimeOff.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends SalonTimeOffFindFirstArgs>(args?: SelectSubset<T, SalonTimeOffFindFirstArgs<ExtArgs>>): Prisma__SalonTimeOffClient<$Result.GetResult<Prisma.$SalonTimeOffPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first SalonTimeOff that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonTimeOffFindFirstOrThrowArgs} args - Arguments to find a SalonTimeOff
+     * @example
+     * // Get one SalonTimeOff
+     * const salonTimeOff = await prisma.salonTimeOff.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends SalonTimeOffFindFirstOrThrowArgs>(args?: SelectSubset<T, SalonTimeOffFindFirstOrThrowArgs<ExtArgs>>): Prisma__SalonTimeOffClient<$Result.GetResult<Prisma.$SalonTimeOffPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more SalonTimeOffs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonTimeOffFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all SalonTimeOffs
+     * const salonTimeOffs = await prisma.salonTimeOff.findMany()
+     * 
+     * // Get first 10 SalonTimeOffs
+     * const salonTimeOffs = await prisma.salonTimeOff.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const salonTimeOffWithIdOnly = await prisma.salonTimeOff.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends SalonTimeOffFindManyArgs>(args?: SelectSubset<T, SalonTimeOffFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SalonTimeOffPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a SalonTimeOff.
+     * @param {SalonTimeOffCreateArgs} args - Arguments to create a SalonTimeOff.
+     * @example
+     * // Create one SalonTimeOff
+     * const SalonTimeOff = await prisma.salonTimeOff.create({
+     *   data: {
+     *     // ... data to create a SalonTimeOff
+     *   }
+     * })
+     * 
+     */
+    create<T extends SalonTimeOffCreateArgs>(args: SelectSubset<T, SalonTimeOffCreateArgs<ExtArgs>>): Prisma__SalonTimeOffClient<$Result.GetResult<Prisma.$SalonTimeOffPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many SalonTimeOffs.
+     * @param {SalonTimeOffCreateManyArgs} args - Arguments to create many SalonTimeOffs.
+     * @example
+     * // Create many SalonTimeOffs
+     * const salonTimeOff = await prisma.salonTimeOff.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends SalonTimeOffCreateManyArgs>(args?: SelectSubset<T, SalonTimeOffCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many SalonTimeOffs and returns the data saved in the database.
+     * @param {SalonTimeOffCreateManyAndReturnArgs} args - Arguments to create many SalonTimeOffs.
+     * @example
+     * // Create many SalonTimeOffs
+     * const salonTimeOff = await prisma.salonTimeOff.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many SalonTimeOffs and only return the `id`
+     * const salonTimeOffWithIdOnly = await prisma.salonTimeOff.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends SalonTimeOffCreateManyAndReturnArgs>(args?: SelectSubset<T, SalonTimeOffCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SalonTimeOffPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a SalonTimeOff.
+     * @param {SalonTimeOffDeleteArgs} args - Arguments to delete one SalonTimeOff.
+     * @example
+     * // Delete one SalonTimeOff
+     * const SalonTimeOff = await prisma.salonTimeOff.delete({
+     *   where: {
+     *     // ... filter to delete one SalonTimeOff
+     *   }
+     * })
+     * 
+     */
+    delete<T extends SalonTimeOffDeleteArgs>(args: SelectSubset<T, SalonTimeOffDeleteArgs<ExtArgs>>): Prisma__SalonTimeOffClient<$Result.GetResult<Prisma.$SalonTimeOffPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one SalonTimeOff.
+     * @param {SalonTimeOffUpdateArgs} args - Arguments to update one SalonTimeOff.
+     * @example
+     * // Update one SalonTimeOff
+     * const salonTimeOff = await prisma.salonTimeOff.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends SalonTimeOffUpdateArgs>(args: SelectSubset<T, SalonTimeOffUpdateArgs<ExtArgs>>): Prisma__SalonTimeOffClient<$Result.GetResult<Prisma.$SalonTimeOffPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more SalonTimeOffs.
+     * @param {SalonTimeOffDeleteManyArgs} args - Arguments to filter SalonTimeOffs to delete.
+     * @example
+     * // Delete a few SalonTimeOffs
+     * const { count } = await prisma.salonTimeOff.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends SalonTimeOffDeleteManyArgs>(args?: SelectSubset<T, SalonTimeOffDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more SalonTimeOffs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonTimeOffUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many SalonTimeOffs
+     * const salonTimeOff = await prisma.salonTimeOff.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends SalonTimeOffUpdateManyArgs>(args: SelectSubset<T, SalonTimeOffUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one SalonTimeOff.
+     * @param {SalonTimeOffUpsertArgs} args - Arguments to update or create a SalonTimeOff.
+     * @example
+     * // Update or create a SalonTimeOff
+     * const salonTimeOff = await prisma.salonTimeOff.upsert({
+     *   create: {
+     *     // ... data to create a SalonTimeOff
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the SalonTimeOff we want to update
+     *   }
+     * })
+     */
+    upsert<T extends SalonTimeOffUpsertArgs>(args: SelectSubset<T, SalonTimeOffUpsertArgs<ExtArgs>>): Prisma__SalonTimeOffClient<$Result.GetResult<Prisma.$SalonTimeOffPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of SalonTimeOffs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonTimeOffCountArgs} args - Arguments to filter SalonTimeOffs to count.
+     * @example
+     * // Count the number of SalonTimeOffs
+     * const count = await prisma.salonTimeOff.count({
+     *   where: {
+     *     // ... the filter for the SalonTimeOffs we want to count
+     *   }
+     * })
+    **/
+    count<T extends SalonTimeOffCountArgs>(
+      args?: Subset<T, SalonTimeOffCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], SalonTimeOffCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a SalonTimeOff.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonTimeOffAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends SalonTimeOffAggregateArgs>(args: Subset<T, SalonTimeOffAggregateArgs>): Prisma.PrismaPromise<GetSalonTimeOffAggregateType<T>>
+
+    /**
+     * Group by SalonTimeOff.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonTimeOffGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends SalonTimeOffGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: SalonTimeOffGroupByArgs['orderBy'] }
+        : { orderBy?: SalonTimeOffGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, SalonTimeOffGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSalonTimeOffGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the SalonTimeOff model
+   */
+  readonly fields: SalonTimeOffFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for SalonTimeOff.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__SalonTimeOffClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    staff<T extends SalonStaffDefaultArgs<ExtArgs> = {}>(args?: Subset<T, SalonStaffDefaultArgs<ExtArgs>>): Prisma__SalonStaffClient<$Result.GetResult<Prisma.$SalonStaffPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the SalonTimeOff model
+   */ 
+  interface SalonTimeOffFieldRefs {
+    readonly id: FieldRef<"SalonTimeOff", 'String'>
+    readonly tenantId: FieldRef<"SalonTimeOff", 'String'>
+    readonly staffId: FieldRef<"SalonTimeOff", 'String'>
+    readonly startsAt: FieldRef<"SalonTimeOff", 'DateTime'>
+    readonly endsAt: FieldRef<"SalonTimeOff", 'DateTime'>
+    readonly reason: FieldRef<"SalonTimeOff", 'String'>
+    readonly createdAt: FieldRef<"SalonTimeOff", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * SalonTimeOff findUnique
+   */
+  export type SalonTimeOffFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonTimeOff
+     */
+    select?: SalonTimeOffSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonTimeOffInclude<ExtArgs> | null
+    /**
+     * Filter, which SalonTimeOff to fetch.
+     */
+    where: SalonTimeOffWhereUniqueInput
+  }
+
+  /**
+   * SalonTimeOff findUniqueOrThrow
+   */
+  export type SalonTimeOffFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonTimeOff
+     */
+    select?: SalonTimeOffSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonTimeOffInclude<ExtArgs> | null
+    /**
+     * Filter, which SalonTimeOff to fetch.
+     */
+    where: SalonTimeOffWhereUniqueInput
+  }
+
+  /**
+   * SalonTimeOff findFirst
+   */
+  export type SalonTimeOffFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonTimeOff
+     */
+    select?: SalonTimeOffSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonTimeOffInclude<ExtArgs> | null
+    /**
+     * Filter, which SalonTimeOff to fetch.
+     */
+    where?: SalonTimeOffWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SalonTimeOffs to fetch.
+     */
+    orderBy?: SalonTimeOffOrderByWithRelationInput | SalonTimeOffOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SalonTimeOffs.
+     */
+    cursor?: SalonTimeOffWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SalonTimeOffs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SalonTimeOffs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SalonTimeOffs.
+     */
+    distinct?: SalonTimeOffScalarFieldEnum | SalonTimeOffScalarFieldEnum[]
+  }
+
+  /**
+   * SalonTimeOff findFirstOrThrow
+   */
+  export type SalonTimeOffFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonTimeOff
+     */
+    select?: SalonTimeOffSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonTimeOffInclude<ExtArgs> | null
+    /**
+     * Filter, which SalonTimeOff to fetch.
+     */
+    where?: SalonTimeOffWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SalonTimeOffs to fetch.
+     */
+    orderBy?: SalonTimeOffOrderByWithRelationInput | SalonTimeOffOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SalonTimeOffs.
+     */
+    cursor?: SalonTimeOffWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SalonTimeOffs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SalonTimeOffs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SalonTimeOffs.
+     */
+    distinct?: SalonTimeOffScalarFieldEnum | SalonTimeOffScalarFieldEnum[]
+  }
+
+  /**
+   * SalonTimeOff findMany
+   */
+  export type SalonTimeOffFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonTimeOff
+     */
+    select?: SalonTimeOffSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonTimeOffInclude<ExtArgs> | null
+    /**
+     * Filter, which SalonTimeOffs to fetch.
+     */
+    where?: SalonTimeOffWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SalonTimeOffs to fetch.
+     */
+    orderBy?: SalonTimeOffOrderByWithRelationInput | SalonTimeOffOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing SalonTimeOffs.
+     */
+    cursor?: SalonTimeOffWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SalonTimeOffs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SalonTimeOffs.
+     */
+    skip?: number
+    distinct?: SalonTimeOffScalarFieldEnum | SalonTimeOffScalarFieldEnum[]
+  }
+
+  /**
+   * SalonTimeOff create
+   */
+  export type SalonTimeOffCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonTimeOff
+     */
+    select?: SalonTimeOffSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonTimeOffInclude<ExtArgs> | null
+    /**
+     * The data needed to create a SalonTimeOff.
+     */
+    data: XOR<SalonTimeOffCreateInput, SalonTimeOffUncheckedCreateInput>
+  }
+
+  /**
+   * SalonTimeOff createMany
+   */
+  export type SalonTimeOffCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many SalonTimeOffs.
+     */
+    data: SalonTimeOffCreateManyInput | SalonTimeOffCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * SalonTimeOff createManyAndReturn
+   */
+  export type SalonTimeOffCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonTimeOff
+     */
+    select?: SalonTimeOffSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many SalonTimeOffs.
+     */
+    data: SalonTimeOffCreateManyInput | SalonTimeOffCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonTimeOffIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * SalonTimeOff update
+   */
+  export type SalonTimeOffUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonTimeOff
+     */
+    select?: SalonTimeOffSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonTimeOffInclude<ExtArgs> | null
+    /**
+     * The data needed to update a SalonTimeOff.
+     */
+    data: XOR<SalonTimeOffUpdateInput, SalonTimeOffUncheckedUpdateInput>
+    /**
+     * Choose, which SalonTimeOff to update.
+     */
+    where: SalonTimeOffWhereUniqueInput
+  }
+
+  /**
+   * SalonTimeOff updateMany
+   */
+  export type SalonTimeOffUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update SalonTimeOffs.
+     */
+    data: XOR<SalonTimeOffUpdateManyMutationInput, SalonTimeOffUncheckedUpdateManyInput>
+    /**
+     * Filter which SalonTimeOffs to update
+     */
+    where?: SalonTimeOffWhereInput
+  }
+
+  /**
+   * SalonTimeOff upsert
+   */
+  export type SalonTimeOffUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonTimeOff
+     */
+    select?: SalonTimeOffSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonTimeOffInclude<ExtArgs> | null
+    /**
+     * The filter to search for the SalonTimeOff to update in case it exists.
+     */
+    where: SalonTimeOffWhereUniqueInput
+    /**
+     * In case the SalonTimeOff found by the `where` argument doesn't exist, create a new SalonTimeOff with this data.
+     */
+    create: XOR<SalonTimeOffCreateInput, SalonTimeOffUncheckedCreateInput>
+    /**
+     * In case the SalonTimeOff was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<SalonTimeOffUpdateInput, SalonTimeOffUncheckedUpdateInput>
+  }
+
+  /**
+   * SalonTimeOff delete
+   */
+  export type SalonTimeOffDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonTimeOff
+     */
+    select?: SalonTimeOffSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonTimeOffInclude<ExtArgs> | null
+    /**
+     * Filter which SalonTimeOff to delete.
+     */
+    where: SalonTimeOffWhereUniqueInput
+  }
+
+  /**
+   * SalonTimeOff deleteMany
+   */
+  export type SalonTimeOffDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SalonTimeOffs to delete
+     */
+    where?: SalonTimeOffWhereInput
+  }
+
+  /**
+   * SalonTimeOff without action
+   */
+  export type SalonTimeOffDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonTimeOff
+     */
+    select?: SalonTimeOffSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonTimeOffInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model SalonAppointment
+   */
+
+  export type AggregateSalonAppointment = {
+    _count: SalonAppointmentCountAggregateOutputType | null
+    _avg: SalonAppointmentAvgAggregateOutputType | null
+    _sum: SalonAppointmentSumAggregateOutputType | null
+    _min: SalonAppointmentMinAggregateOutputType | null
+    _max: SalonAppointmentMaxAggregateOutputType | null
+  }
+
+  export type SalonAppointmentAvgAggregateOutputType = {
+    totalPrice: Decimal | null
+    depositAmount: Decimal | null
+    tipAmount: Decimal | null
+  }
+
+  export type SalonAppointmentSumAggregateOutputType = {
+    totalPrice: Decimal | null
+    depositAmount: Decimal | null
+    tipAmount: Decimal | null
+  }
+
+  export type SalonAppointmentMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    staffId: string | null
+    customerId: string | null
+    customerName: string | null
+    customerPhone: string | null
+    customerEmail: string | null
+    startsAt: Date | null
+    endsAt: Date | null
+    status: string | null
+    source: string | null
+    anyStaff: boolean | null
+    totalPrice: Decimal | null
+    notes: string | null
+    staffNotes: string | null
+    reference: string | null
+    manageToken: string | null
+    depositAmount: Decimal | null
+    depositStatus: string | null
+    depositOrderId: string | null
+    depositPaidAt: Date | null
+    orderId: string | null
+    tipAmount: Decimal | null
+    checkedInAt: Date | null
+    startedAt: Date | null
+    completedAt: Date | null
+    cancelledAt: Date | null
+    cancelReason: string | null
+    reminderSentAt: Date | null
+    rebookNudgeSentAt: Date | null
+    queueEntryId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type SalonAppointmentMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    staffId: string | null
+    customerId: string | null
+    customerName: string | null
+    customerPhone: string | null
+    customerEmail: string | null
+    startsAt: Date | null
+    endsAt: Date | null
+    status: string | null
+    source: string | null
+    anyStaff: boolean | null
+    totalPrice: Decimal | null
+    notes: string | null
+    staffNotes: string | null
+    reference: string | null
+    manageToken: string | null
+    depositAmount: Decimal | null
+    depositStatus: string | null
+    depositOrderId: string | null
+    depositPaidAt: Date | null
+    orderId: string | null
+    tipAmount: Decimal | null
+    checkedInAt: Date | null
+    startedAt: Date | null
+    completedAt: Date | null
+    cancelledAt: Date | null
+    cancelReason: string | null
+    reminderSentAt: Date | null
+    rebookNudgeSentAt: Date | null
+    queueEntryId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type SalonAppointmentCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    staffId: number
+    customerId: number
+    customerName: number
+    customerPhone: number
+    customerEmail: number
+    startsAt: number
+    endsAt: number
+    status: number
+    source: number
+    anyStaff: number
+    services: number
+    totalPrice: number
+    notes: number
+    staffNotes: number
+    reference: number
+    manageToken: number
+    depositAmount: number
+    depositStatus: number
+    depositOrderId: number
+    depositPaidAt: number
+    orderId: number
+    tipAmount: number
+    checkedInAt: number
+    startedAt: number
+    completedAt: number
+    cancelledAt: number
+    cancelReason: number
+    reminderSentAt: number
+    rebookNudgeSentAt: number
+    queueEntryId: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type SalonAppointmentAvgAggregateInputType = {
+    totalPrice?: true
+    depositAmount?: true
+    tipAmount?: true
+  }
+
+  export type SalonAppointmentSumAggregateInputType = {
+    totalPrice?: true
+    depositAmount?: true
+    tipAmount?: true
+  }
+
+  export type SalonAppointmentMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    staffId?: true
+    customerId?: true
+    customerName?: true
+    customerPhone?: true
+    customerEmail?: true
+    startsAt?: true
+    endsAt?: true
+    status?: true
+    source?: true
+    anyStaff?: true
+    totalPrice?: true
+    notes?: true
+    staffNotes?: true
+    reference?: true
+    manageToken?: true
+    depositAmount?: true
+    depositStatus?: true
+    depositOrderId?: true
+    depositPaidAt?: true
+    orderId?: true
+    tipAmount?: true
+    checkedInAt?: true
+    startedAt?: true
+    completedAt?: true
+    cancelledAt?: true
+    cancelReason?: true
+    reminderSentAt?: true
+    rebookNudgeSentAt?: true
+    queueEntryId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type SalonAppointmentMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    staffId?: true
+    customerId?: true
+    customerName?: true
+    customerPhone?: true
+    customerEmail?: true
+    startsAt?: true
+    endsAt?: true
+    status?: true
+    source?: true
+    anyStaff?: true
+    totalPrice?: true
+    notes?: true
+    staffNotes?: true
+    reference?: true
+    manageToken?: true
+    depositAmount?: true
+    depositStatus?: true
+    depositOrderId?: true
+    depositPaidAt?: true
+    orderId?: true
+    tipAmount?: true
+    checkedInAt?: true
+    startedAt?: true
+    completedAt?: true
+    cancelledAt?: true
+    cancelReason?: true
+    reminderSentAt?: true
+    rebookNudgeSentAt?: true
+    queueEntryId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type SalonAppointmentCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    staffId?: true
+    customerId?: true
+    customerName?: true
+    customerPhone?: true
+    customerEmail?: true
+    startsAt?: true
+    endsAt?: true
+    status?: true
+    source?: true
+    anyStaff?: true
+    services?: true
+    totalPrice?: true
+    notes?: true
+    staffNotes?: true
+    reference?: true
+    manageToken?: true
+    depositAmount?: true
+    depositStatus?: true
+    depositOrderId?: true
+    depositPaidAt?: true
+    orderId?: true
+    tipAmount?: true
+    checkedInAt?: true
+    startedAt?: true
+    completedAt?: true
+    cancelledAt?: true
+    cancelReason?: true
+    reminderSentAt?: true
+    rebookNudgeSentAt?: true
+    queueEntryId?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type SalonAppointmentAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SalonAppointment to aggregate.
+     */
+    where?: SalonAppointmentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SalonAppointments to fetch.
+     */
+    orderBy?: SalonAppointmentOrderByWithRelationInput | SalonAppointmentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: SalonAppointmentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SalonAppointments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SalonAppointments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned SalonAppointments
+    **/
+    _count?: true | SalonAppointmentCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: SalonAppointmentAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: SalonAppointmentSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: SalonAppointmentMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: SalonAppointmentMaxAggregateInputType
+  }
+
+  export type GetSalonAppointmentAggregateType<T extends SalonAppointmentAggregateArgs> = {
+        [P in keyof T & keyof AggregateSalonAppointment]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSalonAppointment[P]>
+      : GetScalarType<T[P], AggregateSalonAppointment[P]>
+  }
+
+
+
+
+  export type SalonAppointmentGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SalonAppointmentWhereInput
+    orderBy?: SalonAppointmentOrderByWithAggregationInput | SalonAppointmentOrderByWithAggregationInput[]
+    by: SalonAppointmentScalarFieldEnum[] | SalonAppointmentScalarFieldEnum
+    having?: SalonAppointmentScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: SalonAppointmentCountAggregateInputType | true
+    _avg?: SalonAppointmentAvgAggregateInputType
+    _sum?: SalonAppointmentSumAggregateInputType
+    _min?: SalonAppointmentMinAggregateInputType
+    _max?: SalonAppointmentMaxAggregateInputType
+  }
+
+  export type SalonAppointmentGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string
+    staffId: string | null
+    customerId: string | null
+    customerName: string
+    customerPhone: string | null
+    customerEmail: string | null
+    startsAt: Date
+    endsAt: Date
+    status: string
+    source: string
+    anyStaff: boolean
+    services: JsonValue
+    totalPrice: Decimal
+    notes: string | null
+    staffNotes: string | null
+    reference: string
+    manageToken: string
+    depositAmount: Decimal
+    depositStatus: string
+    depositOrderId: string | null
+    depositPaidAt: Date | null
+    orderId: string | null
+    tipAmount: Decimal | null
+    checkedInAt: Date | null
+    startedAt: Date | null
+    completedAt: Date | null
+    cancelledAt: Date | null
+    cancelReason: string | null
+    reminderSentAt: Date | null
+    rebookNudgeSentAt: Date | null
+    queueEntryId: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: SalonAppointmentCountAggregateOutputType | null
+    _avg: SalonAppointmentAvgAggregateOutputType | null
+    _sum: SalonAppointmentSumAggregateOutputType | null
+    _min: SalonAppointmentMinAggregateOutputType | null
+    _max: SalonAppointmentMaxAggregateOutputType | null
+  }
+
+  type GetSalonAppointmentGroupByPayload<T extends SalonAppointmentGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<SalonAppointmentGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof SalonAppointmentGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], SalonAppointmentGroupByOutputType[P]>
+            : GetScalarType<T[P], SalonAppointmentGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type SalonAppointmentSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    staffId?: boolean
+    customerId?: boolean
+    customerName?: boolean
+    customerPhone?: boolean
+    customerEmail?: boolean
+    startsAt?: boolean
+    endsAt?: boolean
+    status?: boolean
+    source?: boolean
+    anyStaff?: boolean
+    services?: boolean
+    totalPrice?: boolean
+    notes?: boolean
+    staffNotes?: boolean
+    reference?: boolean
+    manageToken?: boolean
+    depositAmount?: boolean
+    depositStatus?: boolean
+    depositOrderId?: boolean
+    depositPaidAt?: boolean
+    orderId?: boolean
+    tipAmount?: boolean
+    checkedInAt?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+    cancelledAt?: boolean
+    cancelReason?: boolean
+    reminderSentAt?: boolean
+    rebookNudgeSentAt?: boolean
+    queueEntryId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+    staff?: boolean | SalonAppointment$staffArgs<ExtArgs>
+  }, ExtArgs["result"]["salonAppointment"]>
+
+  export type SalonAppointmentSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    staffId?: boolean
+    customerId?: boolean
+    customerName?: boolean
+    customerPhone?: boolean
+    customerEmail?: boolean
+    startsAt?: boolean
+    endsAt?: boolean
+    status?: boolean
+    source?: boolean
+    anyStaff?: boolean
+    services?: boolean
+    totalPrice?: boolean
+    notes?: boolean
+    staffNotes?: boolean
+    reference?: boolean
+    manageToken?: boolean
+    depositAmount?: boolean
+    depositStatus?: boolean
+    depositOrderId?: boolean
+    depositPaidAt?: boolean
+    orderId?: boolean
+    tipAmount?: boolean
+    checkedInAt?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+    cancelledAt?: boolean
+    cancelReason?: boolean
+    reminderSentAt?: boolean
+    rebookNudgeSentAt?: boolean
+    queueEntryId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+    staff?: boolean | SalonAppointment$staffArgs<ExtArgs>
+  }, ExtArgs["result"]["salonAppointment"]>
+
+  export type SalonAppointmentSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    staffId?: boolean
+    customerId?: boolean
+    customerName?: boolean
+    customerPhone?: boolean
+    customerEmail?: boolean
+    startsAt?: boolean
+    endsAt?: boolean
+    status?: boolean
+    source?: boolean
+    anyStaff?: boolean
+    services?: boolean
+    totalPrice?: boolean
+    notes?: boolean
+    staffNotes?: boolean
+    reference?: boolean
+    manageToken?: boolean
+    depositAmount?: boolean
+    depositStatus?: boolean
+    depositOrderId?: boolean
+    depositPaidAt?: boolean
+    orderId?: boolean
+    tipAmount?: boolean
+    checkedInAt?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+    cancelledAt?: boolean
+    cancelReason?: boolean
+    reminderSentAt?: boolean
+    rebookNudgeSentAt?: boolean
+    queueEntryId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type SalonAppointmentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+    staff?: boolean | SalonAppointment$staffArgs<ExtArgs>
+  }
+  export type SalonAppointmentIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+    staff?: boolean | SalonAppointment$staffArgs<ExtArgs>
+  }
+
+  export type $SalonAppointmentPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "SalonAppointment"
+    objects: {
+      location: Prisma.$LocationPayload<ExtArgs>
+      staff: Prisma.$SalonStaffPayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string
+      staffId: string | null
+      customerId: string | null
+      customerName: string
+      customerPhone: string | null
+      customerEmail: string | null
+      startsAt: Date
+      endsAt: Date
+      status: string
+      source: string
+      anyStaff: boolean
+      services: Prisma.JsonValue
+      totalPrice: Prisma.Decimal
+      notes: string | null
+      staffNotes: string | null
+      reference: string
+      manageToken: string
+      depositAmount: Prisma.Decimal
+      depositStatus: string
+      depositOrderId: string | null
+      depositPaidAt: Date | null
+      orderId: string | null
+      tipAmount: Prisma.Decimal | null
+      checkedInAt: Date | null
+      startedAt: Date | null
+      completedAt: Date | null
+      cancelledAt: Date | null
+      cancelReason: string | null
+      reminderSentAt: Date | null
+      rebookNudgeSentAt: Date | null
+      queueEntryId: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["salonAppointment"]>
+    composites: {}
+  }
+
+  type SalonAppointmentGetPayload<S extends boolean | null | undefined | SalonAppointmentDefaultArgs> = $Result.GetResult<Prisma.$SalonAppointmentPayload, S>
+
+  type SalonAppointmentCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<SalonAppointmentFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: SalonAppointmentCountAggregateInputType | true
+    }
+
+  export interface SalonAppointmentDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['SalonAppointment'], meta: { name: 'SalonAppointment' } }
+    /**
+     * Find zero or one SalonAppointment that matches the filter.
+     * @param {SalonAppointmentFindUniqueArgs} args - Arguments to find a SalonAppointment
+     * @example
+     * // Get one SalonAppointment
+     * const salonAppointment = await prisma.salonAppointment.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends SalonAppointmentFindUniqueArgs>(args: SelectSubset<T, SalonAppointmentFindUniqueArgs<ExtArgs>>): Prisma__SalonAppointmentClient<$Result.GetResult<Prisma.$SalonAppointmentPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one SalonAppointment that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {SalonAppointmentFindUniqueOrThrowArgs} args - Arguments to find a SalonAppointment
+     * @example
+     * // Get one SalonAppointment
+     * const salonAppointment = await prisma.salonAppointment.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends SalonAppointmentFindUniqueOrThrowArgs>(args: SelectSubset<T, SalonAppointmentFindUniqueOrThrowArgs<ExtArgs>>): Prisma__SalonAppointmentClient<$Result.GetResult<Prisma.$SalonAppointmentPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first SalonAppointment that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonAppointmentFindFirstArgs} args - Arguments to find a SalonAppointment
+     * @example
+     * // Get one SalonAppointment
+     * const salonAppointment = await prisma.salonAppointment.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends SalonAppointmentFindFirstArgs>(args?: SelectSubset<T, SalonAppointmentFindFirstArgs<ExtArgs>>): Prisma__SalonAppointmentClient<$Result.GetResult<Prisma.$SalonAppointmentPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first SalonAppointment that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonAppointmentFindFirstOrThrowArgs} args - Arguments to find a SalonAppointment
+     * @example
+     * // Get one SalonAppointment
+     * const salonAppointment = await prisma.salonAppointment.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends SalonAppointmentFindFirstOrThrowArgs>(args?: SelectSubset<T, SalonAppointmentFindFirstOrThrowArgs<ExtArgs>>): Prisma__SalonAppointmentClient<$Result.GetResult<Prisma.$SalonAppointmentPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more SalonAppointments that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonAppointmentFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all SalonAppointments
+     * const salonAppointments = await prisma.salonAppointment.findMany()
+     * 
+     * // Get first 10 SalonAppointments
+     * const salonAppointments = await prisma.salonAppointment.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const salonAppointmentWithIdOnly = await prisma.salonAppointment.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends SalonAppointmentFindManyArgs>(args?: SelectSubset<T, SalonAppointmentFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SalonAppointmentPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a SalonAppointment.
+     * @param {SalonAppointmentCreateArgs} args - Arguments to create a SalonAppointment.
+     * @example
+     * // Create one SalonAppointment
+     * const SalonAppointment = await prisma.salonAppointment.create({
+     *   data: {
+     *     // ... data to create a SalonAppointment
+     *   }
+     * })
+     * 
+     */
+    create<T extends SalonAppointmentCreateArgs>(args: SelectSubset<T, SalonAppointmentCreateArgs<ExtArgs>>): Prisma__SalonAppointmentClient<$Result.GetResult<Prisma.$SalonAppointmentPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many SalonAppointments.
+     * @param {SalonAppointmentCreateManyArgs} args - Arguments to create many SalonAppointments.
+     * @example
+     * // Create many SalonAppointments
+     * const salonAppointment = await prisma.salonAppointment.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends SalonAppointmentCreateManyArgs>(args?: SelectSubset<T, SalonAppointmentCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many SalonAppointments and returns the data saved in the database.
+     * @param {SalonAppointmentCreateManyAndReturnArgs} args - Arguments to create many SalonAppointments.
+     * @example
+     * // Create many SalonAppointments
+     * const salonAppointment = await prisma.salonAppointment.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many SalonAppointments and only return the `id`
+     * const salonAppointmentWithIdOnly = await prisma.salonAppointment.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends SalonAppointmentCreateManyAndReturnArgs>(args?: SelectSubset<T, SalonAppointmentCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SalonAppointmentPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a SalonAppointment.
+     * @param {SalonAppointmentDeleteArgs} args - Arguments to delete one SalonAppointment.
+     * @example
+     * // Delete one SalonAppointment
+     * const SalonAppointment = await prisma.salonAppointment.delete({
+     *   where: {
+     *     // ... filter to delete one SalonAppointment
+     *   }
+     * })
+     * 
+     */
+    delete<T extends SalonAppointmentDeleteArgs>(args: SelectSubset<T, SalonAppointmentDeleteArgs<ExtArgs>>): Prisma__SalonAppointmentClient<$Result.GetResult<Prisma.$SalonAppointmentPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one SalonAppointment.
+     * @param {SalonAppointmentUpdateArgs} args - Arguments to update one SalonAppointment.
+     * @example
+     * // Update one SalonAppointment
+     * const salonAppointment = await prisma.salonAppointment.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends SalonAppointmentUpdateArgs>(args: SelectSubset<T, SalonAppointmentUpdateArgs<ExtArgs>>): Prisma__SalonAppointmentClient<$Result.GetResult<Prisma.$SalonAppointmentPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more SalonAppointments.
+     * @param {SalonAppointmentDeleteManyArgs} args - Arguments to filter SalonAppointments to delete.
+     * @example
+     * // Delete a few SalonAppointments
+     * const { count } = await prisma.salonAppointment.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends SalonAppointmentDeleteManyArgs>(args?: SelectSubset<T, SalonAppointmentDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more SalonAppointments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonAppointmentUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many SalonAppointments
+     * const salonAppointment = await prisma.salonAppointment.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends SalonAppointmentUpdateManyArgs>(args: SelectSubset<T, SalonAppointmentUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one SalonAppointment.
+     * @param {SalonAppointmentUpsertArgs} args - Arguments to update or create a SalonAppointment.
+     * @example
+     * // Update or create a SalonAppointment
+     * const salonAppointment = await prisma.salonAppointment.upsert({
+     *   create: {
+     *     // ... data to create a SalonAppointment
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the SalonAppointment we want to update
+     *   }
+     * })
+     */
+    upsert<T extends SalonAppointmentUpsertArgs>(args: SelectSubset<T, SalonAppointmentUpsertArgs<ExtArgs>>): Prisma__SalonAppointmentClient<$Result.GetResult<Prisma.$SalonAppointmentPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of SalonAppointments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonAppointmentCountArgs} args - Arguments to filter SalonAppointments to count.
+     * @example
+     * // Count the number of SalonAppointments
+     * const count = await prisma.salonAppointment.count({
+     *   where: {
+     *     // ... the filter for the SalonAppointments we want to count
+     *   }
+     * })
+    **/
+    count<T extends SalonAppointmentCountArgs>(
+      args?: Subset<T, SalonAppointmentCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], SalonAppointmentCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a SalonAppointment.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonAppointmentAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends SalonAppointmentAggregateArgs>(args: Subset<T, SalonAppointmentAggregateArgs>): Prisma.PrismaPromise<GetSalonAppointmentAggregateType<T>>
+
+    /**
+     * Group by SalonAppointment.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonAppointmentGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends SalonAppointmentGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: SalonAppointmentGroupByArgs['orderBy'] }
+        : { orderBy?: SalonAppointmentGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, SalonAppointmentGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSalonAppointmentGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the SalonAppointment model
+   */
+  readonly fields: SalonAppointmentFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for SalonAppointment.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__SalonAppointmentClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    staff<T extends SalonAppointment$staffArgs<ExtArgs> = {}>(args?: Subset<T, SalonAppointment$staffArgs<ExtArgs>>): Prisma__SalonStaffClient<$Result.GetResult<Prisma.$SalonStaffPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the SalonAppointment model
+   */ 
+  interface SalonAppointmentFieldRefs {
+    readonly id: FieldRef<"SalonAppointment", 'String'>
+    readonly tenantId: FieldRef<"SalonAppointment", 'String'>
+    readonly locationId: FieldRef<"SalonAppointment", 'String'>
+    readonly staffId: FieldRef<"SalonAppointment", 'String'>
+    readonly customerId: FieldRef<"SalonAppointment", 'String'>
+    readonly customerName: FieldRef<"SalonAppointment", 'String'>
+    readonly customerPhone: FieldRef<"SalonAppointment", 'String'>
+    readonly customerEmail: FieldRef<"SalonAppointment", 'String'>
+    readonly startsAt: FieldRef<"SalonAppointment", 'DateTime'>
+    readonly endsAt: FieldRef<"SalonAppointment", 'DateTime'>
+    readonly status: FieldRef<"SalonAppointment", 'String'>
+    readonly source: FieldRef<"SalonAppointment", 'String'>
+    readonly anyStaff: FieldRef<"SalonAppointment", 'Boolean'>
+    readonly services: FieldRef<"SalonAppointment", 'Json'>
+    readonly totalPrice: FieldRef<"SalonAppointment", 'Decimal'>
+    readonly notes: FieldRef<"SalonAppointment", 'String'>
+    readonly staffNotes: FieldRef<"SalonAppointment", 'String'>
+    readonly reference: FieldRef<"SalonAppointment", 'String'>
+    readonly manageToken: FieldRef<"SalonAppointment", 'String'>
+    readonly depositAmount: FieldRef<"SalonAppointment", 'Decimal'>
+    readonly depositStatus: FieldRef<"SalonAppointment", 'String'>
+    readonly depositOrderId: FieldRef<"SalonAppointment", 'String'>
+    readonly depositPaidAt: FieldRef<"SalonAppointment", 'DateTime'>
+    readonly orderId: FieldRef<"SalonAppointment", 'String'>
+    readonly tipAmount: FieldRef<"SalonAppointment", 'Decimal'>
+    readonly checkedInAt: FieldRef<"SalonAppointment", 'DateTime'>
+    readonly startedAt: FieldRef<"SalonAppointment", 'DateTime'>
+    readonly completedAt: FieldRef<"SalonAppointment", 'DateTime'>
+    readonly cancelledAt: FieldRef<"SalonAppointment", 'DateTime'>
+    readonly cancelReason: FieldRef<"SalonAppointment", 'String'>
+    readonly reminderSentAt: FieldRef<"SalonAppointment", 'DateTime'>
+    readonly rebookNudgeSentAt: FieldRef<"SalonAppointment", 'DateTime'>
+    readonly queueEntryId: FieldRef<"SalonAppointment", 'String'>
+    readonly createdAt: FieldRef<"SalonAppointment", 'DateTime'>
+    readonly updatedAt: FieldRef<"SalonAppointment", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * SalonAppointment findUnique
+   */
+  export type SalonAppointmentFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonAppointment
+     */
+    select?: SalonAppointmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonAppointmentInclude<ExtArgs> | null
+    /**
+     * Filter, which SalonAppointment to fetch.
+     */
+    where: SalonAppointmentWhereUniqueInput
+  }
+
+  /**
+   * SalonAppointment findUniqueOrThrow
+   */
+  export type SalonAppointmentFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonAppointment
+     */
+    select?: SalonAppointmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonAppointmentInclude<ExtArgs> | null
+    /**
+     * Filter, which SalonAppointment to fetch.
+     */
+    where: SalonAppointmentWhereUniqueInput
+  }
+
+  /**
+   * SalonAppointment findFirst
+   */
+  export type SalonAppointmentFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonAppointment
+     */
+    select?: SalonAppointmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonAppointmentInclude<ExtArgs> | null
+    /**
+     * Filter, which SalonAppointment to fetch.
+     */
+    where?: SalonAppointmentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SalonAppointments to fetch.
+     */
+    orderBy?: SalonAppointmentOrderByWithRelationInput | SalonAppointmentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SalonAppointments.
+     */
+    cursor?: SalonAppointmentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SalonAppointments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SalonAppointments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SalonAppointments.
+     */
+    distinct?: SalonAppointmentScalarFieldEnum | SalonAppointmentScalarFieldEnum[]
+  }
+
+  /**
+   * SalonAppointment findFirstOrThrow
+   */
+  export type SalonAppointmentFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonAppointment
+     */
+    select?: SalonAppointmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonAppointmentInclude<ExtArgs> | null
+    /**
+     * Filter, which SalonAppointment to fetch.
+     */
+    where?: SalonAppointmentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SalonAppointments to fetch.
+     */
+    orderBy?: SalonAppointmentOrderByWithRelationInput | SalonAppointmentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SalonAppointments.
+     */
+    cursor?: SalonAppointmentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SalonAppointments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SalonAppointments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SalonAppointments.
+     */
+    distinct?: SalonAppointmentScalarFieldEnum | SalonAppointmentScalarFieldEnum[]
+  }
+
+  /**
+   * SalonAppointment findMany
+   */
+  export type SalonAppointmentFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonAppointment
+     */
+    select?: SalonAppointmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonAppointmentInclude<ExtArgs> | null
+    /**
+     * Filter, which SalonAppointments to fetch.
+     */
+    where?: SalonAppointmentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SalonAppointments to fetch.
+     */
+    orderBy?: SalonAppointmentOrderByWithRelationInput | SalonAppointmentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing SalonAppointments.
+     */
+    cursor?: SalonAppointmentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SalonAppointments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SalonAppointments.
+     */
+    skip?: number
+    distinct?: SalonAppointmentScalarFieldEnum | SalonAppointmentScalarFieldEnum[]
+  }
+
+  /**
+   * SalonAppointment create
+   */
+  export type SalonAppointmentCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonAppointment
+     */
+    select?: SalonAppointmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonAppointmentInclude<ExtArgs> | null
+    /**
+     * The data needed to create a SalonAppointment.
+     */
+    data: XOR<SalonAppointmentCreateInput, SalonAppointmentUncheckedCreateInput>
+  }
+
+  /**
+   * SalonAppointment createMany
+   */
+  export type SalonAppointmentCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many SalonAppointments.
+     */
+    data: SalonAppointmentCreateManyInput | SalonAppointmentCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * SalonAppointment createManyAndReturn
+   */
+  export type SalonAppointmentCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonAppointment
+     */
+    select?: SalonAppointmentSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many SalonAppointments.
+     */
+    data: SalonAppointmentCreateManyInput | SalonAppointmentCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonAppointmentIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * SalonAppointment update
+   */
+  export type SalonAppointmentUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonAppointment
+     */
+    select?: SalonAppointmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonAppointmentInclude<ExtArgs> | null
+    /**
+     * The data needed to update a SalonAppointment.
+     */
+    data: XOR<SalonAppointmentUpdateInput, SalonAppointmentUncheckedUpdateInput>
+    /**
+     * Choose, which SalonAppointment to update.
+     */
+    where: SalonAppointmentWhereUniqueInput
+  }
+
+  /**
+   * SalonAppointment updateMany
+   */
+  export type SalonAppointmentUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update SalonAppointments.
+     */
+    data: XOR<SalonAppointmentUpdateManyMutationInput, SalonAppointmentUncheckedUpdateManyInput>
+    /**
+     * Filter which SalonAppointments to update
+     */
+    where?: SalonAppointmentWhereInput
+  }
+
+  /**
+   * SalonAppointment upsert
+   */
+  export type SalonAppointmentUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonAppointment
+     */
+    select?: SalonAppointmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonAppointmentInclude<ExtArgs> | null
+    /**
+     * The filter to search for the SalonAppointment to update in case it exists.
+     */
+    where: SalonAppointmentWhereUniqueInput
+    /**
+     * In case the SalonAppointment found by the `where` argument doesn't exist, create a new SalonAppointment with this data.
+     */
+    create: XOR<SalonAppointmentCreateInput, SalonAppointmentUncheckedCreateInput>
+    /**
+     * In case the SalonAppointment was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<SalonAppointmentUpdateInput, SalonAppointmentUncheckedUpdateInput>
+  }
+
+  /**
+   * SalonAppointment delete
+   */
+  export type SalonAppointmentDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonAppointment
+     */
+    select?: SalonAppointmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonAppointmentInclude<ExtArgs> | null
+    /**
+     * Filter which SalonAppointment to delete.
+     */
+    where: SalonAppointmentWhereUniqueInput
+  }
+
+  /**
+   * SalonAppointment deleteMany
+   */
+  export type SalonAppointmentDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SalonAppointments to delete
+     */
+    where?: SalonAppointmentWhereInput
+  }
+
+  /**
+   * SalonAppointment.staff
+   */
+  export type SalonAppointment$staffArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonStaff
+     */
+    select?: SalonStaffSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonStaffInclude<ExtArgs> | null
+    where?: SalonStaffWhereInput
+  }
+
+  /**
+   * SalonAppointment without action
+   */
+  export type SalonAppointmentDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonAppointment
+     */
+    select?: SalonAppointmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonAppointmentInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model SalonQueueEntry
+   */
+
+  export type AggregateSalonQueueEntry = {
+    _count: SalonQueueEntryCountAggregateOutputType | null
+    _avg: SalonQueueEntryAvgAggregateOutputType | null
+    _sum: SalonQueueEntrySumAggregateOutputType | null
+    _min: SalonQueueEntryMinAggregateOutputType | null
+    _max: SalonQueueEntryMaxAggregateOutputType | null
+  }
+
+  export type SalonQueueEntryAvgAggregateOutputType = {
+    estimatedMins: number | null
+  }
+
+  export type SalonQueueEntrySumAggregateOutputType = {
+    estimatedMins: number | null
+  }
+
+  export type SalonQueueEntryMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    customerName: string | null
+    customerPhone: string | null
+    serviceSummary: string | null
+    estimatedMins: number | null
+    preferredStaffId: string | null
+    staffId: string | null
+    status: string | null
+    source: string | null
+    publicToken: string | null
+    calledAt: Date | null
+    startedAt: Date | null
+    finishedAt: Date | null
+    appointmentId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type SalonQueueEntryMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    customerName: string | null
+    customerPhone: string | null
+    serviceSummary: string | null
+    estimatedMins: number | null
+    preferredStaffId: string | null
+    staffId: string | null
+    status: string | null
+    source: string | null
+    publicToken: string | null
+    calledAt: Date | null
+    startedAt: Date | null
+    finishedAt: Date | null
+    appointmentId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type SalonQueueEntryCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    customerName: number
+    customerPhone: number
+    serviceIds: number
+    serviceSummary: number
+    estimatedMins: number
+    preferredStaffId: number
+    staffId: number
+    status: number
+    source: number
+    publicToken: number
+    calledAt: number
+    startedAt: number
+    finishedAt: number
+    appointmentId: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type SalonQueueEntryAvgAggregateInputType = {
+    estimatedMins?: true
+  }
+
+  export type SalonQueueEntrySumAggregateInputType = {
+    estimatedMins?: true
+  }
+
+  export type SalonQueueEntryMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    customerName?: true
+    customerPhone?: true
+    serviceSummary?: true
+    estimatedMins?: true
+    preferredStaffId?: true
+    staffId?: true
+    status?: true
+    source?: true
+    publicToken?: true
+    calledAt?: true
+    startedAt?: true
+    finishedAt?: true
+    appointmentId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type SalonQueueEntryMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    customerName?: true
+    customerPhone?: true
+    serviceSummary?: true
+    estimatedMins?: true
+    preferredStaffId?: true
+    staffId?: true
+    status?: true
+    source?: true
+    publicToken?: true
+    calledAt?: true
+    startedAt?: true
+    finishedAt?: true
+    appointmentId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type SalonQueueEntryCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    customerName?: true
+    customerPhone?: true
+    serviceIds?: true
+    serviceSummary?: true
+    estimatedMins?: true
+    preferredStaffId?: true
+    staffId?: true
+    status?: true
+    source?: true
+    publicToken?: true
+    calledAt?: true
+    startedAt?: true
+    finishedAt?: true
+    appointmentId?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type SalonQueueEntryAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SalonQueueEntry to aggregate.
+     */
+    where?: SalonQueueEntryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SalonQueueEntries to fetch.
+     */
+    orderBy?: SalonQueueEntryOrderByWithRelationInput | SalonQueueEntryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: SalonQueueEntryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SalonQueueEntries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SalonQueueEntries.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned SalonQueueEntries
+    **/
+    _count?: true | SalonQueueEntryCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: SalonQueueEntryAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: SalonQueueEntrySumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: SalonQueueEntryMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: SalonQueueEntryMaxAggregateInputType
+  }
+
+  export type GetSalonQueueEntryAggregateType<T extends SalonQueueEntryAggregateArgs> = {
+        [P in keyof T & keyof AggregateSalonQueueEntry]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSalonQueueEntry[P]>
+      : GetScalarType<T[P], AggregateSalonQueueEntry[P]>
+  }
+
+
+
+
+  export type SalonQueueEntryGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SalonQueueEntryWhereInput
+    orderBy?: SalonQueueEntryOrderByWithAggregationInput | SalonQueueEntryOrderByWithAggregationInput[]
+    by: SalonQueueEntryScalarFieldEnum[] | SalonQueueEntryScalarFieldEnum
+    having?: SalonQueueEntryScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: SalonQueueEntryCountAggregateInputType | true
+    _avg?: SalonQueueEntryAvgAggregateInputType
+    _sum?: SalonQueueEntrySumAggregateInputType
+    _min?: SalonQueueEntryMinAggregateInputType
+    _max?: SalonQueueEntryMaxAggregateInputType
+  }
+
+  export type SalonQueueEntryGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string
+    customerName: string
+    customerPhone: string | null
+    serviceIds: string[]
+    serviceSummary: string | null
+    estimatedMins: number
+    preferredStaffId: string | null
+    staffId: string | null
+    status: string
+    source: string
+    publicToken: string
+    calledAt: Date | null
+    startedAt: Date | null
+    finishedAt: Date | null
+    appointmentId: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: SalonQueueEntryCountAggregateOutputType | null
+    _avg: SalonQueueEntryAvgAggregateOutputType | null
+    _sum: SalonQueueEntrySumAggregateOutputType | null
+    _min: SalonQueueEntryMinAggregateOutputType | null
+    _max: SalonQueueEntryMaxAggregateOutputType | null
+  }
+
+  type GetSalonQueueEntryGroupByPayload<T extends SalonQueueEntryGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<SalonQueueEntryGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof SalonQueueEntryGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], SalonQueueEntryGroupByOutputType[P]>
+            : GetScalarType<T[P], SalonQueueEntryGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type SalonQueueEntrySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    customerName?: boolean
+    customerPhone?: boolean
+    serviceIds?: boolean
+    serviceSummary?: boolean
+    estimatedMins?: boolean
+    preferredStaffId?: boolean
+    staffId?: boolean
+    status?: boolean
+    source?: boolean
+    publicToken?: boolean
+    calledAt?: boolean
+    startedAt?: boolean
+    finishedAt?: boolean
+    appointmentId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["salonQueueEntry"]>
+
+  export type SalonQueueEntrySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    customerName?: boolean
+    customerPhone?: boolean
+    serviceIds?: boolean
+    serviceSummary?: boolean
+    estimatedMins?: boolean
+    preferredStaffId?: boolean
+    staffId?: boolean
+    status?: boolean
+    source?: boolean
+    publicToken?: boolean
+    calledAt?: boolean
+    startedAt?: boolean
+    finishedAt?: boolean
+    appointmentId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["salonQueueEntry"]>
+
+  export type SalonQueueEntrySelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    customerName?: boolean
+    customerPhone?: boolean
+    serviceIds?: boolean
+    serviceSummary?: boolean
+    estimatedMins?: boolean
+    preferredStaffId?: boolean
+    staffId?: boolean
+    status?: boolean
+    source?: boolean
+    publicToken?: boolean
+    calledAt?: boolean
+    startedAt?: boolean
+    finishedAt?: boolean
+    appointmentId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type SalonQueueEntryInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+  export type SalonQueueEntryIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+
+  export type $SalonQueueEntryPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "SalonQueueEntry"
+    objects: {
+      location: Prisma.$LocationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string
+      customerName: string
+      customerPhone: string | null
+      serviceIds: string[]
+      serviceSummary: string | null
+      estimatedMins: number
+      preferredStaffId: string | null
+      staffId: string | null
+      status: string
+      source: string
+      publicToken: string
+      calledAt: Date | null
+      startedAt: Date | null
+      finishedAt: Date | null
+      appointmentId: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["salonQueueEntry"]>
+    composites: {}
+  }
+
+  type SalonQueueEntryGetPayload<S extends boolean | null | undefined | SalonQueueEntryDefaultArgs> = $Result.GetResult<Prisma.$SalonQueueEntryPayload, S>
+
+  type SalonQueueEntryCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<SalonQueueEntryFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: SalonQueueEntryCountAggregateInputType | true
+    }
+
+  export interface SalonQueueEntryDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['SalonQueueEntry'], meta: { name: 'SalonQueueEntry' } }
+    /**
+     * Find zero or one SalonQueueEntry that matches the filter.
+     * @param {SalonQueueEntryFindUniqueArgs} args - Arguments to find a SalonQueueEntry
+     * @example
+     * // Get one SalonQueueEntry
+     * const salonQueueEntry = await prisma.salonQueueEntry.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends SalonQueueEntryFindUniqueArgs>(args: SelectSubset<T, SalonQueueEntryFindUniqueArgs<ExtArgs>>): Prisma__SalonQueueEntryClient<$Result.GetResult<Prisma.$SalonQueueEntryPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one SalonQueueEntry that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {SalonQueueEntryFindUniqueOrThrowArgs} args - Arguments to find a SalonQueueEntry
+     * @example
+     * // Get one SalonQueueEntry
+     * const salonQueueEntry = await prisma.salonQueueEntry.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends SalonQueueEntryFindUniqueOrThrowArgs>(args: SelectSubset<T, SalonQueueEntryFindUniqueOrThrowArgs<ExtArgs>>): Prisma__SalonQueueEntryClient<$Result.GetResult<Prisma.$SalonQueueEntryPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first SalonQueueEntry that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonQueueEntryFindFirstArgs} args - Arguments to find a SalonQueueEntry
+     * @example
+     * // Get one SalonQueueEntry
+     * const salonQueueEntry = await prisma.salonQueueEntry.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends SalonQueueEntryFindFirstArgs>(args?: SelectSubset<T, SalonQueueEntryFindFirstArgs<ExtArgs>>): Prisma__SalonQueueEntryClient<$Result.GetResult<Prisma.$SalonQueueEntryPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first SalonQueueEntry that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonQueueEntryFindFirstOrThrowArgs} args - Arguments to find a SalonQueueEntry
+     * @example
+     * // Get one SalonQueueEntry
+     * const salonQueueEntry = await prisma.salonQueueEntry.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends SalonQueueEntryFindFirstOrThrowArgs>(args?: SelectSubset<T, SalonQueueEntryFindFirstOrThrowArgs<ExtArgs>>): Prisma__SalonQueueEntryClient<$Result.GetResult<Prisma.$SalonQueueEntryPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more SalonQueueEntries that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonQueueEntryFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all SalonQueueEntries
+     * const salonQueueEntries = await prisma.salonQueueEntry.findMany()
+     * 
+     * // Get first 10 SalonQueueEntries
+     * const salonQueueEntries = await prisma.salonQueueEntry.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const salonQueueEntryWithIdOnly = await prisma.salonQueueEntry.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends SalonQueueEntryFindManyArgs>(args?: SelectSubset<T, SalonQueueEntryFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SalonQueueEntryPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a SalonQueueEntry.
+     * @param {SalonQueueEntryCreateArgs} args - Arguments to create a SalonQueueEntry.
+     * @example
+     * // Create one SalonQueueEntry
+     * const SalonQueueEntry = await prisma.salonQueueEntry.create({
+     *   data: {
+     *     // ... data to create a SalonQueueEntry
+     *   }
+     * })
+     * 
+     */
+    create<T extends SalonQueueEntryCreateArgs>(args: SelectSubset<T, SalonQueueEntryCreateArgs<ExtArgs>>): Prisma__SalonQueueEntryClient<$Result.GetResult<Prisma.$SalonQueueEntryPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many SalonQueueEntries.
+     * @param {SalonQueueEntryCreateManyArgs} args - Arguments to create many SalonQueueEntries.
+     * @example
+     * // Create many SalonQueueEntries
+     * const salonQueueEntry = await prisma.salonQueueEntry.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends SalonQueueEntryCreateManyArgs>(args?: SelectSubset<T, SalonQueueEntryCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many SalonQueueEntries and returns the data saved in the database.
+     * @param {SalonQueueEntryCreateManyAndReturnArgs} args - Arguments to create many SalonQueueEntries.
+     * @example
+     * // Create many SalonQueueEntries
+     * const salonQueueEntry = await prisma.salonQueueEntry.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many SalonQueueEntries and only return the `id`
+     * const salonQueueEntryWithIdOnly = await prisma.salonQueueEntry.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends SalonQueueEntryCreateManyAndReturnArgs>(args?: SelectSubset<T, SalonQueueEntryCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SalonQueueEntryPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a SalonQueueEntry.
+     * @param {SalonQueueEntryDeleteArgs} args - Arguments to delete one SalonQueueEntry.
+     * @example
+     * // Delete one SalonQueueEntry
+     * const SalonQueueEntry = await prisma.salonQueueEntry.delete({
+     *   where: {
+     *     // ... filter to delete one SalonQueueEntry
+     *   }
+     * })
+     * 
+     */
+    delete<T extends SalonQueueEntryDeleteArgs>(args: SelectSubset<T, SalonQueueEntryDeleteArgs<ExtArgs>>): Prisma__SalonQueueEntryClient<$Result.GetResult<Prisma.$SalonQueueEntryPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one SalonQueueEntry.
+     * @param {SalonQueueEntryUpdateArgs} args - Arguments to update one SalonQueueEntry.
+     * @example
+     * // Update one SalonQueueEntry
+     * const salonQueueEntry = await prisma.salonQueueEntry.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends SalonQueueEntryUpdateArgs>(args: SelectSubset<T, SalonQueueEntryUpdateArgs<ExtArgs>>): Prisma__SalonQueueEntryClient<$Result.GetResult<Prisma.$SalonQueueEntryPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more SalonQueueEntries.
+     * @param {SalonQueueEntryDeleteManyArgs} args - Arguments to filter SalonQueueEntries to delete.
+     * @example
+     * // Delete a few SalonQueueEntries
+     * const { count } = await prisma.salonQueueEntry.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends SalonQueueEntryDeleteManyArgs>(args?: SelectSubset<T, SalonQueueEntryDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more SalonQueueEntries.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonQueueEntryUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many SalonQueueEntries
+     * const salonQueueEntry = await prisma.salonQueueEntry.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends SalonQueueEntryUpdateManyArgs>(args: SelectSubset<T, SalonQueueEntryUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one SalonQueueEntry.
+     * @param {SalonQueueEntryUpsertArgs} args - Arguments to update or create a SalonQueueEntry.
+     * @example
+     * // Update or create a SalonQueueEntry
+     * const salonQueueEntry = await prisma.salonQueueEntry.upsert({
+     *   create: {
+     *     // ... data to create a SalonQueueEntry
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the SalonQueueEntry we want to update
+     *   }
+     * })
+     */
+    upsert<T extends SalonQueueEntryUpsertArgs>(args: SelectSubset<T, SalonQueueEntryUpsertArgs<ExtArgs>>): Prisma__SalonQueueEntryClient<$Result.GetResult<Prisma.$SalonQueueEntryPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of SalonQueueEntries.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonQueueEntryCountArgs} args - Arguments to filter SalonQueueEntries to count.
+     * @example
+     * // Count the number of SalonQueueEntries
+     * const count = await prisma.salonQueueEntry.count({
+     *   where: {
+     *     // ... the filter for the SalonQueueEntries we want to count
+     *   }
+     * })
+    **/
+    count<T extends SalonQueueEntryCountArgs>(
+      args?: Subset<T, SalonQueueEntryCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], SalonQueueEntryCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a SalonQueueEntry.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonQueueEntryAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends SalonQueueEntryAggregateArgs>(args: Subset<T, SalonQueueEntryAggregateArgs>): Prisma.PrismaPromise<GetSalonQueueEntryAggregateType<T>>
+
+    /**
+     * Group by SalonQueueEntry.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SalonQueueEntryGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends SalonQueueEntryGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: SalonQueueEntryGroupByArgs['orderBy'] }
+        : { orderBy?: SalonQueueEntryGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, SalonQueueEntryGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSalonQueueEntryGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the SalonQueueEntry model
+   */
+  readonly fields: SalonQueueEntryFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for SalonQueueEntry.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__SalonQueueEntryClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the SalonQueueEntry model
+   */ 
+  interface SalonQueueEntryFieldRefs {
+    readonly id: FieldRef<"SalonQueueEntry", 'String'>
+    readonly tenantId: FieldRef<"SalonQueueEntry", 'String'>
+    readonly locationId: FieldRef<"SalonQueueEntry", 'String'>
+    readonly customerName: FieldRef<"SalonQueueEntry", 'String'>
+    readonly customerPhone: FieldRef<"SalonQueueEntry", 'String'>
+    readonly serviceIds: FieldRef<"SalonQueueEntry", 'String[]'>
+    readonly serviceSummary: FieldRef<"SalonQueueEntry", 'String'>
+    readonly estimatedMins: FieldRef<"SalonQueueEntry", 'Int'>
+    readonly preferredStaffId: FieldRef<"SalonQueueEntry", 'String'>
+    readonly staffId: FieldRef<"SalonQueueEntry", 'String'>
+    readonly status: FieldRef<"SalonQueueEntry", 'String'>
+    readonly source: FieldRef<"SalonQueueEntry", 'String'>
+    readonly publicToken: FieldRef<"SalonQueueEntry", 'String'>
+    readonly calledAt: FieldRef<"SalonQueueEntry", 'DateTime'>
+    readonly startedAt: FieldRef<"SalonQueueEntry", 'DateTime'>
+    readonly finishedAt: FieldRef<"SalonQueueEntry", 'DateTime'>
+    readonly appointmentId: FieldRef<"SalonQueueEntry", 'String'>
+    readonly createdAt: FieldRef<"SalonQueueEntry", 'DateTime'>
+    readonly updatedAt: FieldRef<"SalonQueueEntry", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * SalonQueueEntry findUnique
+   */
+  export type SalonQueueEntryFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonQueueEntry
+     */
+    select?: SalonQueueEntrySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonQueueEntryInclude<ExtArgs> | null
+    /**
+     * Filter, which SalonQueueEntry to fetch.
+     */
+    where: SalonQueueEntryWhereUniqueInput
+  }
+
+  /**
+   * SalonQueueEntry findUniqueOrThrow
+   */
+  export type SalonQueueEntryFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonQueueEntry
+     */
+    select?: SalonQueueEntrySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonQueueEntryInclude<ExtArgs> | null
+    /**
+     * Filter, which SalonQueueEntry to fetch.
+     */
+    where: SalonQueueEntryWhereUniqueInput
+  }
+
+  /**
+   * SalonQueueEntry findFirst
+   */
+  export type SalonQueueEntryFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonQueueEntry
+     */
+    select?: SalonQueueEntrySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonQueueEntryInclude<ExtArgs> | null
+    /**
+     * Filter, which SalonQueueEntry to fetch.
+     */
+    where?: SalonQueueEntryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SalonQueueEntries to fetch.
+     */
+    orderBy?: SalonQueueEntryOrderByWithRelationInput | SalonQueueEntryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SalonQueueEntries.
+     */
+    cursor?: SalonQueueEntryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SalonQueueEntries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SalonQueueEntries.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SalonQueueEntries.
+     */
+    distinct?: SalonQueueEntryScalarFieldEnum | SalonQueueEntryScalarFieldEnum[]
+  }
+
+  /**
+   * SalonQueueEntry findFirstOrThrow
+   */
+  export type SalonQueueEntryFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonQueueEntry
+     */
+    select?: SalonQueueEntrySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonQueueEntryInclude<ExtArgs> | null
+    /**
+     * Filter, which SalonQueueEntry to fetch.
+     */
+    where?: SalonQueueEntryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SalonQueueEntries to fetch.
+     */
+    orderBy?: SalonQueueEntryOrderByWithRelationInput | SalonQueueEntryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SalonQueueEntries.
+     */
+    cursor?: SalonQueueEntryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SalonQueueEntries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SalonQueueEntries.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SalonQueueEntries.
+     */
+    distinct?: SalonQueueEntryScalarFieldEnum | SalonQueueEntryScalarFieldEnum[]
+  }
+
+  /**
+   * SalonQueueEntry findMany
+   */
+  export type SalonQueueEntryFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonQueueEntry
+     */
+    select?: SalonQueueEntrySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonQueueEntryInclude<ExtArgs> | null
+    /**
+     * Filter, which SalonQueueEntries to fetch.
+     */
+    where?: SalonQueueEntryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SalonQueueEntries to fetch.
+     */
+    orderBy?: SalonQueueEntryOrderByWithRelationInput | SalonQueueEntryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing SalonQueueEntries.
+     */
+    cursor?: SalonQueueEntryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SalonQueueEntries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SalonQueueEntries.
+     */
+    skip?: number
+    distinct?: SalonQueueEntryScalarFieldEnum | SalonQueueEntryScalarFieldEnum[]
+  }
+
+  /**
+   * SalonQueueEntry create
+   */
+  export type SalonQueueEntryCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonQueueEntry
+     */
+    select?: SalonQueueEntrySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonQueueEntryInclude<ExtArgs> | null
+    /**
+     * The data needed to create a SalonQueueEntry.
+     */
+    data: XOR<SalonQueueEntryCreateInput, SalonQueueEntryUncheckedCreateInput>
+  }
+
+  /**
+   * SalonQueueEntry createMany
+   */
+  export type SalonQueueEntryCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many SalonQueueEntries.
+     */
+    data: SalonQueueEntryCreateManyInput | SalonQueueEntryCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * SalonQueueEntry createManyAndReturn
+   */
+  export type SalonQueueEntryCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonQueueEntry
+     */
+    select?: SalonQueueEntrySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many SalonQueueEntries.
+     */
+    data: SalonQueueEntryCreateManyInput | SalonQueueEntryCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonQueueEntryIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * SalonQueueEntry update
+   */
+  export type SalonQueueEntryUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonQueueEntry
+     */
+    select?: SalonQueueEntrySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonQueueEntryInclude<ExtArgs> | null
+    /**
+     * The data needed to update a SalonQueueEntry.
+     */
+    data: XOR<SalonQueueEntryUpdateInput, SalonQueueEntryUncheckedUpdateInput>
+    /**
+     * Choose, which SalonQueueEntry to update.
+     */
+    where: SalonQueueEntryWhereUniqueInput
+  }
+
+  /**
+   * SalonQueueEntry updateMany
+   */
+  export type SalonQueueEntryUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update SalonQueueEntries.
+     */
+    data: XOR<SalonQueueEntryUpdateManyMutationInput, SalonQueueEntryUncheckedUpdateManyInput>
+    /**
+     * Filter which SalonQueueEntries to update
+     */
+    where?: SalonQueueEntryWhereInput
+  }
+
+  /**
+   * SalonQueueEntry upsert
+   */
+  export type SalonQueueEntryUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonQueueEntry
+     */
+    select?: SalonQueueEntrySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonQueueEntryInclude<ExtArgs> | null
+    /**
+     * The filter to search for the SalonQueueEntry to update in case it exists.
+     */
+    where: SalonQueueEntryWhereUniqueInput
+    /**
+     * In case the SalonQueueEntry found by the `where` argument doesn't exist, create a new SalonQueueEntry with this data.
+     */
+    create: XOR<SalonQueueEntryCreateInput, SalonQueueEntryUncheckedCreateInput>
+    /**
+     * In case the SalonQueueEntry was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<SalonQueueEntryUpdateInput, SalonQueueEntryUncheckedUpdateInput>
+  }
+
+  /**
+   * SalonQueueEntry delete
+   */
+  export type SalonQueueEntryDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonQueueEntry
+     */
+    select?: SalonQueueEntrySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonQueueEntryInclude<ExtArgs> | null
+    /**
+     * Filter which SalonQueueEntry to delete.
+     */
+    where: SalonQueueEntryWhereUniqueInput
+  }
+
+  /**
+   * SalonQueueEntry deleteMany
+   */
+  export type SalonQueueEntryDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SalonQueueEntries to delete
+     */
+    where?: SalonQueueEntryWhereInput
+  }
+
+  /**
+   * SalonQueueEntry without action
+   */
+  export type SalonQueueEntryDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SalonQueueEntry
+     */
+    select?: SalonQueueEntrySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SalonQueueEntryInclude<ExtArgs> | null
   }
 
 
@@ -183050,6 +189461,138 @@ export namespace Prisma {
   export type TableReservationScalarFieldEnum = (typeof TableReservationScalarFieldEnum)[keyof typeof TableReservationScalarFieldEnum]
 
 
+  export const SalonServiceScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    category: 'category',
+    name: 'name',
+    description: 'description',
+    price: 'price',
+    priceFrom: 'priceFrom',
+    durationMins: 'durationMins',
+    bufferMins: 'bufferMins',
+    processingStartMins: 'processingStartMins',
+    processingMins: 'processingMins',
+    depositType: 'depositType',
+    depositValue: 'depositValue',
+    requiresPatchTest: 'requiresPatchTest',
+    bookableOnline: 'bookableOnline',
+    isActive: 'isActive',
+    sortOrder: 'sortOrder',
+    imageUrl: 'imageUrl',
+    addons: 'addons',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type SalonServiceScalarFieldEnum = (typeof SalonServiceScalarFieldEnum)[keyof typeof SalonServiceScalarFieldEnum]
+
+
+  export const SalonStaffScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    userId: 'userId',
+    name: 'name',
+    title: 'title',
+    bio: 'bio',
+    avatarUrl: 'avatarUrl',
+    colour: 'colour',
+    bookableOnline: 'bookableOnline',
+    acceptsWalkIns: 'acceptsWalkIns',
+    isActive: 'isActive',
+    sortOrder: 'sortOrder',
+    weeklyHours: 'weeklyHours',
+    serviceIds: 'serviceIds',
+    priceOverrides: 'priceOverrides',
+    commissionPercent: 'commissionPercent',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type SalonStaffScalarFieldEnum = (typeof SalonStaffScalarFieldEnum)[keyof typeof SalonStaffScalarFieldEnum]
+
+
+  export const SalonTimeOffScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    staffId: 'staffId',
+    startsAt: 'startsAt',
+    endsAt: 'endsAt',
+    reason: 'reason',
+    createdAt: 'createdAt'
+  };
+
+  export type SalonTimeOffScalarFieldEnum = (typeof SalonTimeOffScalarFieldEnum)[keyof typeof SalonTimeOffScalarFieldEnum]
+
+
+  export const SalonAppointmentScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    staffId: 'staffId',
+    customerId: 'customerId',
+    customerName: 'customerName',
+    customerPhone: 'customerPhone',
+    customerEmail: 'customerEmail',
+    startsAt: 'startsAt',
+    endsAt: 'endsAt',
+    status: 'status',
+    source: 'source',
+    anyStaff: 'anyStaff',
+    services: 'services',
+    totalPrice: 'totalPrice',
+    notes: 'notes',
+    staffNotes: 'staffNotes',
+    reference: 'reference',
+    manageToken: 'manageToken',
+    depositAmount: 'depositAmount',
+    depositStatus: 'depositStatus',
+    depositOrderId: 'depositOrderId',
+    depositPaidAt: 'depositPaidAt',
+    orderId: 'orderId',
+    tipAmount: 'tipAmount',
+    checkedInAt: 'checkedInAt',
+    startedAt: 'startedAt',
+    completedAt: 'completedAt',
+    cancelledAt: 'cancelledAt',
+    cancelReason: 'cancelReason',
+    reminderSentAt: 'reminderSentAt',
+    rebookNudgeSentAt: 'rebookNudgeSentAt',
+    queueEntryId: 'queueEntryId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type SalonAppointmentScalarFieldEnum = (typeof SalonAppointmentScalarFieldEnum)[keyof typeof SalonAppointmentScalarFieldEnum]
+
+
+  export const SalonQueueEntryScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    customerName: 'customerName',
+    customerPhone: 'customerPhone',
+    serviceIds: 'serviceIds',
+    serviceSummary: 'serviceSummary',
+    estimatedMins: 'estimatedMins',
+    preferredStaffId: 'preferredStaffId',
+    staffId: 'staffId',
+    status: 'status',
+    source: 'source',
+    publicToken: 'publicToken',
+    calledAt: 'calledAt',
+    startedAt: 'startedAt',
+    finishedAt: 'finishedAt',
+    appointmentId: 'appointmentId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type SalonQueueEntryScalarFieldEnum = (typeof SalonQueueEntryScalarFieldEnum)[keyof typeof SalonQueueEntryScalarFieldEnum]
+
+
   export const KdsTicketScalarFieldEnum: {
     id: 'id',
     kdsScreenId: 'kdsScreenId',
@@ -185732,6 +192275,90 @@ export namespace Prisma {
   };
 
   export type TableReservationOrderByRelevanceFieldEnum = (typeof TableReservationOrderByRelevanceFieldEnum)[keyof typeof TableReservationOrderByRelevanceFieldEnum]
+
+
+  export const SalonServiceOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    category: 'category',
+    name: 'name',
+    description: 'description',
+    depositType: 'depositType',
+    imageUrl: 'imageUrl'
+  };
+
+  export type SalonServiceOrderByRelevanceFieldEnum = (typeof SalonServiceOrderByRelevanceFieldEnum)[keyof typeof SalonServiceOrderByRelevanceFieldEnum]
+
+
+  export const SalonStaffOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    userId: 'userId',
+    name: 'name',
+    title: 'title',
+    bio: 'bio',
+    avatarUrl: 'avatarUrl',
+    colour: 'colour',
+    serviceIds: 'serviceIds'
+  };
+
+  export type SalonStaffOrderByRelevanceFieldEnum = (typeof SalonStaffOrderByRelevanceFieldEnum)[keyof typeof SalonStaffOrderByRelevanceFieldEnum]
+
+
+  export const SalonTimeOffOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    staffId: 'staffId',
+    reason: 'reason'
+  };
+
+  export type SalonTimeOffOrderByRelevanceFieldEnum = (typeof SalonTimeOffOrderByRelevanceFieldEnum)[keyof typeof SalonTimeOffOrderByRelevanceFieldEnum]
+
+
+  export const SalonAppointmentOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    staffId: 'staffId',
+    customerId: 'customerId',
+    customerName: 'customerName',
+    customerPhone: 'customerPhone',
+    customerEmail: 'customerEmail',
+    status: 'status',
+    source: 'source',
+    notes: 'notes',
+    staffNotes: 'staffNotes',
+    reference: 'reference',
+    manageToken: 'manageToken',
+    depositStatus: 'depositStatus',
+    depositOrderId: 'depositOrderId',
+    orderId: 'orderId',
+    cancelReason: 'cancelReason',
+    queueEntryId: 'queueEntryId'
+  };
+
+  export type SalonAppointmentOrderByRelevanceFieldEnum = (typeof SalonAppointmentOrderByRelevanceFieldEnum)[keyof typeof SalonAppointmentOrderByRelevanceFieldEnum]
+
+
+  export const SalonQueueEntryOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    customerName: 'customerName',
+    customerPhone: 'customerPhone',
+    serviceIds: 'serviceIds',
+    serviceSummary: 'serviceSummary',
+    preferredStaffId: 'preferredStaffId',
+    staffId: 'staffId',
+    status: 'status',
+    source: 'source',
+    publicToken: 'publicToken',
+    appointmentId: 'appointmentId'
+  };
+
+  export type SalonQueueEntryOrderByRelevanceFieldEnum = (typeof SalonQueueEntryOrderByRelevanceFieldEnum)[keyof typeof SalonQueueEntryOrderByRelevanceFieldEnum]
 
 
   export const KdsTicketOrderByRelevanceFieldEnum: {
@@ -189382,6 +196009,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityListRelationFilter
     homeDrivers?: DriverListRelationFilter
     productStockLevels?: ProductStockLevelListRelationFilter
+    salonServices?: SalonServiceListRelationFilter
+    salonStaff?: SalonStaffListRelationFilter
+    salonAppointments?: SalonAppointmentListRelationFilter
+    salonQueueEntries?: SalonQueueEntryListRelationFilter
     defaultKitchenStation?: XOR<PrinterStationNullableRelationFilter, PrinterStationWhereInput> | null
     receiptPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
     dispatchPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
@@ -189482,6 +196113,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityOrderByRelationAggregateInput
     homeDrivers?: DriverOrderByRelationAggregateInput
     productStockLevels?: ProductStockLevelOrderByRelationAggregateInput
+    salonServices?: SalonServiceOrderByRelationAggregateInput
+    salonStaff?: SalonStaffOrderByRelationAggregateInput
+    salonAppointments?: SalonAppointmentOrderByRelationAggregateInput
+    salonQueueEntries?: SalonQueueEntryOrderByRelationAggregateInput
     defaultKitchenStation?: PrinterStationOrderByWithRelationInput
     receiptPrinter?: PrinterOrderByWithRelationInput
     dispatchPrinter?: PrinterOrderByWithRelationInput
@@ -189586,6 +196221,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityListRelationFilter
     homeDrivers?: DriverListRelationFilter
     productStockLevels?: ProductStockLevelListRelationFilter
+    salonServices?: SalonServiceListRelationFilter
+    salonStaff?: SalonStaffListRelationFilter
+    salonAppointments?: SalonAppointmentListRelationFilter
+    salonQueueEntries?: SalonQueueEntryListRelationFilter
     defaultKitchenStation?: XOR<PrinterStationNullableRelationFilter, PrinterStationWhereInput> | null
     receiptPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
     dispatchPrinter?: XOR<PrinterNullableRelationFilter, PrinterWhereInput> | null
@@ -194348,6 +200987,688 @@ export namespace Prisma {
     reference?: StringWithAggregatesFilter<"TableReservation"> | string
     createdAt?: DateTimeWithAggregatesFilter<"TableReservation"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"TableReservation"> | Date | string
+  }
+
+  export type SalonServiceWhereInput = {
+    AND?: SalonServiceWhereInput | SalonServiceWhereInput[]
+    OR?: SalonServiceWhereInput[]
+    NOT?: SalonServiceWhereInput | SalonServiceWhereInput[]
+    id?: StringFilter<"SalonService"> | string
+    tenantId?: StringFilter<"SalonService"> | string
+    locationId?: StringFilter<"SalonService"> | string
+    category?: StringFilter<"SalonService"> | string
+    name?: StringFilter<"SalonService"> | string
+    description?: StringNullableFilter<"SalonService"> | string | null
+    price?: DecimalFilter<"SalonService"> | Decimal | DecimalJsLike | number | string
+    priceFrom?: BoolFilter<"SalonService"> | boolean
+    durationMins?: IntFilter<"SalonService"> | number
+    bufferMins?: IntFilter<"SalonService"> | number
+    processingStartMins?: IntNullableFilter<"SalonService"> | number | null
+    processingMins?: IntNullableFilter<"SalonService"> | number | null
+    depositType?: StringFilter<"SalonService"> | string
+    depositValue?: DecimalNullableFilter<"SalonService"> | Decimal | DecimalJsLike | number | string | null
+    requiresPatchTest?: BoolFilter<"SalonService"> | boolean
+    bookableOnline?: BoolFilter<"SalonService"> | boolean
+    isActive?: BoolFilter<"SalonService"> | boolean
+    sortOrder?: IntFilter<"SalonService"> | number
+    imageUrl?: StringNullableFilter<"SalonService"> | string | null
+    addons?: JsonFilter<"SalonService">
+    createdAt?: DateTimeFilter<"SalonService"> | Date | string
+    updatedAt?: DateTimeFilter<"SalonService"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }
+
+  export type SalonServiceOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    category?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    price?: SortOrder
+    priceFrom?: SortOrder
+    durationMins?: SortOrder
+    bufferMins?: SortOrder
+    processingStartMins?: SortOrderInput | SortOrder
+    processingMins?: SortOrderInput | SortOrder
+    depositType?: SortOrder
+    depositValue?: SortOrderInput | SortOrder
+    requiresPatchTest?: SortOrder
+    bookableOnline?: SortOrder
+    isActive?: SortOrder
+    sortOrder?: SortOrder
+    imageUrl?: SortOrderInput | SortOrder
+    addons?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    location?: LocationOrderByWithRelationInput
+    _relevance?: SalonServiceOrderByRelevanceInput
+  }
+
+  export type SalonServiceWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: SalonServiceWhereInput | SalonServiceWhereInput[]
+    OR?: SalonServiceWhereInput[]
+    NOT?: SalonServiceWhereInput | SalonServiceWhereInput[]
+    tenantId?: StringFilter<"SalonService"> | string
+    locationId?: StringFilter<"SalonService"> | string
+    category?: StringFilter<"SalonService"> | string
+    name?: StringFilter<"SalonService"> | string
+    description?: StringNullableFilter<"SalonService"> | string | null
+    price?: DecimalFilter<"SalonService"> | Decimal | DecimalJsLike | number | string
+    priceFrom?: BoolFilter<"SalonService"> | boolean
+    durationMins?: IntFilter<"SalonService"> | number
+    bufferMins?: IntFilter<"SalonService"> | number
+    processingStartMins?: IntNullableFilter<"SalonService"> | number | null
+    processingMins?: IntNullableFilter<"SalonService"> | number | null
+    depositType?: StringFilter<"SalonService"> | string
+    depositValue?: DecimalNullableFilter<"SalonService"> | Decimal | DecimalJsLike | number | string | null
+    requiresPatchTest?: BoolFilter<"SalonService"> | boolean
+    bookableOnline?: BoolFilter<"SalonService"> | boolean
+    isActive?: BoolFilter<"SalonService"> | boolean
+    sortOrder?: IntFilter<"SalonService"> | number
+    imageUrl?: StringNullableFilter<"SalonService"> | string | null
+    addons?: JsonFilter<"SalonService">
+    createdAt?: DateTimeFilter<"SalonService"> | Date | string
+    updatedAt?: DateTimeFilter<"SalonService"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }, "id">
+
+  export type SalonServiceOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    category?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    price?: SortOrder
+    priceFrom?: SortOrder
+    durationMins?: SortOrder
+    bufferMins?: SortOrder
+    processingStartMins?: SortOrderInput | SortOrder
+    processingMins?: SortOrderInput | SortOrder
+    depositType?: SortOrder
+    depositValue?: SortOrderInput | SortOrder
+    requiresPatchTest?: SortOrder
+    bookableOnline?: SortOrder
+    isActive?: SortOrder
+    sortOrder?: SortOrder
+    imageUrl?: SortOrderInput | SortOrder
+    addons?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: SalonServiceCountOrderByAggregateInput
+    _avg?: SalonServiceAvgOrderByAggregateInput
+    _max?: SalonServiceMaxOrderByAggregateInput
+    _min?: SalonServiceMinOrderByAggregateInput
+    _sum?: SalonServiceSumOrderByAggregateInput
+  }
+
+  export type SalonServiceScalarWhereWithAggregatesInput = {
+    AND?: SalonServiceScalarWhereWithAggregatesInput | SalonServiceScalarWhereWithAggregatesInput[]
+    OR?: SalonServiceScalarWhereWithAggregatesInput[]
+    NOT?: SalonServiceScalarWhereWithAggregatesInput | SalonServiceScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"SalonService"> | string
+    tenantId?: StringWithAggregatesFilter<"SalonService"> | string
+    locationId?: StringWithAggregatesFilter<"SalonService"> | string
+    category?: StringWithAggregatesFilter<"SalonService"> | string
+    name?: StringWithAggregatesFilter<"SalonService"> | string
+    description?: StringNullableWithAggregatesFilter<"SalonService"> | string | null
+    price?: DecimalWithAggregatesFilter<"SalonService"> | Decimal | DecimalJsLike | number | string
+    priceFrom?: BoolWithAggregatesFilter<"SalonService"> | boolean
+    durationMins?: IntWithAggregatesFilter<"SalonService"> | number
+    bufferMins?: IntWithAggregatesFilter<"SalonService"> | number
+    processingStartMins?: IntNullableWithAggregatesFilter<"SalonService"> | number | null
+    processingMins?: IntNullableWithAggregatesFilter<"SalonService"> | number | null
+    depositType?: StringWithAggregatesFilter<"SalonService"> | string
+    depositValue?: DecimalNullableWithAggregatesFilter<"SalonService"> | Decimal | DecimalJsLike | number | string | null
+    requiresPatchTest?: BoolWithAggregatesFilter<"SalonService"> | boolean
+    bookableOnline?: BoolWithAggregatesFilter<"SalonService"> | boolean
+    isActive?: BoolWithAggregatesFilter<"SalonService"> | boolean
+    sortOrder?: IntWithAggregatesFilter<"SalonService"> | number
+    imageUrl?: StringNullableWithAggregatesFilter<"SalonService"> | string | null
+    addons?: JsonWithAggregatesFilter<"SalonService">
+    createdAt?: DateTimeWithAggregatesFilter<"SalonService"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"SalonService"> | Date | string
+  }
+
+  export type SalonStaffWhereInput = {
+    AND?: SalonStaffWhereInput | SalonStaffWhereInput[]
+    OR?: SalonStaffWhereInput[]
+    NOT?: SalonStaffWhereInput | SalonStaffWhereInput[]
+    id?: StringFilter<"SalonStaff"> | string
+    tenantId?: StringFilter<"SalonStaff"> | string
+    locationId?: StringFilter<"SalonStaff"> | string
+    userId?: StringNullableFilter<"SalonStaff"> | string | null
+    name?: StringFilter<"SalonStaff"> | string
+    title?: StringNullableFilter<"SalonStaff"> | string | null
+    bio?: StringNullableFilter<"SalonStaff"> | string | null
+    avatarUrl?: StringNullableFilter<"SalonStaff"> | string | null
+    colour?: StringFilter<"SalonStaff"> | string
+    bookableOnline?: BoolFilter<"SalonStaff"> | boolean
+    acceptsWalkIns?: BoolFilter<"SalonStaff"> | boolean
+    isActive?: BoolFilter<"SalonStaff"> | boolean
+    sortOrder?: IntFilter<"SalonStaff"> | number
+    weeklyHours?: JsonFilter<"SalonStaff">
+    serviceIds?: StringNullableListFilter<"SalonStaff">
+    priceOverrides?: JsonFilter<"SalonStaff">
+    commissionPercent?: DecimalNullableFilter<"SalonStaff"> | Decimal | DecimalJsLike | number | string | null
+    createdAt?: DateTimeFilter<"SalonStaff"> | Date | string
+    updatedAt?: DateTimeFilter<"SalonStaff"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+    timeOff?: SalonTimeOffListRelationFilter
+    appointments?: SalonAppointmentListRelationFilter
+  }
+
+  export type SalonStaffOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    userId?: SortOrderInput | SortOrder
+    name?: SortOrder
+    title?: SortOrderInput | SortOrder
+    bio?: SortOrderInput | SortOrder
+    avatarUrl?: SortOrderInput | SortOrder
+    colour?: SortOrder
+    bookableOnline?: SortOrder
+    acceptsWalkIns?: SortOrder
+    isActive?: SortOrder
+    sortOrder?: SortOrder
+    weeklyHours?: SortOrder
+    serviceIds?: SortOrder
+    priceOverrides?: SortOrder
+    commissionPercent?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    location?: LocationOrderByWithRelationInput
+    timeOff?: SalonTimeOffOrderByRelationAggregateInput
+    appointments?: SalonAppointmentOrderByRelationAggregateInput
+    _relevance?: SalonStaffOrderByRelevanceInput
+  }
+
+  export type SalonStaffWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: SalonStaffWhereInput | SalonStaffWhereInput[]
+    OR?: SalonStaffWhereInput[]
+    NOT?: SalonStaffWhereInput | SalonStaffWhereInput[]
+    tenantId?: StringFilter<"SalonStaff"> | string
+    locationId?: StringFilter<"SalonStaff"> | string
+    userId?: StringNullableFilter<"SalonStaff"> | string | null
+    name?: StringFilter<"SalonStaff"> | string
+    title?: StringNullableFilter<"SalonStaff"> | string | null
+    bio?: StringNullableFilter<"SalonStaff"> | string | null
+    avatarUrl?: StringNullableFilter<"SalonStaff"> | string | null
+    colour?: StringFilter<"SalonStaff"> | string
+    bookableOnline?: BoolFilter<"SalonStaff"> | boolean
+    acceptsWalkIns?: BoolFilter<"SalonStaff"> | boolean
+    isActive?: BoolFilter<"SalonStaff"> | boolean
+    sortOrder?: IntFilter<"SalonStaff"> | number
+    weeklyHours?: JsonFilter<"SalonStaff">
+    serviceIds?: StringNullableListFilter<"SalonStaff">
+    priceOverrides?: JsonFilter<"SalonStaff">
+    commissionPercent?: DecimalNullableFilter<"SalonStaff"> | Decimal | DecimalJsLike | number | string | null
+    createdAt?: DateTimeFilter<"SalonStaff"> | Date | string
+    updatedAt?: DateTimeFilter<"SalonStaff"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+    timeOff?: SalonTimeOffListRelationFilter
+    appointments?: SalonAppointmentListRelationFilter
+  }, "id">
+
+  export type SalonStaffOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    userId?: SortOrderInput | SortOrder
+    name?: SortOrder
+    title?: SortOrderInput | SortOrder
+    bio?: SortOrderInput | SortOrder
+    avatarUrl?: SortOrderInput | SortOrder
+    colour?: SortOrder
+    bookableOnline?: SortOrder
+    acceptsWalkIns?: SortOrder
+    isActive?: SortOrder
+    sortOrder?: SortOrder
+    weeklyHours?: SortOrder
+    serviceIds?: SortOrder
+    priceOverrides?: SortOrder
+    commissionPercent?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: SalonStaffCountOrderByAggregateInput
+    _avg?: SalonStaffAvgOrderByAggregateInput
+    _max?: SalonStaffMaxOrderByAggregateInput
+    _min?: SalonStaffMinOrderByAggregateInput
+    _sum?: SalonStaffSumOrderByAggregateInput
+  }
+
+  export type SalonStaffScalarWhereWithAggregatesInput = {
+    AND?: SalonStaffScalarWhereWithAggregatesInput | SalonStaffScalarWhereWithAggregatesInput[]
+    OR?: SalonStaffScalarWhereWithAggregatesInput[]
+    NOT?: SalonStaffScalarWhereWithAggregatesInput | SalonStaffScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"SalonStaff"> | string
+    tenantId?: StringWithAggregatesFilter<"SalonStaff"> | string
+    locationId?: StringWithAggregatesFilter<"SalonStaff"> | string
+    userId?: StringNullableWithAggregatesFilter<"SalonStaff"> | string | null
+    name?: StringWithAggregatesFilter<"SalonStaff"> | string
+    title?: StringNullableWithAggregatesFilter<"SalonStaff"> | string | null
+    bio?: StringNullableWithAggregatesFilter<"SalonStaff"> | string | null
+    avatarUrl?: StringNullableWithAggregatesFilter<"SalonStaff"> | string | null
+    colour?: StringWithAggregatesFilter<"SalonStaff"> | string
+    bookableOnline?: BoolWithAggregatesFilter<"SalonStaff"> | boolean
+    acceptsWalkIns?: BoolWithAggregatesFilter<"SalonStaff"> | boolean
+    isActive?: BoolWithAggregatesFilter<"SalonStaff"> | boolean
+    sortOrder?: IntWithAggregatesFilter<"SalonStaff"> | number
+    weeklyHours?: JsonWithAggregatesFilter<"SalonStaff">
+    serviceIds?: StringNullableListFilter<"SalonStaff">
+    priceOverrides?: JsonWithAggregatesFilter<"SalonStaff">
+    commissionPercent?: DecimalNullableWithAggregatesFilter<"SalonStaff"> | Decimal | DecimalJsLike | number | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"SalonStaff"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"SalonStaff"> | Date | string
+  }
+
+  export type SalonTimeOffWhereInput = {
+    AND?: SalonTimeOffWhereInput | SalonTimeOffWhereInput[]
+    OR?: SalonTimeOffWhereInput[]
+    NOT?: SalonTimeOffWhereInput | SalonTimeOffWhereInput[]
+    id?: StringFilter<"SalonTimeOff"> | string
+    tenantId?: StringFilter<"SalonTimeOff"> | string
+    staffId?: StringFilter<"SalonTimeOff"> | string
+    startsAt?: DateTimeFilter<"SalonTimeOff"> | Date | string
+    endsAt?: DateTimeFilter<"SalonTimeOff"> | Date | string
+    reason?: StringNullableFilter<"SalonTimeOff"> | string | null
+    createdAt?: DateTimeFilter<"SalonTimeOff"> | Date | string
+    staff?: XOR<SalonStaffRelationFilter, SalonStaffWhereInput>
+  }
+
+  export type SalonTimeOffOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    staffId?: SortOrder
+    startsAt?: SortOrder
+    endsAt?: SortOrder
+    reason?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    staff?: SalonStaffOrderByWithRelationInput
+    _relevance?: SalonTimeOffOrderByRelevanceInput
+  }
+
+  export type SalonTimeOffWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: SalonTimeOffWhereInput | SalonTimeOffWhereInput[]
+    OR?: SalonTimeOffWhereInput[]
+    NOT?: SalonTimeOffWhereInput | SalonTimeOffWhereInput[]
+    tenantId?: StringFilter<"SalonTimeOff"> | string
+    staffId?: StringFilter<"SalonTimeOff"> | string
+    startsAt?: DateTimeFilter<"SalonTimeOff"> | Date | string
+    endsAt?: DateTimeFilter<"SalonTimeOff"> | Date | string
+    reason?: StringNullableFilter<"SalonTimeOff"> | string | null
+    createdAt?: DateTimeFilter<"SalonTimeOff"> | Date | string
+    staff?: XOR<SalonStaffRelationFilter, SalonStaffWhereInput>
+  }, "id">
+
+  export type SalonTimeOffOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    staffId?: SortOrder
+    startsAt?: SortOrder
+    endsAt?: SortOrder
+    reason?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: SalonTimeOffCountOrderByAggregateInput
+    _max?: SalonTimeOffMaxOrderByAggregateInput
+    _min?: SalonTimeOffMinOrderByAggregateInput
+  }
+
+  export type SalonTimeOffScalarWhereWithAggregatesInput = {
+    AND?: SalonTimeOffScalarWhereWithAggregatesInput | SalonTimeOffScalarWhereWithAggregatesInput[]
+    OR?: SalonTimeOffScalarWhereWithAggregatesInput[]
+    NOT?: SalonTimeOffScalarWhereWithAggregatesInput | SalonTimeOffScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"SalonTimeOff"> | string
+    tenantId?: StringWithAggregatesFilter<"SalonTimeOff"> | string
+    staffId?: StringWithAggregatesFilter<"SalonTimeOff"> | string
+    startsAt?: DateTimeWithAggregatesFilter<"SalonTimeOff"> | Date | string
+    endsAt?: DateTimeWithAggregatesFilter<"SalonTimeOff"> | Date | string
+    reason?: StringNullableWithAggregatesFilter<"SalonTimeOff"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"SalonTimeOff"> | Date | string
+  }
+
+  export type SalonAppointmentWhereInput = {
+    AND?: SalonAppointmentWhereInput | SalonAppointmentWhereInput[]
+    OR?: SalonAppointmentWhereInput[]
+    NOT?: SalonAppointmentWhereInput | SalonAppointmentWhereInput[]
+    id?: StringFilter<"SalonAppointment"> | string
+    tenantId?: StringFilter<"SalonAppointment"> | string
+    locationId?: StringFilter<"SalonAppointment"> | string
+    staffId?: StringNullableFilter<"SalonAppointment"> | string | null
+    customerId?: StringNullableFilter<"SalonAppointment"> | string | null
+    customerName?: StringFilter<"SalonAppointment"> | string
+    customerPhone?: StringNullableFilter<"SalonAppointment"> | string | null
+    customerEmail?: StringNullableFilter<"SalonAppointment"> | string | null
+    startsAt?: DateTimeFilter<"SalonAppointment"> | Date | string
+    endsAt?: DateTimeFilter<"SalonAppointment"> | Date | string
+    status?: StringFilter<"SalonAppointment"> | string
+    source?: StringFilter<"SalonAppointment"> | string
+    anyStaff?: BoolFilter<"SalonAppointment"> | boolean
+    services?: JsonFilter<"SalonAppointment">
+    totalPrice?: DecimalFilter<"SalonAppointment"> | Decimal | DecimalJsLike | number | string
+    notes?: StringNullableFilter<"SalonAppointment"> | string | null
+    staffNotes?: StringNullableFilter<"SalonAppointment"> | string | null
+    reference?: StringFilter<"SalonAppointment"> | string
+    manageToken?: StringFilter<"SalonAppointment"> | string
+    depositAmount?: DecimalFilter<"SalonAppointment"> | Decimal | DecimalJsLike | number | string
+    depositStatus?: StringFilter<"SalonAppointment"> | string
+    depositOrderId?: StringNullableFilter<"SalonAppointment"> | string | null
+    depositPaidAt?: DateTimeNullableFilter<"SalonAppointment"> | Date | string | null
+    orderId?: StringNullableFilter<"SalonAppointment"> | string | null
+    tipAmount?: DecimalNullableFilter<"SalonAppointment"> | Decimal | DecimalJsLike | number | string | null
+    checkedInAt?: DateTimeNullableFilter<"SalonAppointment"> | Date | string | null
+    startedAt?: DateTimeNullableFilter<"SalonAppointment"> | Date | string | null
+    completedAt?: DateTimeNullableFilter<"SalonAppointment"> | Date | string | null
+    cancelledAt?: DateTimeNullableFilter<"SalonAppointment"> | Date | string | null
+    cancelReason?: StringNullableFilter<"SalonAppointment"> | string | null
+    reminderSentAt?: DateTimeNullableFilter<"SalonAppointment"> | Date | string | null
+    rebookNudgeSentAt?: DateTimeNullableFilter<"SalonAppointment"> | Date | string | null
+    queueEntryId?: StringNullableFilter<"SalonAppointment"> | string | null
+    createdAt?: DateTimeFilter<"SalonAppointment"> | Date | string
+    updatedAt?: DateTimeFilter<"SalonAppointment"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+    staff?: XOR<SalonStaffNullableRelationFilter, SalonStaffWhereInput> | null
+  }
+
+  export type SalonAppointmentOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    staffId?: SortOrderInput | SortOrder
+    customerId?: SortOrderInput | SortOrder
+    customerName?: SortOrder
+    customerPhone?: SortOrderInput | SortOrder
+    customerEmail?: SortOrderInput | SortOrder
+    startsAt?: SortOrder
+    endsAt?: SortOrder
+    status?: SortOrder
+    source?: SortOrder
+    anyStaff?: SortOrder
+    services?: SortOrder
+    totalPrice?: SortOrder
+    notes?: SortOrderInput | SortOrder
+    staffNotes?: SortOrderInput | SortOrder
+    reference?: SortOrder
+    manageToken?: SortOrder
+    depositAmount?: SortOrder
+    depositStatus?: SortOrder
+    depositOrderId?: SortOrderInput | SortOrder
+    depositPaidAt?: SortOrderInput | SortOrder
+    orderId?: SortOrderInput | SortOrder
+    tipAmount?: SortOrderInput | SortOrder
+    checkedInAt?: SortOrderInput | SortOrder
+    startedAt?: SortOrderInput | SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    cancelledAt?: SortOrderInput | SortOrder
+    cancelReason?: SortOrderInput | SortOrder
+    reminderSentAt?: SortOrderInput | SortOrder
+    rebookNudgeSentAt?: SortOrderInput | SortOrder
+    queueEntryId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    location?: LocationOrderByWithRelationInput
+    staff?: SalonStaffOrderByWithRelationInput
+    _relevance?: SalonAppointmentOrderByRelevanceInput
+  }
+
+  export type SalonAppointmentWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    reference?: string
+    manageToken?: string
+    AND?: SalonAppointmentWhereInput | SalonAppointmentWhereInput[]
+    OR?: SalonAppointmentWhereInput[]
+    NOT?: SalonAppointmentWhereInput | SalonAppointmentWhereInput[]
+    tenantId?: StringFilter<"SalonAppointment"> | string
+    locationId?: StringFilter<"SalonAppointment"> | string
+    staffId?: StringNullableFilter<"SalonAppointment"> | string | null
+    customerId?: StringNullableFilter<"SalonAppointment"> | string | null
+    customerName?: StringFilter<"SalonAppointment"> | string
+    customerPhone?: StringNullableFilter<"SalonAppointment"> | string | null
+    customerEmail?: StringNullableFilter<"SalonAppointment"> | string | null
+    startsAt?: DateTimeFilter<"SalonAppointment"> | Date | string
+    endsAt?: DateTimeFilter<"SalonAppointment"> | Date | string
+    status?: StringFilter<"SalonAppointment"> | string
+    source?: StringFilter<"SalonAppointment"> | string
+    anyStaff?: BoolFilter<"SalonAppointment"> | boolean
+    services?: JsonFilter<"SalonAppointment">
+    totalPrice?: DecimalFilter<"SalonAppointment"> | Decimal | DecimalJsLike | number | string
+    notes?: StringNullableFilter<"SalonAppointment"> | string | null
+    staffNotes?: StringNullableFilter<"SalonAppointment"> | string | null
+    depositAmount?: DecimalFilter<"SalonAppointment"> | Decimal | DecimalJsLike | number | string
+    depositStatus?: StringFilter<"SalonAppointment"> | string
+    depositOrderId?: StringNullableFilter<"SalonAppointment"> | string | null
+    depositPaidAt?: DateTimeNullableFilter<"SalonAppointment"> | Date | string | null
+    orderId?: StringNullableFilter<"SalonAppointment"> | string | null
+    tipAmount?: DecimalNullableFilter<"SalonAppointment"> | Decimal | DecimalJsLike | number | string | null
+    checkedInAt?: DateTimeNullableFilter<"SalonAppointment"> | Date | string | null
+    startedAt?: DateTimeNullableFilter<"SalonAppointment"> | Date | string | null
+    completedAt?: DateTimeNullableFilter<"SalonAppointment"> | Date | string | null
+    cancelledAt?: DateTimeNullableFilter<"SalonAppointment"> | Date | string | null
+    cancelReason?: StringNullableFilter<"SalonAppointment"> | string | null
+    reminderSentAt?: DateTimeNullableFilter<"SalonAppointment"> | Date | string | null
+    rebookNudgeSentAt?: DateTimeNullableFilter<"SalonAppointment"> | Date | string | null
+    queueEntryId?: StringNullableFilter<"SalonAppointment"> | string | null
+    createdAt?: DateTimeFilter<"SalonAppointment"> | Date | string
+    updatedAt?: DateTimeFilter<"SalonAppointment"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+    staff?: XOR<SalonStaffNullableRelationFilter, SalonStaffWhereInput> | null
+  }, "id" | "reference" | "manageToken">
+
+  export type SalonAppointmentOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    staffId?: SortOrderInput | SortOrder
+    customerId?: SortOrderInput | SortOrder
+    customerName?: SortOrder
+    customerPhone?: SortOrderInput | SortOrder
+    customerEmail?: SortOrderInput | SortOrder
+    startsAt?: SortOrder
+    endsAt?: SortOrder
+    status?: SortOrder
+    source?: SortOrder
+    anyStaff?: SortOrder
+    services?: SortOrder
+    totalPrice?: SortOrder
+    notes?: SortOrderInput | SortOrder
+    staffNotes?: SortOrderInput | SortOrder
+    reference?: SortOrder
+    manageToken?: SortOrder
+    depositAmount?: SortOrder
+    depositStatus?: SortOrder
+    depositOrderId?: SortOrderInput | SortOrder
+    depositPaidAt?: SortOrderInput | SortOrder
+    orderId?: SortOrderInput | SortOrder
+    tipAmount?: SortOrderInput | SortOrder
+    checkedInAt?: SortOrderInput | SortOrder
+    startedAt?: SortOrderInput | SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    cancelledAt?: SortOrderInput | SortOrder
+    cancelReason?: SortOrderInput | SortOrder
+    reminderSentAt?: SortOrderInput | SortOrder
+    rebookNudgeSentAt?: SortOrderInput | SortOrder
+    queueEntryId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: SalonAppointmentCountOrderByAggregateInput
+    _avg?: SalonAppointmentAvgOrderByAggregateInput
+    _max?: SalonAppointmentMaxOrderByAggregateInput
+    _min?: SalonAppointmentMinOrderByAggregateInput
+    _sum?: SalonAppointmentSumOrderByAggregateInput
+  }
+
+  export type SalonAppointmentScalarWhereWithAggregatesInput = {
+    AND?: SalonAppointmentScalarWhereWithAggregatesInput | SalonAppointmentScalarWhereWithAggregatesInput[]
+    OR?: SalonAppointmentScalarWhereWithAggregatesInput[]
+    NOT?: SalonAppointmentScalarWhereWithAggregatesInput | SalonAppointmentScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"SalonAppointment"> | string
+    tenantId?: StringWithAggregatesFilter<"SalonAppointment"> | string
+    locationId?: StringWithAggregatesFilter<"SalonAppointment"> | string
+    staffId?: StringNullableWithAggregatesFilter<"SalonAppointment"> | string | null
+    customerId?: StringNullableWithAggregatesFilter<"SalonAppointment"> | string | null
+    customerName?: StringWithAggregatesFilter<"SalonAppointment"> | string
+    customerPhone?: StringNullableWithAggregatesFilter<"SalonAppointment"> | string | null
+    customerEmail?: StringNullableWithAggregatesFilter<"SalonAppointment"> | string | null
+    startsAt?: DateTimeWithAggregatesFilter<"SalonAppointment"> | Date | string
+    endsAt?: DateTimeWithAggregatesFilter<"SalonAppointment"> | Date | string
+    status?: StringWithAggregatesFilter<"SalonAppointment"> | string
+    source?: StringWithAggregatesFilter<"SalonAppointment"> | string
+    anyStaff?: BoolWithAggregatesFilter<"SalonAppointment"> | boolean
+    services?: JsonWithAggregatesFilter<"SalonAppointment">
+    totalPrice?: DecimalWithAggregatesFilter<"SalonAppointment"> | Decimal | DecimalJsLike | number | string
+    notes?: StringNullableWithAggregatesFilter<"SalonAppointment"> | string | null
+    staffNotes?: StringNullableWithAggregatesFilter<"SalonAppointment"> | string | null
+    reference?: StringWithAggregatesFilter<"SalonAppointment"> | string
+    manageToken?: StringWithAggregatesFilter<"SalonAppointment"> | string
+    depositAmount?: DecimalWithAggregatesFilter<"SalonAppointment"> | Decimal | DecimalJsLike | number | string
+    depositStatus?: StringWithAggregatesFilter<"SalonAppointment"> | string
+    depositOrderId?: StringNullableWithAggregatesFilter<"SalonAppointment"> | string | null
+    depositPaidAt?: DateTimeNullableWithAggregatesFilter<"SalonAppointment"> | Date | string | null
+    orderId?: StringNullableWithAggregatesFilter<"SalonAppointment"> | string | null
+    tipAmount?: DecimalNullableWithAggregatesFilter<"SalonAppointment"> | Decimal | DecimalJsLike | number | string | null
+    checkedInAt?: DateTimeNullableWithAggregatesFilter<"SalonAppointment"> | Date | string | null
+    startedAt?: DateTimeNullableWithAggregatesFilter<"SalonAppointment"> | Date | string | null
+    completedAt?: DateTimeNullableWithAggregatesFilter<"SalonAppointment"> | Date | string | null
+    cancelledAt?: DateTimeNullableWithAggregatesFilter<"SalonAppointment"> | Date | string | null
+    cancelReason?: StringNullableWithAggregatesFilter<"SalonAppointment"> | string | null
+    reminderSentAt?: DateTimeNullableWithAggregatesFilter<"SalonAppointment"> | Date | string | null
+    rebookNudgeSentAt?: DateTimeNullableWithAggregatesFilter<"SalonAppointment"> | Date | string | null
+    queueEntryId?: StringNullableWithAggregatesFilter<"SalonAppointment"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"SalonAppointment"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"SalonAppointment"> | Date | string
+  }
+
+  export type SalonQueueEntryWhereInput = {
+    AND?: SalonQueueEntryWhereInput | SalonQueueEntryWhereInput[]
+    OR?: SalonQueueEntryWhereInput[]
+    NOT?: SalonQueueEntryWhereInput | SalonQueueEntryWhereInput[]
+    id?: StringFilter<"SalonQueueEntry"> | string
+    tenantId?: StringFilter<"SalonQueueEntry"> | string
+    locationId?: StringFilter<"SalonQueueEntry"> | string
+    customerName?: StringFilter<"SalonQueueEntry"> | string
+    customerPhone?: StringNullableFilter<"SalonQueueEntry"> | string | null
+    serviceIds?: StringNullableListFilter<"SalonQueueEntry">
+    serviceSummary?: StringNullableFilter<"SalonQueueEntry"> | string | null
+    estimatedMins?: IntFilter<"SalonQueueEntry"> | number
+    preferredStaffId?: StringNullableFilter<"SalonQueueEntry"> | string | null
+    staffId?: StringNullableFilter<"SalonQueueEntry"> | string | null
+    status?: StringFilter<"SalonQueueEntry"> | string
+    source?: StringFilter<"SalonQueueEntry"> | string
+    publicToken?: StringFilter<"SalonQueueEntry"> | string
+    calledAt?: DateTimeNullableFilter<"SalonQueueEntry"> | Date | string | null
+    startedAt?: DateTimeNullableFilter<"SalonQueueEntry"> | Date | string | null
+    finishedAt?: DateTimeNullableFilter<"SalonQueueEntry"> | Date | string | null
+    appointmentId?: StringNullableFilter<"SalonQueueEntry"> | string | null
+    createdAt?: DateTimeFilter<"SalonQueueEntry"> | Date | string
+    updatedAt?: DateTimeFilter<"SalonQueueEntry"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }
+
+  export type SalonQueueEntryOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    customerName?: SortOrder
+    customerPhone?: SortOrderInput | SortOrder
+    serviceIds?: SortOrder
+    serviceSummary?: SortOrderInput | SortOrder
+    estimatedMins?: SortOrder
+    preferredStaffId?: SortOrderInput | SortOrder
+    staffId?: SortOrderInput | SortOrder
+    status?: SortOrder
+    source?: SortOrder
+    publicToken?: SortOrder
+    calledAt?: SortOrderInput | SortOrder
+    startedAt?: SortOrderInput | SortOrder
+    finishedAt?: SortOrderInput | SortOrder
+    appointmentId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    location?: LocationOrderByWithRelationInput
+    _relevance?: SalonQueueEntryOrderByRelevanceInput
+  }
+
+  export type SalonQueueEntryWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    publicToken?: string
+    AND?: SalonQueueEntryWhereInput | SalonQueueEntryWhereInput[]
+    OR?: SalonQueueEntryWhereInput[]
+    NOT?: SalonQueueEntryWhereInput | SalonQueueEntryWhereInput[]
+    tenantId?: StringFilter<"SalonQueueEntry"> | string
+    locationId?: StringFilter<"SalonQueueEntry"> | string
+    customerName?: StringFilter<"SalonQueueEntry"> | string
+    customerPhone?: StringNullableFilter<"SalonQueueEntry"> | string | null
+    serviceIds?: StringNullableListFilter<"SalonQueueEntry">
+    serviceSummary?: StringNullableFilter<"SalonQueueEntry"> | string | null
+    estimatedMins?: IntFilter<"SalonQueueEntry"> | number
+    preferredStaffId?: StringNullableFilter<"SalonQueueEntry"> | string | null
+    staffId?: StringNullableFilter<"SalonQueueEntry"> | string | null
+    status?: StringFilter<"SalonQueueEntry"> | string
+    source?: StringFilter<"SalonQueueEntry"> | string
+    calledAt?: DateTimeNullableFilter<"SalonQueueEntry"> | Date | string | null
+    startedAt?: DateTimeNullableFilter<"SalonQueueEntry"> | Date | string | null
+    finishedAt?: DateTimeNullableFilter<"SalonQueueEntry"> | Date | string | null
+    appointmentId?: StringNullableFilter<"SalonQueueEntry"> | string | null
+    createdAt?: DateTimeFilter<"SalonQueueEntry"> | Date | string
+    updatedAt?: DateTimeFilter<"SalonQueueEntry"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }, "id" | "publicToken">
+
+  export type SalonQueueEntryOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    customerName?: SortOrder
+    customerPhone?: SortOrderInput | SortOrder
+    serviceIds?: SortOrder
+    serviceSummary?: SortOrderInput | SortOrder
+    estimatedMins?: SortOrder
+    preferredStaffId?: SortOrderInput | SortOrder
+    staffId?: SortOrderInput | SortOrder
+    status?: SortOrder
+    source?: SortOrder
+    publicToken?: SortOrder
+    calledAt?: SortOrderInput | SortOrder
+    startedAt?: SortOrderInput | SortOrder
+    finishedAt?: SortOrderInput | SortOrder
+    appointmentId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: SalonQueueEntryCountOrderByAggregateInput
+    _avg?: SalonQueueEntryAvgOrderByAggregateInput
+    _max?: SalonQueueEntryMaxOrderByAggregateInput
+    _min?: SalonQueueEntryMinOrderByAggregateInput
+    _sum?: SalonQueueEntrySumOrderByAggregateInput
+  }
+
+  export type SalonQueueEntryScalarWhereWithAggregatesInput = {
+    AND?: SalonQueueEntryScalarWhereWithAggregatesInput | SalonQueueEntryScalarWhereWithAggregatesInput[]
+    OR?: SalonQueueEntryScalarWhereWithAggregatesInput[]
+    NOT?: SalonQueueEntryScalarWhereWithAggregatesInput | SalonQueueEntryScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"SalonQueueEntry"> | string
+    tenantId?: StringWithAggregatesFilter<"SalonQueueEntry"> | string
+    locationId?: StringWithAggregatesFilter<"SalonQueueEntry"> | string
+    customerName?: StringWithAggregatesFilter<"SalonQueueEntry"> | string
+    customerPhone?: StringNullableWithAggregatesFilter<"SalonQueueEntry"> | string | null
+    serviceIds?: StringNullableListFilter<"SalonQueueEntry">
+    serviceSummary?: StringNullableWithAggregatesFilter<"SalonQueueEntry"> | string | null
+    estimatedMins?: IntWithAggregatesFilter<"SalonQueueEntry"> | number
+    preferredStaffId?: StringNullableWithAggregatesFilter<"SalonQueueEntry"> | string | null
+    staffId?: StringNullableWithAggregatesFilter<"SalonQueueEntry"> | string | null
+    status?: StringWithAggregatesFilter<"SalonQueueEntry"> | string
+    source?: StringWithAggregatesFilter<"SalonQueueEntry"> | string
+    publicToken?: StringWithAggregatesFilter<"SalonQueueEntry"> | string
+    calledAt?: DateTimeNullableWithAggregatesFilter<"SalonQueueEntry"> | Date | string | null
+    startedAt?: DateTimeNullableWithAggregatesFilter<"SalonQueueEntry"> | Date | string | null
+    finishedAt?: DateTimeNullableWithAggregatesFilter<"SalonQueueEntry"> | Date | string | null
+    appointmentId?: StringNullableWithAggregatesFilter<"SalonQueueEntry"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"SalonQueueEntry"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"SalonQueueEntry"> | Date | string
   }
 
   export type KdsTicketWhereInput = {
@@ -205813,6 +213134,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -205912,6 +213237,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -206005,6 +213334,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -206104,6 +213437,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -211669,6 +219006,827 @@ export namespace Prisma {
     seatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     reference?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SalonServiceCreateInput = {
+    id?: string
+    tenantId: string
+    category?: string
+    name: string
+    description?: string | null
+    price: Decimal | DecimalJsLike | number | string
+    priceFrom?: boolean
+    durationMins?: number
+    bufferMins?: number
+    processingStartMins?: number | null
+    processingMins?: number | null
+    depositType?: string
+    depositValue?: Decimal | DecimalJsLike | number | string | null
+    requiresPatchTest?: boolean
+    bookableOnline?: boolean
+    isActive?: boolean
+    sortOrder?: number
+    imageUrl?: string | null
+    addons?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutSalonServicesInput
+  }
+
+  export type SalonServiceUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    category?: string
+    name: string
+    description?: string | null
+    price: Decimal | DecimalJsLike | number | string
+    priceFrom?: boolean
+    durationMins?: number
+    bufferMins?: number
+    processingStartMins?: number | null
+    processingMins?: number | null
+    depositType?: string
+    depositValue?: Decimal | DecimalJsLike | number | string | null
+    requiresPatchTest?: boolean
+    bookableOnline?: boolean
+    isActive?: boolean
+    sortOrder?: number
+    imageUrl?: string | null
+    addons?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SalonServiceUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    priceFrom?: BoolFieldUpdateOperationsInput | boolean
+    durationMins?: IntFieldUpdateOperationsInput | number
+    bufferMins?: IntFieldUpdateOperationsInput | number
+    processingStartMins?: NullableIntFieldUpdateOperationsInput | number | null
+    processingMins?: NullableIntFieldUpdateOperationsInput | number | null
+    depositType?: StringFieldUpdateOperationsInput | string
+    depositValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    requiresPatchTest?: BoolFieldUpdateOperationsInput | boolean
+    bookableOnline?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    addons?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutSalonServicesNestedInput
+  }
+
+  export type SalonServiceUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    priceFrom?: BoolFieldUpdateOperationsInput | boolean
+    durationMins?: IntFieldUpdateOperationsInput | number
+    bufferMins?: IntFieldUpdateOperationsInput | number
+    processingStartMins?: NullableIntFieldUpdateOperationsInput | number | null
+    processingMins?: NullableIntFieldUpdateOperationsInput | number | null
+    depositType?: StringFieldUpdateOperationsInput | string
+    depositValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    requiresPatchTest?: BoolFieldUpdateOperationsInput | boolean
+    bookableOnline?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    addons?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SalonServiceCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    category?: string
+    name: string
+    description?: string | null
+    price: Decimal | DecimalJsLike | number | string
+    priceFrom?: boolean
+    durationMins?: number
+    bufferMins?: number
+    processingStartMins?: number | null
+    processingMins?: number | null
+    depositType?: string
+    depositValue?: Decimal | DecimalJsLike | number | string | null
+    requiresPatchTest?: boolean
+    bookableOnline?: boolean
+    isActive?: boolean
+    sortOrder?: number
+    imageUrl?: string | null
+    addons?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SalonServiceUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    priceFrom?: BoolFieldUpdateOperationsInput | boolean
+    durationMins?: IntFieldUpdateOperationsInput | number
+    bufferMins?: IntFieldUpdateOperationsInput | number
+    processingStartMins?: NullableIntFieldUpdateOperationsInput | number | null
+    processingMins?: NullableIntFieldUpdateOperationsInput | number | null
+    depositType?: StringFieldUpdateOperationsInput | string
+    depositValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    requiresPatchTest?: BoolFieldUpdateOperationsInput | boolean
+    bookableOnline?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    addons?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SalonServiceUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    priceFrom?: BoolFieldUpdateOperationsInput | boolean
+    durationMins?: IntFieldUpdateOperationsInput | number
+    bufferMins?: IntFieldUpdateOperationsInput | number
+    processingStartMins?: NullableIntFieldUpdateOperationsInput | number | null
+    processingMins?: NullableIntFieldUpdateOperationsInput | number | null
+    depositType?: StringFieldUpdateOperationsInput | string
+    depositValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    requiresPatchTest?: BoolFieldUpdateOperationsInput | boolean
+    bookableOnline?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    addons?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SalonStaffCreateInput = {
+    id?: string
+    tenantId: string
+    userId?: string | null
+    name: string
+    title?: string | null
+    bio?: string | null
+    avatarUrl?: string | null
+    colour?: string
+    bookableOnline?: boolean
+    acceptsWalkIns?: boolean
+    isActive?: boolean
+    sortOrder?: number
+    weeklyHours?: JsonNullValueInput | InputJsonValue
+    serviceIds?: SalonStaffCreateserviceIdsInput | string[]
+    priceOverrides?: JsonNullValueInput | InputJsonValue
+    commissionPercent?: Decimal | DecimalJsLike | number | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutSalonStaffInput
+    timeOff?: SalonTimeOffCreateNestedManyWithoutStaffInput
+    appointments?: SalonAppointmentCreateNestedManyWithoutStaffInput
+  }
+
+  export type SalonStaffUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    userId?: string | null
+    name: string
+    title?: string | null
+    bio?: string | null
+    avatarUrl?: string | null
+    colour?: string
+    bookableOnline?: boolean
+    acceptsWalkIns?: boolean
+    isActive?: boolean
+    sortOrder?: number
+    weeklyHours?: JsonNullValueInput | InputJsonValue
+    serviceIds?: SalonStaffCreateserviceIdsInput | string[]
+    priceOverrides?: JsonNullValueInput | InputJsonValue
+    commissionPercent?: Decimal | DecimalJsLike | number | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    timeOff?: SalonTimeOffUncheckedCreateNestedManyWithoutStaffInput
+    appointments?: SalonAppointmentUncheckedCreateNestedManyWithoutStaffInput
+  }
+
+  export type SalonStaffUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    colour?: StringFieldUpdateOperationsInput | string
+    bookableOnline?: BoolFieldUpdateOperationsInput | boolean
+    acceptsWalkIns?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    weeklyHours?: JsonNullValueInput | InputJsonValue
+    serviceIds?: SalonStaffUpdateserviceIdsInput | string[]
+    priceOverrides?: JsonNullValueInput | InputJsonValue
+    commissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutSalonStaffNestedInput
+    timeOff?: SalonTimeOffUpdateManyWithoutStaffNestedInput
+    appointments?: SalonAppointmentUpdateManyWithoutStaffNestedInput
+  }
+
+  export type SalonStaffUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    colour?: StringFieldUpdateOperationsInput | string
+    bookableOnline?: BoolFieldUpdateOperationsInput | boolean
+    acceptsWalkIns?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    weeklyHours?: JsonNullValueInput | InputJsonValue
+    serviceIds?: SalonStaffUpdateserviceIdsInput | string[]
+    priceOverrides?: JsonNullValueInput | InputJsonValue
+    commissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    timeOff?: SalonTimeOffUncheckedUpdateManyWithoutStaffNestedInput
+    appointments?: SalonAppointmentUncheckedUpdateManyWithoutStaffNestedInput
+  }
+
+  export type SalonStaffCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    userId?: string | null
+    name: string
+    title?: string | null
+    bio?: string | null
+    avatarUrl?: string | null
+    colour?: string
+    bookableOnline?: boolean
+    acceptsWalkIns?: boolean
+    isActive?: boolean
+    sortOrder?: number
+    weeklyHours?: JsonNullValueInput | InputJsonValue
+    serviceIds?: SalonStaffCreateserviceIdsInput | string[]
+    priceOverrides?: JsonNullValueInput | InputJsonValue
+    commissionPercent?: Decimal | DecimalJsLike | number | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SalonStaffUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    colour?: StringFieldUpdateOperationsInput | string
+    bookableOnline?: BoolFieldUpdateOperationsInput | boolean
+    acceptsWalkIns?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    weeklyHours?: JsonNullValueInput | InputJsonValue
+    serviceIds?: SalonStaffUpdateserviceIdsInput | string[]
+    priceOverrides?: JsonNullValueInput | InputJsonValue
+    commissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SalonStaffUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    colour?: StringFieldUpdateOperationsInput | string
+    bookableOnline?: BoolFieldUpdateOperationsInput | boolean
+    acceptsWalkIns?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    weeklyHours?: JsonNullValueInput | InputJsonValue
+    serviceIds?: SalonStaffUpdateserviceIdsInput | string[]
+    priceOverrides?: JsonNullValueInput | InputJsonValue
+    commissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SalonTimeOffCreateInput = {
+    id?: string
+    tenantId: string
+    startsAt: Date | string
+    endsAt: Date | string
+    reason?: string | null
+    createdAt?: Date | string
+    staff: SalonStaffCreateNestedOneWithoutTimeOffInput
+  }
+
+  export type SalonTimeOffUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    staffId: string
+    startsAt: Date | string
+    endsAt: Date | string
+    reason?: string | null
+    createdAt?: Date | string
+  }
+
+  export type SalonTimeOffUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    startsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    staff?: SalonStaffUpdateOneRequiredWithoutTimeOffNestedInput
+  }
+
+  export type SalonTimeOffUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    staffId?: StringFieldUpdateOperationsInput | string
+    startsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SalonTimeOffCreateManyInput = {
+    id?: string
+    tenantId: string
+    staffId: string
+    startsAt: Date | string
+    endsAt: Date | string
+    reason?: string | null
+    createdAt?: Date | string
+  }
+
+  export type SalonTimeOffUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    startsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SalonTimeOffUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    staffId?: StringFieldUpdateOperationsInput | string
+    startsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SalonAppointmentCreateInput = {
+    id?: string
+    tenantId: string
+    customerId?: string | null
+    customerName: string
+    customerPhone?: string | null
+    customerEmail?: string | null
+    startsAt: Date | string
+    endsAt: Date | string
+    status?: string
+    source?: string
+    anyStaff?: boolean
+    services?: JsonNullValueInput | InputJsonValue
+    totalPrice?: Decimal | DecimalJsLike | number | string
+    notes?: string | null
+    staffNotes?: string | null
+    reference: string
+    manageToken: string
+    depositAmount?: Decimal | DecimalJsLike | number | string
+    depositStatus?: string
+    depositOrderId?: string | null
+    depositPaidAt?: Date | string | null
+    orderId?: string | null
+    tipAmount?: Decimal | DecimalJsLike | number | string | null
+    checkedInAt?: Date | string | null
+    startedAt?: Date | string | null
+    completedAt?: Date | string | null
+    cancelledAt?: Date | string | null
+    cancelReason?: string | null
+    reminderSentAt?: Date | string | null
+    rebookNudgeSentAt?: Date | string | null
+    queueEntryId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutSalonAppointmentsInput
+    staff?: SalonStaffCreateNestedOneWithoutAppointmentsInput
+  }
+
+  export type SalonAppointmentUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    staffId?: string | null
+    customerId?: string | null
+    customerName: string
+    customerPhone?: string | null
+    customerEmail?: string | null
+    startsAt: Date | string
+    endsAt: Date | string
+    status?: string
+    source?: string
+    anyStaff?: boolean
+    services?: JsonNullValueInput | InputJsonValue
+    totalPrice?: Decimal | DecimalJsLike | number | string
+    notes?: string | null
+    staffNotes?: string | null
+    reference: string
+    manageToken: string
+    depositAmount?: Decimal | DecimalJsLike | number | string
+    depositStatus?: string
+    depositOrderId?: string | null
+    depositPaidAt?: Date | string | null
+    orderId?: string | null
+    tipAmount?: Decimal | DecimalJsLike | number | string | null
+    checkedInAt?: Date | string | null
+    startedAt?: Date | string | null
+    completedAt?: Date | string | null
+    cancelledAt?: Date | string | null
+    cancelReason?: string | null
+    reminderSentAt?: Date | string | null
+    rebookNudgeSentAt?: Date | string | null
+    queueEntryId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SalonAppointmentUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerName?: StringFieldUpdateOperationsInput | string
+    customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    customerEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    startsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    anyStaff?: BoolFieldUpdateOperationsInput | boolean
+    services?: JsonNullValueInput | InputJsonValue
+    totalPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    staffNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    reference?: StringFieldUpdateOperationsInput | string
+    manageToken?: StringFieldUpdateOperationsInput | string
+    depositAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    depositStatus?: StringFieldUpdateOperationsInput | string
+    depositOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    depositPaidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    tipAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
+    reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rebookNudgeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    queueEntryId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutSalonAppointmentsNestedInput
+    staff?: SalonStaffUpdateOneWithoutAppointmentsNestedInput
+  }
+
+  export type SalonAppointmentUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    staffId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerName?: StringFieldUpdateOperationsInput | string
+    customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    customerEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    startsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    anyStaff?: BoolFieldUpdateOperationsInput | boolean
+    services?: JsonNullValueInput | InputJsonValue
+    totalPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    staffNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    reference?: StringFieldUpdateOperationsInput | string
+    manageToken?: StringFieldUpdateOperationsInput | string
+    depositAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    depositStatus?: StringFieldUpdateOperationsInput | string
+    depositOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    depositPaidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    tipAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
+    reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rebookNudgeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    queueEntryId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SalonAppointmentCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    staffId?: string | null
+    customerId?: string | null
+    customerName: string
+    customerPhone?: string | null
+    customerEmail?: string | null
+    startsAt: Date | string
+    endsAt: Date | string
+    status?: string
+    source?: string
+    anyStaff?: boolean
+    services?: JsonNullValueInput | InputJsonValue
+    totalPrice?: Decimal | DecimalJsLike | number | string
+    notes?: string | null
+    staffNotes?: string | null
+    reference: string
+    manageToken: string
+    depositAmount?: Decimal | DecimalJsLike | number | string
+    depositStatus?: string
+    depositOrderId?: string | null
+    depositPaidAt?: Date | string | null
+    orderId?: string | null
+    tipAmount?: Decimal | DecimalJsLike | number | string | null
+    checkedInAt?: Date | string | null
+    startedAt?: Date | string | null
+    completedAt?: Date | string | null
+    cancelledAt?: Date | string | null
+    cancelReason?: string | null
+    reminderSentAt?: Date | string | null
+    rebookNudgeSentAt?: Date | string | null
+    queueEntryId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SalonAppointmentUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerName?: StringFieldUpdateOperationsInput | string
+    customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    customerEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    startsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    anyStaff?: BoolFieldUpdateOperationsInput | boolean
+    services?: JsonNullValueInput | InputJsonValue
+    totalPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    staffNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    reference?: StringFieldUpdateOperationsInput | string
+    manageToken?: StringFieldUpdateOperationsInput | string
+    depositAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    depositStatus?: StringFieldUpdateOperationsInput | string
+    depositOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    depositPaidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    tipAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
+    reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rebookNudgeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    queueEntryId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SalonAppointmentUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    staffId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerName?: StringFieldUpdateOperationsInput | string
+    customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    customerEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    startsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    anyStaff?: BoolFieldUpdateOperationsInput | boolean
+    services?: JsonNullValueInput | InputJsonValue
+    totalPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    staffNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    reference?: StringFieldUpdateOperationsInput | string
+    manageToken?: StringFieldUpdateOperationsInput | string
+    depositAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    depositStatus?: StringFieldUpdateOperationsInput | string
+    depositOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    depositPaidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    tipAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
+    reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rebookNudgeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    queueEntryId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SalonQueueEntryCreateInput = {
+    id?: string
+    tenantId: string
+    customerName: string
+    customerPhone?: string | null
+    serviceIds?: SalonQueueEntryCreateserviceIdsInput | string[]
+    serviceSummary?: string | null
+    estimatedMins?: number
+    preferredStaffId?: string | null
+    staffId?: string | null
+    status?: string
+    source?: string
+    publicToken: string
+    calledAt?: Date | string | null
+    startedAt?: Date | string | null
+    finishedAt?: Date | string | null
+    appointmentId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutSalonQueueEntriesInput
+  }
+
+  export type SalonQueueEntryUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    customerName: string
+    customerPhone?: string | null
+    serviceIds?: SalonQueueEntryCreateserviceIdsInput | string[]
+    serviceSummary?: string | null
+    estimatedMins?: number
+    preferredStaffId?: string | null
+    staffId?: string | null
+    status?: string
+    source?: string
+    publicToken: string
+    calledAt?: Date | string | null
+    startedAt?: Date | string | null
+    finishedAt?: Date | string | null
+    appointmentId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SalonQueueEntryUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    customerName?: StringFieldUpdateOperationsInput | string
+    customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    serviceIds?: SalonQueueEntryUpdateserviceIdsInput | string[]
+    serviceSummary?: NullableStringFieldUpdateOperationsInput | string | null
+    estimatedMins?: IntFieldUpdateOperationsInput | number
+    preferredStaffId?: NullableStringFieldUpdateOperationsInput | string | null
+    staffId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    publicToken?: StringFieldUpdateOperationsInput | string
+    calledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    appointmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutSalonQueueEntriesNestedInput
+  }
+
+  export type SalonQueueEntryUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    customerName?: StringFieldUpdateOperationsInput | string
+    customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    serviceIds?: SalonQueueEntryUpdateserviceIdsInput | string[]
+    serviceSummary?: NullableStringFieldUpdateOperationsInput | string | null
+    estimatedMins?: IntFieldUpdateOperationsInput | number
+    preferredStaffId?: NullableStringFieldUpdateOperationsInput | string | null
+    staffId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    publicToken?: StringFieldUpdateOperationsInput | string
+    calledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    appointmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SalonQueueEntryCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    customerName: string
+    customerPhone?: string | null
+    serviceIds?: SalonQueueEntryCreateserviceIdsInput | string[]
+    serviceSummary?: string | null
+    estimatedMins?: number
+    preferredStaffId?: string | null
+    staffId?: string | null
+    status?: string
+    source?: string
+    publicToken: string
+    calledAt?: Date | string | null
+    startedAt?: Date | string | null
+    finishedAt?: Date | string | null
+    appointmentId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SalonQueueEntryUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    customerName?: StringFieldUpdateOperationsInput | string
+    customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    serviceIds?: SalonQueueEntryUpdateserviceIdsInput | string[]
+    serviceSummary?: NullableStringFieldUpdateOperationsInput | string | null
+    estimatedMins?: IntFieldUpdateOperationsInput | number
+    preferredStaffId?: NullableStringFieldUpdateOperationsInput | string | null
+    staffId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    publicToken?: StringFieldUpdateOperationsInput | string
+    calledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    appointmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SalonQueueEntryUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    customerName?: StringFieldUpdateOperationsInput | string
+    customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    serviceIds?: SalonQueueEntryUpdateserviceIdsInput | string[]
+    serviceSummary?: NullableStringFieldUpdateOperationsInput | string | null
+    estimatedMins?: IntFieldUpdateOperationsInput | number
+    preferredStaffId?: NullableStringFieldUpdateOperationsInput | string | null
+    staffId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    publicToken?: StringFieldUpdateOperationsInput | string
+    calledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    appointmentId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -224439,6 +232597,30 @@ export namespace Prisma {
     none?: ProductStockLevelWhereInput
   }
 
+  export type SalonServiceListRelationFilter = {
+    every?: SalonServiceWhereInput
+    some?: SalonServiceWhereInput
+    none?: SalonServiceWhereInput
+  }
+
+  export type SalonStaffListRelationFilter = {
+    every?: SalonStaffWhereInput
+    some?: SalonStaffWhereInput
+    none?: SalonStaffWhereInput
+  }
+
+  export type SalonAppointmentListRelationFilter = {
+    every?: SalonAppointmentWhereInput
+    some?: SalonAppointmentWhereInput
+    none?: SalonAppointmentWhereInput
+  }
+
+  export type SalonQueueEntryListRelationFilter = {
+    every?: SalonQueueEntryWhereInput
+    some?: SalonQueueEntryWhereInput
+    none?: SalonQueueEntryWhereInput
+  }
+
   export type PrinterNullableRelationFilter = {
     is?: PrinterWhereInput | null
     isNot?: PrinterWhereInput | null
@@ -224511,6 +232693,22 @@ export namespace Prisma {
   }
 
   export type ProductStockLevelOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type SalonServiceOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type SalonStaffOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type SalonAppointmentOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type SalonQueueEntryOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -228217,6 +236415,445 @@ export namespace Prisma {
   export type TableReservationSumOrderByAggregateInput = {
     partySize?: SortOrder
     durationMins?: SortOrder
+  }
+
+  export type SalonServiceOrderByRelevanceInput = {
+    fields: SalonServiceOrderByRelevanceFieldEnum | SalonServiceOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type SalonServiceCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    category?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    price?: SortOrder
+    priceFrom?: SortOrder
+    durationMins?: SortOrder
+    bufferMins?: SortOrder
+    processingStartMins?: SortOrder
+    processingMins?: SortOrder
+    depositType?: SortOrder
+    depositValue?: SortOrder
+    requiresPatchTest?: SortOrder
+    bookableOnline?: SortOrder
+    isActive?: SortOrder
+    sortOrder?: SortOrder
+    imageUrl?: SortOrder
+    addons?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SalonServiceAvgOrderByAggregateInput = {
+    price?: SortOrder
+    durationMins?: SortOrder
+    bufferMins?: SortOrder
+    processingStartMins?: SortOrder
+    processingMins?: SortOrder
+    depositValue?: SortOrder
+    sortOrder?: SortOrder
+  }
+
+  export type SalonServiceMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    category?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    price?: SortOrder
+    priceFrom?: SortOrder
+    durationMins?: SortOrder
+    bufferMins?: SortOrder
+    processingStartMins?: SortOrder
+    processingMins?: SortOrder
+    depositType?: SortOrder
+    depositValue?: SortOrder
+    requiresPatchTest?: SortOrder
+    bookableOnline?: SortOrder
+    isActive?: SortOrder
+    sortOrder?: SortOrder
+    imageUrl?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SalonServiceMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    category?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    price?: SortOrder
+    priceFrom?: SortOrder
+    durationMins?: SortOrder
+    bufferMins?: SortOrder
+    processingStartMins?: SortOrder
+    processingMins?: SortOrder
+    depositType?: SortOrder
+    depositValue?: SortOrder
+    requiresPatchTest?: SortOrder
+    bookableOnline?: SortOrder
+    isActive?: SortOrder
+    sortOrder?: SortOrder
+    imageUrl?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SalonServiceSumOrderByAggregateInput = {
+    price?: SortOrder
+    durationMins?: SortOrder
+    bufferMins?: SortOrder
+    processingStartMins?: SortOrder
+    processingMins?: SortOrder
+    depositValue?: SortOrder
+    sortOrder?: SortOrder
+  }
+
+  export type SalonTimeOffListRelationFilter = {
+    every?: SalonTimeOffWhereInput
+    some?: SalonTimeOffWhereInput
+    none?: SalonTimeOffWhereInput
+  }
+
+  export type SalonTimeOffOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type SalonStaffOrderByRelevanceInput = {
+    fields: SalonStaffOrderByRelevanceFieldEnum | SalonStaffOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type SalonStaffCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    title?: SortOrder
+    bio?: SortOrder
+    avatarUrl?: SortOrder
+    colour?: SortOrder
+    bookableOnline?: SortOrder
+    acceptsWalkIns?: SortOrder
+    isActive?: SortOrder
+    sortOrder?: SortOrder
+    weeklyHours?: SortOrder
+    serviceIds?: SortOrder
+    priceOverrides?: SortOrder
+    commissionPercent?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SalonStaffAvgOrderByAggregateInput = {
+    sortOrder?: SortOrder
+    commissionPercent?: SortOrder
+  }
+
+  export type SalonStaffMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    title?: SortOrder
+    bio?: SortOrder
+    avatarUrl?: SortOrder
+    colour?: SortOrder
+    bookableOnline?: SortOrder
+    acceptsWalkIns?: SortOrder
+    isActive?: SortOrder
+    sortOrder?: SortOrder
+    commissionPercent?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SalonStaffMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    title?: SortOrder
+    bio?: SortOrder
+    avatarUrl?: SortOrder
+    colour?: SortOrder
+    bookableOnline?: SortOrder
+    acceptsWalkIns?: SortOrder
+    isActive?: SortOrder
+    sortOrder?: SortOrder
+    commissionPercent?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SalonStaffSumOrderByAggregateInput = {
+    sortOrder?: SortOrder
+    commissionPercent?: SortOrder
+  }
+
+  export type SalonStaffRelationFilter = {
+    is?: SalonStaffWhereInput
+    isNot?: SalonStaffWhereInput
+  }
+
+  export type SalonTimeOffOrderByRelevanceInput = {
+    fields: SalonTimeOffOrderByRelevanceFieldEnum | SalonTimeOffOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type SalonTimeOffCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    staffId?: SortOrder
+    startsAt?: SortOrder
+    endsAt?: SortOrder
+    reason?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type SalonTimeOffMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    staffId?: SortOrder
+    startsAt?: SortOrder
+    endsAt?: SortOrder
+    reason?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type SalonTimeOffMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    staffId?: SortOrder
+    startsAt?: SortOrder
+    endsAt?: SortOrder
+    reason?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type SalonStaffNullableRelationFilter = {
+    is?: SalonStaffWhereInput | null
+    isNot?: SalonStaffWhereInput | null
+  }
+
+  export type SalonAppointmentOrderByRelevanceInput = {
+    fields: SalonAppointmentOrderByRelevanceFieldEnum | SalonAppointmentOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type SalonAppointmentCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    staffId?: SortOrder
+    customerId?: SortOrder
+    customerName?: SortOrder
+    customerPhone?: SortOrder
+    customerEmail?: SortOrder
+    startsAt?: SortOrder
+    endsAt?: SortOrder
+    status?: SortOrder
+    source?: SortOrder
+    anyStaff?: SortOrder
+    services?: SortOrder
+    totalPrice?: SortOrder
+    notes?: SortOrder
+    staffNotes?: SortOrder
+    reference?: SortOrder
+    manageToken?: SortOrder
+    depositAmount?: SortOrder
+    depositStatus?: SortOrder
+    depositOrderId?: SortOrder
+    depositPaidAt?: SortOrder
+    orderId?: SortOrder
+    tipAmount?: SortOrder
+    checkedInAt?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrder
+    cancelledAt?: SortOrder
+    cancelReason?: SortOrder
+    reminderSentAt?: SortOrder
+    rebookNudgeSentAt?: SortOrder
+    queueEntryId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SalonAppointmentAvgOrderByAggregateInput = {
+    totalPrice?: SortOrder
+    depositAmount?: SortOrder
+    tipAmount?: SortOrder
+  }
+
+  export type SalonAppointmentMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    staffId?: SortOrder
+    customerId?: SortOrder
+    customerName?: SortOrder
+    customerPhone?: SortOrder
+    customerEmail?: SortOrder
+    startsAt?: SortOrder
+    endsAt?: SortOrder
+    status?: SortOrder
+    source?: SortOrder
+    anyStaff?: SortOrder
+    totalPrice?: SortOrder
+    notes?: SortOrder
+    staffNotes?: SortOrder
+    reference?: SortOrder
+    manageToken?: SortOrder
+    depositAmount?: SortOrder
+    depositStatus?: SortOrder
+    depositOrderId?: SortOrder
+    depositPaidAt?: SortOrder
+    orderId?: SortOrder
+    tipAmount?: SortOrder
+    checkedInAt?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrder
+    cancelledAt?: SortOrder
+    cancelReason?: SortOrder
+    reminderSentAt?: SortOrder
+    rebookNudgeSentAt?: SortOrder
+    queueEntryId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SalonAppointmentMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    staffId?: SortOrder
+    customerId?: SortOrder
+    customerName?: SortOrder
+    customerPhone?: SortOrder
+    customerEmail?: SortOrder
+    startsAt?: SortOrder
+    endsAt?: SortOrder
+    status?: SortOrder
+    source?: SortOrder
+    anyStaff?: SortOrder
+    totalPrice?: SortOrder
+    notes?: SortOrder
+    staffNotes?: SortOrder
+    reference?: SortOrder
+    manageToken?: SortOrder
+    depositAmount?: SortOrder
+    depositStatus?: SortOrder
+    depositOrderId?: SortOrder
+    depositPaidAt?: SortOrder
+    orderId?: SortOrder
+    tipAmount?: SortOrder
+    checkedInAt?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrder
+    cancelledAt?: SortOrder
+    cancelReason?: SortOrder
+    reminderSentAt?: SortOrder
+    rebookNudgeSentAt?: SortOrder
+    queueEntryId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SalonAppointmentSumOrderByAggregateInput = {
+    totalPrice?: SortOrder
+    depositAmount?: SortOrder
+    tipAmount?: SortOrder
+  }
+
+  export type SalonQueueEntryOrderByRelevanceInput = {
+    fields: SalonQueueEntryOrderByRelevanceFieldEnum | SalonQueueEntryOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type SalonQueueEntryCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    customerName?: SortOrder
+    customerPhone?: SortOrder
+    serviceIds?: SortOrder
+    serviceSummary?: SortOrder
+    estimatedMins?: SortOrder
+    preferredStaffId?: SortOrder
+    staffId?: SortOrder
+    status?: SortOrder
+    source?: SortOrder
+    publicToken?: SortOrder
+    calledAt?: SortOrder
+    startedAt?: SortOrder
+    finishedAt?: SortOrder
+    appointmentId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SalonQueueEntryAvgOrderByAggregateInput = {
+    estimatedMins?: SortOrder
+  }
+
+  export type SalonQueueEntryMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    customerName?: SortOrder
+    customerPhone?: SortOrder
+    serviceSummary?: SortOrder
+    estimatedMins?: SortOrder
+    preferredStaffId?: SortOrder
+    staffId?: SortOrder
+    status?: SortOrder
+    source?: SortOrder
+    publicToken?: SortOrder
+    calledAt?: SortOrder
+    startedAt?: SortOrder
+    finishedAt?: SortOrder
+    appointmentId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SalonQueueEntryMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    customerName?: SortOrder
+    customerPhone?: SortOrder
+    serviceSummary?: SortOrder
+    estimatedMins?: SortOrder
+    preferredStaffId?: SortOrder
+    staffId?: SortOrder
+    status?: SortOrder
+    source?: SortOrder
+    publicToken?: SortOrder
+    calledAt?: SortOrder
+    startedAt?: SortOrder
+    finishedAt?: SortOrder
+    appointmentId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SalonQueueEntrySumOrderByAggregateInput = {
+    estimatedMins?: SortOrder
   }
 
   export type KdsScreenRelationFilter = {
@@ -237779,6 +246416,34 @@ export namespace Prisma {
     connect?: ProductStockLevelWhereUniqueInput | ProductStockLevelWhereUniqueInput[]
   }
 
+  export type SalonServiceCreateNestedManyWithoutLocationInput = {
+    create?: XOR<SalonServiceCreateWithoutLocationInput, SalonServiceUncheckedCreateWithoutLocationInput> | SalonServiceCreateWithoutLocationInput[] | SalonServiceUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: SalonServiceCreateOrConnectWithoutLocationInput | SalonServiceCreateOrConnectWithoutLocationInput[]
+    createMany?: SalonServiceCreateManyLocationInputEnvelope
+    connect?: SalonServiceWhereUniqueInput | SalonServiceWhereUniqueInput[]
+  }
+
+  export type SalonStaffCreateNestedManyWithoutLocationInput = {
+    create?: XOR<SalonStaffCreateWithoutLocationInput, SalonStaffUncheckedCreateWithoutLocationInput> | SalonStaffCreateWithoutLocationInput[] | SalonStaffUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: SalonStaffCreateOrConnectWithoutLocationInput | SalonStaffCreateOrConnectWithoutLocationInput[]
+    createMany?: SalonStaffCreateManyLocationInputEnvelope
+    connect?: SalonStaffWhereUniqueInput | SalonStaffWhereUniqueInput[]
+  }
+
+  export type SalonAppointmentCreateNestedManyWithoutLocationInput = {
+    create?: XOR<SalonAppointmentCreateWithoutLocationInput, SalonAppointmentUncheckedCreateWithoutLocationInput> | SalonAppointmentCreateWithoutLocationInput[] | SalonAppointmentUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: SalonAppointmentCreateOrConnectWithoutLocationInput | SalonAppointmentCreateOrConnectWithoutLocationInput[]
+    createMany?: SalonAppointmentCreateManyLocationInputEnvelope
+    connect?: SalonAppointmentWhereUniqueInput | SalonAppointmentWhereUniqueInput[]
+  }
+
+  export type SalonQueueEntryCreateNestedManyWithoutLocationInput = {
+    create?: XOR<SalonQueueEntryCreateWithoutLocationInput, SalonQueueEntryUncheckedCreateWithoutLocationInput> | SalonQueueEntryCreateWithoutLocationInput[] | SalonQueueEntryUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: SalonQueueEntryCreateOrConnectWithoutLocationInput | SalonQueueEntryCreateOrConnectWithoutLocationInput[]
+    createMany?: SalonQueueEntryCreateManyLocationInputEnvelope
+    connect?: SalonQueueEntryWhereUniqueInput | SalonQueueEntryWhereUniqueInput[]
+  }
+
   export type PrinterStationCreateNestedOneWithoutLocationDefaultsInput = {
     create?: XOR<PrinterStationCreateWithoutLocationDefaultsInput, PrinterStationUncheckedCreateWithoutLocationDefaultsInput>
     connectOrCreate?: PrinterStationCreateOrConnectWithoutLocationDefaultsInput
@@ -237989,6 +246654,34 @@ export namespace Prisma {
     connectOrCreate?: ProductStockLevelCreateOrConnectWithoutLocationInput | ProductStockLevelCreateOrConnectWithoutLocationInput[]
     createMany?: ProductStockLevelCreateManyLocationInputEnvelope
     connect?: ProductStockLevelWhereUniqueInput | ProductStockLevelWhereUniqueInput[]
+  }
+
+  export type SalonServiceUncheckedCreateNestedManyWithoutLocationInput = {
+    create?: XOR<SalonServiceCreateWithoutLocationInput, SalonServiceUncheckedCreateWithoutLocationInput> | SalonServiceCreateWithoutLocationInput[] | SalonServiceUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: SalonServiceCreateOrConnectWithoutLocationInput | SalonServiceCreateOrConnectWithoutLocationInput[]
+    createMany?: SalonServiceCreateManyLocationInputEnvelope
+    connect?: SalonServiceWhereUniqueInput | SalonServiceWhereUniqueInput[]
+  }
+
+  export type SalonStaffUncheckedCreateNestedManyWithoutLocationInput = {
+    create?: XOR<SalonStaffCreateWithoutLocationInput, SalonStaffUncheckedCreateWithoutLocationInput> | SalonStaffCreateWithoutLocationInput[] | SalonStaffUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: SalonStaffCreateOrConnectWithoutLocationInput | SalonStaffCreateOrConnectWithoutLocationInput[]
+    createMany?: SalonStaffCreateManyLocationInputEnvelope
+    connect?: SalonStaffWhereUniqueInput | SalonStaffWhereUniqueInput[]
+  }
+
+  export type SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput = {
+    create?: XOR<SalonAppointmentCreateWithoutLocationInput, SalonAppointmentUncheckedCreateWithoutLocationInput> | SalonAppointmentCreateWithoutLocationInput[] | SalonAppointmentUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: SalonAppointmentCreateOrConnectWithoutLocationInput | SalonAppointmentCreateOrConnectWithoutLocationInput[]
+    createMany?: SalonAppointmentCreateManyLocationInputEnvelope
+    connect?: SalonAppointmentWhereUniqueInput | SalonAppointmentWhereUniqueInput[]
+  }
+
+  export type SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput = {
+    create?: XOR<SalonQueueEntryCreateWithoutLocationInput, SalonQueueEntryUncheckedCreateWithoutLocationInput> | SalonQueueEntryCreateWithoutLocationInput[] | SalonQueueEntryUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: SalonQueueEntryCreateOrConnectWithoutLocationInput | SalonQueueEntryCreateOrConnectWithoutLocationInput[]
+    createMany?: SalonQueueEntryCreateManyLocationInputEnvelope
+    connect?: SalonQueueEntryWhereUniqueInput | SalonQueueEntryWhereUniqueInput[]
   }
 
   export type StuartConfigUncheckedCreateNestedOneWithoutLocationInput = {
@@ -238360,6 +247053,62 @@ export namespace Prisma {
     update?: ProductStockLevelUpdateWithWhereUniqueWithoutLocationInput | ProductStockLevelUpdateWithWhereUniqueWithoutLocationInput[]
     updateMany?: ProductStockLevelUpdateManyWithWhereWithoutLocationInput | ProductStockLevelUpdateManyWithWhereWithoutLocationInput[]
     deleteMany?: ProductStockLevelScalarWhereInput | ProductStockLevelScalarWhereInput[]
+  }
+
+  export type SalonServiceUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<SalonServiceCreateWithoutLocationInput, SalonServiceUncheckedCreateWithoutLocationInput> | SalonServiceCreateWithoutLocationInput[] | SalonServiceUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: SalonServiceCreateOrConnectWithoutLocationInput | SalonServiceCreateOrConnectWithoutLocationInput[]
+    upsert?: SalonServiceUpsertWithWhereUniqueWithoutLocationInput | SalonServiceUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: SalonServiceCreateManyLocationInputEnvelope
+    set?: SalonServiceWhereUniqueInput | SalonServiceWhereUniqueInput[]
+    disconnect?: SalonServiceWhereUniqueInput | SalonServiceWhereUniqueInput[]
+    delete?: SalonServiceWhereUniqueInput | SalonServiceWhereUniqueInput[]
+    connect?: SalonServiceWhereUniqueInput | SalonServiceWhereUniqueInput[]
+    update?: SalonServiceUpdateWithWhereUniqueWithoutLocationInput | SalonServiceUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: SalonServiceUpdateManyWithWhereWithoutLocationInput | SalonServiceUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: SalonServiceScalarWhereInput | SalonServiceScalarWhereInput[]
+  }
+
+  export type SalonStaffUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<SalonStaffCreateWithoutLocationInput, SalonStaffUncheckedCreateWithoutLocationInput> | SalonStaffCreateWithoutLocationInput[] | SalonStaffUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: SalonStaffCreateOrConnectWithoutLocationInput | SalonStaffCreateOrConnectWithoutLocationInput[]
+    upsert?: SalonStaffUpsertWithWhereUniqueWithoutLocationInput | SalonStaffUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: SalonStaffCreateManyLocationInputEnvelope
+    set?: SalonStaffWhereUniqueInput | SalonStaffWhereUniqueInput[]
+    disconnect?: SalonStaffWhereUniqueInput | SalonStaffWhereUniqueInput[]
+    delete?: SalonStaffWhereUniqueInput | SalonStaffWhereUniqueInput[]
+    connect?: SalonStaffWhereUniqueInput | SalonStaffWhereUniqueInput[]
+    update?: SalonStaffUpdateWithWhereUniqueWithoutLocationInput | SalonStaffUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: SalonStaffUpdateManyWithWhereWithoutLocationInput | SalonStaffUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: SalonStaffScalarWhereInput | SalonStaffScalarWhereInput[]
+  }
+
+  export type SalonAppointmentUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<SalonAppointmentCreateWithoutLocationInput, SalonAppointmentUncheckedCreateWithoutLocationInput> | SalonAppointmentCreateWithoutLocationInput[] | SalonAppointmentUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: SalonAppointmentCreateOrConnectWithoutLocationInput | SalonAppointmentCreateOrConnectWithoutLocationInput[]
+    upsert?: SalonAppointmentUpsertWithWhereUniqueWithoutLocationInput | SalonAppointmentUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: SalonAppointmentCreateManyLocationInputEnvelope
+    set?: SalonAppointmentWhereUniqueInput | SalonAppointmentWhereUniqueInput[]
+    disconnect?: SalonAppointmentWhereUniqueInput | SalonAppointmentWhereUniqueInput[]
+    delete?: SalonAppointmentWhereUniqueInput | SalonAppointmentWhereUniqueInput[]
+    connect?: SalonAppointmentWhereUniqueInput | SalonAppointmentWhereUniqueInput[]
+    update?: SalonAppointmentUpdateWithWhereUniqueWithoutLocationInput | SalonAppointmentUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: SalonAppointmentUpdateManyWithWhereWithoutLocationInput | SalonAppointmentUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: SalonAppointmentScalarWhereInput | SalonAppointmentScalarWhereInput[]
+  }
+
+  export type SalonQueueEntryUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<SalonQueueEntryCreateWithoutLocationInput, SalonQueueEntryUncheckedCreateWithoutLocationInput> | SalonQueueEntryCreateWithoutLocationInput[] | SalonQueueEntryUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: SalonQueueEntryCreateOrConnectWithoutLocationInput | SalonQueueEntryCreateOrConnectWithoutLocationInput[]
+    upsert?: SalonQueueEntryUpsertWithWhereUniqueWithoutLocationInput | SalonQueueEntryUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: SalonQueueEntryCreateManyLocationInputEnvelope
+    set?: SalonQueueEntryWhereUniqueInput | SalonQueueEntryWhereUniqueInput[]
+    disconnect?: SalonQueueEntryWhereUniqueInput | SalonQueueEntryWhereUniqueInput[]
+    delete?: SalonQueueEntryWhereUniqueInput | SalonQueueEntryWhereUniqueInput[]
+    connect?: SalonQueueEntryWhereUniqueInput | SalonQueueEntryWhereUniqueInput[]
+    update?: SalonQueueEntryUpdateWithWhereUniqueWithoutLocationInput | SalonQueueEntryUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: SalonQueueEntryUpdateManyWithWhereWithoutLocationInput | SalonQueueEntryUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: SalonQueueEntryScalarWhereInput | SalonQueueEntryScalarWhereInput[]
   }
 
   export type PrinterStationUpdateOneWithoutLocationDefaultsNestedInput = {
@@ -238760,6 +247509,62 @@ export namespace Prisma {
     update?: ProductStockLevelUpdateWithWhereUniqueWithoutLocationInput | ProductStockLevelUpdateWithWhereUniqueWithoutLocationInput[]
     updateMany?: ProductStockLevelUpdateManyWithWhereWithoutLocationInput | ProductStockLevelUpdateManyWithWhereWithoutLocationInput[]
     deleteMany?: ProductStockLevelScalarWhereInput | ProductStockLevelScalarWhereInput[]
+  }
+
+  export type SalonServiceUncheckedUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<SalonServiceCreateWithoutLocationInput, SalonServiceUncheckedCreateWithoutLocationInput> | SalonServiceCreateWithoutLocationInput[] | SalonServiceUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: SalonServiceCreateOrConnectWithoutLocationInput | SalonServiceCreateOrConnectWithoutLocationInput[]
+    upsert?: SalonServiceUpsertWithWhereUniqueWithoutLocationInput | SalonServiceUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: SalonServiceCreateManyLocationInputEnvelope
+    set?: SalonServiceWhereUniqueInput | SalonServiceWhereUniqueInput[]
+    disconnect?: SalonServiceWhereUniqueInput | SalonServiceWhereUniqueInput[]
+    delete?: SalonServiceWhereUniqueInput | SalonServiceWhereUniqueInput[]
+    connect?: SalonServiceWhereUniqueInput | SalonServiceWhereUniqueInput[]
+    update?: SalonServiceUpdateWithWhereUniqueWithoutLocationInput | SalonServiceUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: SalonServiceUpdateManyWithWhereWithoutLocationInput | SalonServiceUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: SalonServiceScalarWhereInput | SalonServiceScalarWhereInput[]
+  }
+
+  export type SalonStaffUncheckedUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<SalonStaffCreateWithoutLocationInput, SalonStaffUncheckedCreateWithoutLocationInput> | SalonStaffCreateWithoutLocationInput[] | SalonStaffUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: SalonStaffCreateOrConnectWithoutLocationInput | SalonStaffCreateOrConnectWithoutLocationInput[]
+    upsert?: SalonStaffUpsertWithWhereUniqueWithoutLocationInput | SalonStaffUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: SalonStaffCreateManyLocationInputEnvelope
+    set?: SalonStaffWhereUniqueInput | SalonStaffWhereUniqueInput[]
+    disconnect?: SalonStaffWhereUniqueInput | SalonStaffWhereUniqueInput[]
+    delete?: SalonStaffWhereUniqueInput | SalonStaffWhereUniqueInput[]
+    connect?: SalonStaffWhereUniqueInput | SalonStaffWhereUniqueInput[]
+    update?: SalonStaffUpdateWithWhereUniqueWithoutLocationInput | SalonStaffUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: SalonStaffUpdateManyWithWhereWithoutLocationInput | SalonStaffUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: SalonStaffScalarWhereInput | SalonStaffScalarWhereInput[]
+  }
+
+  export type SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<SalonAppointmentCreateWithoutLocationInput, SalonAppointmentUncheckedCreateWithoutLocationInput> | SalonAppointmentCreateWithoutLocationInput[] | SalonAppointmentUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: SalonAppointmentCreateOrConnectWithoutLocationInput | SalonAppointmentCreateOrConnectWithoutLocationInput[]
+    upsert?: SalonAppointmentUpsertWithWhereUniqueWithoutLocationInput | SalonAppointmentUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: SalonAppointmentCreateManyLocationInputEnvelope
+    set?: SalonAppointmentWhereUniqueInput | SalonAppointmentWhereUniqueInput[]
+    disconnect?: SalonAppointmentWhereUniqueInput | SalonAppointmentWhereUniqueInput[]
+    delete?: SalonAppointmentWhereUniqueInput | SalonAppointmentWhereUniqueInput[]
+    connect?: SalonAppointmentWhereUniqueInput | SalonAppointmentWhereUniqueInput[]
+    update?: SalonAppointmentUpdateWithWhereUniqueWithoutLocationInput | SalonAppointmentUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: SalonAppointmentUpdateManyWithWhereWithoutLocationInput | SalonAppointmentUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: SalonAppointmentScalarWhereInput | SalonAppointmentScalarWhereInput[]
+  }
+
+  export type SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput = {
+    create?: XOR<SalonQueueEntryCreateWithoutLocationInput, SalonQueueEntryUncheckedCreateWithoutLocationInput> | SalonQueueEntryCreateWithoutLocationInput[] | SalonQueueEntryUncheckedCreateWithoutLocationInput[]
+    connectOrCreate?: SalonQueueEntryCreateOrConnectWithoutLocationInput | SalonQueueEntryCreateOrConnectWithoutLocationInput[]
+    upsert?: SalonQueueEntryUpsertWithWhereUniqueWithoutLocationInput | SalonQueueEntryUpsertWithWhereUniqueWithoutLocationInput[]
+    createMany?: SalonQueueEntryCreateManyLocationInputEnvelope
+    set?: SalonQueueEntryWhereUniqueInput | SalonQueueEntryWhereUniqueInput[]
+    disconnect?: SalonQueueEntryWhereUniqueInput | SalonQueueEntryWhereUniqueInput[]
+    delete?: SalonQueueEntryWhereUniqueInput | SalonQueueEntryWhereUniqueInput[]
+    connect?: SalonQueueEntryWhereUniqueInput | SalonQueueEntryWhereUniqueInput[]
+    update?: SalonQueueEntryUpdateWithWhereUniqueWithoutLocationInput | SalonQueueEntryUpdateWithWhereUniqueWithoutLocationInput[]
+    updateMany?: SalonQueueEntryUpdateManyWithWhereWithoutLocationInput | SalonQueueEntryUpdateManyWithWhereWithoutLocationInput[]
+    deleteMany?: SalonQueueEntryScalarWhereInput | SalonQueueEntryScalarWhereInput[]
   }
 
   export type StuartConfigUncheckedUpdateOneWithoutLocationNestedInput = {
@@ -241404,6 +250209,194 @@ export namespace Prisma {
     delete?: TableWhereInput | boolean
     connect?: TableWhereUniqueInput
     update?: XOR<XOR<TableUpdateToOneWithWhereWithoutReservationsInput, TableUpdateWithoutReservationsInput>, TableUncheckedUpdateWithoutReservationsInput>
+  }
+
+  export type LocationCreateNestedOneWithoutSalonServicesInput = {
+    create?: XOR<LocationCreateWithoutSalonServicesInput, LocationUncheckedCreateWithoutSalonServicesInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutSalonServicesInput
+    connect?: LocationWhereUniqueInput
+  }
+
+  export type LocationUpdateOneRequiredWithoutSalonServicesNestedInput = {
+    create?: XOR<LocationCreateWithoutSalonServicesInput, LocationUncheckedCreateWithoutSalonServicesInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutSalonServicesInput
+    upsert?: LocationUpsertWithoutSalonServicesInput
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutSalonServicesInput, LocationUpdateWithoutSalonServicesInput>, LocationUncheckedUpdateWithoutSalonServicesInput>
+  }
+
+  export type SalonStaffCreateserviceIdsInput = {
+    set: string[]
+  }
+
+  export type LocationCreateNestedOneWithoutSalonStaffInput = {
+    create?: XOR<LocationCreateWithoutSalonStaffInput, LocationUncheckedCreateWithoutSalonStaffInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutSalonStaffInput
+    connect?: LocationWhereUniqueInput
+  }
+
+  export type SalonTimeOffCreateNestedManyWithoutStaffInput = {
+    create?: XOR<SalonTimeOffCreateWithoutStaffInput, SalonTimeOffUncheckedCreateWithoutStaffInput> | SalonTimeOffCreateWithoutStaffInput[] | SalonTimeOffUncheckedCreateWithoutStaffInput[]
+    connectOrCreate?: SalonTimeOffCreateOrConnectWithoutStaffInput | SalonTimeOffCreateOrConnectWithoutStaffInput[]
+    createMany?: SalonTimeOffCreateManyStaffInputEnvelope
+    connect?: SalonTimeOffWhereUniqueInput | SalonTimeOffWhereUniqueInput[]
+  }
+
+  export type SalonAppointmentCreateNestedManyWithoutStaffInput = {
+    create?: XOR<SalonAppointmentCreateWithoutStaffInput, SalonAppointmentUncheckedCreateWithoutStaffInput> | SalonAppointmentCreateWithoutStaffInput[] | SalonAppointmentUncheckedCreateWithoutStaffInput[]
+    connectOrCreate?: SalonAppointmentCreateOrConnectWithoutStaffInput | SalonAppointmentCreateOrConnectWithoutStaffInput[]
+    createMany?: SalonAppointmentCreateManyStaffInputEnvelope
+    connect?: SalonAppointmentWhereUniqueInput | SalonAppointmentWhereUniqueInput[]
+  }
+
+  export type SalonTimeOffUncheckedCreateNestedManyWithoutStaffInput = {
+    create?: XOR<SalonTimeOffCreateWithoutStaffInput, SalonTimeOffUncheckedCreateWithoutStaffInput> | SalonTimeOffCreateWithoutStaffInput[] | SalonTimeOffUncheckedCreateWithoutStaffInput[]
+    connectOrCreate?: SalonTimeOffCreateOrConnectWithoutStaffInput | SalonTimeOffCreateOrConnectWithoutStaffInput[]
+    createMany?: SalonTimeOffCreateManyStaffInputEnvelope
+    connect?: SalonTimeOffWhereUniqueInput | SalonTimeOffWhereUniqueInput[]
+  }
+
+  export type SalonAppointmentUncheckedCreateNestedManyWithoutStaffInput = {
+    create?: XOR<SalonAppointmentCreateWithoutStaffInput, SalonAppointmentUncheckedCreateWithoutStaffInput> | SalonAppointmentCreateWithoutStaffInput[] | SalonAppointmentUncheckedCreateWithoutStaffInput[]
+    connectOrCreate?: SalonAppointmentCreateOrConnectWithoutStaffInput | SalonAppointmentCreateOrConnectWithoutStaffInput[]
+    createMany?: SalonAppointmentCreateManyStaffInputEnvelope
+    connect?: SalonAppointmentWhereUniqueInput | SalonAppointmentWhereUniqueInput[]
+  }
+
+  export type SalonStaffUpdateserviceIdsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type LocationUpdateOneRequiredWithoutSalonStaffNestedInput = {
+    create?: XOR<LocationCreateWithoutSalonStaffInput, LocationUncheckedCreateWithoutSalonStaffInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutSalonStaffInput
+    upsert?: LocationUpsertWithoutSalonStaffInput
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutSalonStaffInput, LocationUpdateWithoutSalonStaffInput>, LocationUncheckedUpdateWithoutSalonStaffInput>
+  }
+
+  export type SalonTimeOffUpdateManyWithoutStaffNestedInput = {
+    create?: XOR<SalonTimeOffCreateWithoutStaffInput, SalonTimeOffUncheckedCreateWithoutStaffInput> | SalonTimeOffCreateWithoutStaffInput[] | SalonTimeOffUncheckedCreateWithoutStaffInput[]
+    connectOrCreate?: SalonTimeOffCreateOrConnectWithoutStaffInput | SalonTimeOffCreateOrConnectWithoutStaffInput[]
+    upsert?: SalonTimeOffUpsertWithWhereUniqueWithoutStaffInput | SalonTimeOffUpsertWithWhereUniqueWithoutStaffInput[]
+    createMany?: SalonTimeOffCreateManyStaffInputEnvelope
+    set?: SalonTimeOffWhereUniqueInput | SalonTimeOffWhereUniqueInput[]
+    disconnect?: SalonTimeOffWhereUniqueInput | SalonTimeOffWhereUniqueInput[]
+    delete?: SalonTimeOffWhereUniqueInput | SalonTimeOffWhereUniqueInput[]
+    connect?: SalonTimeOffWhereUniqueInput | SalonTimeOffWhereUniqueInput[]
+    update?: SalonTimeOffUpdateWithWhereUniqueWithoutStaffInput | SalonTimeOffUpdateWithWhereUniqueWithoutStaffInput[]
+    updateMany?: SalonTimeOffUpdateManyWithWhereWithoutStaffInput | SalonTimeOffUpdateManyWithWhereWithoutStaffInput[]
+    deleteMany?: SalonTimeOffScalarWhereInput | SalonTimeOffScalarWhereInput[]
+  }
+
+  export type SalonAppointmentUpdateManyWithoutStaffNestedInput = {
+    create?: XOR<SalonAppointmentCreateWithoutStaffInput, SalonAppointmentUncheckedCreateWithoutStaffInput> | SalonAppointmentCreateWithoutStaffInput[] | SalonAppointmentUncheckedCreateWithoutStaffInput[]
+    connectOrCreate?: SalonAppointmentCreateOrConnectWithoutStaffInput | SalonAppointmentCreateOrConnectWithoutStaffInput[]
+    upsert?: SalonAppointmentUpsertWithWhereUniqueWithoutStaffInput | SalonAppointmentUpsertWithWhereUniqueWithoutStaffInput[]
+    createMany?: SalonAppointmentCreateManyStaffInputEnvelope
+    set?: SalonAppointmentWhereUniqueInput | SalonAppointmentWhereUniqueInput[]
+    disconnect?: SalonAppointmentWhereUniqueInput | SalonAppointmentWhereUniqueInput[]
+    delete?: SalonAppointmentWhereUniqueInput | SalonAppointmentWhereUniqueInput[]
+    connect?: SalonAppointmentWhereUniqueInput | SalonAppointmentWhereUniqueInput[]
+    update?: SalonAppointmentUpdateWithWhereUniqueWithoutStaffInput | SalonAppointmentUpdateWithWhereUniqueWithoutStaffInput[]
+    updateMany?: SalonAppointmentUpdateManyWithWhereWithoutStaffInput | SalonAppointmentUpdateManyWithWhereWithoutStaffInput[]
+    deleteMany?: SalonAppointmentScalarWhereInput | SalonAppointmentScalarWhereInput[]
+  }
+
+  export type SalonTimeOffUncheckedUpdateManyWithoutStaffNestedInput = {
+    create?: XOR<SalonTimeOffCreateWithoutStaffInput, SalonTimeOffUncheckedCreateWithoutStaffInput> | SalonTimeOffCreateWithoutStaffInput[] | SalonTimeOffUncheckedCreateWithoutStaffInput[]
+    connectOrCreate?: SalonTimeOffCreateOrConnectWithoutStaffInput | SalonTimeOffCreateOrConnectWithoutStaffInput[]
+    upsert?: SalonTimeOffUpsertWithWhereUniqueWithoutStaffInput | SalonTimeOffUpsertWithWhereUniqueWithoutStaffInput[]
+    createMany?: SalonTimeOffCreateManyStaffInputEnvelope
+    set?: SalonTimeOffWhereUniqueInput | SalonTimeOffWhereUniqueInput[]
+    disconnect?: SalonTimeOffWhereUniqueInput | SalonTimeOffWhereUniqueInput[]
+    delete?: SalonTimeOffWhereUniqueInput | SalonTimeOffWhereUniqueInput[]
+    connect?: SalonTimeOffWhereUniqueInput | SalonTimeOffWhereUniqueInput[]
+    update?: SalonTimeOffUpdateWithWhereUniqueWithoutStaffInput | SalonTimeOffUpdateWithWhereUniqueWithoutStaffInput[]
+    updateMany?: SalonTimeOffUpdateManyWithWhereWithoutStaffInput | SalonTimeOffUpdateManyWithWhereWithoutStaffInput[]
+    deleteMany?: SalonTimeOffScalarWhereInput | SalonTimeOffScalarWhereInput[]
+  }
+
+  export type SalonAppointmentUncheckedUpdateManyWithoutStaffNestedInput = {
+    create?: XOR<SalonAppointmentCreateWithoutStaffInput, SalonAppointmentUncheckedCreateWithoutStaffInput> | SalonAppointmentCreateWithoutStaffInput[] | SalonAppointmentUncheckedCreateWithoutStaffInput[]
+    connectOrCreate?: SalonAppointmentCreateOrConnectWithoutStaffInput | SalonAppointmentCreateOrConnectWithoutStaffInput[]
+    upsert?: SalonAppointmentUpsertWithWhereUniqueWithoutStaffInput | SalonAppointmentUpsertWithWhereUniqueWithoutStaffInput[]
+    createMany?: SalonAppointmentCreateManyStaffInputEnvelope
+    set?: SalonAppointmentWhereUniqueInput | SalonAppointmentWhereUniqueInput[]
+    disconnect?: SalonAppointmentWhereUniqueInput | SalonAppointmentWhereUniqueInput[]
+    delete?: SalonAppointmentWhereUniqueInput | SalonAppointmentWhereUniqueInput[]
+    connect?: SalonAppointmentWhereUniqueInput | SalonAppointmentWhereUniqueInput[]
+    update?: SalonAppointmentUpdateWithWhereUniqueWithoutStaffInput | SalonAppointmentUpdateWithWhereUniqueWithoutStaffInput[]
+    updateMany?: SalonAppointmentUpdateManyWithWhereWithoutStaffInput | SalonAppointmentUpdateManyWithWhereWithoutStaffInput[]
+    deleteMany?: SalonAppointmentScalarWhereInput | SalonAppointmentScalarWhereInput[]
+  }
+
+  export type SalonStaffCreateNestedOneWithoutTimeOffInput = {
+    create?: XOR<SalonStaffCreateWithoutTimeOffInput, SalonStaffUncheckedCreateWithoutTimeOffInput>
+    connectOrCreate?: SalonStaffCreateOrConnectWithoutTimeOffInput
+    connect?: SalonStaffWhereUniqueInput
+  }
+
+  export type SalonStaffUpdateOneRequiredWithoutTimeOffNestedInput = {
+    create?: XOR<SalonStaffCreateWithoutTimeOffInput, SalonStaffUncheckedCreateWithoutTimeOffInput>
+    connectOrCreate?: SalonStaffCreateOrConnectWithoutTimeOffInput
+    upsert?: SalonStaffUpsertWithoutTimeOffInput
+    connect?: SalonStaffWhereUniqueInput
+    update?: XOR<XOR<SalonStaffUpdateToOneWithWhereWithoutTimeOffInput, SalonStaffUpdateWithoutTimeOffInput>, SalonStaffUncheckedUpdateWithoutTimeOffInput>
+  }
+
+  export type LocationCreateNestedOneWithoutSalonAppointmentsInput = {
+    create?: XOR<LocationCreateWithoutSalonAppointmentsInput, LocationUncheckedCreateWithoutSalonAppointmentsInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutSalonAppointmentsInput
+    connect?: LocationWhereUniqueInput
+  }
+
+  export type SalonStaffCreateNestedOneWithoutAppointmentsInput = {
+    create?: XOR<SalonStaffCreateWithoutAppointmentsInput, SalonStaffUncheckedCreateWithoutAppointmentsInput>
+    connectOrCreate?: SalonStaffCreateOrConnectWithoutAppointmentsInput
+    connect?: SalonStaffWhereUniqueInput
+  }
+
+  export type LocationUpdateOneRequiredWithoutSalonAppointmentsNestedInput = {
+    create?: XOR<LocationCreateWithoutSalonAppointmentsInput, LocationUncheckedCreateWithoutSalonAppointmentsInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutSalonAppointmentsInput
+    upsert?: LocationUpsertWithoutSalonAppointmentsInput
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutSalonAppointmentsInput, LocationUpdateWithoutSalonAppointmentsInput>, LocationUncheckedUpdateWithoutSalonAppointmentsInput>
+  }
+
+  export type SalonStaffUpdateOneWithoutAppointmentsNestedInput = {
+    create?: XOR<SalonStaffCreateWithoutAppointmentsInput, SalonStaffUncheckedCreateWithoutAppointmentsInput>
+    connectOrCreate?: SalonStaffCreateOrConnectWithoutAppointmentsInput
+    upsert?: SalonStaffUpsertWithoutAppointmentsInput
+    disconnect?: SalonStaffWhereInput | boolean
+    delete?: SalonStaffWhereInput | boolean
+    connect?: SalonStaffWhereUniqueInput
+    update?: XOR<XOR<SalonStaffUpdateToOneWithWhereWithoutAppointmentsInput, SalonStaffUpdateWithoutAppointmentsInput>, SalonStaffUncheckedUpdateWithoutAppointmentsInput>
+  }
+
+  export type SalonQueueEntryCreateserviceIdsInput = {
+    set: string[]
+  }
+
+  export type LocationCreateNestedOneWithoutSalonQueueEntriesInput = {
+    create?: XOR<LocationCreateWithoutSalonQueueEntriesInput, LocationUncheckedCreateWithoutSalonQueueEntriesInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutSalonQueueEntriesInput
+    connect?: LocationWhereUniqueInput
+  }
+
+  export type SalonQueueEntryUpdateserviceIdsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type LocationUpdateOneRequiredWithoutSalonQueueEntriesNestedInput = {
+    create?: XOR<LocationCreateWithoutSalonQueueEntriesInput, LocationUncheckedCreateWithoutSalonQueueEntriesInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutSalonQueueEntriesInput
+    upsert?: LocationUpsertWithoutSalonQueueEntriesInput
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutSalonQueueEntriesInput, LocationUpdateWithoutSalonQueueEntriesInput>, LocationUncheckedUpdateWithoutSalonQueueEntriesInput>
   }
 
   export type KdsScreenCreateNestedOneWithoutTicketsInput = {
@@ -249704,6 +258697,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -249802,6 +258799,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -249975,6 +258976,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -250073,6 +259078,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -252258,6 +261267,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -252356,6 +261369,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -255163,6 +264180,256 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type SalonServiceCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    category?: string
+    name: string
+    description?: string | null
+    price: Decimal | DecimalJsLike | number | string
+    priceFrom?: boolean
+    durationMins?: number
+    bufferMins?: number
+    processingStartMins?: number | null
+    processingMins?: number | null
+    depositType?: string
+    depositValue?: Decimal | DecimalJsLike | number | string | null
+    requiresPatchTest?: boolean
+    bookableOnline?: boolean
+    isActive?: boolean
+    sortOrder?: number
+    imageUrl?: string | null
+    addons?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SalonServiceUncheckedCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    category?: string
+    name: string
+    description?: string | null
+    price: Decimal | DecimalJsLike | number | string
+    priceFrom?: boolean
+    durationMins?: number
+    bufferMins?: number
+    processingStartMins?: number | null
+    processingMins?: number | null
+    depositType?: string
+    depositValue?: Decimal | DecimalJsLike | number | string | null
+    requiresPatchTest?: boolean
+    bookableOnline?: boolean
+    isActive?: boolean
+    sortOrder?: number
+    imageUrl?: string | null
+    addons?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SalonServiceCreateOrConnectWithoutLocationInput = {
+    where: SalonServiceWhereUniqueInput
+    create: XOR<SalonServiceCreateWithoutLocationInput, SalonServiceUncheckedCreateWithoutLocationInput>
+  }
+
+  export type SalonServiceCreateManyLocationInputEnvelope = {
+    data: SalonServiceCreateManyLocationInput | SalonServiceCreateManyLocationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type SalonStaffCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    userId?: string | null
+    name: string
+    title?: string | null
+    bio?: string | null
+    avatarUrl?: string | null
+    colour?: string
+    bookableOnline?: boolean
+    acceptsWalkIns?: boolean
+    isActive?: boolean
+    sortOrder?: number
+    weeklyHours?: JsonNullValueInput | InputJsonValue
+    serviceIds?: SalonStaffCreateserviceIdsInput | string[]
+    priceOverrides?: JsonNullValueInput | InputJsonValue
+    commissionPercent?: Decimal | DecimalJsLike | number | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    timeOff?: SalonTimeOffCreateNestedManyWithoutStaffInput
+    appointments?: SalonAppointmentCreateNestedManyWithoutStaffInput
+  }
+
+  export type SalonStaffUncheckedCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    userId?: string | null
+    name: string
+    title?: string | null
+    bio?: string | null
+    avatarUrl?: string | null
+    colour?: string
+    bookableOnline?: boolean
+    acceptsWalkIns?: boolean
+    isActive?: boolean
+    sortOrder?: number
+    weeklyHours?: JsonNullValueInput | InputJsonValue
+    serviceIds?: SalonStaffCreateserviceIdsInput | string[]
+    priceOverrides?: JsonNullValueInput | InputJsonValue
+    commissionPercent?: Decimal | DecimalJsLike | number | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    timeOff?: SalonTimeOffUncheckedCreateNestedManyWithoutStaffInput
+    appointments?: SalonAppointmentUncheckedCreateNestedManyWithoutStaffInput
+  }
+
+  export type SalonStaffCreateOrConnectWithoutLocationInput = {
+    where: SalonStaffWhereUniqueInput
+    create: XOR<SalonStaffCreateWithoutLocationInput, SalonStaffUncheckedCreateWithoutLocationInput>
+  }
+
+  export type SalonStaffCreateManyLocationInputEnvelope = {
+    data: SalonStaffCreateManyLocationInput | SalonStaffCreateManyLocationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type SalonAppointmentCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    customerId?: string | null
+    customerName: string
+    customerPhone?: string | null
+    customerEmail?: string | null
+    startsAt: Date | string
+    endsAt: Date | string
+    status?: string
+    source?: string
+    anyStaff?: boolean
+    services?: JsonNullValueInput | InputJsonValue
+    totalPrice?: Decimal | DecimalJsLike | number | string
+    notes?: string | null
+    staffNotes?: string | null
+    reference: string
+    manageToken: string
+    depositAmount?: Decimal | DecimalJsLike | number | string
+    depositStatus?: string
+    depositOrderId?: string | null
+    depositPaidAt?: Date | string | null
+    orderId?: string | null
+    tipAmount?: Decimal | DecimalJsLike | number | string | null
+    checkedInAt?: Date | string | null
+    startedAt?: Date | string | null
+    completedAt?: Date | string | null
+    cancelledAt?: Date | string | null
+    cancelReason?: string | null
+    reminderSentAt?: Date | string | null
+    rebookNudgeSentAt?: Date | string | null
+    queueEntryId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    staff?: SalonStaffCreateNestedOneWithoutAppointmentsInput
+  }
+
+  export type SalonAppointmentUncheckedCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    staffId?: string | null
+    customerId?: string | null
+    customerName: string
+    customerPhone?: string | null
+    customerEmail?: string | null
+    startsAt: Date | string
+    endsAt: Date | string
+    status?: string
+    source?: string
+    anyStaff?: boolean
+    services?: JsonNullValueInput | InputJsonValue
+    totalPrice?: Decimal | DecimalJsLike | number | string
+    notes?: string | null
+    staffNotes?: string | null
+    reference: string
+    manageToken: string
+    depositAmount?: Decimal | DecimalJsLike | number | string
+    depositStatus?: string
+    depositOrderId?: string | null
+    depositPaidAt?: Date | string | null
+    orderId?: string | null
+    tipAmount?: Decimal | DecimalJsLike | number | string | null
+    checkedInAt?: Date | string | null
+    startedAt?: Date | string | null
+    completedAt?: Date | string | null
+    cancelledAt?: Date | string | null
+    cancelReason?: string | null
+    reminderSentAt?: Date | string | null
+    rebookNudgeSentAt?: Date | string | null
+    queueEntryId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SalonAppointmentCreateOrConnectWithoutLocationInput = {
+    where: SalonAppointmentWhereUniqueInput
+    create: XOR<SalonAppointmentCreateWithoutLocationInput, SalonAppointmentUncheckedCreateWithoutLocationInput>
+  }
+
+  export type SalonAppointmentCreateManyLocationInputEnvelope = {
+    data: SalonAppointmentCreateManyLocationInput | SalonAppointmentCreateManyLocationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type SalonQueueEntryCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    customerName: string
+    customerPhone?: string | null
+    serviceIds?: SalonQueueEntryCreateserviceIdsInput | string[]
+    serviceSummary?: string | null
+    estimatedMins?: number
+    preferredStaffId?: string | null
+    staffId?: string | null
+    status?: string
+    source?: string
+    publicToken: string
+    calledAt?: Date | string | null
+    startedAt?: Date | string | null
+    finishedAt?: Date | string | null
+    appointmentId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SalonQueueEntryUncheckedCreateWithoutLocationInput = {
+    id?: string
+    tenantId: string
+    customerName: string
+    customerPhone?: string | null
+    serviceIds?: SalonQueueEntryCreateserviceIdsInput | string[]
+    serviceSummary?: string | null
+    estimatedMins?: number
+    preferredStaffId?: string | null
+    staffId?: string | null
+    status?: string
+    source?: string
+    publicToken: string
+    calledAt?: Date | string | null
+    startedAt?: Date | string | null
+    finishedAt?: Date | string | null
+    appointmentId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SalonQueueEntryCreateOrConnectWithoutLocationInput = {
+    where: SalonQueueEntryWhereUniqueInput
+    create: XOR<SalonQueueEntryCreateWithoutLocationInput, SalonQueueEntryUncheckedCreateWithoutLocationInput>
+  }
+
+  export type SalonQueueEntryCreateManyLocationInputEnvelope = {
+    data: SalonQueueEntryCreateManyLocationInput | SalonQueueEntryCreateManyLocationInput[]
+    skipDuplicates?: boolean
+  }
+
   export type PrinterStationCreateWithoutLocationDefaultsInput = {
     id?: string
     name: string
@@ -256424,6 +265691,189 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"ProductStockLevel"> | Date | string
   }
 
+  export type SalonServiceUpsertWithWhereUniqueWithoutLocationInput = {
+    where: SalonServiceWhereUniqueInput
+    update: XOR<SalonServiceUpdateWithoutLocationInput, SalonServiceUncheckedUpdateWithoutLocationInput>
+    create: XOR<SalonServiceCreateWithoutLocationInput, SalonServiceUncheckedCreateWithoutLocationInput>
+  }
+
+  export type SalonServiceUpdateWithWhereUniqueWithoutLocationInput = {
+    where: SalonServiceWhereUniqueInput
+    data: XOR<SalonServiceUpdateWithoutLocationInput, SalonServiceUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type SalonServiceUpdateManyWithWhereWithoutLocationInput = {
+    where: SalonServiceScalarWhereInput
+    data: XOR<SalonServiceUpdateManyMutationInput, SalonServiceUncheckedUpdateManyWithoutLocationInput>
+  }
+
+  export type SalonServiceScalarWhereInput = {
+    AND?: SalonServiceScalarWhereInput | SalonServiceScalarWhereInput[]
+    OR?: SalonServiceScalarWhereInput[]
+    NOT?: SalonServiceScalarWhereInput | SalonServiceScalarWhereInput[]
+    id?: StringFilter<"SalonService"> | string
+    tenantId?: StringFilter<"SalonService"> | string
+    locationId?: StringFilter<"SalonService"> | string
+    category?: StringFilter<"SalonService"> | string
+    name?: StringFilter<"SalonService"> | string
+    description?: StringNullableFilter<"SalonService"> | string | null
+    price?: DecimalFilter<"SalonService"> | Decimal | DecimalJsLike | number | string
+    priceFrom?: BoolFilter<"SalonService"> | boolean
+    durationMins?: IntFilter<"SalonService"> | number
+    bufferMins?: IntFilter<"SalonService"> | number
+    processingStartMins?: IntNullableFilter<"SalonService"> | number | null
+    processingMins?: IntNullableFilter<"SalonService"> | number | null
+    depositType?: StringFilter<"SalonService"> | string
+    depositValue?: DecimalNullableFilter<"SalonService"> | Decimal | DecimalJsLike | number | string | null
+    requiresPatchTest?: BoolFilter<"SalonService"> | boolean
+    bookableOnline?: BoolFilter<"SalonService"> | boolean
+    isActive?: BoolFilter<"SalonService"> | boolean
+    sortOrder?: IntFilter<"SalonService"> | number
+    imageUrl?: StringNullableFilter<"SalonService"> | string | null
+    addons?: JsonFilter<"SalonService">
+    createdAt?: DateTimeFilter<"SalonService"> | Date | string
+    updatedAt?: DateTimeFilter<"SalonService"> | Date | string
+  }
+
+  export type SalonStaffUpsertWithWhereUniqueWithoutLocationInput = {
+    where: SalonStaffWhereUniqueInput
+    update: XOR<SalonStaffUpdateWithoutLocationInput, SalonStaffUncheckedUpdateWithoutLocationInput>
+    create: XOR<SalonStaffCreateWithoutLocationInput, SalonStaffUncheckedCreateWithoutLocationInput>
+  }
+
+  export type SalonStaffUpdateWithWhereUniqueWithoutLocationInput = {
+    where: SalonStaffWhereUniqueInput
+    data: XOR<SalonStaffUpdateWithoutLocationInput, SalonStaffUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type SalonStaffUpdateManyWithWhereWithoutLocationInput = {
+    where: SalonStaffScalarWhereInput
+    data: XOR<SalonStaffUpdateManyMutationInput, SalonStaffUncheckedUpdateManyWithoutLocationInput>
+  }
+
+  export type SalonStaffScalarWhereInput = {
+    AND?: SalonStaffScalarWhereInput | SalonStaffScalarWhereInput[]
+    OR?: SalonStaffScalarWhereInput[]
+    NOT?: SalonStaffScalarWhereInput | SalonStaffScalarWhereInput[]
+    id?: StringFilter<"SalonStaff"> | string
+    tenantId?: StringFilter<"SalonStaff"> | string
+    locationId?: StringFilter<"SalonStaff"> | string
+    userId?: StringNullableFilter<"SalonStaff"> | string | null
+    name?: StringFilter<"SalonStaff"> | string
+    title?: StringNullableFilter<"SalonStaff"> | string | null
+    bio?: StringNullableFilter<"SalonStaff"> | string | null
+    avatarUrl?: StringNullableFilter<"SalonStaff"> | string | null
+    colour?: StringFilter<"SalonStaff"> | string
+    bookableOnline?: BoolFilter<"SalonStaff"> | boolean
+    acceptsWalkIns?: BoolFilter<"SalonStaff"> | boolean
+    isActive?: BoolFilter<"SalonStaff"> | boolean
+    sortOrder?: IntFilter<"SalonStaff"> | number
+    weeklyHours?: JsonFilter<"SalonStaff">
+    serviceIds?: StringNullableListFilter<"SalonStaff">
+    priceOverrides?: JsonFilter<"SalonStaff">
+    commissionPercent?: DecimalNullableFilter<"SalonStaff"> | Decimal | DecimalJsLike | number | string | null
+    createdAt?: DateTimeFilter<"SalonStaff"> | Date | string
+    updatedAt?: DateTimeFilter<"SalonStaff"> | Date | string
+  }
+
+  export type SalonAppointmentUpsertWithWhereUniqueWithoutLocationInput = {
+    where: SalonAppointmentWhereUniqueInput
+    update: XOR<SalonAppointmentUpdateWithoutLocationInput, SalonAppointmentUncheckedUpdateWithoutLocationInput>
+    create: XOR<SalonAppointmentCreateWithoutLocationInput, SalonAppointmentUncheckedCreateWithoutLocationInput>
+  }
+
+  export type SalonAppointmentUpdateWithWhereUniqueWithoutLocationInput = {
+    where: SalonAppointmentWhereUniqueInput
+    data: XOR<SalonAppointmentUpdateWithoutLocationInput, SalonAppointmentUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type SalonAppointmentUpdateManyWithWhereWithoutLocationInput = {
+    where: SalonAppointmentScalarWhereInput
+    data: XOR<SalonAppointmentUpdateManyMutationInput, SalonAppointmentUncheckedUpdateManyWithoutLocationInput>
+  }
+
+  export type SalonAppointmentScalarWhereInput = {
+    AND?: SalonAppointmentScalarWhereInput | SalonAppointmentScalarWhereInput[]
+    OR?: SalonAppointmentScalarWhereInput[]
+    NOT?: SalonAppointmentScalarWhereInput | SalonAppointmentScalarWhereInput[]
+    id?: StringFilter<"SalonAppointment"> | string
+    tenantId?: StringFilter<"SalonAppointment"> | string
+    locationId?: StringFilter<"SalonAppointment"> | string
+    staffId?: StringNullableFilter<"SalonAppointment"> | string | null
+    customerId?: StringNullableFilter<"SalonAppointment"> | string | null
+    customerName?: StringFilter<"SalonAppointment"> | string
+    customerPhone?: StringNullableFilter<"SalonAppointment"> | string | null
+    customerEmail?: StringNullableFilter<"SalonAppointment"> | string | null
+    startsAt?: DateTimeFilter<"SalonAppointment"> | Date | string
+    endsAt?: DateTimeFilter<"SalonAppointment"> | Date | string
+    status?: StringFilter<"SalonAppointment"> | string
+    source?: StringFilter<"SalonAppointment"> | string
+    anyStaff?: BoolFilter<"SalonAppointment"> | boolean
+    services?: JsonFilter<"SalonAppointment">
+    totalPrice?: DecimalFilter<"SalonAppointment"> | Decimal | DecimalJsLike | number | string
+    notes?: StringNullableFilter<"SalonAppointment"> | string | null
+    staffNotes?: StringNullableFilter<"SalonAppointment"> | string | null
+    reference?: StringFilter<"SalonAppointment"> | string
+    manageToken?: StringFilter<"SalonAppointment"> | string
+    depositAmount?: DecimalFilter<"SalonAppointment"> | Decimal | DecimalJsLike | number | string
+    depositStatus?: StringFilter<"SalonAppointment"> | string
+    depositOrderId?: StringNullableFilter<"SalonAppointment"> | string | null
+    depositPaidAt?: DateTimeNullableFilter<"SalonAppointment"> | Date | string | null
+    orderId?: StringNullableFilter<"SalonAppointment"> | string | null
+    tipAmount?: DecimalNullableFilter<"SalonAppointment"> | Decimal | DecimalJsLike | number | string | null
+    checkedInAt?: DateTimeNullableFilter<"SalonAppointment"> | Date | string | null
+    startedAt?: DateTimeNullableFilter<"SalonAppointment"> | Date | string | null
+    completedAt?: DateTimeNullableFilter<"SalonAppointment"> | Date | string | null
+    cancelledAt?: DateTimeNullableFilter<"SalonAppointment"> | Date | string | null
+    cancelReason?: StringNullableFilter<"SalonAppointment"> | string | null
+    reminderSentAt?: DateTimeNullableFilter<"SalonAppointment"> | Date | string | null
+    rebookNudgeSentAt?: DateTimeNullableFilter<"SalonAppointment"> | Date | string | null
+    queueEntryId?: StringNullableFilter<"SalonAppointment"> | string | null
+    createdAt?: DateTimeFilter<"SalonAppointment"> | Date | string
+    updatedAt?: DateTimeFilter<"SalonAppointment"> | Date | string
+  }
+
+  export type SalonQueueEntryUpsertWithWhereUniqueWithoutLocationInput = {
+    where: SalonQueueEntryWhereUniqueInput
+    update: XOR<SalonQueueEntryUpdateWithoutLocationInput, SalonQueueEntryUncheckedUpdateWithoutLocationInput>
+    create: XOR<SalonQueueEntryCreateWithoutLocationInput, SalonQueueEntryUncheckedCreateWithoutLocationInput>
+  }
+
+  export type SalonQueueEntryUpdateWithWhereUniqueWithoutLocationInput = {
+    where: SalonQueueEntryWhereUniqueInput
+    data: XOR<SalonQueueEntryUpdateWithoutLocationInput, SalonQueueEntryUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type SalonQueueEntryUpdateManyWithWhereWithoutLocationInput = {
+    where: SalonQueueEntryScalarWhereInput
+    data: XOR<SalonQueueEntryUpdateManyMutationInput, SalonQueueEntryUncheckedUpdateManyWithoutLocationInput>
+  }
+
+  export type SalonQueueEntryScalarWhereInput = {
+    AND?: SalonQueueEntryScalarWhereInput | SalonQueueEntryScalarWhereInput[]
+    OR?: SalonQueueEntryScalarWhereInput[]
+    NOT?: SalonQueueEntryScalarWhereInput | SalonQueueEntryScalarWhereInput[]
+    id?: StringFilter<"SalonQueueEntry"> | string
+    tenantId?: StringFilter<"SalonQueueEntry"> | string
+    locationId?: StringFilter<"SalonQueueEntry"> | string
+    customerName?: StringFilter<"SalonQueueEntry"> | string
+    customerPhone?: StringNullableFilter<"SalonQueueEntry"> | string | null
+    serviceIds?: StringNullableListFilter<"SalonQueueEntry">
+    serviceSummary?: StringNullableFilter<"SalonQueueEntry"> | string | null
+    estimatedMins?: IntFilter<"SalonQueueEntry"> | number
+    preferredStaffId?: StringNullableFilter<"SalonQueueEntry"> | string | null
+    staffId?: StringNullableFilter<"SalonQueueEntry"> | string | null
+    status?: StringFilter<"SalonQueueEntry"> | string
+    source?: StringFilter<"SalonQueueEntry"> | string
+    publicToken?: StringFilter<"SalonQueueEntry"> | string
+    calledAt?: DateTimeNullableFilter<"SalonQueueEntry"> | Date | string | null
+    startedAt?: DateTimeNullableFilter<"SalonQueueEntry"> | Date | string | null
+    finishedAt?: DateTimeNullableFilter<"SalonQueueEntry"> | Date | string | null
+    appointmentId?: StringNullableFilter<"SalonQueueEntry"> | string | null
+    createdAt?: DateTimeFilter<"SalonQueueEntry"> | Date | string
+    updatedAt?: DateTimeFilter<"SalonQueueEntry"> | Date | string
+  }
+
   export type PrinterStationUpsertWithoutLocationDefaultsInput = {
     update: XOR<PrinterStationUpdateWithoutLocationDefaultsInput, PrinterStationUncheckedUpdateWithoutLocationDefaultsInput>
     create: XOR<PrinterStationCreateWithoutLocationDefaultsInput, PrinterStationUncheckedCreateWithoutLocationDefaultsInput>
@@ -257135,6 +266585,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -257233,6 +266687,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -257472,6 +266930,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -257570,6 +267032,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -257662,6 +267128,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -257760,6 +267230,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -257868,6 +267342,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -257966,6 +267444,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -258742,6 +268224,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -258840,6 +268326,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -259041,6 +268531,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -259139,6 +268633,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -260424,6 +269922,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -260522,6 +270024,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -260630,6 +270136,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -260728,6 +270238,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -260937,6 +270451,10 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -261035,6 +270553,10 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -261266,6 +270788,10 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -261364,6 +270890,10 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -264929,6 +274459,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -265027,6 +274561,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -265260,6 +274798,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -265358,6 +274900,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -267054,6 +276600,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -267152,6 +276702,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -267385,6 +276939,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -267483,6 +277041,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -267706,6 +277268,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -267804,6 +277370,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -267912,6 +277482,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -268010,6 +277584,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -268171,6 +277749,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -268269,6 +277851,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -268983,6 +278569,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -269081,6 +278671,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -270469,6 +280063,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -270567,6 +280165,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -270703,6 +280305,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -270801,6 +280407,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -270909,6 +280519,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -271007,6 +280621,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -271240,6 +280858,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -271338,6 +280960,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -271561,6 +281187,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -271659,6 +281289,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -271819,6 +281453,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -271917,6 +281555,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -272025,6 +281667,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -272123,6 +281769,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -272231,6 +281881,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -272329,6 +281983,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -272421,6 +282079,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -272519,6 +282181,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -272690,6 +282356,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -272788,6 +282458,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -272864,6 +282538,2027 @@ export namespace Prisma {
     serverName?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LocationCreateWithoutSalonServicesInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    currency?: string
+    businessType?: $Enums.BusinessType
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
+    tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationUncheckedCreateWithoutSalonServicesInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    currency?: string
+    businessType?: $Enums.BusinessType
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
+    tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutSalonServicesInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutSalonServicesInput, LocationUncheckedCreateWithoutSalonServicesInput>
+  }
+
+  export type LocationUpsertWithoutSalonServicesInput = {
+    update: XOR<LocationUpdateWithoutSalonServicesInput, LocationUncheckedUpdateWithoutSalonServicesInput>
+    create: XOR<LocationCreateWithoutSalonServicesInput, LocationUncheckedCreateWithoutSalonServicesInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutSalonServicesInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutSalonServicesInput, LocationUncheckedUpdateWithoutSalonServicesInput>
+  }
+
+  export type LocationUpdateWithoutSalonServicesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
+    tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutSalonServicesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
+    tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
+  }
+
+  export type LocationCreateWithoutSalonStaffInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    currency?: string
+    businessType?: $Enums.BusinessType
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
+    tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationUncheckedCreateWithoutSalonStaffInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    currency?: string
+    businessType?: $Enums.BusinessType
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
+    tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutSalonStaffInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutSalonStaffInput, LocationUncheckedCreateWithoutSalonStaffInput>
+  }
+
+  export type SalonTimeOffCreateWithoutStaffInput = {
+    id?: string
+    tenantId: string
+    startsAt: Date | string
+    endsAt: Date | string
+    reason?: string | null
+    createdAt?: Date | string
+  }
+
+  export type SalonTimeOffUncheckedCreateWithoutStaffInput = {
+    id?: string
+    tenantId: string
+    startsAt: Date | string
+    endsAt: Date | string
+    reason?: string | null
+    createdAt?: Date | string
+  }
+
+  export type SalonTimeOffCreateOrConnectWithoutStaffInput = {
+    where: SalonTimeOffWhereUniqueInput
+    create: XOR<SalonTimeOffCreateWithoutStaffInput, SalonTimeOffUncheckedCreateWithoutStaffInput>
+  }
+
+  export type SalonTimeOffCreateManyStaffInputEnvelope = {
+    data: SalonTimeOffCreateManyStaffInput | SalonTimeOffCreateManyStaffInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type SalonAppointmentCreateWithoutStaffInput = {
+    id?: string
+    tenantId: string
+    customerId?: string | null
+    customerName: string
+    customerPhone?: string | null
+    customerEmail?: string | null
+    startsAt: Date | string
+    endsAt: Date | string
+    status?: string
+    source?: string
+    anyStaff?: boolean
+    services?: JsonNullValueInput | InputJsonValue
+    totalPrice?: Decimal | DecimalJsLike | number | string
+    notes?: string | null
+    staffNotes?: string | null
+    reference: string
+    manageToken: string
+    depositAmount?: Decimal | DecimalJsLike | number | string
+    depositStatus?: string
+    depositOrderId?: string | null
+    depositPaidAt?: Date | string | null
+    orderId?: string | null
+    tipAmount?: Decimal | DecimalJsLike | number | string | null
+    checkedInAt?: Date | string | null
+    startedAt?: Date | string | null
+    completedAt?: Date | string | null
+    cancelledAt?: Date | string | null
+    cancelReason?: string | null
+    reminderSentAt?: Date | string | null
+    rebookNudgeSentAt?: Date | string | null
+    queueEntryId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutSalonAppointmentsInput
+  }
+
+  export type SalonAppointmentUncheckedCreateWithoutStaffInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    customerId?: string | null
+    customerName: string
+    customerPhone?: string | null
+    customerEmail?: string | null
+    startsAt: Date | string
+    endsAt: Date | string
+    status?: string
+    source?: string
+    anyStaff?: boolean
+    services?: JsonNullValueInput | InputJsonValue
+    totalPrice?: Decimal | DecimalJsLike | number | string
+    notes?: string | null
+    staffNotes?: string | null
+    reference: string
+    manageToken: string
+    depositAmount?: Decimal | DecimalJsLike | number | string
+    depositStatus?: string
+    depositOrderId?: string | null
+    depositPaidAt?: Date | string | null
+    orderId?: string | null
+    tipAmount?: Decimal | DecimalJsLike | number | string | null
+    checkedInAt?: Date | string | null
+    startedAt?: Date | string | null
+    completedAt?: Date | string | null
+    cancelledAt?: Date | string | null
+    cancelReason?: string | null
+    reminderSentAt?: Date | string | null
+    rebookNudgeSentAt?: Date | string | null
+    queueEntryId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SalonAppointmentCreateOrConnectWithoutStaffInput = {
+    where: SalonAppointmentWhereUniqueInput
+    create: XOR<SalonAppointmentCreateWithoutStaffInput, SalonAppointmentUncheckedCreateWithoutStaffInput>
+  }
+
+  export type SalonAppointmentCreateManyStaffInputEnvelope = {
+    data: SalonAppointmentCreateManyStaffInput | SalonAppointmentCreateManyStaffInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type LocationUpsertWithoutSalonStaffInput = {
+    update: XOR<LocationUpdateWithoutSalonStaffInput, LocationUncheckedUpdateWithoutSalonStaffInput>
+    create: XOR<LocationCreateWithoutSalonStaffInput, LocationUncheckedCreateWithoutSalonStaffInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutSalonStaffInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutSalonStaffInput, LocationUncheckedUpdateWithoutSalonStaffInput>
+  }
+
+  export type LocationUpdateWithoutSalonStaffInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
+    tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutSalonStaffInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
+    tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
+  }
+
+  export type SalonTimeOffUpsertWithWhereUniqueWithoutStaffInput = {
+    where: SalonTimeOffWhereUniqueInput
+    update: XOR<SalonTimeOffUpdateWithoutStaffInput, SalonTimeOffUncheckedUpdateWithoutStaffInput>
+    create: XOR<SalonTimeOffCreateWithoutStaffInput, SalonTimeOffUncheckedCreateWithoutStaffInput>
+  }
+
+  export type SalonTimeOffUpdateWithWhereUniqueWithoutStaffInput = {
+    where: SalonTimeOffWhereUniqueInput
+    data: XOR<SalonTimeOffUpdateWithoutStaffInput, SalonTimeOffUncheckedUpdateWithoutStaffInput>
+  }
+
+  export type SalonTimeOffUpdateManyWithWhereWithoutStaffInput = {
+    where: SalonTimeOffScalarWhereInput
+    data: XOR<SalonTimeOffUpdateManyMutationInput, SalonTimeOffUncheckedUpdateManyWithoutStaffInput>
+  }
+
+  export type SalonTimeOffScalarWhereInput = {
+    AND?: SalonTimeOffScalarWhereInput | SalonTimeOffScalarWhereInput[]
+    OR?: SalonTimeOffScalarWhereInput[]
+    NOT?: SalonTimeOffScalarWhereInput | SalonTimeOffScalarWhereInput[]
+    id?: StringFilter<"SalonTimeOff"> | string
+    tenantId?: StringFilter<"SalonTimeOff"> | string
+    staffId?: StringFilter<"SalonTimeOff"> | string
+    startsAt?: DateTimeFilter<"SalonTimeOff"> | Date | string
+    endsAt?: DateTimeFilter<"SalonTimeOff"> | Date | string
+    reason?: StringNullableFilter<"SalonTimeOff"> | string | null
+    createdAt?: DateTimeFilter<"SalonTimeOff"> | Date | string
+  }
+
+  export type SalonAppointmentUpsertWithWhereUniqueWithoutStaffInput = {
+    where: SalonAppointmentWhereUniqueInput
+    update: XOR<SalonAppointmentUpdateWithoutStaffInput, SalonAppointmentUncheckedUpdateWithoutStaffInput>
+    create: XOR<SalonAppointmentCreateWithoutStaffInput, SalonAppointmentUncheckedCreateWithoutStaffInput>
+  }
+
+  export type SalonAppointmentUpdateWithWhereUniqueWithoutStaffInput = {
+    where: SalonAppointmentWhereUniqueInput
+    data: XOR<SalonAppointmentUpdateWithoutStaffInput, SalonAppointmentUncheckedUpdateWithoutStaffInput>
+  }
+
+  export type SalonAppointmentUpdateManyWithWhereWithoutStaffInput = {
+    where: SalonAppointmentScalarWhereInput
+    data: XOR<SalonAppointmentUpdateManyMutationInput, SalonAppointmentUncheckedUpdateManyWithoutStaffInput>
+  }
+
+  export type SalonStaffCreateWithoutTimeOffInput = {
+    id?: string
+    tenantId: string
+    userId?: string | null
+    name: string
+    title?: string | null
+    bio?: string | null
+    avatarUrl?: string | null
+    colour?: string
+    bookableOnline?: boolean
+    acceptsWalkIns?: boolean
+    isActive?: boolean
+    sortOrder?: number
+    weeklyHours?: JsonNullValueInput | InputJsonValue
+    serviceIds?: SalonStaffCreateserviceIdsInput | string[]
+    priceOverrides?: JsonNullValueInput | InputJsonValue
+    commissionPercent?: Decimal | DecimalJsLike | number | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutSalonStaffInput
+    appointments?: SalonAppointmentCreateNestedManyWithoutStaffInput
+  }
+
+  export type SalonStaffUncheckedCreateWithoutTimeOffInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    userId?: string | null
+    name: string
+    title?: string | null
+    bio?: string | null
+    avatarUrl?: string | null
+    colour?: string
+    bookableOnline?: boolean
+    acceptsWalkIns?: boolean
+    isActive?: boolean
+    sortOrder?: number
+    weeklyHours?: JsonNullValueInput | InputJsonValue
+    serviceIds?: SalonStaffCreateserviceIdsInput | string[]
+    priceOverrides?: JsonNullValueInput | InputJsonValue
+    commissionPercent?: Decimal | DecimalJsLike | number | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    appointments?: SalonAppointmentUncheckedCreateNestedManyWithoutStaffInput
+  }
+
+  export type SalonStaffCreateOrConnectWithoutTimeOffInput = {
+    where: SalonStaffWhereUniqueInput
+    create: XOR<SalonStaffCreateWithoutTimeOffInput, SalonStaffUncheckedCreateWithoutTimeOffInput>
+  }
+
+  export type SalonStaffUpsertWithoutTimeOffInput = {
+    update: XOR<SalonStaffUpdateWithoutTimeOffInput, SalonStaffUncheckedUpdateWithoutTimeOffInput>
+    create: XOR<SalonStaffCreateWithoutTimeOffInput, SalonStaffUncheckedCreateWithoutTimeOffInput>
+    where?: SalonStaffWhereInput
+  }
+
+  export type SalonStaffUpdateToOneWithWhereWithoutTimeOffInput = {
+    where?: SalonStaffWhereInput
+    data: XOR<SalonStaffUpdateWithoutTimeOffInput, SalonStaffUncheckedUpdateWithoutTimeOffInput>
+  }
+
+  export type SalonStaffUpdateWithoutTimeOffInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    colour?: StringFieldUpdateOperationsInput | string
+    bookableOnline?: BoolFieldUpdateOperationsInput | boolean
+    acceptsWalkIns?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    weeklyHours?: JsonNullValueInput | InputJsonValue
+    serviceIds?: SalonStaffUpdateserviceIdsInput | string[]
+    priceOverrides?: JsonNullValueInput | InputJsonValue
+    commissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutSalonStaffNestedInput
+    appointments?: SalonAppointmentUpdateManyWithoutStaffNestedInput
+  }
+
+  export type SalonStaffUncheckedUpdateWithoutTimeOffInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    colour?: StringFieldUpdateOperationsInput | string
+    bookableOnline?: BoolFieldUpdateOperationsInput | boolean
+    acceptsWalkIns?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    weeklyHours?: JsonNullValueInput | InputJsonValue
+    serviceIds?: SalonStaffUpdateserviceIdsInput | string[]
+    priceOverrides?: JsonNullValueInput | InputJsonValue
+    commissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    appointments?: SalonAppointmentUncheckedUpdateManyWithoutStaffNestedInput
+  }
+
+  export type LocationCreateWithoutSalonAppointmentsInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    currency?: string
+    businessType?: $Enums.BusinessType
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
+    tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationUncheckedCreateWithoutSalonAppointmentsInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    currency?: string
+    businessType?: $Enums.BusinessType
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
+    tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutSalonAppointmentsInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutSalonAppointmentsInput, LocationUncheckedCreateWithoutSalonAppointmentsInput>
+  }
+
+  export type SalonStaffCreateWithoutAppointmentsInput = {
+    id?: string
+    tenantId: string
+    userId?: string | null
+    name: string
+    title?: string | null
+    bio?: string | null
+    avatarUrl?: string | null
+    colour?: string
+    bookableOnline?: boolean
+    acceptsWalkIns?: boolean
+    isActive?: boolean
+    sortOrder?: number
+    weeklyHours?: JsonNullValueInput | InputJsonValue
+    serviceIds?: SalonStaffCreateserviceIdsInput | string[]
+    priceOverrides?: JsonNullValueInput | InputJsonValue
+    commissionPercent?: Decimal | DecimalJsLike | number | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutSalonStaffInput
+    timeOff?: SalonTimeOffCreateNestedManyWithoutStaffInput
+  }
+
+  export type SalonStaffUncheckedCreateWithoutAppointmentsInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    userId?: string | null
+    name: string
+    title?: string | null
+    bio?: string | null
+    avatarUrl?: string | null
+    colour?: string
+    bookableOnline?: boolean
+    acceptsWalkIns?: boolean
+    isActive?: boolean
+    sortOrder?: number
+    weeklyHours?: JsonNullValueInput | InputJsonValue
+    serviceIds?: SalonStaffCreateserviceIdsInput | string[]
+    priceOverrides?: JsonNullValueInput | InputJsonValue
+    commissionPercent?: Decimal | DecimalJsLike | number | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    timeOff?: SalonTimeOffUncheckedCreateNestedManyWithoutStaffInput
+  }
+
+  export type SalonStaffCreateOrConnectWithoutAppointmentsInput = {
+    where: SalonStaffWhereUniqueInput
+    create: XOR<SalonStaffCreateWithoutAppointmentsInput, SalonStaffUncheckedCreateWithoutAppointmentsInput>
+  }
+
+  export type LocationUpsertWithoutSalonAppointmentsInput = {
+    update: XOR<LocationUpdateWithoutSalonAppointmentsInput, LocationUncheckedUpdateWithoutSalonAppointmentsInput>
+    create: XOR<LocationCreateWithoutSalonAppointmentsInput, LocationUncheckedCreateWithoutSalonAppointmentsInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutSalonAppointmentsInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutSalonAppointmentsInput, LocationUncheckedUpdateWithoutSalonAppointmentsInput>
+  }
+
+  export type LocationUpdateWithoutSalonAppointmentsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
+    tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutSalonAppointmentsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
+    tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
+  }
+
+  export type SalonStaffUpsertWithoutAppointmentsInput = {
+    update: XOR<SalonStaffUpdateWithoutAppointmentsInput, SalonStaffUncheckedUpdateWithoutAppointmentsInput>
+    create: XOR<SalonStaffCreateWithoutAppointmentsInput, SalonStaffUncheckedCreateWithoutAppointmentsInput>
+    where?: SalonStaffWhereInput
+  }
+
+  export type SalonStaffUpdateToOneWithWhereWithoutAppointmentsInput = {
+    where?: SalonStaffWhereInput
+    data: XOR<SalonStaffUpdateWithoutAppointmentsInput, SalonStaffUncheckedUpdateWithoutAppointmentsInput>
+  }
+
+  export type SalonStaffUpdateWithoutAppointmentsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    colour?: StringFieldUpdateOperationsInput | string
+    bookableOnline?: BoolFieldUpdateOperationsInput | boolean
+    acceptsWalkIns?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    weeklyHours?: JsonNullValueInput | InputJsonValue
+    serviceIds?: SalonStaffUpdateserviceIdsInput | string[]
+    priceOverrides?: JsonNullValueInput | InputJsonValue
+    commissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutSalonStaffNestedInput
+    timeOff?: SalonTimeOffUpdateManyWithoutStaffNestedInput
+  }
+
+  export type SalonStaffUncheckedUpdateWithoutAppointmentsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    colour?: StringFieldUpdateOperationsInput | string
+    bookableOnline?: BoolFieldUpdateOperationsInput | boolean
+    acceptsWalkIns?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    weeklyHours?: JsonNullValueInput | InputJsonValue
+    serviceIds?: SalonStaffUpdateserviceIdsInput | string[]
+    priceOverrides?: JsonNullValueInput | InputJsonValue
+    commissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    timeOff?: SalonTimeOffUncheckedUpdateManyWithoutStaffNestedInput
+  }
+
+  export type LocationCreateWithoutSalonQueueEntriesInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    currency?: string
+    businessType?: $Enums.BusinessType
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
+    tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationUncheckedCreateWithoutSalonQueueEntriesInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    currency?: string
+    businessType?: $Enums.BusinessType
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
+    tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutSalonQueueEntriesInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutSalonQueueEntriesInput, LocationUncheckedCreateWithoutSalonQueueEntriesInput>
+  }
+
+  export type LocationUpsertWithoutSalonQueueEntriesInput = {
+    update: XOR<LocationUpdateWithoutSalonQueueEntriesInput, LocationUncheckedUpdateWithoutSalonQueueEntriesInput>
+    create: XOR<LocationCreateWithoutSalonQueueEntriesInput, LocationUncheckedCreateWithoutSalonQueueEntriesInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutSalonQueueEntriesInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutSalonQueueEntriesInput, LocationUncheckedUpdateWithoutSalonQueueEntriesInput>
+  }
+
+  export type LocationUpdateWithoutSalonQueueEntriesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
+    tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutSalonQueueEntriesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
+    tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
 
   export type KdsScreenCreateWithoutTicketsInput = {
@@ -273397,6 +285092,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -273495,6 +285194,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -273754,6 +285457,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
@@ -273851,6 +285558,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -273954,6 +285665,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
@@ -274051,6 +285766,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -274164,6 +285883,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -274262,6 +285985,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -275442,6 +287169,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -275540,6 +287271,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -275921,6 +287656,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
@@ -276018,6 +287757,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -276272,6 +288015,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -276370,6 +288117,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -276720,6 +288471,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -276818,6 +288573,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -277159,6 +288918,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -277257,6 +289020,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -278218,6 +289985,10 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -278316,6 +290087,10 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -278618,6 +290393,10 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -278716,6 +290495,10 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -281321,6 +293104,10 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -281419,6 +293206,10 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -281578,6 +293369,10 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -281676,6 +293471,10 @@ export namespace Prisma {
     menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -284741,6 +296540,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -284839,6 +296642,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -285022,6 +296829,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -285120,6 +296931,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -286459,6 +298274,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -286557,6 +298376,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -286665,6 +298488,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -286763,6 +298590,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -286855,6 +298686,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -286953,6 +298788,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -287061,6 +298900,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -287159,6 +299002,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -287251,6 +299098,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -287349,6 +299200,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -287457,6 +299312,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -287555,6 +299414,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -287647,6 +299510,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -287745,6 +299612,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -287853,6 +299724,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -287951,6 +299826,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -288539,6 +300418,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -288637,6 +300520,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -288891,6 +300778,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -288989,6 +300880,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -289291,6 +301186,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -289389,6 +301288,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -289746,6 +301649,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -289844,6 +301751,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -290884,6 +302795,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -290982,6 +302897,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -291247,6 +303166,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -291345,6 +303268,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -291924,6 +303851,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
     defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
     receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
     dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
@@ -292022,6 +303953,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
     homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
     productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
@@ -292202,6 +304137,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -292300,6 +304239,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -297394,6 +309337,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
@@ -297492,6 +309439,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -298912,6 +310863,109 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type SalonServiceCreateManyLocationInput = {
+    id?: string
+    tenantId: string
+    category?: string
+    name: string
+    description?: string | null
+    price: Decimal | DecimalJsLike | number | string
+    priceFrom?: boolean
+    durationMins?: number
+    bufferMins?: number
+    processingStartMins?: number | null
+    processingMins?: number | null
+    depositType?: string
+    depositValue?: Decimal | DecimalJsLike | number | string | null
+    requiresPatchTest?: boolean
+    bookableOnline?: boolean
+    isActive?: boolean
+    sortOrder?: number
+    imageUrl?: string | null
+    addons?: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SalonStaffCreateManyLocationInput = {
+    id?: string
+    tenantId: string
+    userId?: string | null
+    name: string
+    title?: string | null
+    bio?: string | null
+    avatarUrl?: string | null
+    colour?: string
+    bookableOnline?: boolean
+    acceptsWalkIns?: boolean
+    isActive?: boolean
+    sortOrder?: number
+    weeklyHours?: JsonNullValueInput | InputJsonValue
+    serviceIds?: SalonStaffCreateserviceIdsInput | string[]
+    priceOverrides?: JsonNullValueInput | InputJsonValue
+    commissionPercent?: Decimal | DecimalJsLike | number | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SalonAppointmentCreateManyLocationInput = {
+    id?: string
+    tenantId: string
+    staffId?: string | null
+    customerId?: string | null
+    customerName: string
+    customerPhone?: string | null
+    customerEmail?: string | null
+    startsAt: Date | string
+    endsAt: Date | string
+    status?: string
+    source?: string
+    anyStaff?: boolean
+    services?: JsonNullValueInput | InputJsonValue
+    totalPrice?: Decimal | DecimalJsLike | number | string
+    notes?: string | null
+    staffNotes?: string | null
+    reference: string
+    manageToken: string
+    depositAmount?: Decimal | DecimalJsLike | number | string
+    depositStatus?: string
+    depositOrderId?: string | null
+    depositPaidAt?: Date | string | null
+    orderId?: string | null
+    tipAmount?: Decimal | DecimalJsLike | number | string | null
+    checkedInAt?: Date | string | null
+    startedAt?: Date | string | null
+    completedAt?: Date | string | null
+    cancelledAt?: Date | string | null
+    cancelReason?: string | null
+    reminderSentAt?: Date | string | null
+    rebookNudgeSentAt?: Date | string | null
+    queueEntryId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SalonQueueEntryCreateManyLocationInput = {
+    id?: string
+    tenantId: string
+    customerName: string
+    customerPhone?: string | null
+    serviceIds?: SalonQueueEntryCreateserviceIdsInput | string[]
+    serviceSummary?: string | null
+    estimatedMins?: number
+    preferredStaffId?: string | null
+    staffId?: string | null
+    status?: string
+    source?: string
+    publicToken: string
+    calledAt?: Date | string | null
+    startedAt?: Date | string | null
+    finishedAt?: Date | string | null
+    appointmentId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type LoyaltyRewardCreateManyLocationInput = {
     id?: string
     tenantId: string
@@ -300165,6 +312219,319 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     variantId?: StringFieldUpdateOperationsInput | string
     quantity?: IntFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SalonServiceUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    priceFrom?: BoolFieldUpdateOperationsInput | boolean
+    durationMins?: IntFieldUpdateOperationsInput | number
+    bufferMins?: IntFieldUpdateOperationsInput | number
+    processingStartMins?: NullableIntFieldUpdateOperationsInput | number | null
+    processingMins?: NullableIntFieldUpdateOperationsInput | number | null
+    depositType?: StringFieldUpdateOperationsInput | string
+    depositValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    requiresPatchTest?: BoolFieldUpdateOperationsInput | boolean
+    bookableOnline?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    addons?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SalonServiceUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    priceFrom?: BoolFieldUpdateOperationsInput | boolean
+    durationMins?: IntFieldUpdateOperationsInput | number
+    bufferMins?: IntFieldUpdateOperationsInput | number
+    processingStartMins?: NullableIntFieldUpdateOperationsInput | number | null
+    processingMins?: NullableIntFieldUpdateOperationsInput | number | null
+    depositType?: StringFieldUpdateOperationsInput | string
+    depositValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    requiresPatchTest?: BoolFieldUpdateOperationsInput | boolean
+    bookableOnline?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    addons?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SalonServiceUncheckedUpdateManyWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    priceFrom?: BoolFieldUpdateOperationsInput | boolean
+    durationMins?: IntFieldUpdateOperationsInput | number
+    bufferMins?: IntFieldUpdateOperationsInput | number
+    processingStartMins?: NullableIntFieldUpdateOperationsInput | number | null
+    processingMins?: NullableIntFieldUpdateOperationsInput | number | null
+    depositType?: StringFieldUpdateOperationsInput | string
+    depositValue?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    requiresPatchTest?: BoolFieldUpdateOperationsInput | boolean
+    bookableOnline?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    addons?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SalonStaffUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    colour?: StringFieldUpdateOperationsInput | string
+    bookableOnline?: BoolFieldUpdateOperationsInput | boolean
+    acceptsWalkIns?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    weeklyHours?: JsonNullValueInput | InputJsonValue
+    serviceIds?: SalonStaffUpdateserviceIdsInput | string[]
+    priceOverrides?: JsonNullValueInput | InputJsonValue
+    commissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    timeOff?: SalonTimeOffUpdateManyWithoutStaffNestedInput
+    appointments?: SalonAppointmentUpdateManyWithoutStaffNestedInput
+  }
+
+  export type SalonStaffUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    colour?: StringFieldUpdateOperationsInput | string
+    bookableOnline?: BoolFieldUpdateOperationsInput | boolean
+    acceptsWalkIns?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    weeklyHours?: JsonNullValueInput | InputJsonValue
+    serviceIds?: SalonStaffUpdateserviceIdsInput | string[]
+    priceOverrides?: JsonNullValueInput | InputJsonValue
+    commissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    timeOff?: SalonTimeOffUncheckedUpdateManyWithoutStaffNestedInput
+    appointments?: SalonAppointmentUncheckedUpdateManyWithoutStaffNestedInput
+  }
+
+  export type SalonStaffUncheckedUpdateManyWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    colour?: StringFieldUpdateOperationsInput | string
+    bookableOnline?: BoolFieldUpdateOperationsInput | boolean
+    acceptsWalkIns?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    weeklyHours?: JsonNullValueInput | InputJsonValue
+    serviceIds?: SalonStaffUpdateserviceIdsInput | string[]
+    priceOverrides?: JsonNullValueInput | InputJsonValue
+    commissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SalonAppointmentUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerName?: StringFieldUpdateOperationsInput | string
+    customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    customerEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    startsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    anyStaff?: BoolFieldUpdateOperationsInput | boolean
+    services?: JsonNullValueInput | InputJsonValue
+    totalPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    staffNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    reference?: StringFieldUpdateOperationsInput | string
+    manageToken?: StringFieldUpdateOperationsInput | string
+    depositAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    depositStatus?: StringFieldUpdateOperationsInput | string
+    depositOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    depositPaidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    tipAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
+    reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rebookNudgeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    queueEntryId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    staff?: SalonStaffUpdateOneWithoutAppointmentsNestedInput
+  }
+
+  export type SalonAppointmentUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    staffId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerName?: StringFieldUpdateOperationsInput | string
+    customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    customerEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    startsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    anyStaff?: BoolFieldUpdateOperationsInput | boolean
+    services?: JsonNullValueInput | InputJsonValue
+    totalPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    staffNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    reference?: StringFieldUpdateOperationsInput | string
+    manageToken?: StringFieldUpdateOperationsInput | string
+    depositAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    depositStatus?: StringFieldUpdateOperationsInput | string
+    depositOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    depositPaidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    tipAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
+    reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rebookNudgeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    queueEntryId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SalonAppointmentUncheckedUpdateManyWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    staffId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerName?: StringFieldUpdateOperationsInput | string
+    customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    customerEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    startsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    anyStaff?: BoolFieldUpdateOperationsInput | boolean
+    services?: JsonNullValueInput | InputJsonValue
+    totalPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    staffNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    reference?: StringFieldUpdateOperationsInput | string
+    manageToken?: StringFieldUpdateOperationsInput | string
+    depositAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    depositStatus?: StringFieldUpdateOperationsInput | string
+    depositOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    depositPaidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    tipAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
+    reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rebookNudgeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    queueEntryId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SalonQueueEntryUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    customerName?: StringFieldUpdateOperationsInput | string
+    customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    serviceIds?: SalonQueueEntryUpdateserviceIdsInput | string[]
+    serviceSummary?: NullableStringFieldUpdateOperationsInput | string | null
+    estimatedMins?: IntFieldUpdateOperationsInput | number
+    preferredStaffId?: NullableStringFieldUpdateOperationsInput | string | null
+    staffId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    publicToken?: StringFieldUpdateOperationsInput | string
+    calledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    appointmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SalonQueueEntryUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    customerName?: StringFieldUpdateOperationsInput | string
+    customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    serviceIds?: SalonQueueEntryUpdateserviceIdsInput | string[]
+    serviceSummary?: NullableStringFieldUpdateOperationsInput | string | null
+    estimatedMins?: IntFieldUpdateOperationsInput | number
+    preferredStaffId?: NullableStringFieldUpdateOperationsInput | string | null
+    staffId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    publicToken?: StringFieldUpdateOperationsInput | string
+    calledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    appointmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SalonQueueEntryUncheckedUpdateManyWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    customerName?: StringFieldUpdateOperationsInput | string
+    customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    serviceIds?: SalonQueueEntryUpdateserviceIdsInput | string[]
+    serviceSummary?: NullableStringFieldUpdateOperationsInput | string | null
+    estimatedMins?: IntFieldUpdateOperationsInput | number
+    preferredStaffId?: NullableStringFieldUpdateOperationsInput | string | null
+    staffId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    publicToken?: StringFieldUpdateOperationsInput | string
+    calledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    appointmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -302264,6 +314631,190 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type SalonTimeOffCreateManyStaffInput = {
+    id?: string
+    tenantId: string
+    startsAt: Date | string
+    endsAt: Date | string
+    reason?: string | null
+    createdAt?: Date | string
+  }
+
+  export type SalonAppointmentCreateManyStaffInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    customerId?: string | null
+    customerName: string
+    customerPhone?: string | null
+    customerEmail?: string | null
+    startsAt: Date | string
+    endsAt: Date | string
+    status?: string
+    source?: string
+    anyStaff?: boolean
+    services?: JsonNullValueInput | InputJsonValue
+    totalPrice?: Decimal | DecimalJsLike | number | string
+    notes?: string | null
+    staffNotes?: string | null
+    reference: string
+    manageToken: string
+    depositAmount?: Decimal | DecimalJsLike | number | string
+    depositStatus?: string
+    depositOrderId?: string | null
+    depositPaidAt?: Date | string | null
+    orderId?: string | null
+    tipAmount?: Decimal | DecimalJsLike | number | string | null
+    checkedInAt?: Date | string | null
+    startedAt?: Date | string | null
+    completedAt?: Date | string | null
+    cancelledAt?: Date | string | null
+    cancelReason?: string | null
+    reminderSentAt?: Date | string | null
+    rebookNudgeSentAt?: Date | string | null
+    queueEntryId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SalonTimeOffUpdateWithoutStaffInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    startsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SalonTimeOffUncheckedUpdateWithoutStaffInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    startsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SalonTimeOffUncheckedUpdateManyWithoutStaffInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    startsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SalonAppointmentUpdateWithoutStaffInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerName?: StringFieldUpdateOperationsInput | string
+    customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    customerEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    startsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    anyStaff?: BoolFieldUpdateOperationsInput | boolean
+    services?: JsonNullValueInput | InputJsonValue
+    totalPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    staffNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    reference?: StringFieldUpdateOperationsInput | string
+    manageToken?: StringFieldUpdateOperationsInput | string
+    depositAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    depositStatus?: StringFieldUpdateOperationsInput | string
+    depositOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    depositPaidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    tipAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
+    reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rebookNudgeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    queueEntryId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutSalonAppointmentsNestedInput
+  }
+
+  export type SalonAppointmentUncheckedUpdateWithoutStaffInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerName?: StringFieldUpdateOperationsInput | string
+    customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    customerEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    startsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    anyStaff?: BoolFieldUpdateOperationsInput | boolean
+    services?: JsonNullValueInput | InputJsonValue
+    totalPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    staffNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    reference?: StringFieldUpdateOperationsInput | string
+    manageToken?: StringFieldUpdateOperationsInput | string
+    depositAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    depositStatus?: StringFieldUpdateOperationsInput | string
+    depositOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    depositPaidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    tipAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
+    reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rebookNudgeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    queueEntryId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SalonAppointmentUncheckedUpdateManyWithoutStaffInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    customerName?: StringFieldUpdateOperationsInput | string
+    customerPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    customerEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    startsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    anyStaff?: BoolFieldUpdateOperationsInput | boolean
+    services?: JsonNullValueInput | InputJsonValue
+    totalPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    staffNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    reference?: StringFieldUpdateOperationsInput | string
+    manageToken?: StringFieldUpdateOperationsInput | string
+    depositAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    depositStatus?: StringFieldUpdateOperationsInput | string
+    depositOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    depositPaidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    tipAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
+    reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rebookNudgeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    queueEntryId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type PrintJobCreateManyPrinterInput = {
     id?: string
     tenantId: string
@@ -302652,6 +315203,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
@@ -302749,6 +315304,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -302908,6 +315467,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
@@ -303005,6 +315568,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -303540,6 +316107,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
     receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
     dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
@@ -303637,6 +316208,10 @@ export namespace Prisma {
     itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
     homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
     productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
@@ -306302,6 +318877,10 @@ export namespace Prisma {
      */
     export type TableCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = TableCountOutputTypeDefaultArgs<ExtArgs>
     /**
+     * @deprecated Use SalonStaffCountOutputTypeDefaultArgs instead
+     */
+    export type SalonStaffCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = SalonStaffCountOutputTypeDefaultArgs<ExtArgs>
+    /**
      * @deprecated Use PrinterCountOutputTypeDefaultArgs instead
      */
     export type PrinterCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PrinterCountOutputTypeDefaultArgs<ExtArgs>
@@ -306625,6 +319204,26 @@ export namespace Prisma {
      * @deprecated Use TableReservationDefaultArgs instead
      */
     export type TableReservationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = TableReservationDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use SalonServiceDefaultArgs instead
+     */
+    export type SalonServiceArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = SalonServiceDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use SalonStaffDefaultArgs instead
+     */
+    export type SalonStaffArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = SalonStaffDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use SalonTimeOffDefaultArgs instead
+     */
+    export type SalonTimeOffArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = SalonTimeOffDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use SalonAppointmentDefaultArgs instead
+     */
+    export type SalonAppointmentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = SalonAppointmentDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use SalonQueueEntryDefaultArgs instead
+     */
+    export type SalonQueueEntryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = SalonQueueEntryDefaultArgs<ExtArgs>
     /**
      * @deprecated Use KdsTicketDefaultArgs instead
      */

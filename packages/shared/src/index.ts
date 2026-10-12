@@ -32,3 +32,4 @@ export * from "./lib/age-check";
 export * from "./lib/weighed";
 export * from "./lib/email-marketing";
 export * from "./lib/loyalty-stamp-icons";
+export * from "./lib/salon";

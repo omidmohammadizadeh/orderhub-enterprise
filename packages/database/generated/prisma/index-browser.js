@@ -1150,6 +1150,123 @@ exports.Prisma.TableReservationScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.SalonServiceScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  category: 'category',
+  name: 'name',
+  description: 'description',
+  price: 'price',
+  priceFrom: 'priceFrom',
+  durationMins: 'durationMins',
+  bufferMins: 'bufferMins',
+  processingStartMins: 'processingStartMins',
+  processingMins: 'processingMins',
+  depositType: 'depositType',
+  depositValue: 'depositValue',
+  requiresPatchTest: 'requiresPatchTest',
+  bookableOnline: 'bookableOnline',
+  isActive: 'isActive',
+  sortOrder: 'sortOrder',
+  imageUrl: 'imageUrl',
+  addons: 'addons',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SalonStaffScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  userId: 'userId',
+  name: 'name',
+  title: 'title',
+  bio: 'bio',
+  avatarUrl: 'avatarUrl',
+  colour: 'colour',
+  bookableOnline: 'bookableOnline',
+  acceptsWalkIns: 'acceptsWalkIns',
+  isActive: 'isActive',
+  sortOrder: 'sortOrder',
+  weeklyHours: 'weeklyHours',
+  serviceIds: 'serviceIds',
+  priceOverrides: 'priceOverrides',
+  commissionPercent: 'commissionPercent',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SalonTimeOffScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  staffId: 'staffId',
+  startsAt: 'startsAt',
+  endsAt: 'endsAt',
+  reason: 'reason',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.SalonAppointmentScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  staffId: 'staffId',
+  customerId: 'customerId',
+  customerName: 'customerName',
+  customerPhone: 'customerPhone',
+  customerEmail: 'customerEmail',
+  startsAt: 'startsAt',
+  endsAt: 'endsAt',
+  status: 'status',
+  source: 'source',
+  anyStaff: 'anyStaff',
+  services: 'services',
+  totalPrice: 'totalPrice',
+  notes: 'notes',
+  staffNotes: 'staffNotes',
+  reference: 'reference',
+  manageToken: 'manageToken',
+  depositAmount: 'depositAmount',
+  depositStatus: 'depositStatus',
+  depositOrderId: 'depositOrderId',
+  depositPaidAt: 'depositPaidAt',
+  orderId: 'orderId',
+  tipAmount: 'tipAmount',
+  checkedInAt: 'checkedInAt',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  cancelledAt: 'cancelledAt',
+  cancelReason: 'cancelReason',
+  reminderSentAt: 'reminderSentAt',
+  rebookNudgeSentAt: 'rebookNudgeSentAt',
+  queueEntryId: 'queueEntryId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SalonQueueEntryScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  customerName: 'customerName',
+  customerPhone: 'customerPhone',
+  serviceIds: 'serviceIds',
+  serviceSummary: 'serviceSummary',
+  estimatedMins: 'estimatedMins',
+  preferredStaffId: 'preferredStaffId',
+  staffId: 'staffId',
+  status: 'status',
+  source: 'source',
+  publicToken: 'publicToken',
+  calledAt: 'calledAt',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt',
+  appointmentId: 'appointmentId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.KdsTicketScalarFieldEnum = {
   id: 'id',
   kdsScreenId: 'kdsScreenId',
@@ -3360,6 +3477,75 @@ exports.Prisma.TableReservationOrderByRelevanceFieldEnum = {
   reference: 'reference'
 };
 
+exports.Prisma.SalonServiceOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  category: 'category',
+  name: 'name',
+  description: 'description',
+  depositType: 'depositType',
+  imageUrl: 'imageUrl'
+};
+
+exports.Prisma.SalonStaffOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  userId: 'userId',
+  name: 'name',
+  title: 'title',
+  bio: 'bio',
+  avatarUrl: 'avatarUrl',
+  colour: 'colour',
+  serviceIds: 'serviceIds'
+};
+
+exports.Prisma.SalonTimeOffOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  staffId: 'staffId',
+  reason: 'reason'
+};
+
+exports.Prisma.SalonAppointmentOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  staffId: 'staffId',
+  customerId: 'customerId',
+  customerName: 'customerName',
+  customerPhone: 'customerPhone',
+  customerEmail: 'customerEmail',
+  status: 'status',
+  source: 'source',
+  notes: 'notes',
+  staffNotes: 'staffNotes',
+  reference: 'reference',
+  manageToken: 'manageToken',
+  depositStatus: 'depositStatus',
+  depositOrderId: 'depositOrderId',
+  orderId: 'orderId',
+  cancelReason: 'cancelReason',
+  queueEntryId: 'queueEntryId'
+};
+
+exports.Prisma.SalonQueueEntryOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  customerName: 'customerName',
+  customerPhone: 'customerPhone',
+  serviceIds: 'serviceIds',
+  serviceSummary: 'serviceSummary',
+  preferredStaffId: 'preferredStaffId',
+  staffId: 'staffId',
+  status: 'status',
+  source: 'source',
+  publicToken: 'publicToken',
+  appointmentId: 'appointmentId'
+};
+
 exports.Prisma.KdsTicketOrderByRelevanceFieldEnum = {
   id: 'id',
   kdsScreenId: 'kdsScreenId',
@@ -4430,7 +4616,8 @@ exports.OAuthProvider = exports.$Enums.OAuthProvider = {
 exports.BusinessType = exports.$Enums.BusinessType = {
   RESTAURANT: 'RESTAURANT',
   GROCERY: 'GROCERY',
-  RETAIL: 'RETAIL'
+  RETAIL: 'RETAIL',
+  SALON: 'SALON'
 };
 
 exports.LocationGoLiveStatus = exports.$Enums.LocationGoLiveStatus = {
@@ -4895,6 +5082,11 @@ exports.Prisma.ModelName = {
   Table: 'Table',
   KioskDevice: 'KioskDevice',
   TableReservation: 'TableReservation',
+  SalonService: 'SalonService',
+  SalonStaff: 'SalonStaff',
+  SalonTimeOff: 'SalonTimeOff',
+  SalonAppointment: 'SalonAppointment',
+  SalonQueueEntry: 'SalonQueueEntry',
   KdsTicket: 'KdsTicket',
   Printer: 'Printer',
   PrintJob: 'PrintJob',

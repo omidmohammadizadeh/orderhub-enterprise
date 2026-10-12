@@ -563,6 +563,10 @@ model Location {
   itemChannelSnoozes   MenuItemChannelAvailability[]
   homeDrivers          Driver[]                      @relation("DriverHomeLocation")
   productStockLevels   ProductStockLevel[]
+  salonServices        SalonService[]
+  salonStaff           SalonStaff[]
+  salonAppointments    SalonAppointment[]
+  salonQueueEntries    SalonQueueEntry[]
 
   // Phase AS-1 — print routing defaults.
   //   defaultKitchenStation — every kitchen ticket that doesn't match
@@ -1984,7 +1988,7 @@ model LocationPaymentConfig {
   @@map("location_payment_configs")
 }
 
-// ── Order ────────────────────────────────────────────────────────────────────��
+// ── Order ─────────────────────────────────────────────────────────────────────
 model Order {
   id                String           @id @default(cuid())
   tenantId          String
@@ -2501,6 +2505,218 @@ model TableReservation {
   @@map("table_reservations")
 }
 
+// ── Salon (barbers, hair, nails) ─────────────────────────────────────────────
+//
+// A restaurant sells items; a salon sells a person's TIME. These tables are
+// the salon's own (services with a length, the people who do them, and the
+// appointments that hold their time) rather than more columns on MenuItem, so
+// nothing a restaurant relies on moves. Money still lands as an ordinary
+// Order at checkout, so payments, receipts, refunds, loyalty and analytics
+// all work unchanged. Settings live on Location.settings.salon.
+
+// One line on the price list ("Skin fade — 30 min — £22").
+model SalonService {
+  id          String   @id @default(cuid())
+  tenantId    String
+  locationId  String
+  location    Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  category    String   @default("Services")
+  name        String
+  description String?
+  price       Decimal  @db.Decimal(10, 2)
+  // "From £45" — the real price is settled at checkout (long hair, extras).
+  priceFrom   Boolean  @default(false)
+
+  // How long the client is in the chair, and the clean-down after them.
+  durationMins        Int  @default(30)
+  bufferMins          Int  @default(0)
+  // Hair colour: the stylist is FREE while it develops and can take someone
+  // else. The gap starts processingStartMins in and lasts processingMins.
+  processingStartMins Int?
+  processingMins      Int?
+
+  // NONE | FIXED (depositValue = amount) | PERCENT (depositValue = %) | FULL
+  depositType  String   @default("NONE")
+  depositValue Decimal? @db.Decimal(10, 2)
+
+  requiresPatchTest Boolean @default(false)
+  bookableOnline    Boolean @default(true)
+  isActive          Boolean @default(true)
+  sortOrder         Int     @default(0)
+  imageUrl          String?
+  // Optional extras: [{ id, name, price, durationMins }]
+  addons            Json    @default("[]")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([locationId])
+  @@map("salon_services")
+}
+
+// A barber / stylist / nail tech who can be booked.
+model SalonStaff {
+  id         String   @id @default(cuid())
+  tenantId   String
+  locationId String
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  // Their team login, when they have one (lets "my diary" find them).
+  userId     String?
+  name       String
+  title      String?
+  bio        String?
+  avatarUrl  String?
+  colour     String   @default("#f97316")
+
+  bookableOnline Boolean @default(true)
+  acceptsWalkIns Boolean @default(true)
+  isActive       Boolean @default(true)
+  sortOrder      Int     @default(0)
+
+  // { monday: [{ from: "09:00", to: "13:00" }, { from: "14:00", to: "18:00" }], … }
+  // A day missing or empty = not working. {} = follow the shop's hours.
+  weeklyHours       Json     @default("{}")
+  // Services this person does. Empty = every service.
+  serviceIds        String[] @default([])
+  // Senior/junior pricing: { serviceId: price }
+  priceOverrides    Json     @default("{}")
+  // Share of service takings they earn (reports only — we never pay it).
+  commissionPercent Decimal? @db.Decimal(5, 2)
+
+  timeOff      SalonTimeOff[]
+  appointments SalonAppointment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([locationId])
+  @@map("salon_staff")
+}
+
+// Holiday, sick day, dentist at 2pm — time a staff member can't be booked.
+model SalonTimeOff {
+  id        String     @id @default(cuid())
+  tenantId  String
+  staffId   String
+  staff     SalonStaff @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  startsAt  DateTime
+  endsAt    DateTime
+  reason    String?
+  createdAt DateTime   @default(now())
+
+  @@index([staffId, startsAt])
+  @@map("salon_time_off")
+}
+
+// An appointment: one client, one staff member, one or more services back
+// to back. The services are COPIED in (name, price, minutes) so editing the
+// price list never rewrites history.
+model SalonAppointment {
+  id         String      @id @default(cuid())
+  tenantId   String
+  locationId String
+  location   Location    @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  staffId    String?
+  staff      SalonStaff? @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  // The shop's CRM record (customers table), when we matched or made one.
+  customerId String?
+
+  customerName  String
+  customerPhone String?
+  customerEmail String?
+
+  startsAt DateTime
+  // When the CLIENT is done (excludes the clean-down buffer).
+  endsAt   DateTime
+
+  // PENDING_PAYMENT | CONFIRMED | CHECKED_IN | IN_SERVICE | COMPLETED | CANCELLED | NO_SHOW
+  status   String  @default("CONFIRMED")
+  // ONLINE | STAFF | PHONE | WALK_IN | WHATSAPP | VOICE
+  source   String  @default("STAFF")
+  // The client said "anyone" — free to move to another barber.
+  anyStaff Boolean @default(false)
+
+  // [{ serviceId, name, price, durationMins, bufferMins, processingStartMins,
+  //    processingMins, addons: [{ id, name, price, durationMins }] }]
+  services   Json    @default("[]")
+  totalPrice Decimal @default(0) @db.Decimal(10, 2)
+  notes      String?
+  staffNotes String?
+
+  // Guest-facing "S-7QK4M2", and the unguessable token in their manage link.
+  reference   String @unique
+  manageToken String @unique
+
+  // Deposit taken online. It is a real Order (paid by the same Stripe
+  // payment link the till uses), so fees, payouts, refunds and takings all
+  // see it. NONE | PENDING | PAID | APPLIED | REFUNDED | FORFEITED | EXPIRED
+  depositAmount  Decimal   @default(0) @db.Decimal(10, 2)
+  depositStatus  String    @default("NONE")
+  depositOrderId String?
+  depositPaidAt  DateTime?
+
+  // The sale it became at checkout.
+  orderId      String?
+  tipAmount    Decimal?  @db.Decimal(10, 2)
+  checkedInAt  DateTime?
+  startedAt    DateTime?
+  completedAt  DateTime?
+  cancelledAt  DateTime?
+  cancelReason String?
+
+  reminderSentAt    DateTime?
+  rebookNudgeSentAt DateTime?
+  // Walk-in that came off the queue.
+  queueEntryId      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([locationId, startsAt])
+  @@index([staffId, startsAt])
+  @@index([status])
+  @@index([orderId])
+  @@index([depositOrderId])
+  @@map("salon_appointments")
+}
+
+// The barber's walk-in queue: "next available, about 25 minutes".
+model SalonQueueEntry {
+  id               String    @id @default(cuid())
+  tenantId         String
+  locationId       String
+  location         Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  customerName     String
+  customerPhone    String?
+  serviceIds       String[]  @default([])
+  serviceSummary   String?
+  estimatedMins    Int       @default(30)
+  // "I'll wait for Jay" — null = whoever is free first.
+  preferredStaffId String?
+  // Who called them up.
+  staffId          String?
+  // WAITING | CALLED | IN_SERVICE | DONE | LEFT
+  status           String    @default("WAITING")
+  // STAFF | ONLINE | KIOSK
+  source           String    @default("STAFF")
+  // Their "where am I in the queue" link.
+  publicToken      String    @unique
+  calledAt         DateTime?
+  startedAt        DateTime?
+  finishedAt       DateTime?
+  appointmentId    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([locationId, status])
+  @@map("salon_queue_entries")
+}
+
 model KdsTicket {
   id          String    @id @default(cuid())
   kdsScreenId String
@@ -2749,7 +2965,7 @@ model PrintAgent {
   @@map("print_agents")
 }
 
-// ── AlertConfig ──────────────────────────────────────────────────────
+// ��─ AlertConfig ──────────────────────────────────────────────────────
 // Phase AS-4. Per-(location, trigger) alert rule. Drives the dashboard
 // sound + visual notification pipeline. Optional stationId narrows the
 // rule to a single kitchen station.
@@ -3581,7 +3797,7 @@ model NotificationLog {
 
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE F — WHITE-LABEL BRANDING
-// ════════════════════════════���═════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════════
 
 model TenantBranding {
   id              String  @id @default(cuid())
@@ -3994,7 +4210,7 @@ model WebPushSubscription {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ══════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════��══════════════════════════════════════════════════════
 // PHASE AP — SYSTEM SECRETS VAULT (platform-admin only)
 // ══════════════════════════════════════════════════════════════════════════════
 
@@ -4281,6 +4497,9 @@ enum BusinessType {
   RESTAURANT
   GROCERY
   RETAIL
+  // Salon S1 — barbers, hair and nail salons: they sell a person's time, so
+  // the dashboard leads with the appointment diary instead of the kitchen.
+  SALON
 }
 
 enum StockMovementType {

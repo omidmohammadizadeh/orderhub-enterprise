@@ -5,7 +5,7 @@
 // comes back. Money is handled in MINOR units (pence) throughout — decimals
 // only exist at the edges, where rows are read and written.
 
-export const BUSINESS_TYPES = ["RESTAURANT", "GROCERY", "RETAIL"] as const;
+export const BUSINESS_TYPES = ["RESTAURANT", "GROCERY", "RETAIL", "SALON"] as const;
 export type BusinessType = (typeof BUSINESS_TYPES)[number];
 
 export function isBusinessType(v: unknown): v is BusinessType {
@@ -15,6 +15,15 @@ export function isBusinessType(v: unknown): v is BusinessType {
 /** Shops, not kitchens: GROCERY and RETAIL share every retail behaviour in R1. */
 export function isRetailType(v: unknown): boolean {
   return v === "GROCERY" || v === "RETAIL";
+}
+
+/**
+ * Where a paid sale over the counter is finished the moment it is paid: shops,
+ * and salons (the haircut has already happened by the time they pay). No
+ * kitchen ladder to climb, nobody to accept it.
+ */
+export function isCounterSaleType(v: unknown): boolean {
+  return isRetailType(v) || v === "SALON";
 }
 
 // ── Barcodes ────────────────────────────────────────────────────────────────
