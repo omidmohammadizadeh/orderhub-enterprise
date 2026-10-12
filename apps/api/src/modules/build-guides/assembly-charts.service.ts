@@ -53,7 +53,7 @@ export class AssemblyChartsService {
     }
     const heroRaw = clip(body.heroImageUrl, 4_000_000);
     const heroImageUrl =
-      heroRaw && /^(https?:|data:image\/)/i.test(heroRaw)
+      heroRaw && /^(https?:|data:image\/|\/api\/v1\/)/i.test(heroRaw)
         ? ((await rehostImageIfInline(this.storage, heroRaw, `assembly-charts/${tenantId}`)) ?? null)
         : null;
     const data = {
@@ -163,6 +163,144 @@ export class AssemblyChartsService {
     return { menuName: menu.name, brandName: menu.brand?.name ?? null, charts };
   }
 
+  /**
+   * Menus with at least one charted product — the boards Kitchen training
+   * offers. With a location: menus homed or served there (same rule as the
+   * Menu tab); without: every menu in the tenant.
+   */
+  async boards(tenantId: string, locationId: string | null) {
+    const menus = await this.prisma.menu.findMany({
+      where: {
+        deletedAt: null,
+        brand: { tenantId },
+        ...(locationId && { OR: [{ locationId }, { assignments: { some: { locationId } } }] }),
+      },
+      orderBy: { name: "asc" },
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        brand: { select: { name: true } },
+        assignments: { select: { locationId: true } },
+        categories: { select: { items: { select: { item: { select: { name: true, brandId: true } } } } } },
+      },
+    });
+    const rows = await this.prisma.assemblyChart.findMany({
+      where: { tenantId },
+      select: { id: true, brandId: true, nameKey: true },
+    });
+    const byKey = new Map<string, string>(rows.map((r: any) => [`${r.brandId}|${r.nameKey}`, r.id]));
+    const out = [];
+    for (const m of menus as any[]) {
+      const items = m.categories.flatMap((c: any) => c.items.map((l: any) => l.item).filter(Boolean));
+      const charted = new Set<string>();
+      for (const i of items) {
+        const id = byKey.get(`${i.brandId}|${buildGuideNameKey(i.name)}`);
+        if (id) charted.add(id);
+      }
+      if (!charted.size) continue;
+      out.push({
+        menuId: m.id,
+        name: m.name,
+        brandName: m.brand?.name ?? null,
+        status: m.status,
+        live: locationId ? m.assignments.some((a: any) => a.locationId === locationId) : m.assignments.length > 0,
+        chartCount: charted.size,
+      });
+    }
+    // Live menus first — that's what the kitchen is cooking today.
+    return out.sort((a, b) => Number(b.live) - Number(a.live) || a.name.localeCompare(b.name));
+  }
+
+  /**
+   * A menu as Kitchen training's "Menu presentations" draws it: customer-
+   * visible categories and items with photo, price, sizes and the option
+   * groups each item offers. Read-only, so any signed-in role can see it.
+   */
+  async presentation(menuId: string, tenantId: string) {
+    const menu = await this.prisma.menu.findFirst({
+      where: { id: menuId, deletedAt: null, brand: { tenantId } },
+      select: {
+        name: true,
+        categories: {
+          orderBy: { sortOrder: "asc" },
+          select: {
+            name: true,
+            isVisible: true,
+            visibleToCustomers: true,
+            items: {
+              orderBy: { sortOrder: "asc" },
+              select: {
+                item: {
+                  select: {
+                    name: true,
+                    description: true,
+                    basePrice: true,
+                    imageUrl: true,
+                    visibleToCustomers: true,
+                    hasMultipleSkus: true,
+                    productSkus: true,
+                    modifierGroupLinks: {
+                      orderBy: { sortOrder: "asc" },
+                      select: {
+                        group: {
+                          select: {
+                            id: true,
+                            name: true,
+                            options: {
+                              orderBy: { sortOrder: "asc" },
+                              select: { name: true, priceAdjustment: true, visibleToCustomers: true },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+    if (!menu) throw new NotFoundException("Menu not found");
+    const groups: Record<string, { name: string; options: Array<{ name: string; price: number }> }> = {};
+    const categories = (menu.categories as any[])
+      .filter((c) => c.isVisible !== false && c.visibleToCustomers !== false)
+      .map((c) => ({
+        name: c.name as string,
+        items: c.items
+          .map((l: any) => l.item)
+          .filter((i: any) => i && i.visibleToCustomers !== false)
+          .map((i: any) => {
+            for (const { group: g } of i.modifierGroupLinks) {
+              groups[g.id] ??= {
+                name: g.name,
+                options: g.options
+                  .filter((o: any) => o.visibleToCustomers !== false)
+                  .map((o: any) => ({ name: o.name, price: Number(o.priceAdjustment) || 0 })),
+              };
+            }
+            const skus =
+              i.hasMultipleSkus && Array.isArray(i.productSkus)
+                ? (i.productSkus as any[])
+                    .map((s) => ({ name: String(s?.name ?? s?.label ?? ""), price: Number(s?.price ?? s?.basePrice ?? 0) }))
+                    .filter((s) => s.name)
+                : [];
+            return {
+              name: i.name as string,
+              description: (i.description as string | null) ?? "",
+              price: Number(i.basePrice) || 0,
+              imageUrl: (i.imageUrl as string | null) ?? null,
+              groupIds: i.modifierGroupLinks.map((l: any) => l.group.id as string),
+              skus,
+            };
+          }),
+      }))
+      .filter((c) => c.items.length);
+    return { name: menu.name, categories, groups };
+  }
+
   // ── helpers ────────────────────────────────────────────────────────────────
 
   private async productImages(rows: any[]) {
@@ -203,7 +341,7 @@ export class AssemblyChartsService {
       const src = l as Record<string, unknown>;
       const kind = (typeof src.kind === "string" && KINDS.has(src.kind) ? src.kind : "custom") as AssemblyLayerKind;
       let imageUrl = clip(src.imageUrl, 4_000_000);
-      if (imageUrl && !/^(https?:|data:image\/)/i.test(imageUrl)) imageUrl = null;
+      if (imageUrl && !/^(https?:|data:image\/|\/api\/v1\/)/i.test(imageUrl)) imageUrl = null;
       imageUrl = (await rehostImageIfInline(this.storage, imageUrl, `assembly-charts/${tenantId}`)) ?? null;
       const label = clip(src.label, 80) ?? "";
       if (kind === "custom" && !imageUrl && !label) continue; // nothing to draw

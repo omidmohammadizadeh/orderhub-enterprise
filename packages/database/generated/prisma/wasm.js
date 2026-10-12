@@ -992,7 +992,8 @@ exports.Prisma.OrderScalarFieldEnum = {
   metadata: 'metadata',
   sourceMetadata: 'sourceMetadata',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  loyaltyMemberId: 'loyaltyMemberId'
 };
 
 exports.Prisma.OrderNumberSequenceScalarFieldEnum = {
@@ -2411,6 +2412,10 @@ exports.Prisma.LoyaltyCardScalarFieldEnum = {
   rewardItemId: 'rewardItemId',
   rewardLabel: 'rewardLabel',
   rewardExpiryDays: 'rewardExpiryDays',
+  walkInEnabled: 'walkInEnabled',
+  cardTitle: 'cardTitle',
+  cardColor: 'cardColor',
+  cardLogoUrl: 'cardLogoUrl',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -2420,6 +2425,7 @@ exports.Prisma.LoyaltyStampScalarFieldEnum = {
   tenantId: 'tenantId',
   cardId: 'cardId',
   customerAccountId: 'customerAccountId',
+  memberId: 'memberId',
   orderId: 'orderId',
   spend: 'spend',
   createdAt: 'createdAt'
@@ -2433,12 +2439,39 @@ exports.Prisma.LoyaltyRewardScalarFieldEnum = {
   source: 'source',
   amountOff: 'amountOff',
   customerAccountId: 'customerAccountId',
+  memberId: 'memberId',
   label: 'label',
   rewardItemId: 'rewardItemId',
   earnedAt: 'earnedAt',
   expiresAt: 'expiresAt',
   claimedAt: 'claimedAt',
   claimedOrderId: 'claimedOrderId'
+};
+
+exports.Prisma.LoyaltyMemberScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  cardId: 'cardId',
+  locationId: 'locationId',
+  code: 'code',
+  publicToken: 'publicToken',
+  phone: 'phone',
+  firstName: 'firstName',
+  marketingConsent: 'marketingConsent',
+  source: 'source',
+  passUpdatedAt: 'passUpdatedAt',
+  googleObjectAt: 'googleObjectAt',
+  lastSeenAt: 'lastSeenAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.LoyaltyPassDeviceScalarFieldEnum = {
+  id: 'id',
+  memberId: 'memberId',
+  deviceLibraryId: 'deviceLibraryId',
+  pushToken: 'pushToken',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.ReferralProgramScalarFieldEnum = {
@@ -3216,7 +3249,8 @@ exports.Prisma.OrderOrderByRelevanceFieldEnum = {
   callerId: 'callerId',
   discountType: 'discountType',
   paymentProvider: 'paymentProvider',
-  cancelReason: 'cancelReason'
+  cancelReason: 'cancelReason',
+  loyaltyMemberId: 'loyaltyMemberId'
 };
 
 exports.Prisma.OrderNumberSequenceOrderByRelevanceFieldEnum = {
@@ -4130,7 +4164,10 @@ exports.Prisma.LoyaltyCardOrderByRelevanceFieldEnum = {
   tenantId: 'tenantId',
   locationId: 'locationId',
   rewardItemId: 'rewardItemId',
-  rewardLabel: 'rewardLabel'
+  rewardLabel: 'rewardLabel',
+  cardTitle: 'cardTitle',
+  cardColor: 'cardColor',
+  cardLogoUrl: 'cardLogoUrl'
 };
 
 exports.Prisma.LoyaltyStampOrderByRelevanceFieldEnum = {
@@ -4138,6 +4175,7 @@ exports.Prisma.LoyaltyStampOrderByRelevanceFieldEnum = {
   tenantId: 'tenantId',
   cardId: 'cardId',
   customerAccountId: 'customerAccountId',
+  memberId: 'memberId',
   orderId: 'orderId'
 };
 
@@ -4148,9 +4186,29 @@ exports.Prisma.LoyaltyRewardOrderByRelevanceFieldEnum = {
   locationId: 'locationId',
   source: 'source',
   customerAccountId: 'customerAccountId',
+  memberId: 'memberId',
   label: 'label',
   rewardItemId: 'rewardItemId',
   claimedOrderId: 'claimedOrderId'
+};
+
+exports.Prisma.LoyaltyMemberOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  cardId: 'cardId',
+  locationId: 'locationId',
+  code: 'code',
+  publicToken: 'publicToken',
+  phone: 'phone',
+  firstName: 'firstName',
+  source: 'source'
+};
+
+exports.Prisma.LoyaltyPassDeviceOrderByRelevanceFieldEnum = {
+  id: 'id',
+  memberId: 'memberId',
+  deviceLibraryId: 'deviceLibraryId',
+  pushToken: 'pushToken'
 };
 
 exports.Prisma.ReferralProgramOrderByRelevanceFieldEnum = {
@@ -4911,6 +4969,8 @@ exports.Prisma.ModelName = {
   LoyaltyCard: 'LoyaltyCard',
   LoyaltyStamp: 'LoyaltyStamp',
   LoyaltyReward: 'LoyaltyReward',
+  LoyaltyMember: 'LoyaltyMember',
+  LoyaltyPassDevice: 'LoyaltyPassDevice',
   ReferralProgram: 'ReferralProgram',
   ReferralCode: 'ReferralCode',
   Referral: 'Referral',

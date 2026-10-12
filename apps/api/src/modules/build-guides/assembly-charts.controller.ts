@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Put } from "@nestjs/common";
+import { Body, Controller, Get, Param, Put, Query } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
@@ -26,6 +26,18 @@ export class AssemblyChartsController {
   @Get("order/:orderId")
   forOrder(@Param("orderId") orderId: string, @CurrentUser() user: AuthenticatedUser) {
     return this.charts.forOrder(orderId, user.tenantId);
+  }
+
+  @Get("boards")
+  @ApiOperation({ summary: "Menus with charted products — the assembly boards Kitchen training lists" })
+  boards(@Query("locationId") locationId: string | undefined, @CurrentUser() user: AuthenticatedUser) {
+    return this.charts.boards(user.tenantId, locationId || null);
+  }
+
+  @Get("menu/:menuId/presentation")
+  @ApiOperation({ summary: "A menu's customer-facing data for the virtual-brand menu presentation" })
+  presentation(@Param("menuId") menuId: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.charts.presentation(menuId, user.tenantId);
   }
 
   @Get("menu/:menuId/print")

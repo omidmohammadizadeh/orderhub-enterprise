@@ -13,11 +13,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Heart, Loader2, Check, X, Search } from "lucide-react";
+import { Heart, Loader2, Check, X, Search, Wallet, Printer, Copy, QrCode } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { apiClient } from "@/lib/api/client";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { useCurrency } from "@/hooks/use-currency";
 import { brandsClient } from "@/lib/api/locations.client";
+import { WalletCard } from "@/components/loyalty/wallet-card";
+import { walkInTill } from "@/lib/api/loyalty-walk-in.client";
 
 interface Card {
   isActive: boolean;
@@ -26,6 +29,11 @@ interface Card {
   rewardItemId: string | null;
   rewardLabel: string;
   rewardExpiryDays: number | null;
+  /** In-store card: Apple/Google Wallet pass scanned at the till. */
+  walkInEnabled: boolean;
+  cardTitle: string | null;
+  cardColor: string | null;
+  cardLogoUrl: string | null;
 }
 
 export function LoyaltyCardPanel({
@@ -101,7 +109,15 @@ export function LoyaltyCardPanel({
 
   const [form, setForm] = useState<Card | null>(null);
   useEffect(() => {
-    if (data && !form) setForm({ ...data, minimumSpend: data.minimumSpend ?? null });
+    if (data && !form)
+      setForm({
+        ...data,
+        minimumSpend: data.minimumSpend ?? null,
+        walkInEnabled: data.walkInEnabled ?? false,
+        cardTitle: data.cardTitle ?? null,
+        cardColor: data.cardColor ?? null,
+        cardLogoUrl: data.cardLogoUrl ?? null,
+      });
   }, [data, form]);
 
   const save = useMutation({
@@ -320,6 +336,13 @@ export function LoyaltyCardPanel({
         />
       </Field>
 
+      <WalkInSection
+        form={form}
+        set={set}
+        locationId={locationId}
+        rewardFallback={items.find((i) => i.id === form.rewardItemId)?.name}
+      />
+
       {form.isActive && noReward && (
         <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-2 text-xs text-amber-800">
           Choose a reward before going live, or every customer&apos;s card
@@ -348,6 +371,214 @@ export function LoyaltyCardPanel({
         )}
       </div>
     </Shell>
+  );
+}
+
+// Card colours that print and read well on a phone. Custom via the picker.
+const SWATCHES = ["#1F2937", "#6B3E26", "#14532D", "#7F1D1D", "#1E3A8A", "#581C87", "#B45309", "#F5F0E6"];
+
+function WalkInSection({
+  form,
+  set,
+  locationId,
+  rewardFallback,
+}: {
+  form: Card;
+  set: <K extends keyof Card>(k: K, v: Card[K]) => void;
+  locationId: string;
+  rewardFallback?: string;
+}) {
+  const { data: overview } = useQuery({
+    queryKey: ["loyalty-walk-in-overview", locationId],
+    queryFn: () => walkInTill.overview(locationId),
+  });
+  const shopName = overview?.defaultTitle ?? "";
+  const [copied, setCopied] = useState(false);
+  const color = form.cardColor ?? "#1F2937";
+  const title = form.cardTitle?.trim() || shopName || "Your shop";
+  const reward = form.rewardLabel.trim() || (rewardFallback ? `Free ${rewardFallback}` : "Free item");
+
+  const posterHref = overview
+    ? `/print/loyalty-poster?${new URLSearchParams({
+        u: overview.joinUrl,
+        t: title,
+        r: reward,
+        n: String(form.stampsRequired),
+        c: color.replace("#", ""),
+      }).toString()}`
+    : null;
+
+  return (
+    <div className="mt-6 rounded-xl border border-zinc-200 bg-zinc-50/60 p-4">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
+            <Wallet className="h-4 w-4" /> In-store card · Apple &amp; Google Wallet
+          </h3>
+          <p className="mt-1 max-w-xl text-xs leading-relaxed text-zinc-500">
+            For walk-in customers who never order online. They scan the poster on your counter, add the card
+            to their phone&apos;s wallet, and you scan it at the till — stamps and rewards are the same as above.
+          </p>
+        </div>
+        <label className="flex shrink-0 items-center gap-2 text-sm font-medium text-zinc-700">
+          <input
+            type="checkbox"
+            checked={form.walkInEnabled}
+            onChange={(e) => set("walkInEnabled", e.target.checked)}
+            className="h-4 w-4 rounded border-zinc-300"
+          />
+          On
+        </label>
+      </div>
+
+      {form.walkInEnabled && !form.isActive && (
+        <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-2 text-xs text-amber-800">
+          Switch the loyalty card <strong>Live</strong> (top right) too — the in-store card uses the same stamps
+          and reward.
+        </p>
+      )}
+
+      <div className="mt-4 grid gap-5 md:grid-cols-[1fr_280px]">
+        <div>
+          <Field label="Name on the card" hint="Defaults to the shop name.">
+            <input
+              value={form.cardTitle ?? ""}
+              onChange={(e) => set("cardTitle", e.target.value || null)}
+              placeholder={shopName || "Shop name"}
+              maxLength={40}
+              className={input}
+            />
+          </Field>
+          <Field label="Card colour">
+            <div className="flex flex-wrap items-center gap-2">
+              {SWATCHES.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => set("cardColor", c)}
+                  aria-label={`Colour ${c}`}
+                  aria-pressed={color.toUpperCase() === c}
+                  className={`h-8 w-8 rounded-full border transition ${
+                    color.toUpperCase() === c ? "ring-2 ring-zinc-900 ring-offset-2" : "border-zinc-300"
+                  }`}
+                  style={{ background: c }}
+                />
+              ))}
+              <label className="relative h-8 w-8 cursor-pointer overflow-hidden rounded-full border border-dashed border-zinc-400" title="Custom colour">
+                <input
+                  type="color"
+                  value={color}
+                  onChange={(e) => set("cardColor", e.target.value.toUpperCase())}
+                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                  aria-label="Custom colour"
+                />
+                <span className="flex h-full w-full items-center justify-center text-xs text-zinc-500">+</span>
+              </label>
+            </div>
+          </Field>
+          <Field label="Logo image URL" hint="Square works best. Leave empty to use the shop's logo.">
+            <input
+              value={form.cardLogoUrl ?? ""}
+              onChange={(e) => set("cardLogoUrl", e.target.value || null)}
+              placeholder="https://…"
+              className={input}
+            />
+          </Field>
+
+          {overview && (
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <Stat label="Members" value={overview.members} />
+              <Stat label="Joined this week" value={overview.joinedThisWeek} />
+              <Stat label="Stamps (30 days)" value={overview.stampsThisMonth} />
+              <Stat label="Rewards claimed" value={overview.rewardsClaimed} />
+            </div>
+          )}
+
+          {overview && (
+            <div className="mt-4 flex flex-wrap items-center gap-2 text-[11px]">
+              <Ready on={overview.walletReady.apple} label="Apple Wallet" />
+              <Ready on={overview.walletReady.google} label="Google Wallet" />
+              <Ready on={overview.walletReady.sms} label="SMS card links" />
+            </div>
+          )}
+          {overview && (!overview.walletReady.apple || !overview.walletReady.google) && (
+            <p className="mt-2 text-[11px] leading-relaxed text-zinc-500">
+              Until a wallet is connected, customers keep the card as a web page with the same QR — the till
+              scans it just the same.
+            </p>
+          )}
+        </div>
+
+        <div>
+          <p className="mb-2 text-xs font-semibold text-zinc-700">Preview</p>
+          <WalletCard
+            title={title}
+            color={color}
+            logoUrl={form.cardLogoUrl || overview?.defaultLogoUrl}
+            stamps={Math.min(2, form.stampsRequired - 1)}
+            stampsRequired={form.stampsRequired}
+            rewardLabel={reward}
+          />
+          {overview && form.walkInEnabled && (
+            <div className="mt-4 rounded-lg border border-zinc-200 bg-white p-3">
+              <p className="flex items-center gap-1.5 text-xs font-semibold text-zinc-700">
+                <QrCode className="h-3.5 w-3.5" /> Join link for your counter
+              </p>
+              <div className="mt-2 flex items-center gap-3">
+                <QRCodeSVG value={overview.joinUrl} size={72} marginSize={0} />
+                <div className="min-w-0 space-y-1.5">
+                  {posterHref && (
+                    <a
+                      href={posterHref}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1.5 text-xs font-semibold text-zinc-900 hover:underline"
+                    >
+                      <Printer className="h-3.5 w-3.5" /> Print counter poster
+                    </a>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void navigator.clipboard?.writeText(overview.joinUrl).then(() => {
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 1500);
+                      });
+                    }}
+                    className="flex items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-900"
+                  >
+                    <Copy className="h-3.5 w-3.5" /> {copied ? "Copied" : "Copy link"}
+                  </button>
+                </div>
+              </div>
+              <p className="mt-2 text-[11px] text-zinc-400">Save the card first so the poster shows your latest design.</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-lg border border-zinc-200 bg-white px-3 py-2">
+      <p className="text-lg font-semibold tabular-nums text-zinc-900">{value}</p>
+      <p className="text-[11px] text-zinc-500">{label}</p>
+    </div>
+  );
+}
+
+function Ready({ on, label }: { on: boolean; label: string }) {
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 ${
+        on ? "bg-emerald-50 text-emerald-700" : "bg-zinc-100 text-zinc-500"
+      }`}
+    >
+      <span className={`h-1.5 w-1.5 rounded-full ${on ? "bg-emerald-500" : "bg-zinc-400"}`} />
+      {label} {on ? "connected" : "not set up"}
+    </span>
   );
 }
 

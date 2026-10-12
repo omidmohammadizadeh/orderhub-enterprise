@@ -12,12 +12,17 @@ import {
   ArrowLeft,
   ArrowRight,
   CheckCircle2,
+  Download,
+  ExternalLink,
   GraduationCap,
   Loader2,
   Package,
   Play,
+  Presentation,
   RefreshCw,
+  Sandwich,
   Search,
+  Truck,
   Users,
   Wrench,
   X,
@@ -27,6 +32,11 @@ import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth.store";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { buildGuidesClient, type TrainingOverviewRow } from "@/lib/api/build-guides.client";
+import { assemblyChartsClient } from "@/lib/api/assembly-charts.client";
+import { PRESENTATIONS } from "@/lib/menu-presentations";
+import { CoverThumb } from "@/components/menu-presentation/presentation";
+import { SUPPLIER_LISTS, SUPPLIERS, suppliersOf, type SupplierKey } from "@/lib/supplier-lists";
+import { SupplierItems } from "@/components/supplier-list/supplier-list";
 import { formatVideoTime } from "@orderhub/shared";
 import { VideoOverlay } from "@/components/build-guides/youtube-player";
 
@@ -34,6 +44,14 @@ const MANAGERS = ["PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "DARK_KITCHEN_MANAG
 const OVERVIEW_QUERY = ["build-guide-training"] as const;
 
 type Filter = "todo" | "trained" | "all";
+type Tab = "build" | "charts" | "presentations" | "suppliers";
+const TAB_KEY = "training-tab";
+const TABS: ReadonlyArray<readonly [Tab, string, typeof Wrench]> = [
+  ["build", "How to build", Wrench],
+  ["charts", "Charts", Sandwich],
+  ["presentations", "Menu presentations", Presentation],
+  ["suppliers", "Suppliers & ingredients", Truck],
+];
 
 export default function TrainingPage() {
   const role = useAuthStore((s) => (s as any).user?.role as string | undefined);
@@ -41,6 +59,24 @@ export default function TrainingPage() {
   const [filter, setFilter] = useState<Filter>("todo");
   const [search, setSearch] = useState("");
   const [openGuide, setOpenGuide] = useState<string | null>(null);
+  // Section tab — remembered on this device.
+  const [tab, setTabState] = useState<Tab>("build");
+  useEffect(() => {
+    try {
+      const t = localStorage.getItem(TAB_KEY) as Tab | null;
+      if (t && TABS.some(([k]) => k === t)) setTabState(t);
+    } catch {
+      /* private mode — always opens on How to build */
+    }
+  }, []);
+  const setTab = (t: Tab) => {
+    setTabState(t);
+    try {
+      localStorage.setItem(TAB_KEY, t);
+    } catch {
+      /* not remembered */
+    }
+  };
 
   // Training follows the location picked in the sidebar: only products sold
   // there, tagged with the brands that location sells them as.
@@ -118,98 +154,355 @@ export default function TrainingPage() {
             <GraduationCap className="h-5 w-5 text-orange-500" /> Kitchen training
           </h1>
           <p className="mt-1 text-sm text-zinc-500">
-            Learn every product&apos;s build, step by step.{" "}
-            {rows.length > 0 && (
-              <span className="font-medium text-zinc-700">
-                {rows.length - todo} of {rows.length} learned
-              </span>
+            {tab === "build" ? (
+              <>
+                Learn every product&apos;s build, step by step.{" "}
+                {rows.length > 0 && (
+                  <span className="font-medium text-zinc-700">
+                    {rows.length - todo} of {rows.length} learned
+                  </span>
+                )}
+              </>
+            ) : tab === "charts" ? (
+              "Assembly boards for this location's menus — browse on screen or print them for the wall."
+            ) : tab === "presentations" ? (
+              "Our virtual brands' menus, ready to show or send."
+            ) : (
+              "What every kitchen buys for each brand, where to buy it and the supplier's item code."
             )}
           </p>
         </div>
-        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-          <select
-            value={activeBrand}
-            onChange={(e) => setBrandId(e.target.value)}
-            aria-label="Brand"
-            className="h-9 w-full rounded-md border border-zinc-200 bg-white px-3 text-sm font-medium text-zinc-800 sm:w-56"
-          >
-            <option value="">All brands{brandOptions.length ? ` (${brandOptions.length})` : ""}</option>
-            {brandOptions.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.name}
-              </option>
-            ))}
-          </select>
-          <div className="relative w-full sm:w-64">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search products" className="pl-8" />
+        {tab === "build" && (
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+            <select
+              value={activeBrand}
+              onChange={(e) => setBrandId(e.target.value)}
+              aria-label="Brand"
+              className="h-9 w-full rounded-md border border-zinc-200 bg-white px-3 text-sm font-medium text-zinc-800 sm:w-56"
+            >
+              <option value="">All brands{brandOptions.length ? ` (${brandOptions.length})` : ""}</option>
+              {brandOptions.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+            <div className="relative w-full sm:w-64">
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+              <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search products" className="pl-8" />
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {rows.length > 0 && (
-        <div className="h-2 overflow-hidden rounded-full bg-zinc-200">
-          <div
-            className="h-full rounded-full bg-emerald-500 transition-all"
-            style={{ width: `${((rows.length - todo) / rows.length) * 100}%` }}
-          />
-        </div>
-      )}
-
-      <div className="flex gap-1.5">
-        {(
-          [
-            ["todo", `To learn (${todo})`],
-            ["trained", `Learned (${rows.length - todo})`],
-            ["all", `All (${rows.length})`],
-          ] as const
-        ).map(([k, label]) => (
+      <div role="tablist" aria-label="Training sections" className="flex gap-1 overflow-x-auto border-b border-zinc-200">
+        {TABS.map(([k, label, Icon]) => (
           <button
             key={k}
-            onClick={() => setFilter(k)}
+            role="tab"
+            aria-selected={tab === k}
+            onClick={() => setTab(k)}
             className={cn(
-              "rounded-full px-3 py-1.5 text-sm font-medium",
-              filter === k ? "bg-zinc-900 text-white" : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200",
+              "-mb-px inline-flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-500",
+              tab === k ? "border-orange-500 text-zinc-900" : "border-transparent text-zinc-500 hover:text-zinc-800",
             )}
           >
-            {label}
+            <Icon className="h-4 w-4" /> {label}
           </button>
         ))}
       </div>
 
-      {q.isLoading ? (
-        <div className="flex items-center justify-center py-20 text-sm text-zinc-500">
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading…
-        </div>
-      ) : q.isError ? (
-        <p className="py-20 text-center text-sm text-red-600">Could not load training.</p>
-      ) : rows.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-zinc-300 py-16 text-center">
-          <GraduationCap className="mx-auto h-8 w-8 text-zinc-300" />
-          <p className="mt-2 text-sm text-zinc-600">
-            {locationId ? "No build guides for products sold at this location yet." : "No build guides yet."}
-          </p>
-          <p className="text-xs text-zinc-400">Add one with “How to build” on any product in the menu editor.</p>
-        </div>
-      ) : shown.length === 0 ? (
-        <p className="py-16 text-center text-sm text-zinc-500">
-          {filter === "todo" && !search ? "All learned — nice work." : "Nothing matches."}
-        </p>
-      ) : (
-        byBrand.map(([brand, list]) => (
-          <section key={brand} className="space-y-2">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-400">{brand}</h2>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {list.map((r) => (
-                <GuideCard key={r.id} row={r} isManager={isManager} onOpen={() => setOpenGuide(r.id)} />
-              ))}
+      {tab === "charts" && <AssemblyBoards locationId={locationId} />}
+      {tab === "presentations" && <MenuPresentations />}
+      {tab === "suppliers" && <SupplierLists />}
+
+      {tab === "build" && (
+        <>
+          {rows.length > 0 && (
+            <div className="h-2 overflow-hidden rounded-full bg-zinc-200">
+              <div
+                className="h-full rounded-full bg-emerald-500 transition-all"
+                style={{ width: `${((rows.length - todo) / rows.length) * 100}%` }}
+              />
             </div>
-          </section>
-        ))
+          )}
+
+          <div className="flex gap-1.5">
+            {(
+              [
+                ["todo", `To learn (${todo})`],
+                ["trained", `Learned (${rows.length - todo})`],
+                ["all", `All (${rows.length})`],
+              ] as const
+            ).map(([k, label]) => (
+              <button
+                key={k}
+                onClick={() => setFilter(k)}
+                className={cn(
+                  "rounded-full px-3 py-1.5 text-sm font-medium",
+                  filter === k ? "bg-zinc-900 text-white" : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200",
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {q.isLoading ? (
+            <div className="flex items-center justify-center py-20 text-sm text-zinc-500">
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading…
+            </div>
+          ) : q.isError ? (
+            <p className="py-20 text-center text-sm text-red-600">Could not load training.</p>
+          ) : rows.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-zinc-300 py-16 text-center">
+              <GraduationCap className="mx-auto h-8 w-8 text-zinc-300" />
+              <p className="mt-2 text-sm text-zinc-600">
+                {locationId ? "No build guides for products sold at this location yet." : "No build guides yet."}
+              </p>
+              <p className="text-xs text-zinc-400">Add one with “How to build” on any product in the menu editor.</p>
+            </div>
+          ) : shown.length === 0 ? (
+            <p className="py-16 text-center text-sm text-zinc-500">
+              {filter === "todo" && !search ? "All learned — nice work." : "Nothing matches."}
+            </p>
+          ) : (
+            byBrand.map(([brand, list]) => (
+              <section key={brand} className="space-y-2">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-400">{brand}</h2>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {list.map((r) => (
+                    <GuideCard key={r.id} row={r} isManager={isManager} onOpen={() => setOpenGuide(r.id)} />
+                  ))}
+                </div>
+              </section>
+            ))
+          )}
+        </>
       )}
 
       {openGuide && <Walkthrough guideId={openGuide} onClose={() => setOpenGuide(null)} />}
     </div>
+  );
+}
+
+// Each virtual brand's supplier & ingredient list (lib/supplier-lists) —
+// filter by supplier for a shopping run, or print it for the kitchen wall.
+function SupplierLists() {
+  const [slug, setSlug] = useState(SUPPLIER_LISTS[0]!.slug);
+  const [supplier, setSupplier] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const list = SUPPLIER_LISTS.find((l) => l.slug === slug) ?? SUPPLIER_LISTS[0]!;
+  const suppliers = useMemo(() => suppliersOf(list), [list]);
+  const items = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return list.items.filter(
+      (it) =>
+        (!supplier || it.suppliers.includes(supplier as SupplierKey)) &&
+        (!term || [it.name, it.itemBrand, it.code, ...it.suppliers.map((k) => SUPPLIERS[k].name)].some((v) => v?.toLowerCase().includes(term))),
+    );
+  }, [list, supplier, search]);
+  const href = (download = false) => `/print/supplier-list?brand=${encodeURIComponent(list.slug)}${download ? "&download=1" : ""}`;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div role="group" aria-label="Brand" className="flex flex-wrap gap-1.5">
+          {SUPPLIER_LISTS.map((l) => (
+            <button
+              key={l.slug}
+              aria-pressed={l.slug === list.slug}
+              onClick={() => {
+                setSlug(l.slug);
+                setSupplier(null);
+              }}
+              className={cn(
+                "rounded-full px-4 py-2 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500",
+                l.slug === list.slug ? "text-white" : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200",
+              )}
+              style={l.slug === list.slug ? { background: l.accent } : undefined}
+            >
+              {l.name} <span className="font-medium opacity-75">({l.items.length})</span>
+            </button>
+          ))}
+        </div>
+        <div className="flex w-full gap-2 sm:w-auto">
+          <a
+            href={href()}
+            target="_blank"
+            rel="noopener"
+            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 sm:flex-none"
+          >
+            <ExternalLink className="h-4 w-4" /> Open sheet
+          </a>
+          <a
+            href={href(true)}
+            target="_blank"
+            rel="noopener"
+            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-orange-500 px-3 py-2 text-sm font-semibold text-white hover:bg-orange-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 sm:flex-none"
+          >
+            <Download className="h-4 w-4" /> Download PDF
+          </a>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="relative w-full sm:w-64">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search ingredients or codes"
+            aria-label="Search ingredients or codes"
+            className="pl-8"
+          />
+        </div>
+        <div role="group" aria-label="Supplier" className="flex gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+          {[{ key: null, name: "All suppliers", count: list.items.length }, ...suppliers].map((s) => (
+            <button
+              key={s.key ?? "all"}
+              aria-pressed={supplier === s.key}
+              onClick={() => setSupplier(s.key)}
+              className={cn(
+                "shrink-0 rounded-full px-3 py-1.5 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-500",
+                supplier === s.key ? "bg-zinc-900 text-white" : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200",
+              )}
+            >
+              {s.name} ({s.count})
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {items.length === 0 ? (
+        <p className="py-16 text-center text-sm text-zinc-500">Nothing matches.</p>
+      ) : (
+        <SupplierItems list={list} items={items} />
+      )}
+    </div>
+  );
+}
+
+// Virtual-brand menu presentations — each drawn live from its brand's menu
+// (lib/menu-presentations), so prices and photos are always current.
+function MenuPresentations() {
+  const href = (slug: string, download = false) =>
+    `/print/menu-presentation?brand=${encodeURIComponent(slug)}${download ? "&download=1" : ""}`;
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {PRESENTATIONS.map((p) => (
+        <div key={p.slug} className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
+          <a
+            href={href(p.slug)}
+            target="_blank"
+            rel="noopener"
+            aria-label={`Open the ${p.name} menu presentation`}
+            className="block focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-500"
+          >
+            <CoverThumb brand={p} />
+          </a>
+          <div className="space-y-3 p-3">
+            <div>
+              <p className="font-semibold text-zinc-900">{p.name}</p>
+              <p className="text-xs text-zinc-500">{p.tagline.replace(/ • /g, ", ")}</p>
+            </div>
+            <div className="flex gap-2">
+              <a
+                href={href(p.slug)}
+                target="_blank"
+                rel="noopener"
+                className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-orange-500 px-3 py-2 text-sm font-semibold text-white hover:bg-orange-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500"
+              >
+                <ExternalLink className="h-4 w-4" /> Browse
+              </a>
+              <a
+                href={href(p.slug, true)}
+                target="_blank"
+                rel="noopener"
+                className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500"
+              >
+                <Download className="h-4 w-4" /> Download PDF
+              </a>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// The location's assembly boards — the same wall poster as "Assembly board"
+// in the menu editor, one per menu that has charted products.
+function AssemblyBoards({ locationId }: { locationId: string | null | undefined }) {
+  const q = useQuery({
+    queryKey: ["assembly-boards", locationId ?? "all"],
+    queryFn: () => assemblyChartsClient.boards(locationId),
+  });
+  const boards = q.data ?? [];
+  if (q.isLoading)
+    return (
+      <div className="flex items-center justify-center py-20 text-sm text-zinc-500">
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading…
+      </div>
+    );
+  if (q.isError) return <p className="py-20 text-center text-sm text-red-600">Could not load the assembly boards.</p>;
+  if (!boards.length)
+    return (
+      <div className="rounded-xl border border-dashed border-zinc-300 py-16 text-center">
+        <Sandwich className="mx-auto h-8 w-8 text-zinc-300" />
+        <p className="mt-2 text-sm text-zinc-600">
+          {locationId ? "No charts for this location's menus yet." : "No charts yet."}
+        </p>
+        <p className="text-xs text-zinc-400">Add one with “Chart” on any product in the menu editor.</p>
+      </div>
+    );
+  const href = (menuId: string, download = false) =>
+    `/print/assembly-charts?menu=${encodeURIComponent(menuId)}${download ? "&download=1" : ""}`;
+  return (
+    <section>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {boards.map((b) => (
+          <div
+            key={b.menuId}
+            className="flex flex-col gap-3 rounded-xl border border-pink-200 bg-gradient-to-br from-pink-50 to-white p-3"
+          >
+            <div className="flex items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#d81b6a] text-white">
+                <Sandwich className="h-5 w-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="truncate font-semibold text-zinc-900" title={b.name}>
+                  {b.name}
+                </p>
+                <p className="text-xs text-zinc-500">
+                  {b.chartCount} {b.chartCount === 1 ? "chart" : "charts"} ·{" "}
+                  {Math.ceil(b.chartCount / 6)} A4 {Math.ceil(b.chartCount / 6) === 1 ? "sheet" : "sheets"}
+                  {!b.live && <span className="ml-1.5 rounded bg-zinc-200 px-1.5 py-0.5 font-medium text-zinc-600">Not live</span>}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <a
+                href={href(b.menuId)}
+                target="_blank"
+                rel="noopener"
+                className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#d81b6a] px-3 py-2 text-sm font-semibold text-white hover:bg-pink-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-600"
+              >
+                <ExternalLink className="h-4 w-4" /> Browse
+              </a>
+              <a
+                href={href(b.menuId, true)}
+                target="_blank"
+                rel="noopener"
+                className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-600"
+              >
+                <Download className="h-4 w-4" /> Download PDF
+              </a>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 

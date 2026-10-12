@@ -43,6 +43,7 @@ import type { CreateOrderDto } from "./dto/create-order.dto";
 import type { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
 import { activeDojoLock } from "../payments/dojo/dojo-lock";
 import { isRetailType } from "../retail/retail.logic";
+import { WalkInLoyaltyService } from "../loyalty/walk-in/walk-in-loyalty.service";
 import type { CanonicalOrder } from "@orderhub/shared";
 
 // Phase AM — if the operator scheduled this order more than this many seconds
@@ -258,6 +259,8 @@ export class OrdersService {
     // Dojo card-machine refunds on cancel. Last and optional so existing
     // positional test constructions keep lining up.
     @Optional() private readonly dojo?: DojoService,
+    // Walk-in loyalty card scanned at the till. Optional for the same reason.
+    @Optional() private readonly walkInLoyalty?: WalkInLoyaltyService,
   ) {}
 
   /**
@@ -1090,6 +1093,19 @@ export class OrdersService {
     const scheduledFor = dto.scheduledFor ? new Date(dto.scheduledFor) : undefined;
     const isScheduled = dto.isScheduled === true || this.isFutureScheduled(scheduledFor);
 
+    // A loyalty reward on the basket must still be there to spend. Checked
+    // before anything is written: two tills scanning the same card must not
+    // both hand over the free coffee.
+    if (dto.loyaltyMemberId && dto.loyaltyRewardId && this.walkInLoyalty) {
+      await this.walkInLoyalty.assertRewardSpendable(
+        tenantId,
+        dto.locationId,
+        dto.loyaltyMemberId,
+        dto.loyaltyRewardId,
+        dto.idempotencyKey,
+      );
+    }
+
     // Both POS and the storefront share this create path, but the
     // Orders dashboard renders the "channel" pill from `platform`.
     // Hard-coding platform=DIRECT here meant a POS order showed up as
@@ -1368,6 +1384,11 @@ export class OrdersService {
         source: (order as any).orderSource ?? "POS",
         consent: dto.marketingConsent === true,
       });
+    }
+
+    // Walk-in loyalty card: link it, spend the reward, stamp it if paid.
+    if (dto.loyaltyMemberId && this.walkInLoyalty) {
+      await this.walkInLoyalty.attachOrder(order.id, tenantId, dto.loyaltyMemberId, dto.loyaltyRewardId);
     }
 
     return order;

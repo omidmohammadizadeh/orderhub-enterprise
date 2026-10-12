@@ -10,7 +10,7 @@
 //   - categories whose items DON'T count toward the threshold
 //     (e.g. exclude Meal Deals so they don't double-dip)
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useCurrency } from "@/hooks/use-currency";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { X, Loader2, Check, ChevronDown, ChevronRight, Sparkles } from "lucide-react";
@@ -20,7 +20,8 @@ import {
   type CampaignAudience,
 } from "@/lib/api/marketing.client";
 import { brandsClient, type Brand } from "@/lib/api/locations.client";
-import { menusClient, type MenuCategory } from "@/lib/api/menus.client";
+import { type MenuCategory } from "@/lib/api/menus.client";
+import { useCampaignMenu } from "./use-campaign-menu";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 
 interface Props {
@@ -86,24 +87,8 @@ export function FreeItemCampaignForm({ onCancel, onSaved }: Props) {
     }
   }, [brandsQuery.data, brandId]);
 
-  const menusQuery = useQuery({
-    queryKey: ["marketing", "brand-menus", brandId],
-    queryFn: () => menusClient.listMenus(brandId!),
-    enabled: !!brandId,
-  });
-
-  const activeMenu = useMemo(() => {
-    const list = menusQuery.data ?? [];
-    return list.find((m) => m.isActive) ?? list[0] ?? null;
-  }, [menusQuery.data]);
-
-  const menuQuery = useQuery({
-    queryKey: ["marketing", "menu", activeMenu?.id],
-    queryFn: () => menusClient.getMenu(activeMenu!.id),
-    enabled: !!activeMenu?.id,
-  });
-
-  const categories = menuQuery.data?.categories ?? [];
+  const menuQuery = useCampaignMenu(brandId, selectedLocationId);
+  const categories = menuQuery.categories;
 
   function toggleItem(id: string) {
     setFreeItemIds((prev) => {
@@ -285,7 +270,7 @@ export function FreeItemCampaignForm({ onCancel, onSaved }: Props) {
               customer picks which one to claim. Tick whole categories
               to include everything in them.
             </p>
-            {menuQuery.isLoading ? (
+            {menuQuery.loading ? (
               <div className="flex items-center justify-center py-6 text-zinc-400">
                 <Loader2 className="h-4 w-4 animate-spin" />
               </div>

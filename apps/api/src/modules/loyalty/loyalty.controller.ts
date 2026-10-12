@@ -53,6 +53,10 @@ export class LoyaltyController {
       rewardItemId?: string | null;
       rewardLabel?: string;
       rewardExpiryDays?: number | null;
+      walkInEnabled?: boolean;
+      cardTitle?: string | null;
+      cardColor?: string | null;
+      cardLogoUrl?: string | null;
     },
     @CurrentUser() user: AuthenticatedUser,
   ) {

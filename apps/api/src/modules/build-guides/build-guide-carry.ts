@@ -51,7 +51,17 @@ export async function carryGuideOnRename(
       await db[model].create({ data: copyData(guide, newKey, args.newName) });
       return "copied";
     }
-    await db[model].update({ where: { id: guide.id }, data: { nameKey: newKey, name: args.newName } });
+    await db[model].update({
+      where: { id: guide.id },
+      data: {
+        nameKey: newKey,
+        name: args.newName,
+        // An assembly chart's header follows the product name unless someone
+        // typed a custom title — a renamed product must not keep its old
+        // name on the printed board.
+        ...(guide.title !== undefined && sameTitle(guide.title, args.oldName) ? { title: args.newName } : {}),
+      },
+    });
     return "moved";
   } catch (err: any) {
     logger.warn(`Guide did not follow rename of ${args.itemId}: ${err?.message ?? err}`);
@@ -79,8 +89,14 @@ export async function copyGuideToName(
   }
 }
 
+function sameTitle(a: unknown, b: string) {
+  return String(a ?? "").trim().toLowerCase() === b.trim().toLowerCase();
+}
+
 function copyData(row: any, nameKey: string, name: string) {
   // Everything but identity — works for any brand+name keyed table.
-  const { id: _id, createdAt: _c, updatedAt: _u, nameKey: _k, name: _n, ...rest } = row ?? {};
+  const { id: _id, createdAt: _c, updatedAt: _u, nameKey: _k, name: oldName, ...rest } = row ?? {};
+  // A title that was just the product name follows the new name too.
+  if (rest.title !== undefined && sameTitle(rest.title, String(oldName ?? ""))) rest.title = name;
   return { ...rest, nameKey, name };
 }

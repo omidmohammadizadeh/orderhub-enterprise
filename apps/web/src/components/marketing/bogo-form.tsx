@@ -6,7 +6,7 @@
 // customer adds a trigger to the cart, a £0 copy of the SAME item
 // auto-lands as their freebie — no separate reward selection.
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useCurrency } from "@/hooks/use-currency";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { X, Loader2, Check, ChevronDown, ChevronRight, Gift } from "lucide-react";
@@ -16,7 +16,8 @@ import {
   type CampaignAudience,
 } from "@/lib/api/marketing.client";
 import { brandsClient, type Brand } from "@/lib/api/locations.client";
-import { menusClient, type MenuCategory } from "@/lib/api/menus.client";
+import { type MenuCategory } from "@/lib/api/menus.client";
+import { useCampaignMenu } from "./use-campaign-menu";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 
 interface Props {
@@ -74,24 +75,8 @@ export function BogoCampaignForm({ onCancel, onSaved }: Props) {
     }
   }, [brandsQuery.data, brandId]);
 
-  const menusQuery = useQuery({
-    queryKey: ["marketing", "brand-menus", brandId],
-    queryFn: () => menusClient.listMenus(brandId!),
-    enabled: !!brandId,
-  });
-
-  const activeMenu = useMemo(() => {
-    const list = menusQuery.data ?? [];
-    return list.find((m) => m.isActive) ?? list[0] ?? null;
-  }, [menusQuery.data]);
-
-  const menuQuery = useQuery({
-    queryKey: ["marketing", "menu", activeMenu?.id],
-    queryFn: () => menusClient.getMenu(activeMenu!.id),
-    enabled: !!activeMenu?.id,
-  });
-
-  const categories = menuQuery.data?.categories ?? [];
+  const menuQuery = useCampaignMenu(brandId, selectedLocationId);
+  const categories = menuQuery.categories;
 
   const save = useMutation({
     mutationFn: async () => {
@@ -197,7 +182,7 @@ export function BogoCampaignForm({ onCancel, onSaved }: Props) {
             </p>
             <ItemPicker
               categories={categories}
-              loading={menuQuery.isLoading}
+              loading={menuQuery.loading}
               selected={triggerIds}
               setSelected={setTriggerIds}
               accent="pink"
