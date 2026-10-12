@@ -99,7 +99,7 @@ export const walkInPublic = {
       body: JSON.stringify(body),
     }),
   card: (token: string) => publicJson<PublicCard>(`/card/${encodeURIComponent(token)}`),
-  appleUrl: (token: string) => `${BASE}/card/${encodeURIComponent(token)}/apple`,
+  appleUrl: (token: string) => `${BASE}/card/${encodeURIComponent(token)}/loyalty.pkpass`,
   googleUrl: (token: string) => publicJson<{ url: string }>(`/card/${encodeURIComponent(token)}/google`),
 };
 

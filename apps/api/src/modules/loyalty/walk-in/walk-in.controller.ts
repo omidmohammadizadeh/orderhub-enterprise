@@ -64,8 +64,11 @@ export class WalkInLoyaltyController {
     return this.walkIn.publicCard(token);
   }
 
+  // Served INLINE with the pkpass type and a .pkpass URL, so Safari and
+  // Chrome on iPhone hand it straight to Wallet ("Add" sheet). "attachment"
+  // made them treat it as a file download (Download / Save to Drive).
   @Public()
-  @Get("card/:token/apple")
+  @Get(["card/:token/loyalty.pkpass", "card/:token/apple"])
   @ApiOperation({ summary: "The Apple Wallet pass (.pkpass)" })
   async applePass(@Param("token") token: string, @Res() res: Response) {
     const buf = await this.walkIn.applePass(token);
@@ -73,7 +76,8 @@ export class WalkInLoyaltyController {
       .status(200)
       .set({
         "Content-Type": "application/vnd.apple.pkpass",
-        "Content-Disposition": 'attachment; filename="loyalty.pkpass"',
+        "Content-Disposition": 'inline; filename="loyalty.pkpass"',
+        "Content-Length": String(buf.length),
         "Cache-Control": "no-store",
       })
       .send(buf);
