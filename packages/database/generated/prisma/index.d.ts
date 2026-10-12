@@ -162486,6 +162486,7 @@ export namespace Prisma {
     cardTitle: string | null
     cardColor: string | null
     cardLogoUrl: string | null
+    stampIcon: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -162504,6 +162505,7 @@ export namespace Prisma {
     cardTitle: string | null
     cardColor: string | null
     cardLogoUrl: string | null
+    stampIcon: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -162522,6 +162524,7 @@ export namespace Prisma {
     cardTitle: number
     cardColor: number
     cardLogoUrl: number
+    stampIcon: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -162554,6 +162557,7 @@ export namespace Prisma {
     cardTitle?: true
     cardColor?: true
     cardLogoUrl?: true
+    stampIcon?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -162572,6 +162576,7 @@ export namespace Prisma {
     cardTitle?: true
     cardColor?: true
     cardLogoUrl?: true
+    stampIcon?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -162590,6 +162595,7 @@ export namespace Prisma {
     cardTitle?: true
     cardColor?: true
     cardLogoUrl?: true
+    stampIcon?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -162695,6 +162701,7 @@ export namespace Prisma {
     cardTitle: string | null
     cardColor: string | null
     cardLogoUrl: string | null
+    stampIcon: string | null
     createdAt: Date
     updatedAt: Date
     _count: LoyaltyCardCountAggregateOutputType | null
@@ -162732,6 +162739,7 @@ export namespace Prisma {
     cardTitle?: boolean
     cardColor?: boolean
     cardLogoUrl?: boolean
+    stampIcon?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     location?: boolean | LocationDefaultArgs<ExtArgs>
@@ -162756,6 +162764,7 @@ export namespace Prisma {
     cardTitle?: boolean
     cardColor?: boolean
     cardLogoUrl?: boolean
+    stampIcon?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     location?: boolean | LocationDefaultArgs<ExtArgs>
@@ -162776,6 +162785,7 @@ export namespace Prisma {
     cardTitle?: boolean
     cardColor?: boolean
     cardLogoUrl?: boolean
+    stampIcon?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -162845,6 +162855,11 @@ export namespace Prisma {
        * Square logo on the pass. Null = the location's brand logo.
        */
       cardLogoUrl: string | null
+      /**
+       * The stamp picture (coffee, pizza, scissors…) — a key from
+       * STAMP_ICONS in @orderhub/shared. Null = coffee cup.
+       */
+      stampIcon: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["loyaltyCard"]>
@@ -163258,6 +163273,7 @@ export namespace Prisma {
     readonly cardTitle: FieldRef<"LoyaltyCard", 'String'>
     readonly cardColor: FieldRef<"LoyaltyCard", 'String'>
     readonly cardLogoUrl: FieldRef<"LoyaltyCard", 'String'>
+    readonly stampIcon: FieldRef<"LoyaltyCard", 'String'>
     readonly createdAt: FieldRef<"LoyaltyCard", 'DateTime'>
     readonly updatedAt: FieldRef<"LoyaltyCard", 'DateTime'>
   }
@@ -184525,6 +184541,7 @@ export namespace Prisma {
     cardTitle: 'cardTitle',
     cardColor: 'cardColor',
     cardLogoUrl: 'cardLogoUrl',
+    stampIcon: 'stampIcon',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -186754,7 +186771,8 @@ export namespace Prisma {
     rewardLabel: 'rewardLabel',
     cardTitle: 'cardTitle',
     cardColor: 'cardColor',
-    cardLogoUrl: 'cardLogoUrl'
+    cardLogoUrl: 'cardLogoUrl',
+    stampIcon: 'stampIcon'
   };
 
   export type LoyaltyCardOrderByRelevanceFieldEnum = (typeof LoyaltyCardOrderByRelevanceFieldEnum)[keyof typeof LoyaltyCardOrderByRelevanceFieldEnum]
@@ -202118,6 +202136,7 @@ export namespace Prisma {
     cardTitle?: StringNullableFilter<"LoyaltyCard"> | string | null
     cardColor?: StringNullableFilter<"LoyaltyCard"> | string | null
     cardLogoUrl?: StringNullableFilter<"LoyaltyCard"> | string | null
+    stampIcon?: StringNullableFilter<"LoyaltyCard"> | string | null
     createdAt?: DateTimeFilter<"LoyaltyCard"> | Date | string
     updatedAt?: DateTimeFilter<"LoyaltyCard"> | Date | string
     location?: XOR<LocationRelationFilter, LocationWhereInput>
@@ -202141,6 +202160,7 @@ export namespace Prisma {
     cardTitle?: SortOrderInput | SortOrder
     cardColor?: SortOrderInput | SortOrder
     cardLogoUrl?: SortOrderInput | SortOrder
+    stampIcon?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     location?: LocationOrderByWithRelationInput
@@ -202168,6 +202188,7 @@ export namespace Prisma {
     cardTitle?: StringNullableFilter<"LoyaltyCard"> | string | null
     cardColor?: StringNullableFilter<"LoyaltyCard"> | string | null
     cardLogoUrl?: StringNullableFilter<"LoyaltyCard"> | string | null
+    stampIcon?: StringNullableFilter<"LoyaltyCard"> | string | null
     createdAt?: DateTimeFilter<"LoyaltyCard"> | Date | string
     updatedAt?: DateTimeFilter<"LoyaltyCard"> | Date | string
     location?: XOR<LocationRelationFilter, LocationWhereInput>
@@ -202191,6 +202212,7 @@ export namespace Prisma {
     cardTitle?: SortOrderInput | SortOrder
     cardColor?: SortOrderInput | SortOrder
     cardLogoUrl?: SortOrderInput | SortOrder
+    stampIcon?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: LoyaltyCardCountOrderByAggregateInput
@@ -202217,6 +202239,7 @@ export namespace Prisma {
     cardTitle?: StringNullableWithAggregatesFilter<"LoyaltyCard"> | string | null
     cardColor?: StringNullableWithAggregatesFilter<"LoyaltyCard"> | string | null
     cardLogoUrl?: StringNullableWithAggregatesFilter<"LoyaltyCard"> | string | null
+    stampIcon?: StringNullableWithAggregatesFilter<"LoyaltyCard"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"LoyaltyCard"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"LoyaltyCard"> | Date | string
   }
@@ -220491,6 +220514,7 @@ export namespace Prisma {
     cardTitle?: string | null
     cardColor?: string | null
     cardLogoUrl?: string | null
+    stampIcon?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     location: LocationCreateNestedOneWithoutLoyaltyCardInput
@@ -220514,6 +220538,7 @@ export namespace Prisma {
     cardTitle?: string | null
     cardColor?: string | null
     cardLogoUrl?: string | null
+    stampIcon?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     stamps?: LoyaltyStampUncheckedCreateNestedManyWithoutCardInput
@@ -220533,6 +220558,7 @@ export namespace Prisma {
     cardTitle?: NullableStringFieldUpdateOperationsInput | string | null
     cardColor?: NullableStringFieldUpdateOperationsInput | string | null
     cardLogoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    stampIcon?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     location?: LocationUpdateOneRequiredWithoutLoyaltyCardNestedInput
@@ -220556,6 +220582,7 @@ export namespace Prisma {
     cardTitle?: NullableStringFieldUpdateOperationsInput | string | null
     cardColor?: NullableStringFieldUpdateOperationsInput | string | null
     cardLogoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    stampIcon?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     stamps?: LoyaltyStampUncheckedUpdateManyWithoutCardNestedInput
@@ -220577,6 +220604,7 @@ export namespace Prisma {
     cardTitle?: string | null
     cardColor?: string | null
     cardLogoUrl?: string | null
+    stampIcon?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -220593,6 +220621,7 @@ export namespace Prisma {
     cardTitle?: NullableStringFieldUpdateOperationsInput | string | null
     cardColor?: NullableStringFieldUpdateOperationsInput | string | null
     cardLogoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    stampIcon?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -220611,6 +220640,7 @@ export namespace Prisma {
     cardTitle?: NullableStringFieldUpdateOperationsInput | string | null
     cardColor?: NullableStringFieldUpdateOperationsInput | string | null
     cardLogoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    stampIcon?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -233832,6 +233862,7 @@ export namespace Prisma {
     cardTitle?: SortOrder
     cardColor?: SortOrder
     cardLogoUrl?: SortOrder
+    stampIcon?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -233856,6 +233887,7 @@ export namespace Prisma {
     cardTitle?: SortOrder
     cardColor?: SortOrder
     cardLogoUrl?: SortOrder
+    stampIcon?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -233874,6 +233906,7 @@ export namespace Prisma {
     cardTitle?: SortOrder
     cardColor?: SortOrder
     cardLogoUrl?: SortOrder
+    stampIcon?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -255452,6 +255485,7 @@ export namespace Prisma {
     cardTitle?: string | null
     cardColor?: string | null
     cardLogoUrl?: string | null
+    stampIcon?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     rewardItem?: MenuItemCreateNestedOneWithoutLoyaltyCardsInput
@@ -255473,6 +255507,7 @@ export namespace Prisma {
     cardTitle?: string | null
     cardColor?: string | null
     cardLogoUrl?: string | null
+    stampIcon?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     stamps?: LoyaltyStampUncheckedCreateNestedManyWithoutCardInput
@@ -256764,6 +256799,7 @@ export namespace Prisma {
     cardTitle?: NullableStringFieldUpdateOperationsInput | string | null
     cardColor?: NullableStringFieldUpdateOperationsInput | string | null
     cardLogoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    stampIcon?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rewardItem?: MenuItemUpdateOneWithoutLoyaltyCardsNestedInput
@@ -256785,6 +256821,7 @@ export namespace Prisma {
     cardTitle?: NullableStringFieldUpdateOperationsInput | string | null
     cardColor?: NullableStringFieldUpdateOperationsInput | string | null
     cardLogoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    stampIcon?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     stamps?: LoyaltyStampUncheckedUpdateManyWithoutCardNestedInput
@@ -260004,6 +260041,7 @@ export namespace Prisma {
     cardTitle?: string | null
     cardColor?: string | null
     cardLogoUrl?: string | null
+    stampIcon?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     location: LocationCreateNestedOneWithoutLoyaltyCardInput
@@ -260025,6 +260063,7 @@ export namespace Prisma {
     cardTitle?: string | null
     cardColor?: string | null
     cardLogoUrl?: string | null
+    stampIcon?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     stamps?: LoyaltyStampUncheckedCreateNestedManyWithoutCardInput
@@ -260256,6 +260295,7 @@ export namespace Prisma {
     cardTitle?: StringNullableFilter<"LoyaltyCard"> | string | null
     cardColor?: StringNullableFilter<"LoyaltyCard"> | string | null
     cardLogoUrl?: StringNullableFilter<"LoyaltyCard"> | string | null
+    stampIcon?: StringNullableFilter<"LoyaltyCard"> | string | null
     createdAt?: DateTimeFilter<"LoyaltyCard"> | Date | string
     updatedAt?: DateTimeFilter<"LoyaltyCard"> | Date | string
   }
@@ -289977,6 +290017,7 @@ export namespace Prisma {
     cardTitle?: string | null
     cardColor?: string | null
     cardLogoUrl?: string | null
+    stampIcon?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     location: LocationCreateNestedOneWithoutLoyaltyCardInput
@@ -289999,6 +290040,7 @@ export namespace Prisma {
     cardTitle?: string | null
     cardColor?: string | null
     cardLogoUrl?: string | null
+    stampIcon?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     rewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutCardInput
@@ -290324,6 +290366,7 @@ export namespace Prisma {
     cardTitle?: NullableStringFieldUpdateOperationsInput | string | null
     cardColor?: NullableStringFieldUpdateOperationsInput | string | null
     cardLogoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    stampIcon?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     location?: LocationUpdateOneRequiredWithoutLoyaltyCardNestedInput
@@ -290346,6 +290389,7 @@ export namespace Prisma {
     cardTitle?: NullableStringFieldUpdateOperationsInput | string | null
     cardColor?: NullableStringFieldUpdateOperationsInput | string | null
     cardLogoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    stampIcon?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rewards?: LoyaltyRewardUncheckedUpdateManyWithoutCardNestedInput
@@ -290673,6 +290717,7 @@ export namespace Prisma {
     cardTitle?: string | null
     cardColor?: string | null
     cardLogoUrl?: string | null
+    stampIcon?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     location: LocationCreateNestedOneWithoutLoyaltyCardInput
@@ -290695,6 +290740,7 @@ export namespace Prisma {
     cardTitle?: string | null
     cardColor?: string | null
     cardLogoUrl?: string | null
+    stampIcon?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     stamps?: LoyaltyStampUncheckedCreateNestedManyWithoutCardInput
@@ -291026,6 +291072,7 @@ export namespace Prisma {
     cardTitle?: NullableStringFieldUpdateOperationsInput | string | null
     cardColor?: NullableStringFieldUpdateOperationsInput | string | null
     cardLogoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    stampIcon?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     location?: LocationUpdateOneRequiredWithoutLoyaltyCardNestedInput
@@ -291048,6 +291095,7 @@ export namespace Prisma {
     cardTitle?: NullableStringFieldUpdateOperationsInput | string | null
     cardColor?: NullableStringFieldUpdateOperationsInput | string | null
     cardLogoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    stampIcon?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     stamps?: LoyaltyStampUncheckedUpdateManyWithoutCardNestedInput
@@ -291381,6 +291429,7 @@ export namespace Prisma {
     cardTitle?: string | null
     cardColor?: string | null
     cardLogoUrl?: string | null
+    stampIcon?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     location: LocationCreateNestedOneWithoutLoyaltyCardInput
@@ -291403,6 +291452,7 @@ export namespace Prisma {
     cardTitle?: string | null
     cardColor?: string | null
     cardLogoUrl?: string | null
+    stampIcon?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     stamps?: LoyaltyStampUncheckedCreateNestedManyWithoutCardInput
@@ -291533,6 +291583,7 @@ export namespace Prisma {
     cardTitle?: NullableStringFieldUpdateOperationsInput | string | null
     cardColor?: NullableStringFieldUpdateOperationsInput | string | null
     cardLogoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    stampIcon?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     location?: LocationUpdateOneRequiredWithoutLoyaltyCardNestedInput
@@ -291555,6 +291606,7 @@ export namespace Prisma {
     cardTitle?: NullableStringFieldUpdateOperationsInput | string | null
     cardColor?: NullableStringFieldUpdateOperationsInput | string | null
     cardLogoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    stampIcon?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     stamps?: LoyaltyStampUncheckedUpdateManyWithoutCardNestedInput
@@ -300453,6 +300505,7 @@ export namespace Prisma {
     cardTitle?: string | null
     cardColor?: string | null
     cardLogoUrl?: string | null
+    stampIcon?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -300653,6 +300706,7 @@ export namespace Prisma {
     cardTitle?: NullableStringFieldUpdateOperationsInput | string | null
     cardColor?: NullableStringFieldUpdateOperationsInput | string | null
     cardLogoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    stampIcon?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     location?: LocationUpdateOneRequiredWithoutLoyaltyCardNestedInput
@@ -300674,6 +300728,7 @@ export namespace Prisma {
     cardTitle?: NullableStringFieldUpdateOperationsInput | string | null
     cardColor?: NullableStringFieldUpdateOperationsInput | string | null
     cardLogoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    stampIcon?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     stamps?: LoyaltyStampUncheckedUpdateManyWithoutCardNestedInput
@@ -300694,6 +300749,7 @@ export namespace Prisma {
     cardTitle?: NullableStringFieldUpdateOperationsInput | string | null
     cardColor?: NullableStringFieldUpdateOperationsInput | string | null
     cardLogoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    stampIcon?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

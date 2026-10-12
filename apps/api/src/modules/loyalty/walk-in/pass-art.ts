@@ -1,4 +1,5 @@
 import sharp from "sharp";
+import { REWARD_ICON_SVG, stampIconSvg } from "@orderhub/shared";
 
 // The pictures on a wallet pass, drawn on the server.
 //
@@ -43,17 +44,10 @@ function shade(hex: string, amount: number): string {
   return `#${ch(1)}${ch(3)}${ch(5)}`;
 }
 
-// A coffee cup: body, handle and two steam curls. 24×24 viewBox.
-const CUP =
-  '<path d="M4 9h12v5.5A5.5 5.5 0 0 1 10.5 20h-1A5.5 5.5 0 0 1 4 14.5V9z"/>' +
-  '<path d="M16 10.5h1.5a2.75 2.75 0 0 1 0 5.5H16" fill="none" stroke-width="1.8" stroke-linecap="round"/>' +
-  '<path d="M8 3.5c-.8 1 .8 1.8 0 3M12 3.5c-.8 1 .8 1.8 0 3" fill="none" stroke-width="1.5" stroke-linecap="round"/>';
-
-// A gift box for the final, reward slot.
-const GIFT =
-  '<path d="M3.5 9.5h17v3h-17zM5 12.5h14V20H5z"/>' +
-  '<path d="M12 9.5V20" fill="none" stroke-width="1.6"/>' +
-  '<path d="M12 9.5C10 5 6.5 5.5 7.5 8c.4 1 2.5 1.5 4.5 1.5zM12 9.5c2-4.5 5.5-4 4.5-1.5-.4 1-2.5 1.5-4.5 1.5z" fill="none" stroke-width="1.5"/>';
+// Stamp pictures come from the shared icon set (STAMP_ICONS) so the pass, the
+// card page, the till and the poster draw the same thing; the last slot is
+// always the gift.
+const GIFT = REWARD_ICON_SVG;
 
 /**
  * The stamp row. `scale` 1/2/3 for Apple's @1x/@2x/@3x (375×123 points);
@@ -64,7 +58,9 @@ export async function renderStampStrip(
   required: number,
   color: string,
   scale = 3,
+  icon?: string | null,
 ): Promise<Buffer> {
+  const CUP = stampIconSvg(icon);
   const W = 375;
   const H = 123;
   const bg = safeColor(color);
@@ -142,7 +138,12 @@ export async function fetchImage(url: string | null | undefined): Promise<Buffer
  * The square icon (Apple's lock-screen notification icon; Google's programme
  * logo). The shop's logo on white, or a star on the card colour without one.
  */
-export async function renderIcon(logo: Buffer | null, color: string, size: number): Promise<Buffer> {
+export async function renderIcon(
+  logo: Buffer | null,
+  color: string,
+  size: number,
+  icon?: string | null,
+): Promise<Buffer> {
   if (logo) {
     const inner = Math.round(size * 0.84);
     const fitted = await sharp(logo)
@@ -160,7 +161,7 @@ export async function renderIcon(logo: Buffer | null, color: string, size: numbe
   const svg =
     `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24">` +
     `<rect width="24" height="24" fill="${bg}"/>` +
-    `<g transform="translate(4.2 4.2) scale(0.65)" fill="${fg}" stroke="${fg}">${CUP}</g></svg>`;
+    `<g transform="translate(4.2 4.2) scale(0.65)" fill="${fg}" stroke="${fg}">${stampIconSvg(icon)}</g></svg>`;
   return sharp(Buffer.from(svg)).png().toBuffer();
 }
 

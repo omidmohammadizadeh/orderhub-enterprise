@@ -11,6 +11,7 @@ export interface JoinInfo {
   available: boolean;
   title: string;
   color?: string;
+  stampIcon?: string | null;
   logoUrl?: string | null;
   stampsRequired?: number;
   rewardLabel?: string;
@@ -21,6 +22,7 @@ export interface JoinInfo {
 export interface PublicCard {
   title: string;
   color: string;
+  stampIcon: string | null;
   logoUrl: string | null;
   firstName: string | null;
   code: string;
@@ -43,6 +45,7 @@ export interface TillMember {
   contactHint: string | null;
   stamps: number;
   stampsRequired: number;
+  stampIcon: string | null;
   lifetimeStamps: number;
   minimumSpend: number | null;
   rewardLabel: string;
@@ -102,6 +105,7 @@ export const walkInPublic = {
 
 export interface TillStatus {
   enabled: boolean;
+  stampIcon: string | null;
   stampsRequired: number;
   rewardLabel: string | null;
   joinUrl: string;

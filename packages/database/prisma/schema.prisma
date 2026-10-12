@@ -5471,6 +5471,9 @@ model LoyaltyCard {
   cardColor     String?
   /// Square logo on the pass. Null = the location's brand logo.
   cardLogoUrl   String?
+  /// The stamp picture (coffee, pizza, scissors…) — a key from
+  /// STAMP_ICONS in @orderhub/shared. Null = coffee cup.
+  stampIcon     String?
 
   stamps  LoyaltyStamp[]
   rewards LoyaltyReward[]

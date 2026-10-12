@@ -8,7 +8,7 @@ import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Printer } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
-import { CupIcon, GiftIcon, readableOn } from "@/components/loyalty/wallet-card";
+import { RewardIcon, StampIcon, readableOn } from "@/components/loyalty/wallet-card";
 
 export default function LoyaltyPosterPage() {
   return (
@@ -26,6 +26,7 @@ function Poster() {
   const stamps = Math.min(20, Math.max(2, Number(p.get("n")) || 6));
   const color = /^#[0-9a-fA-F]{6}$/.test(`#${p.get("c")}`) ? `#${p.get("c")}` : "#1F2937";
   const fg = readableOn(color);
+  const icon = p.get("i");
 
   return (
     <div className="min-h-screen bg-zinc-200 py-8 print:bg-white print:py-0">
@@ -53,14 +54,17 @@ function Poster() {
           </h1>
           <div className="mt-[10mm] flex flex-wrap justify-center gap-[3mm]">
             {Array.from({ length: stamps }, (_, i) => {
-              const Icon = i === stamps - 1 ? GiftIcon : CupIcon;
               return (
                 <span
                   key={i}
                   className="flex h-[14mm] w-[14mm] items-center justify-center rounded-full"
                   style={{ background: i < Math.ceil(stamps / 2) ? fg : "transparent", color: i < Math.ceil(stamps / 2) ? color : fg, border: `0.6mm ${i < Math.ceil(stamps / 2) ? "solid" : "dashed"} ${fg}` }}
                 >
-                  <Icon className="h-[8mm] w-[8mm]" />
+                  {i === stamps - 1 ? (
+                    <RewardIcon className="h-[8mm] w-[8mm]" />
+                  ) : (
+                    <StampIcon icon={icon} className="h-[8mm] w-[8mm]" />
+                  )}
                 </span>
               );
             })}

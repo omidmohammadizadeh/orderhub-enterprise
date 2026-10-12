@@ -117,6 +117,7 @@ export default function JoinLoyaltyPage() {
               <WalletCard
                 title={info.title}
                 color={color}
+                stampIcon={info.stampIcon}
                 logoUrl={info.logoUrl}
                 stamps={0}
                 stampsRequired={info.stampsRequired ?? 6}

@@ -12,6 +12,8 @@ export interface PassView {
   title: string;
   /** #RRGGBB */
   color: string;
+  /** STAMP_ICONS key (coffee, pizza, scissors…). */
+  stampIcon: string | null;
   /** The shop's logo, if it has one we can fetch. */
   logoUrl: string | null;
 

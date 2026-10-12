@@ -19,7 +19,8 @@ import { apiClient } from "@/lib/api/client";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { useCurrency } from "@/hooks/use-currency";
 import { brandsClient } from "@/lib/api/locations.client";
-import { WalletCard } from "@/components/loyalty/wallet-card";
+import { StampIcon, WalletCard, readableOn } from "@/components/loyalty/wallet-card";
+import { DEFAULT_STAMP_ICON, stampIconGroups } from "@orderhub/shared";
 import { walkInTill } from "@/lib/api/loyalty-walk-in.client";
 
 interface Card {
@@ -34,6 +35,8 @@ interface Card {
   cardTitle: string | null;
   cardColor: string | null;
   cardLogoUrl: string | null;
+  /** STAMP_ICONS key — the picture on each stamp. */
+  stampIcon: string | null;
 }
 
 export function LoyaltyCardPanel({
@@ -117,6 +120,7 @@ export function LoyaltyCardPanel({
         cardTitle: data.cardTitle ?? null,
         cardColor: data.cardColor ?? null,
         cardLogoUrl: data.cardLogoUrl ?? null,
+        stampIcon: data.stampIcon ?? null,
       });
   }, [data, form]);
 
@@ -405,6 +409,7 @@ function WalkInSection({
         r: reward,
         n: String(form.stampsRequired),
         c: color.replace("#", ""),
+        i: form.stampIcon ?? DEFAULT_STAMP_ICON,
       }).toString()}`
     : null;
 
@@ -476,6 +481,13 @@ function WalkInSection({
               </label>
             </div>
           </Field>
+          <Field label="Stamp icon" hint="The picture on each stamp — pick one that fits the business.">
+            <StampIconPicker
+              value={form.stampIcon ?? DEFAULT_STAMP_ICON}
+              color={color}
+              onChange={(k) => set("stampIcon", k)}
+            />
+          </Field>
           <Field label="Logo image URL" hint="Square works best. Leave empty to use the shop's logo.">
             <input
               value={form.cardLogoUrl ?? ""}
@@ -514,6 +526,7 @@ function WalkInSection({
           <WalletCard
             title={title}
             color={color}
+            stampIcon={form.stampIcon}
             logoUrl={form.cardLogoUrl || overview?.defaultLogoUrl}
             stamps={Math.min(2, form.stampsRequired - 1)}
             stampsRequired={form.stampsRequired}
@@ -556,6 +569,49 @@ function WalkInSection({
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function StampIconPicker({
+  value,
+  color,
+  onChange,
+}: {
+  value: string;
+  color: string;
+  onChange: (key: string) => void;
+}) {
+  const groups = useMemo(() => stampIconGroups(), []);
+  return (
+    <div className="max-h-64 space-y-3 overflow-y-auto rounded-md border border-zinc-200 bg-white p-3">
+      {groups.map((g) => (
+        <div key={g.group}>
+          <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-400">{g.group}</p>
+          <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-8" role="radiogroup" aria-label={g.group}>
+            {g.icons.map((ic) => {
+              const on = value === ic.key;
+              return (
+                <button
+                  key={ic.key}
+                  type="button"
+                  role="radio"
+                  aria-checked={on}
+                  aria-label={ic.label}
+                  title={ic.label}
+                  onClick={() => onChange(ic.key)}
+                  className={`flex aspect-square items-center justify-center rounded-lg border transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-900 ${
+                    on ? "border-transparent shadow-sm" : "border-zinc-200 text-zinc-600 hover:border-zinc-400"
+                  }`}
+                  style={on ? { background: color, color: readableOn(color) } : undefined}
+                >
+                  <StampIcon icon={ic.key} className="h-5 w-5" />
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

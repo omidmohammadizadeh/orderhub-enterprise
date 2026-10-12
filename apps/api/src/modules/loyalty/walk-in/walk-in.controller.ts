@@ -81,10 +81,16 @@ export class WalkInLoyaltyController {
   @Public()
   @Get("art/strip.png")
   @Header("Cache-Control", "public, max-age=31536000, immutable")
-  async strip(@Query("s") s: string, @Query("of") of: string, @Query("c") c: string, @Res() res: Response) {
+  async strip(
+    @Query("s") s: string,
+    @Query("of") of: string,
+    @Query("c") c: string,
+    @Query("i") i: string,
+    @Res() res: Response,
+  ) {
     const required = Math.min(20, Math.max(2, Math.round(Number(of) || 6)));
     const stamps = Math.min(required, Math.max(0, Math.round(Number(s) || 0)));
-    const png = await renderStampStrip(stamps, required, `#${String(c ?? "").slice(0, 6)}`, 3);
+    const png = await renderStampStrip(stamps, required, `#${String(c ?? "").slice(0, 6)}`, 3, i);
     res.type("image/png").send(png);
   }
 
@@ -92,8 +98,8 @@ export class WalkInLoyaltyController {
   @Get("art/icon/:file")
   @Header("Cache-Control", "public, max-age=86400")
   async icon(@Param("file") file: string, @Res() res: Response) {
-    const { logoUrl, color } = await this.walkIn.iconForCard(file.replace(/\.png$/i, ""));
-    const png = await renderIcon(await fetchImage(logoUrl), color, 660);
+    const { logoUrl, color, stampIcon } = await this.walkIn.iconForCard(file.replace(/\.png$/i, ""));
+    const png = await renderIcon(await fetchImage(logoUrl), color, 660, stampIcon);
     res.type("image/png").send(png);
   }
 

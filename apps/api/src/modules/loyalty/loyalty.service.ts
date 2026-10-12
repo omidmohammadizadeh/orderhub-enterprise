@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, Logger, NotFoundException, Optional } from "@nestjs/common";
 import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
+import { isStampIconKey } from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 
 // Stamp cards.
@@ -90,6 +91,7 @@ export class LoyaltyService {
       cardTitle: null,
       cardColor: null,
       cardLogoUrl: null,
+      stampIcon: null,
     };
   }
 
@@ -107,6 +109,7 @@ export class LoyaltyService {
       cardTitle?: string | null;
       cardColor?: string | null;
       cardLogoUrl?: string | null;
+      stampIcon?: string | null;
     },
   ) {
     await this.assertLocation(tenantId, locationId);
@@ -162,6 +165,7 @@ export class LoyaltyService {
       ...(dto.cardLogoUrl !== undefined
         ? { cardLogoUrl: dto.cardLogoUrl && /^https:\/\//i.test(dto.cardLogoUrl) ? dto.cardLogoUrl : null }
         : {}),
+      ...(dto.stampIcon !== undefined ? { stampIcon: isStampIconKey(dto.stampIcon) ? dto.stampIcon : null } : {}),
     };
 
     const saved = await this.prisma.loyaltyCard.upsert({

@@ -109,6 +109,7 @@ export class WalkInLoyaltyService {
       available: true as const,
       title,
       color: safeColor(card.cardColor),
+      stampIcon: card.stampIcon,
       logoUrl: this.logoOf(card),
       stampsRequired: card.stampsRequired,
       rewardLabel: this.rewardLabelOf(card),
@@ -197,6 +198,7 @@ export class WalkInLoyaltyService {
     return {
       title: view.title,
       color: view.color,
+      stampIcon: view.stampIcon,
       logoUrl: view.logoUrl,
       firstName: member.firstName,
       code: member.code,
@@ -287,6 +289,7 @@ export class WalkInLoyaltyService {
     });
     return {
       enabled: !!card && card.isActive && card.walkInEnabled,
+      stampIcon: card?.stampIcon ?? null,
       stampsRequired: card?.stampsRequired ?? 6,
       rewardLabel: card ? this.rewardLabelOf(card) : null,
       joinUrl: `${this.webUrl()}/loyalty/join/${location?.onlineOrderingSlug ?? location?.slug ?? locationId}`,
@@ -526,12 +529,12 @@ export class WalkInLoyaltyService {
 
   // ── Art (public, no ids) ─────────────────────────────────────────────────
 
-  async iconForCard(cardId: string): Promise<{ logoUrl: string | null; color: string }> {
+  async iconForCard(cardId: string): Promise<{ logoUrl: string | null; color: string; stampIcon: string | null }> {
     const card = await this.prisma.loyaltyCard.findUnique({ where: { id: cardId }, select: { locationId: true } });
     if (!card) throw new NotFoundException();
     const full = await this.loadCard(card.locationId);
     if (!full) throw new NotFoundException();
-    return { logoUrl: this.logoOf(full), color: safeColor(full.cardColor) };
+    return { logoUrl: this.logoOf(full), color: safeColor(full.cardColor), stampIcon: full.stampIcon };
   }
 
   // ── Internals ────────────────────────────────────────────────────────────
@@ -572,6 +575,7 @@ export class WalkInLoyaltyService {
       firstName: member.firstName,
       title: this.titleOf(card),
       color,
+      stampIcon: card.stampIcon,
       logoUrl: this.logoOf(card),
       stamps: stamps % card.stampsRequired,
       stampsRequired: card.stampsRequired,
@@ -580,7 +584,7 @@ export class WalkInLoyaltyService {
       earnRule: this.earnRule(card),
       expiryNote: this.expiryNote(card),
       cardUrl: `${this.webUrl()}/loyalty/card/${member.publicToken}`,
-      stripUrl: `${api}/api/v1/loyalty/walk-in/art/strip.png?s=${stamps % card.stampsRequired}&of=${card.stampsRequired}&c=${color.slice(1)}`,
+      stripUrl: `${api}/api/v1/loyalty/walk-in/art/strip.png?s=${stamps % card.stampsRequired}&of=${card.stampsRequired}&c=${color.slice(1)}&i=${encodeURIComponent(card.stampIcon ?? "coffee")}`,
       iconUrl: `${api}/api/v1/loyalty/walk-in/art/icon/${card.id}.png?v=${card.updatedAt.getTime()}`,
       updatedAt: member.passUpdatedAt,
     };
@@ -615,6 +619,7 @@ export class WalkInLoyaltyService {
       contactHint: contactHint(member),
       stamps: stamps % card.stampsRequired,
       stampsRequired: card.stampsRequired,
+      stampIcon: card.stampIcon,
       lifetimeStamps: stamps,
       minimumSpend: card.minimumSpend != null ? Number(card.minimumSpend) : null,
       rewardLabel: this.rewardLabelOf(card),

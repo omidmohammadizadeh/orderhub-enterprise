@@ -2416,6 +2416,7 @@ exports.Prisma.LoyaltyCardScalarFieldEnum = {
   cardTitle: 'cardTitle',
   cardColor: 'cardColor',
   cardLogoUrl: 'cardLogoUrl',
+  stampIcon: 'stampIcon',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -4171,7 +4172,8 @@ exports.Prisma.LoyaltyCardOrderByRelevanceFieldEnum = {
   rewardLabel: 'rewardLabel',
   cardTitle: 'cardTitle',
   cardColor: 'cardColor',
-  cardLogoUrl: 'cardLogoUrl'
+  cardLogoUrl: 'cardLogoUrl',
+  stampIcon: 'stampIcon'
 };
 
 exports.Prisma.LoyaltyStampOrderByRelevanceFieldEnum = {

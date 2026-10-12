@@ -35,6 +35,7 @@ const VIEW: PassView = {
   firstName: "Sam",
   title: "2 Brothers",
   color: "#6B3E26",
+  stampIcon: "pizza",
   logoUrl: null,
   stamps: 4,
   stampsRequired: 6,

@@ -108,6 +108,7 @@ export default function LoyaltyCardPage() {
           <WalletCard
             title={card.title}
             color={card.color}
+            stampIcon={card.stampIcon}
             logoUrl={card.logoUrl}
             stamps={card.stamps}
             stampsRequired={card.stampsRequired}

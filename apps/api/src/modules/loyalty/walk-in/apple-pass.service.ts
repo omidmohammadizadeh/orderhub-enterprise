@@ -139,12 +139,12 @@ export class ApplePassService {
     const logo = await fetchImage(view.logoUrl);
     const files: Array<{ name: string; data: Buffer }> = [
       { name: "pass.json", data: Buffer.from(JSON.stringify(pass)) },
-      { name: "icon.png", data: await renderIcon(logo, bg, 29) },
-      { name: "icon@2x.png", data: await renderIcon(logo, bg, 58) },
-      { name: "icon@3x.png", data: await renderIcon(logo, bg, 87) },
-      { name: "strip.png", data: await renderStampStrip(view.stamps, view.stampsRequired, bg, 1) },
-      { name: "strip@2x.png", data: await renderStampStrip(view.stamps, view.stampsRequired, bg, 2) },
-      { name: "strip@3x.png", data: await renderStampStrip(view.stamps, view.stampsRequired, bg, 3) },
+      { name: "icon.png", data: await renderIcon(logo, bg, 29, view.stampIcon) },
+      { name: "icon@2x.png", data: await renderIcon(logo, bg, 58, view.stampIcon) },
+      { name: "icon@3x.png", data: await renderIcon(logo, bg, 87, view.stampIcon) },
+      { name: "strip.png", data: await renderStampStrip(view.stamps, view.stampsRequired, bg, 1, view.stampIcon) },
+      { name: "strip@2x.png", data: await renderStampStrip(view.stamps, view.stampsRequired, bg, 2, view.stampIcon) },
+      { name: "strip@3x.png", data: await renderStampStrip(view.stamps, view.stampsRequired, bg, 3, view.stampIcon) },
     ];
     if (logo) {
       files.push(

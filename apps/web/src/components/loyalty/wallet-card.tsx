@@ -5,6 +5,7 @@
 // page, the dashboard preview and the pass on their phone all look alike.
 
 import { QRCodeSVG } from "qrcode.react";
+import { REWARD_ICON_SVG, stampIconSvg } from "@orderhub/shared";
 
 export function readableOn(hex: string): "#111111" | "#FFFFFF" {
   const c = /^#[0-9a-fA-F]{6}$/.test(hex) ? hex : "#1F2937";
@@ -12,6 +13,33 @@ export function readableOn(hex: string): "#111111" | "#FFFFFF" {
   const g = parseInt(c.slice(3, 5), 16);
   const b = parseInt(c.slice(5, 7), 16);
   return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.6 ? "#111111" : "#FFFFFF";
+}
+
+/** One stamp picture from the shared set (coffee, pizza, scissors…). */
+export function StampIcon({ icon, className }: { icon?: string | null; className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      fill="currentColor"
+      stroke="currentColor"
+      aria-hidden
+      dangerouslySetInnerHTML={{ __html: stampIconSvg(icon) }}
+    />
+  );
+}
+
+export function RewardIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      fill="currentColor"
+      stroke="currentColor"
+      aria-hidden
+      dangerouslySetInnerHTML={{ __html: REWARD_ICON_SVG }}
+    />
+  );
 }
 
 export function CupIcon({ className }: { className?: string }) {
@@ -45,6 +73,7 @@ export function StampRow({
   bg,
   size = "md",
   highlightLast = false,
+  icon,
 }: {
   stamps: number;
   required: number;
@@ -53,6 +82,8 @@ export function StampRow({
   size?: "sm" | "md";
   /** Pop the newest stamp in (card page, right after a visit). */
   highlightLast?: boolean;
+  /** STAMP_ICONS key; coffee cup when unset. */
+  icon?: string | null;
 }) {
   const dim = size === "sm" ? "h-7 w-7" : "h-10 w-10 sm:h-11 sm:w-11";
   return (
@@ -65,7 +96,7 @@ export function StampRow({
       {Array.from({ length: required }, (_, i) => {
         const on = i < stamps;
         const last = i === required - 1;
-        const Icon = last ? GiftIcon : CupIcon;
+
         return (
           <span
             key={i}
@@ -82,7 +113,7 @@ export function StampRow({
                   }
             }
           >
-            <Icon className="h-[62%] w-[62%]" />
+            {last ? <RewardIcon className="h-[62%] w-[62%]" /> : <StampIcon icon={icon} className="h-[62%] w-[62%]" />}
           </span>
         );
       })}
@@ -93,6 +124,8 @@ export function StampRow({
 export interface WalletCardProps {
   title: string;
   color: string;
+  /** STAMP_ICONS key; coffee cup when unset. */
+  stampIcon?: string | null;
   logoUrl?: string | null;
   stamps: number;
   stampsRequired: number;
@@ -108,6 +141,7 @@ export interface WalletCardProps {
 export function WalletCard({
   title,
   color,
+  stampIcon,
   logoUrl,
   stamps,
   stampsRequired,
@@ -143,7 +177,7 @@ export function WalletCard({
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
               style={{ background: fg, color: bg }}
             >
-              <CupIcon className="h-5 w-5" />
+              <StampIcon icon={stampIcon} className="h-5 w-5" />
             </span>
           )}
           <span className="truncate text-base font-semibold tracking-tight">{title}</span>
@@ -157,7 +191,7 @@ export function WalletCard({
       </div>
 
       <div className="relative px-5 pb-1 pt-5">
-        <StampRow stamps={stamps} required={stampsRequired} fg={fg} bg={bg} highlightLast={highlightLast} />
+        <StampRow stamps={stamps} required={stampsRequired} fg={fg} bg={bg} highlightLast={highlightLast} icon={stampIcon} />
       </div>
 
       <div className="relative grid grid-cols-2 gap-3 px-5 pb-5 pt-4">

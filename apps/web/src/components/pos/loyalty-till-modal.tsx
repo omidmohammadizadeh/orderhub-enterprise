@@ -337,7 +337,7 @@ export function LoyaltyTillModal({
                   </p>
                 </div>
                 <div className="mt-3">
-                  <StampRow stamps={member.stamps} required={member.stampsRequired} fg="#FFFFFF" bg="#18181B" size="sm" />
+                  <StampRow stamps={member.stamps} required={member.stampsRequired} fg="#FFFFFF" bg="#18181B" size="sm" icon={member.stampIcon} />
                 </div>
                 {!member.cardActive && (
                   <p className="mt-3 rounded-md bg-amber-400/20 px-2 py-1.5 text-xs text-amber-100">

@@ -57,6 +57,7 @@ export class LoyaltyController {
       cardTitle?: string | null;
       cardColor?: string | null;
       cardLogoUrl?: string | null;
+      stampIcon?: string | null;
     },
     @CurrentUser() user: AuthenticatedUser,
   ) {

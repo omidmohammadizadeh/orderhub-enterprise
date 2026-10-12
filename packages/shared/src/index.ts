@@ -31,3 +31,4 @@ export * from "./lib/multi-buy";
 export * from "./lib/age-check";
 export * from "./lib/weighed";
 export * from "./lib/email-marketing";
+export * from "./lib/loyalty-stamp-icons";
