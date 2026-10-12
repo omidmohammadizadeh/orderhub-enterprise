@@ -4964,7 +4964,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/Users/omidmohammadizadeh/orderhub-enterprise/.claude/worktrees/3-for-2-offer-no-selection-d5f5a7/packages/database/generated/prisma",
+      "value": "/Users/omidmohammadizadeh/orderhub-enterprise/.claude/worktrees/funny-sutherland-0c893c/packages/database/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -4989,7 +4989,7 @@ const config = {
       "fullTextSearch",
       "metrics"
     ],
-    "sourceFilePath": "/Users/omidmohammadizadeh/orderhub-enterprise/.claude/worktrees/3-for-2-offer-no-selection-d5f5a7/packages/database/prisma/schema.prisma",
+    "sourceFilePath": "/Users/omidmohammadizadeh/orderhub-enterprise/.claude/worktrees/funny-sutherland-0c893c/packages/database/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {

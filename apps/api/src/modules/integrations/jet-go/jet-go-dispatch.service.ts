@@ -281,6 +281,11 @@ export class JetGoDispatchService {
       warnings.push(
         `This order has an age-restricted item. The courier will ask for ID and refuse the handover to anyone under ${ageRestriction}.`,
       );
+      if (cfg.requirePinOnDelivery) {
+        warnings.push(
+          "JET Go won't take a delivery PIN on an age-restricted order, so this one goes without it — the courier checks ID at the door instead.",
+        );
+      }
     }
 
     const body: JetGoEstimateBody = {
@@ -328,7 +333,12 @@ export class JetGoDispatchService {
         // the PROOFOFDELIVERY webhook — it never reaches the customer on its
         // own, so asking for one without showing it to them would simply stop
         // the courier being able to close the job.
-        ...(cfg.requirePinOnDelivery
+        //
+        // NEVER together with alcohol. JET refuses the whole estimate with
+        // "PIN Code validation is not available for alcohol orders", so a shop
+        // that had both switched on could not dispatch a single bottle. The ID
+        // check wins: it is a licensing requirement, the PIN is a convenience.
+        ...(cfg.requirePinOnDelivery && !hasAlcohol
           ? { proofOfDelivery: { pinCode: { type: "DSP_GENERATED" as const } } }
           : {}),
       },

@@ -284,6 +284,20 @@ describe("JET Go estimate payload", () => {
     expect(body.deliveryDetails!.ageVerificationWithId).toBe(false);
   });
 
+  it("never sends a PIN on an age-restricted order — JET refuses the pair", async () => {
+    // Live 400 from JET: "PIN Code validation is not available for alcohol
+    // orders". A shop with both switched on could not dispatch a single
+    // bottle. The ID check wins; it is the licensing requirement.
+    const { body, warnings } = await svc({ minAges: [18] }).buildEstimateBody(
+      order(),
+      location(),
+      cfg({ requirePinOnDelivery: true }),
+    );
+    expect(body.deliveryDetails!.hasAlcohol).toBe(true);
+    expect(body.deliveryOptions!.proofOfDelivery).toBeUndefined();
+    expect(warnings.join(" ")).toMatch(/won't take a delivery PIN/i);
+  });
+
   it("asks for a delivery PIN only when the location turned it on", async () => {
     // DSP_GENERATED is the only provider JET supports — there is no option to
     // supply our own code, and a wrong `type` is a 400.
