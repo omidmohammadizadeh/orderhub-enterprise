@@ -23,6 +23,7 @@
 //   • directConfig toggles hide/disable the order types + payment
 //     methods the operator turned off
 
+import { WelcomeSplash, type WelcomeSplashData } from "@/components/storefront/welcome-splash";
 import {
   Suspense,
   useCallback,
@@ -223,6 +224,8 @@ interface Storefront {
     enabled: boolean;
     displayPhoneNumber?: string;
   } | null;
+  /** Today's phone welcome screen for this location, if one is scheduled. */
+  splash?: WelcomeSplashData | null;
 }
 
 interface CartLine {
@@ -1781,6 +1784,13 @@ function OrderPage() {
 
   return (
     <div className="min-h-screen bg-zinc-50">
+      <WelcomeSplash
+        splash={storefront.splash}
+        storeKey={String(slug)}
+        shopName={headerTitle}
+        preview={searchParams?.get("splash") === "preview"}
+        skip={!!groupToken || !!searchParams?.get("reorder")}
+      />
       {/* Phase AX — makes this storefront installable as the restaurant's own
           app, and on iOS is what unlocks Web Push at all. Renders nothing. */}
       <PwaManifestLink

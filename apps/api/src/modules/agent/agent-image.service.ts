@@ -69,6 +69,14 @@ const OPENAI_BANNER_QUALITY = "high";
 /** Dish names sampled into the banner prompt. Enough to characterise the
  *  shop, few enough that the model doesn't try to plate all of them. */
 const BANNER_DISH_SAMPLE = 8;
+
+// ── Storefront welcome screen (phone splash) ────────────────────────────────
+// Portrait, full screen on a phone. 1080x1920 is what the dashboard asks
+// operators to design at; 1024x1536 is OpenAI's standard portrait and the
+// cover-crop trims it to 9:16.
+const SPLASH_W = 1080;
+const SPLASH_H = 1920;
+const OPENAI_SPLASH_SIZE = "1024x1536";
 // How many generations run at once. Wall-clock for a category is roughly
 // (items / concurrency) x seconds-per-image, and a high-quality gpt-image-2
 // render is slow — so 2 turned a 16-item category into a ten-minute wait.
@@ -328,6 +336,102 @@ export class AgentImageService {
       openAiQuality:
         this.config.get<string>("AGENT_OPENAI_BANNER_QUALITY") ??
         OPENAI_BANNER_QUALITY,
+    });
+    return { ok: true, url, basedOn: dishes };
+  }
+
+  /** Start a welcome-screen render for a location. Same job map as banners. */
+  startStorefrontSplash(
+    tenantId: string,
+    locationId: string,
+    brief?: string,
+  ): { jobId: string } {
+    const jobId = `splash_${locationId}_${this.bannerSeq++}`;
+    this.bannerJobs.set(jobId, { status: "running" });
+    void this.generateStorefrontSplash(tenantId, locationId, brief)
+      .then((r) =>
+        this.bannerJobs.set(jobId, {
+          status: r.ok ? "done" : "failed",
+          url: r.url,
+          error: r.error,
+          basedOn: r.basedOn,
+        }),
+      )
+      .catch((e) => {
+        this.logger.error(`splash job ${jobId} failed: ${(e as Error).message}`);
+        this.bannerJobs.set(jobId, { status: "failed", error: (e as Error).message });
+      });
+    return { jobId };
+  }
+
+  /**
+   * A portrait welcome picture for a location's storefront.
+   *
+   * Built from what the shop actually sells (its brand's menus) plus the
+   * operator's occasion brief — "Christmas", "Ramadan iftar boxes". The
+   * URL is returned, not saved; the operator previews it and presses Save.
+   */
+  async generateStorefrontSplash(
+    tenantId: string,
+    locationId: string,
+    brief?: string,
+  ): Promise<{ ok: boolean; url?: string; error?: string; basedOn?: string[] }> {
+    if (!this.configured) return { ok: false, error: this.notConfiguredMessage };
+    const brandIds = await this.tenantBrandIds(tenantId);
+    const location = await (this.prisma as any).location.findFirst({
+      where: { id: locationId, brandId: { in: brandIds } },
+      select: { id: true, name: true, brandId: true, brand: { select: { name: true } } },
+    });
+    if (!location) return { ok: false, error: "Location not found for this business." };
+
+    const links = await (this.prisma as any).menuItemOnCategory.findMany({
+      where: { category: { menu: { brandId: location.brandId } } },
+      select: {
+        item: { select: { name: true } },
+        category: { select: { name: true, sortOrder: true } },
+      },
+      orderBy: [{ category: { sortOrder: "asc" } }, { sortOrder: "asc" }],
+      take: 300,
+    });
+    const categories: string[] = [];
+    for (const l of links) {
+      const c = l.category?.name;
+      if (c && !categories.includes(c)) categories.push(c);
+    }
+    const dishes: string[] = [];
+    for (const cat of categories) {
+      const first = links.find((l: any) => l.category?.name === cat && l.item?.name);
+      if (first && !dishes.includes(first.item.name)) dishes.push(first.item.name);
+      if (dishes.length >= 5) break;
+    }
+
+    const shopName = location.brand?.name || location.name;
+    const prompt = [
+      `Tall portrait 9:16 full-screen phone welcome image for a food business called "${shopName}".`,
+      categories.length ? `This shop sells: ${categories.slice(0, 8).join(", ")}.` : "",
+      dishes.length
+        ? `Feature a few of its real dishes: ${dishes.join(", ")}. Do not invent a different cuisine.`
+        : "",
+      brief ? `Occasion / theme: ${brief}. Let the setting, props and colours reflect it tastefully.` : "",
+      `Put the food in the MIDDLE of the frame, hero dish sharp and close.`,
+      `Keep the TOP 10% and the BOTTOM 25% calm and darker — soft background, ` +
+        `no important detail — because a headline and an "Order now" button sit there.`,
+      `Keep everything important within the central 80% of the width; the ` +
+        `left and right edges are trimmed on tall phones.`,
+      `Photorealistic commercial food photography, rich warm light, appetising, generous portions.`,
+      `No text, no lettering, no logos, no watermarks, no hands, no people, no branded packaging.`,
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+    this.logger.log(`splash for location ${locationId} (${shopName}) brief="${brief ?? ""}"`);
+
+    const url = await this.renderAndStore(prompt, {
+      width: SPLASH_W,
+      height: SPLASH_H,
+      aspect: "9:16",
+      openAiSize: this.config.get<string>("AGENT_OPENAI_SPLASH_SIZE") ?? OPENAI_SPLASH_SIZE,
+      openAiQuality:
+        this.config.get<string>("AGENT_OPENAI_BANNER_QUALITY") ?? OPENAI_BANNER_QUALITY,
     });
     return { ok: true, url, basedOn: dishes };
   }

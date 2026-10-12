@@ -168,6 +168,7 @@ const primaryNav: NavItem[] = [
   { href: "/dashboard/customers", label: "Customers", icon: Users, roles: MANAGER_TIER },
   { href: "/dashboard/marketing", label: "Marketing", icon: Megaphone, roles: MANAGER_TIER_PLUS },
   { href: "/dashboard/marketing/promo-codes", label: "Promo codes", icon: Ticket, roles: MANAGER_TIER_PLUS },
+  { href: "/dashboard/marketing/welcome-screen", label: "Welcome screen", icon: Smartphone, roles: MANAGER_TIER_PLUS },
   { href: "/dashboard/marketing/sms", label: "SMS Marketing", icon: MessageSquare, roles: FINANCE_ROLES },
   { href: "/dashboard/marketing/email", label: "Email Marketing", icon: Mail, roles: FINANCE_ROLES },
   { href: "/dashboard/video-studio", label: "AI Studio", icon: Clapperboard, roles: MANAGER_TIER },

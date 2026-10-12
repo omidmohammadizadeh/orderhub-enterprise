@@ -296,6 +296,12 @@ export const menusClient = {
       .post<{ jobId?: string; error?: string }>("/v1/agent/menu-banner", body)
       .then((r) => r.data),
 
+  /** Portrait phone welcome picture for a location; poll getMenuBannerJob. */
+  generateStorefrontSplash: (body: { locationId: string; brief?: string }) =>
+    apiClient
+      .post<{ jobId?: string; error?: string }>("/v1/agent/storefront-splash", body)
+      .then((r) => r.data),
+
   getMenuBannerJob: (jobId: string) =>
     apiClient
       .get<{

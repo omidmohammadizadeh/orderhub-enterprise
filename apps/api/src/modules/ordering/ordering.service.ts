@@ -5,6 +5,7 @@ import {
   Logger,
   Optional,
 } from "@nestjs/common";
+import { activeSplash } from "./storefront-splash";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import {
   currencyForCountry,
@@ -1225,6 +1226,13 @@ export class OrderingService {
       freeItem,
       multiBuys,
       whatsapp,
+      // The phone welcome screen, if one is scheduled for today at THIS
+      // location. Never on the till's menu (?channel=POS): a guest at a
+      // table wants the food, not an advert.
+      splash:
+        channel === "ONLINE"
+          ? activeSplash((location as any).settings, location.timezone)
+          : null,
       location: dedupeLogo(locationView, brandView),
       brand: brandView,
       // Phase BS — facts the storefront's server-rendered <head> needs, and
