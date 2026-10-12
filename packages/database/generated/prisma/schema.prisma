@@ -2666,10 +2666,12 @@ model SalonAppointment {
   cancelledAt  DateTime?
   cancelReason String?
 
-  reminderSentAt    DateTime?
-  rebookNudgeSentAt DateTime?
+  reminderSentAt      DateTime?
+  rebookNudgeSentAt   DateTime?
+  // "Thanks for coming — leave us a review", a few hours after the visit.
+  reviewRequestSentAt DateTime?
   // Walk-in that came off the queue.
-  queueEntryId      String?
+  queueEntryId        String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2965,7 +2967,7 @@ model PrintAgent {
   @@map("print_agents")
 }
 
-// ��─ AlertConfig ──────────────────────────────────────────────────────
+// ── AlertConfig ──────────────────────────────────────────────────────
 // Phase AS-4. Per-(location, trigger) alert rule. Drives the dashboard
 // sound + visual notification pipeline. Optional stationId narrows the
 // rule to a single kitchen station.
@@ -4209,8 +4211,8 @@ model WebPushSubscription {
   @@map("web_push_subscriptions")
 }
 
+// ═══════════════════════════════════════════════════════════════��══════════════
 // ══════════════════════════════════════════════════════════════════════════════
-// ═══════════════════════��══════════════════════════════════════════════════════
 // PHASE AP — SYSTEM SECRETS VAULT (platform-admin only)
 // ══════════════════════════════════════════════════════════════════════════════
 

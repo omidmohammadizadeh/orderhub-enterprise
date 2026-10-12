@@ -1240,6 +1240,7 @@ exports.Prisma.SalonAppointmentScalarFieldEnum = {
   cancelReason: 'cancelReason',
   reminderSentAt: 'reminderSentAt',
   rebookNudgeSentAt: 'rebookNudgeSentAt',
+  reviewRequestSentAt: 'reviewRequestSentAt',
   queueEntryId: 'queueEntryId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

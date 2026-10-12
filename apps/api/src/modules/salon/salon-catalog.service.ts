@@ -2,6 +2,8 @@ import { BadRequestException, Injectable, NotFoundException } from "@nestjs/comm
 import { normaliseWeeklyHours, round2 } from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { mergeSalonSettings, readSalonSettings, tradeDefaults } from "./salon-settings";
+import { readClientList, readPriceList } from "./salon-import";
+import { toE164 } from "../sms/phone";
 
 // The salon's set-up: settings, the price list (services) and the team.
 //
@@ -291,6 +293,85 @@ export class SalonCatalogService {
       ),
     );
     return this.listServices(tenantId, locationId);
+  }
+
+  /**
+   * Import a price list from another system's CSV export. Matches existing
+   * services by name (updating price, length and group) and adds the rest.
+   * Never deletes. `preview` reads the file and changes nothing.
+   */
+  async importServices(tenantId: string, locationId: string, csv: string, opts: { preview: boolean }) {
+    await this.assertLocation(tenantId, locationId);
+    if (typeof csv !== "string" || !csv.trim()) throw new BadRequestException("Paste or upload the CSV export");
+    if (csv.length > 500_000) throw new BadRequestException("That file is too big — export just the services");
+    const parsed = readPriceList(csv);
+    const existing = await this.prisma.salonService.findMany({ where: { tenantId, locationId } });
+    const byName = new Map(existing.map((e) => [e.name.trim().toLowerCase(), e]));
+    const plan = parsed.services.map((s) => ({ ...s, action: byName.has(s.name.toLowerCase()) ? ("update" as const) : ("create" as const) }));
+    if (opts.preview) return { ...parsed, plan, created: 0, updated: 0 };
+    let created = 0;
+    let updated = 0;
+    let order = existing.length;
+    for (const s of plan) {
+      const hit = byName.get(s.name.toLowerCase());
+      if (hit) {
+        await this.prisma.salonService.update({
+          where: { id: hit.id },
+          data: { price: s.price, priceFrom: s.priceFrom, durationMins: s.durationMins, category: s.category, ...(s.description ? { description: s.description } : {}) },
+        });
+        updated++;
+      } else {
+        await this.prisma.salonService.create({
+          data: { tenantId, locationId, name: s.name, category: s.category, price: s.price, priceFrom: s.priceFrom, durationMins: s.durationMins, description: s.description, sortOrder: order++ },
+        });
+        created++;
+      }
+    }
+    return { ...parsed, plan, created, updated };
+  }
+
+  /**
+   * Bring a client list across from the old system: into the business's
+   * customer list (the same one orders fill), so the diary's client search
+   * finds them from the first booking. Existing customers (same phone or
+   * email) are left as they are. Marketing consent is only ever carried
+   * across as given — never assumed.
+   */
+  async importClients(tenantId: string, locationId: string, csv: string, opts: { preview: boolean }) {
+    await this.assertLocation(tenantId, locationId);
+    if (typeof csv !== "string" || !csv.trim()) throw new BadRequestException("Paste or upload the CSV export");
+    if (csv.length > 5_000_000) throw new BadRequestException("That file is too big — split it in two");
+    const parsed = readClientList(csv);
+    const rows = parsed.clients.map((c) => ({ ...c, phone: c.phone ? (toE164(c.phone) ?? c.phone) : null }));
+    const phones = rows.map((r) => r.phone).filter(Boolean) as string[];
+    const emails = rows.map((r) => r.email).filter(Boolean) as string[];
+    const existing = await this.prisma.customer.findMany({
+      where: { tenantId, OR: [{ phone: { in: phones } }, { email: { in: emails } }] },
+      select: { phone: true, email: true },
+    });
+    const known = new Set(existing.flatMap((e) => [e.phone, e.email]).filter(Boolean) as string[]);
+    const fresh = rows.filter((r) => !(r.phone && known.has(r.phone)) && !(r.email && known.has(r.email)));
+    if (opts.preview) {
+      return { ...parsed, new: fresh.length, alreadyKnown: rows.length - fresh.length, imported: 0 };
+    }
+    let imported = 0;
+    for (let i = 0; i < fresh.length; i += 500) {
+      const batch = fresh.slice(i, i + 500);
+      const { count } = await this.prisma.customer.createMany({
+        data: batch.map((r) => ({
+          tenantId,
+          firstName: r.firstName,
+          lastName: r.lastName,
+          phone: r.phone,
+          email: r.email,
+          marketingConsent: r.marketingConsent,
+          tags: ["salon-import"],
+        })),
+        skipDuplicates: true,
+      });
+      imported += count;
+    }
+    return { ...parsed, new: fresh.length, alreadyKnown: rows.length - fresh.length, imported };
   }
 
   // ── Team ────────────────────────────────────────────────────────────

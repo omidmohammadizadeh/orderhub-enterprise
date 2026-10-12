@@ -6,7 +6,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { Copy, ExternalLink } from "lucide-react";
+import { Copy, ExternalLink, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { apiError, salonClient, type SalonSettings, type SalonTrade } from "@/lib/api/salon.client";
 import { SalonFrame, inputBase, inputCls, useCanManage, useSalonLocation } from "@/components/salon/salon-shared";
@@ -113,6 +113,12 @@ function SettingsForm() {
           value={s.rebookAfterDays}
           onChange={(v) => up("rebookAfterDays", v)}
         />
+        <Toggle
+          label="Ask for a Google review after each visit"
+          hint="Emailed a couple of hours after they've paid. Uses the Google review link on your location — add it under Locations if it's missing."
+          checked={s.reviewRequestEnabled}
+          onChange={(v) => up("reviewRequestEnabled", v)}
+        />
       </Card>
 
       <Card title="Walk-in queue">
@@ -135,6 +141,14 @@ function SettingsForm() {
             <option value="BEAUTY">Beauty</option>
           </select>
         </label>
+      </Card>
+
+      <Card title="Moving from another system?">
+        <p className="text-sm text-zinc-600">
+          Bring your clients across from Fresha, Booksy, Treatwell or a spreadsheet: export your client list as CSV and add it here.
+          They&rsquo;ll show up when you search for a client in the diary. Your price list imports on the Services tab.
+        </p>
+        <ClientImport locationId={locationId} />
       </Card>
 
       {canManage && (
@@ -180,5 +194,61 @@ function Num({ label, value, onChange }: { label: string; value: number; onChang
         className={`${inputCls} mt-1 max-w-[10rem]`}
       />
     </label>
+  );
+}
+
+function ClientImport({ locationId }: { locationId: string }) {
+  const [csv, setCsv] = useState("");
+  const [name, setName] = useState<string | null>(null);
+  const preview = useMutation({
+    mutationFn: (text: string) => salonClient.importClients(locationId, text, true),
+    onError: (e) => toast.error(apiError(e, "Couldn't read that file")),
+  });
+  const run = useMutation({
+    mutationFn: () => salonClient.importClients(locationId, csv, false),
+    onSuccess: (r) => {
+      toast.success(`${r.imported} client${r.imported === 1 ? "" : "s"} added`);
+      preview.reset();
+      setCsv("");
+      setName(null);
+    },
+    onError: (e) => toast.error(apiError(e, "Couldn't import")),
+  });
+  const p = preview.data;
+  return (
+    <div className="space-y-3">
+      <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-zinc-200 px-3 py-2 text-sm font-medium hover:bg-zinc-50">
+        <Upload className="h-4 w-4" aria-hidden />
+        {name ?? "Choose client list (CSV)"}
+        <input
+          type="file"
+          accept=".csv,text/csv,text/plain"
+          className="sr-only"
+          onChange={async (e) => {
+            const f = e.target.files?.[0];
+            if (!f) return;
+            const text = await f.text();
+            setCsv(text);
+            setName(f.name);
+            preview.mutate(text);
+          }}
+        />
+      </label>
+      {preview.isPending && <p className="text-sm text-zinc-500">Reading…</p>}
+      {p && (
+        <div className="rounded-xl bg-zinc-50 p-3 text-sm text-zinc-700">
+          <p>
+            <strong>{p.new}</strong> new client{p.new === 1 ? "" : "s"}
+            {p.alreadyKnown > 0 && `, ${p.alreadyKnown} you already have`}
+            {p.skipped.length > 0 && `, ${p.skipped.length} row${p.skipped.length === 1 ? "" : "s"} skipped (no phone or email, or duplicates)`}.
+          </p>
+          {p.new > 0 && (
+            <Button type="button" className="mt-2" loading={run.isPending} onClick={() => run.mutate()}>
+              Add {p.new} client{p.new === 1 ? "" : "s"}
+            </Button>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

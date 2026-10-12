@@ -610,9 +610,40 @@ export class SalonBookingService {
     });
     const seen = new Map<string, { name: string; phone: string | null; email: string | null; lastVisit: Date }>();
     for (const r of rows) {
-      const key = (r.customerPhone || r.customerEmail || r.customerName).toLowerCase();
+      const key = clientKey(r.customerPhone, r.customerEmail, r.customerName);
       if (!seen.has(key)) {
         seen.set(key, { name: r.customerName, phone: r.customerPhone, email: r.customerEmail, lastVisit: r.startsAt });
+      }
+    }
+    // The business's customer list too — clients brought across from the
+    // old system, and anyone who has ordered — so a regular is findable
+    // before their first booking here.
+    if (seen.size < 10) {
+      const digits = term.replace(/\D/g, "");
+      const words = term.split(/\s+/).filter(Boolean);
+      const crm = await this.prisma.customer.findMany({
+        where: {
+          tenantId,
+          isActive: true,
+          OR: [
+            ...words.flatMap((w) => [
+              { firstName: { contains: w, mode: "insensitive" as const } },
+              { lastName: { contains: w, mode: "insensitive" as const } },
+            ]),
+            { email: { contains: term, mode: "insensitive" as const } },
+            ...(digits.length >= 4 ? [{ phone: { contains: digits.replace(/^0/, "") } }] : []),
+          ],
+        },
+        take: 10,
+        orderBy: { updatedAt: "desc" },
+        select: { firstName: true, lastName: true, phone: true, email: true, updatedAt: true },
+      });
+      for (const c of crm) {
+        const key = clientKey(c.phone, c.email, `${c.firstName} ${c.lastName}`);
+        if (seen.has(key)) continue;
+        const name = [c.firstName, c.lastName].filter(Boolean).join(" ").trim();
+        if (!name) continue;
+        seen.set(key, { name, phone: c.phone, email: c.email, lastVisit: c.updatedAt });
       }
     }
     return Array.from(seen.values()).slice(0, 10);
@@ -1005,6 +1036,14 @@ export class SalonBookingService {
   emit(locationId: string, kind: string, appointmentId: string) {
     this.socket.emitToLocation(locationId, "salon:changed" as any, { kind, appointmentId } as any);
   }
+}
+
+/** One client however their number was typed: 07700 900123 = +447700900123. */
+function clientKey(phone: string | null, email: string | null, name: string): string {
+  const digits = (phone ?? "").replace(/\D/g, "");
+  if (digits.length >= 7) return `p:${digits.slice(-9)}`;
+  if (email) return `e:${email.toLowerCase()}`;
+  return `n:${name.trim().toLowerCase()}`;
 }
 
 function label(s: string): string {

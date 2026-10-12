@@ -215,6 +215,26 @@ export class WhatsAppAiService {
       : [];
   }
 
+  /** Salon locations: reply with links, never the ordering bot. */
+  private async replyAsSalon(phoneNumberId: string, from: string, locationId: string): Promise<boolean> {
+    const loc = await this.prisma.location.findUnique({
+      where: { id: locationId },
+      select: { name: true, phone: true, businessType: true, settings: true },
+    });
+    if (!loc || (loc.businessType as string) !== "SALON") return false;
+    const salon = ((loc.settings as any)?.salon ?? {}) as { onlineBookingEnabled?: boolean; queueEnabled?: boolean; queueOnlineJoin?: boolean };
+    const web = (this.config.get<string>("WEB_URL") ?? "https://www.orderhubsolutions.com").replace(/\/+$/, "");
+    const lines = [`Hi! Thanks for messaging ${loc.name} ✂️`];
+    if (salon.onlineBookingEnabled) lines.push("", `📅 Book an appointment: ${web}/salon/${locationId}`);
+    if (salon.queueEnabled !== false && salon.queueOnlineJoin !== false) {
+      lines.push("", `🚶 Walking in today? Join the queue: ${web}/salon/${locationId}/queue`);
+    }
+    if (loc.phone) lines.push("", `📞 Or call us on ${loc.phone}`);
+    if (!salon.onlineBookingEnabled && !loc.phone) lines.push("", "We'll get back to you as soon as we can.");
+    await this.send.sendText(phoneNumberId, from, lines.join("\n"));
+    return true;
+  }
+
   /** Entry point from the webhook for one inbound text message. */
   async handleMessage(args: {
     phoneNumberId: string;
@@ -233,6 +253,15 @@ export class WhatsAppAiService {
       );
       return;
     }
+
+    // A barber / salon has nothing to order: send the booking page, the
+    // walk-in queue and the phone instead of a food menu. Answered before
+    // the AI so it costs nothing and can't wander into taking an "order".
+    const salonHandled = await this.replyAsSalon(phoneNumberId, from, ctx.locationId).catch((e) => {
+      this.logger.warn(`Salon WhatsApp reply failed for ${ctx.locationId}: ${e?.message ?? e}`);
+      return false;
+    });
+    if (salonHandled) return;
 
     if (!this.anthropic) {
       await this.send.sendText(

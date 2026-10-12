@@ -23,6 +23,9 @@ export interface SalonSettings {
   reminderSms: boolean;
   /** "Time for a trim?" N days after a visit; 0 = off. */
   rebookAfterDays: number;
+  /** "Thanks — leave us a review" a few hours after a visit (needs the
+   *  location's Google review link). */
+  reviewRequestEnabled: boolean;
   /** Walk-in queue on for this shop. */
   queueEnabled: boolean;
   /** Customers can join the queue from their phone. */
@@ -48,6 +51,7 @@ export const SALON_DEFAULTS: SalonSettings = {
   reminderHoursBefore: 24,
   reminderSms: false,
   rebookAfterDays: 0,
+  reviewRequestEnabled: true,
   queueEnabled: true,
   queueOnlineJoin: true,
   queueCallSms: false,
@@ -88,6 +92,7 @@ export function readSalonSettings(locationSettings: unknown): SalonSettings {
     reminderHoursBefore: num(raw.reminderHoursBefore, 1, 72, SALON_DEFAULTS.reminderHoursBefore),
     reminderSms: bool(raw.reminderSms, SALON_DEFAULTS.reminderSms),
     rebookAfterDays: num(raw.rebookAfterDays, 0, 365, SALON_DEFAULTS.rebookAfterDays),
+    reviewRequestEnabled: bool(raw.reviewRequestEnabled, SALON_DEFAULTS.reviewRequestEnabled),
     queueEnabled: bool(raw.queueEnabled, SALON_DEFAULTS.queueEnabled),
     queueOnlineJoin: bool(raw.queueOnlineJoin, SALON_DEFAULTS.queueOnlineJoin),
     queueCallSms: bool(raw.queueCallSms, SALON_DEFAULTS.queueCallSms),

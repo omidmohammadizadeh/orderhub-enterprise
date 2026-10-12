@@ -6,7 +6,7 @@
 
 import { formatWhen, googleCalendarUrl } from "../reservations/reservation-emails";
 
-export type SalonEmailKind = "confirmed" | "updated" | "cancelled" | "reminder" | "rebook";
+export type SalonEmailKind = "confirmed" | "updated" | "cancelled" | "reminder" | "rebook" | "review";
 
 export interface SalonEmailInput {
   kind: SalonEmailKind;
@@ -31,6 +31,8 @@ export interface SalonEmailInput {
   manageUrl: string | null;
   /** The booking page, for "book again". */
   bookUrl: string | null;
+  /** The shop's Google review link (review email only). */
+  reviewUrl?: string | null;
   cancellationWindowHours: number;
 }
 
@@ -67,6 +69,7 @@ export function salonEmail(o: SalonEmailInput): { subject: string; html: string;
   const withWho = o.staffName ? ` with ${o.staffName}` : "";
   const cancelled = o.kind === "cancelled";
   const rebook = o.kind === "rebook";
+  const review = o.kind === "review";
 
   const heading = {
     confirmed: "You're booked in",
@@ -74,6 +77,7 @@ export function salonEmail(o: SalonEmailInput): { subject: string; html: string;
     cancelled: "Your appointment is cancelled",
     reminder: o.startsAt.getTime() - Date.now() < 26 * 3600_000 ? "See you tomorrow" : "See you soon",
     rebook: "Time for your next visit?",
+    review: "Thanks for coming in",
   }[o.kind];
   const intro = {
     confirmed: `Thanks for booking with <strong>${esc(o.shopName)}</strong>.`,
@@ -81,6 +85,7 @@ export function salonEmail(o: SalonEmailInput): { subject: string; html: string;
     cancelled: `Your appointment at <strong>${esc(o.shopName)}</strong> has been cancelled.`,
     reminder: `A quick reminder of your appointment at <strong>${esc(o.shopName)}</strong>.`,
     rebook: `It's been a little while since your last visit to <strong>${esc(o.shopName)}</strong>. Grab your next slot before the week fills up.`,
+    review: `Hope you're happy with your ${esc(o.summary.toLowerCase())}${o.staffName ? ` from ${esc(o.staffName)}` : ""}. If you've got a minute, a quick Google review really helps a small shop like ours.`,
   }[o.kind];
   const subject = {
     confirmed: `Booked — ${o.shopName}, ${day} at ${time}`,
@@ -88,6 +93,7 @@ export function salonEmail(o: SalonEmailInput): { subject: string; html: string;
     cancelled: `Appointment cancelled — ${o.shopName}`,
     reminder: `Reminder — ${o.shopName}, ${day} at ${time}`,
     rebook: `Time for your next visit to ${o.shopName}?`,
+    review: `How was your visit to ${o.shopName}?`,
   }[o.kind];
 
   const calUrl = googleCalendarUrl({
@@ -111,7 +117,11 @@ export function salonEmail(o: SalonEmailInput): { subject: string; html: string;
         : null;
 
   let buttons = "";
-  if (cancelled || rebook) {
+  if (review) {
+    buttons = `<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:20px"><tr>${
+      o.reviewUrl ? button(o.reviewUrl, "Leave a review", true) : ""
+    }${o.bookUrl ? button(o.bookUrl, "Book your next visit", !o.reviewUrl) : ""}</tr></table>`;
+  } else if (cancelled || rebook) {
     if (o.bookUrl) {
       buttons = `<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:20px"><tr>${button(o.bookUrl, rebook ? "Book now" : "Book again", true)}</tr></table>`;
     }
@@ -123,7 +133,7 @@ export function salonEmail(o: SalonEmailInput): { subject: string; html: string;
     }</tr></table>`;
   }
 
-  const details = rebook
+  const details = rebook || review
     ? ""
     : `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="${cancelled ? "opacity:.6;" : ""}">
 ${row("When", `<strong>${esc(day)}</strong><br/><strong>${esc(time)}</strong>`)}
@@ -136,13 +146,13 @@ ${o.address ? row("Where", esc(o.address)) : ""}
 </table>`;
 
   const patch =
-    o.patchTest && !cancelled && !rebook
+    o.patchTest && !cancelled && !rebook && !review
       ? `<p style="margin:16px 0 0;padding:12px 14px;border-radius:12px;background:#fff7ed;color:#9a3412;font-size:13px">This treatment needs a skin patch test at least 48 hours before. If you haven't had one with us recently, please pop in or call us to arrange it.</p>`
       : "";
 
   const footer = cancelled
     ? "If you didn't ask for this, please get in touch with us."
-    : rebook
+    : rebook || review
       ? "Don't want these? Just reply and we'll stop."
       : o.cancellationWindowHours > 0
         ? `Need to change? You can move or cancel free of charge up to ${o.cancellationWindowHours} hours before${o.manageUrl ? " from the link above" : ""}.`
@@ -173,7 +183,9 @@ ${buttons}
     "",
     `${heading}.`,
     "",
-    ...(rebook
+    ...(review
+      ? [o.reviewUrl ? `Leave a review: ${o.reviewUrl}` : "", o.bookUrl ? `Book your next visit: ${o.bookUrl}` : ""]
+      : rebook
       ? [o.bookUrl ? `Book: ${o.bookUrl}` : ""]
       : [
           o.shopName,

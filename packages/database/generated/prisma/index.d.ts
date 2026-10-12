@@ -81726,6 +81726,7 @@ export namespace Prisma {
     cancelReason: string | null
     reminderSentAt: Date | null
     rebookNudgeSentAt: Date | null
+    reviewRequestSentAt: Date | null
     queueEntryId: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -81763,6 +81764,7 @@ export namespace Prisma {
     cancelReason: string | null
     reminderSentAt: Date | null
     rebookNudgeSentAt: Date | null
+    reviewRequestSentAt: Date | null
     queueEntryId: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -81801,6 +81803,7 @@ export namespace Prisma {
     cancelReason: number
     reminderSentAt: number
     rebookNudgeSentAt: number
+    reviewRequestSentAt: number
     queueEntryId: number
     createdAt: number
     updatedAt: number
@@ -81852,6 +81855,7 @@ export namespace Prisma {
     cancelReason?: true
     reminderSentAt?: true
     rebookNudgeSentAt?: true
+    reviewRequestSentAt?: true
     queueEntryId?: true
     createdAt?: true
     updatedAt?: true
@@ -81889,6 +81893,7 @@ export namespace Prisma {
     cancelReason?: true
     reminderSentAt?: true
     rebookNudgeSentAt?: true
+    reviewRequestSentAt?: true
     queueEntryId?: true
     createdAt?: true
     updatedAt?: true
@@ -81927,6 +81932,7 @@ export namespace Prisma {
     cancelReason?: true
     reminderSentAt?: true
     rebookNudgeSentAt?: true
+    reviewRequestSentAt?: true
     queueEntryId?: true
     createdAt?: true
     updatedAt?: true
@@ -82052,6 +82058,7 @@ export namespace Prisma {
     cancelReason: string | null
     reminderSentAt: Date | null
     rebookNudgeSentAt: Date | null
+    reviewRequestSentAt: Date | null
     queueEntryId: string | null
     createdAt: Date
     updatedAt: Date
@@ -82109,6 +82116,7 @@ export namespace Prisma {
     cancelReason?: boolean
     reminderSentAt?: boolean
     rebookNudgeSentAt?: boolean
+    reviewRequestSentAt?: boolean
     queueEntryId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -82149,6 +82157,7 @@ export namespace Prisma {
     cancelReason?: boolean
     reminderSentAt?: boolean
     rebookNudgeSentAt?: boolean
+    reviewRequestSentAt?: boolean
     queueEntryId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -82189,6 +82198,7 @@ export namespace Prisma {
     cancelReason?: boolean
     reminderSentAt?: boolean
     rebookNudgeSentAt?: boolean
+    reviewRequestSentAt?: boolean
     queueEntryId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -82242,6 +82252,7 @@ export namespace Prisma {
       cancelReason: string | null
       reminderSentAt: Date | null
       rebookNudgeSentAt: Date | null
+      reviewRequestSentAt: Date | null
       queueEntryId: string | null
       createdAt: Date
       updatedAt: Date
@@ -82672,6 +82683,7 @@ export namespace Prisma {
     readonly cancelReason: FieldRef<"SalonAppointment", 'String'>
     readonly reminderSentAt: FieldRef<"SalonAppointment", 'DateTime'>
     readonly rebookNudgeSentAt: FieldRef<"SalonAppointment", 'DateTime'>
+    readonly reviewRequestSentAt: FieldRef<"SalonAppointment", 'DateTime'>
     readonly queueEntryId: FieldRef<"SalonAppointment", 'String'>
     readonly createdAt: FieldRef<"SalonAppointment", 'DateTime'>
     readonly updatedAt: FieldRef<"SalonAppointment", 'DateTime'>
@@ -189560,6 +189572,7 @@ export namespace Prisma {
     cancelReason: 'cancelReason',
     reminderSentAt: 'reminderSentAt',
     rebookNudgeSentAt: 'rebookNudgeSentAt',
+    reviewRequestSentAt: 'reviewRequestSentAt',
     queueEntryId: 'queueEntryId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
@@ -201368,6 +201381,7 @@ export namespace Prisma {
     cancelReason?: StringNullableFilter<"SalonAppointment"> | string | null
     reminderSentAt?: DateTimeNullableFilter<"SalonAppointment"> | Date | string | null
     rebookNudgeSentAt?: DateTimeNullableFilter<"SalonAppointment"> | Date | string | null
+    reviewRequestSentAt?: DateTimeNullableFilter<"SalonAppointment"> | Date | string | null
     queueEntryId?: StringNullableFilter<"SalonAppointment"> | string | null
     createdAt?: DateTimeFilter<"SalonAppointment"> | Date | string
     updatedAt?: DateTimeFilter<"SalonAppointment"> | Date | string
@@ -201408,6 +201422,7 @@ export namespace Prisma {
     cancelReason?: SortOrderInput | SortOrder
     reminderSentAt?: SortOrderInput | SortOrder
     rebookNudgeSentAt?: SortOrderInput | SortOrder
+    reviewRequestSentAt?: SortOrderInput | SortOrder
     queueEntryId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -201452,6 +201467,7 @@ export namespace Prisma {
     cancelReason?: StringNullableFilter<"SalonAppointment"> | string | null
     reminderSentAt?: DateTimeNullableFilter<"SalonAppointment"> | Date | string | null
     rebookNudgeSentAt?: DateTimeNullableFilter<"SalonAppointment"> | Date | string | null
+    reviewRequestSentAt?: DateTimeNullableFilter<"SalonAppointment"> | Date | string | null
     queueEntryId?: StringNullableFilter<"SalonAppointment"> | string | null
     createdAt?: DateTimeFilter<"SalonAppointment"> | Date | string
     updatedAt?: DateTimeFilter<"SalonAppointment"> | Date | string
@@ -201492,6 +201508,7 @@ export namespace Prisma {
     cancelReason?: SortOrderInput | SortOrder
     reminderSentAt?: SortOrderInput | SortOrder
     rebookNudgeSentAt?: SortOrderInput | SortOrder
+    reviewRequestSentAt?: SortOrderInput | SortOrder
     queueEntryId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -201538,6 +201555,7 @@ export namespace Prisma {
     cancelReason?: StringNullableWithAggregatesFilter<"SalonAppointment"> | string | null
     reminderSentAt?: DateTimeNullableWithAggregatesFilter<"SalonAppointment"> | Date | string | null
     rebookNudgeSentAt?: DateTimeNullableWithAggregatesFilter<"SalonAppointment"> | Date | string | null
+    reviewRequestSentAt?: DateTimeNullableWithAggregatesFilter<"SalonAppointment"> | Date | string | null
     queueEntryId?: StringNullableWithAggregatesFilter<"SalonAppointment"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"SalonAppointment"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"SalonAppointment"> | Date | string
@@ -219445,6 +219463,7 @@ export namespace Prisma {
     cancelReason?: string | null
     reminderSentAt?: Date | string | null
     rebookNudgeSentAt?: Date | string | null
+    reviewRequestSentAt?: Date | string | null
     queueEntryId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -219485,6 +219504,7 @@ export namespace Prisma {
     cancelReason?: string | null
     reminderSentAt?: Date | string | null
     rebookNudgeSentAt?: Date | string | null
+    reviewRequestSentAt?: Date | string | null
     queueEntryId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -219521,6 +219541,7 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     rebookNudgeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewRequestSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     queueEntryId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -219561,6 +219582,7 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     rebookNudgeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewRequestSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     queueEntryId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -219599,6 +219621,7 @@ export namespace Prisma {
     cancelReason?: string | null
     reminderSentAt?: Date | string | null
     rebookNudgeSentAt?: Date | string | null
+    reviewRequestSentAt?: Date | string | null
     queueEntryId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -219635,6 +219658,7 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     rebookNudgeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewRequestSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     queueEntryId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -219673,6 +219697,7 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     rebookNudgeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewRequestSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     queueEntryId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -236687,6 +236712,7 @@ export namespace Prisma {
     cancelReason?: SortOrder
     reminderSentAt?: SortOrder
     rebookNudgeSentAt?: SortOrder
+    reviewRequestSentAt?: SortOrder
     queueEntryId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -236730,6 +236756,7 @@ export namespace Prisma {
     cancelReason?: SortOrder
     reminderSentAt?: SortOrder
     rebookNudgeSentAt?: SortOrder
+    reviewRequestSentAt?: SortOrder
     queueEntryId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -236767,6 +236794,7 @@ export namespace Prisma {
     cancelReason?: SortOrder
     reminderSentAt?: SortOrder
     rebookNudgeSentAt?: SortOrder
+    reviewRequestSentAt?: SortOrder
     queueEntryId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -264325,6 +264353,7 @@ export namespace Prisma {
     cancelReason?: string | null
     reminderSentAt?: Date | string | null
     rebookNudgeSentAt?: Date | string | null
+    reviewRequestSentAt?: Date | string | null
     queueEntryId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -264363,6 +264392,7 @@ export namespace Prisma {
     cancelReason?: string | null
     reminderSentAt?: Date | string | null
     rebookNudgeSentAt?: Date | string | null
+    reviewRequestSentAt?: Date | string | null
     queueEntryId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -265828,6 +265858,7 @@ export namespace Prisma {
     cancelReason?: StringNullableFilter<"SalonAppointment"> | string | null
     reminderSentAt?: DateTimeNullableFilter<"SalonAppointment"> | Date | string | null
     rebookNudgeSentAt?: DateTimeNullableFilter<"SalonAppointment"> | Date | string | null
+    reviewRequestSentAt?: DateTimeNullableFilter<"SalonAppointment"> | Date | string | null
     queueEntryId?: StringNullableFilter<"SalonAppointment"> | string | null
     createdAt?: DateTimeFilter<"SalonAppointment"> | Date | string
     updatedAt?: DateTimeFilter<"SalonAppointment"> | Date | string
@@ -283214,6 +283245,7 @@ export namespace Prisma {
     cancelReason?: string | null
     reminderSentAt?: Date | string | null
     rebookNudgeSentAt?: Date | string | null
+    reviewRequestSentAt?: Date | string | null
     queueEntryId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -283252,6 +283284,7 @@ export namespace Prisma {
     cancelReason?: string | null
     reminderSentAt?: Date | string | null
     rebookNudgeSentAt?: Date | string | null
+    reviewRequestSentAt?: Date | string | null
     queueEntryId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -310940,6 +310973,7 @@ export namespace Prisma {
     cancelReason?: string | null
     reminderSentAt?: Date | string | null
     rebookNudgeSentAt?: Date | string | null
+    reviewRequestSentAt?: Date | string | null
     queueEntryId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -312392,6 +312426,7 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     rebookNudgeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewRequestSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     queueEntryId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -312430,6 +312465,7 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     rebookNudgeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewRequestSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     queueEntryId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -312467,6 +312503,7 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     rebookNudgeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewRequestSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     queueEntryId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -314672,6 +314709,7 @@ export namespace Prisma {
     cancelReason?: string | null
     reminderSentAt?: Date | string | null
     rebookNudgeSentAt?: Date | string | null
+    reviewRequestSentAt?: Date | string | null
     queueEntryId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -314735,6 +314773,7 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     rebookNudgeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewRequestSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     queueEntryId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -314773,6 +314812,7 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     rebookNudgeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewRequestSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     queueEntryId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -314810,6 +314850,7 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     reminderSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     rebookNudgeSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewRequestSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     queueEntryId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string

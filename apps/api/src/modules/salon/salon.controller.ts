@@ -97,6 +97,17 @@ export class SalonController {
     return this.catalog.reorderServices(u.tenantId, locationId, body?.ids);
   }
 
+  @Post("services/import")
+  @Roles(...MANAGE)
+  @ApiOperation({ summary: "Import a price list from a CSV export (Fresha, Booksy, Treatwell, a spreadsheet)" })
+  importServices(
+    @CurrentUser() u: AuthenticatedUser,
+    @Query("locationId") locationId: string,
+    @Body() body: { csv: string; preview?: boolean },
+  ) {
+    return this.catalog.importServices(u.tenantId, locationId, body?.csv, { preview: body?.preview !== false });
+  }
+
   @Patch("services/:id")
   @Roles(...MANAGE)
   updateService(@CurrentUser() u: AuthenticatedUser, @Param("id") id: string, @Body() body: SalonServiceInput) {
@@ -213,6 +224,17 @@ export class SalonController {
     @Query("q") q: string,
   ) {
     return this.booking.searchClients(u.tenantId, locationId, q);
+  }
+
+  @Post("clients/import")
+  @Roles(...MANAGE)
+  @ApiOperation({ summary: "Import a client list from a CSV export" })
+  importClients(
+    @CurrentUser() u: AuthenticatedUser,
+    @Query("locationId") locationId: string,
+    @Body() body: { csv: string; preview?: boolean },
+  ) {
+    return this.catalog.importClients(u.tenantId, locationId, body?.csv, { preview: body?.preview !== false });
   }
 
   @Post("appointments")

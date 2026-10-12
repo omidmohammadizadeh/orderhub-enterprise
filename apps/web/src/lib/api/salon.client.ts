@@ -21,6 +21,7 @@ export interface SalonSettings {
   reminderHoursBefore: number;
   reminderSms: boolean;
   rebookAfterDays: number;
+  reviewRequestEnabled: boolean;
   queueEnabled: boolean;
   queueOnlineJoin: boolean;
   queueCallSms: boolean;
@@ -318,6 +319,27 @@ export const salonClient = {
   updateService: async (id: string, body: Partial<SalonService>) =>
     (await apiClient.patch<SalonService>(`/v1/salon/services/${id}`, body)).data,
   deleteService: async (id: string) => (await apiClient.delete(`/v1/salon/services/${id}`)).data,
+  importServices: async (locationId: string, csv: string, preview: boolean) =>
+    (
+      await apiClient.post<{
+        services: Array<{ name: string; category: string; price: number; priceFrom: boolean; durationMins: number }>;
+        plan: Array<{ name: string; category: string; price: number; priceFrom: boolean; durationMins: number; action: "create" | "update" }>;
+        skipped: Array<{ row: number; reason: string }>;
+        columns: Record<string, string | null>;
+        created: number;
+        updated: number;
+      }>("/v1/salon/services/import", { csv, preview }, { params: { locationId } })
+    ).data,
+  importClients: async (locationId: string, csv: string, preview: boolean) =>
+    (
+      await apiClient.post<{
+        clients: Array<{ firstName: string | null; lastName: string | null; phone: string | null; email: string | null }>;
+        skipped: Array<{ row: number; reason: string }>;
+        new: number;
+        alreadyKnown: number;
+        imported: number;
+      }>("/v1/salon/clients/import", { csv, preview }, { params: { locationId } })
+    ).data,
   reorderServices: async (locationId: string, ids: string[]) =>
     (await apiClient.put<SalonService[]>("/v1/salon/services/order", { ids }, { params: { locationId } })).data,
 

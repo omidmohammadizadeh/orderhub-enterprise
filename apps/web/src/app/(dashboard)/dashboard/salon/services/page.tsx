@@ -7,7 +7,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { ArrowDown, ArrowUp, Globe2, Plus, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Globe2, Plus, Trash2, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCurrency } from "@/hooks/use-currency";
 import { apiError, minutesLabel, salonClient, type DepositType, type SalonAddon, type SalonService } from "@/lib/api/salon.client";
@@ -28,6 +28,7 @@ function Services() {
   const q = useSalonServices(locationId);
   const list = q.data ?? [];
   const [editing, setEditing] = useState<SalonService | "new" | null>(null);
+  const [importing, setImporting] = useState(false);
   const groups = useMemo(() => {
     const m = new Map<string, SalonService[]>();
     for (const s of list) m.set(s.category, [...(m.get(s.category) ?? []), s]);
@@ -51,7 +52,10 @@ function Services() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" onClick={() => setImporting(true)}>
+          <Upload className="h-4 w-4" aria-hidden /> Import price list
+        </Button>
         <Button onClick={() => setEditing("new")}>
           <Plus className="h-4 w-4" aria-hidden /> Add service
         </Button>
@@ -98,6 +102,16 @@ function Services() {
           </ul>
         </section>
       ))}
+      {importing && locationId && (
+        <ImportSheet
+          locationId={locationId}
+          onClose={() => setImporting(false)}
+          onDone={() => {
+            setImporting(false);
+            refresh();
+          }}
+        />
+      )}
       {editing && locationId && (
         <ServiceEditor
           locationId={locationId}
@@ -348,6 +362,130 @@ function ServiceEditor({
           </Button>
         </div>
       </aside>
+    </div>
+  );
+}
+
+function ImportSheet({ locationId, onClose, onDone }: { locationId: string; onClose: () => void; onDone: () => void }) {
+  const { money } = useCurrency();
+  const [csv, setCsv] = useState("");
+  const preview = useMutation({
+    mutationFn: () => salonClient.importServices(locationId, csv, true),
+    onError: (e) => toast.error(apiError(e, "Couldn't read that file")),
+  });
+  const run = useMutation({
+    mutationFn: () => salonClient.importServices(locationId, csv, false),
+    onSuccess: (r) => {
+      toast.success(`Imported — ${r.created} added, ${r.updated} updated`);
+      onDone();
+    },
+    onError: (e) => toast.error(apiError(e, "Couldn't import")),
+  });
+  useEffect(() => {
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", esc);
+    return () => document.removeEventListener("keydown", esc);
+  }, [onClose]);
+  const p = preview.data;
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" role="dialog" aria-modal="true" aria-label="Import price list">
+      <button type="button" aria-label="Close" onClick={onClose} className="absolute inset-0 cursor-default bg-zinc-950/50" />
+      <div className="relative flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl">
+        <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-4">
+          <div>
+            <h2 className="text-lg font-semibold text-zinc-900">Import price list</h2>
+            <p className="text-xs text-zinc-500">From Fresha, Booksy, Treatwell, Square or your own spreadsheet — export services as CSV.</p>
+          </div>
+          <button type="button" onClick={onClose} aria-label="Close" className="grid h-10 w-10 place-items-center rounded-full text-zinc-400 hover:bg-zinc-100">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
+          <label className="block">
+            <span className="text-sm font-medium text-zinc-800">CSV file</span>
+            <input
+              type="file"
+              accept=".csv,text/csv,text/plain"
+              onChange={async (e) => {
+                const f = e.target.files?.[0];
+                if (!f) return;
+                // Read as text so codes with leading zeros survive.
+                setCsv(await f.text());
+                preview.reset();
+              }}
+              className="mt-1 block w-full text-sm file:mr-3 file:h-9 file:rounded-lg file:border-0 file:bg-zinc-100 file:px-3 file:text-sm file:font-medium"
+            />
+          </label>
+          <label className="block">
+            <span className="text-sm font-medium text-zinc-800">…or paste it</span>
+            <textarea
+              value={csv}
+              onChange={(e) => {
+                setCsv(e.target.value);
+                preview.reset();
+              }}
+              rows={5}
+              placeholder={"Service name,Category,Duration,Price\nSkin fade,Haircuts,30min,£22"}
+              className={`${inputCls} mt-1 h-auto py-2 font-mono text-xs`}
+            />
+          </label>
+          {p && (
+            <section className="space-y-2">
+              <p className="text-sm text-zinc-700">
+                {p.plan.filter((x) => x.action === "create").length} new, {p.plan.filter((x) => x.action === "update").length} already on your list (price and length will be updated).
+                {p.skipped.length > 0 && ` ${p.skipped.length} row${p.skipped.length === 1 ? "" : "s"} skipped.`}
+              </p>
+              <div className="max-h-64 overflow-y-auto rounded-xl border border-zinc-200">
+                <table className="w-full text-sm">
+                  <thead className="sticky top-0 bg-zinc-50 text-left text-xs text-zinc-500">
+                    <tr>
+                      <th className="px-3 py-2 font-medium">Service</th>
+                      <th className="px-3 py-2 font-medium">Group</th>
+                      <th className="px-3 py-2 text-right font-medium">Length</th>
+                      <th className="px-3 py-2 text-right font-medium">Price</th>
+                      <th className="px-3 py-2 font-medium" />
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-100">
+                    {p.plan.map((x) => (
+                      <tr key={x.name}>
+                        <td className="px-3 py-1.5">{x.name}</td>
+                        <td className="px-3 py-1.5 text-zinc-500">{x.category}</td>
+                        <td className="px-3 py-1.5 text-right tabular-nums">{minutesLabel(x.durationMins)}</td>
+                        <td className="px-3 py-1.5 text-right tabular-nums">
+                          {x.priceFrom ? "from " : ""}
+                          {money(x.price)}
+                        </td>
+                        <td className="px-3 py-1.5 text-xs text-zinc-500">{x.action === "create" ? "New" : "Update"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {p.skipped.length > 0 && (
+                <ul className="list-disc space-y-0.5 pl-5 text-xs text-amber-700">
+                  {p.skipped.slice(0, 8).map((x) => (
+                    <li key={x.row}>
+                      Row {x.row}: {x.reason}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          )}
+        </div>
+        <div className="flex justify-end gap-2 border-t border-zinc-100 px-5 py-4">
+          {!p ? (
+            <Button disabled={!csv.trim()} loading={preview.isPending} onClick={() => preview.mutate()}>
+              Check the file
+            </Button>
+          ) : (
+            <Button disabled={p.plan.length === 0} loading={run.isPending} onClick={() => run.mutate()}>
+              Import {p.plan.length} service{p.plan.length === 1 ? "" : "s"}
+            </Button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

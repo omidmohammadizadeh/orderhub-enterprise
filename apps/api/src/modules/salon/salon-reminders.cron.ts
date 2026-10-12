@@ -29,6 +29,7 @@ export class SalonRemindersCron {
     try {
       await this.reminders();
       await this.rebookNudges();
+      await this.reviewRequests();
     } catch (e: any) {
       this.logger.warn(`Salon reminders failed: ${e?.message}`);
     } finally {
@@ -86,6 +87,51 @@ export class SalonRemindersCron {
     }
     if (sent) this.logger.log(`Sent ${sent} salon reminder(s)`);
     return sent;
+  }
+
+  /**
+   * A few hours after a paid visit, "thanks — leave us a review", when the
+   * shop has a Google review link. Daytime only; anything older than a day
+   * is marked and skipped rather than sent late.
+   */
+  async reviewRequests(now: number = Date.now()) {
+    const done = await this.prisma.salonAppointment.findMany({
+      where: {
+        status: "COMPLETED",
+        reviewRequestSentAt: null,
+        customerEmail: { not: null },
+        completedAt: { lt: new Date(now - 2 * 3600_000), gt: new Date(now - 7 * 86_400_000) },
+      },
+      select: { id: true, locationId: true, completedAt: true },
+      take: 300,
+    });
+    let sent = 0;
+    for (const a of done) {
+      const { s, tz } = await this.settingsFor(a.locationId);
+      const reviewUrl = await this.reviewUrlFor(a.locationId);
+      const stale = now - a.completedAt!.getTime() > 26 * 3600_000;
+      const hour = Number(wallTime(now, tz).slice(0, 2));
+      if (!stale && (hour < 10 || hour >= 20)) continue;
+      const { count } = await this.prisma.salonAppointment.updateMany({
+        where: { id: a.id, reviewRequestSentAt: null },
+        data: { reviewRequestSentAt: new Date(now) },
+      });
+      if (count === 0 || stale || !s.reviewRequestEnabled || !reviewUrl) continue;
+      await this.notify.appointmentNow("review", a.id).catch(() => false);
+      sent++;
+    }
+    if (sent) this.logger.log(`Sent ${sent} salon review request(s)`);
+    return sent;
+  }
+
+  private reviewCache = new Map<string, { at: number; url: string | null }>();
+  private async reviewUrlFor(locationId: string): Promise<string | null> {
+    const hit = this.reviewCache.get(locationId);
+    if (hit && Date.now() - hit.at < 5 * 60_000) return hit.url;
+    const loc = await this.prisma.location.findUnique({ where: { id: locationId }, select: { googleReviewUrl: true } });
+    const url = loc?.googleReviewUrl?.trim() || null;
+    this.reviewCache.set(locationId, { at: Date.now(), url });
+    return url;
   }
 
   /**

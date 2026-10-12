@@ -52,6 +52,7 @@ export class SalonNotifyService {
             currency: true,
             logoUrl: true,
             settings: true,
+            googleReviewUrl: true,
             addressLine1: true,
             addressLine2: true,
             city: true,
@@ -94,6 +95,7 @@ export class SalonNotifyService {
       manageUrl: `${web}/salon/booking/${a.manageToken}`,
       bookUrl: settings.onlineBookingEnabled ? `${web}/salon/${loc.id}` : null,
       cancellationWindowHours: settings.allowGuestChanges ? settings.cancellationWindowHours : 0,
+      reviewUrl: loc.googleReviewUrl ?? null,
     });
     await this.email.send({ to, subject: mail.subject, html: mail.html, text: mail.text, fromName: shopName });
     return true;

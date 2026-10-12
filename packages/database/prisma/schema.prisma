@@ -2668,6 +2668,8 @@ model SalonAppointment {
 
   reminderSentAt    DateTime?
   rebookNudgeSentAt DateTime?
+  // "Thanks for coming — leave us a review", a few hours after the visit.
+  reviewRequestSentAt DateTime?
   // Walk-in that came off the queue.
   queueEntryId      String?
 
