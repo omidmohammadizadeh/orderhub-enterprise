@@ -117,6 +117,20 @@ export function LoyaltyTillModal({
     }
   }
 
+  async function showCardQr() {
+    if (!member) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const { cardUrl } = await walkInTill.cardLink(member.id);
+      setNewCardUrl(cardUrl);
+    } catch (err) {
+      setError(errorText(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function resend() {
     if (!member) return;
     setBusy(true);
@@ -375,7 +389,9 @@ export function LoyaltyTillModal({
 
               {newCardUrl && (
                 <div className="flex flex-col items-center rounded-xl border border-zinc-200 p-3 text-center">
-                  <p className="text-xs font-medium text-zinc-600">Customer can scan this to open their new card</p>
+                  <p className="text-xs font-medium text-zinc-600">
+                    Customer scans this to open their card and add it to their wallet
+                  </p>
                   <div className="mt-2">
                     <QRCodeSVG value={newCardUrl} size={150} marginSize={0} />
                   </div>
@@ -401,6 +417,16 @@ export function LoyaltyTillModal({
                     className="h-12 rounded-xl bg-zinc-900 text-sm font-semibold text-white"
                   >
                     Add card to this order
+                  </button>
+                )}
+                {!newCardUrl && (
+                  <button
+                    type="button"
+                    onClick={showCardQr}
+                    disabled={busy}
+                    className="flex h-11 items-center justify-center gap-2 rounded-xl border border-zinc-300 text-sm font-medium text-zinc-700 disabled:opacity-40"
+                  >
+                    <QrCode className="h-4 w-4" /> Show card QR (new or second phone)
                   </button>
                 )}
                 <div className="grid grid-cols-2 gap-2">

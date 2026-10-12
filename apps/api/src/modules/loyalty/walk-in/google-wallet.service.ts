@@ -108,7 +108,9 @@ export class GoogleWalletService {
       },
       hexBackgroundColor: safeColor(view.color),
       reviewStatus: "UNDER_REVIEW",
-      multipleDevicesAndHoldersAllowedStatus: "ONE_USER_ALL_DEVICES",
+      // A customer's second phone may be signed in to a different Google
+      // account (work phone, partner's phone). The card is theirs either way.
+      multipleDevicesAndHoldersAllowedStatus: "MULTIPLE_HOLDERS",
     };
   }
 

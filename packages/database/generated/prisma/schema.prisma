@@ -5581,10 +5581,15 @@ model LoyaltyMember {
 
   /// Bumped whenever what the pass shows changes; Apple asks "anything
   /// newer than X?" and Google is patched on the same change.
-  passUpdatedAt  DateTime  @default(now())
+  passUpdatedAt   DateTime  @default(now())
   /// Set once the Google Wallet object exists, so later changes PATCH it.
-  googleObjectAt DateTime?
-  lastSeenAt     DateTime?
+  googleObjectAt  DateTime?
+  /// One-time code texted to an existing member re-opening their card on
+  /// another phone. Hashed; cleared on success; 5 tries, 10 minutes.
+  verifyCodeHash  String?
+  verifyExpiresAt DateTime?
+  verifyAttempts  Int       @default(0)
+  lastSeenAt      DateTime?
 
   stamps      LoyaltyStamp[]
   rewards     LoyaltyReward[]

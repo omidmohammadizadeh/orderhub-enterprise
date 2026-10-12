@@ -3,13 +3,14 @@
 // Join a shop's loyalty card — where the QR poster on the counter lands.
 //
 // One screen, thumb-sized: the card they are about to get, two fields, one
-// button. A new number goes straight to its card; a number that already has
-// one is texted its link instead of shown it (whoever is typing may not own
-// that phone).
+// button. A new number goes straight to its card. A number that already has
+// one (new phone, second phone, deleted pass) gets a 6-digit code by text and
+// opens the SAME card here once it is typed in — never straight on screen,
+// because whoever is typing may not own that phone.
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { CheckCircle2, Loader2, MessageSquare } from "lucide-react";
+import { CheckCircle2, Loader2 } from "lucide-react";
 import { WalletCard } from "@/components/loyalty/wallet-card";
 import { walkInPublic, type JoinInfo } from "@/lib/api/loyalty-walk-in.client";
 
@@ -23,7 +24,10 @@ export default function JoinLoyaltyPage() {
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [texted, setTexted] = useState<boolean | null>(null);
+  // Existing number: waiting for the texted code. null = not at that step.
+  const [verifyHint, setVerifyHint] = useState<string | null>(null);
+  const [code, setCode] = useState("");
+  const [noSms, setNoSms] = useState(false);
 
   useEffect(() => {
     walkInPublic
@@ -42,10 +46,28 @@ export default function JoinLoyaltyPage() {
         router.replace(`/loyalty/card/${res.token}?new=1`);
         return;
       }
-      setTexted(res.smsSent);
+      if (res.status === "VERIFY") {
+        setCode("");
+        setVerifyHint(res.phoneHint);
+        return;
+      }
+      setNoSms(true);
     } catch (err) {
       setError((err as Error).message);
     } finally {
+      setBusy(false);
+    }
+  }
+
+  async function submitCode(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setBusy(true);
+    try {
+      const { token } = await walkInPublic.verify(shop, { phone, code });
+      router.replace(`/loyalty/card/${token}`);
+    } catch (err) {
+      setError((err as Error).message);
       setBusy(false);
     }
   }
@@ -82,7 +104,7 @@ export default function JoinLoyaltyPage() {
           </div>
         )}
 
-        {info?.available && texted === null && (
+        {info?.available && verifyHint === null && !noSms && (
           <>
             <p className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-white/60">
               Loyalty card
@@ -161,25 +183,70 @@ export default function JoinLoyaltyPage() {
           </>
         )}
 
-        {texted !== null && (
-          <div className="flex flex-1 flex-col items-center justify-center text-center">
-            {texted ? (
-              <>
-                <MessageSquare className="h-10 w-10 text-white/80" />
-                <p className="mt-4 text-xl font-semibold">You already have a card</p>
-                <p className="mt-2 max-w-xs text-sm text-white/60">
-                  We&apos;ve texted the link to that number. Open it on your phone to add the card to your wallet.
-                </p>
-              </>
-            ) : (
-              <>
-                <CheckCircle2 className="h-10 w-10 text-white/80" />
-                <p className="mt-4 text-xl font-semibold">That number already has a card</p>
-                <p className="mt-2 max-w-xs text-sm text-white/60">
-                  Ask at the counter and we&apos;ll send it to you again.
-                </p>
-              </>
+        {verifyHint !== null && (
+          <form onSubmit={submitCode} className="flex flex-1 flex-col justify-center">
+            <p className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-white/60">
+              Welcome back
+            </p>
+            <h1 className="mt-2 text-center text-[26px] font-semibold leading-tight tracking-tight">
+              You already have a card
+            </h1>
+            <p className="mx-auto mt-2 max-w-xs text-center text-sm text-white/60">
+              We&apos;ve texted a 6-digit code to {verifyHint}. Enter it to open your card on this phone — your
+              stamps come with it.
+            </p>
+            <input
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              autoFocus
+              aria-label="6-digit code"
+              placeholder="••••••"
+              className="mx-auto mt-6 h-16 w-full max-w-[16rem] rounded-2xl border border-white/15 bg-white/[0.06] text-center font-mono text-3xl tracking-[0.4em] text-white placeholder:text-white/25 focus:border-white/60 focus:outline-none"
+            />
+            {error && (
+              <p role="alert" className="mt-4 rounded-xl bg-red-500/15 px-4 py-3 text-center text-sm text-red-200">
+                {error}
+              </p>
             )}
+            <button
+              type="submit"
+              disabled={busy || code.length !== 6}
+              className="mt-6 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-white text-base font-semibold text-zinc-950 transition active:scale-[0.99] disabled:opacity-50"
+            >
+              {busy && <Loader2 className="h-5 w-5 animate-spin" />}
+              Open my card
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={(e) => void submit(e as unknown as React.FormEvent)}
+              className="mt-3 h-11 text-sm font-medium text-white/70 underline-offset-4 hover:underline disabled:opacity-50"
+            >
+              Send a new code
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setVerifyHint(null);
+                setError(null);
+              }}
+              className="h-11 text-sm text-white/50"
+            >
+              Use a different number
+            </button>
+          </form>
+        )}
+
+        {noSms && (
+          <div className="flex flex-1 flex-col items-center justify-center text-center">
+            <CheckCircle2 className="h-10 w-10 text-white/80" />
+            <p className="mt-4 text-xl font-semibold">That number already has a card</p>
+            <p className="mt-2 max-w-xs text-sm text-white/60">
+              We couldn&apos;t text you a code just now. Ask at the counter — staff can show your card on the till
+              for you to scan.
+            </p>
           </div>
         )}
       </div>

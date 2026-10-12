@@ -2461,6 +2461,9 @@ exports.Prisma.LoyaltyMemberScalarFieldEnum = {
   source: 'source',
   passUpdatedAt: 'passUpdatedAt',
   googleObjectAt: 'googleObjectAt',
+  verifyCodeHash: 'verifyCodeHash',
+  verifyExpiresAt: 'verifyExpiresAt',
+  verifyAttempts: 'verifyAttempts',
   lastSeenAt: 'lastSeenAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -4201,7 +4204,8 @@ exports.Prisma.LoyaltyMemberOrderByRelevanceFieldEnum = {
   publicToken: 'publicToken',
   phone: 'phone',
   firstName: 'firstName',
-  source: 'source'
+  source: 'source',
+  verifyCodeHash: 'verifyCodeHash'
 };
 
 exports.Prisma.LoyaltyPassDeviceOrderByRelevanceFieldEnum = {

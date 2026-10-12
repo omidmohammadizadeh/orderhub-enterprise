@@ -7,6 +7,7 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
+import { createHash, randomInt, timingSafeEqual } from "crypto";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { SmsService } from "../../sms/sms.service";
 import { toE164 } from "../../sms/phone";
@@ -28,9 +29,10 @@ import { newMemberCode, newPublicToken, parseMemberCode, scanValue } from "./wal
 // ── Joining ─────────────────────────────────────────────────────────────────
 // From the QR poster at the counter (/loyalty/join/<shop>), or by staff at the
 // till. Phone number is the key: one number, one card per shop. If the number
-// already has a card, the link goes to that phone by SMS instead of on screen —
-// otherwise anyone could type a regular's number and walk off with their
-// free coffee.
+// already has a card — a new phone, a second phone, a deleted pass — we text a
+// 6-digit code to that number and open the SAME card once it is typed in. Never
+// straight on screen: anyone could type a regular's number and walk off with
+// their free coffee.
 //
 // ── Earning and spending ────────────────────────────────────────────────────
 // The till scans the pass and sends loyaltyMemberId (and loyaltyRewardId when a
@@ -91,7 +93,11 @@ export class WalkInLoyaltyService {
   async join(
     shop: string,
     dto: { firstName?: string; phone?: string; marketingConsent?: boolean },
-  ): Promise<{ status: "CREATED"; token: string } | { status: "EXISTING"; smsSent: boolean }> {
+  ): Promise<
+    | { status: "CREATED"; token: string }
+    | { status: "VERIFY"; phoneHint: string }
+    | { status: "EXISTING"; smsSent: false }
+  > {
     const location = await this.resolveShop(shop);
     const card = await this.loadCard(location.id);
     if (!card || !card.isActive || !card.walkInEnabled) {
@@ -106,14 +112,51 @@ export class WalkInLoyaltyService {
       select: MEMBER_LOOKUP_SELECT,
     });
     if (existing) {
-      // Never on screen: whoever typed this number may not own it.
-      const smsSent = await this.textCardLink(existing, card, "resend");
-      return { status: "EXISTING", smsSent };
+      // Never on screen: whoever typed this number may not own it. A code to
+      // that phone proves it, and opens the same card on this device.
+      const smsSent = await this.sendVerifyCode(existing, card);
+      if (!smsSent) return { status: "EXISTING", smsSent: false };
+      return { status: "VERIFY", phoneHint: `•••• ${phone.slice(-3)}` };
     }
 
     const member = await this.createMember(card, { phone, firstName, source: "SELF" });
     if (dto.marketingConsent) this.emitConsent(card, phone, firstName);
     return { status: "CREATED", token: member.publicToken };
+  }
+
+  /** The code from the text, typed on the phone that wants the card. */
+  async verify(shop: string, dto: { phone?: string; code?: string }): Promise<{ token: string }> {
+    const location = await this.resolveShop(shop);
+    const card = await this.loadCard(location.id);
+    const phone = toE164(dto.phone);
+    const code = String(dto.code ?? "").replace(/\D/g, "");
+    const wrong = new BadRequestException("That code isn't right. Check the text and try again.");
+    if (!card || !phone || code.length !== 6) throw wrong;
+
+    const member = await this.prisma.loyaltyMember.findUnique({
+      where: { cardId_phone: { cardId: card.id, phone } },
+      select: { id: true, publicToken: true, verifyCodeHash: true, verifyExpiresAt: true, verifyAttempts: true },
+    });
+    if (!member?.verifyCodeHash || !member.verifyExpiresAt || member.verifyExpiresAt < new Date()) {
+      throw new BadRequestException("That code has expired. Ask for a new one.");
+    }
+    if (member.verifyAttempts >= 5) {
+      throw new BadRequestException("Too many tries. Ask for a new code.");
+    }
+    const given = Buffer.from(this.hashCode(member.id, code), "hex");
+    const stored = Buffer.from(member.verifyCodeHash, "hex");
+    if (given.length !== stored.length || !timingSafeEqual(given, stored)) {
+      await this.prisma.loyaltyMember.update({
+        where: { id: member.id },
+        data: { verifyAttempts: { increment: 1 } },
+      });
+      throw wrong;
+    }
+    await this.prisma.loyaltyMember.update({
+      where: { id: member.id },
+      data: { verifyCodeHash: null, verifyExpiresAt: null, verifyAttempts: 0 },
+    });
+    return { token: member.publicToken };
   }
 
   // ── Public: the customer's card ──────────────────────────────────────────
@@ -281,6 +324,20 @@ export class WalkInLoyaltyService {
       cardUrl: found ? null : `${this.webUrl()}/loyalty/card/${member.publicToken}`,
       member: await this.tillView(member, card),
     };
+  }
+
+  /**
+   * The card link for the till screen, so a customer whose text never
+   * arrived can scan it there and add the card to a new phone. Staff have the
+   * customer in front of them; that is the check.
+   */
+  async cardLink(tenantId: string, memberId: string) {
+    const member = await this.prisma.loyaltyMember.findFirst({
+      where: { id: memberId, tenantId },
+      select: { publicToken: true },
+    });
+    if (!member) throw new NotFoundException("No loyalty card found.");
+    return { cardUrl: `${this.webUrl()}/loyalty/card/${member.publicToken}` };
   }
 
   async resendLink(tenantId: string, memberId: string) {
@@ -607,6 +664,41 @@ export class WalkInLoyaltyService {
       return true;
     } catch (err) {
       this.logger.warn(`Loyalty card SMS failed: ${(err as Error).message}`);
+      return false;
+    }
+  }
+
+  private hashCode(memberId: string, code: string): string {
+    return createHash("sha256").update(`${memberId}:${code}`).digest("hex");
+  }
+
+  /** Text a fresh 6-digit code (plus the link, so either works). */
+  private async sendVerifyCode(
+    member: { id: string; publicToken: string; phone: string | null; firstName: string | null },
+    card: CardWithShop,
+  ): Promise<boolean> {
+    if (!member.phone || !this.sms.isConfigured()) return false;
+    const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
+    await this.prisma.loyaltyMember.update({
+      where: { id: member.id },
+      data: {
+        verifyCodeHash: this.hashCode(member.id, code),
+        verifyExpiresAt: new Date(Date.now() + 10 * 60_000),
+        verifyAttempts: 0,
+      },
+    });
+    const url = `${this.webUrl()}/loyalty/card/${member.publicToken}`;
+    try {
+      await this.sms.send({
+        tenantId: card.tenantId,
+        to: member.phone,
+        body: `${code} is your ${this.titleOf(card)} loyalty card code. Or open your card here: ${url}`,
+        purpose: "OTHER",
+        locationId: card.locationId,
+      });
+      return true;
+    } catch (err) {
+      this.logger.warn(`Loyalty verify SMS failed: ${(err as Error).message}`);
       return false;
     }
   }

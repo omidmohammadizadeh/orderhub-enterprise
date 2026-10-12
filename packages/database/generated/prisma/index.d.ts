@@ -165894,8 +165894,18 @@ export namespace Prisma {
 
   export type AggregateLoyaltyMember = {
     _count: LoyaltyMemberCountAggregateOutputType | null
+    _avg: LoyaltyMemberAvgAggregateOutputType | null
+    _sum: LoyaltyMemberSumAggregateOutputType | null
     _min: LoyaltyMemberMinAggregateOutputType | null
     _max: LoyaltyMemberMaxAggregateOutputType | null
+  }
+
+  export type LoyaltyMemberAvgAggregateOutputType = {
+    verifyAttempts: number | null
+  }
+
+  export type LoyaltyMemberSumAggregateOutputType = {
+    verifyAttempts: number | null
   }
 
   export type LoyaltyMemberMinAggregateOutputType = {
@@ -165911,6 +165921,9 @@ export namespace Prisma {
     source: string | null
     passUpdatedAt: Date | null
     googleObjectAt: Date | null
+    verifyCodeHash: string | null
+    verifyExpiresAt: Date | null
+    verifyAttempts: number | null
     lastSeenAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -165929,6 +165942,9 @@ export namespace Prisma {
     source: string | null
     passUpdatedAt: Date | null
     googleObjectAt: Date | null
+    verifyCodeHash: string | null
+    verifyExpiresAt: Date | null
+    verifyAttempts: number | null
     lastSeenAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -165947,12 +165963,23 @@ export namespace Prisma {
     source: number
     passUpdatedAt: number
     googleObjectAt: number
+    verifyCodeHash: number
+    verifyExpiresAt: number
+    verifyAttempts: number
     lastSeenAt: number
     createdAt: number
     updatedAt: number
     _all: number
   }
 
+
+  export type LoyaltyMemberAvgAggregateInputType = {
+    verifyAttempts?: true
+  }
+
+  export type LoyaltyMemberSumAggregateInputType = {
+    verifyAttempts?: true
+  }
 
   export type LoyaltyMemberMinAggregateInputType = {
     id?: true
@@ -165967,6 +165994,9 @@ export namespace Prisma {
     source?: true
     passUpdatedAt?: true
     googleObjectAt?: true
+    verifyCodeHash?: true
+    verifyExpiresAt?: true
+    verifyAttempts?: true
     lastSeenAt?: true
     createdAt?: true
     updatedAt?: true
@@ -165985,6 +166015,9 @@ export namespace Prisma {
     source?: true
     passUpdatedAt?: true
     googleObjectAt?: true
+    verifyCodeHash?: true
+    verifyExpiresAt?: true
+    verifyAttempts?: true
     lastSeenAt?: true
     createdAt?: true
     updatedAt?: true
@@ -166003,6 +166036,9 @@ export namespace Prisma {
     source?: true
     passUpdatedAt?: true
     googleObjectAt?: true
+    verifyCodeHash?: true
+    verifyExpiresAt?: true
+    verifyAttempts?: true
     lastSeenAt?: true
     createdAt?: true
     updatedAt?: true
@@ -166047,6 +166083,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
+     * Select which fields to average
+    **/
+    _avg?: LoyaltyMemberAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: LoyaltyMemberSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: LoyaltyMemberMinAggregateInputType
@@ -166077,6 +166125,8 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: LoyaltyMemberCountAggregateInputType | true
+    _avg?: LoyaltyMemberAvgAggregateInputType
+    _sum?: LoyaltyMemberSumAggregateInputType
     _min?: LoyaltyMemberMinAggregateInputType
     _max?: LoyaltyMemberMaxAggregateInputType
   }
@@ -166094,10 +166144,15 @@ export namespace Prisma {
     source: string
     passUpdatedAt: Date
     googleObjectAt: Date | null
+    verifyCodeHash: string | null
+    verifyExpiresAt: Date | null
+    verifyAttempts: number
     lastSeenAt: Date | null
     createdAt: Date
     updatedAt: Date
     _count: LoyaltyMemberCountAggregateOutputType | null
+    _avg: LoyaltyMemberAvgAggregateOutputType | null
+    _sum: LoyaltyMemberSumAggregateOutputType | null
     _min: LoyaltyMemberMinAggregateOutputType | null
     _max: LoyaltyMemberMaxAggregateOutputType | null
   }
@@ -166129,6 +166184,9 @@ export namespace Prisma {
     source?: boolean
     passUpdatedAt?: boolean
     googleObjectAt?: boolean
+    verifyCodeHash?: boolean
+    verifyExpiresAt?: boolean
+    verifyAttempts?: boolean
     lastSeenAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -166152,6 +166210,9 @@ export namespace Prisma {
     source?: boolean
     passUpdatedAt?: boolean
     googleObjectAt?: boolean
+    verifyCodeHash?: boolean
+    verifyExpiresAt?: boolean
+    verifyAttempts?: boolean
     lastSeenAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -166171,6 +166232,9 @@ export namespace Prisma {
     source?: boolean
     passUpdatedAt?: boolean
     googleObjectAt?: boolean
+    verifyCodeHash?: boolean
+    verifyExpiresAt?: boolean
+    verifyAttempts?: boolean
     lastSeenAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -166222,6 +166286,13 @@ export namespace Prisma {
        * Set once the Google Wallet object exists, so later changes PATCH it.
        */
       googleObjectAt: Date | null
+      /**
+       * One-time code texted to an existing member re-opening their card on
+       * another phone. Hashed; cleared on success; 5 tries, 10 minutes.
+       */
+      verifyCodeHash: string | null
+      verifyExpiresAt: Date | null
+      verifyAttempts: number
       lastSeenAt: Date | null
       createdAt: Date
       updatedAt: Date
@@ -166634,6 +166705,9 @@ export namespace Prisma {
     readonly source: FieldRef<"LoyaltyMember", 'String'>
     readonly passUpdatedAt: FieldRef<"LoyaltyMember", 'DateTime'>
     readonly googleObjectAt: FieldRef<"LoyaltyMember", 'DateTime'>
+    readonly verifyCodeHash: FieldRef<"LoyaltyMember", 'String'>
+    readonly verifyExpiresAt: FieldRef<"LoyaltyMember", 'DateTime'>
+    readonly verifyAttempts: FieldRef<"LoyaltyMember", 'Int'>
     readonly lastSeenAt: FieldRef<"LoyaltyMember", 'DateTime'>
     readonly createdAt: FieldRef<"LoyaltyMember", 'DateTime'>
     readonly updatedAt: FieldRef<"LoyaltyMember", 'DateTime'>
@@ -184488,6 +184562,9 @@ export namespace Prisma {
     source: 'source',
     passUpdatedAt: 'passUpdatedAt',
     googleObjectAt: 'googleObjectAt',
+    verifyCodeHash: 'verifyCodeHash',
+    verifyExpiresAt: 'verifyExpiresAt',
+    verifyAttempts: 'verifyAttempts',
     lastSeenAt: 'lastSeenAt',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
@@ -186702,7 +186779,8 @@ export namespace Prisma {
     publicToken: 'publicToken',
     phone: 'phone',
     firstName: 'firstName',
-    source: 'source'
+    source: 'source',
+    verifyCodeHash: 'verifyCodeHash'
   };
 
   export type LoyaltyMemberOrderByRelevanceFieldEnum = (typeof LoyaltyMemberOrderByRelevanceFieldEnum)[keyof typeof LoyaltyMemberOrderByRelevanceFieldEnum]
@@ -202334,6 +202412,9 @@ export namespace Prisma {
     source?: StringFilter<"LoyaltyMember"> | string
     passUpdatedAt?: DateTimeFilter<"LoyaltyMember"> | Date | string
     googleObjectAt?: DateTimeNullableFilter<"LoyaltyMember"> | Date | string | null
+    verifyCodeHash?: StringNullableFilter<"LoyaltyMember"> | string | null
+    verifyExpiresAt?: DateTimeNullableFilter<"LoyaltyMember"> | Date | string | null
+    verifyAttempts?: IntFilter<"LoyaltyMember"> | number
     lastSeenAt?: DateTimeNullableFilter<"LoyaltyMember"> | Date | string | null
     createdAt?: DateTimeFilter<"LoyaltyMember"> | Date | string
     updatedAt?: DateTimeFilter<"LoyaltyMember"> | Date | string
@@ -202356,6 +202437,9 @@ export namespace Prisma {
     source?: SortOrder
     passUpdatedAt?: SortOrder
     googleObjectAt?: SortOrderInput | SortOrder
+    verifyCodeHash?: SortOrderInput | SortOrder
+    verifyExpiresAt?: SortOrderInput | SortOrder
+    verifyAttempts?: SortOrder
     lastSeenAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -202383,6 +202467,9 @@ export namespace Prisma {
     source?: StringFilter<"LoyaltyMember"> | string
     passUpdatedAt?: DateTimeFilter<"LoyaltyMember"> | Date | string
     googleObjectAt?: DateTimeNullableFilter<"LoyaltyMember"> | Date | string | null
+    verifyCodeHash?: StringNullableFilter<"LoyaltyMember"> | string | null
+    verifyExpiresAt?: DateTimeNullableFilter<"LoyaltyMember"> | Date | string | null
+    verifyAttempts?: IntFilter<"LoyaltyMember"> | number
     lastSeenAt?: DateTimeNullableFilter<"LoyaltyMember"> | Date | string | null
     createdAt?: DateTimeFilter<"LoyaltyMember"> | Date | string
     updatedAt?: DateTimeFilter<"LoyaltyMember"> | Date | string
@@ -202405,12 +202492,17 @@ export namespace Prisma {
     source?: SortOrder
     passUpdatedAt?: SortOrder
     googleObjectAt?: SortOrderInput | SortOrder
+    verifyCodeHash?: SortOrderInput | SortOrder
+    verifyExpiresAt?: SortOrderInput | SortOrder
+    verifyAttempts?: SortOrder
     lastSeenAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: LoyaltyMemberCountOrderByAggregateInput
+    _avg?: LoyaltyMemberAvgOrderByAggregateInput
     _max?: LoyaltyMemberMaxOrderByAggregateInput
     _min?: LoyaltyMemberMinOrderByAggregateInput
+    _sum?: LoyaltyMemberSumOrderByAggregateInput
   }
 
   export type LoyaltyMemberScalarWhereWithAggregatesInput = {
@@ -202429,6 +202521,9 @@ export namespace Prisma {
     source?: StringWithAggregatesFilter<"LoyaltyMember"> | string
     passUpdatedAt?: DateTimeWithAggregatesFilter<"LoyaltyMember"> | Date | string
     googleObjectAt?: DateTimeNullableWithAggregatesFilter<"LoyaltyMember"> | Date | string | null
+    verifyCodeHash?: StringNullableWithAggregatesFilter<"LoyaltyMember"> | string | null
+    verifyExpiresAt?: DateTimeNullableWithAggregatesFilter<"LoyaltyMember"> | Date | string | null
+    verifyAttempts?: IntWithAggregatesFilter<"LoyaltyMember"> | number
     lastSeenAt?: DateTimeNullableWithAggregatesFilter<"LoyaltyMember"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"LoyaltyMember"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"LoyaltyMember"> | Date | string
@@ -220695,6 +220790,9 @@ export namespace Prisma {
     source?: string
     passUpdatedAt?: Date | string
     googleObjectAt?: Date | string | null
+    verifyCodeHash?: string | null
+    verifyExpiresAt?: Date | string | null
+    verifyAttempts?: number
     lastSeenAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -220717,6 +220815,9 @@ export namespace Prisma {
     source?: string
     passUpdatedAt?: Date | string
     googleObjectAt?: Date | string | null
+    verifyCodeHash?: string | null
+    verifyExpiresAt?: Date | string | null
+    verifyAttempts?: number
     lastSeenAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -220737,6 +220838,9 @@ export namespace Prisma {
     source?: StringFieldUpdateOperationsInput | string
     passUpdatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleObjectAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    verifyCodeHash?: NullableStringFieldUpdateOperationsInput | string | null
+    verifyExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    verifyAttempts?: IntFieldUpdateOperationsInput | number
     lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -220759,6 +220863,9 @@ export namespace Prisma {
     source?: StringFieldUpdateOperationsInput | string
     passUpdatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleObjectAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    verifyCodeHash?: NullableStringFieldUpdateOperationsInput | string | null
+    verifyExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    verifyAttempts?: IntFieldUpdateOperationsInput | number
     lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -220780,6 +220887,9 @@ export namespace Prisma {
     source?: string
     passUpdatedAt?: Date | string
     googleObjectAt?: Date | string | null
+    verifyCodeHash?: string | null
+    verifyExpiresAt?: Date | string | null
+    verifyAttempts?: number
     lastSeenAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -220797,6 +220907,9 @@ export namespace Prisma {
     source?: StringFieldUpdateOperationsInput | string
     passUpdatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleObjectAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    verifyCodeHash?: NullableStringFieldUpdateOperationsInput | string | null
+    verifyExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    verifyAttempts?: IntFieldUpdateOperationsInput | number
     lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -220815,6 +220928,9 @@ export namespace Prisma {
     source?: StringFieldUpdateOperationsInput | string
     passUpdatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleObjectAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    verifyCodeHash?: NullableStringFieldUpdateOperationsInput | string | null
+    verifyExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    verifyAttempts?: IntFieldUpdateOperationsInput | number
     lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -233892,9 +234008,16 @@ export namespace Prisma {
     source?: SortOrder
     passUpdatedAt?: SortOrder
     googleObjectAt?: SortOrder
+    verifyCodeHash?: SortOrder
+    verifyExpiresAt?: SortOrder
+    verifyAttempts?: SortOrder
     lastSeenAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type LoyaltyMemberAvgOrderByAggregateInput = {
+    verifyAttempts?: SortOrder
   }
 
   export type LoyaltyMemberMaxOrderByAggregateInput = {
@@ -233910,6 +234033,9 @@ export namespace Prisma {
     source?: SortOrder
     passUpdatedAt?: SortOrder
     googleObjectAt?: SortOrder
+    verifyCodeHash?: SortOrder
+    verifyExpiresAt?: SortOrder
+    verifyAttempts?: SortOrder
     lastSeenAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -233928,9 +234054,16 @@ export namespace Prisma {
     source?: SortOrder
     passUpdatedAt?: SortOrder
     googleObjectAt?: SortOrder
+    verifyCodeHash?: SortOrder
+    verifyExpiresAt?: SortOrder
+    verifyAttempts?: SortOrder
     lastSeenAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type LoyaltyMemberSumOrderByAggregateInput = {
+    verifyAttempts?: SortOrder
   }
 
   export type LoyaltyMemberRelationFilter = {
@@ -289349,6 +289482,9 @@ export namespace Prisma {
     source?: string
     passUpdatedAt?: Date | string
     googleObjectAt?: Date | string | null
+    verifyCodeHash?: string | null
+    verifyExpiresAt?: Date | string | null
+    verifyAttempts?: number
     lastSeenAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -289369,6 +289505,9 @@ export namespace Prisma {
     source?: string
     passUpdatedAt?: Date | string
     googleObjectAt?: Date | string | null
+    verifyCodeHash?: string | null
+    verifyExpiresAt?: Date | string | null
+    verifyAttempts?: number
     lastSeenAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -289775,6 +289914,9 @@ export namespace Prisma {
     source?: StringFilter<"LoyaltyMember"> | string
     passUpdatedAt?: DateTimeFilter<"LoyaltyMember"> | Date | string
     googleObjectAt?: DateTimeNullableFilter<"LoyaltyMember"> | Date | string | null
+    verifyCodeHash?: StringNullableFilter<"LoyaltyMember"> | string | null
+    verifyExpiresAt?: DateTimeNullableFilter<"LoyaltyMember"> | Date | string | null
+    verifyAttempts?: IntFilter<"LoyaltyMember"> | number
     lastSeenAt?: DateTimeNullableFilter<"LoyaltyMember"> | Date | string | null
     createdAt?: DateTimeFilter<"LoyaltyMember"> | Date | string
     updatedAt?: DateTimeFilter<"LoyaltyMember"> | Date | string
@@ -289886,6 +290028,9 @@ export namespace Prisma {
     source?: string
     passUpdatedAt?: Date | string
     googleObjectAt?: Date | string | null
+    verifyCodeHash?: string | null
+    verifyExpiresAt?: Date | string | null
+    verifyAttempts?: number
     lastSeenAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -289907,6 +290052,9 @@ export namespace Prisma {
     source?: string
     passUpdatedAt?: Date | string
     googleObjectAt?: Date | string | null
+    verifyCodeHash?: string | null
+    verifyExpiresAt?: Date | string | null
+    verifyAttempts?: number
     lastSeenAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -290237,6 +290385,9 @@ export namespace Prisma {
     source?: StringFieldUpdateOperationsInput | string
     passUpdatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleObjectAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    verifyCodeHash?: NullableStringFieldUpdateOperationsInput | string | null
+    verifyExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    verifyAttempts?: IntFieldUpdateOperationsInput | number
     lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -290258,6 +290409,9 @@ export namespace Prisma {
     source?: StringFieldUpdateOperationsInput | string
     passUpdatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleObjectAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    verifyCodeHash?: NullableStringFieldUpdateOperationsInput | string | null
+    verifyExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    verifyAttempts?: IntFieldUpdateOperationsInput | number
     lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -290761,6 +290915,9 @@ export namespace Prisma {
     source?: string
     passUpdatedAt?: Date | string
     googleObjectAt?: Date | string | null
+    verifyCodeHash?: string | null
+    verifyExpiresAt?: Date | string | null
+    verifyAttempts?: number
     lastSeenAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -290782,6 +290939,9 @@ export namespace Prisma {
     source?: string
     passUpdatedAt?: Date | string
     googleObjectAt?: Date | string | null
+    verifyCodeHash?: string | null
+    verifyExpiresAt?: Date | string | null
+    verifyAttempts?: number
     lastSeenAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -291124,6 +291284,9 @@ export namespace Prisma {
     source?: StringFieldUpdateOperationsInput | string
     passUpdatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleObjectAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    verifyCodeHash?: NullableStringFieldUpdateOperationsInput | string | null
+    verifyExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    verifyAttempts?: IntFieldUpdateOperationsInput | number
     lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -291145,6 +291308,9 @@ export namespace Prisma {
     source?: StringFieldUpdateOperationsInput | string
     passUpdatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleObjectAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    verifyCodeHash?: NullableStringFieldUpdateOperationsInput | string | null
+    verifyExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    verifyAttempts?: IntFieldUpdateOperationsInput | number
     lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -291415,6 +291581,9 @@ export namespace Prisma {
     source?: string
     passUpdatedAt?: Date | string
     googleObjectAt?: Date | string | null
+    verifyCodeHash?: string | null
+    verifyExpiresAt?: Date | string | null
+    verifyAttempts?: number
     lastSeenAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -291436,6 +291605,9 @@ export namespace Prisma {
     source?: string
     passUpdatedAt?: Date | string
     googleObjectAt?: Date | string | null
+    verifyCodeHash?: string | null
+    verifyExpiresAt?: Date | string | null
+    verifyAttempts?: number
     lastSeenAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -291471,6 +291643,9 @@ export namespace Prisma {
     source?: StringFieldUpdateOperationsInput | string
     passUpdatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleObjectAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    verifyCodeHash?: NullableStringFieldUpdateOperationsInput | string | null
+    verifyExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    verifyAttempts?: IntFieldUpdateOperationsInput | number
     lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -291492,6 +291667,9 @@ export namespace Prisma {
     source?: StringFieldUpdateOperationsInput | string
     passUpdatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleObjectAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    verifyCodeHash?: NullableStringFieldUpdateOperationsInput | string | null
+    verifyExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    verifyAttempts?: IntFieldUpdateOperationsInput | number
     lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -305309,6 +305487,9 @@ export namespace Prisma {
     source?: string
     passUpdatedAt?: Date | string
     googleObjectAt?: Date | string | null
+    verifyCodeHash?: string | null
+    verifyExpiresAt?: Date | string | null
+    verifyAttempts?: number
     lastSeenAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -305404,6 +305585,9 @@ export namespace Prisma {
     source?: StringFieldUpdateOperationsInput | string
     passUpdatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleObjectAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    verifyCodeHash?: NullableStringFieldUpdateOperationsInput | string | null
+    verifyExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    verifyAttempts?: IntFieldUpdateOperationsInput | number
     lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -305424,6 +305608,9 @@ export namespace Prisma {
     source?: StringFieldUpdateOperationsInput | string
     passUpdatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleObjectAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    verifyCodeHash?: NullableStringFieldUpdateOperationsInput | string | null
+    verifyExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    verifyAttempts?: IntFieldUpdateOperationsInput | number
     lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -305444,6 +305631,9 @@ export namespace Prisma {
     source?: StringFieldUpdateOperationsInput | string
     passUpdatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleObjectAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    verifyCodeHash?: NullableStringFieldUpdateOperationsInput | string | null
+    verifyExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    verifyAttempts?: IntFieldUpdateOperationsInput | number
     lastSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string

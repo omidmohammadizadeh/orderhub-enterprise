@@ -40,6 +40,14 @@ export class WalkInLoyaltyController {
   }
 
   @Public()
+  @Post("join/:shop/verify")
+  @Throttle({ short: { limit: 5, ttl: 10000 }, medium: { limit: 15, ttl: 60000 } })
+  @ApiOperation({ summary: "Open an existing card on this phone with the texted code" })
+  verify(@Param("shop") shop: string, @Body() body: { phone?: string; code?: string }) {
+    return this.walkIn.verify(shop, body ?? {});
+  }
+
+  @Public()
   @Get("card/:token")
   @ApiOperation({ summary: "A customer's walk-in card" })
   card(@Param("token") token: string) {
@@ -120,6 +128,14 @@ export class WalkInLoyaltyController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.walkIn.enrol(user.tenantId, body.locationId, body);
+  }
+
+  @Post("members/:memberId/card-link")
+  @ApiBearerAuth()
+  @Roles(...TILL_ROLES)
+  @ApiOperation({ summary: "The card link, to show as a QR on the till for the customer to scan" })
+  cardLink(@Param("memberId") memberId: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.walkIn.cardLink(user.tenantId, memberId);
   }
 
   @Post("members/:memberId/resend")

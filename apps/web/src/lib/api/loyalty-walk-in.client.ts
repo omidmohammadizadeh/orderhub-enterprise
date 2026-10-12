@@ -84,10 +84,16 @@ async function publicJson<T>(path: string, init?: RequestInit): Promise<T> {
 export const walkInPublic = {
   joinInfo: (shop: string) => publicJson<JoinInfo>(`/join/${encodeURIComponent(shop)}`),
   join: (shop: string, body: { firstName?: string; phone: string; marketingConsent: boolean }) =>
-    publicJson<{ status: "CREATED"; token: string } | { status: "EXISTING"; smsSent: boolean }>(
-      `/join/${encodeURIComponent(shop)}`,
-      { method: "POST", body: JSON.stringify(body) },
-    ),
+    publicJson<
+      | { status: "CREATED"; token: string }
+      | { status: "VERIFY"; phoneHint: string }
+      | { status: "EXISTING"; smsSent: false }
+    >(`/join/${encodeURIComponent(shop)}`, { method: "POST", body: JSON.stringify(body) }),
+  verify: (shop: string, body: { phone: string; code: string }) =>
+    publicJson<{ token: string }>(`/join/${encodeURIComponent(shop)}/verify`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   card: (token: string) => publicJson<PublicCard>(`/card/${encodeURIComponent(token)}`),
   appleUrl: (token: string) => `${BASE}/card/${encodeURIComponent(token)}/apple`,
   googleUrl: (token: string) => publicJson<{ url: string }>(`/card/${encodeURIComponent(token)}/google`),
@@ -115,6 +121,10 @@ export const walkInTill = {
         "/v1/loyalty/walk-in/enrol",
         body,
       )
+      .then((r) => r.data),
+  cardLink: (memberId: string) =>
+    apiClient
+      .post<{ cardUrl: string }>(`/v1/loyalty/walk-in/members/${memberId}/card-link`)
       .then((r) => r.data),
   resend: (memberId: string) =>
     apiClient.post<{ smsSent: boolean }>(`/v1/loyalty/walk-in/members/${memberId}/resend`).then((r) => r.data),
