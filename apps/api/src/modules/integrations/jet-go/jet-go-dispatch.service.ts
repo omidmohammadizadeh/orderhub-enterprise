@@ -581,6 +581,11 @@ export class JetGoDispatchService {
         // looked identical to one that didn't — and the two take OPPOSITE
         // fields (ASAP must send targetCollectTime, advance must not).
         `mode=${body.targetDeliverTime ? `ADVANCE deliverBy=${body.targetDeliverTime}` : `ASAP collectBy=${collectTime ?? "?"}`} ` +
+        // What the courier is told to do at the door. Both are invisible in the
+        // payload once it has gone, and "did it actually send hasAlcohol?" is
+        // exactly the question a partner asks when certifying age restriction.
+        `${body.deliveryDetails?.hasAlcohol ? `ageRestricted=${body.deliveryDetails.ageRestriction}${body.deliveryDetails.ageVerificationWithId ? " idScan" : " noIdScan"} ` : ""}` +
+        `${body.deliveryOptions?.proofOfDelivery ? "pin=DSP_GENERATED " : ""}` +
         `courierFee=${estimate.dynamicDeliveryFee}p wallet=${waived ? "0 (charge waived for this location)" : `${feeMinor}p`} (${cfg.reseller ? "reseller" : "merchant account"})`,
     );
 
