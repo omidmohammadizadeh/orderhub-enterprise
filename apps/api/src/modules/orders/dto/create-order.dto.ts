@@ -207,6 +207,10 @@ export class CreateOrderDto {
    *  SMS" box). true → opt the customer in; false → opt out. Undefined = not
    *  asked, leave marketing consent untouched. */
   @ApiPropertyOptional() @IsOptional() @IsBoolean() marketingConsent?: boolean;
+  /** Walk-in loyalty card scanned at the till (LoyaltyMember id). */
+  @ApiPropertyOptional() @IsOptional() @IsString() loyaltyMemberId?: string;
+  /** A reward on that card being spent on this order. */
+  @ApiPropertyOptional() @IsOptional() @IsString() loyaltyRewardId?: string;
   /** Set by online checkout only, after it has verified the recipient row:
    *  the marketing email this order came from. Stored on Order.metadata. */
   @IsOptional() @IsObject() emailAttribution?: { campaignId: string; recipientId: string };

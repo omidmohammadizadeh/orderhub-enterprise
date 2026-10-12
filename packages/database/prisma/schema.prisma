@@ -2215,6 +2215,10 @@ model Order {
   @@index([tableId])
   @@map("orders")
   loyaltyStamp      LoyaltyStamp?
+  /// Walk-in loyalty card scanned at the till for this order. Bare id (no
+  /// relation): the stamp row is the real link; this is what lets a stamp be
+  /// awarded and revoked after the fact.
+  loyaltyMemberId   String?
 }
 
 // Phase AM — per-tenant monotonic counter for POS/DIRECT order numbers.
@@ -5456,8 +5460,21 @@ model LoyaltyCard {
   /// Days a reward stays claimable once earned. Null = forever.
   rewardExpiryDays Int?
 
+  /// Walk-in card: a card a customer joins at the counter (QR poster or the
+  /// till), keeps in Apple/Google Wallet and has scanned at the till. Same
+  /// stamps and reward as the online card — it is the same scheme, held on
+  /// a phone instead of behind a storefront login.
+  walkInEnabled Boolean @default(false)
+  /// What the wallet pass and card page say at the top. Null = location name.
+  cardTitle     String?
+  /// Pass background, #RRGGBB. Null = near-black.
+  cardColor     String?
+  /// Square logo on the pass. Null = the location's brand logo.
+  cardLogoUrl   String?
+
   stamps  LoyaltyStamp[]
   rewards LoyaltyReward[]
+  members LoyaltyMember[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -5474,8 +5491,12 @@ model LoyaltyStamp {
   cardId   String
   card     LoyaltyCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
 
-  customerAccountId String
-  customerAccount   CustomerAccount @relation(fields: [customerAccountId], references: [id], onDelete: Cascade)
+  /// Exactly one of these two holds the card: a storefront account (online)
+  /// or a walk-in member (scanned at the till).
+  customerAccountId String?
+  customerAccount   CustomerAccount? @relation(fields: [customerAccountId], references: [id], onDelete: Cascade)
+  memberId          String?
+  member            LoyaltyMember?   @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
   orderId String @unique
   order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
@@ -5486,6 +5507,7 @@ model LoyaltyStamp {
   createdAt DateTime @default(now())
 
   @@index([cardId, customerAccountId])
+  @@index([cardId, memberId])
   @@index([tenantId])
   @@map("loyalty_stamps")
 }
@@ -5508,8 +5530,11 @@ model LoyaltyReward {
   /// carry rewardItemId instead.
   amountOff  Decimal? @db.Decimal(10, 2)
 
-  customerAccountId String
-  customerAccount   CustomerAccount @relation(fields: [customerAccountId], references: [id], onDelete: Cascade)
+  /// Same pair as LoyaltyStamp: an online account or a walk-in member.
+  customerAccountId String?
+  customerAccount   CustomerAccount? @relation(fields: [customerAccountId], references: [id], onDelete: Cascade)
+  memberId          String?
+  member            LoyaltyMember?   @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
   /// Frozen at the moment it was earned. The operator can change the reward
   /// tomorrow; what this customer was promised does not change with it.
@@ -5523,8 +5548,71 @@ model LoyaltyReward {
   claimedOrderId String? @unique
 
   @@index([customerAccountId, claimedAt])
+  @@index([memberId, claimedAt])
   @@index([tenantId])
   @@map("loyalty_rewards")
+}
+
+/// A walk-in card holder. No password and no storefront account: the card
+/// itself is the identity, the way a paper stamp card is.
+///
+/// Two secrets, never interchangeable:
+///  - `code` is what the QR on the card carries. Staff scan it, anyone in the
+///    queue can see it, and all it does is let a till stamp the card.
+///  - `publicToken` is the link to the card page and the wallet pass. Only the
+///    customer has it (on their phone, or by SMS), and it is never printed.
+model LoyaltyMember {
+  id         String      @id @default(cuid())
+  tenantId   String
+  cardId     String
+  card       LoyaltyCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  locationId String
+
+  code        String @unique
+  publicToken String @unique
+
+  /// E.164. Unique per card, so one number is one card and a lost phone can
+  /// have its card re-sent.
+  phone            String?
+  firstName        String?
+  marketingConsent Boolean @default(false)
+  /// SELF (joined from the counter QR) | TILL (signed up by staff).
+  source           String  @default("SELF")
+
+  /// Bumped whenever what the pass shows changes; Apple asks "anything
+  /// newer than X?" and Google is patched on the same change.
+  passUpdatedAt     DateTime  @default(now())
+  /// Set once the Google Wallet object exists, so later changes PATCH it.
+  googleObjectAt    DateTime?
+  lastSeenAt        DateTime?
+
+  stamps      LoyaltyStamp[]
+  rewards     LoyaltyReward[]
+  passDevices LoyaltyPassDevice[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([cardId, phone])
+  @@index([tenantId])
+  @@index([locationId])
+  @@map("loyalty_members")
+}
+
+/// An iPhone that has this member's pass in Apple Wallet. Apple registers it
+/// through the PassKit web service; we push to `pushToken` when a stamp lands
+/// so the pass updates on the lock screen without the customer doing anything.
+model LoyaltyPassDevice {
+  id              String        @id @default(cuid())
+  memberId        String
+  member          LoyaltyMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  deviceLibraryId String
+  pushToken       String
+  createdAt       DateTime      @default(now())
+
+  @@unique([deviceLibraryId, memberId])
+  @@index([deviceLibraryId])
+  @@map("loyalty_pass_devices")
 }
 
 // ── Referrals ───────────────────────────────────────────────────────────────

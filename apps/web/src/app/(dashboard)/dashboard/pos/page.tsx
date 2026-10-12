@@ -31,6 +31,7 @@ import {
   ScanBarcode,
   RotateCcw,
   Camera,
+  Gift,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -134,6 +135,8 @@ import { findByBarcode, useBarcodeScanner } from "@/lib/pos/barcode-scanner";
 import { isShopType } from "@/components/locations/business-type-picker";
 import { RetailReturnsModal } from "@/components/pos/retail-returns-modal";
 import { CameraScanModal, isCameraScanSupported } from "@/components/pos/camera-scan-modal";
+import { LoyaltyTillModal } from "@/components/pos/loyalty-till-modal";
+import { walkInTill, type TillMember } from "@/lib/api/loyalty-walk-in.client";
 
 interface PersistedCart {
   cart: CartLine[];
@@ -767,6 +770,10 @@ export default function PosPage() {
         paymentStatus: payload.paymentStatus,
         isScheduled: payload.isScheduled,
         marketingConsent: payload.marketingConsent,
+        // Walk-in loyalty card scanned for this order; the stamp lands when
+        // it is paid, and a reward on it is spent with it.
+        ...(loyaltyMember && !editOrderId ? { loyaltyMemberId: loyaltyMember.id } : {}),
+        ...(loyaltyMember && loyaltyRewardId && !editOrderId ? { loyaltyRewardId } : {}),
         // Challenge 25 — the record that ID was checked for this sale.
         ...(cartMinAge ? { ageCheck: { minAge: cartMinAge, method: "TILL_ID_CHECK" as const } } : {}),
       };
@@ -973,6 +980,8 @@ export default function PosPage() {
       },
       variables,
     ) => {
+      // The card was on that order; the next customer starts without one.
+      if (!edited) clearLoyalty();
       // Dine-in tab: this round went to the kitchen. No charge now (pay at the
       // end via "Pay & close"); just reset the cart and refresh the tab.
       if (dineIn) {
@@ -1207,12 +1216,18 @@ export default function PosPage() {
   }, []);
 
   const changeQty = useCallback((id: string, qty: number) => {
+    // A loyalty reward is one free item; more of it would be more free food.
+    if (id.startsWith("loyalty-")) return;
     setCart((prev) =>
       prev.map((l) => (l.id === id ? { ...l, quantity: qty } : l)),
     );
   }, []);
 
-  const clearCart = useCallback(() => setCart([]), []);
+  const clearCart = useCallback(() => {
+    setCart([]);
+    setLoyaltyMember(null);
+    setLoyaltyRewardId(null);
+  }, []);
 
   /**
    * The header tools, defined once and rendered twice — as a button row from
@@ -1299,6 +1314,23 @@ export default function PosPage() {
   const [returnsOpen, setReturnsOpen] = useState(false);
   const [returnsCode, setReturnsCode] = useState<string | undefined>(undefined);
   const [cameraOpen, setCameraOpen] = useState(false);
+  // Walk-in loyalty card (Apple/Google Wallet) on this order.
+  const [loyaltyOpen, setLoyaltyOpen] = useState(false);
+  const [loyaltyScan, setLoyaltyScan] = useState<string | undefined>(undefined);
+  const [loyaltyMember, setLoyaltyMember] = useState<TillMember | null>(null);
+  const [loyaltyRewardId, setLoyaltyRewardId] = useState<string | null>(null);
+  const loyaltyStatusQuery = useQuery({
+    queryKey: ["loyalty-till-status", selectedLocationId],
+    queryFn: () => walkInTill.status(selectedLocationId!),
+    enabled: !!selectedLocationId && online,
+    staleTime: 5 * 60_000,
+  });
+  const loyaltyOn = !!loyaltyStatusQuery.data?.enabled;
+  const clearLoyalty = useCallback(() => {
+    setLoyaltyMember(null);
+    setLoyaltyRewardId(null);
+    setLoyaltyScan(undefined);
+  }, []);
   const [scanNotice, setScanNotice] = useState<{ tone: "ok" | "warn"; text: string } | null>(null);
   const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const notify = useCallback((tone: "ok" | "warn", text: string) => {
@@ -1454,6 +1486,14 @@ export default function PosPage() {
         setReturnsOpen(true);
         return;
       }
+      // A customer's wallet loyalty card.
+      if (/^OHL[:;]/i.test(code)) {
+        setLoyaltyScan(code);
+        setLoyaltyOpen(true);
+        return;
+      }
+      // Restaurants scan loyalty cards only; products are a shop thing.
+      if (!isShop) return;
       if (step === "start") setStep("menu");
       const entry = findByBarcode(barcodeIndex, code);
       if (entry) {
@@ -1510,7 +1550,7 @@ export default function PosPage() {
     },
     // addWeighed is re-created each render; it only reads stable setters + the menu.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [step, barcodeIndex, sellableItemIds, addScanned, notify, online, selectedLocationId, categories, locationQuery.data, money],
+    [step, isShop, barcodeIndex, sellableItemIds, addScanned, notify, online, selectedLocationId, categories, locationQuery.data, money],
   );
 
   const anyModalOpen =
@@ -1530,8 +1570,41 @@ export default function PosPage() {
     splitOpen ||
     coloursOpen ||
     returnsOpen ||
-    cameraOpen;
-  useBarcodeScanner(isShop && !anyModalOpen, (code) => void handleScan(code));
+    cameraOpen ||
+    loyaltyOpen;
+  useBarcodeScanner((isShop || loyaltyOn) && !anyModalOpen, (code) => void handleScan(code));
+
+  // The free item and the reward travel together. Taking the line off
+  // un-spends the reward; a line with no reward behind it (a basket restored
+  // from a saved draft after a reload) is free food nobody earned, so it goes.
+  useEffect(() => {
+    if (loyaltyRewardId && !cart.some((l) => l.id === `loyalty-${loyaltyRewardId}`)) setLoyaltyRewardId(null);
+    if (!loyaltyRewardId && cart.some((l) => l.id.startsWith("loyalty-"))) {
+      setCart((prev) => prev.filter((l) => !l.id.startsWith("loyalty-")));
+    }
+  }, [cart, loyaltyRewardId]);
+
+  const redeemLoyaltyReward = useCallback(
+    (member: TillMember, reward: TillMember["rewards"][number]) => {
+      setLoyaltyMember(member);
+      setLoyaltyRewardId(reward.id);
+      setCart((prev) => [
+        ...prev.filter((l) => !l.id.startsWith("loyalty-")),
+        {
+          id: `loyalty-${reward.id}`,
+          menuItemId: reward.rewardItemId ?? "",
+          displayName: `★ ${reward.rewardItemName ?? reward.label} (loyalty reward)`,
+          unitPrice: 0,
+          quantity: 1,
+          modifiers: [],
+          notes: "Loyalty reward — free",
+        },
+      ]);
+      if (step === "start") setStep("menu");
+      notify("ok", `${reward.label} added free`);
+    },
+    [step, notify],
+  );
 
   /** Reminds staff which kind of order they're building, once past step 1. */
   const orderTypeLabel =
@@ -1563,6 +1636,18 @@ export default function PosPage() {
       onClick: () => setReturnsOpen(true),
       disabled: !selectedLocationId || !online,
       show: isShop,
+    },
+    {
+      key: "loyalty",
+      label: loyaltyMember ? `Loyalty · ${loyaltyMember.firstName ?? "card"}` : "Loyalty card",
+      title: "Scan a customer's wallet loyalty card, or sign them up",
+      icon: Gift,
+      onClick: () => {
+        setLoyaltyScan(undefined);
+        setLoyaltyOpen(true);
+      },
+      disabled: !selectedLocationId || !online || !!editOrderId,
+      show: loyaltyOn,
     },
     {
       key: "camera-scan",
@@ -2130,6 +2215,32 @@ export default function PosPage() {
               <X className="h-4 w-4" />
               Back to menu
             </button>
+            {loyaltyMember && (
+              <button
+                type="button"
+                onClick={() => {
+                  setLoyaltyScan(undefined);
+                  setLoyaltyOpen(true);
+                }}
+                className="mb-2 flex w-full items-center gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-left"
+              >
+                <Gift className="h-4 w-4 shrink-0 text-amber-600" />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-semibold text-zinc-900">
+                    {loyaltyMember.firstName ?? "Loyalty card"} · {loyaltyMember.stamps}/{loyaltyMember.stampsRequired}{" "}
+                    stamps
+                  </span>
+                  <span className="block text-[11px] text-zinc-600">
+                    {loyaltyRewardId
+                      ? "Reward added free · stamp lands when paid"
+                      : loyaltyMember.rewards.length > 0
+                        ? `${loyaltyMember.rewards.length} reward ready — tap to add`
+                        : "Earns a stamp when paid"}
+                  </span>
+                </span>
+                <span className="text-xs font-medium text-amber-700">Change</span>
+              </button>
+            )}
             <PosCartPanel
               key={cartResetKey}
               locationId={selectedLocationId}
@@ -2247,6 +2358,29 @@ export default function PosPage() {
           }}
           // Cash is going back over the counter — the drawer has to open.
           onCashRefunded={() => void openDrawer()}
+        />
+      )}
+      {loyaltyOpen && selectedLocationId && (
+        <LoyaltyTillModal
+          locationId={selectedLocationId}
+          joinUrl={loyaltyStatusQuery.data?.joinUrl ?? null}
+          initialQuery={loyaltyScan}
+          attached={loyaltyMember}
+          attachedRewardId={loyaltyRewardId}
+          onAttach={(m) => {
+            setLoyaltyMember(m);
+            if (step === "start") setStep("menu");
+          }}
+          onRedeem={redeemLoyaltyReward}
+          onDetach={() => {
+            setLoyaltyMember(null);
+            setLoyaltyRewardId(null);
+            setCart((prev) => prev.filter((l) => !l.id.startsWith("loyalty-")));
+          }}
+          onClose={() => {
+            setLoyaltyOpen(false);
+            setLoyaltyScan(undefined);
+          }}
         />
       )}
       {cameraOpen && (
