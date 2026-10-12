@@ -1381,17 +1381,19 @@ export class HubRiseCatalogService {
     if (location.hubriseCatalogId) {
       // Publish the catalog immediately (fast). Images upload in the background
       // and re-publish once done — never blocking the operator's click.
-      await this.callHubRise(
-        `PUT`,
+      const { name: publishedName } = await this.writeCatalogWithUniqueName(
+        "PUT",
         `/catalogs/${location.hubriseCatalogId}`,
         location.hubriseCredentials,
-        { name: catalogName, data },
+        catalogName,
+        data,
+        location.id,
       );
       if (hubriseToken && imageJobs.length) {
         const catId = location.hubriseCatalogId;
         const creds = location.hubriseCredentials;
         setImmediate(() =>
-          this.uploadImagesThenRepublish(catId, hubriseToken, creds, imageJobs, catalogName, data, args.tenantId).catch(
+          this.uploadImagesThenRepublish(catId, hubriseToken, creds, imageJobs, publishedName, data, args.tenantId).catch(
             (err: any) => this.logger.warn(`HubRise background image upload failed: ${err?.message ?? err}`),
           ),
         );
@@ -1417,12 +1419,15 @@ export class HubRiseCatalogService {
       return { catalogId: location.hubriseCatalogId, created: false };
     }
 
-    const created = (await this.callHubRise(
-      "POST",
-      `/locations/${location.hubriseLocationId.toLowerCase()}/catalogs`,
-      location.hubriseCredentials,
-      { name: catalogName, data },
-    )) as { id: string };
+    const { result: created, name: publishedName } =
+      await this.writeCatalogWithUniqueName<{ id: string }>(
+        "POST",
+        `/locations/${location.hubriseLocationId.toLowerCase()}/catalogs`,
+        location.hubriseCredentials,
+        catalogName,
+        data,
+        location.id,
+      );
 
     await (this.prisma as any).location.update({
       where: { id: location.id },
@@ -1434,7 +1439,7 @@ export class HubRiseCatalogService {
     if (hubriseToken && imageJobs.length) {
       const creds = location.hubriseCredentials;
       setImmediate(() =>
-        this.uploadImagesThenRepublish(created.id, hubriseToken, creds, imageJobs, catalogName, data, args.tenantId).catch(
+        this.uploadImagesThenRepublish(created.id, hubriseToken, creds, imageJobs, publishedName, data, args.tenantId).catch(
           (err: any) => this.logger.warn(`HubRise background image upload failed: ${err?.message ?? err}`),
         ),
       );
@@ -1706,6 +1711,57 @@ export class HubRiseCatalogService {
     ) as Promise<HubRiseCatalog>;
   }
 
+  /**
+   * Create or replace a catalog, renaming it if HubRise says the name is taken.
+   *
+   * HubRise wants catalog names unique across the account, and a catalog is
+   * named after its menu — so two shops each with a menu called "Fiesta
+   * Mexica" collide, and the second publish fails outright with
+   * 422 "/name is not unique" (seen live 2026-10-12, catalog 7g3m4). The name
+   * is only a label in HubRise; refusing the whole menu over it helps nobody.
+   * Returns the name HubRise accepted so the background image re-PUT sends
+   * the same one instead of tripping over the clash again.
+   */
+  private async writeCatalogWithUniqueName<T = unknown>(
+    method: "POST" | "PUT",
+    path: string,
+    credentials: unknown,
+    name: string,
+    data: HubRiseCatalogData,
+    locationId: string | null,
+  ): Promise<{ result: T; name: string }> {
+    try {
+      const result = await this.callHubRise<T>(method, path, credentials, { name, data });
+      return { result, name };
+    } catch (err) {
+      if (!isCatalogNameTaken(err)) throw err;
+    }
+    const location = locationId
+      ? await (this.prisma as any).location.findUnique({
+          where: { id: locationId },
+          select: { name: true },
+        })
+      : null;
+    const fallbacks = catalogNameFallbacks(name, location?.name ?? null, locationId);
+    for (let i = 0; i < fallbacks.length; i++) {
+      const candidate = fallbacks[i]!;
+      try {
+        const result = await this.callHubRise<T>(method, path, credentials, {
+          name: candidate,
+          data,
+        });
+        this.logger.warn(
+          `HubRise catalog name "${name}" is taken in this account; published as "${candidate}"`,
+        );
+        return { result, name: candidate };
+      } catch (err) {
+        if (!isCatalogNameTaken(err) || i === fallbacks.length - 1) throw err;
+      }
+    }
+    // Unreachable: catalogNameFallbacks always returns at least one name.
+    throw new BadRequestException(`HubRise catalog name "${name}" is already in use`);
+  }
+
   private async callHubRise<T = unknown>(
     method: "GET" | "POST" | "PUT" | "PATCH",
     path: string,
@@ -1756,6 +1812,32 @@ export class HubRiseCatalogService {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────
+
+/** True for HubRise's 422 "/name is not unique" on a catalog write. */
+export function isCatalogNameTaken(err: unknown): boolean {
+  const msg = String((err as any)?.message ?? err ?? "");
+  return msg.includes("422") && msg.includes('"/name"') && msg.includes("is not unique");
+}
+
+/**
+ * Names to try, in order, after the menu's own name was refused: the shop's
+ * name appended (readable in HubRise's back office), then a short location id
+ * in case two shops share a name too.
+ */
+export function catalogNameFallbacks(
+  name: string,
+  locationName: string | null,
+  locationId: string | null,
+): string[] {
+  const out: string[] = [];
+  const shop = locationName?.trim();
+  if (shop && !name.toLowerCase().includes(shop.toLowerCase())) {
+    out.push(`${name} – ${shop}`);
+  }
+  // Without a location id, a time stamp still makes the name unique.
+  out.push(`${name} – ${(locationId ?? Date.now().toString(36)).slice(-6)}`);
+  return out;
+}
 
 export interface ImportCounts {
   categories: number;
