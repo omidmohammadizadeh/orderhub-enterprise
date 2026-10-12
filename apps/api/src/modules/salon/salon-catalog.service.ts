@@ -120,6 +120,9 @@ export class SalonCatalogService {
       currency: loc.currency,
       businessType: loc.businessType,
       isSalon: loc.businessType === "SALON",
+      // Set up through the salon screen (trade chosen, defaults applied) —
+      // not just flipped to SALON in the location editor.
+      configured: !!(loc.settings as any)?.salon,
       shopHours: normaliseWeeklyHours(loc.openingHours),
       settings: readSalonSettings(loc.settings),
     };

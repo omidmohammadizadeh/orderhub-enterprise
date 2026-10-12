@@ -19,7 +19,7 @@ export type CustomDomainStatus = "not_configured" | "pending" | "verified" | "fa
 export type AppFeeMode = "none" | "fixed_only" | "percentage_only" | "fixed_and_percentage";
 
 /** Retail R1 — what trades here. A preset for the till and setup screens. */
-export type BusinessType = "RESTAURANT" | "GROCERY" | "RETAIL";
+export type BusinessType = "RESTAURANT" | "GROCERY" | "RETAIL" | "SALON";
 
 export interface Location {
   id: string;

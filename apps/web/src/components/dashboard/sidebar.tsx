@@ -51,7 +51,9 @@ import {
   ShieldCheck,
   ScanBarcode,
   ShoppingBasket,
-  Star } from "lucide-react";
+  Star,
+  Scissors,
+  UsersRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SidebarLocationSwitcher } from "./sidebar-location-switcher";
 import { Badge } from "@/components/ui/badge";
@@ -77,6 +79,8 @@ interface NavItem {
   requiresTableService?: boolean;
   /** Retail R1 — hidden unless the selected location is a shop. */
   requiresShop?: boolean;
+  /** Salon — hidden unless the selected location is a barber / salon. */
+  requiresSalon?: boolean;
 }
 
 // Phase AR — every NavItem optionally declares which roles see it.
@@ -128,6 +132,10 @@ const BILLING_ROLES = [
 const primaryNav: NavItem[] = [
   { href: "/dashboard/orders", label: "Orders", icon: ShoppingBag, badge: "0", roles: DRIVER_TIER },
   { href: "/dashboard/pos", label: "POS", icon: ShoppingBag, roles: STAFF_TIER },
+  // Barbers, hair and nail salons: the appointment diary and the walk-in
+  // queue lead the menu at a SALON location.
+  { href: "/dashboard/salon", label: "Appointments", icon: Scissors, roles: STAFF_TIER, requiresSalon: true },
+  { href: "/dashboard/salon/queue", label: "Walk-ins", icon: UsersRound, roles: STAFF_TIER, requiresSalon: true },
   { href: "/dashboard/tables", label: "Tables", icon: UtensilsCrossed, roles: STAFF_TIER },
   // Reservations only make sense once dine-in is switched on for this
   // location. Tables itself stays unconditional on purpose — it's where
@@ -344,6 +352,7 @@ function _Sidebar() {
     ?.enabled;
   const businessType = (locationQuery.data as any)?.businessType;
   const isShop = businessType === "GROCERY" || businessType === "RETAIL";
+  const isSalon = businessType === "SALON";
 
   // Admin Dashboard → Dashboard access. A tab switched off for the selected
   // location is gone for everyone who works there, whatever their role — so
@@ -390,6 +399,7 @@ function _Sidebar() {
                 (user?.role && item.roles.includes(user.role))) &&
               (!item.requiresTableService || tableServiceOn) &&
               (!item.requiresShop || isShop) &&
+              (!item.requiresSalon || isSalon) &&
               tabVisible(item.href),
           )
           .map((item) => {
@@ -404,7 +414,11 @@ function _Sidebar() {
               <SidebarNavItem
                 key={item.href}
                 item={withBadge}
-                isActive={pathname.startsWith(item.href)}
+                isActive={
+                  pathname.startsWith(item.href) &&
+                  // Walk-ins lives under the diary's path; light one, not both.
+                  !(item.href === "/dashboard/salon" && pathname.startsWith("/dashboard/salon/queue"))
+                }
               />
             );
           })}

@@ -307,7 +307,7 @@ export class SalonController {
   queueStart(
     @CurrentUser() u: AuthenticatedUser,
     @Param("id") id: string,
-    @Body() body: { staffId: string; serviceIds?: string[] },
+    @Body() body: { staffId: string; serviceIds?: string[]; services?: Array<{ serviceId: string; addonIds?: string[] }> },
   ) {
     return this.queue.start(u.tenantId, id, body);
   }

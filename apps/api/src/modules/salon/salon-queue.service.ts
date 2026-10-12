@@ -94,9 +94,18 @@ export class SalonQueueService {
     const allStaff = await this.prisma.salonStaff.findMany({ where: { locationId }, select: { id: true, name: true } });
     for (const s of allStaff) if (!names.has(s.id)) names.set(s.id, s.name);
 
+    // Before opening (or on a break for everyone) a wait in hours reads like
+    // a fault; "first chair at 09:00" is what the shop would say.
+    const allWindows = barbers.flatMap((b) => ctx.get(b.id)?.windows ?? []);
+    const openNow = allWindows.some((w) => w.start <= now && w.end > now);
+    const later = allWindows.filter((w) => w.start > now).map((w) => w.start);
+    const opensAt = !openNow && later.length ? new Date(Math.min(...later)).toISOString() : null;
+
     let position = 0;
     return {
       nextWaitMins: byId.get("__next")?.waitMins ?? null,
+      openNow,
+      opensAt,
       locationId,
       locationName: loc.name,
       timezone: loc.tz,
@@ -231,19 +240,25 @@ export class SalonQueueService {
    * Into the chair: an appointment is made for them right now with this
    * barber (so checkout, takings and commission treat it like any visit).
    */
-  async start(tenantId: string, id: string, body: { staffId: string; serviceIds?: string[] }) {
+  async start(
+    tenantId: string,
+    id: string,
+    body: { staffId: string; serviceIds?: string[]; services?: Array<{ serviceId: string; addonIds?: string[] }> },
+  ) {
     const e = await this.entryFor(tenantId, id);
     if (!["WAITING", "CALLED"].includes(e.status)) throw new BadRequestException("They've already been seen");
     const staffId = body.staffId || e.staffId || e.preferredStaffId;
     if (!staffId) throw new BadRequestException("Pick the barber");
-    const serviceIds = body.serviceIds?.length ? body.serviceIds : e.serviceIds;
-    if (!serviceIds.length) throw new BadRequestException("Pick what they're having");
+    const wanted = body.services?.length
+      ? body.services.map((x) => ({ serviceId: String(x.serviceId), addonIds: (x.addonIds ?? []).map(String) }))
+      : (body.serviceIds?.length ? body.serviceIds : e.serviceIds).map((serviceId) => ({ serviceId }));
+    if (!wanted.length) throw new BadRequestException("Pick what they're having");
     const appt = await this.booking.book(
       {
         locationId: e.locationId,
         staffId,
         startsAt: new Date().toISOString(),
-        services: serviceIds.map((serviceId) => ({ serviceId })),
+        services: wanted,
         customerName: e.customerName,
         customerPhone: e.customerPhone,
         source: "WALK_IN",
@@ -305,6 +320,9 @@ export class SalonQueueService {
       locationId: e.locationId,
       locationName: b.locationName,
       ahead: mine?.position ? mine.position - 1 : 0,
+      openNow: b.openNow,
+      opensAt: b.opensAt,
+      timezone: b.timezone,
     };
   }
 
@@ -341,6 +359,9 @@ export class SalonQueueService {
         staffName: e.preferredStaffName,
       })),
       nextWaitMins: b.nextWaitMins,
+      openNow: b.openNow,
+      opensAt: b.opensAt,
+      timezone: b.timezone,
     };
   }
 }

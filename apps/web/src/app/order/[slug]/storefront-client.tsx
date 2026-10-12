@@ -155,7 +155,7 @@ interface Storefront {
   location: {
     id: string;
     /** Retail R3 — GROCERY / RETAIL get the shop layout. Absent on old payloads. */
-    businessType?: "RESTAURANT" | "GROCERY" | "RETAIL";
+    businessType?: "RESTAURANT" | "GROCERY" | "RETAIL" | "SALON";
     name: string;
     slug: string;
     phone?: string;
@@ -1132,6 +1132,13 @@ function OrderPage() {
   const isShop =
     storefront?.location?.businessType === "GROCERY" ||
     storefront?.location?.businessType === "RETAIL";
+  // A barber or salon has no menu to order from: its storefront link (the
+  // one already on Instagram and Google) opens the booking page instead.
+  const salonLocationId =
+    storefront?.location?.businessType === "SALON" ? storefront.location.id : null;
+  useEffect(() => {
+    if (salonLocationId) window.location.replace(`/salon/${encodeURIComponent(salonLocationId)}`);
+  }, [salonLocationId]);
   const shopMinDelivery = isShop ? Number(cfg?.minOrderForDelivery ?? 0) || null : null;
 
   const isSimpleItem = useCallback(

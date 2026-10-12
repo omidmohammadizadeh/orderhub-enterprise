@@ -5,6 +5,7 @@ import {
   canStartAt,
   depositFor,
   lineBlock,
+  linePrice,
   linesTotal,
   normaliseWeeklyHours,
   occupancy,
@@ -833,7 +834,8 @@ export class SalonBookingService {
       startsAt: row.startsAt,
       endsAt: row.endsAt,
       staff: row.staff ? { id: row.staff.id, name: row.staff.name, avatarUrl: row.staff.avatarUrl } : null,
-      services: lines.map((l) => ({ name: l.name, price: l.price, priceFrom: !!l.priceFrom, durationMins: lineBlock(l).durationMins, addons: (l.addons ?? []).map((a) => a.name) })),
+      // The line's price with its extras, so the lines add up to the total.
+      services: lines.map((l) => ({ name: l.name, price: linePrice(l), priceFrom: !!l.priceFrom, durationMins: lineBlock(l).durationMins, addons: (l.addons ?? []).map((a) => a.name) })),
       summary: summariseLines(lines),
       totalPrice: Number(row.totalPrice),
       depositAmount: Number(row.depositAmount),
