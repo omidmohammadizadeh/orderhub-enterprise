@@ -165915,6 +165915,7 @@ export namespace Prisma {
     locationId: string | null
     code: string | null
     publicToken: string | null
+    email: string | null
     phone: string | null
     firstName: string | null
     marketingConsent: boolean | null
@@ -165936,6 +165937,7 @@ export namespace Prisma {
     locationId: string | null
     code: string | null
     publicToken: string | null
+    email: string | null
     phone: string | null
     firstName: string | null
     marketingConsent: boolean | null
@@ -165957,6 +165959,7 @@ export namespace Prisma {
     locationId: number
     code: number
     publicToken: number
+    email: number
     phone: number
     firstName: number
     marketingConsent: number
@@ -165988,6 +165991,7 @@ export namespace Prisma {
     locationId?: true
     code?: true
     publicToken?: true
+    email?: true
     phone?: true
     firstName?: true
     marketingConsent?: true
@@ -166009,6 +166013,7 @@ export namespace Prisma {
     locationId?: true
     code?: true
     publicToken?: true
+    email?: true
     phone?: true
     firstName?: true
     marketingConsent?: true
@@ -166030,6 +166035,7 @@ export namespace Prisma {
     locationId?: true
     code?: true
     publicToken?: true
+    email?: true
     phone?: true
     firstName?: true
     marketingConsent?: true
@@ -166138,6 +166144,7 @@ export namespace Prisma {
     locationId: string
     code: string
     publicToken: string
+    email: string | null
     phone: string | null
     firstName: string | null
     marketingConsent: boolean
@@ -166178,6 +166185,7 @@ export namespace Prisma {
     locationId?: boolean
     code?: boolean
     publicToken?: boolean
+    email?: boolean
     phone?: boolean
     firstName?: boolean
     marketingConsent?: boolean
@@ -166204,6 +166212,7 @@ export namespace Prisma {
     locationId?: boolean
     code?: boolean
     publicToken?: boolean
+    email?: boolean
     phone?: boolean
     firstName?: boolean
     marketingConsent?: boolean
@@ -166226,6 +166235,7 @@ export namespace Prisma {
     locationId?: boolean
     code?: boolean
     publicToken?: boolean
+    email?: boolean
     phone?: boolean
     firstName?: boolean
     marketingConsent?: boolean
@@ -166267,8 +166277,14 @@ export namespace Prisma {
       code: string
       publicToken: string
       /**
-       * E.164. Unique per card, so one number is one card and a lost phone can
-       * have its card re-sent.
+       * How the member proves the card is theirs on a new phone. EMAIL is the
+       * key (lower-cased, unique per card): codes and card links go by email,
+       * which costs nothing. Phone is the older key, kept for members who joined
+       * with one; unique per card too.
+       */
+      email: string | null
+      /**
+       * E.164.
        */
       phone: string | null
       firstName: string | null
@@ -166699,6 +166715,7 @@ export namespace Prisma {
     readonly locationId: FieldRef<"LoyaltyMember", 'String'>
     readonly code: FieldRef<"LoyaltyMember", 'String'>
     readonly publicToken: FieldRef<"LoyaltyMember", 'String'>
+    readonly email: FieldRef<"LoyaltyMember", 'String'>
     readonly phone: FieldRef<"LoyaltyMember", 'String'>
     readonly firstName: FieldRef<"LoyaltyMember", 'String'>
     readonly marketingConsent: FieldRef<"LoyaltyMember", 'Boolean'>
@@ -184556,6 +184573,7 @@ export namespace Prisma {
     locationId: 'locationId',
     code: 'code',
     publicToken: 'publicToken',
+    email: 'email',
     phone: 'phone',
     firstName: 'firstName',
     marketingConsent: 'marketingConsent',
@@ -186777,6 +186795,7 @@ export namespace Prisma {
     locationId: 'locationId',
     code: 'code',
     publicToken: 'publicToken',
+    email: 'email',
     phone: 'phone',
     firstName: 'firstName',
     source: 'source',
@@ -202406,6 +202425,7 @@ export namespace Prisma {
     locationId?: StringFilter<"LoyaltyMember"> | string
     code?: StringFilter<"LoyaltyMember"> | string
     publicToken?: StringFilter<"LoyaltyMember"> | string
+    email?: StringNullableFilter<"LoyaltyMember"> | string | null
     phone?: StringNullableFilter<"LoyaltyMember"> | string | null
     firstName?: StringNullableFilter<"LoyaltyMember"> | string | null
     marketingConsent?: BoolFilter<"LoyaltyMember"> | boolean
@@ -202431,6 +202451,7 @@ export namespace Prisma {
     locationId?: SortOrder
     code?: SortOrder
     publicToken?: SortOrder
+    email?: SortOrderInput | SortOrder
     phone?: SortOrderInput | SortOrder
     firstName?: SortOrderInput | SortOrder
     marketingConsent?: SortOrder
@@ -202455,12 +202476,14 @@ export namespace Prisma {
     code?: string
     publicToken?: string
     cardId_phone?: LoyaltyMemberCardIdPhoneCompoundUniqueInput
+    cardId_email?: LoyaltyMemberCardIdEmailCompoundUniqueInput
     AND?: LoyaltyMemberWhereInput | LoyaltyMemberWhereInput[]
     OR?: LoyaltyMemberWhereInput[]
     NOT?: LoyaltyMemberWhereInput | LoyaltyMemberWhereInput[]
     tenantId?: StringFilter<"LoyaltyMember"> | string
     cardId?: StringFilter<"LoyaltyMember"> | string
     locationId?: StringFilter<"LoyaltyMember"> | string
+    email?: StringNullableFilter<"LoyaltyMember"> | string | null
     phone?: StringNullableFilter<"LoyaltyMember"> | string | null
     firstName?: StringNullableFilter<"LoyaltyMember"> | string | null
     marketingConsent?: BoolFilter<"LoyaltyMember"> | boolean
@@ -202477,7 +202500,7 @@ export namespace Prisma {
     stamps?: LoyaltyStampListRelationFilter
     rewards?: LoyaltyRewardListRelationFilter
     passDevices?: LoyaltyPassDeviceListRelationFilter
-  }, "id" | "code" | "publicToken" | "cardId_phone">
+  }, "id" | "code" | "publicToken" | "cardId_phone" | "cardId_email">
 
   export type LoyaltyMemberOrderByWithAggregationInput = {
     id?: SortOrder
@@ -202486,6 +202509,7 @@ export namespace Prisma {
     locationId?: SortOrder
     code?: SortOrder
     publicToken?: SortOrder
+    email?: SortOrderInput | SortOrder
     phone?: SortOrderInput | SortOrder
     firstName?: SortOrderInput | SortOrder
     marketingConsent?: SortOrder
@@ -202515,6 +202539,7 @@ export namespace Prisma {
     locationId?: StringWithAggregatesFilter<"LoyaltyMember"> | string
     code?: StringWithAggregatesFilter<"LoyaltyMember"> | string
     publicToken?: StringWithAggregatesFilter<"LoyaltyMember"> | string
+    email?: StringNullableWithAggregatesFilter<"LoyaltyMember"> | string | null
     phone?: StringNullableWithAggregatesFilter<"LoyaltyMember"> | string | null
     firstName?: StringNullableWithAggregatesFilter<"LoyaltyMember"> | string | null
     marketingConsent?: BoolWithAggregatesFilter<"LoyaltyMember"> | boolean
@@ -220784,6 +220809,7 @@ export namespace Prisma {
     locationId: string
     code: string
     publicToken: string
+    email?: string | null
     phone?: string | null
     firstName?: string | null
     marketingConsent?: boolean
@@ -220809,6 +220835,7 @@ export namespace Prisma {
     locationId: string
     code: string
     publicToken: string
+    email?: string | null
     phone?: string | null
     firstName?: string | null
     marketingConsent?: boolean
@@ -220832,6 +220859,7 @@ export namespace Prisma {
     locationId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     publicToken?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     firstName?: NullableStringFieldUpdateOperationsInput | string | null
     marketingConsent?: BoolFieldUpdateOperationsInput | boolean
@@ -220857,6 +220885,7 @@ export namespace Prisma {
     locationId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     publicToken?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     firstName?: NullableStringFieldUpdateOperationsInput | string | null
     marketingConsent?: BoolFieldUpdateOperationsInput | boolean
@@ -220881,6 +220910,7 @@ export namespace Prisma {
     locationId: string
     code: string
     publicToken: string
+    email?: string | null
     phone?: string | null
     firstName?: string | null
     marketingConsent?: boolean
@@ -220901,6 +220931,7 @@ export namespace Prisma {
     locationId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     publicToken?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     firstName?: NullableStringFieldUpdateOperationsInput | string | null
     marketingConsent?: BoolFieldUpdateOperationsInput | boolean
@@ -220922,6 +220953,7 @@ export namespace Prisma {
     locationId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     publicToken?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     firstName?: NullableStringFieldUpdateOperationsInput | string | null
     marketingConsent?: BoolFieldUpdateOperationsInput | boolean
@@ -233995,6 +234027,11 @@ export namespace Prisma {
     phone: string
   }
 
+  export type LoyaltyMemberCardIdEmailCompoundUniqueInput = {
+    cardId: string
+    email: string
+  }
+
   export type LoyaltyMemberCountOrderByAggregateInput = {
     id?: SortOrder
     tenantId?: SortOrder
@@ -234002,6 +234039,7 @@ export namespace Prisma {
     locationId?: SortOrder
     code?: SortOrder
     publicToken?: SortOrder
+    email?: SortOrder
     phone?: SortOrder
     firstName?: SortOrder
     marketingConsent?: SortOrder
@@ -234027,6 +234065,7 @@ export namespace Prisma {
     locationId?: SortOrder
     code?: SortOrder
     publicToken?: SortOrder
+    email?: SortOrder
     phone?: SortOrder
     firstName?: SortOrder
     marketingConsent?: SortOrder
@@ -234048,6 +234087,7 @@ export namespace Prisma {
     locationId?: SortOrder
     code?: SortOrder
     publicToken?: SortOrder
+    email?: SortOrder
     phone?: SortOrder
     firstName?: SortOrder
     marketingConsent?: SortOrder
@@ -289476,6 +289516,7 @@ export namespace Prisma {
     locationId: string
     code: string
     publicToken: string
+    email?: string | null
     phone?: string | null
     firstName?: string | null
     marketingConsent?: boolean
@@ -289499,6 +289540,7 @@ export namespace Prisma {
     locationId: string
     code: string
     publicToken: string
+    email?: string | null
     phone?: string | null
     firstName?: string | null
     marketingConsent?: boolean
@@ -289908,6 +289950,7 @@ export namespace Prisma {
     locationId?: StringFilter<"LoyaltyMember"> | string
     code?: StringFilter<"LoyaltyMember"> | string
     publicToken?: StringFilter<"LoyaltyMember"> | string
+    email?: StringNullableFilter<"LoyaltyMember"> | string | null
     phone?: StringNullableFilter<"LoyaltyMember"> | string | null
     firstName?: StringNullableFilter<"LoyaltyMember"> | string | null
     marketingConsent?: BoolFilter<"LoyaltyMember"> | boolean
@@ -290022,6 +290065,7 @@ export namespace Prisma {
     locationId: string
     code: string
     publicToken: string
+    email?: string | null
     phone?: string | null
     firstName?: string | null
     marketingConsent?: boolean
@@ -290046,6 +290090,7 @@ export namespace Prisma {
     locationId: string
     code: string
     publicToken: string
+    email?: string | null
     phone?: string | null
     firstName?: string | null
     marketingConsent?: boolean
@@ -290379,6 +290424,7 @@ export namespace Prisma {
     locationId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     publicToken?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     firstName?: NullableStringFieldUpdateOperationsInput | string | null
     marketingConsent?: BoolFieldUpdateOperationsInput | boolean
@@ -290403,6 +290449,7 @@ export namespace Prisma {
     locationId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     publicToken?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     firstName?: NullableStringFieldUpdateOperationsInput | string | null
     marketingConsent?: BoolFieldUpdateOperationsInput | boolean
@@ -290909,6 +290956,7 @@ export namespace Prisma {
     locationId: string
     code: string
     publicToken: string
+    email?: string | null
     phone?: string | null
     firstName?: string | null
     marketingConsent?: boolean
@@ -290933,6 +290981,7 @@ export namespace Prisma {
     locationId: string
     code: string
     publicToken: string
+    email?: string | null
     phone?: string | null
     firstName?: string | null
     marketingConsent?: boolean
@@ -291278,6 +291327,7 @@ export namespace Prisma {
     locationId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     publicToken?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     firstName?: NullableStringFieldUpdateOperationsInput | string | null
     marketingConsent?: BoolFieldUpdateOperationsInput | boolean
@@ -291302,6 +291352,7 @@ export namespace Prisma {
     locationId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     publicToken?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     firstName?: NullableStringFieldUpdateOperationsInput | string | null
     marketingConsent?: BoolFieldUpdateOperationsInput | boolean
@@ -291575,6 +291626,7 @@ export namespace Prisma {
     locationId: string
     code: string
     publicToken: string
+    email?: string | null
     phone?: string | null
     firstName?: string | null
     marketingConsent?: boolean
@@ -291599,6 +291651,7 @@ export namespace Prisma {
     locationId: string
     code: string
     publicToken: string
+    email?: string | null
     phone?: string | null
     firstName?: string | null
     marketingConsent?: boolean
@@ -291637,6 +291690,7 @@ export namespace Prisma {
     locationId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     publicToken?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     firstName?: NullableStringFieldUpdateOperationsInput | string | null
     marketingConsent?: BoolFieldUpdateOperationsInput | boolean
@@ -291661,6 +291715,7 @@ export namespace Prisma {
     locationId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     publicToken?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     firstName?: NullableStringFieldUpdateOperationsInput | string | null
     marketingConsent?: BoolFieldUpdateOperationsInput | boolean
@@ -305481,6 +305536,7 @@ export namespace Prisma {
     locationId: string
     code: string
     publicToken: string
+    email?: string | null
     phone?: string | null
     firstName?: string | null
     marketingConsent?: boolean
@@ -305579,6 +305635,7 @@ export namespace Prisma {
     locationId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     publicToken?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     firstName?: NullableStringFieldUpdateOperationsInput | string | null
     marketingConsent?: BoolFieldUpdateOperationsInput | boolean
@@ -305602,6 +305659,7 @@ export namespace Prisma {
     locationId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     publicToken?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     firstName?: NullableStringFieldUpdateOperationsInput | string | null
     marketingConsent?: BoolFieldUpdateOperationsInput | boolean
@@ -305625,6 +305683,7 @@ export namespace Prisma {
     locationId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     publicToken?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     firstName?: NullableStringFieldUpdateOperationsInput | string | null
     marketingConsent?: BoolFieldUpdateOperationsInput | boolean

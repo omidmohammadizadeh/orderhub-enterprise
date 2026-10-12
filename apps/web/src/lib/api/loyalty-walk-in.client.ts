@@ -39,7 +39,8 @@ export interface TillMember {
   id: string;
   code: string;
   firstName: string | null;
-  phoneHint: string | null;
+  /** "om•••@gmail.com", or "•••• 709" for older phone-only members. */
+  contactHint: string | null;
   stamps: number;
   stampsRequired: number;
   lifetimeStamps: number;
@@ -64,7 +65,7 @@ export interface WalkInOverview {
   joinedThisWeek: number;
   stampsThisMonth: number;
   rewardsClaimed: number;
-  walletReady: { apple: boolean; google: boolean; sms: boolean };
+  walletReady: { apple: boolean; google: boolean; email: boolean };
 }
 
 async function publicJson<T>(path: string, init?: RequestInit): Promise<T> {
@@ -83,13 +84,13 @@ async function publicJson<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const walkInPublic = {
   joinInfo: (shop: string) => publicJson<JoinInfo>(`/join/${encodeURIComponent(shop)}`),
-  join: (shop: string, body: { firstName?: string; phone: string; marketingConsent: boolean }) =>
+  join: (shop: string, body: { firstName?: string; email: string; marketingConsent: boolean }) =>
     publicJson<
       | { status: "CREATED"; token: string }
-      | { status: "VERIFY"; phoneHint: string }
-      | { status: "EXISTING"; smsSent: false }
+      | { status: "VERIFY"; contactHint: string; via: "email" | "sms" }
+      | { status: "EXISTING"; sent: false }
     >(`/join/${encodeURIComponent(shop)}`, { method: "POST", body: JSON.stringify(body) }),
-  verify: (shop: string, body: { phone: string; code: string }) =>
+  verify: (shop: string, body: { email: string; code: string }) =>
     publicJson<{ token: string }>(`/join/${encodeURIComponent(shop)}/verify`, {
       method: "POST",
       body: JSON.stringify(body),
@@ -115,9 +116,9 @@ export const walkInTill = {
     apiClient
       .get<TillMember>("/v1/loyalty/walk-in/lookup", { params: { locationId, q } })
       .then((r) => r.data),
-  enrol: (body: { locationId: string; phone: string; firstName?: string; marketingConsent?: boolean }) =>
+  enrol: (body: { locationId: string; email: string; firstName?: string; marketingConsent?: boolean }) =>
     apiClient
-      .post<{ existing: boolean; smsSent: boolean; cardUrl: string | null; member: TillMember }>(
+      .post<{ existing: boolean; sent: boolean; via: "email" | "sms"; cardUrl: string | null; member: TillMember }>(
         "/v1/loyalty/walk-in/enrol",
         body,
       )
@@ -127,7 +128,9 @@ export const walkInTill = {
       .post<{ cardUrl: string }>(`/v1/loyalty/walk-in/members/${memberId}/card-link`)
       .then((r) => r.data),
   resend: (memberId: string) =>
-    apiClient.post<{ smsSent: boolean }>(`/v1/loyalty/walk-in/members/${memberId}/resend`).then((r) => r.data),
+    apiClient
+      .post<{ sent: boolean; via: "email" | "sms" }>(`/v1/loyalty/walk-in/members/${memberId}/resend`)
+      .then((r) => r.data),
   overview: (locationId: string) =>
     apiClient.get<WalkInOverview>(`/v1/loyalty/walk-in/overview/${locationId}`).then((r) => r.data),
 };

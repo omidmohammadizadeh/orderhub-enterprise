@@ -5,10 +5,11 @@
 // Opens on its own when a wallet card is scanned (the QR says "OHL:…"), or
 // from the Loyalty button. Three things happen here, in the order a counter
 // actually works:
-//   1. find the card — scan, card number, or the customer's phone;
+//   1. find the card — scan, card number, or the customer's email (or phone,
+//      for members who joined with one);
 //   2. put it on this order (the stamp lands when the order is paid), and add
 //      the free item if a reward is ready;
-//   3. or sign a new customer up — the card is texted to them, and a brand
+//   3. or sign a new customer up — the card is emailed to them, and a brand
 //      new card can also be scanned straight off this screen.
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -56,7 +57,7 @@ export function LoyaltyTillModal({
   const [notice, setNotice] = useState<string | null>(null);
   const [newCardUrl, setNewCardUrl] = useState<string | null>(null);
   const [camera, setCamera] = useState(false);
-  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [consent, setConsent] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -96,17 +97,17 @@ export function LoyaltyTillModal({
     setBusy(true);
     setError(null);
     try {
-      const res = await walkInTill.enrol({ locationId, phone, firstName: firstName || undefined, marketingConsent: consent });
+      const res = await walkInTill.enrol({ locationId, email: email.trim(), firstName: firstName || undefined, marketingConsent: consent });
       setMember(res.member);
       setNewCardUrl(res.cardUrl);
       setNotice(
         res.existing
-          ? res.smsSent
-            ? "That number already had a card — we've texted it to them again."
-            : "That number already has a card. The text didn't send, so look it up by phone each visit."
-          : res.smsSent
-            ? `Card created and texted to ${res.member.phoneHint ?? "their phone"}.`
-            : "Card created. The text didn't send — let them scan the QR below.",
+          ? res.sent
+            ? "That email already had a card — we've sent it to them again."
+            : "That email already has a card. The email didn't send — use Show card QR below."
+          : res.sent
+            ? `Card created and emailed to ${res.member.contactHint ?? "them"}.`
+            : "Card created. The email didn't send — let them scan the QR below.",
       );
       onAttach(res.member);
       setView("member");
@@ -137,7 +138,7 @@ export function LoyaltyTillModal({
     setError(null);
     try {
       await walkInTill.resend(member.id);
-      setNotice(`Card link texted to ${member.phoneHint ?? "their phone"}.`);
+      setNotice(`Card link sent to ${member.contactHint ?? "them"}.`);
     } catch (err) {
       setError(errorText(err));
     } finally {
@@ -191,7 +192,7 @@ export function LoyaltyTillModal({
                 className="space-y-2"
               >
                 <label htmlFor="loyalty-q" className="block text-sm font-medium text-zinc-700">
-                  Scan the card, or type the card number or phone
+                  Scan the card, or type the card number or email
                 </label>
                 <div className="flex gap-2">
                   <div className="relative flex-1">
@@ -202,7 +203,7 @@ export function LoyaltyTillModal({
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                       autoComplete="off"
-                      placeholder="Card number or 07…"
+                      placeholder="Card number or email"
                       className="h-12 w-full rounded-xl border border-zinc-300 pl-9 pr-3 text-base focus:border-zinc-900 focus:outline-none"
                     />
                   </div>
@@ -272,15 +273,17 @@ export function LoyaltyTillModal({
           {view === "enrol" && (
             <form onSubmit={enrol} className="space-y-3">
               <label className="block">
-                <span className="mb-1 block text-sm font-medium text-zinc-700">Mobile number</span>
+                <span className="mb-1 block text-sm font-medium text-zinc-700">Email</span>
                 <input
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  type="tel"
-                  inputMode="tel"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  type="email"
+                  inputMode="email"
+                  autoCapitalize="none"
+                  spellCheck={false}
                   required
                   autoFocus
-                  placeholder="07…"
+                  placeholder="customer@example.com"
                   className="h-12 w-full rounded-xl border border-zinc-300 px-3 text-base focus:border-zinc-900 focus:outline-none"
                 />
               </label>
@@ -296,9 +299,9 @@ export function LoyaltyTillModal({
               </label>
               <label className="flex cursor-pointer items-center gap-2.5 text-sm text-zinc-700">
                 <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="h-4 w-4" />
-                Customer agreed to receive offers by text
+                Customer agreed to receive offers by email
               </label>
-              <p className="text-xs text-zinc-500">We text them a link to add the card to Apple or Google Wallet.</p>
+              <p className="text-xs text-zinc-500">We email them a link to add the card to Apple or Google Wallet.</p>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
@@ -309,7 +312,7 @@ export function LoyaltyTillModal({
                 </button>
                 <button
                   type="submit"
-                  disabled={busy || !phone.trim()}
+                  disabled={busy || !email.trim()}
                   className="flex h-12 items-center justify-center gap-2 rounded-xl bg-zinc-900 text-sm font-semibold text-white disabled:opacity-40"
                 >
                   {busy && <Loader2 className="h-4 w-4 animate-spin" />} Create card
@@ -325,7 +328,7 @@ export function LoyaltyTillModal({
                   <div className="min-w-0">
                     <p className="truncate text-lg font-semibold">{member.firstName ?? "Member"}</p>
                     <p className="text-xs text-white/60">
-                      {member.phoneHint ?? "No phone"} · {member.code.slice(0, 4)} {member.code.slice(4)}
+                      {member.contactHint ?? "No email"} · {member.code.slice(0, 4)} {member.code.slice(4)}
                     </p>
                   </div>
                   <p className="shrink-0 text-right text-sm font-semibold tabular-nums">
@@ -433,10 +436,10 @@ export function LoyaltyTillModal({
                   <button
                     type="button"
                     onClick={resend}
-                    disabled={busy || !member.phoneHint}
+                    disabled={busy || !member.contactHint}
                     className="h-11 rounded-xl border border-zinc-300 text-sm font-medium text-zinc-700 disabled:opacity-40"
                   >
-                    Text card link
+                    Email card link
                   </button>
                   <button
                     type="button"

@@ -4,9 +4,9 @@
 //
 // One screen, thumb-sized: the card they are about to get, two fields, one
 // button. A new number goes straight to its card. A number that already has
-// one (new phone, second phone, deleted pass) gets a 6-digit code by text and
+// one (new phone, second phone, deleted pass) gets a 6-digit code by email and
 // opens the SAME card here once it is typed in — never straight on screen,
-// because whoever is typing may not own that phone.
+// because whoever is typing may not own that address.
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -20,11 +20,11 @@ export default function JoinLoyaltyPage() {
   const [info, setInfo] = useState<JoinInfo | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [firstName, setFirstName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Existing number: waiting for the texted code. null = not at that step.
+  // Existing address: waiting for the emailed code. null = not at that step.
   const [verifyHint, setVerifyHint] = useState<string | null>(null);
   const [code, setCode] = useState("");
   const [noSms, setNoSms] = useState(false);
@@ -41,14 +41,14 @@ export default function JoinLoyaltyPage() {
     setError(null);
     setBusy(true);
     try {
-      const res = await walkInPublic.join(shop, { firstName: firstName.trim() || undefined, phone, marketingConsent: consent });
+      const res = await walkInPublic.join(shop, { firstName: firstName.trim() || undefined, email: email.trim(), marketingConsent: consent });
       if (res.status === "CREATED") {
         router.replace(`/loyalty/card/${res.token}?new=1`);
         return;
       }
       if (res.status === "VERIFY") {
         setCode("");
-        setVerifyHint(res.phoneHint);
+        setVerifyHint(res.contactHint);
         return;
       }
       setNoSms(true);
@@ -64,7 +64,7 @@ export default function JoinLoyaltyPage() {
     setError(null);
     setBusy(true);
     try {
-      const { token } = await walkInPublic.verify(shop, { phone, code });
+      const { token } = await walkInPublic.verify(shop, { email: email.trim(), code });
       router.replace(`/loyalty/card/${token}`);
     } catch (err) {
       setError((err as Error).message);
@@ -137,19 +137,21 @@ export default function JoinLoyaltyPage() {
                 />
               </label>
               <label className="block">
-                <span className="mb-1.5 block text-sm font-medium text-white/80">Mobile number</span>
+                <span className="mb-1.5 block text-sm font-medium text-white/80">Email</span>
                 <input
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  type="tel"
-                  inputMode="tel"
-                  autoComplete="tel"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  autoCapitalize="none"
+                  spellCheck={false}
                   required
-                  placeholder="07…"
+                  placeholder="you@example.com"
                   className="h-12 w-full rounded-xl border border-white/15 bg-white/[0.06] px-4 text-base text-white placeholder:text-white/35 focus:border-white/60 focus:outline-none"
                 />
                 <span className="mt-1.5 block text-xs text-white/50">
-                  So you can get your card back if you change phone.
+                  We&apos;ll email you your card, so you can get it back if you change phone.
                 </span>
               </label>
               <label className="flex cursor-pointer items-start gap-3 rounded-xl px-1 py-2">
@@ -159,7 +161,7 @@ export default function JoinLoyaltyPage() {
                   onChange={(e) => setConsent(e.target.checked)}
                   className="mt-0.5 h-5 w-5 shrink-0 rounded border-white/30 bg-transparent accent-white"
                 />
-                <span className="text-sm text-white/70">Text me offers from {info.title}. Reply STOP any time.</span>
+                <span className="text-sm text-white/70">Email me offers from {info.title}. Unsubscribe any time.</span>
               </label>
 
               {error && (
@@ -170,7 +172,7 @@ export default function JoinLoyaltyPage() {
 
               <button
                 type="submit"
-                disabled={busy || !phone.trim()}
+                disabled={busy || !email.trim()}
                 className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-white text-base font-semibold text-zinc-950 transition active:scale-[0.99] disabled:opacity-50"
               >
                 {busy && <Loader2 className="h-5 w-5 animate-spin" />}
@@ -192,8 +194,8 @@ export default function JoinLoyaltyPage() {
               You already have a card
             </h1>
             <p className="mx-auto mt-2 max-w-xs text-center text-sm text-white/60">
-              We&apos;ve texted a 6-digit code to {verifyHint}. Enter it to open your card on this phone — your
-              stamps come with it.
+              We&apos;ve emailed a 6-digit code to {verifyHint}. Enter it to open your card on this phone — your
+              stamps come with it. Check your spam folder if it isn&apos;t there in a minute.
             </p>
             <input
               value={code}
@@ -234,7 +236,7 @@ export default function JoinLoyaltyPage() {
               }}
               className="h-11 text-sm text-white/50"
             >
-              Use a different number
+              Use a different email
             </button>
           </form>
         )}
@@ -242,9 +244,9 @@ export default function JoinLoyaltyPage() {
         {noSms && (
           <div className="flex flex-1 flex-col items-center justify-center text-center">
             <CheckCircle2 className="h-10 w-10 text-white/80" />
-            <p className="mt-4 text-xl font-semibold">That number already has a card</p>
+            <p className="mt-4 text-xl font-semibold">That email already has a card</p>
             <p className="mt-2 max-w-xs text-sm text-white/60">
-              We couldn&apos;t text you a code just now. Ask at the counter — staff can show your card on the till
+              We couldn&apos;t send you a code just now. Ask at the counter — staff can show your card on the till
               for you to scan.
             </p>
           </div>

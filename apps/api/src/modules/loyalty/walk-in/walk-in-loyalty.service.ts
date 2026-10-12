@@ -9,6 +9,7 @@ import {
 import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
 import { createHash, randomInt, timingSafeEqual } from "crypto";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
+import { EmailService } from "../../../infrastructure/email/email.service";
 import { SmsService } from "../../sms/sms.service";
 import { toE164 } from "../../sms/phone";
 import { LoyaltyService, MEMBER_CHANGED } from "../loyalty.service";
@@ -17,6 +18,7 @@ import { GoogleWalletService } from "./google-wallet.service";
 import { safeColor } from "./pass-art";
 import type { PassView } from "./pass-view";
 import { newMemberCode, newPublicToken, parseMemberCode, scanValue } from "./walk-in-codes";
+import { cardEmail, codeEmail } from "./walk-in-emails";
 
 // Walk-in loyalty cards.
 //
@@ -28,11 +30,15 @@ import { newMemberCode, newPublicToken, parseMemberCode, scanValue } from "./wal
 //
 // ── Joining ─────────────────────────────────────────────────────────────────
 // From the QR poster at the counter (/loyalty/join/<shop>), or by staff at the
-// till. Phone number is the key: one number, one card per shop. If the number
-// already has a card — a new phone, a second phone, a deleted pass — we text a
-// 6-digit code to that number and open the SAME card once it is typed in. Never
-// straight on screen: anyone could type a regular's number and walk off with
+// till. EMAIL is the key: one address, one card per shop, and everything we
+// send (the card link, the code) goes by email because it costs nothing. If the
+// address already has a card — a new phone, a second phone, a deleted pass — we
+// email a 6-digit code and open the SAME card once it is typed in. Never
+// straight on screen: anyone could type a regular's address and walk off with
 // their free coffee.
+//
+// Phone was the key before email. Members who joined with a number keep
+// working — looked up by phone, sent texts — and nothing new asks for one.
 //
 // ── Earning and spending ────────────────────────────────────────────────────
 // The till scans the pass and sends loyaltyMemberId (and loyaltyRewardId when a
@@ -48,12 +54,32 @@ const MEMBER_LOOKUP_SELECT = {
   code: true,
   publicToken: true,
   phone: true,
+  email: true,
   firstName: true,
   passUpdatedAt: true,
   googleObjectAt: true,
 } as const;
 
 type CardWithShop = NonNullable<Awaited<ReturnType<WalkInLoyaltyService["loadCard"]>>>;
+
+/** How a member is found and reached: an email (current) or a phone (older). */
+type Contact = { email: string } | { phone: string };
+
+type Reachable = { id: string; publicToken: string; email: string | null; phone: string | null; firstName: string | null };
+
+export function normaliseEmail(raw: string | null | undefined): string | null {
+  const v = String(raw ?? "").trim().toLowerCase();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v) && v.length <= 254 ? v : null;
+}
+
+/** "om•••@gmail.com" / "•••• 709" — enough to recognise, not to harvest. */
+export function contactHint(m: { email: string | null; phone: string | null }): string | null {
+  if (m.email) {
+    const [user, domain] = m.email.split("@");
+    return `${user!.slice(0, 2)}•••@${domain}`;
+  }
+  return m.phone ? `•••• ${m.phone.slice(-3)}` : null;
+}
 
 @Injectable()
 export class WalkInLoyaltyService {
@@ -66,6 +92,7 @@ export class WalkInLoyaltyService {
     private readonly apple: ApplePassService,
     private readonly google: GoogleWalletService,
     private readonly events: EventEmitter2,
+    private readonly mail: EmailService,
   ) {}
 
   // ── Public: joining ──────────────────────────────────────────────────────
@@ -92,49 +119,48 @@ export class WalkInLoyaltyService {
 
   async join(
     shop: string,
-    dto: { firstName?: string; phone?: string; marketingConsent?: boolean },
+    dto: { firstName?: string; email?: string; phone?: string; marketingConsent?: boolean },
   ): Promise<
     | { status: "CREATED"; token: string }
-    | { status: "VERIFY"; phoneHint: string }
-    | { status: "EXISTING"; smsSent: false }
+    | { status: "VERIFY"; contactHint: string; via: "email" | "sms" }
+    | { status: "EXISTING"; sent: false }
   > {
     const location = await this.resolveShop(shop);
     const card = await this.loadCard(location.id);
     if (!card || !card.isActive || !card.walkInEnabled) {
       throw new BadRequestException("This shop isn't running a loyalty card right now.");
     }
-    const phone = toE164(dto.phone);
-    if (!phone) throw new BadRequestException("Enter a valid mobile number.");
+    const contact = this.contactFrom(dto, "Enter a valid email address.");
     const firstName = this.cleanName(dto.firstName);
 
-    const existing = await this.prisma.loyaltyMember.findUnique({
-      where: { cardId_phone: { cardId: card.id, phone } },
-      select: MEMBER_LOOKUP_SELECT,
-    });
+    const existing = await this.findByContact(card.id, contact);
     if (existing) {
-      // Never on screen: whoever typed this number may not own it. A code to
-      // that phone proves it, and opens the same card on this device.
-      const smsSent = await this.sendVerifyCode(existing, card);
-      if (!smsSent) return { status: "EXISTING", smsSent: false };
-      return { status: "VERIFY", phoneHint: `•••• ${phone.slice(-3)}` };
+      // Never on screen: whoever typed this may not own it. A code sent to it
+      // proves they do, and opens the same card on this device.
+      const sent = await this.sendVerifyCode(existing, card);
+      if (!sent) return { status: "EXISTING", sent: false };
+      return { status: "VERIFY", contactHint: contactHint(existing)!, via: existing.email ? "email" : "sms" };
     }
 
-    const member = await this.createMember(card, { phone, firstName, source: "SELF" });
-    if (dto.marketingConsent) this.emitConsent(card, phone, firstName);
+    const member = await this.createMember(card, { ...contact, firstName, source: "SELF" });
+    if (dto.marketingConsent) this.emitConsent(card, contact, firstName);
+    // They have the card on screen now; the email is so they can find it again.
+    void this.sendCardLink(member, card, "welcome");
     return { status: "CREATED", token: member.publicToken };
   }
 
-  /** The code from the text, typed on the phone that wants the card. */
-  async verify(shop: string, dto: { phone?: string; code?: string }): Promise<{ token: string }> {
+  /** The emailed (or texted) code, typed on the phone that wants the card. */
+  async verify(shop: string, dto: { email?: string; phone?: string; code?: string }): Promise<{ token: string }> {
     const location = await this.resolveShop(shop);
     const card = await this.loadCard(location.id);
-    const phone = toE164(dto.phone);
     const code = String(dto.code ?? "").replace(/\D/g, "");
-    const wrong = new BadRequestException("That code isn't right. Check the text and try again.");
-    if (!card || !phone || code.length !== 6) throw wrong;
+    const wrong = new BadRequestException("That code isn't right. Check it and try again.");
+    const email = normaliseEmail(dto.email);
+    const phone = email ? null : toE164(dto.phone);
+    if (!card || (!email && !phone) || code.length !== 6) throw wrong;
 
     const member = await this.prisma.loyaltyMember.findUnique({
-      where: { cardId_phone: { cardId: card.id, phone } },
+      where: email ? { cardId_email: { cardId: card.id, email } } : { cardId_phone: { cardId: card.id, phone: phone! } },
       select: { id: true, publicToken: true, verifyCodeHash: true, verifyExpiresAt: true, verifyAttempts: true },
     });
     if (!member?.verifyCodeHash || !member.verifyExpiresAt || member.verifyExpiresAt < new Date()) {
@@ -277,14 +303,13 @@ export class WalkInLoyaltyService {
     let member = code
       ? await this.prisma.loyaltyMember.findUnique({ where: { code }, select: MEMBER_LOOKUP_SELECT })
       : null;
-    if (!member) {
+    if (!member && query.includes("@")) {
+      const email = normaliseEmail(query);
+      if (email) member = await this.findByContact(card.id, { email });
+    }
+    if (!member && !query.includes("@")) {
       const phone = toE164(query);
-      if (phone) {
-        member = await this.prisma.loyaltyMember.findUnique({
-          where: { cardId_phone: { cardId: card.id, phone } },
-          select: MEMBER_LOOKUP_SELECT,
-        });
-      }
+      if (phone) member = await this.findByContact(card.id, { phone });
     }
     if (!member || member.tenantId !== tenantId) throw new NotFoundException("No loyalty card found.");
     if (member.cardId !== card.id) {
@@ -294,31 +319,28 @@ export class WalkInLoyaltyService {
     return this.tillView(member, card);
   }
 
-  /** Staff sign a customer up at the counter. The card link goes by SMS. */
+  /** Staff sign a customer up at the counter. The card link goes by email. */
   async enrol(
     tenantId: string,
     locationId: string,
-    dto: { phone?: string; firstName?: string; marketingConsent?: boolean },
+    dto: { email?: string; phone?: string; firstName?: string; marketingConsent?: boolean },
   ) {
     await this.assertLocation(tenantId, locationId);
     const card = await this.loadCard(locationId);
     if (!card || !card.isActive || !card.walkInEnabled) {
       throw new BadRequestException("Switch on the walk-in loyalty card in Marketing first.");
     }
-    const phone = toE164(dto.phone);
-    if (!phone) throw new BadRequestException("Enter the customer's mobile number.");
+    const contact = this.contactFrom(dto, "Enter the customer's email address.");
     const firstName = this.cleanName(dto.firstName);
 
-    const found = await this.prisma.loyaltyMember.findUnique({
-      where: { cardId_phone: { cardId: card.id, phone } },
-      select: MEMBER_LOOKUP_SELECT,
-    });
-    const member = found ?? (await this.createMember(card, { phone, firstName, source: "TILL" }));
-    if (!found && dto.marketingConsent) this.emitConsent(card, phone, firstName);
-    const smsSent = await this.textCardLink(member, card, found ? "resend" : "welcome");
+    const found = await this.findByContact(card.id, contact);
+    const member = found ?? (await this.createMember(card, { ...contact, firstName, source: "TILL" }));
+    if (!found && dto.marketingConsent) this.emitConsent(card, contact, firstName);
+    const sent = await this.sendCardLink(member, card, found ? "resend" : "welcome");
     return {
       existing: !!found,
-      smsSent,
+      sent,
+      via: member.email ? ("email" as const) : ("sms" as const),
       // A brand-new card can be shown on the till screen for the customer, who
       // is standing there, to scan. An existing one never is — see join().
       cardUrl: found ? null : `${this.webUrl()}/loyalty/card/${member.publicToken}`,
@@ -348,9 +370,15 @@ export class WalkInLoyaltyService {
     if (!member) throw new NotFoundException("No loyalty card found.");
     const card = await this.loadCard(member.locationId);
     if (!card) throw new NotFoundException("No loyalty card found.");
-    const smsSent = await this.textCardLink(member, card, "resend");
-    if (!smsSent) throw new BadRequestException("The text could not be sent. Check the SMS wallet in Marketing.");
-    return { smsSent };
+    const sent = await this.sendCardLink(member, card, "resend");
+    if (!sent) {
+      throw new BadRequestException(
+        member.email
+          ? "The email could not be sent. Show the card QR on the till instead."
+          : "The text could not be sent. Show the card QR on the till instead.",
+      );
+    }
+    return { sent, via: member.email ? "email" : "sms" };
   }
 
   // ── Orders ───────────────────────────────────────────────────────────────
@@ -559,7 +587,15 @@ export class WalkInLoyaltyService {
   }
 
   private async tillView(
-    member: { id: string; code: string; phone: string | null; firstName: string | null; cardId: string; locationId: string },
+    member: {
+      id: string;
+      code: string;
+      phone: string | null;
+      email: string | null;
+      firstName: string | null;
+      cardId: string;
+      locationId: string;
+    },
     card: CardWithShop,
   ) {
     const [stamps, rewards] = await Promise.all([
@@ -576,7 +612,7 @@ export class WalkInLoyaltyService {
       code: member.code,
       firstName: member.firstName,
       // Enough for staff to confirm "is this you?", not enough to harvest.
-      phoneHint: member.phone ? `•••• ${member.phone.slice(-3)}` : null,
+      contactHint: contactHint(member),
       stamps: stamps % card.stampsRequired,
       stampsRequired: card.stampsRequired,
       lifetimeStamps: stamps,
@@ -608,7 +644,7 @@ export class WalkInLoyaltyService {
 
   private async createMember(
     card: CardWithShop,
-    data: { phone: string; firstName: string | null; source: "SELF" | "TILL" },
+    data: Contact & { firstName: string | null; source: "SELF" | "TILL" },
   ) {
     // A code collision is ~1 in 650 billion; retry rather than reason about it.
     for (let attempt = 0; attempt < 5; attempt++) {
@@ -620,7 +656,8 @@ export class WalkInLoyaltyService {
             locationId: card.locationId,
             code: newMemberCode(),
             publicToken: newPublicToken(),
-            phone: data.phone,
+            email: "email" in data ? data.email : null,
+            phone: "phone" in data ? data.phone : null,
             firstName: data.firstName,
             source: data.source,
           },
@@ -628,42 +665,69 @@ export class WalkInLoyaltyService {
         });
       } catch (err) {
         if ((err as { code?: string; meta?: { target?: unknown } }).code !== "P2002") throw err;
-        // Same phone joined twice at once: hand back the one that won.
-        const raced = await this.prisma.loyaltyMember.findUnique({
-          where: { cardId_phone: { cardId: card.id, phone: data.phone } },
-          select: MEMBER_LOOKUP_SELECT,
-        });
+        // Same address joined twice at once: hand back the one that won.
+        const raced = await this.findByContact(card.id, data);
         if (raced) return raced;
       }
     }
     throw new Error("Could not allocate a loyalty card number");
   }
 
-  /** Text the card link. False (never a throw) when it could not be sent. */
-  private async textCardLink(
-    member: { id: string; publicToken: string; phone: string | null; firstName: string | null },
-    card: CardWithShop,
-    kind: "welcome" | "resend",
-  ): Promise<boolean> {
-    if (!member.phone || !this.sms.isConfigured()) return false;
-    const title = this.titleOf(card);
+  private contactFrom(dto: { email?: string; phone?: string }, missing: string): Contact {
+    if (dto.email !== undefined && String(dto.email).trim() !== "") {
+      const email = normaliseEmail(dto.email);
+      if (!email) throw new BadRequestException("Enter a valid email address.");
+      return { email };
+    }
+    const phone = toE164(dto.phone);
+    if (phone) return { phone };
+    throw new BadRequestException(missing);
+  }
+
+  private findByContact(cardId: string, contact: Contact) {
+    return this.prisma.loyaltyMember.findUnique({
+      where:
+        "email" in contact
+          ? { cardId_email: { cardId, email: contact.email } }
+          : { cardId_phone: { cardId, phone: contact.phone } },
+      select: MEMBER_LOOKUP_SELECT,
+    });
+  }
+
+  /**
+   * Send the card link — by email when we have one (free), by text for older
+   * phone-only members. False (never a throw) when it could not be sent.
+   */
+  private async sendCardLink(member: Reachable, card: CardWithShop, kind: "welcome" | "resend"): Promise<boolean> {
     const url = `${this.webUrl()}/loyalty/card/${member.publicToken}`;
-    const hello = member.firstName ? `Hi ${member.firstName}, ` : "";
-    const body =
-      kind === "welcome"
-        ? `${hello}welcome to the ${title} loyalty card! Collect ${card.stampsRequired} stamps for ${this.rewardLabelOf(card).toLowerCase()}. Add it to your wallet: ${url}`
-        : `${hello}here is your ${title} loyalty card: ${url}`;
     try {
+      if (member.email) {
+        const mail = cardEmail({
+          kind,
+          title: this.titleOf(card),
+          color: safeColor(card.cardColor),
+          logoUrl: this.logoOf(card),
+          firstName: member.firstName,
+          cardUrl: url,
+          stampsRequired: card.stampsRequired,
+          rewardLabel: this.rewardLabelOf(card),
+          earnRule: this.earnRule(card),
+        });
+        await this.mail.send({ to: member.email, fromName: this.titleOf(card), ...mail });
+        return true;
+      }
+      if (!member.phone || !this.sms.isConfigured()) return false;
+      const hello = member.firstName ? `Hi ${member.firstName}, ` : "";
       await this.sms.send({
         tenantId: card.tenantId,
         to: member.phone,
-        body,
+        body: `${hello}here is your ${this.titleOf(card)} loyalty card: ${url}`,
         purpose: "OTHER",
         locationId: card.locationId,
       });
       return true;
     } catch (err) {
-      this.logger.warn(`Loyalty card SMS failed: ${(err as Error).message}`);
+      this.logger.warn(`Loyalty card link failed: ${(err as Error).message}`);
       return false;
     }
   }
@@ -672,12 +736,9 @@ export class WalkInLoyaltyService {
     return createHash("sha256").update(`${memberId}:${code}`).digest("hex");
   }
 
-  /** Text a fresh 6-digit code (plus the link, so either works). */
-  private async sendVerifyCode(
-    member: { id: string; publicToken: string; phone: string | null; firstName: string | null },
-    card: CardWithShop,
-  ): Promise<boolean> {
-    if (!member.phone || !this.sms.isConfigured()) return false;
+  /** A fresh 6-digit code (plus the card link, so either works). */
+  private async sendVerifyCode(member: Reachable, card: CardWithShop): Promise<boolean> {
+    if (!member.email && (!member.phone || !this.sms.isConfigured())) return false;
     const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
     await this.prisma.loyaltyMember.update({
       where: { id: member.id },
@@ -689,25 +750,47 @@ export class WalkInLoyaltyService {
     });
     const url = `${this.webUrl()}/loyalty/card/${member.publicToken}`;
     try {
-      await this.sms.send({
-        tenantId: card.tenantId,
-        to: member.phone,
-        body: `${code} is your ${this.titleOf(card)} loyalty card code. Or open your card here: ${url}`,
-        purpose: "OTHER",
-        locationId: card.locationId,
-      });
+      if (member.email) {
+        const mail = codeEmail({
+          title: this.titleOf(card),
+          color: safeColor(card.cardColor),
+          logoUrl: this.logoOf(card),
+          firstName: member.firstName,
+          code,
+          cardUrl: url,
+        });
+        await this.mail.send({ to: member.email, fromName: this.titleOf(card), ...mail });
+      } else {
+        await this.sms.send({
+          tenantId: card.tenantId,
+          to: member.phone!,
+          body: `${code} is your ${this.titleOf(card)} loyalty card code. Or open your card here: ${url}`,
+          purpose: "OTHER",
+          locationId: card.locationId,
+        });
+      }
       return true;
     } catch (err) {
-      this.logger.warn(`Loyalty verify SMS failed: ${(err as Error).message}`);
+      this.logger.warn(`Loyalty verify code failed: ${(err as Error).message}`);
       return false;
     }
   }
 
-  private emitConsent(card: CardWithShop, phone: string, firstName: string | null) {
+  private emitConsent(card: CardWithShop, contact: Contact, firstName: string | null) {
+    if ("email" in contact) {
+      this.events.emit("email-marketing.consent", {
+        tenantId: card.tenantId,
+        locationId: card.locationId,
+        email: contact.email,
+        firstName,
+        source: "LOYALTY",
+      });
+      return;
+    }
     this.events.emit("marketing.consent", {
       tenantId: card.tenantId,
       locationId: card.locationId,
-      phone,
+      phone: contact.phone,
       firstName,
       source: "LOYALTY",
       consent: true,
@@ -782,7 +865,12 @@ export class WalkInLoyaltyService {
   }
 
   private walletReady() {
-    return { apple: this.apple.configured(), google: this.google.configured(), sms: this.sms.isConfigured() };
+    return {
+      apple: this.apple.configured(),
+      google: this.google.configured(),
+      // Card links and codes go by email; without a Resend key they are only logged.
+      email: !!process.env.RESEND_API_KEY,
+    };
   }
 
   private webUrl(): string {

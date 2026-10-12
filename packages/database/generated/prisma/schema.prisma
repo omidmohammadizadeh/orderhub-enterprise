@@ -5571,8 +5571,12 @@ model LoyaltyMember {
   code        String @unique
   publicToken String @unique
 
-  /// E.164. Unique per card, so one number is one card and a lost phone can
-  /// have its card re-sent.
+  /// How the member proves the card is theirs on a new phone. EMAIL is the
+  /// key (lower-cased, unique per card): codes and card links go by email,
+  /// which costs nothing. Phone is the older key, kept for members who joined
+  /// with one; unique per card too.
+  email            String?
+  /// E.164.
   phone            String?
   firstName        String?
   marketingConsent Boolean @default(false)
@@ -5599,6 +5603,7 @@ model LoyaltyMember {
   updatedAt DateTime @updatedAt
 
   @@unique([cardId, phone])
+  @@unique([cardId, email])
   @@index([tenantId])
   @@index([locationId])
   @@map("loyalty_members")

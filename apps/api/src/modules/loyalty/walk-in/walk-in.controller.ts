@@ -34,7 +34,7 @@ export class WalkInLoyaltyController {
   @ApiOperation({ summary: "Join a shop's loyalty card" })
   join(
     @Param("shop") shop: string,
-    @Body() body: { firstName?: string; phone?: string; marketingConsent?: boolean },
+    @Body() body: { firstName?: string; email?: string; phone?: string; marketingConsent?: boolean },
   ) {
     return this.walkIn.join(shop, body ?? {});
   }
@@ -42,8 +42,8 @@ export class WalkInLoyaltyController {
   @Public()
   @Post("join/:shop/verify")
   @Throttle({ short: { limit: 5, ttl: 10000 }, medium: { limit: 15, ttl: 60000 } })
-  @ApiOperation({ summary: "Open an existing card on this phone with the texted code" })
-  verify(@Param("shop") shop: string, @Body() body: { phone?: string; code?: string }) {
+  @ApiOperation({ summary: "Open an existing card on this phone with the emailed code" })
+  verify(@Param("shop") shop: string, @Body() body: { email?: string; phone?: string; code?: string }) {
     return this.walkIn.verify(shop, body ?? {});
   }
 
@@ -122,9 +122,9 @@ export class WalkInLoyaltyController {
   @Post("enrol")
   @ApiBearerAuth()
   @Roles(...TILL_ROLES)
-  @ApiOperation({ summary: "Sign a customer up at the till; the card goes by SMS" })
+  @ApiOperation({ summary: "Sign a customer up at the till; the card goes by email" })
   enrol(
-    @Body() body: { locationId: string; phone?: string; firstName?: string; marketingConsent?: boolean },
+    @Body() body: { locationId: string; email?: string; phone?: string; firstName?: string; marketingConsent?: boolean },
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.walkIn.enrol(user.tenantId, body.locationId, body);
@@ -141,7 +141,7 @@ export class WalkInLoyaltyController {
   @Post("members/:memberId/resend")
   @ApiBearerAuth()
   @Roles(...TILL_ROLES)
-  @ApiOperation({ summary: "Text the customer their card link again" })
+  @ApiOperation({ summary: "Email the customer their card link again" })
   resend(@Param("memberId") memberId: string, @CurrentUser() user: AuthenticatedUser) {
     return this.walkIn.resendLink(user.tenantId, memberId);
   }

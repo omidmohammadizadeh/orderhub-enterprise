@@ -498,7 +498,7 @@ function WalkInSection({
             <div className="mt-4 flex flex-wrap items-center gap-2 text-[11px]">
               <Ready on={overview.walletReady.apple} label="Apple Wallet" />
               <Ready on={overview.walletReady.google} label="Google Wallet" />
-              <Ready on={overview.walletReady.sms} label="SMS card links" />
+              <Ready on={overview.walletReady.email} label="Email card links" />
             </div>
           )}
           {overview && (!overview.walletReady.apple || !overview.walletReady.google) && (

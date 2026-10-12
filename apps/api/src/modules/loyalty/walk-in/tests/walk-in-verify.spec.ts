@@ -1,7 +1,8 @@
 import { WalkInLoyaltyService } from "../walk-in-loyalty.service";
 
-// A number that already has a card gets a texted code, and the code opens the
-// SAME card on the new phone — never the card straight on screen.
+// An address that already has a card gets an emailed code, and the code opens
+// the SAME card on the new phone — never the card straight on screen. Older
+// phone-only members get the same by text.
 
 const CARD = {
   id: "card-1",
@@ -29,12 +30,14 @@ const MEMBER = {
   code: "ABCD2345",
   publicToken: "tok_".padEnd(32, "x"),
   phone: "+447700900123",
+  email: null as string | null,
   firstName: "Sam",
   passUpdatedAt: new Date(),
   googleObjectAt: null,
 };
 
-function setup(sent = true) {
+function setup(sent = true, email: string | null = null) {
+  MEMBER.email = email;
   let stored: Record<string, unknown> = {};
   const prisma: any = {
     location: { findFirst: jest.fn().mockResolvedValue({ id: "loc-1", name: "Pizza Uno" }) },
@@ -55,16 +58,39 @@ function setup(sent = true) {
     isConfigured: () => true,
     send: sent ? jest.fn().mockResolvedValue({ ok: true }) : jest.fn().mockRejectedValue(new Error("wallet empty")),
   };
-  const svc = new WalkInLoyaltyService(prisma, {} as any, sms, {} as any, {} as any, { emit: jest.fn() } as any);
+  const mail: any = {
+    send: sent ? jest.fn().mockResolvedValue({ id: "e1" }) : jest.fn().mockRejectedValue(new Error("resend down")),
+  };
+  const svc = new WalkInLoyaltyService(prisma, {} as any, sms, {} as any, {} as any, { emit: jest.fn() } as any, mail);
   const codeFromSms = () => /^(\d{6}) /.exec(sms.send.mock.calls.at(-1)[0].body)![1]!;
-  return { svc, sms, codeFromSms };
+  const codeFromEmail = () => /^(\d{6}) /.exec(mail.send.mock.calls.at(-1)[0].subject)![1]!;
+  return { svc, sms, mail, codeFromSms, codeFromEmail };
 }
 
-describe("an existing number joining again (new or second phone)", () => {
+describe("an existing email joining again (new or second phone)", () => {
+  it("emails a code, never shows the card, and the code opens the same card", async () => {
+    const { svc, sms, mail, codeFromEmail } = setup(true, "sam@example.com");
+    const res = await svc.join("pizza-uno", { email: " Sam@Example.com " });
+    expect(res).toEqual({ status: "VERIFY", contactHint: "sa•••@example.com", via: "email" });
+    expect(JSON.stringify(res)).not.toContain(MEMBER.publicToken);
+    expect(mail.send).toHaveBeenCalledWith(expect.objectContaining({ to: "sam@example.com", fromName: "Pizza Uno" }));
+    expect(sms.send).not.toHaveBeenCalled();
+    await expect(svc.verify("pizza-uno", { email: "sam@example.com", code: codeFromEmail() })).resolves.toEqual({
+      token: MEMBER.publicToken,
+    });
+  });
+
+  it("rejects a malformed email", async () => {
+    const { svc } = setup(true, "sam@example.com");
+    await expect(svc.join("pizza-uno", { email: "sam@" })).rejects.toThrow(/valid email/);
+  });
+});
+
+describe("an existing phone-only member joining again", () => {
   it("texts a code instead of showing the card", async () => {
     const { svc, sms } = setup();
     const res = await svc.join("pizza-uno", { phone: "07700 900123" });
-    expect(res).toEqual({ status: "VERIFY", phoneHint: "•••• 123" });
+    expect(res).toEqual({ status: "VERIFY", contactHint: "•••• 123", via: "sms" });
     expect(JSON.stringify(res)).not.toContain(MEMBER.publicToken);
     expect(sms.send).toHaveBeenCalledWith(expect.objectContaining({ to: MEMBER.phone }));
   });
@@ -92,7 +118,7 @@ describe("an existing number joining again (new or second phone)", () => {
     const { svc } = setup(false);
     await expect(svc.join("pizza-uno", { phone: "07700900123" })).resolves.toEqual({
       status: "EXISTING",
-      smsSent: false,
+      sent: false,
     });
   });
 });
