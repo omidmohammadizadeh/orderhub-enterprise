@@ -8,7 +8,7 @@
 import { Suspense, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarPlus, CheckCircle2, Clock, CreditCard, Info, Phone, XCircle } from "lucide-react";
+import { CalendarPlus, CheckCircle2, Clock, CreditCard, Info, Phone, Star, XCircle } from "lucide-react";
 import {
   addDays,
   longDate,
@@ -198,6 +198,25 @@ function Manage({ b, isNew, cancelledPay, justPaid }: { b: PublicBooking; isNew:
           <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
           This needs a skin patch test at least 48 hours before. If you haven&rsquo;t had one with us recently, please pop in or call.
         </p>
+      )}
+
+      {b.loyalty && !cancelled && (
+        <a
+          href={b.loyalty.joinUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-4 flex items-center gap-3 rounded-2xl p-4"
+          style={{ background: SP.brassSoft }}
+        >
+          <Star className="h-5 w-5 shrink-0" style={{ color: SP.brass }} aria-hidden />
+          <span className="min-w-0 flex-1 text-[14px]">
+            <span className="block font-semibold">Collect a stamp for this visit</span>
+            <span className="block" style={{ color: SP.steel }}>
+              {b.loyalty.stampsRequired} stamps and you get: {b.loyalty.rewardLabel}. Add the card to your phone&rsquo;s wallet — we&rsquo;ll find it by your email when you pay.
+            </span>
+          </span>
+          <span className="shrink-0 text-[14px] font-semibold underline">Join</span>
+        </a>
       )}
 
       {error && (

@@ -63,6 +63,39 @@ export function CheckoutPanel({
   const [loyaltyOpen, setLoyaltyOpen] = useState(false);
   const [member, setMember] = useState<TillMember | null>(null);
   const [reward, setReward] = useState<TillMember["rewards"][number] | null>(null);
+  // Booked online (or a regular with an email/phone on the booking)? Find
+  // their card without anyone scanning anything — the stamp then lands on
+  // this visit the same as a scanned card.
+  const [autoTried, setAutoTried] = useState(false);
+  useEffect(() => {
+    if (autoTried || member || !loyaltyStatus.data?.enabled) return;
+    setAutoTried(true);
+    const keys = [appointment.customerEmail, appointment.customerPhone].filter(Boolean) as string[];
+    void (async () => {
+      for (const q of keys) {
+        try {
+          const m = await walkInTill.lookup(locationId, q);
+          setMember(m);
+          return;
+        } catch {
+          /* not a member under this one — try the next */
+        }
+      }
+    })();
+  }, [autoTried, member, loyaltyStatus.data?.enabled, appointment.customerEmail, appointment.customerPhone, locationId]);
+  const enrol = useMutation({
+    mutationFn: () =>
+      walkInTill.enrol({
+        locationId,
+        email: appointment.customerEmail!,
+        firstName: appointment.customerName.split(" ")[0],
+      }),
+    onSuccess: (r) => {
+      setMember(r.member);
+      toast.success(r.existing ? "They already had a card — attached" : `Card sent to ${appointment.customerEmail} — this visit counts`);
+    },
+    onError: (e) => toast.error(apiError(e, "Couldn't sign them up")),
+  });
 
   useEffect(() => {
     const esc = (e: KeyboardEvent) => e.key === "Escape" && !paying && onClose();
@@ -307,6 +340,16 @@ export function CheckoutPanel({
               ) : (
                 <span className="text-zinc-600">Scan their loyalty card — this visit earns a stamp</span>
               )}
+            </button>
+          )}
+          {loyaltyStatus.data?.enabled && !member && appointment.customerEmail && autoTried && (
+            <button
+              type="button"
+              onClick={() => enrol.mutate()}
+              disabled={enrol.isPending}
+              className="-mt-3 text-left text-xs font-medium text-orange-600 hover:text-orange-700 disabled:opacity-50"
+            >
+              No card yet — sign {appointment.customerName.split(" ")[0]} up with {appointment.customerEmail} and stamp this visit
             </button>
           )}
 

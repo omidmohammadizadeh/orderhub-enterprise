@@ -916,6 +916,7 @@ export class SalonBookingService {
       canChange: change.allowed && ["CONFIRMED", "PENDING_PAYMENT"].includes(row.status),
       freeChange: change.free,
       cancellationWindowHours: loc.salon.cancellationWindowHours,
+      loyalty: await this.loyaltyFor(loc.id).catch(() => null),
       shop: {
         locationId: loc.id,
         name: loc.name,
@@ -1020,6 +1021,27 @@ export class SalonBookingService {
     });
   }
 
+  /**
+   * The shop's in-store loyalty card, if it runs one: what a guest needs to
+   * join from their booking (stamps needed, the reward, the join link).
+   */
+  async loyaltyFor(locationId: string) {
+    const card = await this.prisma.loyaltyCard.findUnique({
+      where: { locationId },
+      select: { isActive: true, walkInEnabled: true, stampsRequired: true, rewardLabel: true },
+    });
+    if (!card?.isActive || !card.walkInEnabled) return null;
+    const loc = await this.prisma.location.findUnique({
+      where: { id: locationId },
+      select: { onlineOrderingSlug: true, slug: true },
+    });
+    return {
+      stampsRequired: card.stampsRequired,
+      rewardLabel: card.rewardLabel,
+      joinUrl: `${this.notify.webUrl()}/loyalty/join/${loc?.onlineOrderingSlug ?? loc?.slug ?? locationId}`,
+    };
+  }
+
   // ── Public shop info ────────────────────────────────────────────────
 
   async publicShop(locationId: string) {
@@ -1048,6 +1070,7 @@ export class SalonBookingService {
       bookingPolicy: loc.salon.bookingPolicy,
       cancellationWindowHours: loc.salon.cancellationWindowHours,
       offerAnyStaff: loc.salon.offerAnyStaff,
+      loyalty: enabled ? await this.loyaltyFor(loc.id).catch(() => null) : null,
       leadTimeMins: loc.salon.leadTimeMins,
       maxDaysAhead: loc.salon.maxDaysAhead,
       services: services.map((s) => {

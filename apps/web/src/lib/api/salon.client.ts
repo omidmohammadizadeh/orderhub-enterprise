@@ -433,6 +433,7 @@ export interface PublicShop {
   bookingPolicy: string;
   cancellationWindowHours: number;
   offerAnyStaff: boolean;
+  loyalty: { stampsRequired: number; rewardLabel: string; joinUrl: string } | null;
   leadTimeMins: number;
   maxDaysAhead: number;
   services: Array<{
@@ -478,6 +479,7 @@ export interface PublicBooking {
   canChange: boolean;
   freeChange: boolean;
   cancellationWindowHours: number;
+  loyalty: { stampsRequired: number; rewardLabel: string; joinUrl: string } | null;
   shop: {
     locationId: string;
     name: string;
