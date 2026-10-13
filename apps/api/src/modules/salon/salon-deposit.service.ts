@@ -160,7 +160,19 @@ export class SalonDepositService {
         });
         if (count > 0) {
           this.logger.log(`Deposit paid for salon booking ${appt.reference}`);
-          if (appt.status === "PENDING_PAYMENT") this.notify.appointment("confirmed", appt.id);
+          if (appt.status === "PENDING_PAYMENT") {
+            this.notify.appointment("confirmed", appt.id);
+            // The booking only "arrives" once its deposit clears — beep now.
+            this.socket.emitToLocation(appt.locationId, "salon:alert" as any, {
+              trigger: "NEW_APPOINTMENT",
+              locationId: appt.locationId,
+              appointmentId: appt.id,
+              customerName: appt.customerName,
+              startsAt: appt.startsAt.toISOString(),
+              summary: summariseLines(storedLines(appt.services)),
+              staffName: null,
+            } as any);
+          }
           this.emit(appt.locationId, appt.id);
         }
       }

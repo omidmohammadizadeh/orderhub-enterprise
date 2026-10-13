@@ -259,7 +259,14 @@ export const ALERT_TRIGGERS = [
   { value: "SCHEDULED_ORDER_READY", label: "Scheduled order ready" },
   { value: "PRINTER_OFFLINE", label: "Printer offline" },
   { value: "FAILED_PRINT", label: "Failed print" },
+  // Salons only — shown on salon locations.
+  { value: "NEW_APPOINTMENT", label: "New online booking" },
+  { value: "APPOINTMENT_CANCELLED", label: "Booking cancelled by the guest" },
+  { value: "WALK_IN_JOINED", label: "Walk-in joined the queue (from their phone)" },
 ] as const;
+
+/** Triggers that only make sense at a barber / salon location. */
+export const SALON_ALERT_TRIGGERS = ["NEW_APPOINTMENT", "APPOINTMENT_CANCELLED", "WALK_IN_JOINED"] as const;
 
 export const PRINT_TRIGGERS = [
   "ORDER_RECEIVED",

@@ -28,6 +28,7 @@
 // second bespoke connection per tab.
 
 import { useEffect, useRef } from "react";
+import toast from "react-hot-toast";
 import { useQuery } from "@tanstack/react-query";
 import { alertsClient, type AlertConfig } from "@/lib/api/printers.client";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
@@ -131,6 +132,51 @@ export function AlertSoundPlayer() {
       if (rule) play(rule);
     };
 
+    // Salons: a guest booked / cancelled online, or joined the queue from
+    // their phone. Uses that trigger's own rule when the shop has set one;
+    // otherwise it sounds exactly like a new order (or a cancellation), so a
+    // salon beeps out of the box with the sounds it already knows.
+    const fallback = (trigger: string, sound: string): AlertConfig =>
+      ({
+        trigger,
+        enabled: true,
+        soundUrl: sound,
+        volume: 1,
+        repeatCount: 1,
+        repeatIntervalMs: 5000,
+        requireAcknowledgement: false,
+      }) as AlertConfig;
+    const onSalonAlert = (p: {
+      trigger: "NEW_APPOINTMENT" | "APPOINTMENT_CANCELLED" | "WALK_IN_JOINED";
+      locationId: string;
+      customerName?: string;
+      startsAt?: string;
+      summary?: string | null;
+      staffName?: string | null;
+    }) => {
+      if (!p || !belongsHere(p.locationId)) return;
+      const saved = (alertsQuery.data ?? []).find((a) => a.trigger === p.trigger);
+      if (saved && !saved.enabled) return;
+      const cancel = p.trigger === "APPOINTMENT_CANCELLED";
+      const rule =
+        saved ??
+        findRule(cancel ? "ORDER_CANCELLED" : "NEW_ORDER") ??
+        fallback(p.trigger, cancel ? "/sounds/canceled_order.mp3" : "/sounds/new_order.mp3");
+      play(rule);
+      const when = p.startsAt
+        ? new Date(p.startsAt).toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+        : "";
+      const who = p.customerName ?? "A guest";
+      if (p.trigger === "NEW_APPOINTMENT") {
+        toast.success(`New booking — ${who}${p.summary ? `, ${p.summary}` : ""}${when ? ` · ${when}` : ""}${p.staffName ? ` with ${p.staffName}` : ""}`, { duration: 10_000, icon: "✂️" });
+      } else if (cancel) {
+        toast(`${who} cancelled${when ? ` (${when})` : ""}`, { duration: 10_000, icon: "🚫" });
+      } else {
+        toast(`${who} joined the walk-in queue${p.summary ? ` — ${p.summary}` : ""}`, { duration: 8_000, icon: "🚶" });
+      }
+    };
+
+    socket.on("salon:alert" as any, onSalonAlert as any);
     socket.on("order:new", onNew);
     socket.on("order:updated", onUpdated);
     socket.on("printer:agent:offline" as any, onPrinterOffline);
@@ -142,6 +188,7 @@ export function AlertSoundPlayer() {
     joinLocationRoom(socket, locationId);
 
     return () => {
+      socket.off("salon:alert" as any, onSalonAlert as any);
       socket.off("order:new", onNew);
       socket.off("order:updated", onUpdated);
       socket.off("printer:agent:offline" as any, onPrinterOffline);

@@ -3012,6 +3012,10 @@ enum AlertTrigger {
   SCHEDULED_ORDER_READY
   PRINTER_OFFLINE
   FAILED_PRINT
+  // Salons: a guest booked or cancelled online, or joined the walk-in queue.
+  NEW_APPOINTMENT
+  APPOINTMENT_CANCELLED
+  WALK_IN_JOINED
 }
 
 // ── AgentPairCode ────────────────────────────────────────────────────

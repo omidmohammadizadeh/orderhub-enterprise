@@ -10,6 +10,8 @@ import { Copy, ExternalLink, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { apiError, salonClient, type SalonSettings, type SalonTrade } from "@/lib/api/salon.client";
 import { SalonFrame, inputBase, inputCls, useCanManage, useSalonLocation } from "@/components/salon/salon-shared";
+import { AlertsTab } from "@/components/printers/alerts-tab";
+import { SALON_ALERT_TRIGGERS } from "@/lib/api/printers.client";
 
 export default function SalonSettingsPage() {
   return (
@@ -141,6 +143,15 @@ function SettingsForm() {
             <option value="BEAUTY">Beauty</option>
           </select>
         </label>
+      </Card>
+
+      <Card title="Sounds">
+        <p className="text-sm text-zinc-600">
+          Every till signed in to this shop beeps when a guest books or cancels online, or joins the queue from their
+          phone — the same chime as a new order (and the cancellation alarm for cancellations) until you change it here.
+          Bookings made by staff stay quiet.
+        </p>
+        <AlertsTab locationId={locationId} only={SALON_ALERT_TRIGGERS} />
       </Card>
 
       <Card title="Moving from another system?">

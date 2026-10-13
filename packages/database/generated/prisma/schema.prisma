@@ -3012,6 +3012,10 @@ enum AlertTrigger {
   SCHEDULED_ORDER_READY
   PRINTER_OFFLINE
   FAILED_PRINT
+  // Salons: a guest booked or cancelled online, or joined the walk-in queue.
+  NEW_APPOINTMENT
+  APPOINTMENT_CANCELLED
+  WALK_IN_JOINED
 }
 
 // ── AgentPairCode ────────────────────────────────────────────────────
@@ -3172,7 +3176,7 @@ model DriverCashUp {
   @@map("driver_cash_ups")
 }
 
-// ── DriverPresence (Phase AX — Dispatch) ──────────────────────────────────────
+// ── DriverPresence (Phase AX — Dispatch) ──────────────────────────────���───────
 // One row per driver holding live operational state for the dispatch map and
 // the Order Hub Driver app: online/offline, last-known GPS, which location they
 // are clocked into, and the socket/push handles used to reach them. ON_JOB locks
@@ -4211,7 +4215,7 @@ model WebPushSubscription {
   @@map("web_push_subscriptions")
 }
 
-// ═══════════════════════════════════════════════════════════════��══════════════
+// ════════════════��═════════════════════════════════════════════════════════════
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE AP — SYSTEM SECRETS VAULT (platform-admin only)
 // ══════════════════════════════════════════════════════════════════════════════

@@ -486,6 +486,8 @@ export class SalonBookingService {
     this.emit(appt.locationId, "created", appt.id);
     // A deposit booking is confirmed (and emailed) once the card clears.
     if (appt.status === "CONFIRMED" && !opts.silent) this.notify.appointment("confirmed", appt.id);
+    // A deposit booking beeps when the deposit clears (SalonDepositService).
+    if (opts.online && appt.status === "CONFIRMED") void this.alertGuest("NEW_APPOINTMENT", appt.id).catch(() => undefined);
   }
 
   /** Public booking: book, then send them to pay the deposit if there is one. */
@@ -527,6 +529,7 @@ export class SalonBookingService {
       });
       this.notify.appointment("confirmed", appt.id);
       this.emit(appt.locationId, "updated", appt.id);
+      void this.alertGuest("NEW_APPOINTMENT", appt.id).catch(() => undefined);
       return { appointment: await this.publicView(appt.manageToken), checkoutUrl: null };
     }
   }
@@ -955,6 +958,7 @@ export class SalonBookingService {
     }
     this.notify.appointment("cancelled", row.id);
     this.emit(row.locationId, "updated", row.id);
+    if (row.status === "CONFIRMED") void this.alertGuest("APPOINTMENT_CANCELLED", row.id).catch(() => undefined);
     return this.publicView(token);
   }
 
@@ -1103,6 +1107,28 @@ export class SalonBookingService {
         };
       }),
     };
+  }
+
+  /**
+   * Make the tills beep: a guest booked or cancelled on their own. Staff
+   * bookings stay quiet — whoever made them already knows. Plays through
+   * the same Alerts rules (sound, repeats) as a new order.
+   */
+  async alertGuest(trigger: "NEW_APPOINTMENT" | "APPOINTMENT_CANCELLED", appointmentId: string) {
+    const a = await this.prisma.salonAppointment.findUnique({
+      where: { id: appointmentId },
+      select: { locationId: true, customerName: true, startsAt: true, services: true, staff: { select: { name: true } } },
+    });
+    if (!a) return;
+    this.socket.emitToLocation(a.locationId, "salon:alert" as any, {
+      trigger,
+      locationId: a.locationId,
+      appointmentId,
+      customerName: a.customerName,
+      startsAt: a.startsAt.toISOString(),
+      summary: summariseLines(storedLines(a.services)),
+      staffName: a.staff?.name ?? null,
+    } as any);
   }
 
   emit(locationId: string, kind: string, appointmentId: string) {

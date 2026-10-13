@@ -210,6 +210,14 @@ export class SalonQueueService {
       },
     });
     this.emit(loc.id);
+    if (opts.source === "ONLINE") {
+      this.socket.emitToLocation(loc.id, "salon:alert" as any, {
+        trigger: "WALK_IN_JOINED",
+        locationId: loc.id,
+        customerName: entry.customerName,
+        summary: entry.serviceSummary,
+      } as any);
+    }
     return { entry, already: false };
   }
 
