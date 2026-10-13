@@ -171,7 +171,16 @@ const TRADES: Array<{ value: SalonTrade; label: string; hint: string }> = [
 ];
 
 /** Shown on every salon screen until the selected location is a salon. */
-export function SalonSetupCard({ locationId, locationName }: { locationId: string; locationName?: string }) {
+export function SalonSetupCard({
+  locationId,
+  locationName,
+  alreadySalon,
+}: {
+  locationId: string;
+  locationName?: string;
+  /** Business type is already SALON (set in the location editor) — only the set-up is left. */
+  alreadySalon?: boolean;
+}) {
   const qc = useQueryClient();
   const canManage = useCanManage();
   const [trade, setTrade] = useState<SalonTrade>("BARBER");
@@ -193,8 +202,14 @@ export function SalonSetupCard({ locationId, locationName }: { locationId: strin
           <Sparkles className="h-5 w-5" aria-hidden />
         </span>
         <div>
-          <h2 className="text-lg font-semibold text-zinc-900">Run {locationName ?? "this location"} as a salon</h2>
-          <p className="text-sm text-zinc-500">Appointments, a walk-in queue and online booking, paid through your till.</p>
+          <h2 className="text-lg font-semibold text-zinc-900">
+            {alreadySalon ? `Finish setting up ${locationName ?? "this location"}` : `Run ${locationName ?? "this location"} as a salon`}
+          </h2>
+          <p className="text-sm text-zinc-500">
+            {alreadySalon
+              ? "One step left: pick the kind of business and your first team member. Appointments and Walk-ins open straight after."
+              : "Appointments, a walk-in queue and online booking, paid through your till."}
+          </p>
         </div>
       </div>
       {!canManage ? (
@@ -243,7 +258,7 @@ export function SalonSetupCard({ locationId, locationName }: { locationId: strin
             <span>Start me with a typical price list I can edit</span>
           </label>
           <Button type="submit" loading={enable.isPending}>
-            Switch to salon
+            {alreadySalon ? "Finish set-up" : "Switch to salon"}
           </Button>
         </form>
       )}
@@ -284,7 +299,11 @@ export function SalonFrame({
           {apiError(settings.error, "Couldn't load this location")}
         </p>
       ) : !settings.data?.isSalon || !settings.data?.configured ? (
-        <SalonSetupCard locationId={locationId} locationName={settings.data?.locationName} />
+        <SalonSetupCard
+          locationId={locationId}
+          locationName={settings.data?.locationName}
+          alreadySalon={!!settings.data?.isSalon}
+        />
       ) : (
         <>
           <SalonTabs right={right} />
