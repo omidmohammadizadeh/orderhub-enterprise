@@ -22,6 +22,7 @@ import { brandsClient } from "@/lib/api/locations.client";
 import { StampIcon, WalletCard, readableOn } from "@/components/loyalty/wallet-card";
 import { DEFAULT_STAMP_ICON, stampIconGroups } from "@orderhub/shared";
 import { walkInTill } from "@/lib/api/loyalty-walk-in.client";
+import { salonClient } from "@/lib/api/salon.client";
 
 interface Card {
   isActive: boolean;
@@ -82,8 +83,36 @@ export function LoyaltyCardPanel({
         .then((r) => r.data as any),
   });
 
+  // A barber / salon has no food menu: its reward is a SERVICE ("Free skin
+  // fade"). The card's reward item can only point at a menu item, so the
+  // chosen service is kept in the salon's own settings and the card keeps
+  // the wording; salon checkout takes that service off when it's spent.
+  const { data: salon } = useQuery({
+    queryKey: ["salon", "settings", locationId],
+    queryFn: () => salonClient.settings(locationId!),
+    enabled: !!locationId,
+    staleTime: 60_000,
+  });
+  const isSalon = !!salon?.isSalon;
+  const { data: salonServices = [] } = useQuery({
+    queryKey: ["salon", "services", locationId],
+    queryFn: () => salonClient.services(locationId!),
+    enabled: !!locationId && isSalon,
+  });
+  const [rewardServiceId, setRewardServiceId] = useState<string | null | undefined>(undefined);
+  useEffect(() => {
+    if (salon && rewardServiceId === undefined) setRewardServiceId(salon.settings.loyaltyRewardServiceId ?? null);
+  }, [salon, rewardServiceId]);
+
   const items = useMemo(() => {
     const out: Array<{ id: string; name: string; price: number; imageUrl: string | null; category: string }> = [];
+    if (isSalon) {
+      for (const sv of salonServices) {
+        if (!sv.isActive) continue;
+        out.push({ id: sv.id, name: sv.name, price: sv.price, imageUrl: sv.imageUrl, category: sv.category });
+      }
+      return out;
+    }
     for (const cat of storefront?.menu?.categories ?? []) {
       for (const link of cat.items ?? []) {
         const it = link?.item;
@@ -98,7 +127,7 @@ export function LoyaltyCardPanel({
       }
     }
     return out;
-  }, [storefront]);
+  }, [storefront, isSalon, salonServices]);
 
   const [itemSearch, setItemSearch] = useState("");
   const shown = useMemo(() => {
@@ -125,8 +154,15 @@ export function LoyaltyCardPanel({
   }, [data, form]);
 
   const save = useMutation({
-    mutationFn: (body: Card) =>
-      apiClient.put(`/v1/loyalty/cards/${locationId}`, body).then((r) => r.data),
+    mutationFn: async (body: Card) => {
+      if (isSalon) {
+        await salonClient.saveSettings(locationId!, { loyaltyRewardServiceId: rewardServiceId ?? null });
+        void qc.invalidateQueries({ queryKey: ["salon", "settings", locationId] });
+      }
+      return apiClient
+        .put(`/v1/loyalty/cards/${locationId}`, isSalon ? { ...body, rewardItemId: null } : body)
+        .then((r) => r.data);
+    },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["loyalty-card-config", locationId] });
       // Close on save so the operator lands back on the campaigns list, the
@@ -157,6 +193,7 @@ export function LoyaltyCardPanel({
     setForm((f) => (f ? { ...f, [k]: v } : f));
 
   const noReward = !form.rewardItemId && !form.rewardLabel.trim();
+  const chosenId = isSalon ? rewardServiceId : form.rewardItemId;
 
   return (
     <Shell>
@@ -230,9 +267,13 @@ export function LoyaltyCardPanel({
 
         <Field
           label="Reward"
-          hint="What staff hand over when the card is full. Picked from the live menu, so it is something they actually make."
+          hint={
+            isSalon
+              ? "The service they get free when the card is full. Taken off at checkout when you scan their card."
+              : "What staff hand over when the card is full. Picked from the live menu, so it is something they actually make."
+          }
         >
-          {brands.length > 1 && (
+          {!isSalon && brands.length > 1 && (
             <select
               value={activeBrand?.id ?? ""}
               onChange={(e) => setPickedBrand(e.target.value)}
@@ -250,7 +291,7 @@ export function LoyaltyCardPanel({
             <input
               value={itemSearch}
               onChange={(e) => setItemSearch(e.target.value)}
-              placeholder="Search the menu…"
+              placeholder={isSalon ? "Search your services…" : "Search the menu…"}
               className={`${input} pl-8`}
             />
           </div>
@@ -260,8 +301,9 @@ export function LoyaltyCardPanel({
           <div className="mt-2 max-h-56 overflow-y-auto rounded-md border border-zinc-200">
             {items.length === 0 ? (
               <p className="p-3 text-xs text-zinc-400">
-                No published menu for this brand yet — publish one and its items
-                appear here.
+                {isSalon
+                  ? "No services yet — add them under Appointments → Services."
+                  : "No published menu for this brand yet — publish one and its items appear here."}
               </p>
             ) : shown.length === 0 ? (
               <p className="p-3 text-xs text-zinc-400">
@@ -269,13 +311,14 @@ export function LoyaltyCardPanel({
               </p>
             ) : (
               shown.map((i) => {
-                const on = form.rewardItemId === i.id;
+                const on = chosenId === i.id;
                 return (
                   <button
                     key={i.id}
                     type="button"
                     onClick={() => {
-                      set("rewardItemId", on ? null : i.id);
+                      if (isSalon) setRewardServiceId(on ? null : i.id);
+                      else set("rewardItemId", on ? null : i.id);
                       // Keep the wording in step with the item, so the
                       // customer's card and the kitchen ticket agree.
                       if (!on) set("rewardLabel", `Free ${i.name}`);
@@ -344,7 +387,7 @@ export function LoyaltyCardPanel({
         form={form}
         set={set}
         locationId={locationId}
-        rewardFallback={items.find((i) => i.id === form.rewardItemId)?.name}
+        rewardFallback={items.find((i) => i.id === chosenId)?.name}
       />
 
       {form.isActive && noReward && (

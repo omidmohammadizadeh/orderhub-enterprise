@@ -27,6 +27,7 @@ export interface SalonSettings {
   queueCallSms: boolean;
   bookingPolicy: string;
   offerAnyStaff: boolean;
+  loyaltyRewardServiceId: string | null;
 }
 
 export type WeeklyHours = Partial<Record<string, Array<{ from: string; to: string }>>>;

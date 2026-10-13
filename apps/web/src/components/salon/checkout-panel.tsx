@@ -80,13 +80,31 @@ export function CheckoutPanel({
   );
   const extrasTotal = extras.reduce((s, x) => s + (Number(x.price) || 0) * x.quantity, 0);
   const deposit = preview.data?.deposit ?? 0;
-  const rewardValue = reward
-    ? Math.min(
-        serviceTotal + extrasTotal,
-        reward.amountOff ?? (services[0] ? services[0].price : 0),
-      )
-    : 0;
-  const disc = Math.max(0, Number(discount) || 0) + rewardValue;
+  // What the reward is worth on THIS bill: money off if it's a money-off
+  // reward; otherwise the service the shop chose for its card (Settings on
+  // the loyalty card), else the service named on the reward, else the first.
+  const rewardServiceId = useQuery({
+    queryKey: ["salon", "settings", locationId],
+    queryFn: () => salonClient.settings(locationId),
+    staleTime: 60_000,
+  }).data?.settings.loyaltyRewardServiceId;
+  const rewardLine = (() => {
+    const priceAt = (i: number) => {
+      const p = prices[i] !== undefined && prices[i] !== "" ? Number(prices[i]) : services[i]!.price;
+      return Number.isFinite(p) ? p : services[i]!.price;
+    };
+    const byId = services.findIndex((l) => l.serviceId === rewardServiceId);
+    if (byId >= 0) return priceAt(byId);
+    const label = (reward?.label ?? "").toLowerCase();
+    const byName = services.findIndex((l) => label.includes(l.name.toLowerCase()));
+    if (byName >= 0) return priceAt(byName);
+    return services[0] ? priceAt(0) : 0;
+  })();
+  const rewardValue = reward ? Math.min(serviceTotal + extrasTotal, reward.amountOff ?? rewardLine) : 0;
+  // The reward is applied by the server on its own line; here it only
+  // shows in the total. The discount field is the manual one alone.
+  const manualDiscount = Math.max(0, Number(discount) || 0);
+  const disc = manualDiscount + rewardValue;
   const beforeTip = Math.max(0, Math.round((serviceTotal + extrasTotal - deposit - disc) * 100) / 100);
   const tip =
     tipPct === null ? Math.max(0, Number(tipCustom) || 0) : Math.round(((serviceTotal * tipPct) / 100) * 100) / 100;
@@ -97,7 +115,7 @@ export function CheckoutPanel({
       salonClient.checkout(appointment.id, {
         paymentMethod: method,
         tipAmount: tip,
-        discount: disc,
+        discount: manualDiscount,
         prices: Object.entries(prices)
           .filter(([, v]) => v !== "" && Number.isFinite(Number(v)))
           .map(([k, v]) => ({ index: Number(k), price: Number(v) })),

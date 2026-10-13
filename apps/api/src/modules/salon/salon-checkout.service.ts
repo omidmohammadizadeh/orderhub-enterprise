@@ -5,6 +5,7 @@ import { OrdersService } from "../orders/orders.service";
 import { applyCredit, checkoutTotal, linesForCheckout, storedLines, type CheckoutLine } from "./salon-lines";
 import { SalonDepositService } from "./salon-deposit.service";
 import { SalonBookingService } from "./salon-booking.service";
+import { readSalonSettings } from "./salon-settings";
 
 // Checkout: an appointment becomes a sale.
 //
@@ -125,6 +126,40 @@ export class SalonCheckoutService {
     }
     if (lines.length === 0) throw new BadRequestException("Nothing to charge for");
 
+    // A loyalty reward comes off first, on the line it's FOR — the receipt
+    // should say the skin fade was free, not the haircut next to it.
+    let rewardValue = 0;
+    if (input.loyaltyRewardId) {
+      const reward = await this.prisma.loyaltyReward.findFirst({
+        where: {
+          id: input.loyaltyRewardId,
+          tenantId,
+          locationId: appt.locationId,
+          ...(input.loyaltyMemberId ? { memberId: input.loyaltyMemberId } : {}),
+          claimedAt: null,
+        },
+        select: { label: true, amountOff: true },
+      });
+      if (!reward) throw new BadRequestException("That reward has already been used or isn't on this card");
+      if (reward.amountOff != null) {
+        rewardValue = Math.min(checkoutTotal(lines), Number(reward.amountOff));
+        lines = applyCredit(lines, rewardValue, `Reward: ${reward.label}`).lines;
+      } else {
+        const loc = await this.prisma.location.findUnique({ where: { id: appt.locationId }, select: { settings: true } });
+        const chosen = readSalonSettings(loc?.settings).loyaltyRewardServiceId;
+        const chosenName = services.find((l) => l.serviceId === chosen)?.name;
+        const label = reward.label.toLowerCase();
+        let at = chosenName ? lines.findIndex((l) => l.name === chosenName) : -1;
+        if (at < 0) at = lines.findIndex((l) => !l.name.startsWith("+ ") && label.includes(l.name.toLowerCase()));
+        if (at < 0) at = lines.findIndex((l) => !l.name.startsWith("+ "));
+        const line = lines[at];
+        if (line) {
+          rewardValue = round2(line.unitPrice);
+          lines[at] = { ...line, unitPrice: 0, quantity: 1, notes: [line.notes, `Loyalty reward — ${reward.label}`].filter(Boolean).join(" · ") };
+        }
+      }
+    }
+
     const deposit = appt.depositStatus === "PAID" ? Number(appt.depositAmount) : 0;
     if (deposit > 0) lines = applyCredit(lines, deposit, `${deposit.toFixed(2)} deposit paid online`).lines;
     const discount = round2(Math.max(0, Number(input.discount) || 0));
@@ -177,7 +212,7 @@ export class SalonCheckoutService {
         services: services as any,
         // Takings for reports and commission: the services as charged, after
         // any discount (deposits are payment, not discount, so they stay in).
-        totalPrice: Math.max(0, Math.round((linesTotal(services) - discount) * 100) / 100),
+        totalPrice: Math.max(0, Math.round((linesTotal(services) - discount - rewardValue) * 100) / 100),
         ...(appt.status !== "IN_SERVICE" ? { status: "IN_SERVICE", startedAt: appt.startedAt ?? new Date() } : {}),
       },
     });
@@ -222,6 +257,13 @@ export class SalonCheckoutService {
       },
       { tenantId, online: false, actorUserId },
     );
-    return { appointmentId: appt.id, ...(await this.checkout(tenantId, appt.id, body, actorUserId)) };
+    try {
+      return { appointmentId: appt.id, ...(await this.checkout(tenantId, appt.id, body, actorUserId)) };
+    } catch (e) {
+      // The visit only existed to be paid for: don't leave it in the diary.
+      await this.prisma.salonAppointment.delete({ where: { id: appt.id } }).catch(() => undefined);
+      this.booking.emit(appt.locationId, "updated", appt.id);
+      throw e;
+    }
   }
 }

@@ -36,6 +36,9 @@ export interface SalonSettings {
   bookingPolicy: string;
   /** Ask online guests to pick a barber, or offer "Anyone" first. */
   offerAnyStaff: boolean;
+  /** The service a full loyalty card gets free. The card itself can only
+   *  point at a food MenuItem, so a salon's reward service lives here. */
+  loyaltyRewardServiceId: string | null;
 }
 
 export const SALON_DEFAULTS: SalonSettings = {
@@ -57,6 +60,7 @@ export const SALON_DEFAULTS: SalonSettings = {
   queueCallSms: false,
   bookingPolicy: "",
   offerAnyStaff: true,
+  loyaltyRewardServiceId: null,
 };
 
 const TRADES = ["BARBER", "HAIR", "NAILS", "BEAUTY"] as const;
@@ -98,6 +102,10 @@ export function readSalonSettings(locationSettings: unknown): SalonSettings {
     queueCallSms: bool(raw.queueCallSms, SALON_DEFAULTS.queueCallSms),
     bookingPolicy: String(raw.bookingPolicy ?? "").slice(0, 2000),
     offerAnyStaff: bool(raw.offerAnyStaff, SALON_DEFAULTS.offerAnyStaff),
+    loyaltyRewardServiceId:
+      typeof raw.loyaltyRewardServiceId === "string" && raw.loyaltyRewardServiceId.trim()
+        ? raw.loyaltyRewardServiceId.trim().slice(0, 64)
+        : null,
   };
 }
 
