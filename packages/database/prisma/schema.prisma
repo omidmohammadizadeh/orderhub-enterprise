@@ -6325,3 +6325,74 @@ model MenuAutoPublish {
   @@index([tenantId])
   @@map("menu_auto_publish")
 }
+
+// Auto dispatch — send a delivery to a third-party courier network without
+// anyone pressing Dispatch. A rule says WHICH orders (location × brand ×
+// channel), WHERE they go (one fixed provider, or a live quote from every
+// provider in a pool with the cheapest one booked) and WHEN (on accept, on
+// ready, or N minutes before the food is due). Platform-admin only for now.
+model AutoDispatchRule {
+  id         String    @id @default(cuid())
+  tenantId   String
+  name       String
+  enabled    Boolean   @default(false)
+  // Lower runs first when two rules match the same order.
+  priority   Int       @default(100)
+  // null = every location of the tenant.
+  locationId String?
+  // Empty = any brand / any channel (OrderSource values).
+  brandIds   String[]  @default([])
+  channels   String[]  @default([])
+  // FIXED | CHEAPEST
+  strategy   String    @default("FIXED")
+  // STUART | UBER_DIRECT | JET_GO | YANGO. FIXED: tried in this order.
+  // CHEAPEST: the pool that is quoted.
+  providers  String[]  @default([])
+  // Try the next provider when the chosen one refuses the booking.
+  fallback   Boolean   @default(true)
+  // ON_ACCEPT | ON_READY | BEFORE_READY
+  trigger    String    @default("ON_ACCEPT")
+  // ON_ACCEPT / ON_READY: wait this long after the event.
+  // BEFORE_READY: book this long before the food is due.
+  delayMinutes Int     @default(0)
+  // Never auto-book a courier dearer than this (minor units). null = no cap.
+  maxPriceMinor Int?
+  // Quote and record the choice, but book nothing.
+  dryRun     Boolean   @default(false)
+  // Orders accepted before the rule was switched on are left alone, so
+  // enabling a rule mid-service doesn't fire couriers at the whole board.
+  enabledAt  DateTime?
+  createdBy  String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([tenantId, enabled])
+  @@map("auto_dispatch_rules")
+}
+
+// One row per order an auto-dispatch rule picked up. orderId is unique: the
+// insert IS the claim, so two API instances can never both book a courier.
+model AutoDispatchRun {
+  id         String    @id @default(cuid())
+  tenantId   String
+  orderId    String    @unique
+  locationId String
+  ruleId     String
+  // SCHEDULED | RUNNING | DISPATCHED | DRY_RUN | FAILED | SKIPPED
+  status     String    @default("SCHEDULED")
+  dueAt      DateTime
+  attempts   Int       @default(0)
+  // [{ provider, ok, amountMinor, currency, error, eta }]
+  quotes     Json?
+  provider   String?
+  priceMinor Int?
+  jobId      String?
+  error      String?
+  finishedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([status, dueAt])
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@map("auto_dispatch_runs")
+}

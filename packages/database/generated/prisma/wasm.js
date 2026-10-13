@@ -2833,6 +2833,47 @@ exports.Prisma.MenuAutoPublishScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.AutoDispatchRuleScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  enabled: 'enabled',
+  priority: 'priority',
+  locationId: 'locationId',
+  brandIds: 'brandIds',
+  channels: 'channels',
+  strategy: 'strategy',
+  providers: 'providers',
+  fallback: 'fallback',
+  trigger: 'trigger',
+  delayMinutes: 'delayMinutes',
+  maxPriceMinor: 'maxPriceMinor',
+  dryRun: 'dryRun',
+  enabledAt: 'enabledAt',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AutoDispatchRunScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  orderId: 'orderId',
+  locationId: 'locationId',
+  ruleId: 'ruleId',
+  status: 'status',
+  dueAt: 'dueAt',
+  attempts: 'attempts',
+  quotes: 'quotes',
+  provider: 'provider',
+  priceMinor: 'priceMinor',
+  jobId: 'jobId',
+  error: 'error',
+  finishedAt: 'finishedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -4562,6 +4603,31 @@ exports.Prisma.MenuAutoPublishOrderByRelevanceFieldEnum = {
   lastStatus: 'lastStatus',
   createdBy: 'createdBy'
 };
+
+exports.Prisma.AutoDispatchRuleOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  locationId: 'locationId',
+  brandIds: 'brandIds',
+  channels: 'channels',
+  strategy: 'strategy',
+  providers: 'providers',
+  trigger: 'trigger',
+  createdBy: 'createdBy'
+};
+
+exports.Prisma.AutoDispatchRunOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  orderId: 'orderId',
+  locationId: 'locationId',
+  ruleId: 'ruleId',
+  status: 'status',
+  provider: 'provider',
+  jobId: 'jobId',
+  error: 'error'
+};
 exports.TenantPlan = exports.$Enums.TenantPlan = {
   STARTER: 'STARTER',
   PROFESSIONAL: 'PROFESSIONAL',
@@ -5189,7 +5255,9 @@ exports.Prisma.ModelName = {
   BuildStepTemplate: 'BuildStepTemplate',
   BuildGuideTraining: 'BuildGuideTraining',
   AssemblyChart: 'AssemblyChart',
-  MenuAutoPublish: 'MenuAutoPublish'
+  MenuAutoPublish: 'MenuAutoPublish',
+  AutoDispatchRule: 'AutoDispatchRule',
+  AutoDispatchRun: 'AutoDispatchRun'
 };
 
 /**

@@ -815,6 +815,16 @@ export type AssemblyChart = $Result.DefaultSelection<Prisma.$AssemblyChartPayloa
  * 
  */
 export type MenuAutoPublish = $Result.DefaultSelection<Prisma.$MenuAutoPublishPayload>
+/**
+ * Model AutoDispatchRule
+ * 
+ */
+export type AutoDispatchRule = $Result.DefaultSelection<Prisma.$AutoDispatchRulePayload>
+/**
+ * Model AutoDispatchRun
+ * 
+ */
+export type AutoDispatchRun = $Result.DefaultSelection<Prisma.$AutoDispatchRunPayload>
 
 /**
  * Enums
@@ -3358,6 +3368,26 @@ export class PrismaClient<
     * ```
     */
   get menuAutoPublish(): Prisma.MenuAutoPublishDelegate<ExtArgs>;
+
+  /**
+   * `prisma.autoDispatchRule`: Exposes CRUD operations for the **AutoDispatchRule** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AutoDispatchRules
+    * const autoDispatchRules = await prisma.autoDispatchRule.findMany()
+    * ```
+    */
+  get autoDispatchRule(): Prisma.AutoDispatchRuleDelegate<ExtArgs>;
+
+  /**
+   * `prisma.autoDispatchRun`: Exposes CRUD operations for the **AutoDispatchRun** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AutoDispatchRuns
+    * const autoDispatchRuns = await prisma.autoDispatchRun.findMany()
+    * ```
+    */
+  get autoDispatchRun(): Prisma.AutoDispatchRunDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -3955,7 +3985,9 @@ export namespace Prisma {
     BuildStepTemplate: 'BuildStepTemplate',
     BuildGuideTraining: 'BuildGuideTraining',
     AssemblyChart: 'AssemblyChart',
-    MenuAutoPublish: 'MenuAutoPublish'
+    MenuAutoPublish: 'MenuAutoPublish',
+    AutoDispatchRule: 'AutoDispatchRule',
+    AutoDispatchRun: 'AutoDispatchRun'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -3971,7 +4003,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "promoCodeRedemption" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "salonService" | "salonStaff" | "salonTimeOff" | "salonAppointment" | "salonQueueEntry" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "productVariant" | "productStockLevel" | "productStockMovement" | "refundLine" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "yangoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "loyaltyMember" | "loyaltyPassDevice" | "referralProgram" | "referralCode" | "referral" | "keetaAuthorization" | "emailContact" | "emailCampaign" | "emailAutomation" | "emailCampaignRecipient" | "buildGuide" | "buildStepTemplate" | "buildGuideTraining" | "assemblyChart" | "menuAutoPublish"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "promoCodeRedemption" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "salonService" | "salonStaff" | "salonTimeOff" | "salonAppointment" | "salonQueueEntry" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "productVariant" | "productStockLevel" | "productStockMovement" | "refundLine" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "yangoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "loyaltyMember" | "loyaltyPassDevice" | "referralProgram" | "referralCode" | "referral" | "keetaAuthorization" | "emailContact" | "emailCampaign" | "emailAutomation" | "emailCampaignRecipient" | "buildGuide" | "buildStepTemplate" | "buildGuideTraining" | "assemblyChart" | "menuAutoPublish" | "autoDispatchRule" | "autoDispatchRun"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -14962,6 +14994,146 @@ export namespace Prisma {
           count: {
             args: Prisma.MenuAutoPublishCountArgs<ExtArgs>
             result: $Utils.Optional<MenuAutoPublishCountAggregateOutputType> | number
+          }
+        }
+      }
+      AutoDispatchRule: {
+        payload: Prisma.$AutoDispatchRulePayload<ExtArgs>
+        fields: Prisma.AutoDispatchRuleFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AutoDispatchRuleFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AutoDispatchRulePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AutoDispatchRuleFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AutoDispatchRulePayload>
+          }
+          findFirst: {
+            args: Prisma.AutoDispatchRuleFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AutoDispatchRulePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AutoDispatchRuleFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AutoDispatchRulePayload>
+          }
+          findMany: {
+            args: Prisma.AutoDispatchRuleFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AutoDispatchRulePayload>[]
+          }
+          create: {
+            args: Prisma.AutoDispatchRuleCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AutoDispatchRulePayload>
+          }
+          createMany: {
+            args: Prisma.AutoDispatchRuleCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AutoDispatchRuleCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AutoDispatchRulePayload>[]
+          }
+          delete: {
+            args: Prisma.AutoDispatchRuleDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AutoDispatchRulePayload>
+          }
+          update: {
+            args: Prisma.AutoDispatchRuleUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AutoDispatchRulePayload>
+          }
+          deleteMany: {
+            args: Prisma.AutoDispatchRuleDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AutoDispatchRuleUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.AutoDispatchRuleUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AutoDispatchRulePayload>
+          }
+          aggregate: {
+            args: Prisma.AutoDispatchRuleAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAutoDispatchRule>
+          }
+          groupBy: {
+            args: Prisma.AutoDispatchRuleGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AutoDispatchRuleGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AutoDispatchRuleCountArgs<ExtArgs>
+            result: $Utils.Optional<AutoDispatchRuleCountAggregateOutputType> | number
+          }
+        }
+      }
+      AutoDispatchRun: {
+        payload: Prisma.$AutoDispatchRunPayload<ExtArgs>
+        fields: Prisma.AutoDispatchRunFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AutoDispatchRunFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AutoDispatchRunPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AutoDispatchRunFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AutoDispatchRunPayload>
+          }
+          findFirst: {
+            args: Prisma.AutoDispatchRunFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AutoDispatchRunPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AutoDispatchRunFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AutoDispatchRunPayload>
+          }
+          findMany: {
+            args: Prisma.AutoDispatchRunFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AutoDispatchRunPayload>[]
+          }
+          create: {
+            args: Prisma.AutoDispatchRunCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AutoDispatchRunPayload>
+          }
+          createMany: {
+            args: Prisma.AutoDispatchRunCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AutoDispatchRunCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AutoDispatchRunPayload>[]
+          }
+          delete: {
+            args: Prisma.AutoDispatchRunDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AutoDispatchRunPayload>
+          }
+          update: {
+            args: Prisma.AutoDispatchRunUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AutoDispatchRunPayload>
+          }
+          deleteMany: {
+            args: Prisma.AutoDispatchRunDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AutoDispatchRunUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.AutoDispatchRunUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AutoDispatchRunPayload>
+          }
+          aggregate: {
+            args: Prisma.AutoDispatchRunAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAutoDispatchRun>
+          }
+          groupBy: {
+            args: Prisma.AutoDispatchRunGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AutoDispatchRunGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AutoDispatchRunCountArgs<ExtArgs>
+            result: $Utils.Optional<AutoDispatchRunCountAggregateOutputType> | number
           }
         }
       }
@@ -188276,6 +188448,2126 @@ export namespace Prisma {
 
 
   /**
+   * Model AutoDispatchRule
+   */
+
+  export type AggregateAutoDispatchRule = {
+    _count: AutoDispatchRuleCountAggregateOutputType | null
+    _avg: AutoDispatchRuleAvgAggregateOutputType | null
+    _sum: AutoDispatchRuleSumAggregateOutputType | null
+    _min: AutoDispatchRuleMinAggregateOutputType | null
+    _max: AutoDispatchRuleMaxAggregateOutputType | null
+  }
+
+  export type AutoDispatchRuleAvgAggregateOutputType = {
+    priority: number | null
+    delayMinutes: number | null
+    maxPriceMinor: number | null
+  }
+
+  export type AutoDispatchRuleSumAggregateOutputType = {
+    priority: number | null
+    delayMinutes: number | null
+    maxPriceMinor: number | null
+  }
+
+  export type AutoDispatchRuleMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    name: string | null
+    enabled: boolean | null
+    priority: number | null
+    locationId: string | null
+    strategy: string | null
+    fallback: boolean | null
+    trigger: string | null
+    delayMinutes: number | null
+    maxPriceMinor: number | null
+    dryRun: boolean | null
+    enabledAt: Date | null
+    createdBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type AutoDispatchRuleMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    name: string | null
+    enabled: boolean | null
+    priority: number | null
+    locationId: string | null
+    strategy: string | null
+    fallback: boolean | null
+    trigger: string | null
+    delayMinutes: number | null
+    maxPriceMinor: number | null
+    dryRun: boolean | null
+    enabledAt: Date | null
+    createdBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type AutoDispatchRuleCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    name: number
+    enabled: number
+    priority: number
+    locationId: number
+    brandIds: number
+    channels: number
+    strategy: number
+    providers: number
+    fallback: number
+    trigger: number
+    delayMinutes: number
+    maxPriceMinor: number
+    dryRun: number
+    enabledAt: number
+    createdBy: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type AutoDispatchRuleAvgAggregateInputType = {
+    priority?: true
+    delayMinutes?: true
+    maxPriceMinor?: true
+  }
+
+  export type AutoDispatchRuleSumAggregateInputType = {
+    priority?: true
+    delayMinutes?: true
+    maxPriceMinor?: true
+  }
+
+  export type AutoDispatchRuleMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    name?: true
+    enabled?: true
+    priority?: true
+    locationId?: true
+    strategy?: true
+    fallback?: true
+    trigger?: true
+    delayMinutes?: true
+    maxPriceMinor?: true
+    dryRun?: true
+    enabledAt?: true
+    createdBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type AutoDispatchRuleMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    name?: true
+    enabled?: true
+    priority?: true
+    locationId?: true
+    strategy?: true
+    fallback?: true
+    trigger?: true
+    delayMinutes?: true
+    maxPriceMinor?: true
+    dryRun?: true
+    enabledAt?: true
+    createdBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type AutoDispatchRuleCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    name?: true
+    enabled?: true
+    priority?: true
+    locationId?: true
+    brandIds?: true
+    channels?: true
+    strategy?: true
+    providers?: true
+    fallback?: true
+    trigger?: true
+    delayMinutes?: true
+    maxPriceMinor?: true
+    dryRun?: true
+    enabledAt?: true
+    createdBy?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type AutoDispatchRuleAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AutoDispatchRule to aggregate.
+     */
+    where?: AutoDispatchRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AutoDispatchRules to fetch.
+     */
+    orderBy?: AutoDispatchRuleOrderByWithRelationInput | AutoDispatchRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: AutoDispatchRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AutoDispatchRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AutoDispatchRules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned AutoDispatchRules
+    **/
+    _count?: true | AutoDispatchRuleCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: AutoDispatchRuleAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: AutoDispatchRuleSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AutoDispatchRuleMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AutoDispatchRuleMaxAggregateInputType
+  }
+
+  export type GetAutoDispatchRuleAggregateType<T extends AutoDispatchRuleAggregateArgs> = {
+        [P in keyof T & keyof AggregateAutoDispatchRule]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAutoDispatchRule[P]>
+      : GetScalarType<T[P], AggregateAutoDispatchRule[P]>
+  }
+
+
+
+
+  export type AutoDispatchRuleGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AutoDispatchRuleWhereInput
+    orderBy?: AutoDispatchRuleOrderByWithAggregationInput | AutoDispatchRuleOrderByWithAggregationInput[]
+    by: AutoDispatchRuleScalarFieldEnum[] | AutoDispatchRuleScalarFieldEnum
+    having?: AutoDispatchRuleScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AutoDispatchRuleCountAggregateInputType | true
+    _avg?: AutoDispatchRuleAvgAggregateInputType
+    _sum?: AutoDispatchRuleSumAggregateInputType
+    _min?: AutoDispatchRuleMinAggregateInputType
+    _max?: AutoDispatchRuleMaxAggregateInputType
+  }
+
+  export type AutoDispatchRuleGroupByOutputType = {
+    id: string
+    tenantId: string
+    name: string
+    enabled: boolean
+    priority: number
+    locationId: string | null
+    brandIds: string[]
+    channels: string[]
+    strategy: string
+    providers: string[]
+    fallback: boolean
+    trigger: string
+    delayMinutes: number
+    maxPriceMinor: number | null
+    dryRun: boolean
+    enabledAt: Date | null
+    createdBy: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: AutoDispatchRuleCountAggregateOutputType | null
+    _avg: AutoDispatchRuleAvgAggregateOutputType | null
+    _sum: AutoDispatchRuleSumAggregateOutputType | null
+    _min: AutoDispatchRuleMinAggregateOutputType | null
+    _max: AutoDispatchRuleMaxAggregateOutputType | null
+  }
+
+  type GetAutoDispatchRuleGroupByPayload<T extends AutoDispatchRuleGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AutoDispatchRuleGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AutoDispatchRuleGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AutoDispatchRuleGroupByOutputType[P]>
+            : GetScalarType<T[P], AutoDispatchRuleGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AutoDispatchRuleSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    name?: boolean
+    enabled?: boolean
+    priority?: boolean
+    locationId?: boolean
+    brandIds?: boolean
+    channels?: boolean
+    strategy?: boolean
+    providers?: boolean
+    fallback?: boolean
+    trigger?: boolean
+    delayMinutes?: boolean
+    maxPriceMinor?: boolean
+    dryRun?: boolean
+    enabledAt?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["autoDispatchRule"]>
+
+  export type AutoDispatchRuleSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    name?: boolean
+    enabled?: boolean
+    priority?: boolean
+    locationId?: boolean
+    brandIds?: boolean
+    channels?: boolean
+    strategy?: boolean
+    providers?: boolean
+    fallback?: boolean
+    trigger?: boolean
+    delayMinutes?: boolean
+    maxPriceMinor?: boolean
+    dryRun?: boolean
+    enabledAt?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["autoDispatchRule"]>
+
+  export type AutoDispatchRuleSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    name?: boolean
+    enabled?: boolean
+    priority?: boolean
+    locationId?: boolean
+    brandIds?: boolean
+    channels?: boolean
+    strategy?: boolean
+    providers?: boolean
+    fallback?: boolean
+    trigger?: boolean
+    delayMinutes?: boolean
+    maxPriceMinor?: boolean
+    dryRun?: boolean
+    enabledAt?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+
+  export type $AutoDispatchRulePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AutoDispatchRule"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      name: string
+      enabled: boolean
+      priority: number
+      locationId: string | null
+      brandIds: string[]
+      channels: string[]
+      strategy: string
+      providers: string[]
+      fallback: boolean
+      trigger: string
+      delayMinutes: number
+      maxPriceMinor: number | null
+      dryRun: boolean
+      enabledAt: Date | null
+      createdBy: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["autoDispatchRule"]>
+    composites: {}
+  }
+
+  type AutoDispatchRuleGetPayload<S extends boolean | null | undefined | AutoDispatchRuleDefaultArgs> = $Result.GetResult<Prisma.$AutoDispatchRulePayload, S>
+
+  type AutoDispatchRuleCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<AutoDispatchRuleFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: AutoDispatchRuleCountAggregateInputType | true
+    }
+
+  export interface AutoDispatchRuleDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AutoDispatchRule'], meta: { name: 'AutoDispatchRule' } }
+    /**
+     * Find zero or one AutoDispatchRule that matches the filter.
+     * @param {AutoDispatchRuleFindUniqueArgs} args - Arguments to find a AutoDispatchRule
+     * @example
+     * // Get one AutoDispatchRule
+     * const autoDispatchRule = await prisma.autoDispatchRule.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AutoDispatchRuleFindUniqueArgs>(args: SelectSubset<T, AutoDispatchRuleFindUniqueArgs<ExtArgs>>): Prisma__AutoDispatchRuleClient<$Result.GetResult<Prisma.$AutoDispatchRulePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one AutoDispatchRule that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {AutoDispatchRuleFindUniqueOrThrowArgs} args - Arguments to find a AutoDispatchRule
+     * @example
+     * // Get one AutoDispatchRule
+     * const autoDispatchRule = await prisma.autoDispatchRule.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AutoDispatchRuleFindUniqueOrThrowArgs>(args: SelectSubset<T, AutoDispatchRuleFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AutoDispatchRuleClient<$Result.GetResult<Prisma.$AutoDispatchRulePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first AutoDispatchRule that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AutoDispatchRuleFindFirstArgs} args - Arguments to find a AutoDispatchRule
+     * @example
+     * // Get one AutoDispatchRule
+     * const autoDispatchRule = await prisma.autoDispatchRule.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AutoDispatchRuleFindFirstArgs>(args?: SelectSubset<T, AutoDispatchRuleFindFirstArgs<ExtArgs>>): Prisma__AutoDispatchRuleClient<$Result.GetResult<Prisma.$AutoDispatchRulePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first AutoDispatchRule that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AutoDispatchRuleFindFirstOrThrowArgs} args - Arguments to find a AutoDispatchRule
+     * @example
+     * // Get one AutoDispatchRule
+     * const autoDispatchRule = await prisma.autoDispatchRule.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AutoDispatchRuleFindFirstOrThrowArgs>(args?: SelectSubset<T, AutoDispatchRuleFindFirstOrThrowArgs<ExtArgs>>): Prisma__AutoDispatchRuleClient<$Result.GetResult<Prisma.$AutoDispatchRulePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more AutoDispatchRules that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AutoDispatchRuleFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AutoDispatchRules
+     * const autoDispatchRules = await prisma.autoDispatchRule.findMany()
+     * 
+     * // Get first 10 AutoDispatchRules
+     * const autoDispatchRules = await prisma.autoDispatchRule.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const autoDispatchRuleWithIdOnly = await prisma.autoDispatchRule.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends AutoDispatchRuleFindManyArgs>(args?: SelectSubset<T, AutoDispatchRuleFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AutoDispatchRulePayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a AutoDispatchRule.
+     * @param {AutoDispatchRuleCreateArgs} args - Arguments to create a AutoDispatchRule.
+     * @example
+     * // Create one AutoDispatchRule
+     * const AutoDispatchRule = await prisma.autoDispatchRule.create({
+     *   data: {
+     *     // ... data to create a AutoDispatchRule
+     *   }
+     * })
+     * 
+     */
+    create<T extends AutoDispatchRuleCreateArgs>(args: SelectSubset<T, AutoDispatchRuleCreateArgs<ExtArgs>>): Prisma__AutoDispatchRuleClient<$Result.GetResult<Prisma.$AutoDispatchRulePayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many AutoDispatchRules.
+     * @param {AutoDispatchRuleCreateManyArgs} args - Arguments to create many AutoDispatchRules.
+     * @example
+     * // Create many AutoDispatchRules
+     * const autoDispatchRule = await prisma.autoDispatchRule.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends AutoDispatchRuleCreateManyArgs>(args?: SelectSubset<T, AutoDispatchRuleCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AutoDispatchRules and returns the data saved in the database.
+     * @param {AutoDispatchRuleCreateManyAndReturnArgs} args - Arguments to create many AutoDispatchRules.
+     * @example
+     * // Create many AutoDispatchRules
+     * const autoDispatchRule = await prisma.autoDispatchRule.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many AutoDispatchRules and only return the `id`
+     * const autoDispatchRuleWithIdOnly = await prisma.autoDispatchRule.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends AutoDispatchRuleCreateManyAndReturnArgs>(args?: SelectSubset<T, AutoDispatchRuleCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AutoDispatchRulePayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a AutoDispatchRule.
+     * @param {AutoDispatchRuleDeleteArgs} args - Arguments to delete one AutoDispatchRule.
+     * @example
+     * // Delete one AutoDispatchRule
+     * const AutoDispatchRule = await prisma.autoDispatchRule.delete({
+     *   where: {
+     *     // ... filter to delete one AutoDispatchRule
+     *   }
+     * })
+     * 
+     */
+    delete<T extends AutoDispatchRuleDeleteArgs>(args: SelectSubset<T, AutoDispatchRuleDeleteArgs<ExtArgs>>): Prisma__AutoDispatchRuleClient<$Result.GetResult<Prisma.$AutoDispatchRulePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one AutoDispatchRule.
+     * @param {AutoDispatchRuleUpdateArgs} args - Arguments to update one AutoDispatchRule.
+     * @example
+     * // Update one AutoDispatchRule
+     * const autoDispatchRule = await prisma.autoDispatchRule.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends AutoDispatchRuleUpdateArgs>(args: SelectSubset<T, AutoDispatchRuleUpdateArgs<ExtArgs>>): Prisma__AutoDispatchRuleClient<$Result.GetResult<Prisma.$AutoDispatchRulePayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more AutoDispatchRules.
+     * @param {AutoDispatchRuleDeleteManyArgs} args - Arguments to filter AutoDispatchRules to delete.
+     * @example
+     * // Delete a few AutoDispatchRules
+     * const { count } = await prisma.autoDispatchRule.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends AutoDispatchRuleDeleteManyArgs>(args?: SelectSubset<T, AutoDispatchRuleDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AutoDispatchRules.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AutoDispatchRuleUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AutoDispatchRules
+     * const autoDispatchRule = await prisma.autoDispatchRule.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends AutoDispatchRuleUpdateManyArgs>(args: SelectSubset<T, AutoDispatchRuleUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one AutoDispatchRule.
+     * @param {AutoDispatchRuleUpsertArgs} args - Arguments to update or create a AutoDispatchRule.
+     * @example
+     * // Update or create a AutoDispatchRule
+     * const autoDispatchRule = await prisma.autoDispatchRule.upsert({
+     *   create: {
+     *     // ... data to create a AutoDispatchRule
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AutoDispatchRule we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AutoDispatchRuleUpsertArgs>(args: SelectSubset<T, AutoDispatchRuleUpsertArgs<ExtArgs>>): Prisma__AutoDispatchRuleClient<$Result.GetResult<Prisma.$AutoDispatchRulePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of AutoDispatchRules.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AutoDispatchRuleCountArgs} args - Arguments to filter AutoDispatchRules to count.
+     * @example
+     * // Count the number of AutoDispatchRules
+     * const count = await prisma.autoDispatchRule.count({
+     *   where: {
+     *     // ... the filter for the AutoDispatchRules we want to count
+     *   }
+     * })
+    **/
+    count<T extends AutoDispatchRuleCountArgs>(
+      args?: Subset<T, AutoDispatchRuleCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AutoDispatchRuleCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AutoDispatchRule.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AutoDispatchRuleAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AutoDispatchRuleAggregateArgs>(args: Subset<T, AutoDispatchRuleAggregateArgs>): Prisma.PrismaPromise<GetAutoDispatchRuleAggregateType<T>>
+
+    /**
+     * Group by AutoDispatchRule.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AutoDispatchRuleGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends AutoDispatchRuleGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AutoDispatchRuleGroupByArgs['orderBy'] }
+        : { orderBy?: AutoDispatchRuleGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AutoDispatchRuleGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAutoDispatchRuleGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AutoDispatchRule model
+   */
+  readonly fields: AutoDispatchRuleFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AutoDispatchRule.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AutoDispatchRuleClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AutoDispatchRule model
+   */ 
+  interface AutoDispatchRuleFieldRefs {
+    readonly id: FieldRef<"AutoDispatchRule", 'String'>
+    readonly tenantId: FieldRef<"AutoDispatchRule", 'String'>
+    readonly name: FieldRef<"AutoDispatchRule", 'String'>
+    readonly enabled: FieldRef<"AutoDispatchRule", 'Boolean'>
+    readonly priority: FieldRef<"AutoDispatchRule", 'Int'>
+    readonly locationId: FieldRef<"AutoDispatchRule", 'String'>
+    readonly brandIds: FieldRef<"AutoDispatchRule", 'String[]'>
+    readonly channels: FieldRef<"AutoDispatchRule", 'String[]'>
+    readonly strategy: FieldRef<"AutoDispatchRule", 'String'>
+    readonly providers: FieldRef<"AutoDispatchRule", 'String[]'>
+    readonly fallback: FieldRef<"AutoDispatchRule", 'Boolean'>
+    readonly trigger: FieldRef<"AutoDispatchRule", 'String'>
+    readonly delayMinutes: FieldRef<"AutoDispatchRule", 'Int'>
+    readonly maxPriceMinor: FieldRef<"AutoDispatchRule", 'Int'>
+    readonly dryRun: FieldRef<"AutoDispatchRule", 'Boolean'>
+    readonly enabledAt: FieldRef<"AutoDispatchRule", 'DateTime'>
+    readonly createdBy: FieldRef<"AutoDispatchRule", 'String'>
+    readonly createdAt: FieldRef<"AutoDispatchRule", 'DateTime'>
+    readonly updatedAt: FieldRef<"AutoDispatchRule", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * AutoDispatchRule findUnique
+   */
+  export type AutoDispatchRuleFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AutoDispatchRule
+     */
+    select?: AutoDispatchRuleSelect<ExtArgs> | null
+    /**
+     * Filter, which AutoDispatchRule to fetch.
+     */
+    where: AutoDispatchRuleWhereUniqueInput
+  }
+
+  /**
+   * AutoDispatchRule findUniqueOrThrow
+   */
+  export type AutoDispatchRuleFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AutoDispatchRule
+     */
+    select?: AutoDispatchRuleSelect<ExtArgs> | null
+    /**
+     * Filter, which AutoDispatchRule to fetch.
+     */
+    where: AutoDispatchRuleWhereUniqueInput
+  }
+
+  /**
+   * AutoDispatchRule findFirst
+   */
+  export type AutoDispatchRuleFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AutoDispatchRule
+     */
+    select?: AutoDispatchRuleSelect<ExtArgs> | null
+    /**
+     * Filter, which AutoDispatchRule to fetch.
+     */
+    where?: AutoDispatchRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AutoDispatchRules to fetch.
+     */
+    orderBy?: AutoDispatchRuleOrderByWithRelationInput | AutoDispatchRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AutoDispatchRules.
+     */
+    cursor?: AutoDispatchRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AutoDispatchRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AutoDispatchRules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AutoDispatchRules.
+     */
+    distinct?: AutoDispatchRuleScalarFieldEnum | AutoDispatchRuleScalarFieldEnum[]
+  }
+
+  /**
+   * AutoDispatchRule findFirstOrThrow
+   */
+  export type AutoDispatchRuleFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AutoDispatchRule
+     */
+    select?: AutoDispatchRuleSelect<ExtArgs> | null
+    /**
+     * Filter, which AutoDispatchRule to fetch.
+     */
+    where?: AutoDispatchRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AutoDispatchRules to fetch.
+     */
+    orderBy?: AutoDispatchRuleOrderByWithRelationInput | AutoDispatchRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AutoDispatchRules.
+     */
+    cursor?: AutoDispatchRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AutoDispatchRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AutoDispatchRules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AutoDispatchRules.
+     */
+    distinct?: AutoDispatchRuleScalarFieldEnum | AutoDispatchRuleScalarFieldEnum[]
+  }
+
+  /**
+   * AutoDispatchRule findMany
+   */
+  export type AutoDispatchRuleFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AutoDispatchRule
+     */
+    select?: AutoDispatchRuleSelect<ExtArgs> | null
+    /**
+     * Filter, which AutoDispatchRules to fetch.
+     */
+    where?: AutoDispatchRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AutoDispatchRules to fetch.
+     */
+    orderBy?: AutoDispatchRuleOrderByWithRelationInput | AutoDispatchRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing AutoDispatchRules.
+     */
+    cursor?: AutoDispatchRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AutoDispatchRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AutoDispatchRules.
+     */
+    skip?: number
+    distinct?: AutoDispatchRuleScalarFieldEnum | AutoDispatchRuleScalarFieldEnum[]
+  }
+
+  /**
+   * AutoDispatchRule create
+   */
+  export type AutoDispatchRuleCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AutoDispatchRule
+     */
+    select?: AutoDispatchRuleSelect<ExtArgs> | null
+    /**
+     * The data needed to create a AutoDispatchRule.
+     */
+    data: XOR<AutoDispatchRuleCreateInput, AutoDispatchRuleUncheckedCreateInput>
+  }
+
+  /**
+   * AutoDispatchRule createMany
+   */
+  export type AutoDispatchRuleCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AutoDispatchRules.
+     */
+    data: AutoDispatchRuleCreateManyInput | AutoDispatchRuleCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AutoDispatchRule createManyAndReturn
+   */
+  export type AutoDispatchRuleCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AutoDispatchRule
+     */
+    select?: AutoDispatchRuleSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many AutoDispatchRules.
+     */
+    data: AutoDispatchRuleCreateManyInput | AutoDispatchRuleCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AutoDispatchRule update
+   */
+  export type AutoDispatchRuleUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AutoDispatchRule
+     */
+    select?: AutoDispatchRuleSelect<ExtArgs> | null
+    /**
+     * The data needed to update a AutoDispatchRule.
+     */
+    data: XOR<AutoDispatchRuleUpdateInput, AutoDispatchRuleUncheckedUpdateInput>
+    /**
+     * Choose, which AutoDispatchRule to update.
+     */
+    where: AutoDispatchRuleWhereUniqueInput
+  }
+
+  /**
+   * AutoDispatchRule updateMany
+   */
+  export type AutoDispatchRuleUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AutoDispatchRules.
+     */
+    data: XOR<AutoDispatchRuleUpdateManyMutationInput, AutoDispatchRuleUncheckedUpdateManyInput>
+    /**
+     * Filter which AutoDispatchRules to update
+     */
+    where?: AutoDispatchRuleWhereInput
+  }
+
+  /**
+   * AutoDispatchRule upsert
+   */
+  export type AutoDispatchRuleUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AutoDispatchRule
+     */
+    select?: AutoDispatchRuleSelect<ExtArgs> | null
+    /**
+     * The filter to search for the AutoDispatchRule to update in case it exists.
+     */
+    where: AutoDispatchRuleWhereUniqueInput
+    /**
+     * In case the AutoDispatchRule found by the `where` argument doesn't exist, create a new AutoDispatchRule with this data.
+     */
+    create: XOR<AutoDispatchRuleCreateInput, AutoDispatchRuleUncheckedCreateInput>
+    /**
+     * In case the AutoDispatchRule was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AutoDispatchRuleUpdateInput, AutoDispatchRuleUncheckedUpdateInput>
+  }
+
+  /**
+   * AutoDispatchRule delete
+   */
+  export type AutoDispatchRuleDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AutoDispatchRule
+     */
+    select?: AutoDispatchRuleSelect<ExtArgs> | null
+    /**
+     * Filter which AutoDispatchRule to delete.
+     */
+    where: AutoDispatchRuleWhereUniqueInput
+  }
+
+  /**
+   * AutoDispatchRule deleteMany
+   */
+  export type AutoDispatchRuleDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AutoDispatchRules to delete
+     */
+    where?: AutoDispatchRuleWhereInput
+  }
+
+  /**
+   * AutoDispatchRule without action
+   */
+  export type AutoDispatchRuleDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AutoDispatchRule
+     */
+    select?: AutoDispatchRuleSelect<ExtArgs> | null
+  }
+
+
+  /**
+   * Model AutoDispatchRun
+   */
+
+  export type AggregateAutoDispatchRun = {
+    _count: AutoDispatchRunCountAggregateOutputType | null
+    _avg: AutoDispatchRunAvgAggregateOutputType | null
+    _sum: AutoDispatchRunSumAggregateOutputType | null
+    _min: AutoDispatchRunMinAggregateOutputType | null
+    _max: AutoDispatchRunMaxAggregateOutputType | null
+  }
+
+  export type AutoDispatchRunAvgAggregateOutputType = {
+    attempts: number | null
+    priceMinor: number | null
+  }
+
+  export type AutoDispatchRunSumAggregateOutputType = {
+    attempts: number | null
+    priceMinor: number | null
+  }
+
+  export type AutoDispatchRunMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    orderId: string | null
+    locationId: string | null
+    ruleId: string | null
+    status: string | null
+    dueAt: Date | null
+    attempts: number | null
+    provider: string | null
+    priceMinor: number | null
+    jobId: string | null
+    error: string | null
+    finishedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type AutoDispatchRunMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    orderId: string | null
+    locationId: string | null
+    ruleId: string | null
+    status: string | null
+    dueAt: Date | null
+    attempts: number | null
+    provider: string | null
+    priceMinor: number | null
+    jobId: string | null
+    error: string | null
+    finishedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type AutoDispatchRunCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    orderId: number
+    locationId: number
+    ruleId: number
+    status: number
+    dueAt: number
+    attempts: number
+    quotes: number
+    provider: number
+    priceMinor: number
+    jobId: number
+    error: number
+    finishedAt: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type AutoDispatchRunAvgAggregateInputType = {
+    attempts?: true
+    priceMinor?: true
+  }
+
+  export type AutoDispatchRunSumAggregateInputType = {
+    attempts?: true
+    priceMinor?: true
+  }
+
+  export type AutoDispatchRunMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    orderId?: true
+    locationId?: true
+    ruleId?: true
+    status?: true
+    dueAt?: true
+    attempts?: true
+    provider?: true
+    priceMinor?: true
+    jobId?: true
+    error?: true
+    finishedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type AutoDispatchRunMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    orderId?: true
+    locationId?: true
+    ruleId?: true
+    status?: true
+    dueAt?: true
+    attempts?: true
+    provider?: true
+    priceMinor?: true
+    jobId?: true
+    error?: true
+    finishedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type AutoDispatchRunCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    orderId?: true
+    locationId?: true
+    ruleId?: true
+    status?: true
+    dueAt?: true
+    attempts?: true
+    quotes?: true
+    provider?: true
+    priceMinor?: true
+    jobId?: true
+    error?: true
+    finishedAt?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type AutoDispatchRunAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AutoDispatchRun to aggregate.
+     */
+    where?: AutoDispatchRunWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AutoDispatchRuns to fetch.
+     */
+    orderBy?: AutoDispatchRunOrderByWithRelationInput | AutoDispatchRunOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: AutoDispatchRunWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AutoDispatchRuns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AutoDispatchRuns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned AutoDispatchRuns
+    **/
+    _count?: true | AutoDispatchRunCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: AutoDispatchRunAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: AutoDispatchRunSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AutoDispatchRunMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AutoDispatchRunMaxAggregateInputType
+  }
+
+  export type GetAutoDispatchRunAggregateType<T extends AutoDispatchRunAggregateArgs> = {
+        [P in keyof T & keyof AggregateAutoDispatchRun]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAutoDispatchRun[P]>
+      : GetScalarType<T[P], AggregateAutoDispatchRun[P]>
+  }
+
+
+
+
+  export type AutoDispatchRunGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AutoDispatchRunWhereInput
+    orderBy?: AutoDispatchRunOrderByWithAggregationInput | AutoDispatchRunOrderByWithAggregationInput[]
+    by: AutoDispatchRunScalarFieldEnum[] | AutoDispatchRunScalarFieldEnum
+    having?: AutoDispatchRunScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AutoDispatchRunCountAggregateInputType | true
+    _avg?: AutoDispatchRunAvgAggregateInputType
+    _sum?: AutoDispatchRunSumAggregateInputType
+    _min?: AutoDispatchRunMinAggregateInputType
+    _max?: AutoDispatchRunMaxAggregateInputType
+  }
+
+  export type AutoDispatchRunGroupByOutputType = {
+    id: string
+    tenantId: string
+    orderId: string
+    locationId: string
+    ruleId: string
+    status: string
+    dueAt: Date
+    attempts: number
+    quotes: JsonValue | null
+    provider: string | null
+    priceMinor: number | null
+    jobId: string | null
+    error: string | null
+    finishedAt: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: AutoDispatchRunCountAggregateOutputType | null
+    _avg: AutoDispatchRunAvgAggregateOutputType | null
+    _sum: AutoDispatchRunSumAggregateOutputType | null
+    _min: AutoDispatchRunMinAggregateOutputType | null
+    _max: AutoDispatchRunMaxAggregateOutputType | null
+  }
+
+  type GetAutoDispatchRunGroupByPayload<T extends AutoDispatchRunGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AutoDispatchRunGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AutoDispatchRunGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AutoDispatchRunGroupByOutputType[P]>
+            : GetScalarType<T[P], AutoDispatchRunGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AutoDispatchRunSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    orderId?: boolean
+    locationId?: boolean
+    ruleId?: boolean
+    status?: boolean
+    dueAt?: boolean
+    attempts?: boolean
+    quotes?: boolean
+    provider?: boolean
+    priceMinor?: boolean
+    jobId?: boolean
+    error?: boolean
+    finishedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["autoDispatchRun"]>
+
+  export type AutoDispatchRunSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    orderId?: boolean
+    locationId?: boolean
+    ruleId?: boolean
+    status?: boolean
+    dueAt?: boolean
+    attempts?: boolean
+    quotes?: boolean
+    provider?: boolean
+    priceMinor?: boolean
+    jobId?: boolean
+    error?: boolean
+    finishedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["autoDispatchRun"]>
+
+  export type AutoDispatchRunSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    orderId?: boolean
+    locationId?: boolean
+    ruleId?: boolean
+    status?: boolean
+    dueAt?: boolean
+    attempts?: boolean
+    quotes?: boolean
+    provider?: boolean
+    priceMinor?: boolean
+    jobId?: boolean
+    error?: boolean
+    finishedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+
+  export type $AutoDispatchRunPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AutoDispatchRun"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      orderId: string
+      locationId: string
+      ruleId: string
+      status: string
+      dueAt: Date
+      attempts: number
+      quotes: Prisma.JsonValue | null
+      provider: string | null
+      priceMinor: number | null
+      jobId: string | null
+      error: string | null
+      finishedAt: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["autoDispatchRun"]>
+    composites: {}
+  }
+
+  type AutoDispatchRunGetPayload<S extends boolean | null | undefined | AutoDispatchRunDefaultArgs> = $Result.GetResult<Prisma.$AutoDispatchRunPayload, S>
+
+  type AutoDispatchRunCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<AutoDispatchRunFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: AutoDispatchRunCountAggregateInputType | true
+    }
+
+  export interface AutoDispatchRunDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AutoDispatchRun'], meta: { name: 'AutoDispatchRun' } }
+    /**
+     * Find zero or one AutoDispatchRun that matches the filter.
+     * @param {AutoDispatchRunFindUniqueArgs} args - Arguments to find a AutoDispatchRun
+     * @example
+     * // Get one AutoDispatchRun
+     * const autoDispatchRun = await prisma.autoDispatchRun.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AutoDispatchRunFindUniqueArgs>(args: SelectSubset<T, AutoDispatchRunFindUniqueArgs<ExtArgs>>): Prisma__AutoDispatchRunClient<$Result.GetResult<Prisma.$AutoDispatchRunPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one AutoDispatchRun that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {AutoDispatchRunFindUniqueOrThrowArgs} args - Arguments to find a AutoDispatchRun
+     * @example
+     * // Get one AutoDispatchRun
+     * const autoDispatchRun = await prisma.autoDispatchRun.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AutoDispatchRunFindUniqueOrThrowArgs>(args: SelectSubset<T, AutoDispatchRunFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AutoDispatchRunClient<$Result.GetResult<Prisma.$AutoDispatchRunPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first AutoDispatchRun that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AutoDispatchRunFindFirstArgs} args - Arguments to find a AutoDispatchRun
+     * @example
+     * // Get one AutoDispatchRun
+     * const autoDispatchRun = await prisma.autoDispatchRun.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AutoDispatchRunFindFirstArgs>(args?: SelectSubset<T, AutoDispatchRunFindFirstArgs<ExtArgs>>): Prisma__AutoDispatchRunClient<$Result.GetResult<Prisma.$AutoDispatchRunPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first AutoDispatchRun that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AutoDispatchRunFindFirstOrThrowArgs} args - Arguments to find a AutoDispatchRun
+     * @example
+     * // Get one AutoDispatchRun
+     * const autoDispatchRun = await prisma.autoDispatchRun.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AutoDispatchRunFindFirstOrThrowArgs>(args?: SelectSubset<T, AutoDispatchRunFindFirstOrThrowArgs<ExtArgs>>): Prisma__AutoDispatchRunClient<$Result.GetResult<Prisma.$AutoDispatchRunPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more AutoDispatchRuns that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AutoDispatchRunFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AutoDispatchRuns
+     * const autoDispatchRuns = await prisma.autoDispatchRun.findMany()
+     * 
+     * // Get first 10 AutoDispatchRuns
+     * const autoDispatchRuns = await prisma.autoDispatchRun.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const autoDispatchRunWithIdOnly = await prisma.autoDispatchRun.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends AutoDispatchRunFindManyArgs>(args?: SelectSubset<T, AutoDispatchRunFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AutoDispatchRunPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a AutoDispatchRun.
+     * @param {AutoDispatchRunCreateArgs} args - Arguments to create a AutoDispatchRun.
+     * @example
+     * // Create one AutoDispatchRun
+     * const AutoDispatchRun = await prisma.autoDispatchRun.create({
+     *   data: {
+     *     // ... data to create a AutoDispatchRun
+     *   }
+     * })
+     * 
+     */
+    create<T extends AutoDispatchRunCreateArgs>(args: SelectSubset<T, AutoDispatchRunCreateArgs<ExtArgs>>): Prisma__AutoDispatchRunClient<$Result.GetResult<Prisma.$AutoDispatchRunPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many AutoDispatchRuns.
+     * @param {AutoDispatchRunCreateManyArgs} args - Arguments to create many AutoDispatchRuns.
+     * @example
+     * // Create many AutoDispatchRuns
+     * const autoDispatchRun = await prisma.autoDispatchRun.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends AutoDispatchRunCreateManyArgs>(args?: SelectSubset<T, AutoDispatchRunCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AutoDispatchRuns and returns the data saved in the database.
+     * @param {AutoDispatchRunCreateManyAndReturnArgs} args - Arguments to create many AutoDispatchRuns.
+     * @example
+     * // Create many AutoDispatchRuns
+     * const autoDispatchRun = await prisma.autoDispatchRun.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many AutoDispatchRuns and only return the `id`
+     * const autoDispatchRunWithIdOnly = await prisma.autoDispatchRun.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends AutoDispatchRunCreateManyAndReturnArgs>(args?: SelectSubset<T, AutoDispatchRunCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AutoDispatchRunPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a AutoDispatchRun.
+     * @param {AutoDispatchRunDeleteArgs} args - Arguments to delete one AutoDispatchRun.
+     * @example
+     * // Delete one AutoDispatchRun
+     * const AutoDispatchRun = await prisma.autoDispatchRun.delete({
+     *   where: {
+     *     // ... filter to delete one AutoDispatchRun
+     *   }
+     * })
+     * 
+     */
+    delete<T extends AutoDispatchRunDeleteArgs>(args: SelectSubset<T, AutoDispatchRunDeleteArgs<ExtArgs>>): Prisma__AutoDispatchRunClient<$Result.GetResult<Prisma.$AutoDispatchRunPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one AutoDispatchRun.
+     * @param {AutoDispatchRunUpdateArgs} args - Arguments to update one AutoDispatchRun.
+     * @example
+     * // Update one AutoDispatchRun
+     * const autoDispatchRun = await prisma.autoDispatchRun.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends AutoDispatchRunUpdateArgs>(args: SelectSubset<T, AutoDispatchRunUpdateArgs<ExtArgs>>): Prisma__AutoDispatchRunClient<$Result.GetResult<Prisma.$AutoDispatchRunPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more AutoDispatchRuns.
+     * @param {AutoDispatchRunDeleteManyArgs} args - Arguments to filter AutoDispatchRuns to delete.
+     * @example
+     * // Delete a few AutoDispatchRuns
+     * const { count } = await prisma.autoDispatchRun.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends AutoDispatchRunDeleteManyArgs>(args?: SelectSubset<T, AutoDispatchRunDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AutoDispatchRuns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AutoDispatchRunUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AutoDispatchRuns
+     * const autoDispatchRun = await prisma.autoDispatchRun.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends AutoDispatchRunUpdateManyArgs>(args: SelectSubset<T, AutoDispatchRunUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one AutoDispatchRun.
+     * @param {AutoDispatchRunUpsertArgs} args - Arguments to update or create a AutoDispatchRun.
+     * @example
+     * // Update or create a AutoDispatchRun
+     * const autoDispatchRun = await prisma.autoDispatchRun.upsert({
+     *   create: {
+     *     // ... data to create a AutoDispatchRun
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AutoDispatchRun we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AutoDispatchRunUpsertArgs>(args: SelectSubset<T, AutoDispatchRunUpsertArgs<ExtArgs>>): Prisma__AutoDispatchRunClient<$Result.GetResult<Prisma.$AutoDispatchRunPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of AutoDispatchRuns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AutoDispatchRunCountArgs} args - Arguments to filter AutoDispatchRuns to count.
+     * @example
+     * // Count the number of AutoDispatchRuns
+     * const count = await prisma.autoDispatchRun.count({
+     *   where: {
+     *     // ... the filter for the AutoDispatchRuns we want to count
+     *   }
+     * })
+    **/
+    count<T extends AutoDispatchRunCountArgs>(
+      args?: Subset<T, AutoDispatchRunCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AutoDispatchRunCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AutoDispatchRun.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AutoDispatchRunAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AutoDispatchRunAggregateArgs>(args: Subset<T, AutoDispatchRunAggregateArgs>): Prisma.PrismaPromise<GetAutoDispatchRunAggregateType<T>>
+
+    /**
+     * Group by AutoDispatchRun.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AutoDispatchRunGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends AutoDispatchRunGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AutoDispatchRunGroupByArgs['orderBy'] }
+        : { orderBy?: AutoDispatchRunGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AutoDispatchRunGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAutoDispatchRunGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AutoDispatchRun model
+   */
+  readonly fields: AutoDispatchRunFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AutoDispatchRun.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AutoDispatchRunClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AutoDispatchRun model
+   */ 
+  interface AutoDispatchRunFieldRefs {
+    readonly id: FieldRef<"AutoDispatchRun", 'String'>
+    readonly tenantId: FieldRef<"AutoDispatchRun", 'String'>
+    readonly orderId: FieldRef<"AutoDispatchRun", 'String'>
+    readonly locationId: FieldRef<"AutoDispatchRun", 'String'>
+    readonly ruleId: FieldRef<"AutoDispatchRun", 'String'>
+    readonly status: FieldRef<"AutoDispatchRun", 'String'>
+    readonly dueAt: FieldRef<"AutoDispatchRun", 'DateTime'>
+    readonly attempts: FieldRef<"AutoDispatchRun", 'Int'>
+    readonly quotes: FieldRef<"AutoDispatchRun", 'Json'>
+    readonly provider: FieldRef<"AutoDispatchRun", 'String'>
+    readonly priceMinor: FieldRef<"AutoDispatchRun", 'Int'>
+    readonly jobId: FieldRef<"AutoDispatchRun", 'String'>
+    readonly error: FieldRef<"AutoDispatchRun", 'String'>
+    readonly finishedAt: FieldRef<"AutoDispatchRun", 'DateTime'>
+    readonly createdAt: FieldRef<"AutoDispatchRun", 'DateTime'>
+    readonly updatedAt: FieldRef<"AutoDispatchRun", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * AutoDispatchRun findUnique
+   */
+  export type AutoDispatchRunFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AutoDispatchRun
+     */
+    select?: AutoDispatchRunSelect<ExtArgs> | null
+    /**
+     * Filter, which AutoDispatchRun to fetch.
+     */
+    where: AutoDispatchRunWhereUniqueInput
+  }
+
+  /**
+   * AutoDispatchRun findUniqueOrThrow
+   */
+  export type AutoDispatchRunFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AutoDispatchRun
+     */
+    select?: AutoDispatchRunSelect<ExtArgs> | null
+    /**
+     * Filter, which AutoDispatchRun to fetch.
+     */
+    where: AutoDispatchRunWhereUniqueInput
+  }
+
+  /**
+   * AutoDispatchRun findFirst
+   */
+  export type AutoDispatchRunFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AutoDispatchRun
+     */
+    select?: AutoDispatchRunSelect<ExtArgs> | null
+    /**
+     * Filter, which AutoDispatchRun to fetch.
+     */
+    where?: AutoDispatchRunWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AutoDispatchRuns to fetch.
+     */
+    orderBy?: AutoDispatchRunOrderByWithRelationInput | AutoDispatchRunOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AutoDispatchRuns.
+     */
+    cursor?: AutoDispatchRunWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AutoDispatchRuns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AutoDispatchRuns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AutoDispatchRuns.
+     */
+    distinct?: AutoDispatchRunScalarFieldEnum | AutoDispatchRunScalarFieldEnum[]
+  }
+
+  /**
+   * AutoDispatchRun findFirstOrThrow
+   */
+  export type AutoDispatchRunFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AutoDispatchRun
+     */
+    select?: AutoDispatchRunSelect<ExtArgs> | null
+    /**
+     * Filter, which AutoDispatchRun to fetch.
+     */
+    where?: AutoDispatchRunWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AutoDispatchRuns to fetch.
+     */
+    orderBy?: AutoDispatchRunOrderByWithRelationInput | AutoDispatchRunOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AutoDispatchRuns.
+     */
+    cursor?: AutoDispatchRunWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AutoDispatchRuns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AutoDispatchRuns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AutoDispatchRuns.
+     */
+    distinct?: AutoDispatchRunScalarFieldEnum | AutoDispatchRunScalarFieldEnum[]
+  }
+
+  /**
+   * AutoDispatchRun findMany
+   */
+  export type AutoDispatchRunFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AutoDispatchRun
+     */
+    select?: AutoDispatchRunSelect<ExtArgs> | null
+    /**
+     * Filter, which AutoDispatchRuns to fetch.
+     */
+    where?: AutoDispatchRunWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AutoDispatchRuns to fetch.
+     */
+    orderBy?: AutoDispatchRunOrderByWithRelationInput | AutoDispatchRunOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing AutoDispatchRuns.
+     */
+    cursor?: AutoDispatchRunWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AutoDispatchRuns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AutoDispatchRuns.
+     */
+    skip?: number
+    distinct?: AutoDispatchRunScalarFieldEnum | AutoDispatchRunScalarFieldEnum[]
+  }
+
+  /**
+   * AutoDispatchRun create
+   */
+  export type AutoDispatchRunCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AutoDispatchRun
+     */
+    select?: AutoDispatchRunSelect<ExtArgs> | null
+    /**
+     * The data needed to create a AutoDispatchRun.
+     */
+    data: XOR<AutoDispatchRunCreateInput, AutoDispatchRunUncheckedCreateInput>
+  }
+
+  /**
+   * AutoDispatchRun createMany
+   */
+  export type AutoDispatchRunCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AutoDispatchRuns.
+     */
+    data: AutoDispatchRunCreateManyInput | AutoDispatchRunCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AutoDispatchRun createManyAndReturn
+   */
+  export type AutoDispatchRunCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AutoDispatchRun
+     */
+    select?: AutoDispatchRunSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many AutoDispatchRuns.
+     */
+    data: AutoDispatchRunCreateManyInput | AutoDispatchRunCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AutoDispatchRun update
+   */
+  export type AutoDispatchRunUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AutoDispatchRun
+     */
+    select?: AutoDispatchRunSelect<ExtArgs> | null
+    /**
+     * The data needed to update a AutoDispatchRun.
+     */
+    data: XOR<AutoDispatchRunUpdateInput, AutoDispatchRunUncheckedUpdateInput>
+    /**
+     * Choose, which AutoDispatchRun to update.
+     */
+    where: AutoDispatchRunWhereUniqueInput
+  }
+
+  /**
+   * AutoDispatchRun updateMany
+   */
+  export type AutoDispatchRunUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AutoDispatchRuns.
+     */
+    data: XOR<AutoDispatchRunUpdateManyMutationInput, AutoDispatchRunUncheckedUpdateManyInput>
+    /**
+     * Filter which AutoDispatchRuns to update
+     */
+    where?: AutoDispatchRunWhereInput
+  }
+
+  /**
+   * AutoDispatchRun upsert
+   */
+  export type AutoDispatchRunUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AutoDispatchRun
+     */
+    select?: AutoDispatchRunSelect<ExtArgs> | null
+    /**
+     * The filter to search for the AutoDispatchRun to update in case it exists.
+     */
+    where: AutoDispatchRunWhereUniqueInput
+    /**
+     * In case the AutoDispatchRun found by the `where` argument doesn't exist, create a new AutoDispatchRun with this data.
+     */
+    create: XOR<AutoDispatchRunCreateInput, AutoDispatchRunUncheckedCreateInput>
+    /**
+     * In case the AutoDispatchRun was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AutoDispatchRunUpdateInput, AutoDispatchRunUncheckedUpdateInput>
+  }
+
+  /**
+   * AutoDispatchRun delete
+   */
+  export type AutoDispatchRunDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AutoDispatchRun
+     */
+    select?: AutoDispatchRunSelect<ExtArgs> | null
+    /**
+     * Filter which AutoDispatchRun to delete.
+     */
+    where: AutoDispatchRunWhereUniqueInput
+  }
+
+  /**
+   * AutoDispatchRun deleteMany
+   */
+  export type AutoDispatchRunDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AutoDispatchRuns to delete
+     */
+    where?: AutoDispatchRunWhereInput
+  }
+
+  /**
+   * AutoDispatchRun without action
+   */
+  export type AutoDispatchRunDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AutoDispatchRun
+     */
+    select?: AutoDispatchRunSelect<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -191471,6 +193763,53 @@ export namespace Prisma {
   export type MenuAutoPublishScalarFieldEnum = (typeof MenuAutoPublishScalarFieldEnum)[keyof typeof MenuAutoPublishScalarFieldEnum]
 
 
+  export const AutoDispatchRuleScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    name: 'name',
+    enabled: 'enabled',
+    priority: 'priority',
+    locationId: 'locationId',
+    brandIds: 'brandIds',
+    channels: 'channels',
+    strategy: 'strategy',
+    providers: 'providers',
+    fallback: 'fallback',
+    trigger: 'trigger',
+    delayMinutes: 'delayMinutes',
+    maxPriceMinor: 'maxPriceMinor',
+    dryRun: 'dryRun',
+    enabledAt: 'enabledAt',
+    createdBy: 'createdBy',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type AutoDispatchRuleScalarFieldEnum = (typeof AutoDispatchRuleScalarFieldEnum)[keyof typeof AutoDispatchRuleScalarFieldEnum]
+
+
+  export const AutoDispatchRunScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    orderId: 'orderId',
+    locationId: 'locationId',
+    ruleId: 'ruleId',
+    status: 'status',
+    dueAt: 'dueAt',
+    attempts: 'attempts',
+    quotes: 'quotes',
+    provider: 'provider',
+    priceMinor: 'priceMinor',
+    jobId: 'jobId',
+    error: 'error',
+    finishedAt: 'finishedAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type AutoDispatchRunScalarFieldEnum = (typeof AutoDispatchRunScalarFieldEnum)[keyof typeof AutoDispatchRunScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -193688,6 +196027,37 @@ export namespace Prisma {
   };
 
   export type MenuAutoPublishOrderByRelevanceFieldEnum = (typeof MenuAutoPublishOrderByRelevanceFieldEnum)[keyof typeof MenuAutoPublishOrderByRelevanceFieldEnum]
+
+
+  export const AutoDispatchRuleOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    name: 'name',
+    locationId: 'locationId',
+    brandIds: 'brandIds',
+    channels: 'channels',
+    strategy: 'strategy',
+    providers: 'providers',
+    trigger: 'trigger',
+    createdBy: 'createdBy'
+  };
+
+  export type AutoDispatchRuleOrderByRelevanceFieldEnum = (typeof AutoDispatchRuleOrderByRelevanceFieldEnum)[keyof typeof AutoDispatchRuleOrderByRelevanceFieldEnum]
+
+
+  export const AutoDispatchRunOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    orderId: 'orderId',
+    locationId: 'locationId',
+    ruleId: 'ruleId',
+    status: 'status',
+    provider: 'provider',
+    jobId: 'jobId',
+    error: 'error'
+  };
+
+  export type AutoDispatchRunOrderByRelevanceFieldEnum = (typeof AutoDispatchRunOrderByRelevanceFieldEnum)[keyof typeof AutoDispatchRunOrderByRelevanceFieldEnum]
 
 
   /**
@@ -211409,6 +213779,241 @@ export namespace Prisma {
     createdBy?: StringNullableWithAggregatesFilter<"MenuAutoPublish"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"MenuAutoPublish"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"MenuAutoPublish"> | Date | string
+  }
+
+  export type AutoDispatchRuleWhereInput = {
+    AND?: AutoDispatchRuleWhereInput | AutoDispatchRuleWhereInput[]
+    OR?: AutoDispatchRuleWhereInput[]
+    NOT?: AutoDispatchRuleWhereInput | AutoDispatchRuleWhereInput[]
+    id?: StringFilter<"AutoDispatchRule"> | string
+    tenantId?: StringFilter<"AutoDispatchRule"> | string
+    name?: StringFilter<"AutoDispatchRule"> | string
+    enabled?: BoolFilter<"AutoDispatchRule"> | boolean
+    priority?: IntFilter<"AutoDispatchRule"> | number
+    locationId?: StringNullableFilter<"AutoDispatchRule"> | string | null
+    brandIds?: StringNullableListFilter<"AutoDispatchRule">
+    channels?: StringNullableListFilter<"AutoDispatchRule">
+    strategy?: StringFilter<"AutoDispatchRule"> | string
+    providers?: StringNullableListFilter<"AutoDispatchRule">
+    fallback?: BoolFilter<"AutoDispatchRule"> | boolean
+    trigger?: StringFilter<"AutoDispatchRule"> | string
+    delayMinutes?: IntFilter<"AutoDispatchRule"> | number
+    maxPriceMinor?: IntNullableFilter<"AutoDispatchRule"> | number | null
+    dryRun?: BoolFilter<"AutoDispatchRule"> | boolean
+    enabledAt?: DateTimeNullableFilter<"AutoDispatchRule"> | Date | string | null
+    createdBy?: StringNullableFilter<"AutoDispatchRule"> | string | null
+    createdAt?: DateTimeFilter<"AutoDispatchRule"> | Date | string
+    updatedAt?: DateTimeFilter<"AutoDispatchRule"> | Date | string
+  }
+
+  export type AutoDispatchRuleOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    name?: SortOrder
+    enabled?: SortOrder
+    priority?: SortOrder
+    locationId?: SortOrderInput | SortOrder
+    brandIds?: SortOrder
+    channels?: SortOrder
+    strategy?: SortOrder
+    providers?: SortOrder
+    fallback?: SortOrder
+    trigger?: SortOrder
+    delayMinutes?: SortOrder
+    maxPriceMinor?: SortOrderInput | SortOrder
+    dryRun?: SortOrder
+    enabledAt?: SortOrderInput | SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _relevance?: AutoDispatchRuleOrderByRelevanceInput
+  }
+
+  export type AutoDispatchRuleWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: AutoDispatchRuleWhereInput | AutoDispatchRuleWhereInput[]
+    OR?: AutoDispatchRuleWhereInput[]
+    NOT?: AutoDispatchRuleWhereInput | AutoDispatchRuleWhereInput[]
+    tenantId?: StringFilter<"AutoDispatchRule"> | string
+    name?: StringFilter<"AutoDispatchRule"> | string
+    enabled?: BoolFilter<"AutoDispatchRule"> | boolean
+    priority?: IntFilter<"AutoDispatchRule"> | number
+    locationId?: StringNullableFilter<"AutoDispatchRule"> | string | null
+    brandIds?: StringNullableListFilter<"AutoDispatchRule">
+    channels?: StringNullableListFilter<"AutoDispatchRule">
+    strategy?: StringFilter<"AutoDispatchRule"> | string
+    providers?: StringNullableListFilter<"AutoDispatchRule">
+    fallback?: BoolFilter<"AutoDispatchRule"> | boolean
+    trigger?: StringFilter<"AutoDispatchRule"> | string
+    delayMinutes?: IntFilter<"AutoDispatchRule"> | number
+    maxPriceMinor?: IntNullableFilter<"AutoDispatchRule"> | number | null
+    dryRun?: BoolFilter<"AutoDispatchRule"> | boolean
+    enabledAt?: DateTimeNullableFilter<"AutoDispatchRule"> | Date | string | null
+    createdBy?: StringNullableFilter<"AutoDispatchRule"> | string | null
+    createdAt?: DateTimeFilter<"AutoDispatchRule"> | Date | string
+    updatedAt?: DateTimeFilter<"AutoDispatchRule"> | Date | string
+  }, "id">
+
+  export type AutoDispatchRuleOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    name?: SortOrder
+    enabled?: SortOrder
+    priority?: SortOrder
+    locationId?: SortOrderInput | SortOrder
+    brandIds?: SortOrder
+    channels?: SortOrder
+    strategy?: SortOrder
+    providers?: SortOrder
+    fallback?: SortOrder
+    trigger?: SortOrder
+    delayMinutes?: SortOrder
+    maxPriceMinor?: SortOrderInput | SortOrder
+    dryRun?: SortOrder
+    enabledAt?: SortOrderInput | SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: AutoDispatchRuleCountOrderByAggregateInput
+    _avg?: AutoDispatchRuleAvgOrderByAggregateInput
+    _max?: AutoDispatchRuleMaxOrderByAggregateInput
+    _min?: AutoDispatchRuleMinOrderByAggregateInput
+    _sum?: AutoDispatchRuleSumOrderByAggregateInput
+  }
+
+  export type AutoDispatchRuleScalarWhereWithAggregatesInput = {
+    AND?: AutoDispatchRuleScalarWhereWithAggregatesInput | AutoDispatchRuleScalarWhereWithAggregatesInput[]
+    OR?: AutoDispatchRuleScalarWhereWithAggregatesInput[]
+    NOT?: AutoDispatchRuleScalarWhereWithAggregatesInput | AutoDispatchRuleScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"AutoDispatchRule"> | string
+    tenantId?: StringWithAggregatesFilter<"AutoDispatchRule"> | string
+    name?: StringWithAggregatesFilter<"AutoDispatchRule"> | string
+    enabled?: BoolWithAggregatesFilter<"AutoDispatchRule"> | boolean
+    priority?: IntWithAggregatesFilter<"AutoDispatchRule"> | number
+    locationId?: StringNullableWithAggregatesFilter<"AutoDispatchRule"> | string | null
+    brandIds?: StringNullableListFilter<"AutoDispatchRule">
+    channels?: StringNullableListFilter<"AutoDispatchRule">
+    strategy?: StringWithAggregatesFilter<"AutoDispatchRule"> | string
+    providers?: StringNullableListFilter<"AutoDispatchRule">
+    fallback?: BoolWithAggregatesFilter<"AutoDispatchRule"> | boolean
+    trigger?: StringWithAggregatesFilter<"AutoDispatchRule"> | string
+    delayMinutes?: IntWithAggregatesFilter<"AutoDispatchRule"> | number
+    maxPriceMinor?: IntNullableWithAggregatesFilter<"AutoDispatchRule"> | number | null
+    dryRun?: BoolWithAggregatesFilter<"AutoDispatchRule"> | boolean
+    enabledAt?: DateTimeNullableWithAggregatesFilter<"AutoDispatchRule"> | Date | string | null
+    createdBy?: StringNullableWithAggregatesFilter<"AutoDispatchRule"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"AutoDispatchRule"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"AutoDispatchRule"> | Date | string
+  }
+
+  export type AutoDispatchRunWhereInput = {
+    AND?: AutoDispatchRunWhereInput | AutoDispatchRunWhereInput[]
+    OR?: AutoDispatchRunWhereInput[]
+    NOT?: AutoDispatchRunWhereInput | AutoDispatchRunWhereInput[]
+    id?: StringFilter<"AutoDispatchRun"> | string
+    tenantId?: StringFilter<"AutoDispatchRun"> | string
+    orderId?: StringFilter<"AutoDispatchRun"> | string
+    locationId?: StringFilter<"AutoDispatchRun"> | string
+    ruleId?: StringFilter<"AutoDispatchRun"> | string
+    status?: StringFilter<"AutoDispatchRun"> | string
+    dueAt?: DateTimeFilter<"AutoDispatchRun"> | Date | string
+    attempts?: IntFilter<"AutoDispatchRun"> | number
+    quotes?: JsonNullableFilter<"AutoDispatchRun">
+    provider?: StringNullableFilter<"AutoDispatchRun"> | string | null
+    priceMinor?: IntNullableFilter<"AutoDispatchRun"> | number | null
+    jobId?: StringNullableFilter<"AutoDispatchRun"> | string | null
+    error?: StringNullableFilter<"AutoDispatchRun"> | string | null
+    finishedAt?: DateTimeNullableFilter<"AutoDispatchRun"> | Date | string | null
+    createdAt?: DateTimeFilter<"AutoDispatchRun"> | Date | string
+    updatedAt?: DateTimeFilter<"AutoDispatchRun"> | Date | string
+  }
+
+  export type AutoDispatchRunOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    orderId?: SortOrder
+    locationId?: SortOrder
+    ruleId?: SortOrder
+    status?: SortOrder
+    dueAt?: SortOrder
+    attempts?: SortOrder
+    quotes?: SortOrderInput | SortOrder
+    provider?: SortOrderInput | SortOrder
+    priceMinor?: SortOrderInput | SortOrder
+    jobId?: SortOrderInput | SortOrder
+    error?: SortOrderInput | SortOrder
+    finishedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _relevance?: AutoDispatchRunOrderByRelevanceInput
+  }
+
+  export type AutoDispatchRunWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    orderId?: string
+    AND?: AutoDispatchRunWhereInput | AutoDispatchRunWhereInput[]
+    OR?: AutoDispatchRunWhereInput[]
+    NOT?: AutoDispatchRunWhereInput | AutoDispatchRunWhereInput[]
+    tenantId?: StringFilter<"AutoDispatchRun"> | string
+    locationId?: StringFilter<"AutoDispatchRun"> | string
+    ruleId?: StringFilter<"AutoDispatchRun"> | string
+    status?: StringFilter<"AutoDispatchRun"> | string
+    dueAt?: DateTimeFilter<"AutoDispatchRun"> | Date | string
+    attempts?: IntFilter<"AutoDispatchRun"> | number
+    quotes?: JsonNullableFilter<"AutoDispatchRun">
+    provider?: StringNullableFilter<"AutoDispatchRun"> | string | null
+    priceMinor?: IntNullableFilter<"AutoDispatchRun"> | number | null
+    jobId?: StringNullableFilter<"AutoDispatchRun"> | string | null
+    error?: StringNullableFilter<"AutoDispatchRun"> | string | null
+    finishedAt?: DateTimeNullableFilter<"AutoDispatchRun"> | Date | string | null
+    createdAt?: DateTimeFilter<"AutoDispatchRun"> | Date | string
+    updatedAt?: DateTimeFilter<"AutoDispatchRun"> | Date | string
+  }, "id" | "orderId">
+
+  export type AutoDispatchRunOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    orderId?: SortOrder
+    locationId?: SortOrder
+    ruleId?: SortOrder
+    status?: SortOrder
+    dueAt?: SortOrder
+    attempts?: SortOrder
+    quotes?: SortOrderInput | SortOrder
+    provider?: SortOrderInput | SortOrder
+    priceMinor?: SortOrderInput | SortOrder
+    jobId?: SortOrderInput | SortOrder
+    error?: SortOrderInput | SortOrder
+    finishedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: AutoDispatchRunCountOrderByAggregateInput
+    _avg?: AutoDispatchRunAvgOrderByAggregateInput
+    _max?: AutoDispatchRunMaxOrderByAggregateInput
+    _min?: AutoDispatchRunMinOrderByAggregateInput
+    _sum?: AutoDispatchRunSumOrderByAggregateInput
+  }
+
+  export type AutoDispatchRunScalarWhereWithAggregatesInput = {
+    AND?: AutoDispatchRunScalarWhereWithAggregatesInput | AutoDispatchRunScalarWhereWithAggregatesInput[]
+    OR?: AutoDispatchRunScalarWhereWithAggregatesInput[]
+    NOT?: AutoDispatchRunScalarWhereWithAggregatesInput | AutoDispatchRunScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"AutoDispatchRun"> | string
+    tenantId?: StringWithAggregatesFilter<"AutoDispatchRun"> | string
+    orderId?: StringWithAggregatesFilter<"AutoDispatchRun"> | string
+    locationId?: StringWithAggregatesFilter<"AutoDispatchRun"> | string
+    ruleId?: StringWithAggregatesFilter<"AutoDispatchRun"> | string
+    status?: StringWithAggregatesFilter<"AutoDispatchRun"> | string
+    dueAt?: DateTimeWithAggregatesFilter<"AutoDispatchRun"> | Date | string
+    attempts?: IntWithAggregatesFilter<"AutoDispatchRun"> | number
+    quotes?: JsonNullableWithAggregatesFilter<"AutoDispatchRun">
+    provider?: StringNullableWithAggregatesFilter<"AutoDispatchRun"> | string | null
+    priceMinor?: IntNullableWithAggregatesFilter<"AutoDispatchRun"> | number | null
+    jobId?: StringNullableWithAggregatesFilter<"AutoDispatchRun"> | string | null
+    error?: StringNullableWithAggregatesFilter<"AutoDispatchRun"> | string | null
+    finishedAt?: DateTimeNullableWithAggregatesFilter<"AutoDispatchRun"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"AutoDispatchRun"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"AutoDispatchRun"> | Date | string
   }
 
   export type TenantCreateInput = {
@@ -230925,6 +233530,293 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type AutoDispatchRuleCreateInput = {
+    id?: string
+    tenantId: string
+    name: string
+    enabled?: boolean
+    priority?: number
+    locationId?: string | null
+    brandIds?: AutoDispatchRuleCreatebrandIdsInput | string[]
+    channels?: AutoDispatchRuleCreatechannelsInput | string[]
+    strategy?: string
+    providers?: AutoDispatchRuleCreateprovidersInput | string[]
+    fallback?: boolean
+    trigger?: string
+    delayMinutes?: number
+    maxPriceMinor?: number | null
+    dryRun?: boolean
+    enabledAt?: Date | string | null
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AutoDispatchRuleUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    name: string
+    enabled?: boolean
+    priority?: number
+    locationId?: string | null
+    brandIds?: AutoDispatchRuleCreatebrandIdsInput | string[]
+    channels?: AutoDispatchRuleCreatechannelsInput | string[]
+    strategy?: string
+    providers?: AutoDispatchRuleCreateprovidersInput | string[]
+    fallback?: boolean
+    trigger?: string
+    delayMinutes?: number
+    maxPriceMinor?: number | null
+    dryRun?: boolean
+    enabledAt?: Date | string | null
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AutoDispatchRuleUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    priority?: IntFieldUpdateOperationsInput | number
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandIds?: AutoDispatchRuleUpdatebrandIdsInput | string[]
+    channels?: AutoDispatchRuleUpdatechannelsInput | string[]
+    strategy?: StringFieldUpdateOperationsInput | string
+    providers?: AutoDispatchRuleUpdateprovidersInput | string[]
+    fallback?: BoolFieldUpdateOperationsInput | boolean
+    trigger?: StringFieldUpdateOperationsInput | string
+    delayMinutes?: IntFieldUpdateOperationsInput | number
+    maxPriceMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    dryRun?: BoolFieldUpdateOperationsInput | boolean
+    enabledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AutoDispatchRuleUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    priority?: IntFieldUpdateOperationsInput | number
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandIds?: AutoDispatchRuleUpdatebrandIdsInput | string[]
+    channels?: AutoDispatchRuleUpdatechannelsInput | string[]
+    strategy?: StringFieldUpdateOperationsInput | string
+    providers?: AutoDispatchRuleUpdateprovidersInput | string[]
+    fallback?: BoolFieldUpdateOperationsInput | boolean
+    trigger?: StringFieldUpdateOperationsInput | string
+    delayMinutes?: IntFieldUpdateOperationsInput | number
+    maxPriceMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    dryRun?: BoolFieldUpdateOperationsInput | boolean
+    enabledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AutoDispatchRuleCreateManyInput = {
+    id?: string
+    tenantId: string
+    name: string
+    enabled?: boolean
+    priority?: number
+    locationId?: string | null
+    brandIds?: AutoDispatchRuleCreatebrandIdsInput | string[]
+    channels?: AutoDispatchRuleCreatechannelsInput | string[]
+    strategy?: string
+    providers?: AutoDispatchRuleCreateprovidersInput | string[]
+    fallback?: boolean
+    trigger?: string
+    delayMinutes?: number
+    maxPriceMinor?: number | null
+    dryRun?: boolean
+    enabledAt?: Date | string | null
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AutoDispatchRuleUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    priority?: IntFieldUpdateOperationsInput | number
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandIds?: AutoDispatchRuleUpdatebrandIdsInput | string[]
+    channels?: AutoDispatchRuleUpdatechannelsInput | string[]
+    strategy?: StringFieldUpdateOperationsInput | string
+    providers?: AutoDispatchRuleUpdateprovidersInput | string[]
+    fallback?: BoolFieldUpdateOperationsInput | boolean
+    trigger?: StringFieldUpdateOperationsInput | string
+    delayMinutes?: IntFieldUpdateOperationsInput | number
+    maxPriceMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    dryRun?: BoolFieldUpdateOperationsInput | boolean
+    enabledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AutoDispatchRuleUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    priority?: IntFieldUpdateOperationsInput | number
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandIds?: AutoDispatchRuleUpdatebrandIdsInput | string[]
+    channels?: AutoDispatchRuleUpdatechannelsInput | string[]
+    strategy?: StringFieldUpdateOperationsInput | string
+    providers?: AutoDispatchRuleUpdateprovidersInput | string[]
+    fallback?: BoolFieldUpdateOperationsInput | boolean
+    trigger?: StringFieldUpdateOperationsInput | string
+    delayMinutes?: IntFieldUpdateOperationsInput | number
+    maxPriceMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    dryRun?: BoolFieldUpdateOperationsInput | boolean
+    enabledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AutoDispatchRunCreateInput = {
+    id?: string
+    tenantId: string
+    orderId: string
+    locationId: string
+    ruleId: string
+    status?: string
+    dueAt: Date | string
+    attempts?: number
+    quotes?: NullableJsonNullValueInput | InputJsonValue
+    provider?: string | null
+    priceMinor?: number | null
+    jobId?: string | null
+    error?: string | null
+    finishedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AutoDispatchRunUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    orderId: string
+    locationId: string
+    ruleId: string
+    status?: string
+    dueAt: Date | string
+    attempts?: number
+    quotes?: NullableJsonNullValueInput | InputJsonValue
+    provider?: string | null
+    priceMinor?: number | null
+    jobId?: string | null
+    error?: string | null
+    finishedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AutoDispatchRunUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    ruleId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    dueAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    attempts?: IntFieldUpdateOperationsInput | number
+    quotes?: NullableJsonNullValueInput | InputJsonValue
+    provider?: NullableStringFieldUpdateOperationsInput | string | null
+    priceMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    jobId?: NullableStringFieldUpdateOperationsInput | string | null
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AutoDispatchRunUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    ruleId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    dueAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    attempts?: IntFieldUpdateOperationsInput | number
+    quotes?: NullableJsonNullValueInput | InputJsonValue
+    provider?: NullableStringFieldUpdateOperationsInput | string | null
+    priceMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    jobId?: NullableStringFieldUpdateOperationsInput | string | null
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AutoDispatchRunCreateManyInput = {
+    id?: string
+    tenantId: string
+    orderId: string
+    locationId: string
+    ruleId: string
+    status?: string
+    dueAt: Date | string
+    attempts?: number
+    quotes?: NullableJsonNullValueInput | InputJsonValue
+    provider?: string | null
+    priceMinor?: number | null
+    jobId?: string | null
+    error?: string | null
+    finishedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AutoDispatchRunUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    ruleId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    dueAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    attempts?: IntFieldUpdateOperationsInput | number
+    quotes?: NullableJsonNullValueInput | InputJsonValue
+    provider?: NullableStringFieldUpdateOperationsInput | string | null
+    priceMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    jobId?: NullableStringFieldUpdateOperationsInput | string | null
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AutoDispatchRunUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    ruleId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    dueAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    attempts?: IntFieldUpdateOperationsInput | number
+    quotes?: NullableJsonNullValueInput | InputJsonValue
+    provider?: NullableStringFieldUpdateOperationsInput | string | null
+    priceMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    jobId?: NullableStringFieldUpdateOperationsInput | string | null
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -243791,6 +246683,155 @@ export namespace Prisma {
     days?: SortOrder
   }
 
+  export type AutoDispatchRuleOrderByRelevanceInput = {
+    fields: AutoDispatchRuleOrderByRelevanceFieldEnum | AutoDispatchRuleOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type AutoDispatchRuleCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    name?: SortOrder
+    enabled?: SortOrder
+    priority?: SortOrder
+    locationId?: SortOrder
+    brandIds?: SortOrder
+    channels?: SortOrder
+    strategy?: SortOrder
+    providers?: SortOrder
+    fallback?: SortOrder
+    trigger?: SortOrder
+    delayMinutes?: SortOrder
+    maxPriceMinor?: SortOrder
+    dryRun?: SortOrder
+    enabledAt?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AutoDispatchRuleAvgOrderByAggregateInput = {
+    priority?: SortOrder
+    delayMinutes?: SortOrder
+    maxPriceMinor?: SortOrder
+  }
+
+  export type AutoDispatchRuleMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    name?: SortOrder
+    enabled?: SortOrder
+    priority?: SortOrder
+    locationId?: SortOrder
+    strategy?: SortOrder
+    fallback?: SortOrder
+    trigger?: SortOrder
+    delayMinutes?: SortOrder
+    maxPriceMinor?: SortOrder
+    dryRun?: SortOrder
+    enabledAt?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AutoDispatchRuleMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    name?: SortOrder
+    enabled?: SortOrder
+    priority?: SortOrder
+    locationId?: SortOrder
+    strategy?: SortOrder
+    fallback?: SortOrder
+    trigger?: SortOrder
+    delayMinutes?: SortOrder
+    maxPriceMinor?: SortOrder
+    dryRun?: SortOrder
+    enabledAt?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AutoDispatchRuleSumOrderByAggregateInput = {
+    priority?: SortOrder
+    delayMinutes?: SortOrder
+    maxPriceMinor?: SortOrder
+  }
+
+  export type AutoDispatchRunOrderByRelevanceInput = {
+    fields: AutoDispatchRunOrderByRelevanceFieldEnum | AutoDispatchRunOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type AutoDispatchRunCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    orderId?: SortOrder
+    locationId?: SortOrder
+    ruleId?: SortOrder
+    status?: SortOrder
+    dueAt?: SortOrder
+    attempts?: SortOrder
+    quotes?: SortOrder
+    provider?: SortOrder
+    priceMinor?: SortOrder
+    jobId?: SortOrder
+    error?: SortOrder
+    finishedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AutoDispatchRunAvgOrderByAggregateInput = {
+    attempts?: SortOrder
+    priceMinor?: SortOrder
+  }
+
+  export type AutoDispatchRunMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    orderId?: SortOrder
+    locationId?: SortOrder
+    ruleId?: SortOrder
+    status?: SortOrder
+    dueAt?: SortOrder
+    attempts?: SortOrder
+    provider?: SortOrder
+    priceMinor?: SortOrder
+    jobId?: SortOrder
+    error?: SortOrder
+    finishedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AutoDispatchRunMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    orderId?: SortOrder
+    locationId?: SortOrder
+    ruleId?: SortOrder
+    status?: SortOrder
+    dueAt?: SortOrder
+    attempts?: SortOrder
+    provider?: SortOrder
+    priceMinor?: SortOrder
+    jobId?: SortOrder
+    error?: SortOrder
+    finishedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AutoDispatchRunSumOrderByAggregateInput = {
+    attempts?: SortOrder
+    priceMinor?: SortOrder
+  }
+
   export type BrandCreateNestedManyWithoutTenantInput = {
     create?: XOR<BrandCreateWithoutTenantInput, BrandUncheckedCreateWithoutTenantInput> | BrandCreateWithoutTenantInput[] | BrandUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: BrandCreateOrConnectWithoutTenantInput | BrandCreateOrConnectWithoutTenantInput[]
@@ -254270,6 +257311,33 @@ export namespace Prisma {
     upsert?: MenuUpsertWithoutAutoPublishInput
     connect?: MenuWhereUniqueInput
     update?: XOR<XOR<MenuUpdateToOneWithWhereWithoutAutoPublishInput, MenuUpdateWithoutAutoPublishInput>, MenuUncheckedUpdateWithoutAutoPublishInput>
+  }
+
+  export type AutoDispatchRuleCreatebrandIdsInput = {
+    set: string[]
+  }
+
+  export type AutoDispatchRuleCreatechannelsInput = {
+    set: string[]
+  }
+
+  export type AutoDispatchRuleCreateprovidersInput = {
+    set: string[]
+  }
+
+  export type AutoDispatchRuleUpdatebrandIdsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type AutoDispatchRuleUpdatechannelsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type AutoDispatchRuleUpdateprovidersInput = {
+    set?: string[]
+    push?: string | string[]
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -319664,6 +322732,14 @@ export namespace Prisma {
      * @deprecated Use MenuAutoPublishDefaultArgs instead
      */
     export type MenuAutoPublishArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = MenuAutoPublishDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use AutoDispatchRuleDefaultArgs instead
+     */
+    export type AutoDispatchRuleArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = AutoDispatchRuleDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use AutoDispatchRunDefaultArgs instead
+     */
+    export type AutoDispatchRunArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = AutoDispatchRunDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany
