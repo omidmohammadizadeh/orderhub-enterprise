@@ -457,15 +457,15 @@ function Booking({ shop }: { shop: PublicShop }) {
           <div className="space-y-3">
             <label className="block">
               <span className="text-[14px] font-semibold">Name</span>
-              <input required autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} className={`${fieldCls} mt-1`} style={{ borderColor: SP.line }} />
+              <input required name="name" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} className={`${fieldCls} mt-1`} style={{ borderColor: SP.line }} />
             </label>
             <label className="block">
               <span className="text-[14px] font-semibold">Mobile</span>
-              <input required autoComplete="tel" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className={`${fieldCls} mt-1`} style={{ borderColor: SP.line }} />
+              <input required name="tel" type="tel" autoComplete="tel" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className={`${fieldCls} mt-1`} style={{ borderColor: SP.line }} />
             </label>
             <label className="block">
               <span className="text-[14px] font-semibold">Email</span>
-              <input required type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className={`${fieldCls} mt-1`} style={{ borderColor: SP.line }} />
+              <input required name="email" type="email" spellCheck={false} autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className={`${fieldCls} mt-1`} style={{ borderColor: SP.line }} />
               <span className="mt-1 block text-[12px]" style={{ color: SP.steel }}>
                 Your confirmation and a link to change or cancel go here.
               </span>

@@ -103,7 +103,7 @@ export default function JoinQueuePage() {
           </label>
           <label className="block">
             <span className="text-[14px] font-semibold">Mobile</span>
-            <input required autoComplete="tel" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className={`${fieldCls} mt-1`} style={{ borderColor: SP.line }} />
+            <input required name="tel" type="tel" autoComplete="tel" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className={`${fieldCls} mt-1`} style={{ borderColor: SP.line }} />
             <span className="mt-1 block text-[12px]" style={{ color: SP.steel }}>
               Keep your phone handy — we&rsquo;ll show your place live.
             </span>

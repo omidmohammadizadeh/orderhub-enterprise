@@ -76,7 +76,7 @@ export function ShopHeader({
         </span>
       )}
       <div className="min-w-0">
-        <h1 className={`truncate ${compact ? "text-2xl" : "text-[2rem] leading-none"} ${display}`} style={{ color: SP.ink }}>
+        <h1 className={`line-clamp-2 [text-wrap:balance] ${compact ? "text-2xl" : "text-[2rem] leading-none"} ${display}`} style={{ color: SP.ink }}>
           {name}
         </h1>
         {!compact && (address || phone) && (

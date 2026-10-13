@@ -167,7 +167,9 @@ export class SalonQueueService {
   ) {
     const loc = await this.booking.loadLocation(input.locationId);
     if (opts.tenantId && loc.tenantId !== opts.tenantId) throw new NotFoundException("Location not found");
-    if (!loc.salon.queueEnabled) throw new BadRequestException("This shop isn't running a walk-in queue");
+    if (loc.businessType !== "SALON" || !loc.salon.queueEnabled) {
+      throw new BadRequestException("This shop isn't running a walk-in queue");
+    }
     if (opts.source === "ONLINE" && !loc.salon.queueOnlineJoin) {
       throw new BadRequestException("Join the queue at the shop");
     }
@@ -338,6 +340,8 @@ export class SalonQueueService {
 
   /** The TV by the door: first names only, never phone numbers. */
   async publicBoard(locationId: string) {
+    const loc = await this.booking.loadLocation(locationId);
+    if (loc.businessType !== "SALON") throw new NotFoundException("Not found");
     const b = await this.board(locationId);
     const firstName = (n: string) => {
       const parts = n.trim().split(/\s+/);

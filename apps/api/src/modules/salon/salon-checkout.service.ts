@@ -160,7 +160,9 @@ export class SalonCheckoutService {
         specialInstructions: `Appointment ${appt.reference}${appt.staff?.name ? ` with ${appt.staff.name}` : ""}`,
         paymentMethod: paidNow ? "EXTERNAL" : method,
         paymentStatus: paidNow ? "PAID" : "PENDING",
-        idempotencyKey: `salon-checkout:${appt.id}:${Date.now()}`,
+        // Two quick taps on Pay make ONE bill; a deliberate re-checkout (the
+        // previous bill was replaced above) gets a new key.
+        idempotencyKey: `salon-checkout:${appt.id}:${appt.orderId ?? "first"}`,
         ...(input.loyaltyMemberId ? { loyaltyMemberId: input.loyaltyMemberId } : {}),
         ...(input.loyaltyMemberId && input.loyaltyRewardId ? { loyaltyRewardId: input.loyaltyRewardId } : {}),
       } as any,
@@ -173,7 +175,9 @@ export class SalonCheckoutService {
       data: {
         orderId: order.id,
         services: services as any,
-        totalPrice: linesTotal(services),
+        // Takings for reports and commission: the services as charged, after
+        // any discount (deposits are payment, not discount, so they stay in).
+        totalPrice: Math.max(0, Math.round((linesTotal(services) - discount) * 100) / 100),
         ...(appt.status !== "IN_SERVICE" ? { status: "IN_SERVICE", startedAt: appt.startedAt ?? new Date() } : {}),
       },
     });

@@ -294,6 +294,8 @@ export function freeStarts(opts: {
   stepMins: number;
   notBefore?: number;
   notAfter?: number;
+  /** The shop's zone, so starts land on ITS :00/:30 (India is UTC+5:30). */
+  tz?: string;
 }): number[] {
   const step = Math.max(5, Math.round(opts.stepMins || 15)) * MIN;
   const busy = mergeIntervals(opts.busy);
@@ -301,7 +303,8 @@ export function freeStarts(opts: {
   const total = totalMinutes(opts.blocks);
   if (total <= 0) return out;
   for (const w of opts.windows) {
-    let t = Math.ceil(w.start / step) * step;
+    const off = opts.tz ? tzOffsetMins(w.start, opts.tz) * MIN : 0;
+    let t = Math.ceil((w.start + off) / step) * step - off;
     for (; t + total * MIN <= w.end; t += step) {
       if (opts.notBefore !== undefined && t < opts.notBefore) continue;
       if (opts.notAfter !== undefined && t > opts.notAfter) break;
@@ -347,6 +350,7 @@ export function teamFreeStarts(opts: {
   stepMins: number;
   notBefore?: number;
   notAfter?: number;
+  tz?: string;
 }): Array<{ startMs: number; staffIds: string[] }> {
   const byStart = new Map<number, StaffDay[]>();
   for (const s of opts.staff) {

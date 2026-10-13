@@ -183,7 +183,7 @@ r = await call("POST", `/salon/appointments/${anyAppt.id}/checkout`, { paymentMe
 ok(r.status === 201 && r.data.paid && r.data.amount === 15, "settled £15 (20 − 5)", r.data);
 await new Promise((res) => setTimeout(res, 800));
 r = await call("GET", `/salon/appointments/${anyAppt.id}`);
-ok(r.data.status === "COMPLETED" && r.data.totalPrice === 20, "completed; final price 20 recorded", { s: r.data.status, p: r.data.totalPrice });
+ok(r.data.status === "COMPLETED" && r.data.totalPrice === 15 && r.data.services[0].price === 20, "completed; final price 20, takings £15 after discount", { s: r.data.status, p: r.data.totalPrice });
 
 console.log("== S3: quick walk-in sale at the chair");
 r = await call("POST", "/salon/quick-sale", { locationId: LOC, staffId: sam.id, services: [{ serviceId: beard.id }], paymentMethod: "EXTERNAL" });
@@ -224,6 +224,14 @@ r = await call("POST", `/salon/public/booking/${olly.token}/reschedule`, { start
 ok(r.status === 201 && r.data.startsAt === at(D, "15:00"), "guest moved to 15:00", r.data);
 r = await call("POST", `/salon/public/booking/${olly.token}/reschedule`, { startsAt: at(D, "10:30") }, false);
 ok(r.status === 400, "guest can't move onto a taken slot (Sam has the squeeze at 10:30)", r.status);
+r = await call("POST", `/salon/public/booking/${olly.token}/reschedule`, { startsAt: at(D, "11:30"), staffId: jay.id }, false);
+ok(r.status === 201 && r.data.staff.id === sam.id, "guest reschedule can't switch who it's with", r.data?.staff);
+r = await call("POST", `/salon/public/shop/${LOC}/book`, { ...bookBody, startsAt: at(D, "15:00"), customerEmail: "sneaky@example.com", queueEntryId: "someone-elses", staffNotes: "VIP", silent: true }, false);
+const sneaky = r.data?.appointment;
+r = await call("GET", `/salon/appointments?locationId=${LOC}&from=${at(D, "00:00")}&to=${at(D, "23:59")}`);
+const sn = r.data.find((x) => x.customerEmail === "sneaky@example.com");
+ok(sn && sn.queueEntryId === null && sn.staffNotes === null, "public booking ignores internal fields", sn);
+await call("POST", `/salon/public/booking/${sneaky?.token}/cancel`, null, false);
 r = await call("POST", `/salon/public/booking/${olly.token}/cancel`, null, false);
 ok(r.data.status === "CANCELLED", "guest cancelled");
 r = await call("POST", `/salon/public/booking/${olly.token}/cancel`, null, false);

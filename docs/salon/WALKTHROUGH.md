@@ -95,8 +95,8 @@ Code: `packages/shared/src/lib/salon.ts` (engine), `apps/api/src/modules/salon/`
 `apps/web/src/app/(dashboard)/dashboard/salon/`, `apps/web/src/app/salon/`,
 `apps/web/src/components/salon*`.
 
-Tests: 58 unit tests in `apps/api/src/modules/salon/tests/`, plus
-`docs/salon/e2e-smoke.mjs` (85 end-to-end checks against a local API and
+Tests: 60 unit tests in `apps/api/src/modules/salon/tests/`, plus
+`docs/salon/e2e-smoke.mjs` (87 end-to-end checks against a local API and
 database — never production).
 
 ## Not built yet

@@ -152,4 +152,19 @@ describe("salon deposits", () => {
     await t.svc.syncForOrder("ord_sale");
     expect(t.rows.appt).toMatchObject({ status: "COMPLETED", tipAmount: 5, depositStatus: "APPLIED" });
   });
+
+  it("refunds a deposit paid after the hold ran out, instead of keeping it", async () => {
+    const t = setup({ ...base, status: "CANCELLED", depositStatus: "EXPIRED", depositOrderId: "ord_dep" });
+    t.rows.orders.set("ord_dep", {
+      id: "ord_dep",
+      tenantId: "T",
+      paymentStatus: "PAID",
+      location: { currency: "GBP" },
+      payments: [{ id: "pay1", provider: "STRIPE", status: "SUCCEEDED", stripePaymentIntentId: "pi_1", currency: "gbp" }],
+    });
+    await t.svc.sync("ap1");
+    expect(t.refunded[0].minor).toBe(2000);
+    expect(t.rows.appt).toMatchObject({ status: "CANCELLED", depositStatus: "REFUNDED" });
+    expect(t.emails).toEqual([]);
+  });
 });

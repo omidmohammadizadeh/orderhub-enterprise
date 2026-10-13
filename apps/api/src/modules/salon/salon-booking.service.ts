@@ -251,6 +251,7 @@ export class SalonBookingService {
       stepMins: loc.salon.slotStepMins,
       notBefore,
       notAfter,
+      tz: loc.tz,
     });
     // Someone the guest picked has their own price; "anyone" shows the list
     // price and the person's own price lands when they're assigned.
@@ -475,7 +476,7 @@ export class SalonBookingService {
           manageToken: randomBytes(18).toString("base64url"),
           depositAmount: deposit,
           depositStatus: deposit > 0 ? "PENDING" : "NONE",
-          queueEntryId: input.queueEntryId ?? null,
+          queueEntryId: args.online ? null : (input.queueEntryId ?? null),
         },
       });
     });
@@ -489,7 +490,21 @@ export class SalonBookingService {
 
   /** Public booking: book, then send them to pay the deposit if there is one. */
   async bookOnline(input: BookInput) {
-    const appt = await this.book({ ...input, force: false, source: "ONLINE" }, { online: true });
+    // Only what a guest may choose. Never trust internal fields from the
+    // public door (queue links, silent, staff notes, force).
+    const guest: BookInput = {
+      locationId: input.locationId,
+      staffId: input.staffId,
+      startsAt: input.startsAt,
+      services: input.services,
+      customerName: input.customerName,
+      customerPhone: input.customerPhone,
+      customerEmail: input.customerEmail,
+      notes: input.notes,
+      source: "ONLINE",
+      force: false,
+    };
+    const appt = await this.book(guest, { online: true });
     if (appt.status !== "PENDING_PAYMENT") {
       return { appointment: await this.publicView(appt.manageToken), checkoutUrl: null };
     }
@@ -707,20 +722,6 @@ export class SalonBookingService {
     const blocks = lines.map(lineBlock);
     const timeChanged = startsAt.getTime() !== row.startsAt.getTime() || staffId !== row.staffId || !!patch.services;
 
-    if (timeChanged && !patch.force) {
-      const ctx = await this.dayContext({
-        locationId: row.locationId,
-        date: wallDate(startsAt.getTime(), loc.tz),
-        tz: loc.tz,
-        shopHours: loc.shopHours,
-        staff: [staff],
-        ignoreAppointmentId: row.id,
-      });
-      const day = ctx.get(staff.id)!;
-      if (!canStartAt({ startMs: startsAt.getTime(), windows: day.windows, busy: day.busy, blocks })) {
-        throw new BadRequestException(`${staff.name} isn't free then — pick another time, or tick "book it anyway"`);
-      }
-    }
     const occ = occupancy(startsAt.getTime(), blocks);
     const data: Record<string, unknown> = {
       startsAt,
@@ -746,7 +747,26 @@ export class SalonBookingService {
     // A moved appointment gets a fresh reminder.
     if (startsAt.getTime() !== row.startsAt.getTime()) data.reminderSentAt = null;
 
-    const updated = await this.prisma.salonAppointment.update({ where: { id }, data: data as any });
+    // The clash check and the write happen under the same per-staff lock as
+    // a new booking, so a move can't race an online guest into the slot.
+    const updated = await this.prisma.$transaction(async (tx) => {
+      if (timeChanged && !patch.force) {
+        await tx.$executeRawUnsafe(`SELECT pg_advisory_xact_lock(hashtext($1))`, `salon-staff:${staff.id}`);
+        const ctx = await this.dayContext({
+          locationId: row.locationId,
+          date: wallDate(startsAt.getTime(), loc.tz),
+          tz: loc.tz,
+          shopHours: loc.shopHours,
+          staff: [staff],
+          ignoreAppointmentId: row.id,
+        });
+        const day = ctx.get(staff.id)!;
+        if (!canStartAt({ startMs: startsAt.getTime(), windows: day.windows, busy: day.busy, blocks })) {
+          throw new BadRequestException(`${staff.name} isn't free then — pick another time, or tick "book it anyway"`);
+        }
+      }
+      return tx.salonAppointment.update({ where: { id }, data: data as any });
+    });
     this.emit(row.locationId, "updated", id);
     const guestVisible = startsAt.getTime() !== row.startsAt.getTime() || staffId !== row.staffId;
     if (guestVisible && patch.notifyGuest !== false && ["CONFIRMED", "CHECKED_IN"].includes(updated.status)) {
@@ -771,8 +791,13 @@ export class SalonBookingService {
     if (!canMoveStatus(row.status, to)) {
       throw new BadRequestException(`Can't go from ${label(row.status)} to ${label(to)}`);
     }
-    if (to === "COMPLETED" && Number(row.totalPrice) > 0 && !row.orderId) {
-      throw new BadRequestException("Take payment with Checkout — that marks it done");
+    if (to === "COMPLETED" && Number(row.totalPrice) > 0) {
+      const bill = row.orderId
+        ? await this.prisma.order.findUnique({ where: { id: row.orderId }, select: { paymentStatus: true } })
+        : null;
+      if (bill?.paymentStatus !== "PAID") {
+        throw new BadRequestException("Take payment with Checkout — that marks it done");
+      }
     }
     const loc = await this.loadLocation(row.locationId);
     const now = new Date();
@@ -805,6 +830,9 @@ export class SalonBookingService {
       }
       data.cancelledAt = null;
       data.cancelReason = null;
+      // Undoing a no-show / kept-deposit cancel gives the deposit back to the
+      // booking, or checkout would charge it twice.
+      if (row.depositStatus === "FORFEITED") data.depositStatus = "PAID";
     }
     const updated = await this.prisma.salonAppointment.update({ where: { id }, data: data as any });
 
@@ -814,13 +842,24 @@ export class SalonBookingService {
         await this.deposits.refund(row.id, "Cancelled by the shop");
       } else if (to === "CANCELLED" || (to === "NO_SHOW" && loc.salon.forfeitDepositOnNoShow)) {
         await this.prisma.salonAppointment.update({ where: { id }, data: { depositStatus: "FORFEITED" } });
+      } else if (to === "NO_SHOW") {
+        // The shop doesn't keep deposits for no-shows: give it back.
+        await this.deposits.refund(row.id, "No-show — shop doesn't keep deposits");
       }
+    }
+    // A bill started at checkout and never paid is closed with the visit,
+    // so a payment link sent earlier can't be paid for a cancelled visit.
+    if ((to === "CANCELLED" || to === "NO_SHOW") && row.orderId) {
+      await this.prisma.order.updateMany({
+        where: { id: row.orderId, paymentStatus: { not: "PAID" }, status: { not: "CANCELLED" } },
+        data: { status: "CANCELLED" },
+      });
     }
     if (to === "CANCELLED" && body.notifyGuest !== false) this.notify.appointment("cancelled", id);
     // The walk-in it came from moves with it.
     if (row.queueEntryId && (to === "CANCELLED" || to === "NO_SHOW")) {
       await this.prisma.salonQueueEntry.updateMany({
-        where: { id: row.queueEntryId, status: { in: ["CALLED", "IN_SERVICE"] } },
+        where: { id: row.queueEntryId, locationId: row.locationId, status: { in: ["CALLED", "IN_SERVICE"] } },
         data: { status: "LEFT", finishedAt: now },
       });
     }
@@ -906,6 +945,12 @@ export class SalonBookingService {
       else await this.prisma.salonAppointment.update({ where: { id: row.id }, data: { depositStatus: "FORFEITED" } });
     } else if (row.depositStatus === "PENDING") {
       await this.prisma.salonAppointment.update({ where: { id: row.id }, data: { depositStatus: "EXPIRED" } });
+      if (row.depositOrderId) {
+        await this.prisma.order.updateMany({
+          where: { id: row.depositOrderId, paymentStatus: { not: "PAID" }, status: "PENDING" },
+          data: { status: "CANCELLED" },
+        });
+      }
     }
     this.notify.appointment("cancelled", row.id);
     this.emit(row.locationId, "updated", row.id);
@@ -927,9 +972,13 @@ export class SalonBookingService {
     if (startsAt.getTime() < Date.now() + loc.salon.leadTimeMins * MIN) {
       throw new BadRequestException("That time is too soon — pick a later slot");
     }
-    const staffId = body.staffId && body.staffId !== "any" ? body.staffId : row.staffId;
-    const staff = staffId ? await this.prisma.salonStaff.findFirst({ where: { id: staffId, locationId: row.locationId, isActive: true, bookableOnline: true } }) : null;
-    if (!staff) throw new BadRequestException("That team member can't be booked online");
+    // Same person, same services, same price — only the time moves. A guest
+    // changing who it's with goes through a fresh booking (prices and who
+    // does what differ per person).
+    const staff = row.staffId
+      ? await this.prisma.salonStaff.findFirst({ where: { id: row.staffId, locationId: row.locationId, isActive: true } })
+      : null;
+    if (!staff) throw new BadRequestException("Please call the shop to move this booking");
     const lines = storedLines(row.services);
     const blocks = lines.map(lineBlock);
     const ok = await this.prisma.$transaction(async (tx) => {

@@ -119,6 +119,31 @@ export class SalonDepositService {
   async sync(appointmentId: string): Promise<void> {
     const appt = await this.prisma.salonAppointment.findUnique({ where: { id: appointmentId } });
     if (!appt) return;
+    // Paid AFTER the slot was let go (hold expired, or the guest cancelled
+    // while still on Stripe's page): the money goes straight back. Keeping
+    // it with no booking behind it would be taking money for nothing.
+    if (
+      appt.depositOrderId &&
+      appt.status === "CANCELLED" &&
+      (appt.depositStatus === "EXPIRED" || appt.depositStatus === "PENDING")
+    ) {
+      const dep = await this.prisma.order.findUnique({
+        where: { id: appt.depositOrderId },
+        select: { paymentStatus: true },
+      });
+      if (dep?.paymentStatus === "PAID") {
+        const { count } = await this.prisma.salonAppointment.updateMany({
+          where: { id: appt.id, depositStatus: appt.depositStatus },
+          data: { depositStatus: "PAID", depositPaidAt: new Date() },
+        });
+        if (count > 0) {
+          this.logger.warn(`Deposit for ${appt.reference} paid after the booking was let go — refunding`);
+          await this.refund(appt.id, "Paid after the booking had been released");
+          this.emit(appt.locationId, appt.id);
+        }
+      }
+      return;
+    }
     if (appt.depositOrderId && appt.depositStatus === "PENDING") {
       const dep = await this.prisma.order.findUnique({
         where: { id: appt.depositOrderId },
@@ -158,7 +183,7 @@ export class SalonDepositService {
         if (count > 0) {
           if (appt.queueEntryId) {
             await this.prisma.salonQueueEntry.updateMany({
-              where: { id: appt.queueEntryId, status: { notIn: ["DONE", "LEFT"] } },
+              where: { id: appt.queueEntryId, locationId: appt.locationId, status: { notIn: ["DONE", "LEFT"] } },
               data: { status: "DONE", finishedAt: new Date() },
             });
           }
@@ -306,6 +331,19 @@ export class SalonDepositService {
           this.emit(a.locationId, a.id);
         }
       }
+      // A deposit order paid after it was cancelled raises no order events
+      // (the webhook only announces PENDING orders), so look again here.
+      const released = await this.prisma.salonAppointment.findMany({
+        where: {
+          status: "CANCELLED",
+          depositStatus: { in: ["EXPIRED", "PENDING"] },
+          depositOrderId: { not: null },
+          cancelledAt: { gt: new Date(Date.now() - 48 * 3600_000) },
+        },
+        select: { id: true },
+        take: 200,
+      });
+      for (const a of released) await this.sync(a.id);
     } catch (e: any) {
       this.logger.warn(`Salon deposit sweep failed: ${e?.message}`);
     }

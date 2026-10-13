@@ -46,6 +46,8 @@ export class SalonPublicController {
 
   @Get("shop/:locationId/days")
   @Public()
+  // Up to 31 availability runs per call — keep it from being a cheap DB load.
+  @Throttle({ short: { ttl: 60_000, limit: 30 }, medium: { ttl: 60_000, limit: 30 } })
   days(
     @Param("locationId") locationId: string,
     @Query("from") from: string,

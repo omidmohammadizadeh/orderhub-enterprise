@@ -60,12 +60,22 @@ export class SalonRemindersCron {
         OR: [{ customerEmail: { not: null } }, { customerPhone: { not: null } }],
       },
       select: { id: true, locationId: true, startsAt: true, createdAt: true, customerEmail: true, customerPhone: true },
-      take: 300,
+      // Soonest first, so the ones due now are never pushed out of the batch
+      // by bookings further ahead.
+      orderBy: { startsAt: "asc" },
+      take: 500,
     });
     let sent = 0;
     for (const a of due) {
       const { s } = await this.settingsFor(a.locationId);
-      if (!s.reminderEnabled) continue;
+      if (!s.reminderEnabled) {
+        // Reminders off at this shop: mark it so it stops being re-read.
+        await this.prisma.salonAppointment.updateMany({
+          where: { id: a.id, reminderSentAt: null },
+          data: { reminderSentAt: new Date(now) },
+        });
+        continue;
+      }
       const windowMs = s.reminderHoursBefore * 3600_000;
       if (a.startsAt.getTime() - now > windowMs) continue;
       // Booked inside the window: the confirmation they just got is enough.
@@ -103,7 +113,8 @@ export class SalonRemindersCron {
         completedAt: { lt: new Date(now - 2 * 3600_000), gt: new Date(now - 7 * 86_400_000) },
       },
       select: { id: true, locationId: true, completedAt: true },
-      take: 300,
+      orderBy: { completedAt: "asc" },
+      take: 500,
     });
     let sent = 0;
     for (const a of done) {
@@ -146,14 +157,22 @@ export class SalonRemindersCron {
         customerEmail: { not: null },
         completedAt: { lt: new Date(now - 7 * 86_400_000), gt: new Date(now - 400 * 86_400_000) },
       },
-      orderBy: { completedAt: "desc" },
+      // Oldest first: the ones due now come before ones not due yet.
+      orderBy: { completedAt: "asc" },
       select: { id: true, locationId: true, tenantId: true, completedAt: true, customerEmail: true },
-      take: 300,
+      take: 500,
     });
     let sent = 0;
     for (const a of candidates) {
       const { s, tz } = await this.settingsFor(a.locationId);
-      if (!s.rebookAfterDays || !s.onlineBookingEnabled) continue;
+      if (!s.rebookAfterDays || !s.onlineBookingEnabled) {
+        // Nudges off at this shop: mark it so it stops being re-read.
+        await this.prisma.salonAppointment.updateMany({
+          where: { id: a.id, rebookNudgeSentAt: null },
+          data: { rebookNudgeSentAt: new Date(now) },
+        });
+        continue;
+      }
       const dueAt = a.completedAt!.getTime() + s.rebookAfterDays * 86_400_000;
       if (now < dueAt) continue;
       // Too late to be useful — mark it so it isn't looked at again.

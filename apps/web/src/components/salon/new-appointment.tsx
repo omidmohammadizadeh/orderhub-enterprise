@@ -268,7 +268,7 @@ export function NewAppointment({
               </label>
               <label>
                 <span className="sr-only">Email</span>
-                <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email (for confirmation)" type="email" autoComplete="off" className={inputCls} />
+                <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email (for confirmation)" type="email" spellCheck={false} autoComplete="off" className={inputCls} />
               </label>
             </div>
           </section>

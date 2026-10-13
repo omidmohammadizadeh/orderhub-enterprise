@@ -151,6 +151,14 @@ describe("salon engine — free slots", () => {
     expect(s).not.toContain("10:15");
   });
 
+  it("aligns to the shop's own clock in a half-hour zone", () => {
+    const d = "2026-10-13";
+    const kol = "Asia/Kolkata";
+    const w = [{ start: zonedWallToUtc(d, "09:00", kol), end: zonedWallToUtc(d, "12:00", kol) }];
+    const s = freeStarts({ windows: w, busy: [], blocks: [{ durationMins: 60 }], stepMins: 60, tz: kol });
+    expect(s.map((t) => wallTime(t, kol))).toEqual(["09:00", "10:00", "11:00"]);
+  });
+
   it("honours lead time", () => {
     const s = freeStarts({
       windows,
