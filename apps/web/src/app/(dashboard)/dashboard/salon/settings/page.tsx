@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { apiError, salonClient, type SalonSettings, type SalonTrade } from "@/lib/api/salon.client";
 import { SalonFrame, inputBase, inputCls, useCanManage, useSalonLocation } from "@/components/salon/salon-shared";
 import { AlertsTab } from "@/components/printers/alerts-tab";
+import { ImageUploader } from "@/components/products/image-uploader";
 import { SALON_ALERT_TRIGGERS } from "@/lib/api/printers.client";
 
 export default function SalonSettingsPage() {
@@ -91,6 +92,81 @@ function SettingsForm() {
           <span className="text-xs text-zinc-600">Booking policy shown before confirming</span>
           <textarea value={s.bookingPolicy} onChange={(e) => up("bookingPolicy", e.target.value)} rows={3} placeholder="Please arrive 5 minutes early. Late arrivals may need to be rebooked." className={`${inputCls} mt-1 h-auto py-2`} />
         </label>
+      </Card>
+
+      <Card title="Your page">
+        <p className="text-sm text-zinc-600">
+          What guests see at your booking link before they book: your photos, a few words about you, your team, the price
+          list, opening hours and a map. Opening hours and the address come from your location settings.
+        </p>
+        <label className="block">
+          <span className="text-xs text-zinc-600">About you (one or two lines under your name)</span>
+          <textarea
+            value={s.about}
+            onChange={(e) => up("about", e.target.value)}
+            rows={2}
+            maxLength={600}
+            placeholder="Traditional barbers on the high street since 2015. Fades, beards and hot towel shaves."
+            className={`${inputCls} mt-1 h-auto py-2`}
+          />
+        </label>
+        <label className="block max-w-xs">
+          <span className="text-xs text-zinc-600">Instagram</span>
+          <div className="relative mt-1">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400">@</span>
+            <input
+              value={s.instagram}
+              onChange={(e) => up("instagram", e.target.value.replace(/^@/, ""))}
+              placeholder="zagrosbarbers"
+              spellCheck={false}
+              className={`${inputCls} pl-7`}
+            />
+          </div>
+        </label>
+        <div>
+          <p className="text-xs text-zinc-600">Cover photo (the big picture at the top — your shop front or chair)</p>
+          <div className="mt-1 max-w-md">
+            <ImageUploader
+              value={s.coverImageUrl}
+              onChange={(url) => up("coverImageUrl", url && /^https:\/\//.test(url) ? url : null)}
+              targetWidth={1600}
+              targetHeight={900}
+            />
+          </div>
+        </div>
+        <div>
+          <p className="text-xs text-zinc-600">Your work (up to 12 photos — fades, colours, nail sets)</p>
+          <ul className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6">
+            {s.gallery.map((src, i) => (
+              <li key={src} className="group relative aspect-square overflow-hidden rounded-lg bg-zinc-100">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={src} alt="" className="h-full w-full object-cover" />
+                <button
+                  type="button"
+                  aria-label="Remove photo"
+                  onClick={() => up("gallery", s.gallery.filter((_, j) => j !== i))}
+                  className="absolute right-1 top-1 grid h-7 w-7 place-items-center rounded-full bg-black/60 text-xs font-bold text-white"
+                >
+                  ✕
+                </button>
+              </li>
+            ))}
+          </ul>
+          {s.gallery.length < 12 && (
+            <div className="mt-2 max-w-[220px]">
+              <ImageUploader
+                key={s.gallery.length}
+                value={null}
+                onChange={(url) => {
+                  if (url && /^https:\/\//.test(url)) up("gallery", [...s.gallery, url]);
+                }}
+                targetWidth={1080}
+                targetHeight={1080}
+              />
+            </div>
+          )}
+        </div>
+        <p className="text-xs text-zinc-500">Add photos of each team member on the Team tab. Save settings to publish.</p>
       </Card>
 
       <Card title="Changes, cancellations and deposits">

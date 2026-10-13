@@ -23,6 +23,7 @@ import {
   type WeeklyHours,
 } from "@/lib/api/salon.client";
 import { SalonFrame, inputBase, inputCls, staffWord, useSalonLocation, useSalonServices, useSalonStaff } from "@/components/salon/salon-shared";
+import { ImageUploader } from "@/components/products/image-uploader";
 
 const DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const;
 const COLOURS = ["#f97316", "#0ea5e9", "#22c55e", "#a855f7", "#ef4444", "#eab308", "#14b8a6", "#ec4899"];
@@ -249,6 +250,7 @@ function StaffEditor({
   const [title, setTitle] = useState(staff?.title ?? "");
   const [bio, setBio] = useState(staff?.bio ?? "");
   const [colour, setColour] = useState(staff?.colour ?? COLOURS[count % COLOURS.length]!);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(staff?.avatarUrl ?? null);
   const [online, setOnline] = useState(staff?.bookableOnline ?? true);
   const [walkIns, setWalkIns] = useState(staff?.acceptsWalkIns ?? true);
   const [ownHours, setOwnHours] = useState(Object.keys(staff?.weeklyHours ?? {}).length > 0);
@@ -274,6 +276,7 @@ function StaffEditor({
     name: name.trim(),
     title: title.trim() || null,
     bio: bio.trim() || null,
+    avatarUrl,
     colour,
     bookableOnline: online,
     acceptsWalkIns: walkIns,
@@ -327,6 +330,12 @@ function StaffEditor({
               <span className="text-sm font-medium text-zinc-800">About (shown when booking online)</span>
               <textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={2} placeholder="Fades and beard work, 8 years behind the chair." className={`${inputCls} mt-1 h-auto py-2`} />
             </label>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-zinc-800">Photo (shown on your booking page)</p>
+            <div className="mt-1 max-w-[260px]">
+              <ImageUploader value={avatarUrl} onChange={(url) => setAvatarUrl(url && /^https:\/\//.test(url) ? url : null)} targetWidth={800} targetHeight={600} />
+            </div>
           </div>
           <div>
             <p className="text-sm font-medium text-zinc-800">Colour in the diary</p>

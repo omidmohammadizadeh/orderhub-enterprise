@@ -21,6 +21,7 @@ import {
   type PublicShop,
   type WantedService,
 } from "@/lib/api/salon.client";
+import { SalonHome } from "@/components/salon-public/salon-home";
 import {
   GhostButton,
   PoleStripe,
@@ -66,33 +67,49 @@ export default function SalonBookingPage() {
       </Shell>
     );
   }
-  if (!shop.onlineBookingEnabled) {
-    return (
-      <Shell>
-        <ShopHeader name={shop.name} logoUrl={shop.logoUrl} address={shop.address} phone={shop.phone} />
-        <div className="mt-8 rounded-2xl bg-white p-6">
-          <p className={`text-2xl ${display}`}>Online booking is closed right now.</p>
-          <p className="mt-2 text-[15px]" style={{ color: SP.steel }}>
-            {shop.phone ? <>Call us on <a className="font-semibold underline" href={`tel:${shop.phone.replace(/[^\d+]/g, "")}`}>{shop.phone}</a> to book.</> : "Pop in or call the shop to book."}
-          </p>
-          {shop.queueOnlineJoin && (
-            <a href={`/salon/${locationId}/queue`} className="mt-4 inline-flex items-center gap-2 font-semibold underline" style={{ color: SP.brass }}>
-              <UsersRound className="h-4 w-4" aria-hidden /> Join the walk-in queue instead
-            </a>
-          )}
-        </div>
-      </Shell>
-    );
-  }
-  return <Booking shop={shop} />;
+  return <ShopPage shop={shop} />;
 }
 
-function Booking({ shop }: { shop: PublicShop }) {
+/** The shop's homepage, and the booking flow it opens into. */
+function ShopPage({ shop }: { shop: PublicShop }) {
+  const [booking, setBooking] = useState<{ serviceId?: string; staffId?: string } | null>(() => {
+    if (typeof window === "undefined") return null;
+    return new URLSearchParams(window.location.search).get("book") === "1" && shop.onlineBookingEnabled ? {} : null;
+  });
+  if (!booking || !shop.onlineBookingEnabled) {
+    return (
+      <SalonHome
+        shop={shop}
+        onBook={(pick) => {
+          if (!shop.onlineBookingEnabled) {
+            if (shop.phone) window.location.href = `tel:${shop.phone.replace(/[^\d+]/g, "")}`;
+            return;
+          }
+          setBooking(pick ?? {});
+          window.scrollTo({ top: 0 });
+        }}
+      />
+    );
+  }
+  return <Booking shop={shop} initial={booking} onHome={() => setBooking(null)} />;
+}
+
+function Booking({
+  shop,
+  initial,
+  onHome,
+}: {
+  shop: PublicShop;
+  initial: { serviceId?: string; staffId?: string };
+  onHome: () => void;
+}) {
   const router = useRouter();
   const tz = shop.timezone;
   const [step, setStep] = useState<Step>(0);
-  const [wanted, setWanted] = useState<WantedService[]>([]);
-  const [staffId, setStaffId] = useState<string>("any");
+  const [wanted, setWanted] = useState<WantedService[]>(() =>
+    initial.serviceId && shop.services.some((s) => s.id === initial.serviceId) ? [{ serviceId: initial.serviceId, addonIds: [] }] : [],
+  );
+  const [staffId, setStaffId] = useState<string>(initial.staffId ?? "any");
   const [date, setDate] = useState(todayIn(tz));
   const [slot, setSlot] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -239,11 +256,11 @@ function Booking({ shop }: { shop: PublicShop }) {
       <div className="mt-6">
         <PoleStripe step={step} steps={4} trade={shop.trade} />
         <div className="mt-4 flex items-center gap-2">
-          {step > 0 && (
+          {(
             <button
               type="button"
-              aria-label="Back"
-              onClick={() => setStep((s) => (s - 1) as Step)}
+              aria-label={step === 0 ? "Back to the shop" : "Back"}
+              onClick={() => (step === 0 ? onHome() : setStep((s) => (s - 1) as Step))}
               className="grid h-10 w-10 place-items-center rounded-full bg-white"
             >
               <ArrowLeft className="h-5 w-5" />

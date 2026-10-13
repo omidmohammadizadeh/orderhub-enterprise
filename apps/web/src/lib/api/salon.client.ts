@@ -28,6 +28,10 @@ export interface SalonSettings {
   bookingPolicy: string;
   offerAnyStaff: boolean;
   loyaltyRewardServiceId: string | null;
+  about: string;
+  coverImageUrl: string | null;
+  gallery: string[];
+  instagram: string;
 }
 
 export type WeeklyHours = Partial<Record<string, Array<{ from: string; to: string }>>>;
@@ -433,7 +437,22 @@ export interface PublicShop {
   bookingPolicy: string;
   cancellationWindowHours: number;
   offerAnyStaff: boolean;
-  loyalty: { stampsRequired: number; rewardLabel: string; joinUrl: string } | null;
+  loyalty: {
+    stampsRequired: number;
+    rewardLabel: string;
+    joinUrl: string;
+    stampIcon: string | null;
+    cardColor: string | null;
+  } | null;
+  about: string | null;
+  coverImageUrl: string | null;
+  gallery: string[];
+  instagram: string | null;
+  googleReviewUrl: string | null;
+  addressLines: string[];
+  latitude: number | null;
+  longitude: number | null;
+  hours: Record<string, Array<{ from: string; to: string }>>;
   leadTimeMins: number;
   maxDaysAhead: number;
   services: Array<{

@@ -106,8 +106,13 @@ export class SalonBookingService {
         phone: true,
         logoUrl: true,
         addressLine1: true,
+        addressLine2: true,
         city: true,
         postcode: true,
+        about: true,
+        latitude: true,
+        longitude: true,
+        googleReviewUrl: true,
         brand: { select: { tenantId: true, logoUrl: true, name: true } },
       },
     });
@@ -1032,7 +1037,7 @@ export class SalonBookingService {
   async loyaltyFor(locationId: string) {
     const card = await this.prisma.loyaltyCard.findUnique({
       where: { locationId },
-      select: { isActive: true, walkInEnabled: true, stampsRequired: true, rewardLabel: true },
+      select: { isActive: true, walkInEnabled: true, stampsRequired: true, rewardLabel: true, stampIcon: true, cardColor: true },
     });
     if (!card?.isActive || !card.walkInEnabled) return null;
     const loc = await this.prisma.location.findUnique({
@@ -1042,6 +1047,8 @@ export class SalonBookingService {
     return {
       stampsRequired: card.stampsRequired,
       rewardLabel: card.rewardLabel,
+      stampIcon: card.stampIcon,
+      cardColor: card.cardColor,
       joinUrl: `${this.notify.webUrl()}/loyalty/join/${loc?.onlineOrderingSlug ?? loc?.slug ?? locationId}`,
     };
   }
@@ -1050,8 +1057,11 @@ export class SalonBookingService {
 
   async publicShop(locationId: string) {
     const loc = await this.loadLocation(locationId);
-    const enabled = loc.businessType === "SALON" && loc.salon.onlineBookingEnabled;
-    const [services, staff] = enabled
+    const isSalon = loc.businessType === "SALON";
+    const enabled = isSalon && loc.salon.onlineBookingEnabled;
+    // The page (price list, team, hours, map) shows for every salon; only
+    // the booking buttons depend on online booking being switched on.
+    const [services, staff] = isSalon
       ? await Promise.all([
           this.prisma.salonService.findMany({
             where: { locationId, isActive: true, bookableOnline: true },
@@ -1074,7 +1084,19 @@ export class SalonBookingService {
       bookingPolicy: loc.salon.bookingPolicy,
       cancellationWindowHours: loc.salon.cancellationWindowHours,
       offerAnyStaff: loc.salon.offerAnyStaff,
-      loyalty: enabled ? await this.loyaltyFor(loc.id).catch(() => null) : null,
+      loyalty: isSalon ? await this.loyaltyFor(loc.id).catch(() => null) : null,
+      // ── The shop's page ──
+      about: loc.salon.about || loc.about || null,
+      coverImageUrl: loc.salon.coverImageUrl,
+      gallery: loc.salon.gallery,
+      instagram: loc.salon.instagram || null,
+      googleReviewUrl: loc.googleReviewUrl ?? null,
+      addressLines: [loc.addressLine1, loc.addressLine2, [loc.city, loc.postcode].filter(Boolean).join(" ")]
+        .map((x) => (x ?? "").trim())
+        .filter(Boolean),
+      latitude: loc.latitude ?? null,
+      longitude: loc.longitude ?? null,
+      hours: weekHoursFor(loc.shopHours, staff),
       leadTimeMins: loc.salon.leadTimeMins,
       maxDaysAhead: loc.salon.maxDaysAhead,
       services: services.map((s) => {
@@ -1134,6 +1156,36 @@ export class SalonBookingService {
   emit(locationId: string, kind: string, appointmentId: string) {
     this.socket.emitToLocation(locationId, "salon:changed" as any, { kind, appointmentId } as any);
   }
+}
+
+/**
+ * The hours to show guests: the shop's own when set, otherwise the span the
+ * team works each day (earliest start to latest finish), otherwise none.
+ */
+function weekHoursFor(
+  shopHours: ReturnType<typeof normaliseWeeklyHours>,
+  staff: Array<{ weeklyHours: unknown }>,
+): Record<string, Array<{ from: string; to: string }>> {
+  const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const;
+  const out: Record<string, Array<{ from: string; to: string }>> = {};
+  const shopSet = days.some((d) => (shopHours[d]?.length ?? 0) > 0);
+  if (shopSet) {
+    for (const d of days) out[d] = shopHours[d] ?? [];
+    return out;
+  }
+  const team = staff.map((s) => normaliseWeeklyHours(s.weeklyHours));
+  if (!team.some((h) => days.some((d) => (h[d]?.length ?? 0) > 0))) return out;
+  for (const d of days) {
+    const slots = team.flatMap((h) => h[d] ?? []);
+    if (!slots.length) {
+      out[d] = [];
+      continue;
+    }
+    const from = slots.map((x) => x.from).sort()[0]!;
+    const to = slots.map((x) => x.to).sort().at(-1)!;
+    out[d] = [{ from, to }];
+  }
+  return out;
 }
 
 /** One client however their number was typed: 07700 900123 = +447700900123. */

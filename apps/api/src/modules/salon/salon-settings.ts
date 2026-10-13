@@ -39,6 +39,15 @@ export interface SalonSettings {
   /** The service a full loyalty card gets free. The card itself can only
    *  point at a food MenuItem, so a salon's reward service lives here. */
   loyaltyRewardServiceId: string | null;
+  // ── The public page ──
+  /** A line or two about the shop, under its name. Falls back to Location.about. */
+  about: string;
+  /** Big photo across the top of the page. */
+  coverImageUrl: string | null;
+  /** Photos of their work. */
+  gallery: string[];
+  /** Instagram handle, without the @. */
+  instagram: string;
 }
 
 export const SALON_DEFAULTS: SalonSettings = {
@@ -61,7 +70,17 @@ export const SALON_DEFAULTS: SalonSettings = {
   bookingPolicy: "",
   offerAnyStaff: true,
   loyaltyRewardServiceId: null,
+  about: "",
+  coverImageUrl: null,
+  gallery: [],
+  instagram: "",
 };
+
+/** Only real image links: our own uploads or https. */
+function imageUrl(v: unknown): string | null {
+  const s = typeof v === "string" ? v.trim() : "";
+  return /^https:\/\/[^\s"'<>]+$/i.test(s) && s.length <= 1000 ? s : null;
+}
 
 const TRADES = ["BARBER", "HAIR", "NAILS", "BEAUTY"] as const;
 
@@ -106,6 +125,18 @@ export function readSalonSettings(locationSettings: unknown): SalonSettings {
       typeof raw.loyaltyRewardServiceId === "string" && raw.loyaltyRewardServiceId.trim()
         ? raw.loyaltyRewardServiceId.trim().slice(0, 64)
         : null,
+    about: String(raw.about ?? "").trim().slice(0, 600),
+    coverImageUrl: imageUrl(raw.coverImageUrl),
+    gallery: (Array.isArray(raw.gallery) ? raw.gallery : [])
+      .map(imageUrl)
+      .filter((x): x is string => !!x)
+      .slice(0, 12),
+    instagram: String(raw.instagram ?? "")
+      .trim()
+      .replace(/^https?:\/\/(www\.)?instagram\.com\//i, "")
+      .replace(/^@/, "")
+      .replace(/[^A-Za-z0-9._]/g, "")
+      .slice(0, 30),
   };
 }
 
