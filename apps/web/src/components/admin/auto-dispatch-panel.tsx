@@ -540,7 +540,13 @@ function RuleEditor({
     const loc = options.locations.find((l) => l.id === id);
     // Drop brands that don't trade at the new location.
     const brandIds = loc ? draft.brandIds.filter((b) => loc.brandIds.includes(b)) : draft.brandIds;
-    onChange({ ...draft, locationId: id, brandIds });
+    // Nothing picked yet: start from the providers that can book there, so
+    // the obvious rule is one tap away instead of a greyed-out button.
+    const providers =
+      loc && draft.providers.length === 0
+        ? options.providers.filter((p) => loc.providers[p] === "ready")
+        : draft.providers;
+    onChange({ ...draft, locationId: id, brandIds, providers });
   };
 
   // Readiness of each provider for the rule's scope: one location, or a
@@ -559,7 +565,11 @@ function RuleEditor({
     return out;
   }, [options, draft.locationId]);
 
-  const canSave = draft.name.trim() && draft.providers.length > 0 && !saving;
+  const missing = [
+    !draft.name.trim() && "a name",
+    draft.providers.length === 0 && "at least one courier provider",
+  ].filter(Boolean) as string[];
+  const canSave = missing.length === 0 && !saving;
   const field = "w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20";
   const label = "mb-1.5 block text-xs font-medium text-zinc-600";
 
@@ -720,7 +730,7 @@ function RuleEditor({
         </div>
         <div>
           <p className={label}>
-            {draft.strategy === "FIXED" ? "Provider (tap in order — first is used, the rest are fallbacks)" : "Providers to quote"}
+            {draft.strategy === "FIXED" ? "Provider (tap in order — first is used, the rest are fallbacks)" : "Providers to quote — tap each one to include it"}
           </p>
           <div className="grid gap-2 sm:grid-cols-2">
             {options.providers.map((p) => {
@@ -737,6 +747,12 @@ function RuleEditor({
                   }`}
                 >
                   <span className="flex items-center gap-2 text-sm font-medium text-zinc-800">
+                    {draft.strategy === "CHEAPEST" && (
+                      <CheckCircle2
+                        className={`h-4 w-4 ${on ? "text-orange-600" : "text-zinc-300"}`}
+                        aria-hidden="true"
+                      />
+                    )}
                     {draft.strategy === "FIXED" && on && (
                       <span className="flex h-5 w-5 items-center justify-center rounded-full bg-orange-600 text-[10px] font-bold text-white">
                         {idx + 1}
@@ -827,6 +843,12 @@ function RuleEditor({
         <Toggle checked={draft.dryRun} onChange={(v) => set("dryRun", v)} label="Dry run" />
       </label>
 
+      {missing.length > 0 && (
+        <p role="status" className="flex items-center gap-1.5 text-xs text-amber-700 sm:justify-end">
+          <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          To create the rule, add {missing.join(" and ")}.
+        </p>
+      )}
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         <button
           type="button"
