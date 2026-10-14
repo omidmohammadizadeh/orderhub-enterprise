@@ -45,6 +45,8 @@ export interface AutoDispatchOptions {
     name: string;
     country: string;
     currency: string;
+    /** Brands that trade at this location. */
+    brandIds: string[];
     providers: ProviderReadiness;
   }[];
   brands: { id: string; name: string }[];

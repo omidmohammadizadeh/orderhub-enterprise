@@ -174,8 +174,28 @@ export class AutoDispatchService {
     return out;
   }
 
+  /** A rule scoped to one location may only name brands that trade there —
+   *  any other brand could never match, and the rule would silently do
+   *  nothing. */
+  private async assertBrandsAtLocation(
+    tenantId: string,
+    locationId: string | null | undefined,
+    brandIds: string[] | undefined,
+  ) {
+    if (!locationId || !brandIds?.length) return;
+    const at = (await this.brandsByLocation(tenantId, [locationId])).get(locationId) ?? new Set();
+    if (brandIds.some((b) => !at.has(b))) {
+      throw new BadRequestException("A selected brand doesn't trade at that location.");
+    }
+  }
+
   async createRule(tenantId: string, userId: string | null, input: RuleInput) {
     const data = await this.clean(tenantId, input);
+    await this.assertBrandsAtLocation(
+      tenantId,
+      data.locationId as string | null,
+      data.brandIds as string[] | undefined,
+    );
     const enabled = Boolean(input.enabled);
     return this.db().autoDispatchRule.create({
       data: {
@@ -192,6 +212,13 @@ export class AutoDispatchService {
     const existing = await this.db().autoDispatchRule.findFirst({ where: { id, tenantId } });
     if (!existing) throw new NotFoundException("Rule not found");
     const data = await this.clean(tenantId, input);
+    if (data.locationId !== undefined || data.brandIds !== undefined) {
+      await this.assertBrandsAtLocation(
+        tenantId,
+        (data.locationId !== undefined ? data.locationId : existing.locationId) as string | null,
+        (data.brandIds ?? existing.brandIds) as string[],
+      );
+    }
     if (input.enabled !== undefined) {
       data.enabled = Boolean(input.enabled);
       // Restart the clock on every switch-on, so turning a rule off and on
@@ -225,8 +252,16 @@ export class AutoDispatchService {
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     });
+    const brandsAt = await this.brandsByLocation(
+      tenantId,
+      locations.map((l: any) => l.id),
+    );
     const withProviders = await Promise.all(
-      locations.map(async (l: any) => ({ ...l, providers: await this.readiness(l.id) })),
+      locations.map(async (l: any) => ({
+        ...l,
+        brandIds: [...(brandsAt.get(l.id) ?? [])],
+        providers: await this.readiness(l.id),
+      })),
     );
     return {
       locations: withProviders,
@@ -237,6 +272,52 @@ export class AutoDispatchService {
       ],
       providers: AUTO_DISPATCH_PROVIDERS,
     };
+  }
+
+  /**
+   * The brands that trade at each location. A brand counts when it is the
+   * location's own brand or lives there (primaryLocationId) — the same test
+   * the storefront uses — or when a multi-brand kitchen serves its menu there
+   * (MenuChannelAssignment), or it has taken orders there in the last 60 days
+   * (marketplace brands that arrive through HubRise with no menu of ours).
+   */
+  private async brandsByLocation(tenantId: string, locationIds: string[]) {
+    const out = new Map<string, Set<string>>();
+    const add = (loc: string | null | undefined, brand: string | null | undefined) => {
+      if (!loc || !brand) return;
+      if (!out.has(loc)) out.set(loc, new Set());
+      out.get(loc)!.add(brand);
+    };
+    if (!locationIds.length) return out;
+    const [locs, homed, served, ordered] = await Promise.all([
+      this.db().location.findMany({
+        where: { id: { in: locationIds } },
+        select: { id: true, brandId: true },
+      }),
+      this.db().brand.findMany({
+        where: { tenantId, deletedAt: null, primaryLocationId: { in: locationIds } },
+        select: { id: true, primaryLocationId: true },
+      }),
+      this.db().menuChannelAssignment.findMany({
+        where: { locationId: { in: locationIds } },
+        select: { locationId: true, brandId: true },
+        distinct: ["locationId", "brandId"],
+      }),
+      this.db().order.groupBy({
+        by: ["locationId", "brandId"],
+        where: {
+          tenantId,
+          locationId: { in: locationIds },
+          brandId: { not: null },
+          createdAt: { gte: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000) },
+        },
+      }),
+    ]);
+    for (const l of locs) add(l.id, l.brandId);
+    for (const b of homed) add(b.primaryLocationId, b.id);
+    for (const a of served) add(a.locationId, a.brandId);
+    for (const o of ordered) add(o.locationId, o.brandId);
+    return out;
   }
 
   /** Which providers can actually book from this location right now. */

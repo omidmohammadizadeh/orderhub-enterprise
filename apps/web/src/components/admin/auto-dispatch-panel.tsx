@@ -18,6 +18,7 @@ import {
   Loader2,
   Pencil,
   Plus,
+  Search,
   RefreshCw,
   Trash2,
   Trophy,
@@ -515,6 +516,32 @@ function RuleEditor({
   const toggleIn = (list: string[], v: string) =>
     list.includes(v) ? list.filter((x) => x !== v) : [...list, v];
   const currency = locationCurrency(options, draft.locationId);
+  const [locQuery, setLocQuery] = useState("");
+  const [brandQuery, setBrandQuery] = useState("");
+  const selectedLocation = options.locations.find((l) => l.id === draft.locationId) ?? null;
+  const filteredLocations = useMemo(() => {
+    const q = locQuery.trim().toLowerCase();
+    return q ? options.locations.filter((l) => l.name.toLowerCase().includes(q)) : options.locations;
+  }, [options.locations, locQuery]);
+  // One location: only the brands that trade there. All locations: every brand.
+  const brandPool = useMemo(() => {
+    if (!selectedLocation) return options.brands;
+    const at = new Set(selectedLocation.brandIds);
+    return options.brands.filter((b) => at.has(b.id));
+  }, [options.brands, selectedLocation]);
+  // Picked brands stay visible while searching, so a search never hides
+  // what the rule is already set to.
+  const visibleBrands = useMemo(() => {
+    const q = brandQuery.trim().toLowerCase();
+    if (!q) return brandPool;
+    return brandPool.filter((b) => draft.brandIds.includes(b.id) || b.name.toLowerCase().includes(q));
+  }, [brandPool, brandQuery, draft.brandIds]);
+  const pickLocation = (id: string | null) => {
+    const loc = options.locations.find((l) => l.id === id);
+    // Drop brands that don't trade at the new location.
+    const brandIds = loc ? draft.brandIds.filter((b) => loc.brandIds.includes(b)) : draft.brandIds;
+    onChange({ ...draft, locationId: id, brandIds });
+  };
 
   // Readiness of each provider for the rule's scope: one location, or a
   // count across all of them.
@@ -585,28 +612,72 @@ function RuleEditor({
       <fieldset className="space-y-3">
         <legend className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Which orders</legend>
         <div>
-          <label htmlFor="ad-location" className={label}>Location</label>
-          <select
-            id="ad-location"
-            className={field}
-            value={draft.locationId ?? ""}
-            onChange={(e) => set("locationId", e.target.value || null)}
+          <label htmlFor="ad-location-search" className={label}>Location</label>
+          <SearchInput
+            id="ad-location-search"
+            value={locQuery}
+            onChange={setLocQuery}
+            placeholder="Search locations by name…"
+          />
+          <ul
+            role="listbox"
+            aria-label="Location"
+            className="mt-2 max-h-52 overflow-y-auto rounded-lg border border-zinc-200 bg-white"
           >
-            <option value="">All locations</option>
-            {options.locations.map((l) => (
-              <option key={l.id} value={l.id}>{l.name}</option>
+            {!locQuery.trim() && (
+              <LocationOption
+                selected={!draft.locationId}
+                onSelect={() => pickLocation(null)}
+                name="All locations"
+                hint={`${options.locations.length} locations`}
+              />
+            )}
+            {filteredLocations.map((l) => (
+              <LocationOption
+                key={l.id}
+                selected={draft.locationId === l.id}
+                onSelect={() => pickLocation(l.id)}
+                name={l.name}
+                hint={`${l.brandIds.length} brand${l.brandIds.length === 1 ? "" : "s"}`}
+              />
             ))}
-          </select>
+            {filteredLocations.length === 0 && locQuery.trim() && (
+              <li className="px-3 py-3 text-sm text-zinc-400">No location matches “{locQuery.trim()}”.</li>
+            )}
+          </ul>
         </div>
         <div>
-          <p className={label}>Brands <span className="font-normal text-zinc-400">— none picked = any brand</span></p>
-          <div className="flex flex-wrap gap-1.5">
-            {options.brands.map((b) => (
-              <Chip key={b.id} active={draft.brandIds.includes(b.id)} onClick={() => set("brandIds", toggleIn(draft.brandIds, b.id))}>
-                {b.name}
-              </Chip>
-            ))}
-          </div>
+          <p id="ad-brands-label" className={label}>
+            Brands{draft.locationId ? <> at {selectedLocation?.name}</> : null}{" "}
+            <span className="font-normal text-zinc-400">— none picked = any brand</span>
+          </p>
+          {brandPool.length > 6 && (
+            <div className="mb-2">
+              <SearchInput
+                id="ad-brand-search"
+                value={brandQuery}
+                onChange={setBrandQuery}
+                placeholder="Search brands by name…"
+                ariaLabel="Search brands by name"
+              />
+            </div>
+          )}
+          {brandPool.length === 0 ? (
+            <p className="text-xs text-zinc-400">
+              No brands trade at this location yet, so the rule will match any brand here.
+            </p>
+          ) : (
+            <div className="flex flex-wrap gap-1.5" role="group" aria-labelledby="ad-brands-label">
+              {visibleBrands.map((b) => (
+                <Chip key={b.id} active={draft.brandIds.includes(b.id)} onClick={() => set("brandIds", toggleIn(draft.brandIds, b.id))}>
+                  {b.name}
+                </Chip>
+              ))}
+              {visibleBrands.length === 0 && (
+                <p className="text-xs text-zinc-400">No brand matches “{brandQuery.trim()}”.</p>
+              )}
+            </div>
+          )}
         </div>
         <div>
           <p className={label}>Channels <span className="font-normal text-zinc-400">— none picked = any channel</span></p>
@@ -774,6 +845,69 @@ function RuleEditor({
         </button>
       </div>
     </form>
+  );
+}
+
+function SearchInput({
+  id,
+  value,
+  onChange,
+  placeholder,
+  ariaLabel,
+}: {
+  id: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  ariaLabel?: string;
+}) {
+  return (
+    <div className="relative">
+      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" aria-hidden="true" />
+      <input
+        id={id}
+        type="search"
+        aria-label={ariaLabel}
+        autoComplete="off"
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-lg border border-zinc-200 bg-white py-2 pl-9 pr-3 text-sm text-zinc-800 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+      />
+    </div>
+  );
+}
+
+function LocationOption({
+  selected,
+  onSelect,
+  name,
+  hint,
+}: {
+  selected: boolean;
+  onSelect: () => void;
+  name: string;
+  hint: string;
+}) {
+  return (
+    <li role="option" aria-selected={selected}>
+      <button
+        type="button"
+        onClick={onSelect}
+        className={`flex min-h-[40px] w-full items-center justify-between gap-3 px-3 text-left text-sm focus-visible:bg-orange-50 focus-visible:outline-none ${
+          selected ? "bg-orange-50 font-medium text-orange-700" : "text-zinc-700 hover:bg-zinc-50"
+        }`}
+      >
+        <span className="flex min-w-0 items-center gap-2">
+          <CheckCircle2
+            className={`h-4 w-4 shrink-0 ${selected ? "text-orange-600" : "text-transparent"}`}
+            aria-hidden="true"
+          />
+          <span className="truncate">{name}</span>
+        </span>
+        <span className="shrink-0 text-[11px] text-zinc-400">{hint}</span>
+      </button>
+    </li>
   );
 }
 
