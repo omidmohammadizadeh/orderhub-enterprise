@@ -224,6 +224,32 @@ function testAddressFor(country: string | null | undefined) {
   return { ...hit, country: key || "GB" };
 }
 
+/**
+ * The brand a till order is filed under.
+ *
+ * POS (till + kiosk): the location's "POS display name" brand WINS when set.
+ * The till never asks staff for a brand — it sends the brand of whichever menu
+ * the cart was built from — so with a multi-brand menu published to the till,
+ * every counter order at Pizza Uno landed as "burgerz and friez". The setting
+ * exists to say "this counter is Pizza Uno", so it overrides.
+ *
+ * VOICE: fallback only. The phone line may legitimately belong to one brand.
+ * Anything else (ONLINE/DIRECT): never touched — a storefront customer chose
+ * the brand (Monster Burgerz orders once landed as Pizza Uno that way).
+ */
+export function resolvePosDisplayBrand(input: {
+  source: string;
+  requestedBrandId?: string | null;
+  posBrandId?: string | null;
+}): string | undefined {
+  const requested = input.requestedBrandId || undefined;
+  const pinned = input.posBrandId || undefined;
+  if (!pinned) return requested;
+  if (input.source === "POS") return pinned;
+  if (input.source === "VOICE") return requested ?? pinned;
+  return requested;
+}
+
 @Injectable()
 export class OrdersService {
   private readonly logger = new Logger(OrdersService.name);
@@ -1149,10 +1175,11 @@ export class OrdersService {
       const posBrandId = (loc?.settings as any)?.posBrandId as
         | string
         | undefined;
-      const countertop = resolvedSource === "POS" || resolvedSource === "VOICE";
-      if (!effectiveBrandId && countertop && posBrandId) {
-        effectiveBrandId = posBrandId;
-      }
+      effectiveBrandId = resolvePosDisplayBrand({
+        source: resolvedSource,
+        requestedBrandId: effectiveBrandId,
+        posBrandId,
+      });
     }
 
     // Service charge is decided HERE, not by the till. A client-computed
