@@ -488,9 +488,25 @@ function triggerSummary(r: Pick<RuleInput, "trigger" | "delayMinutes">) {
   return m ? `${m} min after ${event}` : `as soon as it's ${event}`;
 }
 
+// Only the editable fields, named one by one. Spreading the rule sent back
+// tenantId / createdBy / updatedAt too, and the API's whitelist refused every
+// save of an existing rule.
 function toInput(r: AutoDispatchRule): RuleInput {
-  const { id: _id, enabledAt: _e, createdAt: _c, ...rest } = r;
-  return rest;
+  return {
+    name: r.name,
+    enabled: r.enabled,
+    priority: r.priority,
+    locationId: r.locationId,
+    brandIds: r.brandIds,
+    channels: r.channels,
+    strategy: r.strategy,
+    providers: r.providers,
+    fallback: r.fallback,
+    trigger: r.trigger,
+    delayMinutes: r.delayMinutes,
+    maxPriceMinor: r.maxPriceMinor,
+    dryRun: r.dryRun,
+  };
 }
 
 // ── Rule editor ─────────────────────────────────────────────────────────────
