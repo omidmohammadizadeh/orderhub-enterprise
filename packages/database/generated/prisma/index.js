@@ -5239,7 +5239,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/Users/omidmohammadizadeh/orderhub-enterprise/.claude/worktrees/auto-dispatch-mechanism-e6f970/packages/database/generated/prisma",
+      "value": "/Users/omidmohammadizadeh/orderhub-enterprise/.claude/worktrees/cafe-chicchi-menu-charts-bae84f/packages/database/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -5264,7 +5264,7 @@ const config = {
       "fullTextSearch",
       "metrics"
     ],
-    "sourceFilePath": "/Users/omidmohammadizadeh/orderhub-enterprise/.claude/worktrees/auto-dispatch-mechanism-e6f970/packages/database/prisma/schema.prisma",
+    "sourceFilePath": "/Users/omidmohammadizadeh/orderhub-enterprise/.claude/worktrees/cafe-chicchi-menu-charts-bae84f/packages/database/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {

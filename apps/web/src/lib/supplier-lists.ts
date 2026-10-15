@@ -79,6 +79,11 @@ export interface SupplierList {
   slug: string;
   name: string;
   accent: string;
+  /**
+   * Which menus are this brand's — tested against the location's menu names,
+   * so Kitchen training only offers the lists a shop actually cooks.
+   */
+  match: RegExp;
   /** Photo folder, when the list shares another brand's photos. */
   photos?: string;
   items: SupplierItem[];
@@ -102,6 +107,7 @@ const item = (
 const MONSTER_BURGERZ: SupplierList = {
   slug: 'monster-burgerz',
   name: 'Monster Burgerz',
+  match: /monster\s*burger/i,
   accent: '#16a34a',
   items: [
     item(
@@ -173,6 +179,7 @@ const MONSTER_BURGERZ: SupplierList = {
 const GREEK_GYROS: SupplierList = {
   slug: 'greek-gyros',
   name: 'Greek Gyros',
+  match: /greek\s*gyros/i,
   accent: '#2563eb',
   items: [
     item('chicken-gyros', 'Chicken gyros (doner)', 'Meat & protein', ['jj'], { code: 'DON175' }),
@@ -246,6 +253,7 @@ const GREEK_GYROS: SupplierList = {
 const KOREAN_FRIED_CHICKEN: SupplierList = {
   slug: 'korean-fried-chicken',
   name: 'Korean Fried Chicken',
+  match: /korean\s*fried|\bkfc\b/i,
   accent: '#dc2626',
   items: [
     item(
@@ -507,6 +515,7 @@ const KOREAN_FRIED_CHICKEN: SupplierList = {
 const CHICAGO_PIZZERIA: SupplierList = {
   slug: 'chicago-pizzeria',
   name: 'Chicago Pizzeria',
+  match: /chicago/i,
   accent: '#b91c1c',
   items: [
     item('pizza-flour', 'Pizza flour (16kg)', 'Oil & coatings', ['jj'], {
@@ -1079,6 +1088,7 @@ const NOT_ONLINE = 'not on the JJ website yet';
 const FIESTA_MEXICA: SupplierList = {
   slug: 'fiesta-mexica',
   name: 'Fiesta Mexica',
+  match: /fiesta\s*mex/i,
   accent: '#16a34a',
   items: [
     item('chipotle-chicken', 'Halal chipotle chicken (6 × 1kg)', 'Meat & protein', ['jj'], {
@@ -1282,6 +1292,7 @@ export const SUPPLIER_LISTS: SupplierList[] = [
     ...MONSTER_BURGERZ,
     slug: 'burgerz-and-friez',
     name: 'Burgerz and Friez',
+    match: /burger[sz]?\s*(and|&)\s*frie[sz]/i,
     accent: '#ea580c',
     photos: MONSTER_BURGERZ.slug,
   },
@@ -1290,6 +1301,7 @@ export const SUPPLIER_LISTS: SupplierList[] = [
     ...GREEK_GYROS,
     slug: 'greek-bite',
     name: 'Greek Bite',
+    match: /greek\s*bite/i,
     accent: '#0891b2',
     photos: GREEK_GYROS.slug,
   },
@@ -1297,6 +1309,10 @@ export const SUPPLIER_LISTS: SupplierList[] = [
   CHICAGO_PIZZERIA,
   FIESTA_MEXICA,
 ];
+
+/** The lists for brands on these menus (by menu name), in registry order. */
+export const supplierListsForMenus = (menuNames: string[]) =>
+  SUPPLIER_LISTS.filter((l) => menuNames.some((n) => l.match.test(n)));
 
 export const supplierListBySlug = (slug: string | null) =>
   SUPPLIER_LISTS.find((l) => l.slug === slug) ?? null;
