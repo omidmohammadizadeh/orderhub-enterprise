@@ -102,6 +102,43 @@ export async function resolveReceiptOffer(
   }
 }
 
+/**
+ * The QR gates for one printed ticket, posted with markOrderPrinted and logged
+ * by the API as "QR decision: …". Reprint AND auto-print send it: auto-print
+ * used not to, so the first (and usually only) print of an order left no
+ * trace, and "why was there no QR?" could only be answered by reprinting.
+ */
+export function describeQrDecision(a: {
+  printer: any;
+  renderOpts: { qrCode?: boolean; qrDialect?: string };
+  order: any;
+  offer: ReceiptOffer | null;
+  payload: any;
+  qrSlip?: Uint8Array | null;
+  receiptWithQr?: Uint8Array | null;
+  auto?: boolean;
+}): Record<string, unknown> {
+  return {
+    printer: a.printer?.name ?? a.printer?.ipAddress ?? "?",
+    ...(a.auto ? { auto: true } : {}),
+    qrEnabled: !!a.renderOpts.qrCode,
+    dialect: a.renderOpts.qrDialect,
+    // marketplace=false has two very different causes: the order really
+    // is one of our own channels (POS/online never get the QR — that
+    // customer already orders direct), or the offer lookup bailed. These
+    // three fields separate them without another round of guessing.
+    src: String(a.order?.orderSource ?? a.order?.platform ?? "?"),
+    offer: a.offer ? "ok" : "NULL",
+    orderBrand: a.order?.brandId ? "yes" : "NONE",
+    marketplace: !!a.offer?.isMarketplace,
+    offerUrl: a.offer?.url ? "yes" : "NONE",
+    qrData: a.payload?.qrData ? "yes" : "NONE",
+    detachedOpt: !!a.printer?.defaults?.qrDetached,
+    slipBytes: a.qrSlip?.length ?? 0,
+    withQrBytes: a.receiptWithQr?.length ?? 0,
+  };
+}
+
 // Apply a resolved offer onto a receipt payload: logo for every order,
 // QR + caption only for marketplace orders that actually have a
 // storefront URL.
@@ -336,26 +373,15 @@ export async function printOrderViaBridge(
         p.paperWidth ?? 80,
         renderOpts,
       );
-      qrDecision = {
-        printer: (p as any)?.name ?? p.ipAddress ?? "?",
-        qrEnabled: !!renderOpts.qrCode,
-        dialect: renderOpts.qrDialect,
-        // marketplace=false has two very different causes: the order really
-        // is one of our own channels (POS/online never get the QR — that
-        // customer already orders direct), or the offer lookup bailed. These
-        // three fields separate them without another round of guessing.
-        src: String(
-          (order as any)?.orderSource ?? (order as any)?.platform ?? "?",
-        ),
-        offer: offer ? "ok" : "NULL",
-        orderBrand: (order as any)?.brandId ? "yes" : "NONE",
-        marketplace: !!offer?.isMarketplace,
-        offerUrl: offer?.url ? "yes" : "NONE",
-        qrData: (payload as any)?.qrData ? "yes" : "NONE",
-        detachedOpt: !!(p as any).defaults?.qrDetached,
-        slipBytes: qrSlip?.length ?? 0,
-        withQrBytes: receiptWithQr?.length ?? 0,
-      };
+      qrDecision = describeQrDecision({
+        printer: p,
+        renderOpts,
+        order,
+        offer,
+        payload,
+        qrSlip,
+        receiptWithQr,
+      });
       // Detached: plain receipts, then the QR on its own ticket.
       const detached = (p as any).defaults?.qrDetached ? qrSlip : null;
       await writeToPrinter(
