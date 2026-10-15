@@ -44,6 +44,19 @@ import {
   Tags,
   UtensilsCrossed,
   Wallet,
+  Barcode,
+  Scale,
+  Scissors,
+  Gift,
+  BellRing,
+  Smartphone,
+  Package,
+  Tv,
+  Wine,
+  Mail,
+  Star,
+  Flower2,
+  Receipt,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import {
@@ -62,6 +75,19 @@ import {
   KitchenNoteMockup,
 } from "./mockups";
 import { VoiceAssembly } from "./voice-assembly";
+import {
+  BARBER_DIARY,
+  BEAUTY_DIARY,
+  BookingPageMockup,
+  GroceryPickingMockup,
+  GroceryTillMockup,
+  LoyaltyTillMockup,
+  SalonCheckoutMockup,
+  SalonDiaryMockup,
+  SalonReminderMockup,
+  WalkInQueueMockup,
+  WalletPassMockup,
+} from "./industry-mockups";
 
 export interface Capability {
   icon: LucideIcon;
@@ -547,6 +573,224 @@ export const SOLUTIONS: Solution[] = [
           "Notes print marked do not remake",
         ],
         mockup: <KitchenNoteMockup />,
+      },
+    ],
+  },
+  // ── Loyalty card ──────────────────────────────────────────────────────────
+  // The walk-in card: an Apple / Google Wallet pass the till scans. Works for
+  // every business type — cafés, takeaways, shops and salons.
+  {
+    slug: "loyalty-card",
+    name: "Loyalty card",
+    navDescription: "A stamp card in their phone’s wallet",
+    accent: "#f472b6",
+    icon: Gift,
+    badge: "Loyalty card",
+    title: "The stamp card that never gets lost",
+    subtitle:
+      "Customers join in seconds with just an email and add your card to Apple Wallet or Google Wallet. Scan it at the till, the stamp lands when the sale is paid, and the card on their phone updates by itself. No app to download, no paper cards in the bin.",
+    highlights: ["Apple & Google Wallet", "Scanned at the till", "Works online too"],
+    heroMockup: <WalletPassMockup />,
+    stats: [
+      { value: 0, label: "Apps for customers to download" },
+      { value: 1, label: "Scan to add a stamp" },
+      { value: 34, label: "Stamp icons to match your shop" },
+    ],
+    capabilities: [
+      { icon: Smartphone, title: "Lives in their wallet", body: "A real Apple Wallet and Google Wallet pass with your name, your colours and their stamps — always on their phone, never left at home." },
+      { icon: ScanLine, title: "Scan at the till", body: "The till’s scanner reads the card’s QR. The customer is attached to the sale and their stamp is added the moment it’s paid." },
+      { icon: BellRing, title: "Updates by itself", body: "Stamps and rewards appear on the pass straight away. Nobody has to reopen anything or refresh a page." },
+      { icon: Gift, title: "Rewards spent at the till", body: "When the card is full the reward shows on the till. One tap redeems it, and it can only be used once." },
+      { icon: Mail, title: "Join with an email", body: "Customers sign up at the counter or from a QR on the window. A new phone? A code by email brings the same card back." },
+      { icon: Globe, title: "Same card online", body: "Customers who order from your website see the same card on their Rewards page, so in-store and online stamps count together." },
+      { icon: Star, title: "Your look", body: "Pick from 34 stamp icons — coffee, pizza, scissors, flowers and more — and choose how many stamps earn the reward." },
+      { icon: Users, title: "Grows your list", body: "Members can opt in to your email offers when they join, so every regular becomes someone you can bring back." },
+      { icon: Store, title: "Any kind of business", body: "Cafés, takeaways, supermarkets, salons and barbers all use the same card — stamps per visit or per purchase." },
+    ],
+    flow: [
+      { title: "Design your card", body: "Name it, pick the stamp icon and how many stamps earn the reward." },
+      { title: "Customer joins", body: "They scan the QR at the counter, enter their email and tap Add to Apple Wallet or Google Wallet." },
+      { title: "Scan at the till", body: "Every visit, the till scans the card. The stamp lands when the sale is paid." },
+      { title: "Reward redeemed", body: "A full card shows the reward on the till. One tap and it’s theirs." },
+    ],
+    showcases: [
+      {
+        eyebrow: "At the counter",
+        title: "Stamping a card takes one scan",
+        body: "Hold the customer’s phone under the scanner and their card is on the sale: their name, how many stamps they have and what they’re working towards. No fiddling with a stamp, no forgotten cards.",
+        bullets: ["Customer attached to the sale", "Stamp added when it’s paid", "Reward redeemed in one tap"],
+        mockup: <LoyaltyTillMockup />,
+      },
+    ],
+  },
+  // ── Supermarkets & convenience ────────────────────────────────────────────
+  {
+    slug: "supermarkets",
+    name: "Supermarkets & convenience",
+    navDescription: "Scan till, stock, weighed goods and online grocery",
+    accent: "#22c55e",
+    icon: Barcode,
+    badge: "Supermarkets & convenience stores",
+    title: "A till built for the corner shop and the supermarket",
+    subtitle:
+      "Scan barcodes, weigh fruit and veg, check ID for age-restricted items and run multi-buy deals — with stock that counts itself down every time you sell. Then put the same shelves online for delivery and collection.",
+    highlights: ["Barcode scan till", "Stock that counts itself", "Online grocery orders"],
+    heroMockup: <GroceryTillMockup />,
+    stats: [
+      { value: 1, label: "Scan per item at the till" },
+      { value: 3, label: "Multi-buy deal types built in" },
+      { value: 100, suffix: "%", label: "Of sales taken off stock automatically" },
+    ],
+    capabilities: [
+      { icon: Barcode, title: "Scan till", body: "Use a USB or Bluetooth scanner, or the tablet’s camera. Products with sizes and variants each get their own barcode." },
+      { icon: Scale, title: "Weighed goods", body: "Sell by the kilo or per 100 g. Key the weight in, or scan the label from your shop scale and the price comes straight off it." },
+      { icon: Wine, title: "Age checks", body: "Mark alcohol, tobacco and knives 16+ or 18+. The till asks for an ID check once per sale and records who did it." },
+      { icon: Tags, title: "Multi-buy deals", body: "Any 3 for £5, buy one get the cheapest free, and meal deals — applied automatically on the till and online." },
+      { icon: Package, title: "Stock that counts itself", body: "Every sale, return and delivery in is logged per shop. Receive stock, see what’s low and export it to a spreadsheet." },
+      { icon: Receipt, title: "Returns from the receipt", body: "Every receipt has a QR. Scan it, tick what’s coming back and refund to cash or card — the items go back into stock." },
+      { icon: Globe, title: "Online grocery", body: "Your shelves on your own website for delivery or collection. Sold-out items hide themselves, and customers pick substitutes." },
+      { icon: ListChecks, title: "Picking screen", body: "Staff pick online orders from a phone: swap an item, weigh meat and veg, and anything you’re out of is refunded automatically." },
+      { icon: CreditCard, title: "Cash, card and contactless", body: "Cash with change and the drawer, Stripe or Dojo card machines, and the loyalty card scanned on the same till." },
+    ],
+    flow: [
+      { title: "Import your products", body: "Upload a spreadsheet of names, prices and barcodes — leading zeros kept, nothing deleted." },
+      { title: "Scan and sell", body: "Plug in a scanner and start ringing sales through on day one." },
+      { title: "Stock looks after itself", body: "Every sale counts down. Receive deliveries in and check what’s low." },
+      { title: "Go online", body: "Switch on delivery and collection and your shelves are on your own website." },
+    ],
+    showcases: [
+      {
+        eyebrow: "Online orders",
+        title: "Pick, swap and refund from one phone",
+        body: "An online order lands, and whoever is on the shop floor picks it from their phone. If something’s out, they swap it for what the customer allowed or mark it short — and the difference is refunded without anyone touching a card machine.",
+        bullets: ["Customer-approved substitutes", "Weighed items charged by the real weight", "Shortfalls refunded automatically"],
+        mockup: <GroceryPickingMockup />,
+      },
+      {
+        eyebrow: "Keep them coming back",
+        title: "A loyalty card for your regulars",
+        body: "Give your regulars a stamp card in their phone’s wallet. Scan it with the same scanner you use for products, and the stamp lands when they pay.",
+        bullets: ["Apple & Google Wallet", "Same scanner as your products", "Rewards spent at the till"],
+        mockup: <LoyaltyTillMockup />,
+      },
+    ],
+  },
+  // ── Beauty salons ─────────────────────────────────────────────────────────
+  {
+    slug: "beauty-salons",
+    name: "Beauty salons",
+    navDescription: "Bookings, deposits, diary and checkout for salons",
+    accent: "#e879f9",
+    icon: Flower2,
+    badge: "Beauty, nail & hair salons",
+    title: "Your salon’s diary, bookings and till in one place",
+    subtitle:
+      "Clients book online from your Instagram or Google link, pay a deposit to hold the slot, and get reminders without you lifting a finger. Your team’s diary, colour processing times, checkout with tips and products — all on the same system.",
+    highlights: ["Online booking 24/7", "Deposits stop no-shows", "Reminders sent for you"],
+    heroMockup: <BookingPageMockup />,
+    stats: [
+      { value: 24, suffix: "/7", label: "Online booking from your own link" },
+      { value: 0, label: "Reminder texts to send by hand" },
+      { value: 1, label: "Diary for the whole team" },
+    ],
+    capabilities: [
+      { icon: CalendarCheck, title: "Online booking", body: "Your own booking page for Instagram, Google and your website. Clients pick the treatment, who with — or anyone — and a free time." },
+      { icon: ShieldCheck, title: "Deposits", body: "Take a fixed, percentage or full deposit to hold a slot. Cancel in time and it’s refunded on its own; a no-show keeps it." },
+      { icon: LayoutGrid, title: "Team diary", body: "One column per stylist, drag to move, drop onto someone else to hand it over. Hours, lunch and time off are shaded." },
+      { icon: Clock, title: "Processing gaps", body: "While colour develops the stylist shows free, so a quick brow or fringe trim can slot into the gap." },
+      { icon: Sparkles, title: "Services & add-ons", body: "Lengths, clean-down time, add-ons, “from” prices, senior and junior prices, and a patch-test flag." },
+      { icon: BellRing, title: "Reminders & rebooking", body: "Confirmation, a reminder the day before, a review request after, and a nudge when it’s time for their next visit." },
+      { icon: CreditCard, title: "Checkout with tips", body: "Add retail products and a tip, scan their loyalty card, then take cash, card machine or a payment link." },
+      { icon: Users, title: "Commission & reports", body: "Takings, tips, commission due per stylist, how full each book was, no-shows and new clients." },
+      { icon: ArrowLeftRight, title: "Move from your old system", body: "Import your price list and client list from Fresha, Booksy, Treatwell, Square or a spreadsheet." },
+    ],
+    flow: [
+      { title: "Add your services", body: "Import your price list or start from a typical salon list and edit it." },
+      { title: "Add your team", body: "Their hours, the treatments they do, their prices and commission." },
+      { title: "Share your link", body: "Put the booking link on Instagram, Google and your website." },
+      { title: "Bookings roll in", body: "They land in the diary live, deposits paid and reminders already scheduled." },
+    ],
+    showcases: [
+      {
+        eyebrow: "The diary",
+        title: "Everyone’s day on one screen",
+        body: "See the whole team at a glance. Colour processing time shows as free so you can fit a quick job in, online bookings appear as they’re made, and every tablet in the salon updates live.",
+        bullets: ["One column per stylist", "Drag to move or hand over", "Processing gaps you can book into"],
+        mockup: <SalonDiaryMockup accent="#e879f9" staff={BEAUTY_DIARY} />,
+      },
+      {
+        eyebrow: "Checkout",
+        title: "Treatment, products and tip in one go",
+        body: "Set the final price on a “from” service, add the shampoo they’re taking home and a tip. The deposit they paid online comes off the total automatically.",
+        bullets: ["Deposit taken off the bill", "Tips tracked per stylist", "Loyalty card scanned at the till"],
+        mockup: <SalonCheckoutMockup accent="#e879f9" />,
+      },
+      {
+        eyebrow: "Keeps them coming back",
+        title: "Reminders and reviews, sent for you",
+        body: "Every booking gets a confirmation with a link to change or cancel, a reminder the day before, a Google review request after the visit, and a nudge when it’s time to book again.",
+        bullets: ["Fewer no-shows", "More Google reviews", "Clients rebook on their own"],
+        mockup: <SalonReminderMockup accent="#e879f9" />,
+      },
+    ],
+  },
+  // ── Hair & barber shops ───────────────────────────────────────────────────
+  {
+    slug: "barbers",
+    name: "Hair & barber shops",
+    navDescription: "Walk-in queue, bookings and a TV by the door",
+    accent: "#f59e0b",
+    icon: Scissors,
+    badge: "Hair & barber shops",
+    title: "Walk-ins and bookings, in the same chair",
+    subtitle:
+      "Customers join the queue from a QR in the window and see their real wait, worked out against the bookings already in. Online booking, a TV screen by the door, quick sales and a till that pays out tips and commission — built for a busy barber shop.",
+    highlights: ["Walk-in queue with real waits", "Online booking", "TV queue screen"],
+    heroMockup: <WalkInQueueMockup />,
+    stats: [
+      { value: 0, label: "Chairs promised that are already booked" },
+      { value: 1, label: "QR in the window to join the queue" },
+      { value: 24, suffix: "/7", label: "Online booking from your own link" },
+    ],
+    capabilities: [
+      { icon: Users, title: "Walk-in queue", body: "Add walk-ins at the counter, or let customers join from the window QR. Waits are worked out against real bookings." },
+      { icon: Tv, title: "TV by the door", body: "A queue screen for the shop TV: who’s in the chair, who’s next and the QR to join." },
+      { icon: Smartphone, title: "Their place on their phone", body: "Customers who join by QR get a live page with their place, so they can grab a coffee instead of waiting inside." },
+      { icon: CalendarCheck, title: "Online booking", body: "Your booking link for Instagram and Google. Customers pick the cut, the barber — or anyone — and a time." },
+      { icon: LayoutGrid, title: "Barber diary", body: "One column per barber with split shifts and time off. Drag a booking to move it or hand it to someone else." },
+      { icon: Banknote, title: "Quick sale", body: "A cut that never touched the diary? Ring it through in seconds — cash, card machine or payment link." },
+      { icon: Percent, title: "Tips & commission", body: "Tips at checkout and commission per barber, worked out for you in the reports." },
+      { icon: BellRing, title: "Time for a trim", body: "An email when it’s time for their next cut (three weeks by default) and a review request after they pay." },
+      { icon: Gift, title: "Loyalty card", body: "A stamp card in their phone’s wallet — say every tenth cut free, scanned at the till." },
+    ],
+    flow: [
+      { title: "Switch to barber shop", body: "Start from a typical barber price list and add your team." },
+      { title: "Put up the QR", body: "Print the window QR and open the queue screen on the shop TV." },
+      { title: "Share your booking link", body: "Add it to Instagram and Google so regulars can book a time." },
+      { title: "Cut, pay, repeat", body: "Call the next one up, take payment, and the next person’s wait updates." },
+    ],
+    showcases: [
+      {
+        eyebrow: "The diary",
+        title: "Bookings and walk-ins side by side",
+        body: "Bookings, walk-ins and online appointments sit in the same diary, so the queue knows which chairs are really free. Nobody is told ten minutes when the next slot is booked.",
+        bullets: ["One column per barber", "Walk-ins fitted around bookings", "Every till updates live"],
+        mockup: <SalonDiaryMockup accent="#f59e0b" staff={BARBER_DIARY} />,
+      },
+      {
+        eyebrow: "Online booking",
+        title: "Your booking link, everywhere",
+        body: "Regulars book their usual barber from Instagram or Google at midnight. They get a confirmation with a link to change it, and a reminder the day before.",
+        bullets: ["“Anyone available” option", "Change or cancel from the email", "Optional deposit for no-shows"],
+        mockup: (
+          <BookingPageMockup
+            accent="#f59e0b"
+            shop="Sharp Lines"
+            service="Skin fade"
+            price="£22"
+            staff={["Anyone", "Marco", "Leon", "Ali"]}
+          />
+        ),
       },
     ],
   },

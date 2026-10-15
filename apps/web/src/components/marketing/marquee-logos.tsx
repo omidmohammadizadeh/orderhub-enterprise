@@ -29,7 +29,7 @@ const BASE_LOGOS: LogoItem[] = [
   { brand: "hubrise", name: "HubRise" },
   { brand: "orderhub", name: "Order Hub POS" },
   { brand: "stripe", name: "Stripe" },
-  { brand: "dojo", name: "Dojo", soon: true },
+  { brand: "dojo", name: "Dojo" },
   { brand: "whatsapp", name: "WhatsApp" },
 ];
 

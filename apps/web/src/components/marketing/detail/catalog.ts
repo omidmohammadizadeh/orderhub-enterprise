@@ -65,6 +65,30 @@ export const SOLUTION_META: RouteMeta[] = [
     description:
       "When nobody can get to the phone, an AI answers, takes the order, reads it back and puts it on your board and kitchen printer.",
   },
+  {
+    slug: "loyalty-card",
+    name: "Loyalty card",
+    description:
+      "A stamp card in your customers' Apple or Google Wallet — scanned at the till, updated by itself, and shared with online orders.",
+  },
+  {
+    slug: "supermarkets",
+    name: "Supermarkets & convenience",
+    description:
+      "A barcode scan till with weighed goods, age checks, multi-buy deals and self-counting stock — plus online grocery with picking and substitutes.",
+  },
+  {
+    slug: "beauty-salons",
+    name: "Beauty salons",
+    description:
+      "Online booking, deposits that stop no-shows, a team diary, reminders and checkout with tips — everything a beauty, nail or hair salon needs.",
+  },
+  {
+    slug: "barbers",
+    name: "Hair & barber shops",
+    description:
+      "A walk-in queue with real waits, a TV screen by the door, online booking, quick sales, tips and commission for busy barber shops.",
+  },
 ];
 
 export const INTEGRATION_META: RouteMeta[] = [
