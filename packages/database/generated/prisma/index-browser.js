@@ -2546,6 +2546,9 @@ exports.Prisma.LoyaltyStampScalarFieldEnum = {
   customerAccountId: 'customerAccountId',
   memberId: 'memberId',
   orderId: 'orderId',
+  source: 'source',
+  requestKey: 'requestKey',
+  staffUserId: 'staffUserId',
   spend: 'spend',
   createdAt: 'createdAt'
 };
@@ -2564,7 +2567,8 @@ exports.Prisma.LoyaltyRewardScalarFieldEnum = {
   earnedAt: 'earnedAt',
   expiresAt: 'expiresAt',
   claimedAt: 'claimedAt',
-  claimedOrderId: 'claimedOrderId'
+  claimedOrderId: 'claimedOrderId',
+  claimedByUserId: 'claimedByUserId'
 };
 
 exports.Prisma.LoyaltyMemberScalarFieldEnum = {
@@ -4411,7 +4415,10 @@ exports.Prisma.LoyaltyStampOrderByRelevanceFieldEnum = {
   cardId: 'cardId',
   customerAccountId: 'customerAccountId',
   memberId: 'memberId',
-  orderId: 'orderId'
+  orderId: 'orderId',
+  source: 'source',
+  requestKey: 'requestKey',
+  staffUserId: 'staffUserId'
 };
 
 exports.Prisma.LoyaltyRewardOrderByRelevanceFieldEnum = {
@@ -4424,7 +4431,8 @@ exports.Prisma.LoyaltyRewardOrderByRelevanceFieldEnum = {
   memberId: 'memberId',
   label: 'label',
   rewardItemId: 'rewardItemId',
-  claimedOrderId: 'claimedOrderId'
+  claimedOrderId: 'claimedOrderId',
+  claimedByUserId: 'claimedByUserId'
 };
 
 exports.Prisma.LoyaltyMemberOrderByRelevanceFieldEnum = {

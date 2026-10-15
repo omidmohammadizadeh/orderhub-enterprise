@@ -46,6 +46,11 @@ import { cardEmail, codeEmail } from "./walk-in-emails";
 // LoyaltyService.awardForOrder stamps it as soon as the order is paid, and
 // takes it back on a cancel or refund like any other stamp.
 
+/** Stamps one tap can add — enough for a family round, not a typo of 100. */
+const MAX_STAMPS_AT_ONCE = 10;
+/** How long Undo stays available after a stamp or reward without a sale. */
+const UNDO_WINDOW_MS = 10 * 60_000;
+
 const MEMBER_LOOKUP_SELECT = {
   id: true,
   tenantId: true,
@@ -460,6 +465,125 @@ export class WalkInLoyaltyService {
     return { sent, via: member.email ? "email" : "sms" };
   }
 
+  // ── Without a sale (Scan loyalty card page) ──────────────────────────────
+  //
+  // For shops that use the card on its own: scan it, give a stamp, hand over
+  // a reward — no order through us. Staff have the customer in front of them,
+  // which is the same check the till relies on. Every one is logged so an
+  // owner can see who gave what.
+
+  async stampWithoutSale(
+    tenantId: string,
+    staffUserId: string,
+    dto: { locationId: string; memberId: string; count?: number; requestKey: string },
+  ) {
+    const { member, card } = await this.memberAtShop(tenantId, dto.locationId, dto.memberId);
+    const staff = await this.staffName(staffUserId);
+    const count = Math.round(Number(dto.count ?? 1));
+    if (!Number.isFinite(count) || count < 1 || count > MAX_STAMPS_AT_ONCE) {
+      throw new BadRequestException(`Add between 1 and ${MAX_STAMPS_AT_ONCE} stamps at a time.`);
+    }
+    const requestKey = String(dto.requestKey ?? "");
+    if (!/^[A-Za-z0-9_-]{8,64}$/.test(requestKey)) throw new BadRequestException("Missing request key.");
+
+    const res = await this.loyalty.stampWithoutSale({ card, memberId: member.id, count, requestKey, staffUserId });
+    this.audit(tenantId, dto.locationId, "loyalty.stamp_without_sale",
+      `${staff} gave ${member.firstName ?? "a member"} ${count} stamp${count === 1 ? "" : "s"} (card ${member.code})`,
+      { memberId: member.id, count, staffUserId, rewardsEarned: res.rewardsEarned });
+    return { ...res, member: await this.tillView(member, card) };
+  }
+
+  async redeemWithoutSale(
+    tenantId: string,
+    staffUserId: string,
+    dto: { locationId: string; memberId: string; rewardId: string },
+  ) {
+    const { member, card } = await this.memberAtShop(tenantId, dto.locationId, dto.memberId);
+    const staff = await this.staffName(staffUserId);
+    // Conditional update: two tablets pressing at once spend it once.
+    const { count } = await this.prisma.loyaltyReward.updateMany({
+      where: {
+        id: String(dto.rewardId ?? ""),
+        memberId: member.id,
+        locationId: card.locationId,
+        claimedAt: null,
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+      },
+      data: { claimedAt: new Date(), claimedByUserId: staffUserId },
+    });
+    if (!count) throw new BadRequestException("That reward has already been used or has expired.");
+    this.events.emit(MEMBER_CHANGED, { memberId: member.id });
+    this.audit(tenantId, dto.locationId, "loyalty.reward_without_sale",
+      `${staff} handed ${member.firstName ?? "a member"} their reward (card ${member.code})`,
+      { memberId: member.id, rewardId: dto.rewardId, staffUserId });
+    return { member: await this.tillView(member, card) };
+  }
+
+  /** Undo the last stamp or reward given here, within a few minutes. */
+  async undoWithoutSale(
+    tenantId: string,
+    staffUserId: string,
+    dto: { locationId: string; memberId: string; stampIds?: string[]; rewardId?: string },
+  ) {
+    const { member, card } = await this.memberAtShop(tenantId, dto.locationId, dto.memberId);
+    const staff = await this.staffName(staffUserId);
+    const since = new Date(Date.now() - UNDO_WINDOW_MS);
+    let undone = 0;
+    if (Array.isArray(dto.stampIds) && dto.stampIds.length) {
+      undone = await this.loyalty.undoStampsWithoutSale(card, member.id, dto.stampIds.map(String).slice(0, MAX_STAMPS_AT_ONCE), since);
+    } else if (dto.rewardId) {
+      const r = await this.prisma.loyaltyReward.updateMany({
+        where: {
+          id: String(dto.rewardId),
+          memberId: member.id,
+          claimedOrderId: null,
+          claimedByUserId: { not: null },
+          claimedAt: { gte: since },
+        },
+        data: { claimedAt: null, claimedByUserId: null },
+      });
+      undone = r.count;
+      if (undone) this.events.emit(MEMBER_CHANGED, { memberId: member.id });
+    }
+    if (!undone) throw new BadRequestException("Too late to undo — it's been more than a few minutes.");
+    this.audit(tenantId, dto.locationId, "loyalty.undo_without_sale",
+      `${staff} undid a ${dto.rewardId ? "reward" : "stamp"} on ${member.firstName ?? "a member"}'s card (${member.code})`,
+      { memberId: member.id, staffUserId });
+    return { member: await this.tillView(member, card) };
+  }
+
+  private async memberAtShop(tenantId: string, locationId: string, memberId: string) {
+    await this.assertLocation(tenantId, locationId);
+    const card = await this.loadCard(locationId);
+    if (!card || !card.isActive || !card.walkInEnabled) {
+      throw new BadRequestException("Switch on the walk-in loyalty card in Marketing first.");
+    }
+    const member = await this.prisma.loyaltyMember.findFirst({
+      where: { id: String(memberId ?? ""), tenantId, cardId: card.id },
+      select: MEMBER_LOOKUP_SELECT,
+    });
+    if (!member) throw new NotFoundException("No loyalty card found at this shop.");
+    return { member, card };
+  }
+
+  private async staffName(userId: string): Promise<string> {
+    const u = await this.prisma.user.findUnique({ where: { id: userId }, select: { firstName: true, lastName: true } });
+    return `${u?.firstName ?? ""} ${u?.lastName ?? ""}`.trim() || "Staff";
+  }
+
+  private audit(tenantId: string, locationId: string, action: string, message: string, details: Record<string, unknown>) {
+    this.events.emit("activity.log", {
+      tenantId,
+      locationId,
+      category: "ORDERS",
+      channel: "LOYALTY",
+      action,
+      status: "INFO",
+      message,
+      details,
+    });
+  }
+
   // ── Orders ───────────────────────────────────────────────────────────────
 
   /**
@@ -678,9 +802,14 @@ export class WalkInLoyaltyService {
     },
     card: CardWithShop,
   ) {
-    const [stamps, rewards] = await Promise.all([
+    const [stamps, rewards, last] = await Promise.all([
       this.prisma.loyaltyStamp.count({ where: { cardId: card.id, memberId: member.id } }),
       this.liveRewards(member.id, card.locationId),
+      this.prisma.loyaltyStamp.findFirst({
+        where: { cardId: card.id, memberId: member.id },
+        orderBy: { createdAt: "desc" },
+        select: { createdAt: true },
+      }),
     ]);
     const items = await this.prisma.menuItem.findMany({
       where: { id: { in: rewards.map((r) => r.rewardItemId).filter((x): x is string => !!x) } },
@@ -697,6 +826,8 @@ export class WalkInLoyaltyService {
       stampsRequired: card.stampsRequired,
       stampIcon: card.stampIcon,
       lifetimeStamps: stamps,
+      // So the Scan page can warn "stamped 30 seconds ago" on a double scan.
+      lastStampAt: last?.createdAt ?? null,
       minimumSpend: card.minimumSpend != null ? Number(card.minimumSpend) : null,
       rewardLabel: this.rewardLabelOf(card),
       cardActive: card.isActive && card.walkInEnabled,

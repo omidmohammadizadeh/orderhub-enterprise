@@ -49,6 +49,13 @@ export const DASHBOARD_TABS: DashboardTabDef[] = [
   },
   { key: "pos", label: "POS", href: "/dashboard/pos", group: "Main", hint: "Till / counter ordering." },
   {
+    key: "loyalty-scan",
+    label: "Scan loyalty card",
+    href: "/dashboard/loyalty-scan",
+    group: "Main",
+    hint: "Scan wallet loyalty cards and give stamps without a sale.",
+  },
+  {
     key: "tables",
     label: "Tables",
     href: "/dashboard/tables",

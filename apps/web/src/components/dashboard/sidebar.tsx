@@ -53,7 +53,9 @@ import {
   ShoppingBasket,
   Star,
   Scissors,
-  UsersRound } from "lucide-react";
+  UsersRound,
+  ScanLine,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SidebarLocationSwitcher } from "./sidebar-location-switcher";
 import { Badge } from "@/components/ui/badge";
@@ -132,6 +134,7 @@ const BILLING_ROLES = [
 const primaryNav: NavItem[] = [
   { href: "/dashboard/orders", label: "Orders", icon: ShoppingBag, badge: "0", roles: DRIVER_TIER },
   { href: "/dashboard/pos", label: "POS", icon: ShoppingBag, roles: STAFF_TIER },
+  { href: "/dashboard/loyalty-scan", label: "Scan loyalty card", icon: ScanLine, roles: SHOP_FLOOR },
   // Barbers, hair and nail salons: the appointment diary and the walk-in
   // queue lead the menu at a SALON location.
   { href: "/dashboard/salon", label: "Appointments", icon: Scissors, roles: STAFF_TIER, requiresSalon: true },

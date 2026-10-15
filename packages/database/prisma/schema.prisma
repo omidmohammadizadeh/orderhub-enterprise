@@ -5726,8 +5726,18 @@ model LoyaltyStamp {
   memberId          String?
   member            LoyaltyMember?   @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
-  orderId String @unique
-  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  /// The order that earned it. Null for a stamp given WITHOUT a sale (the
+  /// Scan loyalty card page) — those are keyed by requestKey instead.
+  orderId String? @unique
+  order   Order?  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  /// ORDER (earned by an order) | MANUAL (staff stamped the card, no sale).
+  source      String  @default("ORDER")
+  /// MANUAL stamps: one per tap of "Add stamp", so a double-submitted tap
+  /// or a retry can never mint a second stamp. Unique, like orderId.
+  requestKey  String? @unique
+  /// MANUAL stamps: the staff member who gave it.
+  staffUserId String?
 
   /// Kept so a later change to minimumSpend cannot rewrite history.
   spend Decimal @db.Decimal(10, 2)
@@ -5774,6 +5784,8 @@ model LoyaltyReward {
   claimedAt DateTime?
   /// The order it was spent on, so a dispute has an answer.
   claimedOrderId String? @unique
+  /// Handed over WITHOUT a sale (Scan loyalty card page): who gave it.
+  claimedByUserId String?
 
   @@index([customerAccountId, claimedAt])
   @@index([memberId, claimedAt])

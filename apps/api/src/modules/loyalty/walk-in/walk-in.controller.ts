@@ -166,6 +166,41 @@ export class WalkInLoyaltyController {
     return this.walkIn.resendLink(user.tenantId, memberId);
   }
 
+  // ── Scan loyalty card page (no sale) ─────────────────────────────────────
+
+  @Post("stamp")
+  @ApiBearerAuth()
+  @Roles(...TILL_ROLES)
+  @ApiOperation({ summary: "Stamp a walk-in card without a sale" })
+  stamp(
+    @Body() body: { locationId: string; memberId: string; count?: number; requestKey: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.walkIn.stampWithoutSale(user.tenantId, user.userId, body ?? ({} as never));
+  }
+
+  @Post("redeem")
+  @ApiBearerAuth()
+  @Roles(...TILL_ROLES)
+  @ApiOperation({ summary: "Hand over a reward without a sale" })
+  redeem(
+    @Body() body: { locationId: string; memberId: string; rewardId: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.walkIn.redeemWithoutSale(user.tenantId, user.userId, body ?? ({} as never));
+  }
+
+  @Post("undo")
+  @ApiBearerAuth()
+  @Roles(...TILL_ROLES)
+  @ApiOperation({ summary: "Undo a stamp or reward given without a sale (a few minutes only)" })
+  undo(
+    @Body() body: { locationId: string; memberId: string; stampIds?: string[]; rewardId?: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.walkIn.undoWithoutSale(user.tenantId, user.userId, body ?? ({} as never));
+  }
+
   // ── Operator ─────────────────────────────────────────────────────────────
 
   @Get("overview/:locationId")
@@ -176,3 +211,4 @@ export class WalkInLoyaltyController {
     return this.walkIn.overview(user.tenantId, locationId);
   }
 }
+

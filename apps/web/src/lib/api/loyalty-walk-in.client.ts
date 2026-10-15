@@ -47,6 +47,8 @@ export interface TillMember {
   stampsRequired: number;
   stampIcon: string | null;
   lifetimeStamps: number;
+  /** Newest stamp of any kind, so a double scan can be caught. */
+  lastStampAt: string | null;
   minimumSpend: number | null;
   rewardLabel: string;
   cardActive: boolean;
@@ -135,6 +137,15 @@ export const walkInTill = {
     apiClient
       .post<{ sent: boolean; via: "email" | "sms" }>(`/v1/loyalty/walk-in/members/${memberId}/resend`)
       .then((r) => r.data),
+  // ── Without a sale (Scan loyalty card page) ──
+  stamp: (body: { locationId: string; memberId: string; count: number; requestKey: string }) =>
+    apiClient
+      .post<{ stampIds: string[]; rewardsEarned: number; member: TillMember }>("/v1/loyalty/walk-in/stamp", body)
+      .then((r) => r.data),
+  redeem: (body: { locationId: string; memberId: string; rewardId: string }) =>
+    apiClient.post<{ member: TillMember }>("/v1/loyalty/walk-in/redeem", body).then((r) => r.data),
+  undo: (body: { locationId: string; memberId: string; stampIds?: string[]; rewardId?: string }) =>
+    apiClient.post<{ member: TillMember }>("/v1/loyalty/walk-in/undo", body).then((r) => r.data),
   overview: (locationId: string) =>
     apiClient.get<WalkInOverview>(`/v1/loyalty/walk-in/overview/${locationId}`).then((r) => r.data),
 };

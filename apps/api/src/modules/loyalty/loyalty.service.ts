@@ -346,6 +346,98 @@ export class LoyaltyService {
     this.logger.log(`Stamp for order ${orderId} withdrawn`);
   }
 
+  // ── Stamps without a sale ────────────────────────────────────────────────
+  //
+  // The Scan loyalty card page: a shop that only wants the card (no till
+  // sale through us) scans it and gives a stamp. Same stamps, same rewards,
+  // same wallet pass — the stamp simply has no order. requestKey stands in
+  // for the order id as the defence against a double tap or a retry.
+
+  /** Give a walk-in member `count` stamps. Replaying the same requestKey adds nothing. */
+  async stampWithoutSale(input: {
+    card: {
+      id: string;
+      tenantId: string;
+      locationId: string;
+      stampsRequired: number;
+      rewardLabel: string;
+      rewardItemId: string | null;
+      rewardExpiryDays: number | null;
+    };
+    memberId: string;
+    count: number;
+    requestKey: string;
+    staffUserId: string | null;
+  }): Promise<{ stampIds: string[]; rewardsEarned: number }> {
+    const { card, memberId } = input;
+    const holder: LoyaltyHolder = { memberId };
+    const owners = await this.ownerIds(card.id, holder);
+    const keys = Array.from({ length: input.count }, (_, i) => `manual:${memberId}:${input.requestKey}:${i}`);
+    await this.prisma.loyaltyStamp.createMany({
+      data: keys.map((requestKey) => ({
+        tenantId: card.tenantId,
+        cardId: card.id,
+        ...owners,
+        source: "MANUAL",
+        requestKey,
+        staffUserId: input.staffUserId,
+        spend: 0,
+      })),
+      skipDuplicates: true,
+    });
+    const stamps = await this.prisma.loyaltyStamp.findMany({
+      where: { requestKey: { in: keys } },
+      select: { id: true },
+    });
+    // Several stamps at once can complete more than one card.
+    let rewardsEarned = 0;
+    for (let i = 0; i < input.count; i++) {
+      if (!(await this.maybeMintReward(card, holder, owners))) break;
+      rewardsEarned++;
+    }
+    this.memberChanged(owners);
+    return { stampIds: stamps.map((x) => x.id), rewardsEarned };
+  }
+
+  /**
+   * Take back stamps given without a sale — the Undo straight after a
+   * mistake. Only MANUAL stamps, only this member's, only recent ones; a
+   * reward they completed goes too while it is still unspent.
+   */
+  async undoStampsWithoutSale(
+    card: { id: string; stampsRequired: number },
+    memberId: string,
+    stampIds: string[],
+    since: Date,
+  ): Promise<number> {
+    const holder: LoyaltyHolder = { memberId };
+    const { count } = await this.prisma.loyaltyStamp.deleteMany({
+      where: {
+        id: { in: stampIds },
+        cardId: card.id,
+        memberId,
+        source: "MANUAL",
+        createdAt: { gte: since },
+      },
+    });
+    if (!count) return 0;
+    const [stamps, rewards] = await Promise.all([
+      this.prisma.loyaltyStamp.count({ where: { cardId: card.id, ...holder } }),
+      this.prisma.loyaltyReward.count({ where: { cardId: card.id, ...holder } }),
+    ]);
+    let extra = rewards - Math.floor(stamps / card.stampsRequired);
+    while (extra-- > 0) {
+      const spare = await this.prisma.loyaltyReward.findFirst({
+        where: { cardId: card.id, ...holder, claimedAt: null },
+        orderBy: { earnedAt: "desc" },
+      });
+      if (!spare) break;
+      await this.prisma.loyaltyReward.delete({ where: { id: spare.id } });
+    }
+    this.memberChanged({ memberId });
+    return count;
+  }
+
   /**
    * Turn a full card into a reward.
    *

@@ -170308,6 +170308,9 @@ export namespace Prisma {
     customerAccountId: string | null
     memberId: string | null
     orderId: string | null
+    source: string | null
+    requestKey: string | null
+    staffUserId: string | null
     spend: Decimal | null
     createdAt: Date | null
   }
@@ -170319,6 +170322,9 @@ export namespace Prisma {
     customerAccountId: string | null
     memberId: string | null
     orderId: string | null
+    source: string | null
+    requestKey: string | null
+    staffUserId: string | null
     spend: Decimal | null
     createdAt: Date | null
   }
@@ -170330,6 +170336,9 @@ export namespace Prisma {
     customerAccountId: number
     memberId: number
     orderId: number
+    source: number
+    requestKey: number
+    staffUserId: number
     spend: number
     createdAt: number
     _all: number
@@ -170351,6 +170360,9 @@ export namespace Prisma {
     customerAccountId?: true
     memberId?: true
     orderId?: true
+    source?: true
+    requestKey?: true
+    staffUserId?: true
     spend?: true
     createdAt?: true
   }
@@ -170362,6 +170374,9 @@ export namespace Prisma {
     customerAccountId?: true
     memberId?: true
     orderId?: true
+    source?: true
+    requestKey?: true
+    staffUserId?: true
     spend?: true
     createdAt?: true
   }
@@ -170373,6 +170388,9 @@ export namespace Prisma {
     customerAccountId?: true
     memberId?: true
     orderId?: true
+    source?: true
+    requestKey?: true
+    staffUserId?: true
     spend?: true
     createdAt?: true
     _all?: true
@@ -170470,7 +170488,10 @@ export namespace Prisma {
     cardId: string
     customerAccountId: string | null
     memberId: string | null
-    orderId: string
+    orderId: string | null
+    source: string
+    requestKey: string | null
+    staffUserId: string | null
     spend: Decimal
     createdAt: Date
     _count: LoyaltyStampCountAggregateOutputType | null
@@ -170501,12 +170522,15 @@ export namespace Prisma {
     customerAccountId?: boolean
     memberId?: boolean
     orderId?: boolean
+    source?: boolean
+    requestKey?: boolean
+    staffUserId?: boolean
     spend?: boolean
     createdAt?: boolean
     card?: boolean | LoyaltyCardDefaultArgs<ExtArgs>
     customerAccount?: boolean | LoyaltyStamp$customerAccountArgs<ExtArgs>
     member?: boolean | LoyaltyStamp$memberArgs<ExtArgs>
-    order?: boolean | OrderDefaultArgs<ExtArgs>
+    order?: boolean | LoyaltyStamp$orderArgs<ExtArgs>
   }, ExtArgs["result"]["loyaltyStamp"]>
 
   export type LoyaltyStampSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -170516,12 +170540,15 @@ export namespace Prisma {
     customerAccountId?: boolean
     memberId?: boolean
     orderId?: boolean
+    source?: boolean
+    requestKey?: boolean
+    staffUserId?: boolean
     spend?: boolean
     createdAt?: boolean
     card?: boolean | LoyaltyCardDefaultArgs<ExtArgs>
     customerAccount?: boolean | LoyaltyStamp$customerAccountArgs<ExtArgs>
     member?: boolean | LoyaltyStamp$memberArgs<ExtArgs>
-    order?: boolean | OrderDefaultArgs<ExtArgs>
+    order?: boolean | LoyaltyStamp$orderArgs<ExtArgs>
   }, ExtArgs["result"]["loyaltyStamp"]>
 
   export type LoyaltyStampSelectScalar = {
@@ -170531,6 +170558,9 @@ export namespace Prisma {
     customerAccountId?: boolean
     memberId?: boolean
     orderId?: boolean
+    source?: boolean
+    requestKey?: boolean
+    staffUserId?: boolean
     spend?: boolean
     createdAt?: boolean
   }
@@ -170539,13 +170569,13 @@ export namespace Prisma {
     card?: boolean | LoyaltyCardDefaultArgs<ExtArgs>
     customerAccount?: boolean | LoyaltyStamp$customerAccountArgs<ExtArgs>
     member?: boolean | LoyaltyStamp$memberArgs<ExtArgs>
-    order?: boolean | OrderDefaultArgs<ExtArgs>
+    order?: boolean | LoyaltyStamp$orderArgs<ExtArgs>
   }
   export type LoyaltyStampIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     card?: boolean | LoyaltyCardDefaultArgs<ExtArgs>
     customerAccount?: boolean | LoyaltyStamp$customerAccountArgs<ExtArgs>
     member?: boolean | LoyaltyStamp$memberArgs<ExtArgs>
-    order?: boolean | OrderDefaultArgs<ExtArgs>
+    order?: boolean | LoyaltyStamp$orderArgs<ExtArgs>
   }
 
   export type $LoyaltyStampPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -170554,7 +170584,7 @@ export namespace Prisma {
       card: Prisma.$LoyaltyCardPayload<ExtArgs>
       customerAccount: Prisma.$CustomerAccountPayload<ExtArgs> | null
       member: Prisma.$LoyaltyMemberPayload<ExtArgs> | null
-      order: Prisma.$OrderPayload<ExtArgs>
+      order: Prisma.$OrderPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -170566,7 +170596,24 @@ export namespace Prisma {
        */
       customerAccountId: string | null
       memberId: string | null
-      orderId: string
+      /**
+       * The order that earned it. Null for a stamp given WITHOUT a sale (the
+       * Scan loyalty card page) — those are keyed by requestKey instead.
+       */
+      orderId: string | null
+      /**
+       * ORDER (earned by an order) | MANUAL (staff stamped the card, no sale).
+       */
+      source: string
+      /**
+       * MANUAL stamps: one per tap of "Add stamp", so a double-submitted tap
+       * or a retry can never mint a second stamp. Unique, like orderId.
+       */
+      requestKey: string | null
+      /**
+       * MANUAL stamps: the staff member who gave it.
+       */
+      staffUserId: string | null
       /**
        * Kept so a later change to minimumSpend cannot rewrite history.
        */
@@ -170939,7 +170986,7 @@ export namespace Prisma {
     card<T extends LoyaltyCardDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LoyaltyCardDefaultArgs<ExtArgs>>): Prisma__LoyaltyCardClient<$Result.GetResult<Prisma.$LoyaltyCardPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     customerAccount<T extends LoyaltyStamp$customerAccountArgs<ExtArgs> = {}>(args?: Subset<T, LoyaltyStamp$customerAccountArgs<ExtArgs>>): Prisma__CustomerAccountClient<$Result.GetResult<Prisma.$CustomerAccountPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     member<T extends LoyaltyStamp$memberArgs<ExtArgs> = {}>(args?: Subset<T, LoyaltyStamp$memberArgs<ExtArgs>>): Prisma__LoyaltyMemberClient<$Result.GetResult<Prisma.$LoyaltyMemberPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
-    order<T extends OrderDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrderDefaultArgs<ExtArgs>>): Prisma__OrderClient<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    order<T extends LoyaltyStamp$orderArgs<ExtArgs> = {}>(args?: Subset<T, LoyaltyStamp$orderArgs<ExtArgs>>): Prisma__OrderClient<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -170975,6 +171022,9 @@ export namespace Prisma {
     readonly customerAccountId: FieldRef<"LoyaltyStamp", 'String'>
     readonly memberId: FieldRef<"LoyaltyStamp", 'String'>
     readonly orderId: FieldRef<"LoyaltyStamp", 'String'>
+    readonly source: FieldRef<"LoyaltyStamp", 'String'>
+    readonly requestKey: FieldRef<"LoyaltyStamp", 'String'>
+    readonly staffUserId: FieldRef<"LoyaltyStamp", 'String'>
     readonly spend: FieldRef<"LoyaltyStamp", 'Decimal'>
     readonly createdAt: FieldRef<"LoyaltyStamp", 'DateTime'>
   }
@@ -171325,6 +171375,21 @@ export namespace Prisma {
   }
 
   /**
+   * LoyaltyStamp.order
+   */
+  export type LoyaltyStamp$orderArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Order
+     */
+    select?: OrderSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrderInclude<ExtArgs> | null
+    where?: OrderWhereInput
+  }
+
+  /**
    * LoyaltyStamp without action
    */
   export type LoyaltyStampDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -171374,6 +171439,7 @@ export namespace Prisma {
     expiresAt: Date | null
     claimedAt: Date | null
     claimedOrderId: string | null
+    claimedByUserId: string | null
   }
 
   export type LoyaltyRewardMaxAggregateOutputType = {
@@ -171391,6 +171457,7 @@ export namespace Prisma {
     expiresAt: Date | null
     claimedAt: Date | null
     claimedOrderId: string | null
+    claimedByUserId: string | null
   }
 
   export type LoyaltyRewardCountAggregateOutputType = {
@@ -171408,6 +171475,7 @@ export namespace Prisma {
     expiresAt: number
     claimedAt: number
     claimedOrderId: number
+    claimedByUserId: number
     _all: number
   }
 
@@ -171435,6 +171503,7 @@ export namespace Prisma {
     expiresAt?: true
     claimedAt?: true
     claimedOrderId?: true
+    claimedByUserId?: true
   }
 
   export type LoyaltyRewardMaxAggregateInputType = {
@@ -171452,6 +171521,7 @@ export namespace Prisma {
     expiresAt?: true
     claimedAt?: true
     claimedOrderId?: true
+    claimedByUserId?: true
   }
 
   export type LoyaltyRewardCountAggregateInputType = {
@@ -171469,6 +171539,7 @@ export namespace Prisma {
     expiresAt?: true
     claimedAt?: true
     claimedOrderId?: true
+    claimedByUserId?: true
     _all?: true
   }
 
@@ -171573,6 +171644,7 @@ export namespace Prisma {
     expiresAt: Date | null
     claimedAt: Date | null
     claimedOrderId: string | null
+    claimedByUserId: string | null
     _count: LoyaltyRewardCountAggregateOutputType | null
     _avg: LoyaltyRewardAvgAggregateOutputType | null
     _sum: LoyaltyRewardSumAggregateOutputType | null
@@ -171609,6 +171681,7 @@ export namespace Prisma {
     expiresAt?: boolean
     claimedAt?: boolean
     claimedOrderId?: boolean
+    claimedByUserId?: boolean
     card?: boolean | LoyaltyReward$cardArgs<ExtArgs>
     location?: boolean | LocationDefaultArgs<ExtArgs>
     customerAccount?: boolean | LoyaltyReward$customerAccountArgs<ExtArgs>
@@ -171630,6 +171703,7 @@ export namespace Prisma {
     expiresAt?: boolean
     claimedAt?: boolean
     claimedOrderId?: boolean
+    claimedByUserId?: boolean
     card?: boolean | LoyaltyReward$cardArgs<ExtArgs>
     location?: boolean | LocationDefaultArgs<ExtArgs>
     customerAccount?: boolean | LoyaltyReward$customerAccountArgs<ExtArgs>
@@ -171651,6 +171725,7 @@ export namespace Prisma {
     expiresAt?: boolean
     claimedAt?: boolean
     claimedOrderId?: boolean
+    claimedByUserId?: boolean
   }
 
   export type LoyaltyRewardInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -171714,6 +171789,10 @@ export namespace Prisma {
        * The order it was spent on, so a dispute has an answer.
        */
       claimedOrderId: string | null
+      /**
+       * Handed over WITHOUT a sale (Scan loyalty card page): who gave it.
+       */
+      claimedByUserId: string | null
     }, ExtArgs["result"]["loyaltyReward"]>
     composites: {}
   }
@@ -172125,6 +172204,7 @@ export namespace Prisma {
     readonly expiresAt: FieldRef<"LoyaltyReward", 'DateTime'>
     readonly claimedAt: FieldRef<"LoyaltyReward", 'DateTime'>
     readonly claimedOrderId: FieldRef<"LoyaltyReward", 'String'>
+    readonly claimedByUserId: FieldRef<"LoyaltyReward", 'String'>
   }
     
 
@@ -193425,6 +193505,9 @@ export namespace Prisma {
     customerAccountId: 'customerAccountId',
     memberId: 'memberId',
     orderId: 'orderId',
+    source: 'source',
+    requestKey: 'requestKey',
+    staffUserId: 'staffUserId',
     spend: 'spend',
     createdAt: 'createdAt'
   };
@@ -193446,7 +193529,8 @@ export namespace Prisma {
     earnedAt: 'earnedAt',
     expiresAt: 'expiresAt',
     claimedAt: 'claimedAt',
-    claimedOrderId: 'claimedOrderId'
+    claimedOrderId: 'claimedOrderId',
+    claimedByUserId: 'claimedByUserId'
   };
 
   export type LoyaltyRewardScalarFieldEnum = (typeof LoyaltyRewardScalarFieldEnum)[keyof typeof LoyaltyRewardScalarFieldEnum]
@@ -195785,7 +195869,10 @@ export namespace Prisma {
     cardId: 'cardId',
     customerAccountId: 'customerAccountId',
     memberId: 'memberId',
-    orderId: 'orderId'
+    orderId: 'orderId',
+    source: 'source',
+    requestKey: 'requestKey',
+    staffUserId: 'staffUserId'
   };
 
   export type LoyaltyStampOrderByRelevanceFieldEnum = (typeof LoyaltyStampOrderByRelevanceFieldEnum)[keyof typeof LoyaltyStampOrderByRelevanceFieldEnum]
@@ -195801,7 +195888,8 @@ export namespace Prisma {
     memberId: 'memberId',
     label: 'label',
     rewardItemId: 'rewardItemId',
-    claimedOrderId: 'claimedOrderId'
+    claimedOrderId: 'claimedOrderId',
+    claimedByUserId: 'claimedByUserId'
   };
 
   export type LoyaltyRewardOrderByRelevanceFieldEnum = (typeof LoyaltyRewardOrderByRelevanceFieldEnum)[keyof typeof LoyaltyRewardOrderByRelevanceFieldEnum]
@@ -211985,13 +212073,16 @@ export namespace Prisma {
     cardId?: StringFilter<"LoyaltyStamp"> | string
     customerAccountId?: StringNullableFilter<"LoyaltyStamp"> | string | null
     memberId?: StringNullableFilter<"LoyaltyStamp"> | string | null
-    orderId?: StringFilter<"LoyaltyStamp"> | string
+    orderId?: StringNullableFilter<"LoyaltyStamp"> | string | null
+    source?: StringFilter<"LoyaltyStamp"> | string
+    requestKey?: StringNullableFilter<"LoyaltyStamp"> | string | null
+    staffUserId?: StringNullableFilter<"LoyaltyStamp"> | string | null
     spend?: DecimalFilter<"LoyaltyStamp"> | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFilter<"LoyaltyStamp"> | Date | string
     card?: XOR<LoyaltyCardRelationFilter, LoyaltyCardWhereInput>
     customerAccount?: XOR<CustomerAccountNullableRelationFilter, CustomerAccountWhereInput> | null
     member?: XOR<LoyaltyMemberNullableRelationFilter, LoyaltyMemberWhereInput> | null
-    order?: XOR<OrderRelationFilter, OrderWhereInput>
+    order?: XOR<OrderNullableRelationFilter, OrderWhereInput> | null
   }
 
   export type LoyaltyStampOrderByWithRelationInput = {
@@ -212000,7 +212091,10 @@ export namespace Prisma {
     cardId?: SortOrder
     customerAccountId?: SortOrderInput | SortOrder
     memberId?: SortOrderInput | SortOrder
-    orderId?: SortOrder
+    orderId?: SortOrderInput | SortOrder
+    source?: SortOrder
+    requestKey?: SortOrderInput | SortOrder
+    staffUserId?: SortOrderInput | SortOrder
     spend?: SortOrder
     createdAt?: SortOrder
     card?: LoyaltyCardOrderByWithRelationInput
@@ -212013,6 +212107,7 @@ export namespace Prisma {
   export type LoyaltyStampWhereUniqueInput = Prisma.AtLeast<{
     id?: string
     orderId?: string
+    requestKey?: string
     AND?: LoyaltyStampWhereInput | LoyaltyStampWhereInput[]
     OR?: LoyaltyStampWhereInput[]
     NOT?: LoyaltyStampWhereInput | LoyaltyStampWhereInput[]
@@ -212020,13 +212115,15 @@ export namespace Prisma {
     cardId?: StringFilter<"LoyaltyStamp"> | string
     customerAccountId?: StringNullableFilter<"LoyaltyStamp"> | string | null
     memberId?: StringNullableFilter<"LoyaltyStamp"> | string | null
+    source?: StringFilter<"LoyaltyStamp"> | string
+    staffUserId?: StringNullableFilter<"LoyaltyStamp"> | string | null
     spend?: DecimalFilter<"LoyaltyStamp"> | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFilter<"LoyaltyStamp"> | Date | string
     card?: XOR<LoyaltyCardRelationFilter, LoyaltyCardWhereInput>
     customerAccount?: XOR<CustomerAccountNullableRelationFilter, CustomerAccountWhereInput> | null
     member?: XOR<LoyaltyMemberNullableRelationFilter, LoyaltyMemberWhereInput> | null
-    order?: XOR<OrderRelationFilter, OrderWhereInput>
-  }, "id" | "orderId">
+    order?: XOR<OrderNullableRelationFilter, OrderWhereInput> | null
+  }, "id" | "orderId" | "requestKey">
 
   export type LoyaltyStampOrderByWithAggregationInput = {
     id?: SortOrder
@@ -212034,7 +212131,10 @@ export namespace Prisma {
     cardId?: SortOrder
     customerAccountId?: SortOrderInput | SortOrder
     memberId?: SortOrderInput | SortOrder
-    orderId?: SortOrder
+    orderId?: SortOrderInput | SortOrder
+    source?: SortOrder
+    requestKey?: SortOrderInput | SortOrder
+    staffUserId?: SortOrderInput | SortOrder
     spend?: SortOrder
     createdAt?: SortOrder
     _count?: LoyaltyStampCountOrderByAggregateInput
@@ -212053,7 +212153,10 @@ export namespace Prisma {
     cardId?: StringWithAggregatesFilter<"LoyaltyStamp"> | string
     customerAccountId?: StringNullableWithAggregatesFilter<"LoyaltyStamp"> | string | null
     memberId?: StringNullableWithAggregatesFilter<"LoyaltyStamp"> | string | null
-    orderId?: StringWithAggregatesFilter<"LoyaltyStamp"> | string
+    orderId?: StringNullableWithAggregatesFilter<"LoyaltyStamp"> | string | null
+    source?: StringWithAggregatesFilter<"LoyaltyStamp"> | string
+    requestKey?: StringNullableWithAggregatesFilter<"LoyaltyStamp"> | string | null
+    staffUserId?: StringNullableWithAggregatesFilter<"LoyaltyStamp"> | string | null
     spend?: DecimalWithAggregatesFilter<"LoyaltyStamp"> | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeWithAggregatesFilter<"LoyaltyStamp"> | Date | string
   }
@@ -212076,6 +212179,7 @@ export namespace Prisma {
     expiresAt?: DateTimeNullableFilter<"LoyaltyReward"> | Date | string | null
     claimedAt?: DateTimeNullableFilter<"LoyaltyReward"> | Date | string | null
     claimedOrderId?: StringNullableFilter<"LoyaltyReward"> | string | null
+    claimedByUserId?: StringNullableFilter<"LoyaltyReward"> | string | null
     card?: XOR<LoyaltyCardNullableRelationFilter, LoyaltyCardWhereInput> | null
     location?: XOR<LocationRelationFilter, LocationWhereInput>
     customerAccount?: XOR<CustomerAccountNullableRelationFilter, CustomerAccountWhereInput> | null
@@ -212097,6 +212201,7 @@ export namespace Prisma {
     expiresAt?: SortOrderInput | SortOrder
     claimedAt?: SortOrderInput | SortOrder
     claimedOrderId?: SortOrderInput | SortOrder
+    claimedByUserId?: SortOrderInput | SortOrder
     card?: LoyaltyCardOrderByWithRelationInput
     location?: LocationOrderByWithRelationInput
     customerAccount?: CustomerAccountOrderByWithRelationInput
@@ -212122,6 +212227,7 @@ export namespace Prisma {
     earnedAt?: DateTimeFilter<"LoyaltyReward"> | Date | string
     expiresAt?: DateTimeNullableFilter<"LoyaltyReward"> | Date | string | null
     claimedAt?: DateTimeNullableFilter<"LoyaltyReward"> | Date | string | null
+    claimedByUserId?: StringNullableFilter<"LoyaltyReward"> | string | null
     card?: XOR<LoyaltyCardNullableRelationFilter, LoyaltyCardWhereInput> | null
     location?: XOR<LocationRelationFilter, LocationWhereInput>
     customerAccount?: XOR<CustomerAccountNullableRelationFilter, CustomerAccountWhereInput> | null
@@ -212143,6 +212249,7 @@ export namespace Prisma {
     expiresAt?: SortOrderInput | SortOrder
     claimedAt?: SortOrderInput | SortOrder
     claimedOrderId?: SortOrderInput | SortOrder
+    claimedByUserId?: SortOrderInput | SortOrder
     _count?: LoyaltyRewardCountOrderByAggregateInput
     _avg?: LoyaltyRewardAvgOrderByAggregateInput
     _max?: LoyaltyRewardMaxOrderByAggregateInput
@@ -212168,6 +212275,7 @@ export namespace Prisma {
     expiresAt?: DateTimeNullableWithAggregatesFilter<"LoyaltyReward"> | Date | string | null
     claimedAt?: DateTimeNullableWithAggregatesFilter<"LoyaltyReward"> | Date | string | null
     claimedOrderId?: StringNullableWithAggregatesFilter<"LoyaltyReward"> | string | null
+    claimedByUserId?: StringNullableWithAggregatesFilter<"LoyaltyReward"> | string | null
   }
 
   export type LoyaltyMemberWhereInput = {
@@ -231465,12 +231573,15 @@ export namespace Prisma {
   export type LoyaltyStampCreateInput = {
     id?: string
     tenantId: string
+    source?: string
+    requestKey?: string | null
+    staffUserId?: string | null
     spend: Decimal | DecimalJsLike | number | string
     createdAt?: Date | string
     card: LoyaltyCardCreateNestedOneWithoutStampsInput
     customerAccount?: CustomerAccountCreateNestedOneWithoutLoyaltyStampsInput
     member?: LoyaltyMemberCreateNestedOneWithoutStampsInput
-    order: OrderCreateNestedOneWithoutLoyaltyStampInput
+    order?: OrderCreateNestedOneWithoutLoyaltyStampInput
   }
 
   export type LoyaltyStampUncheckedCreateInput = {
@@ -231479,7 +231590,10 @@ export namespace Prisma {
     cardId: string
     customerAccountId?: string | null
     memberId?: string | null
-    orderId: string
+    orderId?: string | null
+    source?: string
+    requestKey?: string | null
+    staffUserId?: string | null
     spend: Decimal | DecimalJsLike | number | string
     createdAt?: Date | string
   }
@@ -231487,12 +231601,15 @@ export namespace Prisma {
   export type LoyaltyStampUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    requestKey?: NullableStringFieldUpdateOperationsInput | string | null
+    staffUserId?: NullableStringFieldUpdateOperationsInput | string | null
     spend?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     card?: LoyaltyCardUpdateOneRequiredWithoutStampsNestedInput
     customerAccount?: CustomerAccountUpdateOneWithoutLoyaltyStampsNestedInput
     member?: LoyaltyMemberUpdateOneWithoutStampsNestedInput
-    order?: OrderUpdateOneRequiredWithoutLoyaltyStampNestedInput
+    order?: OrderUpdateOneWithoutLoyaltyStampNestedInput
   }
 
   export type LoyaltyStampUncheckedUpdateInput = {
@@ -231501,7 +231618,10 @@ export namespace Prisma {
     cardId?: StringFieldUpdateOperationsInput | string
     customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     memberId?: NullableStringFieldUpdateOperationsInput | string | null
-    orderId?: StringFieldUpdateOperationsInput | string
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: StringFieldUpdateOperationsInput | string
+    requestKey?: NullableStringFieldUpdateOperationsInput | string | null
+    staffUserId?: NullableStringFieldUpdateOperationsInput | string | null
     spend?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -231512,7 +231632,10 @@ export namespace Prisma {
     cardId: string
     customerAccountId?: string | null
     memberId?: string | null
-    orderId: string
+    orderId?: string | null
+    source?: string
+    requestKey?: string | null
+    staffUserId?: string | null
     spend: Decimal | DecimalJsLike | number | string
     createdAt?: Date | string
   }
@@ -231520,6 +231643,9 @@ export namespace Prisma {
   export type LoyaltyStampUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    requestKey?: NullableStringFieldUpdateOperationsInput | string | null
+    staffUserId?: NullableStringFieldUpdateOperationsInput | string | null
     spend?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -231530,7 +231656,10 @@ export namespace Prisma {
     cardId?: StringFieldUpdateOperationsInput | string
     customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     memberId?: NullableStringFieldUpdateOperationsInput | string | null
-    orderId?: StringFieldUpdateOperationsInput | string
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: StringFieldUpdateOperationsInput | string
+    requestKey?: NullableStringFieldUpdateOperationsInput | string | null
+    staffUserId?: NullableStringFieldUpdateOperationsInput | string | null
     spend?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -231546,6 +231675,7 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     claimedAt?: Date | string | null
     claimedOrderId?: string | null
+    claimedByUserId?: string | null
     card?: LoyaltyCardCreateNestedOneWithoutRewardsInput
     location: LocationCreateNestedOneWithoutLoyaltyRewardsInput
     customerAccount?: CustomerAccountCreateNestedOneWithoutLoyaltyRewardsInput
@@ -231567,6 +231697,7 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     claimedAt?: Date | string | null
     claimedOrderId?: string | null
+    claimedByUserId?: string | null
   }
 
   export type LoyaltyRewardUpdateInput = {
@@ -231580,6 +231711,7 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
     card?: LoyaltyCardUpdateOneWithoutRewardsNestedInput
     location?: LocationUpdateOneRequiredWithoutLoyaltyRewardsNestedInput
     customerAccount?: CustomerAccountUpdateOneWithoutLoyaltyRewardsNestedInput
@@ -231601,6 +231733,7 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type LoyaltyRewardCreateManyInput = {
@@ -231618,6 +231751,7 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     claimedAt?: Date | string | null
     claimedOrderId?: string | null
+    claimedByUserId?: string | null
   }
 
   export type LoyaltyRewardUpdateManyMutationInput = {
@@ -231631,6 +231765,7 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type LoyaltyRewardUncheckedUpdateManyInput = {
@@ -231648,6 +231783,7 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type LoyaltyMemberCreateInput = {
@@ -245533,6 +245669,9 @@ export namespace Prisma {
     customerAccountId?: SortOrder
     memberId?: SortOrder
     orderId?: SortOrder
+    source?: SortOrder
+    requestKey?: SortOrder
+    staffUserId?: SortOrder
     spend?: SortOrder
     createdAt?: SortOrder
   }
@@ -245548,6 +245687,9 @@ export namespace Prisma {
     customerAccountId?: SortOrder
     memberId?: SortOrder
     orderId?: SortOrder
+    source?: SortOrder
+    requestKey?: SortOrder
+    staffUserId?: SortOrder
     spend?: SortOrder
     createdAt?: SortOrder
   }
@@ -245559,6 +245701,9 @@ export namespace Prisma {
     customerAccountId?: SortOrder
     memberId?: SortOrder
     orderId?: SortOrder
+    source?: SortOrder
+    requestKey?: SortOrder
+    staffUserId?: SortOrder
     spend?: SortOrder
     createdAt?: SortOrder
   }
@@ -245588,6 +245733,7 @@ export namespace Prisma {
     expiresAt?: SortOrder
     claimedAt?: SortOrder
     claimedOrderId?: SortOrder
+    claimedByUserId?: SortOrder
   }
 
   export type LoyaltyRewardAvgOrderByAggregateInput = {
@@ -245609,6 +245755,7 @@ export namespace Prisma {
     expiresAt?: SortOrder
     claimedAt?: SortOrder
     claimedOrderId?: SortOrder
+    claimedByUserId?: SortOrder
   }
 
   export type LoyaltyRewardMinOrderByAggregateInput = {
@@ -245626,6 +245773,7 @@ export namespace Prisma {
     expiresAt?: SortOrder
     claimedAt?: SortOrder
     claimedOrderId?: SortOrder
+    claimedByUserId?: SortOrder
   }
 
   export type LoyaltyRewardSumOrderByAggregateInput = {
@@ -256666,10 +256814,12 @@ export namespace Prisma {
     update?: XOR<XOR<LoyaltyMemberUpdateToOneWithWhereWithoutStampsInput, LoyaltyMemberUpdateWithoutStampsInput>, LoyaltyMemberUncheckedUpdateWithoutStampsInput>
   }
 
-  export type OrderUpdateOneRequiredWithoutLoyaltyStampNestedInput = {
+  export type OrderUpdateOneWithoutLoyaltyStampNestedInput = {
     create?: XOR<OrderCreateWithoutLoyaltyStampInput, OrderUncheckedCreateWithoutLoyaltyStampInput>
     connectOrCreate?: OrderCreateOrConnectWithoutLoyaltyStampInput
     upsert?: OrderUpsertWithoutLoyaltyStampInput
+    disconnect?: OrderWhereInput | boolean
+    delete?: OrderWhereInput | boolean
     connect?: OrderWhereUniqueInput
     update?: XOR<XOR<OrderUpdateToOneWithWhereWithoutLoyaltyStampInput, OrderUpdateWithoutLoyaltyStampInput>, OrderUncheckedUpdateWithoutLoyaltyStampInput>
   }
@@ -263159,11 +263309,14 @@ export namespace Prisma {
   export type LoyaltyStampCreateWithoutCustomerAccountInput = {
     id?: string
     tenantId: string
+    source?: string
+    requestKey?: string | null
+    staffUserId?: string | null
     spend: Decimal | DecimalJsLike | number | string
     createdAt?: Date | string
     card: LoyaltyCardCreateNestedOneWithoutStampsInput
     member?: LoyaltyMemberCreateNestedOneWithoutStampsInput
-    order: OrderCreateNestedOneWithoutLoyaltyStampInput
+    order?: OrderCreateNestedOneWithoutLoyaltyStampInput
   }
 
   export type LoyaltyStampUncheckedCreateWithoutCustomerAccountInput = {
@@ -263171,7 +263324,10 @@ export namespace Prisma {
     tenantId: string
     cardId: string
     memberId?: string | null
-    orderId: string
+    orderId?: string | null
+    source?: string
+    requestKey?: string | null
+    staffUserId?: string | null
     spend: Decimal | DecimalJsLike | number | string
     createdAt?: Date | string
   }
@@ -263197,6 +263353,7 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     claimedAt?: Date | string | null
     claimedOrderId?: string | null
+    claimedByUserId?: string | null
     card?: LoyaltyCardCreateNestedOneWithoutRewardsInput
     location: LocationCreateNestedOneWithoutLoyaltyRewardsInput
     member?: LoyaltyMemberCreateNestedOneWithoutRewardsInput
@@ -263216,6 +263373,7 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     claimedAt?: Date | string | null
     claimedOrderId?: string | null
+    claimedByUserId?: string | null
   }
 
   export type LoyaltyRewardCreateOrConnectWithoutCustomerAccountInput = {
@@ -263380,7 +263538,10 @@ export namespace Prisma {
     cardId?: StringFilter<"LoyaltyStamp"> | string
     customerAccountId?: StringNullableFilter<"LoyaltyStamp"> | string | null
     memberId?: StringNullableFilter<"LoyaltyStamp"> | string | null
-    orderId?: StringFilter<"LoyaltyStamp"> | string
+    orderId?: StringNullableFilter<"LoyaltyStamp"> | string | null
+    source?: StringFilter<"LoyaltyStamp"> | string
+    requestKey?: StringNullableFilter<"LoyaltyStamp"> | string | null
+    staffUserId?: StringNullableFilter<"LoyaltyStamp"> | string | null
     spend?: DecimalFilter<"LoyaltyStamp"> | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFilter<"LoyaltyStamp"> | Date | string
   }
@@ -263419,6 +263580,7 @@ export namespace Prisma {
     expiresAt?: DateTimeNullableFilter<"LoyaltyReward"> | Date | string | null
     claimedAt?: DateTimeNullableFilter<"LoyaltyReward"> | Date | string | null
     claimedOrderId?: StringNullableFilter<"LoyaltyReward"> | string | null
+    claimedByUserId?: StringNullableFilter<"LoyaltyReward"> | string | null
   }
 
   export type ReferralCodeUpsertWithWhereUniqueWithoutCustomerAccountInput = {
@@ -267975,6 +268137,7 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     claimedAt?: Date | string | null
     claimedOrderId?: string | null
+    claimedByUserId?: string | null
     card?: LoyaltyCardCreateNestedOneWithoutRewardsInput
     customerAccount?: CustomerAccountCreateNestedOneWithoutLoyaltyRewardsInput
     member?: LoyaltyMemberCreateNestedOneWithoutRewardsInput
@@ -267994,6 +268157,7 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     claimedAt?: Date | string | null
     claimedOrderId?: string | null
+    claimedByUserId?: string | null
   }
 
   export type LoyaltyRewardCreateOrConnectWithoutLocationInput = {
@@ -281480,6 +281644,9 @@ export namespace Prisma {
   export type LoyaltyStampCreateWithoutOrderInput = {
     id?: string
     tenantId: string
+    source?: string
+    requestKey?: string | null
+    staffUserId?: string | null
     spend: Decimal | DecimalJsLike | number | string
     createdAt?: Date | string
     card: LoyaltyCardCreateNestedOneWithoutStampsInput
@@ -281493,6 +281660,9 @@ export namespace Prisma {
     cardId: string
     customerAccountId?: string | null
     memberId?: string | null
+    source?: string
+    requestKey?: string | null
+    staffUserId?: string | null
     spend: Decimal | DecimalJsLike | number | string
     createdAt?: Date | string
   }
@@ -282240,6 +282410,9 @@ export namespace Prisma {
   export type LoyaltyStampUpdateWithoutOrderInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    requestKey?: NullableStringFieldUpdateOperationsInput | string | null
+    staffUserId?: NullableStringFieldUpdateOperationsInput | string | null
     spend?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     card?: LoyaltyCardUpdateOneRequiredWithoutStampsNestedInput
@@ -282253,6 +282426,9 @@ export namespace Prisma {
     cardId?: StringFieldUpdateOperationsInput | string
     customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     memberId?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: StringFieldUpdateOperationsInput | string
+    requestKey?: NullableStringFieldUpdateOperationsInput | string | null
+    staffUserId?: NullableStringFieldUpdateOperationsInput | string | null
     spend?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -304529,11 +304705,14 @@ export namespace Prisma {
   export type LoyaltyStampCreateWithoutCardInput = {
     id?: string
     tenantId: string
+    source?: string
+    requestKey?: string | null
+    staffUserId?: string | null
     spend: Decimal | DecimalJsLike | number | string
     createdAt?: Date | string
     customerAccount?: CustomerAccountCreateNestedOneWithoutLoyaltyStampsInput
     member?: LoyaltyMemberCreateNestedOneWithoutStampsInput
-    order: OrderCreateNestedOneWithoutLoyaltyStampInput
+    order?: OrderCreateNestedOneWithoutLoyaltyStampInput
   }
 
   export type LoyaltyStampUncheckedCreateWithoutCardInput = {
@@ -304541,7 +304720,10 @@ export namespace Prisma {
     tenantId: string
     customerAccountId?: string | null
     memberId?: string | null
-    orderId: string
+    orderId?: string | null
+    source?: string
+    requestKey?: string | null
+    staffUserId?: string | null
     spend: Decimal | DecimalJsLike | number | string
     createdAt?: Date | string
   }
@@ -304567,6 +304749,7 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     claimedAt?: Date | string | null
     claimedOrderId?: string | null
+    claimedByUserId?: string | null
     location: LocationCreateNestedOneWithoutLoyaltyRewardsInput
     customerAccount?: CustomerAccountCreateNestedOneWithoutLoyaltyRewardsInput
     member?: LoyaltyMemberCreateNestedOneWithoutRewardsInput
@@ -304586,6 +304769,7 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     claimedAt?: Date | string | null
     claimedOrderId?: string | null
+    claimedByUserId?: string | null
   }
 
   export type LoyaltyRewardCreateOrConnectWithoutCardInput = {
@@ -306550,11 +306734,14 @@ export namespace Prisma {
   export type LoyaltyStampCreateWithoutMemberInput = {
     id?: string
     tenantId: string
+    source?: string
+    requestKey?: string | null
+    staffUserId?: string | null
     spend: Decimal | DecimalJsLike | number | string
     createdAt?: Date | string
     card: LoyaltyCardCreateNestedOneWithoutStampsInput
     customerAccount?: CustomerAccountCreateNestedOneWithoutLoyaltyStampsInput
-    order: OrderCreateNestedOneWithoutLoyaltyStampInput
+    order?: OrderCreateNestedOneWithoutLoyaltyStampInput
   }
 
   export type LoyaltyStampUncheckedCreateWithoutMemberInput = {
@@ -306562,7 +306749,10 @@ export namespace Prisma {
     tenantId: string
     cardId: string
     customerAccountId?: string | null
-    orderId: string
+    orderId?: string | null
+    source?: string
+    requestKey?: string | null
+    staffUserId?: string | null
     spend: Decimal | DecimalJsLike | number | string
     createdAt?: Date | string
   }
@@ -306588,6 +306778,7 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     claimedAt?: Date | string | null
     claimedOrderId?: string | null
+    claimedByUserId?: string | null
     card?: LoyaltyCardCreateNestedOneWithoutRewardsInput
     location: LocationCreateNestedOneWithoutLoyaltyRewardsInput
     customerAccount?: CustomerAccountCreateNestedOneWithoutLoyaltyRewardsInput
@@ -306607,6 +306798,7 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     claimedAt?: Date | string | null
     claimedOrderId?: string | null
+    claimedByUserId?: string | null
   }
 
   export type LoyaltyRewardCreateOrConnectWithoutMemberInput = {
@@ -311520,7 +311712,10 @@ export namespace Prisma {
     tenantId: string
     cardId: string
     memberId?: string | null
-    orderId: string
+    orderId?: string | null
+    source?: string
+    requestKey?: string | null
+    staffUserId?: string | null
     spend: Decimal | DecimalJsLike | number | string
     createdAt?: Date | string
   }
@@ -311539,6 +311734,7 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     claimedAt?: Date | string | null
     claimedOrderId?: string | null
+    claimedByUserId?: string | null
   }
 
   export type ReferralCodeCreateManyCustomerAccountInput = {
@@ -311837,11 +312033,14 @@ export namespace Prisma {
   export type LoyaltyStampUpdateWithoutCustomerAccountInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    requestKey?: NullableStringFieldUpdateOperationsInput | string | null
+    staffUserId?: NullableStringFieldUpdateOperationsInput | string | null
     spend?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     card?: LoyaltyCardUpdateOneRequiredWithoutStampsNestedInput
     member?: LoyaltyMemberUpdateOneWithoutStampsNestedInput
-    order?: OrderUpdateOneRequiredWithoutLoyaltyStampNestedInput
+    order?: OrderUpdateOneWithoutLoyaltyStampNestedInput
   }
 
   export type LoyaltyStampUncheckedUpdateWithoutCustomerAccountInput = {
@@ -311849,7 +312048,10 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     cardId?: StringFieldUpdateOperationsInput | string
     memberId?: NullableStringFieldUpdateOperationsInput | string | null
-    orderId?: StringFieldUpdateOperationsInput | string
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: StringFieldUpdateOperationsInput | string
+    requestKey?: NullableStringFieldUpdateOperationsInput | string | null
+    staffUserId?: NullableStringFieldUpdateOperationsInput | string | null
     spend?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -311859,7 +312061,10 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     cardId?: StringFieldUpdateOperationsInput | string
     memberId?: NullableStringFieldUpdateOperationsInput | string | null
-    orderId?: StringFieldUpdateOperationsInput | string
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: StringFieldUpdateOperationsInput | string
+    requestKey?: NullableStringFieldUpdateOperationsInput | string | null
+    staffUserId?: NullableStringFieldUpdateOperationsInput | string | null
     spend?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -311875,6 +312080,7 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
     card?: LoyaltyCardUpdateOneWithoutRewardsNestedInput
     location?: LocationUpdateOneRequiredWithoutLoyaltyRewardsNestedInput
     member?: LoyaltyMemberUpdateOneWithoutRewardsNestedInput
@@ -311894,6 +312100,7 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type LoyaltyRewardUncheckedUpdateManyWithoutCustomerAccountInput = {
@@ -311910,6 +312117,7 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type ReferralCodeUpdateWithoutCustomerAccountInput = {
@@ -314085,6 +314293,7 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     claimedAt?: Date | string | null
     claimedOrderId?: string | null
+    claimedByUserId?: string | null
   }
 
   export type IntegrationUpdateWithoutLocationInput = {
@@ -315654,6 +315863,7 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
     card?: LoyaltyCardUpdateOneWithoutRewardsNestedInput
     customerAccount?: CustomerAccountUpdateOneWithoutLoyaltyRewardsNestedInput
     member?: LoyaltyMemberUpdateOneWithoutRewardsNestedInput
@@ -315673,6 +315883,7 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type LoyaltyRewardUncheckedUpdateManyWithoutLocationInput = {
@@ -315689,6 +315900,7 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type MenuCategoryCreateManyMenuInput = {
@@ -321308,7 +321520,10 @@ export namespace Prisma {
     tenantId: string
     customerAccountId?: string | null
     memberId?: string | null
-    orderId: string
+    orderId?: string | null
+    source?: string
+    requestKey?: string | null
+    staffUserId?: string | null
     spend: Decimal | DecimalJsLike | number | string
     createdAt?: Date | string
   }
@@ -321327,6 +321542,7 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     claimedAt?: Date | string | null
     claimedOrderId?: string | null
+    claimedByUserId?: string | null
   }
 
   export type LoyaltyMemberCreateManyCardInput = {
@@ -321354,11 +321570,14 @@ export namespace Prisma {
   export type LoyaltyStampUpdateWithoutCardInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    requestKey?: NullableStringFieldUpdateOperationsInput | string | null
+    staffUserId?: NullableStringFieldUpdateOperationsInput | string | null
     spend?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customerAccount?: CustomerAccountUpdateOneWithoutLoyaltyStampsNestedInput
     member?: LoyaltyMemberUpdateOneWithoutStampsNestedInput
-    order?: OrderUpdateOneRequiredWithoutLoyaltyStampNestedInput
+    order?: OrderUpdateOneWithoutLoyaltyStampNestedInput
   }
 
   export type LoyaltyStampUncheckedUpdateWithoutCardInput = {
@@ -321366,7 +321585,10 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     memberId?: NullableStringFieldUpdateOperationsInput | string | null
-    orderId?: StringFieldUpdateOperationsInput | string
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: StringFieldUpdateOperationsInput | string
+    requestKey?: NullableStringFieldUpdateOperationsInput | string | null
+    staffUserId?: NullableStringFieldUpdateOperationsInput | string | null
     spend?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -321376,7 +321598,10 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     memberId?: NullableStringFieldUpdateOperationsInput | string | null
-    orderId?: StringFieldUpdateOperationsInput | string
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: StringFieldUpdateOperationsInput | string
+    requestKey?: NullableStringFieldUpdateOperationsInput | string | null
+    staffUserId?: NullableStringFieldUpdateOperationsInput | string | null
     spend?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -321392,6 +321617,7 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
     location?: LocationUpdateOneRequiredWithoutLoyaltyRewardsNestedInput
     customerAccount?: CustomerAccountUpdateOneWithoutLoyaltyRewardsNestedInput
     member?: LoyaltyMemberUpdateOneWithoutRewardsNestedInput
@@ -321411,6 +321637,7 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type LoyaltyRewardUncheckedUpdateManyWithoutCardInput = {
@@ -321427,6 +321654,7 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type LoyaltyMemberUpdateWithoutCardInput = {
@@ -321506,7 +321734,10 @@ export namespace Prisma {
     tenantId: string
     cardId: string
     customerAccountId?: string | null
-    orderId: string
+    orderId?: string | null
+    source?: string
+    requestKey?: string | null
+    staffUserId?: string | null
     spend: Decimal | DecimalJsLike | number | string
     createdAt?: Date | string
   }
@@ -321525,6 +321756,7 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     claimedAt?: Date | string | null
     claimedOrderId?: string | null
+    claimedByUserId?: string | null
   }
 
   export type LoyaltyPassDeviceCreateManyMemberInput = {
@@ -321537,11 +321769,14 @@ export namespace Prisma {
   export type LoyaltyStampUpdateWithoutMemberInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    requestKey?: NullableStringFieldUpdateOperationsInput | string | null
+    staffUserId?: NullableStringFieldUpdateOperationsInput | string | null
     spend?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     card?: LoyaltyCardUpdateOneRequiredWithoutStampsNestedInput
     customerAccount?: CustomerAccountUpdateOneWithoutLoyaltyStampsNestedInput
-    order?: OrderUpdateOneRequiredWithoutLoyaltyStampNestedInput
+    order?: OrderUpdateOneWithoutLoyaltyStampNestedInput
   }
 
   export type LoyaltyStampUncheckedUpdateWithoutMemberInput = {
@@ -321549,7 +321784,10 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     cardId?: StringFieldUpdateOperationsInput | string
     customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
-    orderId?: StringFieldUpdateOperationsInput | string
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: StringFieldUpdateOperationsInput | string
+    requestKey?: NullableStringFieldUpdateOperationsInput | string | null
+    staffUserId?: NullableStringFieldUpdateOperationsInput | string | null
     spend?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -321559,7 +321797,10 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     cardId?: StringFieldUpdateOperationsInput | string
     customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
-    orderId?: StringFieldUpdateOperationsInput | string
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: StringFieldUpdateOperationsInput | string
+    requestKey?: NullableStringFieldUpdateOperationsInput | string | null
+    staffUserId?: NullableStringFieldUpdateOperationsInput | string | null
     spend?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -321575,6 +321816,7 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
     card?: LoyaltyCardUpdateOneWithoutRewardsNestedInput
     location?: LocationUpdateOneRequiredWithoutLoyaltyRewardsNestedInput
     customerAccount?: CustomerAccountUpdateOneWithoutLoyaltyRewardsNestedInput
@@ -321594,6 +321836,7 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type LoyaltyRewardUncheckedUpdateManyWithoutMemberInput = {
@@ -321610,6 +321853,7 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     claimedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    claimedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type LoyaltyPassDeviceUpdateWithoutMemberInput = {
