@@ -27,6 +27,7 @@ export * from "./lib/repeat-order";
 export * from "./lib/dashboard-tabs";
 export * from "./lib/dispatch-charging";
 export * from "./lib/delivery-address";
+export * from "./lib/customer-phone";
 export * from "./lib/multi-buy";
 export * from "./lib/age-check";
 export * from "./lib/weighed";

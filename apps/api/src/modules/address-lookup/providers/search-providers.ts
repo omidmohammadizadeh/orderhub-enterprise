@@ -125,6 +125,9 @@ function mapGooglePlaceDetails(
   const streetNumber = pick("street_number");
   const route = pick("route");
   const subpremise = pick("subpremise");
+  // UK houses Google knows by number often come back as a "premise" with no
+  // street_number, and the number then vanished from the picked address.
+  const premise = streetNumber ? undefined : pick("premise");
   const line1 = [streetNumber, route].filter(Boolean).join(" ");
   const city =
     pick("postal_town") ?? pick("locality") ?? pick("administrative_area_level_2");
@@ -141,7 +144,10 @@ function mapGooglePlaceDetails(
       result.formattedAddress ??
       [line1, city, pick("postal_code")].filter(Boolean).join(", "),
     line1: line1 || (result.formattedAddress ?? ""),
-    line2: subpremise ? `Flat ${subpremise}` : undefined,
+    line2:
+      [subpremise ? `Flat ${subpremise}` : null, premise ?? null]
+        .filter(Boolean)
+        .join(", ") || undefined,
     city,
     area,
     postcode: pick("postal_code"),

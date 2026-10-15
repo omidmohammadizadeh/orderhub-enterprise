@@ -30,6 +30,7 @@ import {
   X,
 } from "lucide-react";
 import type { GroupOrderView } from "@/lib/api/group-orders.client";
+import { hasHouseNumberOrName, isPlausibleCustomerPhone } from "@orderhub/shared";
 import { AddressSearchField } from "@/components/storefront/address-search-field";
 
 export interface GroupBasketPanelProps {
@@ -84,6 +85,7 @@ export interface GroupBasketPanelProps {
   needsPostcode: boolean;
   onPickAddress: (a: {
     line1?: string;
+    line2?: string;
     city?: string;
     area?: string;
     postcode?: string;
@@ -159,14 +161,22 @@ export function GroupBasketPanel(props: GroupBasketPanelProps) {
     }
   };
 
+  // Same rules as the ordinary cart, and the checkout API enforces both.
+  const phoneValid = isPlausibleCustomerPhone(props.customerPhone, props.shopCountry);
+  const houseNumberMissing =
+    isDelivery &&
+    props.needsPostcode &&
+    !!props.addrLine1.trim() &&
+    !hasHouseNumberOrName({ line1: props.addrLine1, line2: props.addrFlat });
   const canPlace =
     locked &&
     basket.items.length > 0 &&
     (!props.minAge || !!props.ageConfirmed) &&
     props.customerName.trim().length > 0 &&
-    props.customerPhone.trim().length > 0 &&
+    phoneValid &&
     (!isDelivery ||
       (props.addrLine1.trim() &&
+        !houseNumberMissing &&
         props.addrCity.trim() &&
         // The UAE has no postcode to require, and where the shop prices by
         // area the picked area is the field that has to be filled instead.
@@ -350,6 +360,11 @@ export function GroupBasketPanel(props: GroupBasketPanelProps) {
                   placeholder="Phone number"
                   type="tel"
                 />
+                {props.customerPhone.trim().length > 0 && !phoneValid && (
+                  <p className="text-[11px] text-red-600">
+                    Enter a phone number the restaurant can call you on.
+                  </p>
+                )}
                 <Field
                   value={props.customerEmail}
                   onChange={props.setCustomerEmail}
@@ -375,13 +390,20 @@ export function GroupBasketPanel(props: GroupBasketPanelProps) {
                   <Field
                     value={props.addrFlat}
                     onChange={props.setAddrFlat}
-                    placeholder="House / flat number"
+                    placeholder={
+                      props.needsPostcode ? "House number or name (required)" : "House / flat number"
+                    }
                   />
                   <Field
                     value={props.addrLine1}
                     onChange={props.setAddrLine1}
                     placeholder="Street name"
                   />
+                  {houseNumberMissing && (
+                    <p className="text-[11px] text-red-600">
+                      Add your house number or name so the driver can find you.
+                    </p>
+                  )}
                   <div
                     className={
                       props.needsPostcode
