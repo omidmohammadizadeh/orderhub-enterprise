@@ -22,6 +22,9 @@ import {
   currencySymbol,
   normaliseSellBy,
   weighedLineName,
+  isPlausibleCustomerPhone,
+  hasHouseNumberOrName,
+  postcodeRequiredFor,
 } from "@orderhub/shared";
 import { OrdersService } from "../orders/orders.service";
 import { PromoCodesService } from "../promo-codes/promo-codes.service";
@@ -1582,6 +1585,26 @@ export class OrderingService {
 
     if (!location || !location.isActive || location.deletedAt) {
       throw new NotFoundException("Store not found");
+    }
+
+    // The storefront checks both of these before it lets the customer press
+    // Place order; this is the same rule for anything that skips the page.
+    // An order the shop cannot phone, or a UK delivery with no door number,
+    // left Best Kebab's drivers stuck in the street (14 Oct 2026).
+    if (!isPlausibleCustomerPhone(dto.customerInfo?.phone, location.country)) {
+      throw new BadRequestException(
+        "Please enter a phone number the restaurant can call you on.",
+      );
+    }
+    if (
+      dto.fulfillmentType === "DELIVERY" &&
+      postcodeRequiredFor(location.country ?? "GB") &&
+      dto.deliveryAddress &&
+      !hasHouseNumberOrName(dto.deliveryAddress)
+    ) {
+      throw new BadRequestException(
+        "Please add your house number or name so the driver can find you.",
+      );
     }
 
     // Phase AW — when a brand is pinned via /brand/<slug>?brand=<id>,

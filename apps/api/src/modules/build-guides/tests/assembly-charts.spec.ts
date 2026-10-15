@@ -1,6 +1,6 @@
 import { NotFoundException } from "@nestjs/common";
 import { AssemblyChartsService } from "../assembly-charts.service";
-import { carryGuideOnRename } from "../build-guide-carry";
+import { carryGuideOnRename, copyGuidesToBrand } from "../build-guide-carry";
 
 function makePrisma() {
   const charts: any[] = [];
@@ -158,5 +158,48 @@ describe("chart titles across copies and renames", () => {
     expect(charts.find((c) => c.nameKey === "big tower xl")?.title).toBe("THE TOWER (special)");
     // Originals untouched for the location that still sells the old names.
     expect(charts.find((c) => c.id === "c1")?.title).toBe("Juicy Lucy");
+  });
+});
+
+describe("charts follow a menu tagged to a new brand", () => {
+  it("copies each product's chart from its old brand, keeps the source and never overwrites", async () => {
+    const charts: any[] = [
+      { id: "c1", tenantId: "t1", brandId: "src", nameKey: "juicy lucy", name: "Juicy Lucy", title: "Juicy Lucy", layers: [{ id: "a" }] },
+      { id: "c2", tenantId: "t1", brandId: "other", nameKey: "pollo tacos", name: "Pollo Tacos", title: "Pollo Tacos", layers: [] },
+      { id: "c3", tenantId: "t1", brandId: "src", nameKey: "big tower", name: "Big Tower", title: "Big Tower", layers: [] },
+      { id: "c4", tenantId: "t1", brandId: "new", nameKey: "big tower", name: "Big Tower", title: "KEEP ME", layers: [] },
+    ];
+    const matches = (c: any, w: any) =>
+      (w.OR ? w.OR.some((o: any) => c.brandId === o.brandId && c.nameKey === o.nameKey) : true) &&
+      (w.brandId === undefined || c.brandId === w.brandId) &&
+      (w.nameKey?.in === undefined || w.nameKey.in.includes(c.nameKey));
+    const db: any = {
+      assemblyChart: {
+        findMany: async ({ where }: any) => charts.filter((c) => matches(c, where)),
+        createMany: async ({ data }: any) => {
+          data.forEach((d: any, i: number) => charts.push({ id: `n${i}`, ...d }));
+          return { count: data.length };
+        },
+      },
+    };
+    const n = await copyGuidesToBrand(
+      db,
+      {
+        toBrandId: "new",
+        items: [
+          { brandId: "src", name: "Juicy Lucy" },
+          { brandId: "other", name: "Pollo Tacos" }, // a mixed menu: each item from its own old brand
+          { brandId: "src", name: "Big Tower" },
+          { brandId: "src", name: "No Chart Yet" },
+        ],
+      },
+      "assemblyChart",
+    );
+    expect(n).toBe(2);
+    const onNew = charts.filter((c) => c.brandId === "new");
+    expect(onNew.map((c) => c.nameKey).sort()).toEqual(["big tower", "juicy lucy", "pollo tacos"]);
+    expect(onNew.find((c) => c.nameKey === "big tower")?.title).toBe("KEEP ME");
+    expect(onNew.find((c) => c.nameKey === "juicy lucy")?.layers).toEqual([{ id: "a" }]);
+    expect(charts.filter((c) => c.brandId === "src")).toHaveLength(2);
   });
 });

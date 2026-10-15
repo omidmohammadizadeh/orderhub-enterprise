@@ -14,7 +14,7 @@ import type { Queue } from "bull";
 import type { Prisma } from "@orderhub/database";
 import { withDeliverooModifierType } from "./deliveroo-modifier-type";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
-import { carryGuideOnRename, copyGuideToName } from "../build-guides/build-guide-carry";
+import { carryGuideOnRename, copyGuideToName, copyGuidesToBrand } from "../build-guides/build-guide-carry";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 import { PluService, randomPlu } from "./plu.service";
 import { MenuAssignmentsService } from "./menu-assignments.service";
@@ -553,11 +553,21 @@ export class MenusService {
 
     if (!itemIds.length) return { updated: 0, menuRebranded: true };
 
+    // Guides and assembly charts are keyed by brand + product name, so the
+    // re-tagged products would lose them — a menu copied to a new shop and
+    // tagged to that shop's brand showed no charts in Kitchen training.
+    const before = await this.prisma.menuItem.findMany({
+      where: { id: { in: itemIds } },
+      select: { brandId: true, name: true },
+    });
     await this.prisma.menuItem.updateMany({
       where: { id: { in: itemIds } },
       data: { brandId, brandIds: [brandId] },
     });
-    return { updated: itemIds.length, menuRebranded: true };
+    const carry = { items: before, toBrandId: brandId };
+    const chartsCopied = await copyGuidesToBrand(this.prisma as any, carry, "assemblyChart");
+    const guidesCopied = await copyGuidesToBrand(this.prisma as any, carry, "buildGuide");
+    return { updated: itemIds.length, menuRebranded: true, chartsCopied, guidesCopied };
   }
 
   async clone(

@@ -48,6 +48,8 @@ import {
   type SellBy,
   type MultiBuyApplication,
   type MultiBuyDeal,
+  isPlausibleCustomerPhone,
+  hasHouseNumberOrName,
 } from "@orderhub/shared";
 import axios from "axios";
 import { LoginModal } from "@/components/storefront/login-modal";
@@ -2524,6 +2526,9 @@ function OrderPage() {
           needsPostcode={needsPostcode}
           onPickAddress={(a) => {
             if (a.line1) setAddrLine1(a.line1);
+            // The flat / building the lookup found belongs in the house box,
+            // or the order goes out with the street alone.
+            if (a.line2) setAddrFlat(a.line2);
             if (a.city) setAddrCity(a.city);
             if (a.postcode) setAddrPostcode(a.postcode.toUpperCase());
             // Preselect the area when Places named one we actually serve.
@@ -2556,6 +2561,7 @@ function OrderPage() {
           onPostcodeLookup={() => runPostcodeLookup()}
           onPickPostcodeSuggestion={(s) => {
             if (s.line1) setAddrLine1(s.line1);
+            if (s.line2) setAddrFlat(s.line2);
             if (s.city) setAddrCity(s.city);
             if (s.postcode) setAddrPostcode(s.postcode);
             setPostcodeSuggestions([]);
@@ -2638,6 +2644,9 @@ function OrderPage() {
           needsPostcode={needsPostcode}
           onPickAddress={(a) => {
             if (a.line1) setAddrLine1(a.line1);
+            // The flat / building the lookup found belongs in the house box,
+            // or the order goes out with the street alone.
+            if (a.line2) setAddrFlat(a.line2);
             if (a.city) setAddrCity(a.city);
             if (a.postcode) setAddrPostcode(a.postcode.toUpperCase());
             // Preselect the area when Places named one we actually serve.
@@ -2698,6 +2707,7 @@ function OrderPage() {
           onPostcodeLookup={() => runPostcodeLookup()}
           onPickPostcodeSuggestion={(s) => {
             if (s.line1) setAddrLine1(s.line1);
+            if (s.line2) setAddrFlat(s.line2);
             if (s.city) setAddrCity(s.city);
             if (s.postcode) setAddrPostcode(s.postcode);
             setPostcodeSuggestions([]);
@@ -3524,6 +3534,7 @@ interface CartPanelProps {
   needsPostcode: boolean;
   onPickAddress: (a: {
     line1?: string;
+    line2?: string;
     city?: string;
     area?: string;
     postcode?: string;
@@ -3680,8 +3691,15 @@ function CartPanel(props: CartPanelProps) {
   // just a dead button. Where the shop prices by area, the picked area takes
   // the postcode's place as the required field, because it is what prices the
   // order.
+  // A UK door needs a number (or a house name). Gulf addresses are buildings
+  // and areas, so the rule follows the postcode rule's country split.
+  const houseNumberMissing =
+    needsPostcode &&
+    !!addrLine1.trim() &&
+    !hasHouseNumberOrName({ line1: addrLine1, line2: addrFlat });
   const addressComplete =
     !!addrLine1 &&
+    !houseNumberMissing &&
     !!addrCity &&
     (!needsPostcode || !!addrPostcode) &&
     (mode !== "AREA" || (!!addrArea && !areaUnserviceable));
@@ -3693,11 +3711,14 @@ function CartPanel(props: CartPanelProps) {
   // Retail R3 — a shop's delivery minimum (the server enforces it too).
   const belowShopMinimum =
     !!isShop && fulfillmentType === "DELIVERY" && !!minOrderForDelivery && subtotal + 1e-9 < minOrderForDelivery;
+  // Any string used to place an order, so a shop could be left unable to
+  // ring the customer. Shape only: it can't prove the number is theirs.
+  const phoneValid = isPlausibleCustomerPhone(customerPhone, shopCountry);
   const canPlace =
     !belowShopMinimum &&
     (cart.length > 0 || rewardApplied) &&
     customerName.trim().length > 0 &&
-    customerPhone.trim().length > 0 &&
+    phoneValid &&
     (fulfillmentType === "PICKUP" || addressComplete) &&
     (!cartMinAge || ageConfirmed);
 
@@ -3860,8 +3881,14 @@ function CartPanel(props: CartPanelProps) {
                 value={customerPhone}
                 onChange={setCustomerPhone}
                 placeholder="Phone"
+                type="tel"
               />
             </div>
+            {customerPhone.trim().length > 0 && !phoneValid && (
+              <p className="text-[11px] text-red-600">
+                Enter a phone number the restaurant can call you on.
+              </p>
+            )}
             <TextField
               value={customerEmail}
               onChange={setCustomerEmail}
@@ -3998,13 +4025,18 @@ function CartPanel(props: CartPanelProps) {
               <TextField
                 value={addrFlat}
                 onChange={setAddrFlat}
-                placeholder="House / flat number"
+                placeholder={needsPostcode ? "House number or name (required)" : "House / flat number"}
               />
               <TextField
                 value={addrLine1}
                 onChange={setAddrLine1}
                 placeholder="Street name"
               />
+              {houseNumberMissing && (
+                <p className="text-[11px] text-red-600">
+                  Add your house number or name so the driver can find you.
+                </p>
+              )}
               {/* City + postcode + Find in one row. Inputs get min-w-0 so they
                   shrink on narrow phones instead of pushing the Find button
                   past the viewport edge (it was invisible on mobile). */}
@@ -4329,13 +4361,18 @@ function TextField({
   value,
   onChange,
   placeholder,
+  type,
 }: {
   value: string;
   onChange: (v: string) => void;
   placeholder: string;
+  type?: string;
 }) {
   return (
     <input
+      type={type}
+      inputMode={type === "tel" ? "tel" : undefined}
+      autoComplete={type === "tel" ? "tel" : undefined}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}

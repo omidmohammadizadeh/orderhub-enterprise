@@ -35,7 +35,8 @@ import { buildGuidesClient, type TrainingOverviewRow } from "@/lib/api/build-gui
 import { assemblyChartsClient } from "@/lib/api/assembly-charts.client";
 import { PRESENTATIONS } from "@/lib/menu-presentations";
 import { CoverThumb } from "@/components/menu-presentation/presentation";
-import { SUPPLIER_LISTS, SUPPLIERS, suppliersOf, type SupplierKey } from "@/lib/supplier-lists";
+import { SUPPLIERS, suppliersOf, supplierListsForMenus, type SupplierKey, type SupplierList } from "@/lib/supplier-lists";
+import { menusClient } from "@/lib/api/menus.client";
 import { SupplierItems } from "@/components/supplier-list/supplier-list";
 import { formatVideoTime } from "@orderhub/shared";
 import { VideoOverlay } from "@/components/build-guides/youtube-player";
@@ -214,7 +215,7 @@ export default function TrainingPage() {
 
       {tab === "charts" && <AssemblyBoards locationId={locationId} />}
       {tab === "presentations" && <MenuPresentations />}
-      {tab === "suppliers" && <SupplierLists />}
+      {tab === "suppliers" && <SupplierLists locationId={locationId} />}
 
       {tab === "build" && (
         <>
@@ -288,11 +289,45 @@ export default function TrainingPage() {
 
 // Each virtual brand's supplier & ingredient list (lib/supplier-lists) —
 // filter by supplier for a shopping run, or print it for the kitchen wall.
-function SupplierLists() {
-  const [slug, setSlug] = useState(SUPPLIER_LISTS[0]!.slug);
+// Only the brands this location has a menu for (every visible menu on "All
+// locations"), so a shop isn't shown lists for brands it doesn't cook.
+function SupplierLists({ locationId }: { locationId: string | null | undefined }) {
+  const menusQ = useQuery({
+    queryKey: ["training-supplier-menus", locationId ?? "all"],
+    queryFn: () => (locationId ? menusClient.listMenusForLocation(locationId) : menusClient.listMenusForTenant()),
+  });
+  const lists = useMemo(
+    () =>
+      supplierListsForMenus(
+        (menusQ.data ?? []).filter((m: any) => m.status !== "ARCHIVED").map((m: any) => `${m.name ?? ""} ${m.brand?.name ?? ""}`),
+      ),
+    [menusQ.data],
+  );
+  if (menusQ.isLoading)
+    return (
+      <div className="flex items-center justify-center py-20 text-sm text-zinc-500">
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading…
+      </div>
+    );
+  if (menusQ.isError) return <p className="py-20 text-center text-sm text-red-600">Could not load this location&apos;s menus.</p>;
+  if (!lists.length)
+    return (
+      <div className="rounded-xl border border-dashed border-zinc-300 py-16 text-center">
+        <Truck className="mx-auto h-8 w-8 text-zinc-300" />
+        <p className="mt-2 text-sm text-zinc-600">
+          {locationId ? "No supplier lists for this location's brands yet." : "No supplier lists for your brands yet."}
+        </p>
+      </div>
+    );
+  return <SupplierListPicker lists={lists} />;
+}
+
+function SupplierListPicker({ lists }: { lists: SupplierList[] }) {
+  const [slug, setSlug] = useState(lists[0]!.slug);
   const [supplier, setSupplier] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const list = SUPPLIER_LISTS.find((l) => l.slug === slug) ?? SUPPLIER_LISTS[0]!;
+  // A brand picked at another location falls back to this one's first list.
+  const list = lists.find((l) => l.slug === slug) ?? lists[0]!;
   const suppliers = useMemo(() => suppliersOf(list), [list]);
   const items = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -308,7 +343,7 @@ function SupplierLists() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div role="group" aria-label="Brand" className="flex flex-wrap gap-1.5">
-          {SUPPLIER_LISTS.map((l) => (
+          {lists.map((l) => (
             <button
               key={l.slug}
               aria-pressed={l.slug === list.slug}
