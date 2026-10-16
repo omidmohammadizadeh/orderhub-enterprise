@@ -393,16 +393,20 @@ model AuditLog {
 
 // ── Brand ─────────────────────────────────────────────────────────────────────
 model Brand {
-  id        String    @id @default(cuid())
-  tenantId  String
-  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  name      String
-  slug      String
-  logoUrl   String?
-  settings  Json      @default("{}")
-  metadata  Json      @default("{}")
-  isActive  Boolean   @default(true)
-  deletedAt DateTime?
+  id           String    @id @default(cuid())
+  tenantId     String
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name         String
+  slug         String
+  logoUrl      String?
+  // The storefront's accent colour (`#rrggbb`). Per brand, not per tenant:
+  // one kitchen trades as several virtual brands and each storefront wears
+  // its own colour. Null = the storefront's default.
+  primaryColor String?
+  settings     Json      @default("{}")
+  metadata     Json      @default("{}")
+  isActive     Boolean   @default(true)
+  deletedAt    DateTime?
 
   // Phase AN — descriptive fields + "virtual brand" scoping. When
   // primaryLocationId is set, this brand lives at exactly that location
@@ -3176,7 +3180,7 @@ model DriverCashUp {
   @@map("driver_cash_ups")
 }
 
-// ── DriverPresence (Phase AX — Dispatch) ──────────────────────────────���───────
+// ── DriverPresence (Phase AX — Dispatch) ──────────────────────────────────────
 // One row per driver holding live operational state for the dispatch map and
 // the Order Hub Driver app: online/offline, last-known GPS, which location they
 // are clocked into, and the socket/push handles used to reach them. ON_JOB locks
@@ -3801,7 +3805,7 @@ model NotificationLog {
   @@map("notification_logs")
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
+// ════════════════════════���═════════════════════════════════════════════════════
 // PHASE F — WHITE-LABEL BRANDING
 // ══════════════════════════════════════════════════════════════════════════════
 
@@ -4215,7 +4219,7 @@ model WebPushSubscription {
   @@map("web_push_subscriptions")
 }
 
-// ════════════════��═════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════════
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE AP — SYSTEM SECRETS VAULT (platform-admin only)
 // ══════════════════════════════════════════════════════════════════════════════

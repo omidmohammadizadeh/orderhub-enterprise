@@ -30680,6 +30680,7 @@ export namespace Prisma {
     name: string | null
     slug: string | null
     logoUrl: string | null
+    primaryColor: string | null
     isActive: boolean | null
     deletedAt: Date | null
     description: string | null
@@ -30722,6 +30723,7 @@ export namespace Prisma {
     name: string | null
     slug: string | null
     logoUrl: string | null
+    primaryColor: string | null
     isActive: boolean | null
     deletedAt: Date | null
     description: string | null
@@ -30764,6 +30766,7 @@ export namespace Prisma {
     name: number
     slug: number
     logoUrl: number
+    primaryColor: number
     settings: number
     metadata: number
     isActive: number
@@ -30828,6 +30831,7 @@ export namespace Prisma {
     name?: true
     slug?: true
     logoUrl?: true
+    primaryColor?: true
     isActive?: true
     deletedAt?: true
     description?: true
@@ -30870,6 +30874,7 @@ export namespace Prisma {
     name?: true
     slug?: true
     logoUrl?: true
+    primaryColor?: true
     isActive?: true
     deletedAt?: true
     description?: true
@@ -30912,6 +30917,7 @@ export namespace Prisma {
     name?: true
     slug?: true
     logoUrl?: true
+    primaryColor?: true
     settings?: true
     metadata?: true
     isActive?: true
@@ -31045,6 +31051,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl: string | null
+    primaryColor: string | null
     settings: JsonValue
     metadata: JsonValue
     isActive: boolean
@@ -31110,6 +31117,7 @@ export namespace Prisma {
     name?: boolean
     slug?: boolean
     logoUrl?: boolean
+    primaryColor?: boolean
     settings?: boolean
     metadata?: boolean
     isActive?: boolean
@@ -31174,6 +31182,7 @@ export namespace Prisma {
     name?: boolean
     slug?: boolean
     logoUrl?: boolean
+    primaryColor?: boolean
     settings?: boolean
     metadata?: boolean
     isActive?: boolean
@@ -31222,6 +31231,7 @@ export namespace Prisma {
     name?: boolean
     slug?: boolean
     logoUrl?: boolean
+    primaryColor?: boolean
     settings?: boolean
     metadata?: boolean
     isActive?: boolean
@@ -31314,6 +31324,7 @@ export namespace Prisma {
       name: string
       slug: string
       logoUrl: string | null
+      primaryColor: string | null
       settings: Prisma.JsonValue
       metadata: Prisma.JsonValue
       isActive: boolean
@@ -31793,6 +31804,7 @@ export namespace Prisma {
     readonly name: FieldRef<"Brand", 'String'>
     readonly slug: FieldRef<"Brand", 'String'>
     readonly logoUrl: FieldRef<"Brand", 'String'>
+    readonly primaryColor: FieldRef<"Brand", 'String'>
     readonly settings: FieldRef<"Brand", 'Json'>
     readonly metadata: FieldRef<"Brand", 'Json'>
     readonly isActive: FieldRef<"Brand", 'Boolean'>
@@ -190866,6 +190878,7 @@ export namespace Prisma {
     name: 'name',
     slug: 'slug',
     logoUrl: 'logoUrl',
+    primaryColor: 'primaryColor',
     settings: 'settings',
     metadata: 'metadata',
     isActive: 'isActive',
@@ -194098,6 +194111,7 @@ export namespace Prisma {
     name: 'name',
     slug: 'slug',
     logoUrl: 'logoUrl',
+    primaryColor: 'primaryColor',
     description: 'description',
     cuisine: 'cuisine',
     primaryLocationId: 'primaryLocationId',
@@ -198104,6 +198118,7 @@ export namespace Prisma {
     name?: StringFilter<"Brand"> | string
     slug?: StringFilter<"Brand"> | string
     logoUrl?: StringNullableFilter<"Brand"> | string | null
+    primaryColor?: StringNullableFilter<"Brand"> | string | null
     settings?: JsonFilter<"Brand">
     metadata?: JsonFilter<"Brand">
     isActive?: BoolFilter<"Brand"> | boolean
@@ -198167,6 +198182,7 @@ export namespace Prisma {
     name?: SortOrder
     slug?: SortOrder
     logoUrl?: SortOrderInput | SortOrder
+    primaryColor?: SortOrderInput | SortOrder
     settings?: SortOrder
     metadata?: SortOrder
     isActive?: SortOrder
@@ -198236,6 +198252,7 @@ export namespace Prisma {
     name?: StringFilter<"Brand"> | string
     slug?: StringFilter<"Brand"> | string
     logoUrl?: StringNullableFilter<"Brand"> | string | null
+    primaryColor?: StringNullableFilter<"Brand"> | string | null
     settings?: JsonFilter<"Brand">
     metadata?: JsonFilter<"Brand">
     isActive?: BoolFilter<"Brand"> | boolean
@@ -198298,6 +198315,7 @@ export namespace Prisma {
     name?: SortOrder
     slug?: SortOrder
     logoUrl?: SortOrderInput | SortOrder
+    primaryColor?: SortOrderInput | SortOrder
     settings?: SortOrder
     metadata?: SortOrder
     isActive?: SortOrder
@@ -198352,6 +198370,7 @@ export namespace Prisma {
     name?: StringWithAggregatesFilter<"Brand"> | string
     slug?: StringWithAggregatesFilter<"Brand"> | string
     logoUrl?: StringNullableWithAggregatesFilter<"Brand"> | string | null
+    primaryColor?: StringNullableWithAggregatesFilter<"Brand"> | string | null
     settings?: JsonWithAggregatesFilter<"Brand">
     metadata?: JsonWithAggregatesFilter<"Brand">
     isActive?: BoolWithAggregatesFilter<"Brand"> | boolean
@@ -215409,6 +215428,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -215471,6 +215491,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -215531,6 +215552,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -215593,6 +215615,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -215654,6 +215677,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -215699,6 +215723,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -215744,6 +215769,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -235375,6 +235401,7 @@ export namespace Prisma {
     name?: SortOrder
     slug?: SortOrder
     logoUrl?: SortOrder
+    primaryColor?: SortOrder
     settings?: SortOrder
     metadata?: SortOrder
     isActive?: SortOrder
@@ -235429,6 +235456,7 @@ export namespace Prisma {
     name?: SortOrder
     slug?: SortOrder
     logoUrl?: SortOrder
+    primaryColor?: SortOrder
     isActive?: SortOrder
     deletedAt?: SortOrder
     description?: SortOrder
@@ -235471,6 +235499,7 @@ export namespace Prisma {
     name?: SortOrder
     slug?: SortOrder
     logoUrl?: SortOrder
+    primaryColor?: SortOrder
     isActive?: SortOrder
     deletedAt?: SortOrder
     description?: SortOrder
@@ -258731,6 +258760,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -258791,6 +258821,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -260049,6 +260080,7 @@ export namespace Prisma {
     name?: StringFilter<"Brand"> | string
     slug?: StringFilter<"Brand"> | string
     logoUrl?: StringNullableFilter<"Brand"> | string | null
+    primaryColor?: StringNullableFilter<"Brand"> | string | null
     settings?: JsonFilter<"Brand">
     metadata?: JsonFilter<"Brand">
     isActive?: BoolFilter<"Brand"> | boolean
@@ -262404,6 +262436,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -262465,6 +262498,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -262605,6 +262639,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -262666,6 +262701,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -266166,6 +266202,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -266227,6 +266264,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -268186,6 +268224,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -268247,6 +268286,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -269648,6 +269688,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -269709,6 +269750,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -269987,6 +270029,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -270048,6 +270091,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -270728,6 +270772,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -270789,6 +270834,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -271055,6 +271101,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -271116,6 +271163,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -271917,6 +271965,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -271978,6 +272027,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -272140,6 +272190,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -272201,6 +272252,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -274534,6 +274586,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -274595,6 +274648,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -274894,6 +274948,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -274955,6 +275010,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -276402,6 +276458,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -276463,6 +276520,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -276538,6 +276596,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -276599,6 +276658,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -276658,6 +276718,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -276719,6 +276780,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -276794,6 +276856,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -276855,6 +276918,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -277850,6 +277914,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -277911,6 +277976,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -278195,6 +278261,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -278256,6 +278323,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -278876,6 +278944,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -278937,6 +279006,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -279123,6 +279193,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -279184,6 +279255,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -279991,6 +280063,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -280052,6 +280125,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -280336,6 +280410,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -280397,6 +280472,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -281234,6 +281310,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -281295,6 +281372,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -282078,6 +282156,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -282139,6 +282218,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -283922,6 +284002,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -283983,6 +284064,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -284267,6 +284349,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -284328,6 +284411,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -290727,6 +290811,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -290788,6 +290873,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -308421,6 +308507,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -308482,6 +308569,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -308581,6 +308669,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -308642,6 +308731,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -308800,6 +308890,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -308861,6 +308952,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -308936,6 +309028,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -308997,6 +309090,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -309236,6 +309330,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -309683,6 +309778,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -309743,6 +309839,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -309803,6 +309900,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -318995,6 +319093,7 @@ export namespace Prisma {
     name: string
     slug: string
     logoUrl?: string | null
+    primaryColor?: string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: boolean
@@ -319187,6 +319286,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -319248,6 +319348,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -319308,6 +319409,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: NullableStringFieldUpdateOperationsInput | string | null
     settings?: JsonNullValueInput | InputJsonValue
     metadata?: JsonNullValueInput | InputJsonValue
     isActive?: BoolFieldUpdateOperationsInput | boolean
