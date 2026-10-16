@@ -202655,7 +202655,6 @@ export namespace Prisma {
 
   export type PromoCodeWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    tenantId_code?: PromoCodeTenantIdCodeCompoundUniqueInput
     AND?: PromoCodeWhereInput | PromoCodeWhereInput[]
     OR?: PromoCodeWhereInput[]
     NOT?: PromoCodeWhereInput | PromoCodeWhereInput[]
@@ -202677,7 +202676,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"PromoCode"> | Date | string
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
     redemptions?: PromoCodeRedemptionListRelationFilter
-  }, "id" | "tenantId_code">
+  }, "id">
 
   export type PromoCodeOrderByWithAggregationInput = {
     id?: SortOrder
@@ -239319,11 +239318,6 @@ export namespace Prisma {
     fields: PromoCodeOrderByRelevanceFieldEnum | PromoCodeOrderByRelevanceFieldEnum[]
     sort: SortOrder
     search: string
-  }
-
-  export type PromoCodeTenantIdCodeCompoundUniqueInput = {
-    tenantId: string
-    code: string
   }
 
   export type PromoCodeCountOrderByAggregateInput = {

@@ -2,13 +2,14 @@ import { PromoCodesService } from "../promo-codes.service";
 
 // Phase AM — PromoCode validate() unit tests.
 //
-// The service is pure-ish — it touches prisma.promoCode.findFirst once per
-// validate. We stub that and exercise each guard branch.
+// The service is pure-ish — it touches prisma.promoCode.findMany once per
+// validate (every code with that text; it picks the one for the shop). We stub
+// that and exercise each guard branch.
 
 function buildService(promo: any) {
   const prisma = {
     promoCode: {
-      findFirst: jest.fn().mockResolvedValue(promo),
+      findMany: jest.fn().mockResolvedValue(promo ? [promo] : []),
     },
   } as any;
   return new PromoCodesService(prisma);

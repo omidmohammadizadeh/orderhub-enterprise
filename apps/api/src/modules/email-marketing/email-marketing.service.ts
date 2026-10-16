@@ -29,6 +29,7 @@ import {
   ORDER_EMAIL_SQL,
 } from "./email-audience";
 import { makeEmailToken, readEmailToken } from "./email-tokens";
+import { pickForLocation } from "../promo-codes/promo-scope";
 
 // Email marketing: restaurants emailing their own customers.
 //
@@ -1234,7 +1235,10 @@ export class EmailMarketingService {
       .filter((b: any) => b?.type === "offer" && String(b.code ?? "").trim())
       .map((b: any) => String(b.code).trim().toUpperCase());
     for (const code of Array.from(new Set<string>(codes))) {
-      const promo = await this.prisma.promoCode.findFirst({ where: { tenantId: c.tenantId, code } });
+      // Each shop may have its own code with this text: check the one that
+      // works where this email's customers order.
+      const same = await this.prisma.promoCode.findMany({ where: { tenantId: c.tenantId, code } });
+      const promo = pickForLocation(same, c.locationId) ?? same[0];
       const where = `The code ${code} in your offer`;
       if (!promo) {
         throw new BadRequestException(`${where} doesn't exist yet. Open the offer section and create it.`);

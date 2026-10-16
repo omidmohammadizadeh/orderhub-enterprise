@@ -5,7 +5,11 @@ import { PromoCodesService } from "../promo-codes.service";
 
 function make(promo: any, usesSoFar = 0) {
   const prisma: any = {
-    promoCode: { findFirst: jest.fn().mockResolvedValue(promo), update: jest.fn().mockResolvedValue({}) },
+    promoCode: {
+      findFirst: jest.fn().mockResolvedValue(promo),
+      findMany: jest.fn().mockResolvedValue(promo ? [promo] : []),
+      update: jest.fn().mockResolvedValue({}),
+    },
     promoCodeRedemption: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
     $queryRawUnsafe: jest.fn().mockResolvedValue([{ n: usesSoFar }]),
   };

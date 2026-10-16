@@ -6,6 +6,7 @@ import {
 } from "@nestjs/common";
 import { boardReference } from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { pickForLocation } from "../promo-codes/promo-scope";
 
 export interface CreateCustomerDto {
   email?: string;
@@ -717,10 +718,12 @@ export class CustomersService {
   // ── Promo Codes ────────────────────────────────────────────────────────────
 
   async validatePromo(tenantId: string, dto: ValidatePromoDto) {
-    const promo = await this.prisma.promoCode.findFirst({
+    // Shops may each have their own code with the same text: the one valid
+    // here, else (only if none is) any, so the reason below can say why.
+    const matches = await this.prisma.promoCode.findMany({
       where: {
         tenantId,
-        code: dto.code.toUpperCase(),
+        code: dto.code.trim().toUpperCase(),
         isActive: true,
         OR: [{ startAt: null }, { startAt: { lte: new Date() } }],
         AND: [
@@ -730,6 +733,7 @@ export class CustomersService {
       },
     });
 
+    const promo = pickForLocation(matches, dto.locationId) ?? matches[0];
     if (!promo) return { valid: false, reason: "Invalid or expired promo code" };
 
     // Location restriction check

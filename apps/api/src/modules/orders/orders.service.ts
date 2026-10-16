@@ -1389,6 +1389,7 @@ export class OrdersService {
           tenantId,
           code: dto.promoCode,
           orderId: order.id,
+          locationId: order.locationId,
           customerAccountId: (dto as any).customerAccountId ?? null,
           customerEmail: dto.customerInfo?.email ?? null,
           customerPhone: dto.customerInfo?.phone ?? null,
