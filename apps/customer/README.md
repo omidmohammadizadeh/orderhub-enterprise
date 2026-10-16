@@ -138,6 +138,9 @@ Notifications** shows a key under `eas credentials -p ios` for the brand.
   Submissions go to the **internal** track as a **draft**.
 * Google requires a new app's **first** AAB to be uploaded by hand in Play Console. Use `eas submit` from the second
   release onwards.
+* Firebase project: **orderhub-customer-apps** (owner omid@orderhubpos.com, org orderhubpos.com,
+  Analytics off). Each brand is one Android app in it; its `google-services.json` lives at
+  `brands/<slug>/google-services.json` and app.config.ts picks it up when present.
 * FCM for Android push: upload the FCM V1 service account key to the brand's EAS project
   (`eas credentials -p android` → Push Notifications) and add `google-services.json` from a Firebase Android app
   with the brand's package name. **Not set up for the example brand yet.** Android tokens won't issue until it is.

@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import type { ExpoConfig } from "expo/config";
 
 // One codebase, one store app per restaurant. BRAND picks brands/<slug>.json;
@@ -46,6 +48,12 @@ const config: ExpoConfig = {
   },
   android: {
     package: brand.android.package,
+    // Firebase (FCM) config for Android push, one per brand, downloaded from
+    // the "OrderHub Customer Apps" Firebase project (omid@orderhubpos.com).
+    // Without it the app still runs, but Android never gets a push token.
+    ...(fs.existsSync(path.join(__dirname, "brands", brand.slug, "google-services.json"))
+      ? { googleServicesFile: `./brands/${brand.slug}/google-services.json` }
+      : {}),
     adaptiveIcon: {
       foregroundImage: brand.adaptiveIcon,
       backgroundColor: brand.backgroundColor,
