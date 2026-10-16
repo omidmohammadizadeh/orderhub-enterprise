@@ -30,6 +30,18 @@ import { EmailService } from "../../infrastructure/email/email.service";
 import { PasswordService } from "../auth/services/password.service";
 import { CustomerSignupDto } from "./dto/signup.dto";
 import { CustomerLoginDto } from "./dto/login.dto";
+import { UpdateCustomerProfileDto } from "./dto/update-profile.dto";
+
+/** Our own sites. Brand custom domains are checked against the database. */
+const OWN_STOREFRONT_ORIGINS = new Set([
+  "https://www.orderhubsolutions.com",
+  "https://orderhubsolutions.com",
+  "https://orderhub-web.onrender.com",
+  "http://localhost:3000",
+]);
+
+const toDateOnly = (d: Date | null | undefined): string | null =>
+  d ? d.toISOString().slice(0, 10) : null;
 
 // Phase AP-5 — fields the customer "My Orders" page needs and nothing
 // else. Includes the location's slug + name + Google review URL so
@@ -187,6 +199,8 @@ export class CustomerAuthService {
       firstName: customer.firstName,
       token,
       storeSlug: dto.storeSlug,
+      origin: dto.origin,
+      brandId: dto.brandId,
     });
 
     this.logger.log(
@@ -447,7 +461,95 @@ export class CustomerAuthService {
       phone: customer.phone,
       avatarUrl: customer.avatarUrl,
       isVerified: customer.isVerified,
+      addressLine1: customer.addressLine1 ?? null,
+      addressLine2: customer.addressLine2 ?? null,
+      addressCity: customer.addressCity ?? null,
+      addressPostcode: customer.addressPostcode ?? null,
+      addressArea: customer.addressArea ?? null,
+      dateOfBirth: toDateOnly(customer.dateOfBirth),
     };
+  }
+
+  /**
+   * The customer's own details — phone, saved address, date of birth.
+   *
+   * Only the fields sent are touched; null clears an optional one. Saved
+   * from "My account" and from the "save my details" box at checkout, so the
+   * next order on ANY of the customer's shops starts filled in.
+   */
+  async updateProfile(id: string, dto: UpdateCustomerProfileDto) {
+    const clean = (v: string | null | undefined) =>
+      v === undefined ? undefined : (v ?? "").trim() || null;
+    const data: Record<string, unknown> = {};
+    if (dto.firstName !== undefined) data.firstName = dto.firstName.trim();
+    if (dto.lastName !== undefined) data.lastName = dto.lastName.trim();
+    for (const key of [
+      "phone",
+      "addressLine1",
+      "addressLine2",
+      "addressCity",
+      "addressArea",
+    ] as const) {
+      const value = clean(dto[key]);
+      if (value !== undefined) data[key] = value;
+    }
+    const postcode = clean(dto.addressPostcode);
+    if (postcode !== undefined) data.addressPostcode = postcode?.toUpperCase() ?? null;
+    if (dto.dateOfBirth !== undefined) {
+      data.dateOfBirth = dto.dateOfBirth ? this.parseDateOfBirth(dto.dateOfBirth) : null;
+    }
+    const updated = await (this.prisma as any).customerAccount.update({
+      where: { id },
+      data,
+    });
+    return this.serialise(updated);
+  }
+
+  /** A real calendar date, not in the future, not before 1900. */
+  private parseDateOfBirth(value: string): Date {
+    const date = new Date(`${value}T00:00:00.000Z`);
+    const valid =
+      !Number.isNaN(date.getTime()) &&
+      // Rejects 2001-02-30, which Date would roll into March.
+      date.toISOString().slice(0, 10) === value &&
+      date.getUTCFullYear() >= 1900 &&
+      date.getTime() <= Date.now();
+    if (!valid) throw new BadRequestException("That date of birth isn't valid.");
+    return date;
+  }
+
+  /**
+   * The origin to send a customer back to after Google sign-in or an email
+   * confirmation — or null when it isn't one we serve.
+   *
+   * A brand's own domain has its own localStorage: sending somebody who
+   * started on thegrillshack.co.uk back to orderhubsolutions.com signs them in
+   * on a site they weren't using and leaves their basket behind on the one
+   * they were. So brand custom domains count, the same ones CORS accepts —
+   * and nothing else, or the redirect is an open redirect.
+   */
+  async trustedStorefrontOrigin(candidate?: string | null): Promise<string | null> {
+    const raw = (candidate ?? "").trim().replace(/\/$/, "");
+    if (!raw) return null;
+    let url: URL;
+    try {
+      url = new URL(raw);
+    } catch {
+      return null;
+    }
+    // A bare origin only — no path, query or credentials riding along.
+    if (url.origin !== raw) return null;
+    if (OWN_STOREFRONT_ORIGINS.has(url.origin)) return url.origin;
+    if (url.protocol !== "https:") return null;
+    const host = url.hostname.toLowerCase().replace(/^www\./, "");
+    const brand = await (this.prisma as any).brand.findFirst({
+      where: {
+        deletedAt: null,
+        customDomain: { in: [host, `www.${host}`], mode: "insensitive" },
+      },
+      select: { id: true },
+    });
+    return brand ? url.origin : null;
   }
 
   private async sendConfirmationEmail(opts: {
@@ -455,15 +557,21 @@ export class CustomerAuthService {
     firstName: string;
     token: string;
     storeSlug?: string;
+    origin?: string;
+    brandId?: string;
   }) {
+    // Back to the site they signed up on, so the confirmation lands where
+    // their basket is (a brand domain's storage is its own).
     const webUrl =
+      (await this.trustedStorefrontOrigin(opts.origin)) ??
       this.config.get<string>("WEB_URL") ??
       "https://www.orderhubsolutions.com";
     // Link lands on the storefront's confirm page so the customer ends
     // up back at the menu they were trying to order from. Without
     // storeSlug, fall back to the marketing homepage.
+    const brandSuffix = opts.brandId ? `&brand=${encodeURIComponent(opts.brandId)}` : "";
     const confirmPath = opts.storeSlug
-      ? `/order/${encodeURIComponent(opts.storeSlug)}/auth/confirm?token=${opts.token}`
+      ? `/order/${encodeURIComponent(opts.storeSlug)}/auth/confirm?token=${opts.token}${brandSuffix}`
       : `/auth/confirm?token=${opts.token}`;
     const url = `${webUrl}${confirmPath}`;
 

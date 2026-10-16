@@ -255,6 +255,16 @@ model CustomerAccount {
   firstName              String
   lastName               String
   phone                  String?
+  /// Saved delivery address, prefilled at checkout on every storefront.
+  /// addressLine2 is the flat / house number; addressArea is the Gulf
+  /// community that prices delivery where there is no postcode.
+  addressLine1           String?
+  addressLine2           String?
+  addressCity            String?
+  addressPostcode        String?
+  addressArea            String?
+  /// Date only — for birthday offers. Asked, never required.
+  dateOfBirth            DateTime? @db.Date
   googleId               String?   @unique
   avatarUrl              String?
   isVerified             Boolean   @default(false)
@@ -367,7 +377,7 @@ model ApiKey {
   @@map("api_keys")
 }
 
-// ── AuditLog ──────────────────────────────────────────────────────────────────
+// ── AuditLog ─────────────────────────────��────────────────────────────────────
 model AuditLog {
   id         String  @id @default(cuid())
   tenantId   String
@@ -3805,7 +3815,7 @@ model NotificationLog {
   @@map("notification_logs")
 }
 
-// ════════════════════════���═════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════════
 // PHASE F — WHITE-LABEL BRANDING
 // ══════════════════════════════════════════════════════════════════════════════
 

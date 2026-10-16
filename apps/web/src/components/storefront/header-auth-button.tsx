@@ -9,13 +9,13 @@
 //      an arrow reads as "go" or "leave", a person reads as "your account".
 //
 //   2. Signed in  → avatar (Google photo or initials). Opens a menu with
-//      My orders, Rewards and Sign out.
+//      My orders, Rewards, My account and Sign out.
 //
 // Both are 44px tall — the header is the one control a thumb reaches for
 // while the page is still loading.
 
 import { useEffect, useId, useRef, useState } from "react";
-import { Heart, LogOut, Receipt, UserRound } from "lucide-react";
+import { Heart, LogOut, Receipt, Settings, UserRound } from "lucide-react";
 import type { Customer } from "../../hooks/use-customer-auth";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +25,8 @@ interface Props {
   onLogout: () => void;
   myOrdersHref?: string;
   rewardsHref?: string;
+  /** Saved phone, address and date of birth. */
+  accountHref?: string;
 }
 
 const RING =
@@ -36,6 +38,7 @@ export function HeaderAuthButton({
   onLogout,
   myOrdersHref,
   rewardsHref,
+  accountHref,
 }: Props) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -154,6 +157,12 @@ export function HeaderAuthButton({
             <a role="menuitem" href={rewardsHref} className={itemClass} onClick={() => setOpen(false)}>
               <Heart className="h-4 w-4 text-sf-muted" aria-hidden />
               Rewards
+            </a>
+          )}
+          {accountHref && (
+            <a role="menuitem" href={accountHref} className={itemClass} onClick={() => setOpen(false)}>
+              <Settings className="h-4 w-4 text-sf-muted" aria-hidden />
+              My account
             </a>
           )}
           <button

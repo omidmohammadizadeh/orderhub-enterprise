@@ -158,6 +158,7 @@ import {
 } from "@orderhub/shared";
 import { displayPrice } from "@/lib/menu/display-price";
 import { cartIsStale, clearCart, loadCart, saveCart } from "@/lib/cart-storage";
+import { forgetCheckout, readCheckout, rememberCheckout } from "@/lib/checkout-resume";
 import type { SelectedModifier, ProductSku } from "@orderhub/shared";
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -1578,8 +1579,15 @@ function OrderPage() {
   // it. Pre-fills cart name + phone with the customer's profile so
   // they don't retype, and auto-fires checkout if they hit "Place
   // order" before signing in.
-  const { customer: authCustomer, token: customerToken, logout: logoutCustomer } =
-    useCustomerAuth();
+  const {
+    customer: authCustomer,
+    token: customerToken,
+    logout: logoutCustomer,
+    updateProfile,
+  } = useCustomerAuth();
+  // "Save my details for next time" at checkout. On by default: the whole
+  // point is not typing the address again.
+  const [saveDetails, setSaveDetails] = useState(true);
 
   // A reward waiting on this customer's card at this shop. Read at checkout
   // rather than carried in the basket, so it reflects what they actually have
@@ -1610,12 +1618,47 @@ function OrderPage() {
     if (!customerPhone && authCustomer.phone) {
       setCustomerPhone(authCustomer.phone);
     }
+    // The saved address, but never over anything already typed.
+    if (!addrLine1 && !addrFlat && !addrPostcode && authCustomer.addressLine1) {
+      setAddrLine1(authCustomer.addressLine1);
+      if (authCustomer.addressLine2) setAddrFlat(authCustomer.addressLine2);
+      if (authCustomer.addressCity) setAddrCity(authCustomer.addressCity);
+      if (authCustomer.addressPostcode) setAddrPostcode(authCustomer.addressPostcode);
+      if (authCustomer.addressArea) setAddrArea(authCustomer.addressArea);
+    }
+    // Signed in from the checkout's own "Place order" (email + password,
+    // same page): carry on to the tip step exactly as if they had been
+    // signed in all along. This used to call checkout.mutate() directly,
+    // which skipped the tip and the undo hold and placed the order the
+    // instant the modal closed.
     if (pendingPlaceOrder) {
       setPendingPlaceOrder(false);
-      checkout.mutate();
+      forgetCheckout();
+      setCartOpen(true);
+      setTipOpen(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authCustomer]);
+
+  // Back from a sign-in that LEFT the page (Google, or the confirmation
+  // email). First make sure we're on the brand they were ordering from — the
+  // basket is saved per brand, so the wrong URL shows an empty one — then,
+  // once signed in with the basket loaded, reopen it where they left off.
+  useEffect(() => {
+    const note = readCheckout(String(slug));
+    if (note?.brandId && !brandId) {
+      router.replace(`/order/${slug}?brand=${encodeURIComponent(note.brandId)}`);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug, brandId]);
+  useEffect(() => {
+    if (!authCustomer || hydratedKey !== cartKey) return;
+    const note = readCheckout(String(slug));
+    if (!note || (note.brandId ?? null) !== brandId) return;
+    forgetCheckout();
+    if (cart.length > 0) setCartOpen(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authCustomer, hydratedKey, cartKey]);
 
   // Wraps the existing checkout.mutate() call so the modal opens when
   // the customer isn't authenticated. The pending flag is consumed
@@ -1627,8 +1670,26 @@ function OrderPage() {
     if (storefront?.closed) return;
     if (!authCustomer) {
       setPendingPlaceOrder(true);
+      rememberCheckout(String(slug), brandId);
       setLoginOpen(true);
       return;
+    }
+    // Next order on any of their shops starts filled in. Fire and forget:
+    // a failed save must never stand between the customer and their food.
+    if (saveDetails) {
+      const delivery = fulfillmentType === "DELIVERY";
+      void updateProfile({
+        phone: customerPhone.trim() || undefined,
+        ...(delivery && addrLine1.trim()
+          ? {
+              addressLine1: addrLine1.trim(),
+              addressLine2: addrFlat.trim() || null,
+              addressCity: addrCity.trim() || null,
+              addressPostcode: addrPostcode.trim() || null,
+              addressArea: addrArea.trim() || null,
+            }
+          : {}),
+      }).catch(() => undefined);
     }
     // Ask about a tip, then hold. The order is deliberately NOT created
     // until the hold expires — see PlacingOrderSheet.
@@ -1876,6 +1937,7 @@ function OrderPage() {
               onLogout={logoutCustomer}
               myOrdersHref={`/order/${slug}/my-orders${brandId ? `?brand=${brandId}` : ""}`}
               rewardsHref={`/order/${slug}/rewards${brandId ? `?brand=${brandId}` : ""}`}
+              accountHref={`/order/${slug}/account${brandId ? `?brand=${brandId}` : ""}`}
             />
           </div>
         </div>
@@ -2624,6 +2686,8 @@ function OrderPage() {
           emailMarketingConsent={emailMarketingConsent}
           setEmailMarketingConsent={setEmailMarketingConsent}
           accountEmail={authCustomer?.email ?? null}
+          saveDetails={saveDetails}
+          setSaveDetails={setSaveDetails}
           loyaltyReward={loyaltyReward}
           useLoyaltyReward={useLoyaltyReward}
           setUseLoyaltyReward={setUseLoyaltyReward}
@@ -3191,6 +3255,9 @@ interface CartPanelProps {
   setEmailMarketingConsent: (v: boolean) => void;
   /** The signed-in account's address — where offers would go. */
   accountEmail: string | null;
+  /** Signed in: remember phone + address on the account at Place order. */
+  saveDetails: boolean;
+  setSaveDetails: (v: boolean) => void;
   loyaltyReward: { id: string; label: string } | null;
   useLoyaltyReward: boolean;
   setUseLoyaltyReward: (v: boolean) => void;
@@ -3331,6 +3398,8 @@ function CartPanel(props: CartPanelProps) {
     emailMarketingConsent,
     setEmailMarketingConsent,
     accountEmail,
+    saveDetails,
+    setSaveDetails,
     loyaltyReward,
     useLoyaltyReward,
     setUseLoyaltyReward,
@@ -3611,6 +3680,22 @@ function CartPanel(props: CartPanelProps) {
                 />
                 <span>
                   Keep me updated with offers &amp; news by email ({accountEmail}). Unsubscribe any time.
+                </span>
+              </label>
+            )}
+            {/* Signed in: offer to remember the phone + delivery address on
+                their account, so the next order anywhere starts filled in. */}
+            {accountEmail && (
+              <label className="mt-1 flex cursor-pointer items-start gap-2 text-xs text-zinc-500">
+                <input
+                  type="checkbox"
+                  checked={saveDetails}
+                  onChange={(e) => setSaveDetails(e.target.checked)}
+                  className="mt-0.5 h-3.5 w-3.5 rounded border-zinc-300"
+                />
+                <span>
+                  Save my phone number{fulfillmentType === "DELIVERY" ? " and address" : ""} for
+                  next time. Change it any time in My account.
                 </span>
               </label>
             )}

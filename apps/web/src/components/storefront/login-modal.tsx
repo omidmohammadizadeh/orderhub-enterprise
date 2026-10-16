@@ -82,6 +82,8 @@ export function LoginModal({ open, storeSlug, brandId, onClose, onAuthenticated 
         phone: phone.trim() || undefined,
         marketingOptIn,
         storeSlug,
+        origin: window.location.origin,
+        brandId: brandId ?? undefined,
       });
       setMode("sent");
     } catch (err: any) {

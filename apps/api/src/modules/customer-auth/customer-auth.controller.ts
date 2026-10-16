@@ -7,6 +7,7 @@ import {
   Body,
   Controller,
   Get,
+  Patch,
   Post,
   Query,
   Req,
@@ -26,6 +27,7 @@ import {
 } from "./customer-auth.service";
 import { CustomerSignupDto } from "./dto/signup.dto";
 import { CustomerLoginDto } from "./dto/login.dto";
+import { UpdateCustomerProfileDto } from "./dto/update-profile.dto";
 import { CustomerJwtGuard, CurrentCustomer } from "./customer.decorator";
 import type { CustomerGoogleProfile } from "./customer-google.strategy";
 
@@ -120,6 +122,17 @@ export class CustomerAuthController {
   }
 
   @Public()
+  @UseGuards(CustomerJwtGuard)
+  @Patch("me")
+  @ApiOperation({ summary: "Update the current customer's phone, saved address and date of birth" })
+  updateMe(
+    @CurrentCustomer() customer: any,
+    @Body() dto: UpdateCustomerProfileDto,
+  ) {
+    return this.customerAuth.updateProfile(customer.id, dto);
+  }
+
+  @Public()
   @Post("logout")
   @ApiOperation({ summary: "Clear the customer session cookie" })
   logout(@Res({ passthrough: true }) res: Response) {
@@ -199,18 +212,14 @@ export class CustomerAuthController {
     const candidateOrigin = decodeURIComponent(rawOrigin).trim();
     const brandId = decodeURIComponent(rawBrand).trim();
 
-    // Tight allow-list — only accept origins we recognise to avoid
-    // turning this into an open redirect.
-    const ALLOWED_ORIGINS = new Set([
-      "https://www.orderhubsolutions.com",
-      "https://orderhubsolutions.com",
-      "https://orderhub-web.onrender.com",
-      "http://localhost:3000",
-    ]);
-    const safeOrigin = ALLOWED_ORIGINS.has(candidateOrigin)
-      ? candidateOrigin
-      : (this.config.get<string>("WEB_URL") ??
-          "https://www.orderhubsolutions.com");
+    // Only origins we serve — ours or a brand's own domain — or this is an
+    // open redirect. A brand domain used to fall through to WEB_URL, which
+    // signed the customer in on orderhubsolutions.com and left their basket
+    // behind on the shop's domain.
+    const safeOrigin =
+      (await this.customerAuth.trustedStorefrontOrigin(candidateOrigin)) ??
+      this.config.get<string>("WEB_URL") ??
+      "https://www.orderhubsolutions.com";
 
     const brandSuffix = brandId
       ? `&brand=${encodeURIComponent(brandId)}`

@@ -10,6 +10,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import axios from "axios";
+import { readCheckout } from "@/lib/checkout-resume";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ?? "https://orderhub-api-0re6.onrender.com";
@@ -30,6 +31,13 @@ function ConfirmInner() {
   const router = useRouter();
   const sp = useSearchParams();
   const token = sp.get("token");
+  // Back to the brand they signed up on — the basket is saved per brand, so
+  // the bare /order/<slug> showed it empty.
+  const brand = sp.get("brand");
+  const menuHref = () => {
+    const b = brand ?? readCheckout(params.slug)?.brandId ?? null;
+    return `/order/${params.slug}${b ? `?brand=${encodeURIComponent(b)}` : ""}`;
+  };
 
   const [state, setState] = useState<"loading" | "ok" | "error">("loading");
   const [errorMessage, setErrorMessage] = useState<string>("");
@@ -52,7 +60,7 @@ function ConfirmInner() {
         setState("ok");
         // Short delay so the "Email confirmed!" tick is visible.
         setTimeout(() => {
-          router.replace(`/order/${params.slug}`);
+          router.replace(menuHref());
         }, 1500);
       })
       .catch((err) => {
@@ -98,7 +106,7 @@ function ConfirmInner() {
             </h1>
             <p className="mt-2 text-sm text-zinc-600">{errorMessage}</p>
             <button
-              onClick={() => router.replace(`/order/${params.slug}`)}
+              onClick={() => router.replace(menuHref())}
               className="mt-5 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white"
             >
               Back to menu
