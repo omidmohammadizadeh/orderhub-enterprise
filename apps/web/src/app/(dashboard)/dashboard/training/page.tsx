@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import { printLinkClick } from "@/lib/print-links";
 import {
   ArrowLeft,
   ArrowRight,
@@ -431,6 +432,7 @@ function MenuPresentations() {
             href={href(p.slug)}
             target="_blank"
             rel="noopener"
+            onClick={(e) => printLinkClick(e, href(p.slug), { kind: "presentation", id: p.menuId })}
             aria-label={`Open the ${p.name} menu presentation`}
             className="block focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-500"
           >
@@ -446,6 +448,7 @@ function MenuPresentations() {
                 href={href(p.slug)}
                 target="_blank"
                 rel="noopener"
+                onClick={(e) => printLinkClick(e, href(p.slug), { kind: "presentation", id: p.menuId })}
                 className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-orange-500 px-3 py-2 text-sm font-semibold text-white hover:bg-orange-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500"
               >
                 <ExternalLink className="h-4 w-4" /> Browse
@@ -454,6 +457,7 @@ function MenuPresentations() {
                 href={href(p.slug, true)}
                 target="_blank"
                 rel="noopener"
+                onClick={(e) => printLinkClick(e, href(p.slug, true), { kind: "presentation", id: p.menuId })}
                 className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500"
               >
                 <Download className="h-4 w-4" /> Download PDF
@@ -521,6 +525,7 @@ function AssemblyBoards({ locationId }: { locationId: string | null | undefined 
                 href={href(b.menuId)}
                 target="_blank"
                 rel="noopener"
+                onClick={(e) => printLinkClick(e, href(b.menuId), { kind: "charts-menu", id: b.menuId })}
                 className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#d81b6a] px-3 py-2 text-sm font-semibold text-white hover:bg-pink-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-600"
               >
                 <ExternalLink className="h-4 w-4" /> Browse
@@ -529,6 +534,7 @@ function AssemblyBoards({ locationId }: { locationId: string | null | undefined 
                 href={href(b.menuId, true)}
                 target="_blank"
                 rel="noopener"
+                onClick={(e) => printLinkClick(e, href(b.menuId, true), { kind: "charts-menu", id: b.menuId })}
                 className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-600"
               >
                 <Download className="h-4 w-4" /> Download PDF
