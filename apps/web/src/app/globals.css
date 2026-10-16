@@ -134,3 +134,99 @@
     animation: none;
   }
 }
+
+/* ── Customer storefront (/order/[slug]) ─────────────────────────────────
+   Surface tokens for the menu page. Light and dark follow the customer's
+   phone, not a toggle: someone ordering in bed at 11pm has already told the
+   OS what they want. The brand accent (--sf-accent / --sf-cta) is set inline
+   per brand by lib/storefront-theme; these fallbacks are only for a page
+   rendered without it. */
+.sf-root {
+  --sf-accent: #f97316;
+  --sf-cta: #c2410c;
+  --sf-bg: #f7f7f8;
+  --sf-surface: #ffffff;
+  --sf-raised: #f1f1f3;
+  --sf-text: #18181b;
+  --sf-muted: #5f5f68;
+  --sf-border: #e6e6e9;
+  --sf-border-strong: #d0d0d6;
+  --sf-skeleton: #ececef;
+  --sf-promo: #dc2626;
+  color-scheme: light;
+  background: var(--sf-bg);
+  color: var(--sf-text);
+}
+@media (prefers-color-scheme: dark) {
+  .sf-root {
+    --sf-bg: #0e0e10;
+    --sf-surface: #18181b;
+    --sf-raised: #232327;
+    --sf-text: #f4f4f5;
+    --sf-muted: #a1a1aa;
+    --sf-border: #2a2a2f;
+    --sf-border-strong: #3a3a41;
+    --sf-skeleton: #232327;
+    --sf-promo: #f87171;
+    color-scheme: dark;
+  }
+}
+
+/* Overlays (basket, item sheet, login, schedule, payment…) are still drawn
+   light. Without this their native inputs inherit the page's dark
+   color-scheme and render as black boxes on a white panel. */
+.sf-root .fixed.inset-0,
+.sf-root [role="dialog"] {
+  color-scheme: light;
+}
+
+@keyframes sf-bump {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.04) translateY(-3px); }
+  65% { transform: scale(0.99); }
+  100% { transform: scale(1); }
+}
+@keyframes sf-sheet-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+@keyframes sf-pop-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes sf-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes sf-shimmer {
+  from { background-position: -200% 0; }
+  to { background-position: 200% 0; }
+}
+.sf-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--sf-skeleton) 0%,
+    var(--sf-raised) 50%,
+    var(--sf-skeleton) 100%
+  );
+  background-size: 200% 100%;
+  animation: sf-shimmer 1.4s ease-in-out infinite;
+}
+.sf-sheet-enter {
+  animation: sf-sheet-up 320ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+.sf-backdrop-enter {
+  animation: sf-fade 200ms ease-out;
+}
+@media (min-width: 640px) {
+  .sf-sheet-enter {
+    animation: sf-pop-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sf-skeleton,
+  .sf-sheet-enter,
+  .sf-backdrop-enter {
+    animation: none;
+  }
+}

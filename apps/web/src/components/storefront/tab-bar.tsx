@@ -54,7 +54,7 @@ export function StorefrontTabBar({ slug, brandId, rewardCount = 0 }: TabBarProps
       />
       <nav
         aria-label="Storefront"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-200 bg-white/95 backdrop-blur md:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-sf-border bg-sf-surface md:hidden"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         {/* No max-width. Constraining it centred the bar and left the outer
@@ -72,7 +72,7 @@ export function StorefrontTabBar({ slug, brandId, rewardCount = 0 }: TabBarProps
                   href={`${href}${q}`}
                   aria-current={active ? "page" : undefined}
                   className={`flex flex-col items-center gap-1 py-2.5 text-[11px] font-semibold transition-colors ${
-                    active ? "text-zinc-900" : "text-zinc-400"
+                    active ? "text-sf-text" : "text-sf-muted"
                   }`}
                 >
                   <span className="relative">

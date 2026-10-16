@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useCurrency } from "@/hooks/use-currency";
 import { X } from "lucide-react";
 import {
@@ -123,6 +123,13 @@ export function ModifierSelectionModal({
   // Sheet only: has the hero scrolled out of the way? Drives the compact
   // header, the way a native app hands the title over as the photo leaves.
   const [scrolledPastHero, setScrolledPastHero] = useState(false);
+  // Escape closes the customer sheet, like any dialog on the web.
+  useEffect(() => {
+    if (!isSheet) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isSheet, onClose]);
   const isMultiSku = !!item.hasMultipleSkus && (item.productSkus?.length ?? 0) > 0;
 
   const [selectedSku, setSelectedSku] = useState<ProductSku | null>(
@@ -345,14 +352,20 @@ export function ModifierSelectionModal({
     <div
       className={
         isSheet
-          ? "fixed inset-0 z-50 flex items-end justify-center bg-black/50 sm:items-center"
+          ? "sf-backdrop-enter fixed inset-0 z-50 flex items-end justify-center bg-black/50 sm:items-center"
           : "fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
       }
+      // Customer sheet: tapping the dimmed menu behind it closes it, as every
+      // phone sheet does. The till keeps its modal-only close.
+      onClick={isSheet ? (e) => e.target === e.currentTarget && onClose() : undefined}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={item.name}
         className={
           isSheet
-            ? "relative flex h-[92vh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:h-auto sm:max-h-[90vh] sm:max-w-lg sm:rounded-2xl"
+            ? "sf-sheet-enter relative flex h-[92vh] [color-scheme:light] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:h-auto sm:max-h-[90vh] sm:max-w-lg sm:rounded-2xl"
             : "flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
         }
       >
