@@ -89,6 +89,8 @@ export interface UseCustomerAuthReturn {
   logout: () => void;
   refresh: () => Promise<void>;
   updateProfile: (patch: CustomerProfilePatch) => Promise<Customer>;
+  /** Permanently deletes the account, then signs out. `confirm` must be "DELETE". */
+  deleteAccount: (confirm: string) => Promise<void>;
 }
 
 export interface SignupInput {
@@ -293,7 +295,19 @@ export function useCustomerAuth(): UseCustomerAuthReturn {
     [token],
   );
 
-  return { customer, isLoading, token, login, signup, logout, refresh, updateProfile };
+  const deleteAccount = useCallback(
+    async (confirm: string) => {
+      await axios.delete(`${API_BASE}/v1/customer-auth/me`, {
+        data: { confirm },
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        withCredentials: true,
+      });
+      logout();
+    },
+    [token, logout],
+  );
+
+  return { customer, isLoading, token, login, signup, logout, refresh, updateProfile, deleteAccount };
 }
 
 /**

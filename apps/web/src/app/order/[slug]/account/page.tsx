@@ -10,7 +10,7 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
-import { ArrowLeft, Check, Loader2, UserRound } from "lucide-react";
+import { ArrowLeft, Check, Loader2, Trash2, UserRound } from "lucide-react";
 import { useCustomerAuth, type CustomerProfilePatch } from "@/hooks/use-customer-auth";
 import { LoginModal } from "@/components/storefront/login-modal";
 import { StorefrontTabBar } from "@/components/storefront/tab-bar";
@@ -54,16 +54,19 @@ function AccountInner() {
   const { slug } = useParams<{ slug: string }>();
   const brandId = useSearchParams()?.get("brand") ?? null;
   const brandSuffix = brandId ? `?brand=${encodeURIComponent(brandId)}` : "";
-  const { customer, isLoading, updateProfile } = useCustomerAuth();
+  const { customer, isLoading, updateProfile, deleteAccount } = useCustomerAuth();
   const [form, setForm] = useState<Form>(EMPTY);
   const [loginOpen, setLoginOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Deleting signs the customer out; without this the page would greet them
+  // with a sign-in box a moment after they asked to leave.
+  const [deleted, setDeleted] = useState(false);
 
   useEffect(() => {
-    if (!isLoading && !customer) setLoginOpen(true);
-  }, [isLoading, customer]);
+    if (!isLoading && !customer && !deleted) setLoginOpen(true);
+  }, [isLoading, customer, deleted]);
 
   // Load the account into the form once, when it arrives.
   const customerId = customer?.id;
@@ -135,7 +138,11 @@ function AccountInner() {
       </header>
 
       <main className="mx-auto max-w-2xl px-4 py-6">
-        {isLoading ? (
+        {deleted ? (
+          <p role="status" className="rounded-2xl border border-sf-border bg-sf-surface p-4 text-sm text-sf-text">
+            Your account has been deleted. Thanks for ordering with us.
+          </p>
+        ) : isLoading ? (
           <div className="grid place-items-center py-24" role="status">
             <Loader2 className="h-6 w-6 animate-spin text-sf-muted" aria-hidden />
             <span className="sr-only">Loading your account…</span>
@@ -217,6 +224,13 @@ function AccountInner() {
                 )}
               </p>
             </div>
+
+            <DeleteAccount
+              onDelete={async (confirm) => {
+                await deleteAccount(confirm);
+                setDeleted(true);
+              }}
+            />
           </form>
         )}
       </main>
@@ -233,6 +247,93 @@ function AccountInner() {
     </div>
   );
 }
+
+/**
+ * App Store guideline 5.1.1(v): customers who can create an account in the
+ * app must be able to delete it there too. Two steps and a typed word, so a
+ * mis-tap can't cost someone their loyalty stamps.
+ */
+const DeleteAccount = ({ onDelete }: { onDelete: (confirm: string) => Promise<void> }) => {
+  const [open, setOpen] = useState(false);
+  const [typed, setTyped] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const confirm = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      await onDelete(typed);
+    } catch (err: any) {
+      const msg = err?.response?.data?.message;
+      setError(Array.isArray(msg) ? msg.join(" ") : (msg ?? "Couldn't delete your account. Please try again."));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="rounded-2xl border border-sf-border bg-sf-surface p-4 sm:p-5">
+      <h2 className="text-base font-semibold text-sf-text">Delete my account</h2>
+      {!open ? (
+        <>
+          <p className="mt-1 text-sm text-sf-muted">
+            Removes your login, saved details, address and loyalty stamps. This can&rsquo;t be undone.
+          </p>
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="mt-3 inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-red-300 px-4 text-sm font-semibold text-red-700 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+          >
+            <Trash2 className="h-4 w-4" aria-hidden /> Delete my account
+          </button>
+        </>
+      ) : (
+        <div className="mt-2 space-y-3">
+          <p className="text-sm text-sf-text">
+            Your past orders stay with the restaurant for their records, but they won&rsquo;t be linked to you any more.
+            Type <strong>DELETE</strong> to confirm.
+          </p>
+          <input
+            value={typed}
+            onChange={(e) => setTyped(e.target.value)}
+            aria-label="Type DELETE to confirm"
+            autoCapitalize="characters"
+            autoComplete="off"
+            className="h-12 w-full rounded-xl border border-sf-border bg-sf-bg px-3.5 text-[16px] text-sf-text focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+          />
+          {error && (
+            <p role="alert" className="text-sm text-red-700">
+              {error}
+            </p>
+          )}
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              disabled={busy || typed.trim().toUpperCase() !== "DELETE"}
+              onClick={confirm}
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-red-600 px-4 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2"
+            >
+              {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
+              Delete permanently
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                setTyped("");
+                setError(null);
+              }}
+              className="inline-flex min-h-[44px] items-center rounded-xl border border-sf-border px-4 text-sm font-medium text-sf-text hover:bg-sf-raised"
+            >
+              Keep my account
+            </button>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+};
 
 const Card = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <section className="space-y-3 rounded-2xl border border-sf-border bg-sf-surface p-4 sm:p-5">

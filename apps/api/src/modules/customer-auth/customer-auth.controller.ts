@@ -4,6 +4,7 @@
 // endpoint uses CustomerJwtGuard to identify the caller.
 
 import {
+  Delete,
   Body,
   Controller,
   Get,
@@ -139,6 +140,23 @@ export class CustomerAuthController {
     // Deliberately public and unauthenticated: signing out must work even
     // when the token is already expired or malformed, which is exactly when
     // someone is most likely to be trying.
+    this.clearSessionCookie(res);
+    return { ok: true };
+  }
+
+  // App Store guideline 5.1.1(v): an app that lets people create an account
+  // must let them delete it from inside the app. The storefront is what the
+  // restaurant apps show, so this is that button's endpoint.
+  @Public()
+  @UseGuards(CustomerJwtGuard)
+  @Delete("me")
+  @ApiOperation({ summary: "Permanently delete the signed-in customer's account" })
+  async deleteMe(
+    @CurrentCustomer() customer: any,
+    @Body() body: { confirm?: string },
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    await this.customerAuth.deleteAccount(customer.id, body?.confirm);
     this.clearSessionCookie(res);
     return { ok: true };
   }

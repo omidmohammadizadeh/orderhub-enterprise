@@ -505,6 +505,26 @@ export class CustomerAuthService {
     return this.serialise(updated);
   }
 
+  /**
+   * Delete a customer's account for good.
+   *
+   * What goes: the login, saved details and address, loyalty stamps and
+   * rewards, referral codes (all cascade off CustomerAccount). What stays:
+   * the orders themselves, unlinked (Order.customerAccountId is SetNull) —
+   * they are the restaurant's sales records, not the customer's account, and
+   * a shop must still be able to refund or account for last week's order.
+   *
+   * The typed confirmation is checked here as well as in the UI so a stray
+   * DELETE from a script can't take an account with it.
+   */
+  async deleteAccount(id: string, confirm?: string): Promise<void> {
+    if ((confirm ?? "").trim().toUpperCase() !== "DELETE") {
+      throw new BadRequestException('Type DELETE to confirm.');
+    }
+    await (this.prisma as any).customerAccount.delete({ where: { id } });
+    this.logger.log(`customer account ${id} deleted at the customer's request`);
+  }
+
   /** A real calendar date, not in the future, not before 1900. */
   private parseDateOfBirth(value: string): Date {
     const date = new Date(`${value}T00:00:00.000Z`);

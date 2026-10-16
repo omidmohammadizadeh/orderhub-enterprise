@@ -128,8 +128,17 @@ export function LoginModal({ open, storeSlug, brandId, onClose, onAuthenticated 
             <SentState email={email} onBack={() => setMode("signin")} />
           ) : (
             <>
-              <GoogleButton storeSlug={storeSlug} brandId={brandId} />
-              <Divider />
+              {/* Inside a restaurant's own app the storefront runs in a
+                  WebView, where Google refuses OAuth outright
+                  ("disallowed_useragent") — and offering Google without
+                  Sign in with Apple beside it breaks App Store guideline
+                  4.8. Email sign-in covers both, so the app gets that alone. */}
+              {!inRestaurantApp() && (
+                <>
+                  <GoogleButton storeSlug={storeSlug} brandId={brandId} />
+                  <Divider />
+                </>
+              )}
               {mode === "signin" ? (
                 <form onSubmit={handleSignin} className="space-y-3">
                   <Field label="Email" required>
@@ -271,6 +280,12 @@ function SentState({ email, onBack }: { email: string; onBack: () => void }) {
       </button>
     </div>
   );
+}
+
+/** The white-label customer app marks its WebView's user agent with
+ *  "OrderHubApp/<brand>" (apps/customer OrderScreen). */
+function inRestaurantApp(): boolean {
+  return typeof navigator !== "undefined" && navigator.userAgent.includes("OrderHubApp/");
 }
 
 function GoogleButton({
