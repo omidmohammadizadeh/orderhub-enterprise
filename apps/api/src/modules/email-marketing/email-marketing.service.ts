@@ -1174,6 +1174,7 @@ export class EmailMarketingService {
     c: {
       tenantId: string; subject: string; preheader?: string | null; replyTo?: string | null;
       fromName?: string | null; brandId?: string | null; locationId?: string | null; design: unknown;
+      offerExpires?: string | null;
     },
     to: string[],
   ) {
@@ -1187,6 +1188,7 @@ export class EmailMarketingService {
     const rendered = renderEmail(design, {
       ...ctx,
       firstName: null,
+      offerExpires: c.offerExpires ?? null,
       preheader: c.preheader,
       // A test has no recipient row, so it carries a link to the page in
       // preview mode rather than one that could unsubscribe anybody.

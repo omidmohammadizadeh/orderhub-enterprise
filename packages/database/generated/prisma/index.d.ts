@@ -786,6 +786,11 @@ export type EmailCampaign = $Result.DefaultSelection<Prisma.$EmailCampaignPayloa
  */
 export type EmailAutomation = $Result.DefaultSelection<Prisma.$EmailAutomationPayload>
 /**
+ * Model EmailBirthdaySend
+ * 
+ */
+export type EmailBirthdaySend = $Result.DefaultSelection<Prisma.$EmailBirthdaySendPayload>
+/**
  * Model EmailCampaignRecipient
  * 
  */
@@ -3310,6 +3315,16 @@ export class PrismaClient<
   get emailAutomation(): Prisma.EmailAutomationDelegate<ExtArgs>;
 
   /**
+   * `prisma.emailBirthdaySend`: Exposes CRUD operations for the **EmailBirthdaySend** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more EmailBirthdaySends
+    * const emailBirthdaySends = await prisma.emailBirthdaySend.findMany()
+    * ```
+    */
+  get emailBirthdaySend(): Prisma.EmailBirthdaySendDelegate<ExtArgs>;
+
+  /**
    * `prisma.emailCampaignRecipient`: Exposes CRUD operations for the **EmailCampaignRecipient** model.
     * Example usage:
     * ```ts
@@ -3980,6 +3995,7 @@ export namespace Prisma {
     EmailContact: 'EmailContact',
     EmailCampaign: 'EmailCampaign',
     EmailAutomation: 'EmailAutomation',
+    EmailBirthdaySend: 'EmailBirthdaySend',
     EmailCampaignRecipient: 'EmailCampaignRecipient',
     BuildGuide: 'BuildGuide',
     BuildStepTemplate: 'BuildStepTemplate',
@@ -4003,7 +4019,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "promoCodeRedemption" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "salonService" | "salonStaff" | "salonTimeOff" | "salonAppointment" | "salonQueueEntry" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "productVariant" | "productStockLevel" | "productStockMovement" | "refundLine" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "yangoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "loyaltyMember" | "loyaltyPassDevice" | "referralProgram" | "referralCode" | "referral" | "keetaAuthorization" | "emailContact" | "emailCampaign" | "emailAutomation" | "emailCampaignRecipient" | "buildGuide" | "buildStepTemplate" | "buildGuideTraining" | "assemblyChart" | "menuAutoPublish" | "autoDispatchRule" | "autoDispatchRun"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "promoCodeRedemption" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "salonService" | "salonStaff" | "salonTimeOff" | "salonAppointment" | "salonQueueEntry" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "productVariant" | "productStockLevel" | "productStockMovement" | "refundLine" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "yangoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "loyaltyMember" | "loyaltyPassDevice" | "referralProgram" | "referralCode" | "referral" | "keetaAuthorization" | "emailContact" | "emailCampaign" | "emailAutomation" | "emailBirthdaySend" | "emailCampaignRecipient" | "buildGuide" | "buildStepTemplate" | "buildGuideTraining" | "assemblyChart" | "menuAutoPublish" | "autoDispatchRule" | "autoDispatchRun"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -14574,6 +14590,76 @@ export namespace Prisma {
           count: {
             args: Prisma.EmailAutomationCountArgs<ExtArgs>
             result: $Utils.Optional<EmailAutomationCountAggregateOutputType> | number
+          }
+        }
+      }
+      EmailBirthdaySend: {
+        payload: Prisma.$EmailBirthdaySendPayload<ExtArgs>
+        fields: Prisma.EmailBirthdaySendFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.EmailBirthdaySendFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailBirthdaySendPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.EmailBirthdaySendFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailBirthdaySendPayload>
+          }
+          findFirst: {
+            args: Prisma.EmailBirthdaySendFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailBirthdaySendPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.EmailBirthdaySendFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailBirthdaySendPayload>
+          }
+          findMany: {
+            args: Prisma.EmailBirthdaySendFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailBirthdaySendPayload>[]
+          }
+          create: {
+            args: Prisma.EmailBirthdaySendCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailBirthdaySendPayload>
+          }
+          createMany: {
+            args: Prisma.EmailBirthdaySendCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.EmailBirthdaySendCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailBirthdaySendPayload>[]
+          }
+          delete: {
+            args: Prisma.EmailBirthdaySendDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailBirthdaySendPayload>
+          }
+          update: {
+            args: Prisma.EmailBirthdaySendUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailBirthdaySendPayload>
+          }
+          deleteMany: {
+            args: Prisma.EmailBirthdaySendDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.EmailBirthdaySendUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.EmailBirthdaySendUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailBirthdaySendPayload>
+          }
+          aggregate: {
+            args: Prisma.EmailBirthdaySendAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateEmailBirthdaySend>
+          }
+          groupBy: {
+            args: Prisma.EmailBirthdaySendGroupByArgs<ExtArgs>
+            result: $Utils.Optional<EmailBirthdaySendGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.EmailBirthdaySendCountArgs<ExtArgs>
+            result: $Utils.Optional<EmailBirthdaySendCountAggregateOutputType> | number
           }
         }
       }
@@ -182517,6 +182603,954 @@ export namespace Prisma {
 
 
   /**
+   * Model EmailBirthdaySend
+   */
+
+  export type AggregateEmailBirthdaySend = {
+    _count: EmailBirthdaySendCountAggregateOutputType | null
+    _avg: EmailBirthdaySendAvgAggregateOutputType | null
+    _sum: EmailBirthdaySendSumAggregateOutputType | null
+    _min: EmailBirthdaySendMinAggregateOutputType | null
+    _max: EmailBirthdaySendMaxAggregateOutputType | null
+  }
+
+  export type EmailBirthdaySendAvgAggregateOutputType = {
+    year: number | null
+  }
+
+  export type EmailBirthdaySendSumAggregateOutputType = {
+    year: number | null
+  }
+
+  export type EmailBirthdaySendMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    automationId: string | null
+    locationId: string | null
+    contactId: string | null
+    email: string | null
+    year: number | null
+    createdAt: Date | null
+  }
+
+  export type EmailBirthdaySendMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    automationId: string | null
+    locationId: string | null
+    contactId: string | null
+    email: string | null
+    year: number | null
+    createdAt: Date | null
+  }
+
+  export type EmailBirthdaySendCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    automationId: number
+    locationId: number
+    contactId: number
+    email: number
+    year: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type EmailBirthdaySendAvgAggregateInputType = {
+    year?: true
+  }
+
+  export type EmailBirthdaySendSumAggregateInputType = {
+    year?: true
+  }
+
+  export type EmailBirthdaySendMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    automationId?: true
+    locationId?: true
+    contactId?: true
+    email?: true
+    year?: true
+    createdAt?: true
+  }
+
+  export type EmailBirthdaySendMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    automationId?: true
+    locationId?: true
+    contactId?: true
+    email?: true
+    year?: true
+    createdAt?: true
+  }
+
+  export type EmailBirthdaySendCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    automationId?: true
+    locationId?: true
+    contactId?: true
+    email?: true
+    year?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type EmailBirthdaySendAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EmailBirthdaySend to aggregate.
+     */
+    where?: EmailBirthdaySendWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EmailBirthdaySends to fetch.
+     */
+    orderBy?: EmailBirthdaySendOrderByWithRelationInput | EmailBirthdaySendOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: EmailBirthdaySendWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EmailBirthdaySends from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EmailBirthdaySends.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned EmailBirthdaySends
+    **/
+    _count?: true | EmailBirthdaySendCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: EmailBirthdaySendAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: EmailBirthdaySendSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: EmailBirthdaySendMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: EmailBirthdaySendMaxAggregateInputType
+  }
+
+  export type GetEmailBirthdaySendAggregateType<T extends EmailBirthdaySendAggregateArgs> = {
+        [P in keyof T & keyof AggregateEmailBirthdaySend]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateEmailBirthdaySend[P]>
+      : GetScalarType<T[P], AggregateEmailBirthdaySend[P]>
+  }
+
+
+
+
+  export type EmailBirthdaySendGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EmailBirthdaySendWhereInput
+    orderBy?: EmailBirthdaySendOrderByWithAggregationInput | EmailBirthdaySendOrderByWithAggregationInput[]
+    by: EmailBirthdaySendScalarFieldEnum[] | EmailBirthdaySendScalarFieldEnum
+    having?: EmailBirthdaySendScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: EmailBirthdaySendCountAggregateInputType | true
+    _avg?: EmailBirthdaySendAvgAggregateInputType
+    _sum?: EmailBirthdaySendSumAggregateInputType
+    _min?: EmailBirthdaySendMinAggregateInputType
+    _max?: EmailBirthdaySendMaxAggregateInputType
+  }
+
+  export type EmailBirthdaySendGroupByOutputType = {
+    id: string
+    tenantId: string
+    automationId: string
+    locationId: string
+    contactId: string
+    email: string
+    year: number
+    createdAt: Date
+    _count: EmailBirthdaySendCountAggregateOutputType | null
+    _avg: EmailBirthdaySendAvgAggregateOutputType | null
+    _sum: EmailBirthdaySendSumAggregateOutputType | null
+    _min: EmailBirthdaySendMinAggregateOutputType | null
+    _max: EmailBirthdaySendMaxAggregateOutputType | null
+  }
+
+  type GetEmailBirthdaySendGroupByPayload<T extends EmailBirthdaySendGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<EmailBirthdaySendGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof EmailBirthdaySendGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], EmailBirthdaySendGroupByOutputType[P]>
+            : GetScalarType<T[P], EmailBirthdaySendGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type EmailBirthdaySendSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    automationId?: boolean
+    locationId?: boolean
+    contactId?: boolean
+    email?: boolean
+    year?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["emailBirthdaySend"]>
+
+  export type EmailBirthdaySendSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    automationId?: boolean
+    locationId?: boolean
+    contactId?: boolean
+    email?: boolean
+    year?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["emailBirthdaySend"]>
+
+  export type EmailBirthdaySendSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    automationId?: boolean
+    locationId?: boolean
+    contactId?: boolean
+    email?: boolean
+    year?: boolean
+    createdAt?: boolean
+  }
+
+
+  export type $EmailBirthdaySendPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "EmailBirthdaySend"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      automationId: string
+      locationId: string
+      contactId: string
+      email: string
+      year: number
+      createdAt: Date
+    }, ExtArgs["result"]["emailBirthdaySend"]>
+    composites: {}
+  }
+
+  type EmailBirthdaySendGetPayload<S extends boolean | null | undefined | EmailBirthdaySendDefaultArgs> = $Result.GetResult<Prisma.$EmailBirthdaySendPayload, S>
+
+  type EmailBirthdaySendCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<EmailBirthdaySendFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: EmailBirthdaySendCountAggregateInputType | true
+    }
+
+  export interface EmailBirthdaySendDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['EmailBirthdaySend'], meta: { name: 'EmailBirthdaySend' } }
+    /**
+     * Find zero or one EmailBirthdaySend that matches the filter.
+     * @param {EmailBirthdaySendFindUniqueArgs} args - Arguments to find a EmailBirthdaySend
+     * @example
+     * // Get one EmailBirthdaySend
+     * const emailBirthdaySend = await prisma.emailBirthdaySend.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends EmailBirthdaySendFindUniqueArgs>(args: SelectSubset<T, EmailBirthdaySendFindUniqueArgs<ExtArgs>>): Prisma__EmailBirthdaySendClient<$Result.GetResult<Prisma.$EmailBirthdaySendPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one EmailBirthdaySend that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {EmailBirthdaySendFindUniqueOrThrowArgs} args - Arguments to find a EmailBirthdaySend
+     * @example
+     * // Get one EmailBirthdaySend
+     * const emailBirthdaySend = await prisma.emailBirthdaySend.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends EmailBirthdaySendFindUniqueOrThrowArgs>(args: SelectSubset<T, EmailBirthdaySendFindUniqueOrThrowArgs<ExtArgs>>): Prisma__EmailBirthdaySendClient<$Result.GetResult<Prisma.$EmailBirthdaySendPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first EmailBirthdaySend that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailBirthdaySendFindFirstArgs} args - Arguments to find a EmailBirthdaySend
+     * @example
+     * // Get one EmailBirthdaySend
+     * const emailBirthdaySend = await prisma.emailBirthdaySend.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends EmailBirthdaySendFindFirstArgs>(args?: SelectSubset<T, EmailBirthdaySendFindFirstArgs<ExtArgs>>): Prisma__EmailBirthdaySendClient<$Result.GetResult<Prisma.$EmailBirthdaySendPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first EmailBirthdaySend that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailBirthdaySendFindFirstOrThrowArgs} args - Arguments to find a EmailBirthdaySend
+     * @example
+     * // Get one EmailBirthdaySend
+     * const emailBirthdaySend = await prisma.emailBirthdaySend.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends EmailBirthdaySendFindFirstOrThrowArgs>(args?: SelectSubset<T, EmailBirthdaySendFindFirstOrThrowArgs<ExtArgs>>): Prisma__EmailBirthdaySendClient<$Result.GetResult<Prisma.$EmailBirthdaySendPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more EmailBirthdaySends that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailBirthdaySendFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all EmailBirthdaySends
+     * const emailBirthdaySends = await prisma.emailBirthdaySend.findMany()
+     * 
+     * // Get first 10 EmailBirthdaySends
+     * const emailBirthdaySends = await prisma.emailBirthdaySend.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const emailBirthdaySendWithIdOnly = await prisma.emailBirthdaySend.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends EmailBirthdaySendFindManyArgs>(args?: SelectSubset<T, EmailBirthdaySendFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EmailBirthdaySendPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a EmailBirthdaySend.
+     * @param {EmailBirthdaySendCreateArgs} args - Arguments to create a EmailBirthdaySend.
+     * @example
+     * // Create one EmailBirthdaySend
+     * const EmailBirthdaySend = await prisma.emailBirthdaySend.create({
+     *   data: {
+     *     // ... data to create a EmailBirthdaySend
+     *   }
+     * })
+     * 
+     */
+    create<T extends EmailBirthdaySendCreateArgs>(args: SelectSubset<T, EmailBirthdaySendCreateArgs<ExtArgs>>): Prisma__EmailBirthdaySendClient<$Result.GetResult<Prisma.$EmailBirthdaySendPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many EmailBirthdaySends.
+     * @param {EmailBirthdaySendCreateManyArgs} args - Arguments to create many EmailBirthdaySends.
+     * @example
+     * // Create many EmailBirthdaySends
+     * const emailBirthdaySend = await prisma.emailBirthdaySend.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends EmailBirthdaySendCreateManyArgs>(args?: SelectSubset<T, EmailBirthdaySendCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many EmailBirthdaySends and returns the data saved in the database.
+     * @param {EmailBirthdaySendCreateManyAndReturnArgs} args - Arguments to create many EmailBirthdaySends.
+     * @example
+     * // Create many EmailBirthdaySends
+     * const emailBirthdaySend = await prisma.emailBirthdaySend.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many EmailBirthdaySends and only return the `id`
+     * const emailBirthdaySendWithIdOnly = await prisma.emailBirthdaySend.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends EmailBirthdaySendCreateManyAndReturnArgs>(args?: SelectSubset<T, EmailBirthdaySendCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EmailBirthdaySendPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a EmailBirthdaySend.
+     * @param {EmailBirthdaySendDeleteArgs} args - Arguments to delete one EmailBirthdaySend.
+     * @example
+     * // Delete one EmailBirthdaySend
+     * const EmailBirthdaySend = await prisma.emailBirthdaySend.delete({
+     *   where: {
+     *     // ... filter to delete one EmailBirthdaySend
+     *   }
+     * })
+     * 
+     */
+    delete<T extends EmailBirthdaySendDeleteArgs>(args: SelectSubset<T, EmailBirthdaySendDeleteArgs<ExtArgs>>): Prisma__EmailBirthdaySendClient<$Result.GetResult<Prisma.$EmailBirthdaySendPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one EmailBirthdaySend.
+     * @param {EmailBirthdaySendUpdateArgs} args - Arguments to update one EmailBirthdaySend.
+     * @example
+     * // Update one EmailBirthdaySend
+     * const emailBirthdaySend = await prisma.emailBirthdaySend.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends EmailBirthdaySendUpdateArgs>(args: SelectSubset<T, EmailBirthdaySendUpdateArgs<ExtArgs>>): Prisma__EmailBirthdaySendClient<$Result.GetResult<Prisma.$EmailBirthdaySendPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more EmailBirthdaySends.
+     * @param {EmailBirthdaySendDeleteManyArgs} args - Arguments to filter EmailBirthdaySends to delete.
+     * @example
+     * // Delete a few EmailBirthdaySends
+     * const { count } = await prisma.emailBirthdaySend.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends EmailBirthdaySendDeleteManyArgs>(args?: SelectSubset<T, EmailBirthdaySendDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EmailBirthdaySends.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailBirthdaySendUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many EmailBirthdaySends
+     * const emailBirthdaySend = await prisma.emailBirthdaySend.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends EmailBirthdaySendUpdateManyArgs>(args: SelectSubset<T, EmailBirthdaySendUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one EmailBirthdaySend.
+     * @param {EmailBirthdaySendUpsertArgs} args - Arguments to update or create a EmailBirthdaySend.
+     * @example
+     * // Update or create a EmailBirthdaySend
+     * const emailBirthdaySend = await prisma.emailBirthdaySend.upsert({
+     *   create: {
+     *     // ... data to create a EmailBirthdaySend
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the EmailBirthdaySend we want to update
+     *   }
+     * })
+     */
+    upsert<T extends EmailBirthdaySendUpsertArgs>(args: SelectSubset<T, EmailBirthdaySendUpsertArgs<ExtArgs>>): Prisma__EmailBirthdaySendClient<$Result.GetResult<Prisma.$EmailBirthdaySendPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of EmailBirthdaySends.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailBirthdaySendCountArgs} args - Arguments to filter EmailBirthdaySends to count.
+     * @example
+     * // Count the number of EmailBirthdaySends
+     * const count = await prisma.emailBirthdaySend.count({
+     *   where: {
+     *     // ... the filter for the EmailBirthdaySends we want to count
+     *   }
+     * })
+    **/
+    count<T extends EmailBirthdaySendCountArgs>(
+      args?: Subset<T, EmailBirthdaySendCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], EmailBirthdaySendCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a EmailBirthdaySend.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailBirthdaySendAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends EmailBirthdaySendAggregateArgs>(args: Subset<T, EmailBirthdaySendAggregateArgs>): Prisma.PrismaPromise<GetEmailBirthdaySendAggregateType<T>>
+
+    /**
+     * Group by EmailBirthdaySend.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailBirthdaySendGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends EmailBirthdaySendGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: EmailBirthdaySendGroupByArgs['orderBy'] }
+        : { orderBy?: EmailBirthdaySendGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, EmailBirthdaySendGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEmailBirthdaySendGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the EmailBirthdaySend model
+   */
+  readonly fields: EmailBirthdaySendFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for EmailBirthdaySend.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__EmailBirthdaySendClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the EmailBirthdaySend model
+   */ 
+  interface EmailBirthdaySendFieldRefs {
+    readonly id: FieldRef<"EmailBirthdaySend", 'String'>
+    readonly tenantId: FieldRef<"EmailBirthdaySend", 'String'>
+    readonly automationId: FieldRef<"EmailBirthdaySend", 'String'>
+    readonly locationId: FieldRef<"EmailBirthdaySend", 'String'>
+    readonly contactId: FieldRef<"EmailBirthdaySend", 'String'>
+    readonly email: FieldRef<"EmailBirthdaySend", 'String'>
+    readonly year: FieldRef<"EmailBirthdaySend", 'Int'>
+    readonly createdAt: FieldRef<"EmailBirthdaySend", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * EmailBirthdaySend findUnique
+   */
+  export type EmailBirthdaySendFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailBirthdaySend
+     */
+    select?: EmailBirthdaySendSelect<ExtArgs> | null
+    /**
+     * Filter, which EmailBirthdaySend to fetch.
+     */
+    where: EmailBirthdaySendWhereUniqueInput
+  }
+
+  /**
+   * EmailBirthdaySend findUniqueOrThrow
+   */
+  export type EmailBirthdaySendFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailBirthdaySend
+     */
+    select?: EmailBirthdaySendSelect<ExtArgs> | null
+    /**
+     * Filter, which EmailBirthdaySend to fetch.
+     */
+    where: EmailBirthdaySendWhereUniqueInput
+  }
+
+  /**
+   * EmailBirthdaySend findFirst
+   */
+  export type EmailBirthdaySendFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailBirthdaySend
+     */
+    select?: EmailBirthdaySendSelect<ExtArgs> | null
+    /**
+     * Filter, which EmailBirthdaySend to fetch.
+     */
+    where?: EmailBirthdaySendWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EmailBirthdaySends to fetch.
+     */
+    orderBy?: EmailBirthdaySendOrderByWithRelationInput | EmailBirthdaySendOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EmailBirthdaySends.
+     */
+    cursor?: EmailBirthdaySendWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EmailBirthdaySends from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EmailBirthdaySends.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EmailBirthdaySends.
+     */
+    distinct?: EmailBirthdaySendScalarFieldEnum | EmailBirthdaySendScalarFieldEnum[]
+  }
+
+  /**
+   * EmailBirthdaySend findFirstOrThrow
+   */
+  export type EmailBirthdaySendFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailBirthdaySend
+     */
+    select?: EmailBirthdaySendSelect<ExtArgs> | null
+    /**
+     * Filter, which EmailBirthdaySend to fetch.
+     */
+    where?: EmailBirthdaySendWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EmailBirthdaySends to fetch.
+     */
+    orderBy?: EmailBirthdaySendOrderByWithRelationInput | EmailBirthdaySendOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EmailBirthdaySends.
+     */
+    cursor?: EmailBirthdaySendWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EmailBirthdaySends from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EmailBirthdaySends.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EmailBirthdaySends.
+     */
+    distinct?: EmailBirthdaySendScalarFieldEnum | EmailBirthdaySendScalarFieldEnum[]
+  }
+
+  /**
+   * EmailBirthdaySend findMany
+   */
+  export type EmailBirthdaySendFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailBirthdaySend
+     */
+    select?: EmailBirthdaySendSelect<ExtArgs> | null
+    /**
+     * Filter, which EmailBirthdaySends to fetch.
+     */
+    where?: EmailBirthdaySendWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EmailBirthdaySends to fetch.
+     */
+    orderBy?: EmailBirthdaySendOrderByWithRelationInput | EmailBirthdaySendOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing EmailBirthdaySends.
+     */
+    cursor?: EmailBirthdaySendWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EmailBirthdaySends from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EmailBirthdaySends.
+     */
+    skip?: number
+    distinct?: EmailBirthdaySendScalarFieldEnum | EmailBirthdaySendScalarFieldEnum[]
+  }
+
+  /**
+   * EmailBirthdaySend create
+   */
+  export type EmailBirthdaySendCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailBirthdaySend
+     */
+    select?: EmailBirthdaySendSelect<ExtArgs> | null
+    /**
+     * The data needed to create a EmailBirthdaySend.
+     */
+    data: XOR<EmailBirthdaySendCreateInput, EmailBirthdaySendUncheckedCreateInput>
+  }
+
+  /**
+   * EmailBirthdaySend createMany
+   */
+  export type EmailBirthdaySendCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many EmailBirthdaySends.
+     */
+    data: EmailBirthdaySendCreateManyInput | EmailBirthdaySendCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EmailBirthdaySend createManyAndReturn
+   */
+  export type EmailBirthdaySendCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailBirthdaySend
+     */
+    select?: EmailBirthdaySendSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many EmailBirthdaySends.
+     */
+    data: EmailBirthdaySendCreateManyInput | EmailBirthdaySendCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EmailBirthdaySend update
+   */
+  export type EmailBirthdaySendUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailBirthdaySend
+     */
+    select?: EmailBirthdaySendSelect<ExtArgs> | null
+    /**
+     * The data needed to update a EmailBirthdaySend.
+     */
+    data: XOR<EmailBirthdaySendUpdateInput, EmailBirthdaySendUncheckedUpdateInput>
+    /**
+     * Choose, which EmailBirthdaySend to update.
+     */
+    where: EmailBirthdaySendWhereUniqueInput
+  }
+
+  /**
+   * EmailBirthdaySend updateMany
+   */
+  export type EmailBirthdaySendUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update EmailBirthdaySends.
+     */
+    data: XOR<EmailBirthdaySendUpdateManyMutationInput, EmailBirthdaySendUncheckedUpdateManyInput>
+    /**
+     * Filter which EmailBirthdaySends to update
+     */
+    where?: EmailBirthdaySendWhereInput
+  }
+
+  /**
+   * EmailBirthdaySend upsert
+   */
+  export type EmailBirthdaySendUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailBirthdaySend
+     */
+    select?: EmailBirthdaySendSelect<ExtArgs> | null
+    /**
+     * The filter to search for the EmailBirthdaySend to update in case it exists.
+     */
+    where: EmailBirthdaySendWhereUniqueInput
+    /**
+     * In case the EmailBirthdaySend found by the `where` argument doesn't exist, create a new EmailBirthdaySend with this data.
+     */
+    create: XOR<EmailBirthdaySendCreateInput, EmailBirthdaySendUncheckedCreateInput>
+    /**
+     * In case the EmailBirthdaySend was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<EmailBirthdaySendUpdateInput, EmailBirthdaySendUncheckedUpdateInput>
+  }
+
+  /**
+   * EmailBirthdaySend delete
+   */
+  export type EmailBirthdaySendDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailBirthdaySend
+     */
+    select?: EmailBirthdaySendSelect<ExtArgs> | null
+    /**
+     * Filter which EmailBirthdaySend to delete.
+     */
+    where: EmailBirthdaySendWhereUniqueInput
+  }
+
+  /**
+   * EmailBirthdaySend deleteMany
+   */
+  export type EmailBirthdaySendDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EmailBirthdaySends to delete
+     */
+    where?: EmailBirthdaySendWhereInput
+  }
+
+  /**
+   * EmailBirthdaySend without action
+   */
+  export type EmailBirthdaySendDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailBirthdaySend
+     */
+    select?: EmailBirthdaySendSelect<ExtArgs> | null
+  }
+
+
+  /**
    * Model EmailCampaignRecipient
    */
 
@@ -193836,6 +194870,20 @@ export namespace Prisma {
   export type EmailAutomationScalarFieldEnum = (typeof EmailAutomationScalarFieldEnum)[keyof typeof EmailAutomationScalarFieldEnum]
 
 
+  export const EmailBirthdaySendScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    automationId: 'automationId',
+    locationId: 'locationId',
+    contactId: 'contactId',
+    email: 'email',
+    year: 'year',
+    createdAt: 'createdAt'
+  };
+
+  export type EmailBirthdaySendScalarFieldEnum = (typeof EmailBirthdaySendScalarFieldEnum)[keyof typeof EmailBirthdaySendScalarFieldEnum]
+
+
   export const EmailCampaignRecipientScalarFieldEnum: {
     id: 'id',
     campaignId: 'campaignId',
@@ -196135,6 +197183,18 @@ export namespace Prisma {
   };
 
   export type EmailAutomationOrderByRelevanceFieldEnum = (typeof EmailAutomationOrderByRelevanceFieldEnum)[keyof typeof EmailAutomationOrderByRelevanceFieldEnum]
+
+
+  export const EmailBirthdaySendOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    automationId: 'automationId',
+    locationId: 'locationId',
+    contactId: 'contactId',
+    email: 'email'
+  };
+
+  export type EmailBirthdaySendOrderByRelevanceFieldEnum = (typeof EmailBirthdaySendOrderByRelevanceFieldEnum)[keyof typeof EmailBirthdaySendOrderByRelevanceFieldEnum]
 
 
   export const EmailCampaignRecipientOrderByRelevanceFieldEnum: {
@@ -213465,6 +214525,77 @@ export namespace Prisma {
     createdBy?: StringNullableWithAggregatesFilter<"EmailAutomation"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"EmailAutomation"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"EmailAutomation"> | Date | string
+  }
+
+  export type EmailBirthdaySendWhereInput = {
+    AND?: EmailBirthdaySendWhereInput | EmailBirthdaySendWhereInput[]
+    OR?: EmailBirthdaySendWhereInput[]
+    NOT?: EmailBirthdaySendWhereInput | EmailBirthdaySendWhereInput[]
+    id?: StringFilter<"EmailBirthdaySend"> | string
+    tenantId?: StringFilter<"EmailBirthdaySend"> | string
+    automationId?: StringFilter<"EmailBirthdaySend"> | string
+    locationId?: StringFilter<"EmailBirthdaySend"> | string
+    contactId?: StringFilter<"EmailBirthdaySend"> | string
+    email?: StringFilter<"EmailBirthdaySend"> | string
+    year?: IntFilter<"EmailBirthdaySend"> | number
+    createdAt?: DateTimeFilter<"EmailBirthdaySend"> | Date | string
+  }
+
+  export type EmailBirthdaySendOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    automationId?: SortOrder
+    locationId?: SortOrder
+    contactId?: SortOrder
+    email?: SortOrder
+    year?: SortOrder
+    createdAt?: SortOrder
+    _relevance?: EmailBirthdaySendOrderByRelevanceInput
+  }
+
+  export type EmailBirthdaySendWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    automationId_email_year?: EmailBirthdaySendAutomationIdEmailYearCompoundUniqueInput
+    AND?: EmailBirthdaySendWhereInput | EmailBirthdaySendWhereInput[]
+    OR?: EmailBirthdaySendWhereInput[]
+    NOT?: EmailBirthdaySendWhereInput | EmailBirthdaySendWhereInput[]
+    tenantId?: StringFilter<"EmailBirthdaySend"> | string
+    automationId?: StringFilter<"EmailBirthdaySend"> | string
+    locationId?: StringFilter<"EmailBirthdaySend"> | string
+    contactId?: StringFilter<"EmailBirthdaySend"> | string
+    email?: StringFilter<"EmailBirthdaySend"> | string
+    year?: IntFilter<"EmailBirthdaySend"> | number
+    createdAt?: DateTimeFilter<"EmailBirthdaySend"> | Date | string
+  }, "id" | "automationId_email_year">
+
+  export type EmailBirthdaySendOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    automationId?: SortOrder
+    locationId?: SortOrder
+    contactId?: SortOrder
+    email?: SortOrder
+    year?: SortOrder
+    createdAt?: SortOrder
+    _count?: EmailBirthdaySendCountOrderByAggregateInput
+    _avg?: EmailBirthdaySendAvgOrderByAggregateInput
+    _max?: EmailBirthdaySendMaxOrderByAggregateInput
+    _min?: EmailBirthdaySendMinOrderByAggregateInput
+    _sum?: EmailBirthdaySendSumOrderByAggregateInput
+  }
+
+  export type EmailBirthdaySendScalarWhereWithAggregatesInput = {
+    AND?: EmailBirthdaySendScalarWhereWithAggregatesInput | EmailBirthdaySendScalarWhereWithAggregatesInput[]
+    OR?: EmailBirthdaySendScalarWhereWithAggregatesInput[]
+    NOT?: EmailBirthdaySendScalarWhereWithAggregatesInput | EmailBirthdaySendScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"EmailBirthdaySend"> | string
+    tenantId?: StringWithAggregatesFilter<"EmailBirthdaySend"> | string
+    automationId?: StringWithAggregatesFilter<"EmailBirthdaySend"> | string
+    locationId?: StringWithAggregatesFilter<"EmailBirthdaySend"> | string
+    contactId?: StringWithAggregatesFilter<"EmailBirthdaySend"> | string
+    email?: StringWithAggregatesFilter<"EmailBirthdaySend"> | string
+    year?: IntWithAggregatesFilter<"EmailBirthdaySend"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"EmailBirthdaySend"> | Date | string
   }
 
   export type EmailCampaignRecipientWhereInput = {
@@ -233212,6 +234343,83 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type EmailBirthdaySendCreateInput = {
+    id?: string
+    tenantId: string
+    automationId: string
+    locationId: string
+    contactId: string
+    email: string
+    year: number
+    createdAt?: Date | string
+  }
+
+  export type EmailBirthdaySendUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    automationId: string
+    locationId: string
+    contactId: string
+    email: string
+    year: number
+    createdAt?: Date | string
+  }
+
+  export type EmailBirthdaySendUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    automationId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    contactId?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    year?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EmailBirthdaySendUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    automationId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    contactId?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    year?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EmailBirthdaySendCreateManyInput = {
+    id?: string
+    tenantId: string
+    automationId: string
+    locationId: string
+    contactId: string
+    email: string
+    year: number
+    createdAt?: Date | string
+  }
+
+  export type EmailBirthdaySendUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    automationId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    contactId?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    year?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EmailBirthdaySendUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    automationId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    contactId?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    year?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type EmailCampaignRecipientCreateInput = {
     id?: string
     tenantId: string
@@ -246685,6 +247893,59 @@ export namespace Prisma {
     createdBy?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type EmailBirthdaySendOrderByRelevanceInput = {
+    fields: EmailBirthdaySendOrderByRelevanceFieldEnum | EmailBirthdaySendOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type EmailBirthdaySendAutomationIdEmailYearCompoundUniqueInput = {
+    automationId: string
+    email: string
+    year: number
+  }
+
+  export type EmailBirthdaySendCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    automationId?: SortOrder
+    locationId?: SortOrder
+    contactId?: SortOrder
+    email?: SortOrder
+    year?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type EmailBirthdaySendAvgOrderByAggregateInput = {
+    year?: SortOrder
+  }
+
+  export type EmailBirthdaySendMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    automationId?: SortOrder
+    locationId?: SortOrder
+    contactId?: SortOrder
+    email?: SortOrder
+    year?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type EmailBirthdaySendMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    automationId?: SortOrder
+    locationId?: SortOrder
+    contactId?: SortOrder
+    email?: SortOrder
+    year?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type EmailBirthdaySendSumOrderByAggregateInput = {
+    year?: SortOrder
   }
 
   export type EmailCampaignRelationFilter = {
@@ -323379,6 +324640,10 @@ export namespace Prisma {
      * @deprecated Use EmailAutomationDefaultArgs instead
      */
     export type EmailAutomationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = EmailAutomationDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use EmailBirthdaySendDefaultArgs instead
+     */
+    export type EmailBirthdaySendArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = EmailBirthdaySendDefaultArgs<ExtArgs>
     /**
      * @deprecated Use EmailCampaignRecipientDefaultArgs instead
      */

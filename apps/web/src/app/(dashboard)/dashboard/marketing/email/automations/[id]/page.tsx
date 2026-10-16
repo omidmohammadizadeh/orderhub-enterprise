@@ -1,6 +1,6 @@
 "use client";
 
-// One automatic email (welcome or win-back): when it sends, what it says, and
+// One automatic email (welcome, win-back or birthday): when it sends, what it says, and
 // the switch. Same editor and live preview as a campaign.
 
 import { use, useEffect, useRef, useState } from "react";
@@ -117,6 +117,11 @@ function Editor({ a }: { a: EmailAutomation }) {
   const s = draft.settings ?? {};
   const setSetting = (k: keyof EmailAutomationSettings, v: number) => set("settings", { ...s, [k]: v });
   const money = new Intl.NumberFormat("en-GB", { style: "currency", currency: live?.stats.currency || "GBP" });
+  // What {{offer_expires}} would read for a birthday today.
+  const sampleExpiry = new Date(Date.now() + ((s.validDays ?? 7) - 1) * 86400_000).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+  });
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6">
@@ -235,6 +240,31 @@ function Editor({ a }: { a: EmailAutomation }) {
                     nudge.
                   </p>
                 </div>
+              ) : a.type === "BIRTHDAY" ? (
+                <div className="space-y-2">
+                  <p>
+                    Sends at 10am, shop time, on a customer&apos;s birthday — once a year. People born on 29 February get
+                    it on the 28th in other years.
+                  </p>
+                  <label className="flex flex-wrap items-center gap-2">
+                    The offer is valid for
+                    <input
+                      type="number"
+                      min={1}
+                      max={60}
+                      value={s.validDays ?? 7}
+                      onChange={(e) => setSetting("validDays", Number(e.target.value))}
+                      className="w-20 rounded-md border border-zinc-200 px-2 py-1"
+                    />
+                    days, counting the birthday.
+                  </label>
+                  <p className="text-xs text-zinc-500">
+                    Write <code className="rounded bg-zinc-100 px-1">{"{{offer_expires}}"}</code> in the email and each
+                    customer sees their own last day (e.g. &ldquo;{sampleExpiry}&rdquo;). Only customers who have
+                    ordered from this shop, subscribed to your emails and saved their date of birth in their account
+                    get it.
+                  </p>
+                </div>
               ) : (
                 <div className="space-y-2">
                   <label className="flex flex-wrap items-center gap-2">
@@ -309,6 +339,7 @@ function Editor({ a }: { a: EmailAutomation }) {
               logoUrl={brand?.logoUrl}
               subject={draft.subject}
               preheader={draft.preheader}
+              offerExpires={a.type === "BIRTHDAY" ? sampleExpiry : null}
             />
           </div>
         </div>

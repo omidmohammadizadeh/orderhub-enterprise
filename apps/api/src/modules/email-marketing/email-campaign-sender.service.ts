@@ -3,6 +3,7 @@ import { Cron } from "@nestjs/schedule";
 import { personalise, renderEmail, type EmailDesign } from "@orderhub/shared";
 import { EmailService, ResendError } from "../../infrastructure/email/email.service";
 import { WalletService } from "../wallet/wallet.service";
+import { localDate, offerExpiresLabel, shopTimezone } from "./birthday";
 import { emailCostMinor } from "./email-audience";
 import { EmailMarketingService } from "./email-marketing.service";
 
@@ -101,6 +102,18 @@ export class EmailCampaignSenderService {
     await this.finishIfDone(c);
   }
 
+  /** A birthday ledger dates its offer from the day it lands, in the shop's
+   *  calendar ({{offer_expires}}); every other email has no such date. */
+  private async offerExpires(c: any): Promise<string | null> {
+    const days = Number((c.audience as any)?.offerValidDays);
+    if (!c.automationId || !Number.isFinite(days) || days <= 0 || !c.locationId) return null;
+    const loc = await this.db().location.findUnique({
+      where: { id: c.locationId },
+      select: { timezone: true, country: true },
+    });
+    return offerExpiresLabel(localDate(new Date(), shopTimezone(loc)), days);
+  }
+
   /** A batch to send: a stuck one first (same rows, same key), else a fresh claim. */
   private async nextBatch(campaignId: string): Promise<{ key: string; retry: boolean } | null> {
     const stuck = await this.stuckBatch(campaignId);
@@ -193,11 +206,13 @@ export class EmailCampaignSenderService {
 
     const from = this.svc.fromAddress();
     const api = this.svc.apiBase();
+    const offerExpires = await this.offerExpires(c);
     const emails = rows.map((r) => {
       const token = this.svc.makeRecipientToken(r.id);
       const rendered = renderEmail(c.design as unknown as EmailDesign, {
         ...ctx,
         firstName: r.firstName,
+        offerExpires,
         preheader: c.preheader,
         unsubscribeUrl: this.svc.unsubscribeUrl(token),
         trackLink: (_link, index) => `${api}/c/${r.id}/${index}`,

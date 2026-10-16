@@ -6153,6 +6153,9 @@ model EmailCampaign {
 //   WELCOME  — a new subscriber, once per person, shortly after they join.
 //   WIN_BACK — a customer who hasn't ordered from this shop in N days; at most
 //              once per cooldown per person.
+//   BIRTHDAY — the morning of a customer's birthday (CustomerAccount.dateOfBirth,
+//              shop-local date), if they have ordered here; once a year
+//              (EmailBirthdaySend).
 // Each run queues recipients on a ledger EmailCampaign (automationId set), so
 // sending, tracking, unsubscribes and order attribution are the campaign code.
 model EmailAutomation {
@@ -6160,7 +6163,7 @@ model EmailAutomation {
   tenantId   String
   locationId String
   brandId    String?
-  type       String // WELCOME | WIN_BACK
+  type       String // WELCOME | WIN_BACK | BIRTHDAY
 
   enabled   Boolean   @default(false)
   // When it was last switched on. WELCOME only greets people who joined after
@@ -6172,7 +6175,7 @@ model EmailAutomation {
   fromName  String?
   replyTo   String?
   design    Json    @default("{}")
-  // WELCOME { delayHours } · WIN_BACK { days, cooldownDays }
+  // WELCOME { delayHours } · WIN_BACK { days, cooldownDays } · BIRTHDAY { validDays }
   settings  Json    @default("{}")
 
   lastRunAt DateTime?
@@ -6186,6 +6189,26 @@ model EmailAutomation {
   @@unique([tenantId, locationId, type])
   @@index([enabled])
   @@map("email_automations")
+}
+
+// The birthday automation's claim: one row per (automation, address, year),
+// written BEFORE the email is queued. The unique key is what makes "at most
+// once a year" true across overlapping ticks, a crash and retry, and an edit
+// to the email (which starts a new ledger campaign the recipient check can't
+// see past). `year` is the shop-local year of the birthday being celebrated.
+model EmailBirthdaySend {
+  id           String   @id @default(cuid())
+  tenantId     String
+  automationId String
+  locationId   String
+  contactId    String
+  email        String
+  year         Int
+  createdAt    DateTime @default(now())
+
+  @@unique([automationId, email, year])
+  @@index([tenantId, createdAt])
+  @@map("email_birthday_sends")
 }
 
 // One row per address a campaign goes to. Unique (campaignId, email) is what

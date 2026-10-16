@@ -2752,6 +2752,17 @@ exports.Prisma.EmailAutomationScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.EmailBirthdaySendScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  automationId: 'automationId',
+  locationId: 'locationId',
+  contactId: 'contactId',
+  email: 'email',
+  year: 'year',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.EmailCampaignRecipientScalarFieldEnum = {
   id: 'id',
   campaignId: 'campaignId',
@@ -4558,6 +4569,15 @@ exports.Prisma.EmailAutomationOrderByRelevanceFieldEnum = {
   createdBy: 'createdBy'
 };
 
+exports.Prisma.EmailBirthdaySendOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  automationId: 'automationId',
+  locationId: 'locationId',
+  contactId: 'contactId',
+  email: 'email'
+};
+
 exports.Prisma.EmailCampaignRecipientOrderByRelevanceFieldEnum = {
   id: 'id',
   campaignId: 'campaignId',
@@ -5271,6 +5291,7 @@ exports.Prisma.ModelName = {
   EmailContact: 'EmailContact',
   EmailCampaign: 'EmailCampaign',
   EmailAutomation: 'EmailAutomation',
+  EmailBirthdaySend: 'EmailBirthdaySend',
   EmailCampaignRecipient: 'EmailCampaignRecipient',
   BuildGuide: 'BuildGuide',
   BuildStepTemplate: 'BuildStepTemplate',

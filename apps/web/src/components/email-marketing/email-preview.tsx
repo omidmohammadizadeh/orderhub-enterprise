@@ -24,6 +24,7 @@ export function EmailPreview({
   preheader,
   footerAddress,
   firstName = "Sam",
+  offerExpires,
 }: {
   design: EmailDesign;
   brandName: string;
@@ -32,6 +33,8 @@ export function EmailPreview({
   preheader?: string | null;
   footerAddress?: string | null;
   firstName?: string;
+  /** Sample date for {{offer_expires}} (birthday emails). */
+  offerExpires?: string | null;
 }) {
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
   const html = useMemo(
@@ -43,14 +46,15 @@ export function EmailPreview({
         unsubscribeUrl: "#",
         footerAddress: footerAddress ?? "Your shop address appears here",
         firstName,
+        offerExpires,
         preheader,
         poweredBy: POWERED_BY,
         // The iframe is srcDoc, so site paths need the page's own origin.
         assetBaseUrl: typeof window !== "undefined" ? window.location.origin : null,
       }).html,
-    [design, brandName, logoUrl, preheader, footerAddress, firstName],
+    [design, brandName, logoUrl, preheader, footerAddress, firstName, offerExpires],
   );
-  const vars = { firstName, brandName };
+  const vars = { firstName, brandName, offerExpires };
 
   return (
     <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">

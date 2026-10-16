@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
-import { createHash } from "crypto";
+import { createHash, randomUUID } from "crypto";
 import {
   AUTOMATION_DEFAULTS,
   AUTOMATION_INFO,
@@ -10,10 +10,11 @@ import {
   type EmailAutomationType,
   type EmailDesign,
 } from "@orderhub/shared";
+import { birthdayKeys, localDate, localHour, offerExpiresLabel, shopTimezone, type LocalDate } from "./birthday";
 import { buildAutomationQuery, normaliseEmail } from "./email-audience";
 import { EmailMarketingService, type Actor } from "./email-marketing.service";
 
-// Welcome and win-back emails that send themselves.
+// Welcome, win-back and birthday emails that send themselves.
 //
 // HOW A RUN WORKS (every 15 minutes, inside 10:00–20:00 shop time):
 //   1. The offer code must still work — else the automation pauses itself.
@@ -25,8 +26,15 @@ import { EmailMarketingService, type Actor } from "./email-marketing.service";
 //
 // A ledger belongs to one version of the email: editing it starts a new one,
 // so a click on an old email still redirects by the links IT contained.
+//
+// BIRTHDAY is the same run with two extra steps: "today" is the shop's
+// calendar day, and each person is CLAIMED (EmailBirthdaySend, unique per
+// automation/address/year) before being queued — only the rows this run
+// inserted are queued, so two overlapping ticks can't both send. Its ledger is
+// also per YEAR, because a recipient row is unique per ledger and next year's
+// birthday would otherwise be dropped as a duplicate of this year's.
 
-const TYPES: EmailAutomationType[] = ["WELCOME", "WIN_BACK"];
+const TYPES: EmailAutomationType[] = ["WELCOME", "WIN_BACK", "BIRTHDAY"];
 /** Most people one automation queues per run. */
 const PER_RUN = 1000;
 /** Send hours, shop time. Nobody wants a "we miss you" at 2am. */
@@ -161,7 +169,9 @@ export class EmailAutomationService {
       data.settings =
         a.type === "WELCOME"
           ? { delayHours: clamp(s.delayHours, 0, 72, 1) }
-          : { days: clamp(s.days, 7, 365, 45), cooldownDays: clamp(s.cooldownDays, 14, 365, 90) };
+          : a.type === "BIRTHDAY"
+            ? { validDays: clamp(s.validDays, 1, 60, 7) }
+            : { days: clamp(s.days, 7, 365, 45), cooldownDays: clamp(s.cooldownDays, 14, 365, 90) };
     }
     if (body.brandId !== undefined) {
       const { brand } = await this.svc.resolveSender(actor, body.brandId, a.locationId);
@@ -209,12 +219,24 @@ export class EmailAutomationService {
   }
 
   async test(actor: Actor, id: string, to: string[]) {
-    return this.svc.testSendEmail(await this.load(actor, id), to);
+    const a = await this.load(actor, id);
+    const offerExpires =
+      a.type === "BIRTHDAY" ? offerExpiresLabel((await this.shopToday(a.locationId)).today, this.settingsOf(a).validDays ?? 7) : null;
+    return this.svc.testSendEmail({ ...a, offerExpires }, to);
+  }
+
+  /** The shop's calendar day and hour right now. */
+  private async shopToday(locationId: string, now = new Date()): Promise<{ today: LocalDate; hour: number }> {
+    const loc = await this.svc
+      .db()
+      .location.findUnique({ where: { id: locationId }, select: { timezone: true, country: true } });
+    const tz = shopTimezone(loc);
+    return { today: localDate(now, tz), hour: localHour(now, tz) };
   }
 
   // ── Who is due ────────────────────────────────────────────────────────────
 
-  private dueQuery(a: any, limit: number, now = new Date()) {
+  private dueQuery(a: any, limit: number, now = new Date(), today?: LocalDate) {
     const s = this.settingsOf(a);
     return buildAutomationQuery({
       tenantId: a.tenantId,
@@ -227,6 +249,8 @@ export class EmailAutomationService {
       delayHours: s.delayHours,
       days: s.days,
       cooldownDays: s.cooldownDays,
+      birthdayKeys: today ? birthdayKeys(today) : undefined,
+      birthdayYear: today?.year,
       limit,
       now,
     });
@@ -235,7 +259,8 @@ export class EmailAutomationService {
   /** How many people the next run would email (capped for display). */
   private async dueCount(a: any): Promise<number> {
     try {
-      const q = this.dueQuery(a, 5000);
+      const today = a.type === "BIRTHDAY" ? (await this.shopToday(a.locationId)).today : undefined;
+      const q = this.dueQuery(a, 5000, new Date(), today);
       const rows = await this.svc.db().$queryRawUnsafe<any[]>(q.sql, ...q.params);
       return rows.length;
     } catch {
@@ -253,8 +278,9 @@ export class EmailAutomationService {
       const due = await this.db().emailAutomation.findMany({ where: { enabled: true }, take: 200 });
       for (const a of due) {
         try {
-          if (!(await this.inSendHours(a.locationId))) continue;
-          await this.runOne(a);
+          const { today, hour } = await this.shopToday(a.locationId);
+          if (hour < SEND_FROM_HOUR || hour >= SEND_UNTIL_HOUR) continue;
+          await this.runOne(a, new Date(), today);
         } catch (e: any) {
           this.logger.warn(`Automation ${a.id} run failed: ${e?.message ?? e}`);
         }
@@ -264,18 +290,8 @@ export class EmailAutomationService {
     }
   }
 
-  private async inSendHours(locationId: string, now = new Date()): Promise<boolean> {
-    const loc = await this.svc.db().location.findUnique({ where: { id: locationId }, select: { timezone: true } });
-    const hour = Number(
-      new Intl.DateTimeFormat("en-GB", { hour: "numeric", hourCycle: "h23", timeZone: loc?.timezone || "Europe/London" })
-        .formatToParts(now)
-        .find((p) => p.type === "hour")?.value ?? "12",
-    );
-    return hour >= SEND_FROM_HOUR && hour < SEND_UNTIL_HOUR;
-  }
-
   /** Queue whoever is due. Returns how many were queued. */
-  async runOne(a: any, now = new Date()): Promise<number> {
+  async runOne(a: any, now = new Date(), today?: LocalDate): Promise<number> {
     try {
       this.assertComplete(a);
       await this.svc.assertOfferCodesWork(a);
@@ -283,15 +299,20 @@ export class EmailAutomationService {
       await this.svc.pauseAutomation(a.id, `Paused: ${e?.message ?? "it can't be sent as it is"}`);
       return 0;
     }
-    const q = this.dueQuery(a, PER_RUN, now);
-    const rows = await this.svc.db().$queryRawUnsafe<{ id: string; email: string; firstName: string | null }[]>(
+    if (a.type === "BIRTHDAY" && !today) today = (await this.shopToday(a.locationId, now)).today;
+    const q = this.dueQuery(a, PER_RUN, now, today);
+    let rows = await this.svc.db().$queryRawUnsafe<{ id: string; email: string; firstName: string | null }[]>(
       q.sql,
       ...q.params,
     );
     await this.db().emailAutomation.update({ where: { id: a.id }, data: { lastRunAt: now } });
     if (!rows.length) return 0;
+    if (a.type === "BIRTHDAY") {
+      rows = await this.claimBirthdays(a, rows, today!.year);
+      if (!rows.length) return 0;
+    }
 
-    const ledger = await this.ledgerFor(a);
+    const ledger = await this.ledgerFor(a, today);
     const created = await this.db().emailCampaignRecipient.createMany({
       data: rows.map((r) => ({
         campaignId: ledger.id,
@@ -313,13 +334,44 @@ export class EmailAutomationService {
     return created.count;
   }
 
-  /** The ledger campaign for the automation's CURRENT email (one per version). */
-  private async ledgerFor(a: any) {
+  /**
+   * Claim this year's birthday for each person; returns only the ones THIS
+   * call claimed. ON CONFLICT DO NOTHING + RETURNING is the whole idempotency
+   * story: a second tick, or a retry after a crash, gets nothing back.
+   */
+  private async claimBirthdays<R extends { id: string; email: string }>(a: any, rows: R[], year: number): Promise<R[]> {
+    const claimed = await this.svc.db().$queryRawUnsafe<{ email: string }[]>(
+      `INSERT INTO email_birthday_sends (id, "tenantId", "automationId", "locationId", "contactId", email, year)
+       SELECT x.id, $1, $2, $3, x.contact, x.email, $4
+       FROM unnest($5::text[], $6::text[], $7::text[]) AS x(id, contact, email)
+       ON CONFLICT ("automationId", email, year) DO NOTHING
+       RETURNING email`,
+      a.tenantId,
+      a.id,
+      a.locationId,
+      year,
+      rows.map(() => randomUUID()),
+      rows.map((r) => r.id),
+      rows.map((r) => r.email),
+    );
+    const mine = new Set(claimed.map((c) => c.email));
+    return rows.filter((r) => mine.has(r.email));
+  }
+
+  /** The ledger campaign for the automation's CURRENT email (one per version;
+   *  for a birthday, one per version per year). */
+  private async ledgerFor(a: any, today?: LocalDate) {
+    const s = this.settingsOf(a);
+    const birthday = a.type === "BIRTHDAY";
     const version = createHash("sha1")
-      .update(JSON.stringify([a.subject, a.preheader, a.fromName, a.replyTo, a.brandId, a.design]))
+      .update(
+        // validDays only for a birthday: adding it to the others would re-hash
+        // every live welcome/win-back onto a fresh ledger.
+        JSON.stringify([a.subject, a.preheader, a.fromName, a.replyTo, a.brandId, a.design, ...(birthday ? [s.validDays] : [])]),
+      )
       .digest("hex")
       .slice(0, 16);
-    const templateId = `auto:${version}`;
+    const templateId = birthday && today ? `auto:${version}:${today.year}` : `auto:${version}`;
     const existing = await this.db().emailCampaign.findFirst({ where: { automationId: a.id, templateId } });
     if (existing) return existing;
     const { design } = await this.svc.withoutBrokenImages(a.design as EmailDesign);
@@ -339,6 +391,8 @@ export class EmailAutomationService {
         replyTo: a.replyTo,
         design: design as any,
         links: dry.links as any,
+        // The sender reads this to date {{offer_expires}} per recipient.
+        audience: (birthday ? { offerValidDays: s.validDays ?? 7 } : {}) as any,
         status: "AUTOMATION",
         startedAt: new Date(),
       },
