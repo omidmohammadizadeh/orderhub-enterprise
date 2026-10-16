@@ -1919,7 +1919,7 @@ function OrderPage() {
                 <div className="min-w-0">
                   <h1
                     id="store-name"
-                    className="text-2xl font-bold tracking-tight text-sf-text [text-wrap:balance] sm:text-3xl"
+                    className="text-2xl font-bold tracking-tight text-sf-text [overflow-wrap:anywhere] [text-wrap:balance] sm:text-3xl"
                   >
                     {headerTitle}
                   </h1>
@@ -2318,7 +2318,7 @@ function OrderPage() {
                   so they never sit between the customer and what they asked for. */}
               {!searching && promoItems.length > 0 && (
                 <section id={sectionDomId("promotions")} aria-labelledby="h-promotions">
-                  <h2 id="h-promotions" className="mb-3 text-xl font-bold tracking-tight text-sf-text">
+                  <h2 id="h-promotions" className="mb-3 text-xl font-bold tracking-tight text-sf-text [overflow-wrap:anywhere]">
                     Promotions
                   </h2>
                   <ItemRail
@@ -2332,7 +2332,7 @@ function OrderPage() {
               )}
               {!searching && topSellers.length > 0 && (
                 <section id={sectionDomId("top-sellers")} aria-labelledby="h-top-sellers">
-                  <h2 id="h-top-sellers" className="mb-3 text-xl font-bold tracking-tight text-sf-text">
+                  <h2 id="h-top-sellers" className="mb-3 text-xl font-bold tracking-tight text-sf-text [overflow-wrap:anywhere]">
                     Top sellers
                   </h2>
                   <ItemRail
@@ -2358,7 +2358,7 @@ function OrderPage() {
                   >
                     <h2
                       id={`h-${cat.id}`}
-                      className="mb-3 text-xl font-bold tracking-tight text-sf-text"
+                      className="mb-3 text-xl font-bold tracking-tight text-sf-text [overflow-wrap:anywhere]"
                     >
                       {cat.name}
                     </h2>

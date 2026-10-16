@@ -156,6 +156,12 @@
   color-scheme: light;
   background: var(--sf-bg);
   color: var(--sf-text);
+  /* Nothing on a storefront may be wider than the phone. On Android Chrome
+     any horizontal overflow widens the layout viewport, every fixed overlay
+     is then sized to that wider page, and the checkout panel (justify-end)
+     lands half off-screen until the customer pinches. `clip`, not `hidden`:
+     hidden makes this a scroll container and breaks the sticky header/tabs. */
+  overflow-x: clip;
 }
 @media (prefers-color-scheme: dark) {
   .sf-root {
@@ -178,6 +184,23 @@
 .sf-root .fixed.inset-0,
 .sf-root [role="dialog"] {
   color-scheme: light;
+}
+/* A panel sliding in from off-screen is wider than the phone for the length
+   of the animation — and phone Chrome takes that as page width (see above).
+   Clip every full-screen overlay to the screen; vertical scrolling inside
+   tall modals is untouched. */
+.sf-root .fixed.inset-0 {
+  overflow-x: clip;
+}
+/* Below 16px, iOS Safari zooms the page in when a field is focused and never
+   zooms back out — the customer is left pinching at the checkout. Phones and
+   tablets only; desktop keeps the compact fields. */
+@media (max-width: 1023px) {
+  .sf-root input:not([type="checkbox"]):not([type="radio"]),
+  .sf-root textarea,
+  .sf-root select {
+    font-size: max(16px, 1em);
+  }
 }
 
 @keyframes sf-bump {

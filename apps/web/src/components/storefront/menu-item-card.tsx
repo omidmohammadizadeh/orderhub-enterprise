@@ -87,11 +87,11 @@ export const MenuItemCard = ({
         )}
       >
         <div className="flex min-w-0 flex-1 flex-col">
-          <h3 className="text-[15px] font-semibold leading-snug text-sf-text [text-wrap:pretty]">
+          <h3 className="text-[15px] font-semibold leading-snug text-sf-text [overflow-wrap:anywhere] [text-wrap:pretty]">
             {item.name}
           </h3>
           {item.description && (
-            <p className="mt-1 line-clamp-2 text-[13px] leading-snug text-sf-muted">
+            <p className="mt-1 line-clamp-2 text-[13px] leading-snug text-sf-muted [overflow-wrap:anywhere]">
               {item.description}
             </p>
           )}
