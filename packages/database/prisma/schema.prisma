@@ -399,6 +399,10 @@ model Brand {
   name      String
   slug      String
   logoUrl   String?
+  // The storefront's accent colour (`#rrggbb`). Per brand, not per tenant:
+  // one kitchen trades as several virtual brands and each storefront wears
+  // its own colour. Null = the storefront's default.
+  primaryColor String?
   settings  Json      @default("{}")
   metadata  Json      @default("{}")
   isActive  Boolean   @default(true)

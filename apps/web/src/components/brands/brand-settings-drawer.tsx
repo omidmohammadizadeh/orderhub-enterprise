@@ -45,6 +45,11 @@ import { ChannelVariantMenuPanel } from "@/components/locations/channel-variant-
 import { BrandCustomDomainPanel } from "./brand-custom-domain-panel";
 import { BrandTapPayoutsPanel } from "./brand-tap-payouts-panel";
 import { useAuthStore } from "@/stores/auth.store";
+import {
+  DEFAULT_STOREFRONT_ACCENT,
+  pickBrandColour,
+  storefrontThemeStyle,
+} from "@/lib/storefront-theme";
 
 const ADMIN_ROLES = new Set(["PLATFORM_ADMIN", "TENANT_OWNER"]);
 // Location OWNERs edit the storefront settings that are genuinely theirs —
@@ -89,6 +94,7 @@ export function BrandSettingsDrawer({
   const [name, setName] = useState(brand.name);
   const [cuisine, setCuisine] = useState(brand.cuisine ?? "");
   const [logoUrl, setLogoUrl] = useState<string | null>(brand.logoUrl ?? null);
+  const [primaryColor, setPrimaryColor] = useState(brand.primaryColor ?? "");
 
   // ── Storefront URL ────────────────────────────────────────────────
   const [orderingSlug, setOrderingSlug] = useState(brand.onlineOrderingSlug ?? "");
@@ -261,6 +267,7 @@ export function BrandSettingsDrawer({
     setName(brand.name);
     setCuisine(brand.cuisine ?? "");
     setLogoUrl(brand.logoUrl ?? null);
+    setPrimaryColor(brand.primaryColor ?? "");
     setOrderingSlug(brand.onlineOrderingSlug ?? "");
     setPhone(brand.phone ?? "");
     setAddressLine1(brand.addressLine1 ?? "");
@@ -302,6 +309,7 @@ export function BrandSettingsDrawer({
           name,
           cuisine: cuisine || null,
           logoUrl: logoUrl ?? null,
+          primaryColor: primaryColor.trim() || null,
           onlineOrderingSlug: orderingSlug || null,
           directOrderingEnabled: !!orderingSlug,
           phone: phone || null,
@@ -380,9 +388,9 @@ export function BrandSettingsDrawer({
 
         <div className="flex-1 space-y-5 overflow-y-auto p-5">
           {/* ── Identity ─────────────────────────────────────────── */}
-          <Section title={isAdmin ? "Identity" : "Logo"}>
+          <Section title={isAdmin ? "Identity" : "Logo & colour"}>
             {/* Brand name + cuisine are brand identity — admin only. Owners
-                get the logo, which is theirs to manage. */}
+                get the logo and storefront colour, which are theirs to manage. */}
             {isAdmin && (
               <>
                 <Field label="Brand name">
@@ -416,6 +424,13 @@ export function BrandSettingsDrawer({
                 targetWidth={512}
                 targetHeight={512}
                 fit="contain"
+              />
+            </Field>
+            <Field label="Storefront colour">
+              <BrandColourField
+                value={primaryColor}
+                onChange={setPrimaryColor}
+                disabled={!canEdit}
               />
             </Field>
           </Section>
@@ -1468,4 +1483,69 @@ function describeFee(
     if (fixed) parts.push(`${money(Number(fixed))}`);
   }
   return parts.length ? parts.join(" + ") : "No fee";
+}
+
+// The storefront's accent. The preview shows the button exactly as the
+// storefront will draw it — a bright colour is darkened behind white text
+// there, so the operator sees that here instead of being surprised later.
+function BrandColourField({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  disabled: boolean;
+}) {
+  const valid = pickBrandColour(value);
+  const invalid = value.trim() !== "" && !valid;
+  // storefrontThemeStyle hands back a full `#rrggbb`, which is the only
+  // shape <input type="color"> accepts.
+  const theme = storefrontThemeStyle(valid) as Record<string, string>;
+  const swatch = theme["--sf-accent"] ?? DEFAULT_STOREFRONT_ACCENT;
+  return (
+    <div>
+      <p className="mb-2 text-[11px] text-zinc-500">
+        Tabs, the basket bar and buttons on the storefront. Leave empty for
+        the default orange.
+      </p>
+      <div className="flex items-center gap-2">
+        <input
+          type="color"
+          aria-label="Pick storefront colour"
+          value={swatch}
+          onChange={(e) => onChange(e.target.value)}
+          disabled={disabled}
+          className="h-9 w-12 cursor-pointer rounded border border-zinc-200 bg-white p-0.5 disabled:cursor-not-allowed"
+        />
+        <input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          disabled={disabled}
+          placeholder={DEFAULT_STOREFRONT_ACCENT}
+          className="input w-32 font-mono"
+        />
+        {value && !disabled && (
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            className="text-xs text-zinc-500 hover:text-zinc-800"
+          >
+            Reset
+          </button>
+        )}
+        <span
+          className="ml-auto rounded-md px-3 py-1.5 text-xs font-semibold text-white"
+          style={{ background: theme["--sf-cta"] }}
+        >
+          Add to basket
+        </span>
+      </div>
+      {invalid && (
+        <p className="mt-1 text-[11px] text-red-600">
+          Use a hex colour like #e11d48.
+        </p>
+      )}
+    </div>
+  );
 }

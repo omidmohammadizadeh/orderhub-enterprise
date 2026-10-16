@@ -428,6 +428,8 @@ export class OrderingService {
             name: true,
             slug: true,
             logoUrl: true,
+            // The storefront's accent — each brand wears its own colour.
+            primaryColor: true,
             metadata: true,
             // Phase AW-30 — brand-level opening hours + prep config
             // override the location's when set. Brand wins for "is the
@@ -472,6 +474,7 @@ export class OrderingService {
             name: true,
             slug: true,
             logoUrl: true,
+            primaryColor: true,
             about: true,
             phone: true,
             addressLine1: true,
@@ -1043,6 +1046,7 @@ export class OrderingService {
           name: b.name,
           slug: b.slug,
           logoUrl: b.logoUrl,
+          primaryColor: b.primaryColor ?? null,
           cuisine: b.cuisine,
           about: b.about,
         }

@@ -185,7 +185,13 @@ interface Storefront {
     busyMode?: boolean;
     currentPrepTime?: number;
   };
-  brand: { id: string; name: string; logoUrl?: string | null };
+  brand: {
+    id: string;
+    name: string;
+    logoUrl?: string | null;
+    /** The brand's storefront accent, `#rrggbb`; null = default. */
+    primaryColor?: string | null;
+  };
   menu:
     | {
         id: string;
@@ -1790,14 +1796,9 @@ function OrderPage() {
     ? `/book/${storefront.location.id}`
     : null;
 
-  // The brand's own colour, when the payload carries one. Nothing sends it
-  // yet, so today every storefront falls back to the default accent — the
-  // page is ready for it without another release.
-  const brandColour = pickBrandColour(
-    (storefront.brand as any)?.primaryColor,
-    (storefront.brand as any)?.accentColor,
-    (storefront as any)?.branding?.primaryColor,
-  );
+  // The brand's own colour (Brands → storefront settings). Per brand, so
+  // ?brand= swaps it along with the name and logo; none set = default accent.
+  const brandColour = pickBrandColour(storefront.brand?.primaryColor);
   const searching = !!search.trim();
   const menuTabs: CategoryTab[] = [
     ...(!searching && promoItems.length > 0

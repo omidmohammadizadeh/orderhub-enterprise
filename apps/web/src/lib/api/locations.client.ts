@@ -150,6 +150,8 @@ export interface Brand {
   description?: string | null;
   cuisine?: string | null;
   logoUrl?: string | null;
+  /** Storefront accent colour, `#rrggbb`. Null = the storefront default. */
+  primaryColor?: string | null;
   isActive: boolean;
   isSuspended: boolean;
   primaryLocationId?: string | null;

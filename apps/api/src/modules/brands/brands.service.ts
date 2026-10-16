@@ -44,6 +44,8 @@ export interface UpdateBrandDto {
   description?: string | null;
   cuisine?: string | null;
   logoUrl?: string | null;
+  /** Storefront accent colour, `#rgb` or `#rrggbb`; null/"" clears it. */
+  primaryColor?: string | null;
   isSuspended?: boolean;
   isActive?: boolean;
   primaryLocationId?: string | null;
@@ -79,6 +81,25 @@ export interface UpdateBrandDto {
   openingHours?: any;
   prepTime?: number | null;
   busyExtraPrepTime?: number | null;
+}
+
+/**
+ * A storefront colour as stored: lowercase `#rrggbb`, or null to clear.
+ * Anything else is refused rather than saved — the storefront would ignore
+ * it and the operator would see their colour "not take".
+ */
+export function normaliseBrandColour(value: string | null | undefined): string | null {
+  const raw = (value ?? "").trim();
+  if (!raw) return null;
+  const match = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(raw);
+  if (!match?.[1]) {
+    throw new BadRequestException("Brand colour must be a hex colour like #e11d48");
+  }
+  const digits =
+    match[1].length === 3
+      ? match[1].split("").map((d) => d + d).join("")
+      : match[1];
+  return `#${digits.toLowerCase()}`;
 }
 
 function slugify(name: string): string {
@@ -339,6 +360,9 @@ export class BrandsService {
         ...(dto.description !== undefined && { description: dto.description }),
         ...(dto.cuisine !== undefined && { cuisine: dto.cuisine }),
         ...(dto.logoUrl !== undefined && { logoUrl }),
+        ...(dto.primaryColor !== undefined && {
+          primaryColor: normaliseBrandColour(dto.primaryColor),
+        }),
         ...(dto.isSuspended !== undefined && { isSuspended: dto.isSuspended }),
         ...(dto.isActive !== undefined && { isActive: dto.isActive }),
         ...(dto.primaryLocationId !== undefined && {
