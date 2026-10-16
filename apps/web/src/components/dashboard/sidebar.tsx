@@ -43,6 +43,7 @@ import {
   Banknote,
   MessageSquare,
   Mail,
+  BellRing,
   Ticket,
   Clapperboard,
   CalendarDays,
@@ -182,6 +183,7 @@ const primaryNav: NavItem[] = [
   { href: "/dashboard/marketing/welcome-screen", label: "Welcome screen", icon: Smartphone, roles: MANAGER_TIER_PLUS },
   { href: "/dashboard/marketing/sms", label: "SMS Marketing", icon: MessageSquare, roles: FINANCE_ROLES },
   { href: "/dashboard/marketing/email", label: "Email Marketing", icon: Mail, roles: FINANCE_ROLES },
+  { href: "/dashboard/marketing/push", label: "Push Notifications", icon: BellRing, roles: FINANCE_ROLES },
   { href: "/dashboard/video-studio", label: "AI Studio", icon: Clapperboard, roles: MANAGER_TIER },
   // Drivers consolidated into the Dispatch console (Fleet tab) — Phase AX.
   { href: "/dashboard/reviews", label: "Reviews", icon: Star, roles: MANAGER_TIER },

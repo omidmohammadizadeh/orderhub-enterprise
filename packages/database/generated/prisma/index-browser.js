@@ -2439,9 +2439,13 @@ exports.Prisma.CustomerPushSubscriptionScalarFieldEnum = {
   tenantId: 'tenantId',
   locationId: 'locationId',
   brandId: 'brandId',
+  kind: 'kind',
+  platform: 'platform',
+  appId: 'appId',
   endpoint: 'endpoint',
   p256dh: 'p256dh',
   auth: 'auth',
+  marketingOptIn: 'marketingOptIn',
   customerId: 'customerId',
   deviceRef: 'deviceRef',
   userAgent: 'userAgent',
@@ -2458,6 +2462,48 @@ exports.Prisma.CustomerPushOrderScalarFieldEnum = {
   orderId: 'orderId',
   trackPath: 'trackPath',
   createdAt: 'createdAt'
+};
+
+exports.Prisma.PushAutomationScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  trigger: 'trigger',
+  enabled: 'enabled',
+  title: 'title',
+  body: 'body',
+  delayMinutes: 'delayMinutes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PushReviewRequestScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  orderId: 'orderId',
+  dueAt: 'dueAt',
+  status: 'status',
+  claimedAt: 'claimedAt',
+  sentAt: 'sentAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.PushCampaignScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  title: 'title',
+  body: 'body',
+  status: 'status',
+  scheduledFor: 'scheduledFor',
+  startedAt: 'startedAt',
+  sentAt: 'sentAt',
+  targeted: 'targeted',
+  delivered: 'delivered',
+  failed: 'failed',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.ContractTemplateScalarFieldEnum = {
@@ -4359,6 +4405,9 @@ exports.Prisma.CustomerPushSubscriptionOrderByRelevanceFieldEnum = {
   tenantId: 'tenantId',
   locationId: 'locationId',
   brandId: 'brandId',
+  kind: 'kind',
+  platform: 'platform',
+  appId: 'appId',
   endpoint: 'endpoint',
   p256dh: 'p256dh',
   auth: 'auth',
@@ -4372,6 +4421,32 @@ exports.Prisma.CustomerPushOrderOrderByRelevanceFieldEnum = {
   subscriptionId: 'subscriptionId',
   orderId: 'orderId',
   trackPath: 'trackPath'
+};
+
+exports.Prisma.PushAutomationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  trigger: 'trigger',
+  title: 'title',
+  body: 'body'
+};
+
+exports.Prisma.PushReviewRequestOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  orderId: 'orderId',
+  status: 'status'
+};
+
+exports.Prisma.PushCampaignOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  title: 'title',
+  body: 'body',
+  status: 'status',
+  createdBy: 'createdBy'
 };
 
 exports.Prisma.ContractTemplateOrderByRelevanceFieldEnum = {
@@ -5276,6 +5351,9 @@ exports.Prisma.ModelName = {
   GroupOrderItem: 'GroupOrderItem',
   CustomerPushSubscription: 'CustomerPushSubscription',
   CustomerPushOrder: 'CustomerPushOrder',
+  PushAutomation: 'PushAutomation',
+  PushReviewRequest: 'PushReviewRequest',
+  PushCampaign: 'PushCampaign',
   ContractTemplate: 'ContractTemplate',
   Contract: 'Contract',
   ContractEvent: 'ContractEvent',

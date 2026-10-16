@@ -5446,12 +5446,23 @@ model CustomerPushSubscription {
   locationId String?
   brandId    String?
 
+  // WEB = a browser (endpoint + keys, sent with web-push). EXPO = a restaurant's
+  // own iOS/Android app, where endpoint holds the ExponentPushToken[…] and the
+  // keys are null.
+  kind     String  @default("WEB")
+  platform String? // ios | android | web
+  appId    String? // bundle id of the native app that registered, e.g. com.orderhubsolutions.saleems
+
   // Issued by the browser's push service. Unique because re-subscribing the
   // same install must update the row, not accumulate duplicates that would
   // each fire a separate buzz for one order.
-  endpoint String @unique
-  p256dh   String
-  auth     String
+  endpoint String  @unique
+  p256dh   String?
+  auth     String?
+
+  // Order updates are what the customer asked for when they tapped "notify
+  // me"; offers are a separate yes. Campaigns only go to rows with this set.
+  marketingOptIn Boolean @default(false)
 
   // Set when the customer happens to be signed in — then every future order of
   // theirs is covered without re-subscribing.
@@ -5504,6 +5515,73 @@ model CustomerPushOrder {
   @@unique([subscriptionId, orderId])
   @@index([orderId])
   @@map("customer_push_orders")
+}
+
+// A restaurant's own wording for an order-stage push, or the stage switched
+// off. No row means the built-in message, on — which is how every tenant
+// behaved before this table existed. REVIEW_REQUEST is the one exception: it
+// is new behaviour, so it is off until a row turns it on.
+model PushAutomation {
+  id           String  @id @default(cuid())
+  tenantId     String
+  // ACCEPTED | PREPARING | READY | OUT_FOR_DELIVERY | RIDER_ARRIVED |
+  // COMPLETED | CANCELLED | REVIEW_REQUEST
+  trigger      String
+  enabled      Boolean @default(true)
+  // Null falls back to the built-in text. {order} and {shop} are filled in.
+  title        String?
+  body         String?
+  // REVIEW_REQUEST only: minutes after COMPLETED before asking.
+  delayMinutes Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, trigger])
+  @@map("push_automations")
+}
+
+// "How was your food?" — queued when an order completes, sent by a cron once
+// the delay has passed. orderId is unique so a COMPLETED that fires twice
+// (two tills, a retry) can only ever queue one ask.
+model PushReviewRequest {
+  id        String    @id @default(cuid())
+  tenantId  String
+  orderId   String    @unique
+  dueAt     DateTime
+  // PENDING → SENDING (claimed) → SENT | SKIPPED
+  status    String    @default("PENDING")
+  claimedAt DateTime?
+  sentAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([status, dueAt])
+  @@map("push_review_requests")
+}
+
+// A one-off push to every opted-in customer of a tenant, a brand or a shop.
+model PushCampaign {
+  id           String    @id @default(cuid())
+  tenantId     String
+  locationId   String?
+  brandId      String?
+  title        String
+  body         String
+  // DRAFT | SCHEDULED | SENDING | SENT | FAILED | CANCELLED
+  status       String    @default("DRAFT")
+  scheduledFor DateTime?
+  startedAt    DateTime?
+  sentAt       DateTime?
+  targeted     Int       @default(0)
+  delivered    Int       @default(0)
+  failed       Int       @default(0)
+  createdBy    String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([tenantId, createdAt])
+  @@index([status, scheduledFor])
+  @@map("push_campaigns")
 }
 
 // ── Contracts (e-signature) ───────────────────────────────────────────────────

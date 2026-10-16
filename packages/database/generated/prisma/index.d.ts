@@ -699,6 +699,21 @@ export type CustomerPushSubscription = $Result.DefaultSelection<Prisma.$Customer
  */
 export type CustomerPushOrder = $Result.DefaultSelection<Prisma.$CustomerPushOrderPayload>
 /**
+ * Model PushAutomation
+ * 
+ */
+export type PushAutomation = $Result.DefaultSelection<Prisma.$PushAutomationPayload>
+/**
+ * Model PushReviewRequest
+ * 
+ */
+export type PushReviewRequest = $Result.DefaultSelection<Prisma.$PushReviewRequestPayload>
+/**
+ * Model PushCampaign
+ * 
+ */
+export type PushCampaign = $Result.DefaultSelection<Prisma.$PushCampaignPayload>
+/**
  * Model ContractTemplate
  * 
  */
@@ -3165,6 +3180,36 @@ export class PrismaClient<
   get customerPushOrder(): Prisma.CustomerPushOrderDelegate<ExtArgs>;
 
   /**
+   * `prisma.pushAutomation`: Exposes CRUD operations for the **PushAutomation** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PushAutomations
+    * const pushAutomations = await prisma.pushAutomation.findMany()
+    * ```
+    */
+  get pushAutomation(): Prisma.PushAutomationDelegate<ExtArgs>;
+
+  /**
+   * `prisma.pushReviewRequest`: Exposes CRUD operations for the **PushReviewRequest** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PushReviewRequests
+    * const pushReviewRequests = await prisma.pushReviewRequest.findMany()
+    * ```
+    */
+  get pushReviewRequest(): Prisma.PushReviewRequestDelegate<ExtArgs>;
+
+  /**
+   * `prisma.pushCampaign`: Exposes CRUD operations for the **PushCampaign** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PushCampaigns
+    * const pushCampaigns = await prisma.pushCampaign.findMany()
+    * ```
+    */
+  get pushCampaign(): Prisma.PushCampaignDelegate<ExtArgs>;
+
+  /**
    * `prisma.contractTemplate`: Exposes CRUD operations for the **ContractTemplate** model.
     * Example usage:
     * ```ts
@@ -3980,6 +4025,9 @@ export namespace Prisma {
     GroupOrderItem: 'GroupOrderItem',
     CustomerPushSubscription: 'CustomerPushSubscription',
     CustomerPushOrder: 'CustomerPushOrder',
+    PushAutomation: 'PushAutomation',
+    PushReviewRequest: 'PushReviewRequest',
+    PushCampaign: 'PushCampaign',
     ContractTemplate: 'ContractTemplate',
     Contract: 'Contract',
     ContractEvent: 'ContractEvent',
@@ -4019,7 +4067,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "promoCodeRedemption" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "salonService" | "salonStaff" | "salonTimeOff" | "salonAppointment" | "salonQueueEntry" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "productVariant" | "productStockLevel" | "productStockMovement" | "refundLine" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "yangoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "loyaltyMember" | "loyaltyPassDevice" | "referralProgram" | "referralCode" | "referral" | "keetaAuthorization" | "emailContact" | "emailCampaign" | "emailAutomation" | "emailBirthdaySend" | "emailCampaignRecipient" | "buildGuide" | "buildStepTemplate" | "buildGuideTraining" | "assemblyChart" | "menuAutoPublish" | "autoDispatchRule" | "autoDispatchRun"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "promoCodeRedemption" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "salonService" | "salonStaff" | "salonTimeOff" | "salonAppointment" | "salonQueueEntry" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "productVariant" | "productStockLevel" | "productStockMovement" | "refundLine" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "yangoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "pushAutomation" | "pushReviewRequest" | "pushCampaign" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "loyaltyMember" | "loyaltyPassDevice" | "referralProgram" | "referralCode" | "referral" | "keetaAuthorization" | "emailContact" | "emailCampaign" | "emailAutomation" | "emailBirthdaySend" | "emailCampaignRecipient" | "buildGuide" | "buildStepTemplate" | "buildGuideTraining" | "assemblyChart" | "menuAutoPublish" | "autoDispatchRule" | "autoDispatchRun"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -13540,6 +13588,216 @@ export namespace Prisma {
           count: {
             args: Prisma.CustomerPushOrderCountArgs<ExtArgs>
             result: $Utils.Optional<CustomerPushOrderCountAggregateOutputType> | number
+          }
+        }
+      }
+      PushAutomation: {
+        payload: Prisma.$PushAutomationPayload<ExtArgs>
+        fields: Prisma.PushAutomationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PushAutomationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushAutomationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PushAutomationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushAutomationPayload>
+          }
+          findFirst: {
+            args: Prisma.PushAutomationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushAutomationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PushAutomationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushAutomationPayload>
+          }
+          findMany: {
+            args: Prisma.PushAutomationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushAutomationPayload>[]
+          }
+          create: {
+            args: Prisma.PushAutomationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushAutomationPayload>
+          }
+          createMany: {
+            args: Prisma.PushAutomationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.PushAutomationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushAutomationPayload>[]
+          }
+          delete: {
+            args: Prisma.PushAutomationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushAutomationPayload>
+          }
+          update: {
+            args: Prisma.PushAutomationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushAutomationPayload>
+          }
+          deleteMany: {
+            args: Prisma.PushAutomationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PushAutomationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.PushAutomationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushAutomationPayload>
+          }
+          aggregate: {
+            args: Prisma.PushAutomationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePushAutomation>
+          }
+          groupBy: {
+            args: Prisma.PushAutomationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PushAutomationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PushAutomationCountArgs<ExtArgs>
+            result: $Utils.Optional<PushAutomationCountAggregateOutputType> | number
+          }
+        }
+      }
+      PushReviewRequest: {
+        payload: Prisma.$PushReviewRequestPayload<ExtArgs>
+        fields: Prisma.PushReviewRequestFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PushReviewRequestFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushReviewRequestPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PushReviewRequestFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushReviewRequestPayload>
+          }
+          findFirst: {
+            args: Prisma.PushReviewRequestFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushReviewRequestPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PushReviewRequestFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushReviewRequestPayload>
+          }
+          findMany: {
+            args: Prisma.PushReviewRequestFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushReviewRequestPayload>[]
+          }
+          create: {
+            args: Prisma.PushReviewRequestCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushReviewRequestPayload>
+          }
+          createMany: {
+            args: Prisma.PushReviewRequestCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.PushReviewRequestCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushReviewRequestPayload>[]
+          }
+          delete: {
+            args: Prisma.PushReviewRequestDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushReviewRequestPayload>
+          }
+          update: {
+            args: Prisma.PushReviewRequestUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushReviewRequestPayload>
+          }
+          deleteMany: {
+            args: Prisma.PushReviewRequestDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PushReviewRequestUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.PushReviewRequestUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushReviewRequestPayload>
+          }
+          aggregate: {
+            args: Prisma.PushReviewRequestAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePushReviewRequest>
+          }
+          groupBy: {
+            args: Prisma.PushReviewRequestGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PushReviewRequestGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PushReviewRequestCountArgs<ExtArgs>
+            result: $Utils.Optional<PushReviewRequestCountAggregateOutputType> | number
+          }
+        }
+      }
+      PushCampaign: {
+        payload: Prisma.$PushCampaignPayload<ExtArgs>
+        fields: Prisma.PushCampaignFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PushCampaignFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushCampaignPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PushCampaignFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushCampaignPayload>
+          }
+          findFirst: {
+            args: Prisma.PushCampaignFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushCampaignPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PushCampaignFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushCampaignPayload>
+          }
+          findMany: {
+            args: Prisma.PushCampaignFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushCampaignPayload>[]
+          }
+          create: {
+            args: Prisma.PushCampaignCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushCampaignPayload>
+          }
+          createMany: {
+            args: Prisma.PushCampaignCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.PushCampaignCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushCampaignPayload>[]
+          }
+          delete: {
+            args: Prisma.PushCampaignDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushCampaignPayload>
+          }
+          update: {
+            args: Prisma.PushCampaignUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushCampaignPayload>
+          }
+          deleteMany: {
+            args: Prisma.PushCampaignDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PushCampaignUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.PushCampaignUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushCampaignPayload>
+          }
+          aggregate: {
+            args: Prisma.PushCampaignAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePushCampaign>
+          }
+          groupBy: {
+            args: Prisma.PushCampaignGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PushCampaignGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PushCampaignCountArgs<ExtArgs>
+            result: $Utils.Optional<PushCampaignCountAggregateOutputType> | number
           }
         }
       }
@@ -163702,9 +163960,13 @@ export namespace Prisma {
     tenantId: string | null
     locationId: string | null
     brandId: string | null
+    kind: string | null
+    platform: string | null
+    appId: string | null
     endpoint: string | null
     p256dh: string | null
     auth: string | null
+    marketingOptIn: boolean | null
     customerId: string | null
     deviceRef: string | null
     userAgent: string | null
@@ -163720,9 +163982,13 @@ export namespace Prisma {
     tenantId: string | null
     locationId: string | null
     brandId: string | null
+    kind: string | null
+    platform: string | null
+    appId: string | null
     endpoint: string | null
     p256dh: string | null
     auth: string | null
+    marketingOptIn: boolean | null
     customerId: string | null
     deviceRef: string | null
     userAgent: string | null
@@ -163738,9 +164004,13 @@ export namespace Prisma {
     tenantId: number
     locationId: number
     brandId: number
+    kind: number
+    platform: number
+    appId: number
     endpoint: number
     p256dh: number
     auth: number
+    marketingOptIn: number
     customerId: number
     deviceRef: number
     userAgent: number
@@ -163758,9 +164028,13 @@ export namespace Prisma {
     tenantId?: true
     locationId?: true
     brandId?: true
+    kind?: true
+    platform?: true
+    appId?: true
     endpoint?: true
     p256dh?: true
     auth?: true
+    marketingOptIn?: true
     customerId?: true
     deviceRef?: true
     userAgent?: true
@@ -163776,9 +164050,13 @@ export namespace Prisma {
     tenantId?: true
     locationId?: true
     brandId?: true
+    kind?: true
+    platform?: true
+    appId?: true
     endpoint?: true
     p256dh?: true
     auth?: true
+    marketingOptIn?: true
     customerId?: true
     deviceRef?: true
     userAgent?: true
@@ -163794,9 +164072,13 @@ export namespace Prisma {
     tenantId?: true
     locationId?: true
     brandId?: true
+    kind?: true
+    platform?: true
+    appId?: true
     endpoint?: true
     p256dh?: true
     auth?: true
+    marketingOptIn?: true
     customerId?: true
     deviceRef?: true
     userAgent?: true
@@ -163885,9 +164167,13 @@ export namespace Prisma {
     tenantId: string
     locationId: string | null
     brandId: string | null
+    kind: string
+    platform: string | null
+    appId: string | null
     endpoint: string
-    p256dh: string
-    auth: string
+    p256dh: string | null
+    auth: string | null
+    marketingOptIn: boolean
     customerId: string | null
     deviceRef: string | null
     userAgent: string | null
@@ -163920,9 +164206,13 @@ export namespace Prisma {
     tenantId?: boolean
     locationId?: boolean
     brandId?: boolean
+    kind?: boolean
+    platform?: boolean
+    appId?: boolean
     endpoint?: boolean
     p256dh?: boolean
     auth?: boolean
+    marketingOptIn?: boolean
     customerId?: boolean
     deviceRef?: boolean
     userAgent?: boolean
@@ -163940,9 +164230,13 @@ export namespace Prisma {
     tenantId?: boolean
     locationId?: boolean
     brandId?: boolean
+    kind?: boolean
+    platform?: boolean
+    appId?: boolean
     endpoint?: boolean
     p256dh?: boolean
     auth?: boolean
+    marketingOptIn?: boolean
     customerId?: boolean
     deviceRef?: boolean
     userAgent?: boolean
@@ -163958,9 +164252,13 @@ export namespace Prisma {
     tenantId?: boolean
     locationId?: boolean
     brandId?: boolean
+    kind?: boolean
+    platform?: boolean
+    appId?: boolean
     endpoint?: boolean
     p256dh?: boolean
     auth?: boolean
+    marketingOptIn?: boolean
     customerId?: boolean
     deviceRef?: boolean
     userAgent?: boolean
@@ -163987,9 +164285,13 @@ export namespace Prisma {
       tenantId: string
       locationId: string | null
       brandId: string | null
+      kind: string
+      platform: string | null
+      appId: string | null
       endpoint: string
-      p256dh: string
-      auth: string
+      p256dh: string | null
+      auth: string | null
+      marketingOptIn: boolean
       customerId: string | null
       deviceRef: string | null
       userAgent: string | null
@@ -164396,9 +164698,13 @@ export namespace Prisma {
     readonly tenantId: FieldRef<"CustomerPushSubscription", 'String'>
     readonly locationId: FieldRef<"CustomerPushSubscription", 'String'>
     readonly brandId: FieldRef<"CustomerPushSubscription", 'String'>
+    readonly kind: FieldRef<"CustomerPushSubscription", 'String'>
+    readonly platform: FieldRef<"CustomerPushSubscription", 'String'>
+    readonly appId: FieldRef<"CustomerPushSubscription", 'String'>
     readonly endpoint: FieldRef<"CustomerPushSubscription", 'String'>
     readonly p256dh: FieldRef<"CustomerPushSubscription", 'String'>
     readonly auth: FieldRef<"CustomerPushSubscription", 'String'>
+    readonly marketingOptIn: FieldRef<"CustomerPushSubscription", 'Boolean'>
     readonly customerId: FieldRef<"CustomerPushSubscription", 'String'>
     readonly deviceRef: FieldRef<"CustomerPushSubscription", 'String'>
     readonly userAgent: FieldRef<"CustomerPushSubscription", 'String'>
@@ -165685,6 +165991,2932 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: CustomerPushOrderInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model PushAutomation
+   */
+
+  export type AggregatePushAutomation = {
+    _count: PushAutomationCountAggregateOutputType | null
+    _avg: PushAutomationAvgAggregateOutputType | null
+    _sum: PushAutomationSumAggregateOutputType | null
+    _min: PushAutomationMinAggregateOutputType | null
+    _max: PushAutomationMaxAggregateOutputType | null
+  }
+
+  export type PushAutomationAvgAggregateOutputType = {
+    delayMinutes: number | null
+  }
+
+  export type PushAutomationSumAggregateOutputType = {
+    delayMinutes: number | null
+  }
+
+  export type PushAutomationMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    trigger: string | null
+    enabled: boolean | null
+    title: string | null
+    body: string | null
+    delayMinutes: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PushAutomationMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    trigger: string | null
+    enabled: boolean | null
+    title: string | null
+    body: string | null
+    delayMinutes: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PushAutomationCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    trigger: number
+    enabled: number
+    title: number
+    body: number
+    delayMinutes: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type PushAutomationAvgAggregateInputType = {
+    delayMinutes?: true
+  }
+
+  export type PushAutomationSumAggregateInputType = {
+    delayMinutes?: true
+  }
+
+  export type PushAutomationMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    trigger?: true
+    enabled?: true
+    title?: true
+    body?: true
+    delayMinutes?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PushAutomationMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    trigger?: true
+    enabled?: true
+    title?: true
+    body?: true
+    delayMinutes?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PushAutomationCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    trigger?: true
+    enabled?: true
+    title?: true
+    body?: true
+    delayMinutes?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type PushAutomationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PushAutomation to aggregate.
+     */
+    where?: PushAutomationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PushAutomations to fetch.
+     */
+    orderBy?: PushAutomationOrderByWithRelationInput | PushAutomationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PushAutomationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PushAutomations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PushAutomations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PushAutomations
+    **/
+    _count?: true | PushAutomationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: PushAutomationAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: PushAutomationSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PushAutomationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PushAutomationMaxAggregateInputType
+  }
+
+  export type GetPushAutomationAggregateType<T extends PushAutomationAggregateArgs> = {
+        [P in keyof T & keyof AggregatePushAutomation]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePushAutomation[P]>
+      : GetScalarType<T[P], AggregatePushAutomation[P]>
+  }
+
+
+
+
+  export type PushAutomationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PushAutomationWhereInput
+    orderBy?: PushAutomationOrderByWithAggregationInput | PushAutomationOrderByWithAggregationInput[]
+    by: PushAutomationScalarFieldEnum[] | PushAutomationScalarFieldEnum
+    having?: PushAutomationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PushAutomationCountAggregateInputType | true
+    _avg?: PushAutomationAvgAggregateInputType
+    _sum?: PushAutomationSumAggregateInputType
+    _min?: PushAutomationMinAggregateInputType
+    _max?: PushAutomationMaxAggregateInputType
+  }
+
+  export type PushAutomationGroupByOutputType = {
+    id: string
+    tenantId: string
+    trigger: string
+    enabled: boolean
+    title: string | null
+    body: string | null
+    delayMinutes: number | null
+    createdAt: Date
+    updatedAt: Date
+    _count: PushAutomationCountAggregateOutputType | null
+    _avg: PushAutomationAvgAggregateOutputType | null
+    _sum: PushAutomationSumAggregateOutputType | null
+    _min: PushAutomationMinAggregateOutputType | null
+    _max: PushAutomationMaxAggregateOutputType | null
+  }
+
+  type GetPushAutomationGroupByPayload<T extends PushAutomationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PushAutomationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PushAutomationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PushAutomationGroupByOutputType[P]>
+            : GetScalarType<T[P], PushAutomationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PushAutomationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    trigger?: boolean
+    enabled?: boolean
+    title?: boolean
+    body?: boolean
+    delayMinutes?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["pushAutomation"]>
+
+  export type PushAutomationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    trigger?: boolean
+    enabled?: boolean
+    title?: boolean
+    body?: boolean
+    delayMinutes?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["pushAutomation"]>
+
+  export type PushAutomationSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    trigger?: boolean
+    enabled?: boolean
+    title?: boolean
+    body?: boolean
+    delayMinutes?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+
+  export type $PushAutomationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PushAutomation"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      trigger: string
+      enabled: boolean
+      title: string | null
+      body: string | null
+      delayMinutes: number | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["pushAutomation"]>
+    composites: {}
+  }
+
+  type PushAutomationGetPayload<S extends boolean | null | undefined | PushAutomationDefaultArgs> = $Result.GetResult<Prisma.$PushAutomationPayload, S>
+
+  type PushAutomationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<PushAutomationFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: PushAutomationCountAggregateInputType | true
+    }
+
+  export interface PushAutomationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PushAutomation'], meta: { name: 'PushAutomation' } }
+    /**
+     * Find zero or one PushAutomation that matches the filter.
+     * @param {PushAutomationFindUniqueArgs} args - Arguments to find a PushAutomation
+     * @example
+     * // Get one PushAutomation
+     * const pushAutomation = await prisma.pushAutomation.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PushAutomationFindUniqueArgs>(args: SelectSubset<T, PushAutomationFindUniqueArgs<ExtArgs>>): Prisma__PushAutomationClient<$Result.GetResult<Prisma.$PushAutomationPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one PushAutomation that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {PushAutomationFindUniqueOrThrowArgs} args - Arguments to find a PushAutomation
+     * @example
+     * // Get one PushAutomation
+     * const pushAutomation = await prisma.pushAutomation.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PushAutomationFindUniqueOrThrowArgs>(args: SelectSubset<T, PushAutomationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PushAutomationClient<$Result.GetResult<Prisma.$PushAutomationPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first PushAutomation that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PushAutomationFindFirstArgs} args - Arguments to find a PushAutomation
+     * @example
+     * // Get one PushAutomation
+     * const pushAutomation = await prisma.pushAutomation.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PushAutomationFindFirstArgs>(args?: SelectSubset<T, PushAutomationFindFirstArgs<ExtArgs>>): Prisma__PushAutomationClient<$Result.GetResult<Prisma.$PushAutomationPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first PushAutomation that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PushAutomationFindFirstOrThrowArgs} args - Arguments to find a PushAutomation
+     * @example
+     * // Get one PushAutomation
+     * const pushAutomation = await prisma.pushAutomation.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PushAutomationFindFirstOrThrowArgs>(args?: SelectSubset<T, PushAutomationFindFirstOrThrowArgs<ExtArgs>>): Prisma__PushAutomationClient<$Result.GetResult<Prisma.$PushAutomationPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more PushAutomations that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PushAutomationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PushAutomations
+     * const pushAutomations = await prisma.pushAutomation.findMany()
+     * 
+     * // Get first 10 PushAutomations
+     * const pushAutomations = await prisma.pushAutomation.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const pushAutomationWithIdOnly = await prisma.pushAutomation.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PushAutomationFindManyArgs>(args?: SelectSubset<T, PushAutomationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PushAutomationPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a PushAutomation.
+     * @param {PushAutomationCreateArgs} args - Arguments to create a PushAutomation.
+     * @example
+     * // Create one PushAutomation
+     * const PushAutomation = await prisma.pushAutomation.create({
+     *   data: {
+     *     // ... data to create a PushAutomation
+     *   }
+     * })
+     * 
+     */
+    create<T extends PushAutomationCreateArgs>(args: SelectSubset<T, PushAutomationCreateArgs<ExtArgs>>): Prisma__PushAutomationClient<$Result.GetResult<Prisma.$PushAutomationPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many PushAutomations.
+     * @param {PushAutomationCreateManyArgs} args - Arguments to create many PushAutomations.
+     * @example
+     * // Create many PushAutomations
+     * const pushAutomation = await prisma.pushAutomation.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PushAutomationCreateManyArgs>(args?: SelectSubset<T, PushAutomationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many PushAutomations and returns the data saved in the database.
+     * @param {PushAutomationCreateManyAndReturnArgs} args - Arguments to create many PushAutomations.
+     * @example
+     * // Create many PushAutomations
+     * const pushAutomation = await prisma.pushAutomation.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many PushAutomations and only return the `id`
+     * const pushAutomationWithIdOnly = await prisma.pushAutomation.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends PushAutomationCreateManyAndReturnArgs>(args?: SelectSubset<T, PushAutomationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PushAutomationPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a PushAutomation.
+     * @param {PushAutomationDeleteArgs} args - Arguments to delete one PushAutomation.
+     * @example
+     * // Delete one PushAutomation
+     * const PushAutomation = await prisma.pushAutomation.delete({
+     *   where: {
+     *     // ... filter to delete one PushAutomation
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PushAutomationDeleteArgs>(args: SelectSubset<T, PushAutomationDeleteArgs<ExtArgs>>): Prisma__PushAutomationClient<$Result.GetResult<Prisma.$PushAutomationPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one PushAutomation.
+     * @param {PushAutomationUpdateArgs} args - Arguments to update one PushAutomation.
+     * @example
+     * // Update one PushAutomation
+     * const pushAutomation = await prisma.pushAutomation.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PushAutomationUpdateArgs>(args: SelectSubset<T, PushAutomationUpdateArgs<ExtArgs>>): Prisma__PushAutomationClient<$Result.GetResult<Prisma.$PushAutomationPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more PushAutomations.
+     * @param {PushAutomationDeleteManyArgs} args - Arguments to filter PushAutomations to delete.
+     * @example
+     * // Delete a few PushAutomations
+     * const { count } = await prisma.pushAutomation.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PushAutomationDeleteManyArgs>(args?: SelectSubset<T, PushAutomationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PushAutomations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PushAutomationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PushAutomations
+     * const pushAutomation = await prisma.pushAutomation.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PushAutomationUpdateManyArgs>(args: SelectSubset<T, PushAutomationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one PushAutomation.
+     * @param {PushAutomationUpsertArgs} args - Arguments to update or create a PushAutomation.
+     * @example
+     * // Update or create a PushAutomation
+     * const pushAutomation = await prisma.pushAutomation.upsert({
+     *   create: {
+     *     // ... data to create a PushAutomation
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PushAutomation we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PushAutomationUpsertArgs>(args: SelectSubset<T, PushAutomationUpsertArgs<ExtArgs>>): Prisma__PushAutomationClient<$Result.GetResult<Prisma.$PushAutomationPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of PushAutomations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PushAutomationCountArgs} args - Arguments to filter PushAutomations to count.
+     * @example
+     * // Count the number of PushAutomations
+     * const count = await prisma.pushAutomation.count({
+     *   where: {
+     *     // ... the filter for the PushAutomations we want to count
+     *   }
+     * })
+    **/
+    count<T extends PushAutomationCountArgs>(
+      args?: Subset<T, PushAutomationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PushAutomationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PushAutomation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PushAutomationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PushAutomationAggregateArgs>(args: Subset<T, PushAutomationAggregateArgs>): Prisma.PrismaPromise<GetPushAutomationAggregateType<T>>
+
+    /**
+     * Group by PushAutomation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PushAutomationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PushAutomationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PushAutomationGroupByArgs['orderBy'] }
+        : { orderBy?: PushAutomationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PushAutomationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPushAutomationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PushAutomation model
+   */
+  readonly fields: PushAutomationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PushAutomation.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PushAutomationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PushAutomation model
+   */ 
+  interface PushAutomationFieldRefs {
+    readonly id: FieldRef<"PushAutomation", 'String'>
+    readonly tenantId: FieldRef<"PushAutomation", 'String'>
+    readonly trigger: FieldRef<"PushAutomation", 'String'>
+    readonly enabled: FieldRef<"PushAutomation", 'Boolean'>
+    readonly title: FieldRef<"PushAutomation", 'String'>
+    readonly body: FieldRef<"PushAutomation", 'String'>
+    readonly delayMinutes: FieldRef<"PushAutomation", 'Int'>
+    readonly createdAt: FieldRef<"PushAutomation", 'DateTime'>
+    readonly updatedAt: FieldRef<"PushAutomation", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PushAutomation findUnique
+   */
+  export type PushAutomationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushAutomation
+     */
+    select?: PushAutomationSelect<ExtArgs> | null
+    /**
+     * Filter, which PushAutomation to fetch.
+     */
+    where: PushAutomationWhereUniqueInput
+  }
+
+  /**
+   * PushAutomation findUniqueOrThrow
+   */
+  export type PushAutomationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushAutomation
+     */
+    select?: PushAutomationSelect<ExtArgs> | null
+    /**
+     * Filter, which PushAutomation to fetch.
+     */
+    where: PushAutomationWhereUniqueInput
+  }
+
+  /**
+   * PushAutomation findFirst
+   */
+  export type PushAutomationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushAutomation
+     */
+    select?: PushAutomationSelect<ExtArgs> | null
+    /**
+     * Filter, which PushAutomation to fetch.
+     */
+    where?: PushAutomationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PushAutomations to fetch.
+     */
+    orderBy?: PushAutomationOrderByWithRelationInput | PushAutomationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PushAutomations.
+     */
+    cursor?: PushAutomationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PushAutomations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PushAutomations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PushAutomations.
+     */
+    distinct?: PushAutomationScalarFieldEnum | PushAutomationScalarFieldEnum[]
+  }
+
+  /**
+   * PushAutomation findFirstOrThrow
+   */
+  export type PushAutomationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushAutomation
+     */
+    select?: PushAutomationSelect<ExtArgs> | null
+    /**
+     * Filter, which PushAutomation to fetch.
+     */
+    where?: PushAutomationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PushAutomations to fetch.
+     */
+    orderBy?: PushAutomationOrderByWithRelationInput | PushAutomationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PushAutomations.
+     */
+    cursor?: PushAutomationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PushAutomations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PushAutomations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PushAutomations.
+     */
+    distinct?: PushAutomationScalarFieldEnum | PushAutomationScalarFieldEnum[]
+  }
+
+  /**
+   * PushAutomation findMany
+   */
+  export type PushAutomationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushAutomation
+     */
+    select?: PushAutomationSelect<ExtArgs> | null
+    /**
+     * Filter, which PushAutomations to fetch.
+     */
+    where?: PushAutomationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PushAutomations to fetch.
+     */
+    orderBy?: PushAutomationOrderByWithRelationInput | PushAutomationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PushAutomations.
+     */
+    cursor?: PushAutomationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PushAutomations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PushAutomations.
+     */
+    skip?: number
+    distinct?: PushAutomationScalarFieldEnum | PushAutomationScalarFieldEnum[]
+  }
+
+  /**
+   * PushAutomation create
+   */
+  export type PushAutomationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushAutomation
+     */
+    select?: PushAutomationSelect<ExtArgs> | null
+    /**
+     * The data needed to create a PushAutomation.
+     */
+    data: XOR<PushAutomationCreateInput, PushAutomationUncheckedCreateInput>
+  }
+
+  /**
+   * PushAutomation createMany
+   */
+  export type PushAutomationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PushAutomations.
+     */
+    data: PushAutomationCreateManyInput | PushAutomationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PushAutomation createManyAndReturn
+   */
+  export type PushAutomationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushAutomation
+     */
+    select?: PushAutomationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many PushAutomations.
+     */
+    data: PushAutomationCreateManyInput | PushAutomationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PushAutomation update
+   */
+  export type PushAutomationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushAutomation
+     */
+    select?: PushAutomationSelect<ExtArgs> | null
+    /**
+     * The data needed to update a PushAutomation.
+     */
+    data: XOR<PushAutomationUpdateInput, PushAutomationUncheckedUpdateInput>
+    /**
+     * Choose, which PushAutomation to update.
+     */
+    where: PushAutomationWhereUniqueInput
+  }
+
+  /**
+   * PushAutomation updateMany
+   */
+  export type PushAutomationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PushAutomations.
+     */
+    data: XOR<PushAutomationUpdateManyMutationInput, PushAutomationUncheckedUpdateManyInput>
+    /**
+     * Filter which PushAutomations to update
+     */
+    where?: PushAutomationWhereInput
+  }
+
+  /**
+   * PushAutomation upsert
+   */
+  export type PushAutomationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushAutomation
+     */
+    select?: PushAutomationSelect<ExtArgs> | null
+    /**
+     * The filter to search for the PushAutomation to update in case it exists.
+     */
+    where: PushAutomationWhereUniqueInput
+    /**
+     * In case the PushAutomation found by the `where` argument doesn't exist, create a new PushAutomation with this data.
+     */
+    create: XOR<PushAutomationCreateInput, PushAutomationUncheckedCreateInput>
+    /**
+     * In case the PushAutomation was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PushAutomationUpdateInput, PushAutomationUncheckedUpdateInput>
+  }
+
+  /**
+   * PushAutomation delete
+   */
+  export type PushAutomationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushAutomation
+     */
+    select?: PushAutomationSelect<ExtArgs> | null
+    /**
+     * Filter which PushAutomation to delete.
+     */
+    where: PushAutomationWhereUniqueInput
+  }
+
+  /**
+   * PushAutomation deleteMany
+   */
+  export type PushAutomationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PushAutomations to delete
+     */
+    where?: PushAutomationWhereInput
+  }
+
+  /**
+   * PushAutomation without action
+   */
+  export type PushAutomationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushAutomation
+     */
+    select?: PushAutomationSelect<ExtArgs> | null
+  }
+
+
+  /**
+   * Model PushReviewRequest
+   */
+
+  export type AggregatePushReviewRequest = {
+    _count: PushReviewRequestCountAggregateOutputType | null
+    _min: PushReviewRequestMinAggregateOutputType | null
+    _max: PushReviewRequestMaxAggregateOutputType | null
+  }
+
+  export type PushReviewRequestMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    orderId: string | null
+    dueAt: Date | null
+    status: string | null
+    claimedAt: Date | null
+    sentAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type PushReviewRequestMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    orderId: string | null
+    dueAt: Date | null
+    status: string | null
+    claimedAt: Date | null
+    sentAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type PushReviewRequestCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    orderId: number
+    dueAt: number
+    status: number
+    claimedAt: number
+    sentAt: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type PushReviewRequestMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    orderId?: true
+    dueAt?: true
+    status?: true
+    claimedAt?: true
+    sentAt?: true
+    createdAt?: true
+  }
+
+  export type PushReviewRequestMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    orderId?: true
+    dueAt?: true
+    status?: true
+    claimedAt?: true
+    sentAt?: true
+    createdAt?: true
+  }
+
+  export type PushReviewRequestCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    orderId?: true
+    dueAt?: true
+    status?: true
+    claimedAt?: true
+    sentAt?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type PushReviewRequestAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PushReviewRequest to aggregate.
+     */
+    where?: PushReviewRequestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PushReviewRequests to fetch.
+     */
+    orderBy?: PushReviewRequestOrderByWithRelationInput | PushReviewRequestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PushReviewRequestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PushReviewRequests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PushReviewRequests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PushReviewRequests
+    **/
+    _count?: true | PushReviewRequestCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PushReviewRequestMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PushReviewRequestMaxAggregateInputType
+  }
+
+  export type GetPushReviewRequestAggregateType<T extends PushReviewRequestAggregateArgs> = {
+        [P in keyof T & keyof AggregatePushReviewRequest]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePushReviewRequest[P]>
+      : GetScalarType<T[P], AggregatePushReviewRequest[P]>
+  }
+
+
+
+
+  export type PushReviewRequestGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PushReviewRequestWhereInput
+    orderBy?: PushReviewRequestOrderByWithAggregationInput | PushReviewRequestOrderByWithAggregationInput[]
+    by: PushReviewRequestScalarFieldEnum[] | PushReviewRequestScalarFieldEnum
+    having?: PushReviewRequestScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PushReviewRequestCountAggregateInputType | true
+    _min?: PushReviewRequestMinAggregateInputType
+    _max?: PushReviewRequestMaxAggregateInputType
+  }
+
+  export type PushReviewRequestGroupByOutputType = {
+    id: string
+    tenantId: string
+    orderId: string
+    dueAt: Date
+    status: string
+    claimedAt: Date | null
+    sentAt: Date | null
+    createdAt: Date
+    _count: PushReviewRequestCountAggregateOutputType | null
+    _min: PushReviewRequestMinAggregateOutputType | null
+    _max: PushReviewRequestMaxAggregateOutputType | null
+  }
+
+  type GetPushReviewRequestGroupByPayload<T extends PushReviewRequestGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PushReviewRequestGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PushReviewRequestGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PushReviewRequestGroupByOutputType[P]>
+            : GetScalarType<T[P], PushReviewRequestGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PushReviewRequestSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    orderId?: boolean
+    dueAt?: boolean
+    status?: boolean
+    claimedAt?: boolean
+    sentAt?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["pushReviewRequest"]>
+
+  export type PushReviewRequestSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    orderId?: boolean
+    dueAt?: boolean
+    status?: boolean
+    claimedAt?: boolean
+    sentAt?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["pushReviewRequest"]>
+
+  export type PushReviewRequestSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    orderId?: boolean
+    dueAt?: boolean
+    status?: boolean
+    claimedAt?: boolean
+    sentAt?: boolean
+    createdAt?: boolean
+  }
+
+
+  export type $PushReviewRequestPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PushReviewRequest"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      orderId: string
+      dueAt: Date
+      status: string
+      claimedAt: Date | null
+      sentAt: Date | null
+      createdAt: Date
+    }, ExtArgs["result"]["pushReviewRequest"]>
+    composites: {}
+  }
+
+  type PushReviewRequestGetPayload<S extends boolean | null | undefined | PushReviewRequestDefaultArgs> = $Result.GetResult<Prisma.$PushReviewRequestPayload, S>
+
+  type PushReviewRequestCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<PushReviewRequestFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: PushReviewRequestCountAggregateInputType | true
+    }
+
+  export interface PushReviewRequestDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PushReviewRequest'], meta: { name: 'PushReviewRequest' } }
+    /**
+     * Find zero or one PushReviewRequest that matches the filter.
+     * @param {PushReviewRequestFindUniqueArgs} args - Arguments to find a PushReviewRequest
+     * @example
+     * // Get one PushReviewRequest
+     * const pushReviewRequest = await prisma.pushReviewRequest.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PushReviewRequestFindUniqueArgs>(args: SelectSubset<T, PushReviewRequestFindUniqueArgs<ExtArgs>>): Prisma__PushReviewRequestClient<$Result.GetResult<Prisma.$PushReviewRequestPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one PushReviewRequest that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {PushReviewRequestFindUniqueOrThrowArgs} args - Arguments to find a PushReviewRequest
+     * @example
+     * // Get one PushReviewRequest
+     * const pushReviewRequest = await prisma.pushReviewRequest.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PushReviewRequestFindUniqueOrThrowArgs>(args: SelectSubset<T, PushReviewRequestFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PushReviewRequestClient<$Result.GetResult<Prisma.$PushReviewRequestPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first PushReviewRequest that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PushReviewRequestFindFirstArgs} args - Arguments to find a PushReviewRequest
+     * @example
+     * // Get one PushReviewRequest
+     * const pushReviewRequest = await prisma.pushReviewRequest.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PushReviewRequestFindFirstArgs>(args?: SelectSubset<T, PushReviewRequestFindFirstArgs<ExtArgs>>): Prisma__PushReviewRequestClient<$Result.GetResult<Prisma.$PushReviewRequestPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first PushReviewRequest that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PushReviewRequestFindFirstOrThrowArgs} args - Arguments to find a PushReviewRequest
+     * @example
+     * // Get one PushReviewRequest
+     * const pushReviewRequest = await prisma.pushReviewRequest.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PushReviewRequestFindFirstOrThrowArgs>(args?: SelectSubset<T, PushReviewRequestFindFirstOrThrowArgs<ExtArgs>>): Prisma__PushReviewRequestClient<$Result.GetResult<Prisma.$PushReviewRequestPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more PushReviewRequests that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PushReviewRequestFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PushReviewRequests
+     * const pushReviewRequests = await prisma.pushReviewRequest.findMany()
+     * 
+     * // Get first 10 PushReviewRequests
+     * const pushReviewRequests = await prisma.pushReviewRequest.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const pushReviewRequestWithIdOnly = await prisma.pushReviewRequest.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PushReviewRequestFindManyArgs>(args?: SelectSubset<T, PushReviewRequestFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PushReviewRequestPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a PushReviewRequest.
+     * @param {PushReviewRequestCreateArgs} args - Arguments to create a PushReviewRequest.
+     * @example
+     * // Create one PushReviewRequest
+     * const PushReviewRequest = await prisma.pushReviewRequest.create({
+     *   data: {
+     *     // ... data to create a PushReviewRequest
+     *   }
+     * })
+     * 
+     */
+    create<T extends PushReviewRequestCreateArgs>(args: SelectSubset<T, PushReviewRequestCreateArgs<ExtArgs>>): Prisma__PushReviewRequestClient<$Result.GetResult<Prisma.$PushReviewRequestPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many PushReviewRequests.
+     * @param {PushReviewRequestCreateManyArgs} args - Arguments to create many PushReviewRequests.
+     * @example
+     * // Create many PushReviewRequests
+     * const pushReviewRequest = await prisma.pushReviewRequest.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PushReviewRequestCreateManyArgs>(args?: SelectSubset<T, PushReviewRequestCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many PushReviewRequests and returns the data saved in the database.
+     * @param {PushReviewRequestCreateManyAndReturnArgs} args - Arguments to create many PushReviewRequests.
+     * @example
+     * // Create many PushReviewRequests
+     * const pushReviewRequest = await prisma.pushReviewRequest.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many PushReviewRequests and only return the `id`
+     * const pushReviewRequestWithIdOnly = await prisma.pushReviewRequest.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends PushReviewRequestCreateManyAndReturnArgs>(args?: SelectSubset<T, PushReviewRequestCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PushReviewRequestPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a PushReviewRequest.
+     * @param {PushReviewRequestDeleteArgs} args - Arguments to delete one PushReviewRequest.
+     * @example
+     * // Delete one PushReviewRequest
+     * const PushReviewRequest = await prisma.pushReviewRequest.delete({
+     *   where: {
+     *     // ... filter to delete one PushReviewRequest
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PushReviewRequestDeleteArgs>(args: SelectSubset<T, PushReviewRequestDeleteArgs<ExtArgs>>): Prisma__PushReviewRequestClient<$Result.GetResult<Prisma.$PushReviewRequestPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one PushReviewRequest.
+     * @param {PushReviewRequestUpdateArgs} args - Arguments to update one PushReviewRequest.
+     * @example
+     * // Update one PushReviewRequest
+     * const pushReviewRequest = await prisma.pushReviewRequest.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PushReviewRequestUpdateArgs>(args: SelectSubset<T, PushReviewRequestUpdateArgs<ExtArgs>>): Prisma__PushReviewRequestClient<$Result.GetResult<Prisma.$PushReviewRequestPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more PushReviewRequests.
+     * @param {PushReviewRequestDeleteManyArgs} args - Arguments to filter PushReviewRequests to delete.
+     * @example
+     * // Delete a few PushReviewRequests
+     * const { count } = await prisma.pushReviewRequest.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PushReviewRequestDeleteManyArgs>(args?: SelectSubset<T, PushReviewRequestDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PushReviewRequests.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PushReviewRequestUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PushReviewRequests
+     * const pushReviewRequest = await prisma.pushReviewRequest.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PushReviewRequestUpdateManyArgs>(args: SelectSubset<T, PushReviewRequestUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one PushReviewRequest.
+     * @param {PushReviewRequestUpsertArgs} args - Arguments to update or create a PushReviewRequest.
+     * @example
+     * // Update or create a PushReviewRequest
+     * const pushReviewRequest = await prisma.pushReviewRequest.upsert({
+     *   create: {
+     *     // ... data to create a PushReviewRequest
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PushReviewRequest we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PushReviewRequestUpsertArgs>(args: SelectSubset<T, PushReviewRequestUpsertArgs<ExtArgs>>): Prisma__PushReviewRequestClient<$Result.GetResult<Prisma.$PushReviewRequestPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of PushReviewRequests.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PushReviewRequestCountArgs} args - Arguments to filter PushReviewRequests to count.
+     * @example
+     * // Count the number of PushReviewRequests
+     * const count = await prisma.pushReviewRequest.count({
+     *   where: {
+     *     // ... the filter for the PushReviewRequests we want to count
+     *   }
+     * })
+    **/
+    count<T extends PushReviewRequestCountArgs>(
+      args?: Subset<T, PushReviewRequestCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PushReviewRequestCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PushReviewRequest.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PushReviewRequestAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PushReviewRequestAggregateArgs>(args: Subset<T, PushReviewRequestAggregateArgs>): Prisma.PrismaPromise<GetPushReviewRequestAggregateType<T>>
+
+    /**
+     * Group by PushReviewRequest.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PushReviewRequestGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PushReviewRequestGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PushReviewRequestGroupByArgs['orderBy'] }
+        : { orderBy?: PushReviewRequestGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PushReviewRequestGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPushReviewRequestGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PushReviewRequest model
+   */
+  readonly fields: PushReviewRequestFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PushReviewRequest.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PushReviewRequestClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PushReviewRequest model
+   */ 
+  interface PushReviewRequestFieldRefs {
+    readonly id: FieldRef<"PushReviewRequest", 'String'>
+    readonly tenantId: FieldRef<"PushReviewRequest", 'String'>
+    readonly orderId: FieldRef<"PushReviewRequest", 'String'>
+    readonly dueAt: FieldRef<"PushReviewRequest", 'DateTime'>
+    readonly status: FieldRef<"PushReviewRequest", 'String'>
+    readonly claimedAt: FieldRef<"PushReviewRequest", 'DateTime'>
+    readonly sentAt: FieldRef<"PushReviewRequest", 'DateTime'>
+    readonly createdAt: FieldRef<"PushReviewRequest", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PushReviewRequest findUnique
+   */
+  export type PushReviewRequestFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushReviewRequest
+     */
+    select?: PushReviewRequestSelect<ExtArgs> | null
+    /**
+     * Filter, which PushReviewRequest to fetch.
+     */
+    where: PushReviewRequestWhereUniqueInput
+  }
+
+  /**
+   * PushReviewRequest findUniqueOrThrow
+   */
+  export type PushReviewRequestFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushReviewRequest
+     */
+    select?: PushReviewRequestSelect<ExtArgs> | null
+    /**
+     * Filter, which PushReviewRequest to fetch.
+     */
+    where: PushReviewRequestWhereUniqueInput
+  }
+
+  /**
+   * PushReviewRequest findFirst
+   */
+  export type PushReviewRequestFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushReviewRequest
+     */
+    select?: PushReviewRequestSelect<ExtArgs> | null
+    /**
+     * Filter, which PushReviewRequest to fetch.
+     */
+    where?: PushReviewRequestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PushReviewRequests to fetch.
+     */
+    orderBy?: PushReviewRequestOrderByWithRelationInput | PushReviewRequestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PushReviewRequests.
+     */
+    cursor?: PushReviewRequestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PushReviewRequests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PushReviewRequests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PushReviewRequests.
+     */
+    distinct?: PushReviewRequestScalarFieldEnum | PushReviewRequestScalarFieldEnum[]
+  }
+
+  /**
+   * PushReviewRequest findFirstOrThrow
+   */
+  export type PushReviewRequestFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushReviewRequest
+     */
+    select?: PushReviewRequestSelect<ExtArgs> | null
+    /**
+     * Filter, which PushReviewRequest to fetch.
+     */
+    where?: PushReviewRequestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PushReviewRequests to fetch.
+     */
+    orderBy?: PushReviewRequestOrderByWithRelationInput | PushReviewRequestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PushReviewRequests.
+     */
+    cursor?: PushReviewRequestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PushReviewRequests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PushReviewRequests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PushReviewRequests.
+     */
+    distinct?: PushReviewRequestScalarFieldEnum | PushReviewRequestScalarFieldEnum[]
+  }
+
+  /**
+   * PushReviewRequest findMany
+   */
+  export type PushReviewRequestFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushReviewRequest
+     */
+    select?: PushReviewRequestSelect<ExtArgs> | null
+    /**
+     * Filter, which PushReviewRequests to fetch.
+     */
+    where?: PushReviewRequestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PushReviewRequests to fetch.
+     */
+    orderBy?: PushReviewRequestOrderByWithRelationInput | PushReviewRequestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PushReviewRequests.
+     */
+    cursor?: PushReviewRequestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PushReviewRequests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PushReviewRequests.
+     */
+    skip?: number
+    distinct?: PushReviewRequestScalarFieldEnum | PushReviewRequestScalarFieldEnum[]
+  }
+
+  /**
+   * PushReviewRequest create
+   */
+  export type PushReviewRequestCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushReviewRequest
+     */
+    select?: PushReviewRequestSelect<ExtArgs> | null
+    /**
+     * The data needed to create a PushReviewRequest.
+     */
+    data: XOR<PushReviewRequestCreateInput, PushReviewRequestUncheckedCreateInput>
+  }
+
+  /**
+   * PushReviewRequest createMany
+   */
+  export type PushReviewRequestCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PushReviewRequests.
+     */
+    data: PushReviewRequestCreateManyInput | PushReviewRequestCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PushReviewRequest createManyAndReturn
+   */
+  export type PushReviewRequestCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushReviewRequest
+     */
+    select?: PushReviewRequestSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many PushReviewRequests.
+     */
+    data: PushReviewRequestCreateManyInput | PushReviewRequestCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PushReviewRequest update
+   */
+  export type PushReviewRequestUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushReviewRequest
+     */
+    select?: PushReviewRequestSelect<ExtArgs> | null
+    /**
+     * The data needed to update a PushReviewRequest.
+     */
+    data: XOR<PushReviewRequestUpdateInput, PushReviewRequestUncheckedUpdateInput>
+    /**
+     * Choose, which PushReviewRequest to update.
+     */
+    where: PushReviewRequestWhereUniqueInput
+  }
+
+  /**
+   * PushReviewRequest updateMany
+   */
+  export type PushReviewRequestUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PushReviewRequests.
+     */
+    data: XOR<PushReviewRequestUpdateManyMutationInput, PushReviewRequestUncheckedUpdateManyInput>
+    /**
+     * Filter which PushReviewRequests to update
+     */
+    where?: PushReviewRequestWhereInput
+  }
+
+  /**
+   * PushReviewRequest upsert
+   */
+  export type PushReviewRequestUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushReviewRequest
+     */
+    select?: PushReviewRequestSelect<ExtArgs> | null
+    /**
+     * The filter to search for the PushReviewRequest to update in case it exists.
+     */
+    where: PushReviewRequestWhereUniqueInput
+    /**
+     * In case the PushReviewRequest found by the `where` argument doesn't exist, create a new PushReviewRequest with this data.
+     */
+    create: XOR<PushReviewRequestCreateInput, PushReviewRequestUncheckedCreateInput>
+    /**
+     * In case the PushReviewRequest was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PushReviewRequestUpdateInput, PushReviewRequestUncheckedUpdateInput>
+  }
+
+  /**
+   * PushReviewRequest delete
+   */
+  export type PushReviewRequestDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushReviewRequest
+     */
+    select?: PushReviewRequestSelect<ExtArgs> | null
+    /**
+     * Filter which PushReviewRequest to delete.
+     */
+    where: PushReviewRequestWhereUniqueInput
+  }
+
+  /**
+   * PushReviewRequest deleteMany
+   */
+  export type PushReviewRequestDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PushReviewRequests to delete
+     */
+    where?: PushReviewRequestWhereInput
+  }
+
+  /**
+   * PushReviewRequest without action
+   */
+  export type PushReviewRequestDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushReviewRequest
+     */
+    select?: PushReviewRequestSelect<ExtArgs> | null
+  }
+
+
+  /**
+   * Model PushCampaign
+   */
+
+  export type AggregatePushCampaign = {
+    _count: PushCampaignCountAggregateOutputType | null
+    _avg: PushCampaignAvgAggregateOutputType | null
+    _sum: PushCampaignSumAggregateOutputType | null
+    _min: PushCampaignMinAggregateOutputType | null
+    _max: PushCampaignMaxAggregateOutputType | null
+  }
+
+  export type PushCampaignAvgAggregateOutputType = {
+    targeted: number | null
+    delivered: number | null
+    failed: number | null
+  }
+
+  export type PushCampaignSumAggregateOutputType = {
+    targeted: number | null
+    delivered: number | null
+    failed: number | null
+  }
+
+  export type PushCampaignMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    brandId: string | null
+    title: string | null
+    body: string | null
+    status: string | null
+    scheduledFor: Date | null
+    startedAt: Date | null
+    sentAt: Date | null
+    targeted: number | null
+    delivered: number | null
+    failed: number | null
+    createdBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PushCampaignMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    brandId: string | null
+    title: string | null
+    body: string | null
+    status: string | null
+    scheduledFor: Date | null
+    startedAt: Date | null
+    sentAt: Date | null
+    targeted: number | null
+    delivered: number | null
+    failed: number | null
+    createdBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PushCampaignCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    brandId: number
+    title: number
+    body: number
+    status: number
+    scheduledFor: number
+    startedAt: number
+    sentAt: number
+    targeted: number
+    delivered: number
+    failed: number
+    createdBy: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type PushCampaignAvgAggregateInputType = {
+    targeted?: true
+    delivered?: true
+    failed?: true
+  }
+
+  export type PushCampaignSumAggregateInputType = {
+    targeted?: true
+    delivered?: true
+    failed?: true
+  }
+
+  export type PushCampaignMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    brandId?: true
+    title?: true
+    body?: true
+    status?: true
+    scheduledFor?: true
+    startedAt?: true
+    sentAt?: true
+    targeted?: true
+    delivered?: true
+    failed?: true
+    createdBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PushCampaignMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    brandId?: true
+    title?: true
+    body?: true
+    status?: true
+    scheduledFor?: true
+    startedAt?: true
+    sentAt?: true
+    targeted?: true
+    delivered?: true
+    failed?: true
+    createdBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PushCampaignCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    brandId?: true
+    title?: true
+    body?: true
+    status?: true
+    scheduledFor?: true
+    startedAt?: true
+    sentAt?: true
+    targeted?: true
+    delivered?: true
+    failed?: true
+    createdBy?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type PushCampaignAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PushCampaign to aggregate.
+     */
+    where?: PushCampaignWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PushCampaigns to fetch.
+     */
+    orderBy?: PushCampaignOrderByWithRelationInput | PushCampaignOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PushCampaignWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PushCampaigns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PushCampaigns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PushCampaigns
+    **/
+    _count?: true | PushCampaignCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: PushCampaignAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: PushCampaignSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PushCampaignMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PushCampaignMaxAggregateInputType
+  }
+
+  export type GetPushCampaignAggregateType<T extends PushCampaignAggregateArgs> = {
+        [P in keyof T & keyof AggregatePushCampaign]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePushCampaign[P]>
+      : GetScalarType<T[P], AggregatePushCampaign[P]>
+  }
+
+
+
+
+  export type PushCampaignGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PushCampaignWhereInput
+    orderBy?: PushCampaignOrderByWithAggregationInput | PushCampaignOrderByWithAggregationInput[]
+    by: PushCampaignScalarFieldEnum[] | PushCampaignScalarFieldEnum
+    having?: PushCampaignScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PushCampaignCountAggregateInputType | true
+    _avg?: PushCampaignAvgAggregateInputType
+    _sum?: PushCampaignSumAggregateInputType
+    _min?: PushCampaignMinAggregateInputType
+    _max?: PushCampaignMaxAggregateInputType
+  }
+
+  export type PushCampaignGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string | null
+    brandId: string | null
+    title: string
+    body: string
+    status: string
+    scheduledFor: Date | null
+    startedAt: Date | null
+    sentAt: Date | null
+    targeted: number
+    delivered: number
+    failed: number
+    createdBy: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: PushCampaignCountAggregateOutputType | null
+    _avg: PushCampaignAvgAggregateOutputType | null
+    _sum: PushCampaignSumAggregateOutputType | null
+    _min: PushCampaignMinAggregateOutputType | null
+    _max: PushCampaignMaxAggregateOutputType | null
+  }
+
+  type GetPushCampaignGroupByPayload<T extends PushCampaignGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PushCampaignGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PushCampaignGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PushCampaignGroupByOutputType[P]>
+            : GetScalarType<T[P], PushCampaignGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PushCampaignSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    title?: boolean
+    body?: boolean
+    status?: boolean
+    scheduledFor?: boolean
+    startedAt?: boolean
+    sentAt?: boolean
+    targeted?: boolean
+    delivered?: boolean
+    failed?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["pushCampaign"]>
+
+  export type PushCampaignSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    title?: boolean
+    body?: boolean
+    status?: boolean
+    scheduledFor?: boolean
+    startedAt?: boolean
+    sentAt?: boolean
+    targeted?: boolean
+    delivered?: boolean
+    failed?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["pushCampaign"]>
+
+  export type PushCampaignSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    title?: boolean
+    body?: boolean
+    status?: boolean
+    scheduledFor?: boolean
+    startedAt?: boolean
+    sentAt?: boolean
+    targeted?: boolean
+    delivered?: boolean
+    failed?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+
+  export type $PushCampaignPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PushCampaign"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string | null
+      brandId: string | null
+      title: string
+      body: string
+      status: string
+      scheduledFor: Date | null
+      startedAt: Date | null
+      sentAt: Date | null
+      targeted: number
+      delivered: number
+      failed: number
+      createdBy: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["pushCampaign"]>
+    composites: {}
+  }
+
+  type PushCampaignGetPayload<S extends boolean | null | undefined | PushCampaignDefaultArgs> = $Result.GetResult<Prisma.$PushCampaignPayload, S>
+
+  type PushCampaignCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<PushCampaignFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: PushCampaignCountAggregateInputType | true
+    }
+
+  export interface PushCampaignDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PushCampaign'], meta: { name: 'PushCampaign' } }
+    /**
+     * Find zero or one PushCampaign that matches the filter.
+     * @param {PushCampaignFindUniqueArgs} args - Arguments to find a PushCampaign
+     * @example
+     * // Get one PushCampaign
+     * const pushCampaign = await prisma.pushCampaign.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PushCampaignFindUniqueArgs>(args: SelectSubset<T, PushCampaignFindUniqueArgs<ExtArgs>>): Prisma__PushCampaignClient<$Result.GetResult<Prisma.$PushCampaignPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one PushCampaign that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {PushCampaignFindUniqueOrThrowArgs} args - Arguments to find a PushCampaign
+     * @example
+     * // Get one PushCampaign
+     * const pushCampaign = await prisma.pushCampaign.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PushCampaignFindUniqueOrThrowArgs>(args: SelectSubset<T, PushCampaignFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PushCampaignClient<$Result.GetResult<Prisma.$PushCampaignPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first PushCampaign that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PushCampaignFindFirstArgs} args - Arguments to find a PushCampaign
+     * @example
+     * // Get one PushCampaign
+     * const pushCampaign = await prisma.pushCampaign.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PushCampaignFindFirstArgs>(args?: SelectSubset<T, PushCampaignFindFirstArgs<ExtArgs>>): Prisma__PushCampaignClient<$Result.GetResult<Prisma.$PushCampaignPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first PushCampaign that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PushCampaignFindFirstOrThrowArgs} args - Arguments to find a PushCampaign
+     * @example
+     * // Get one PushCampaign
+     * const pushCampaign = await prisma.pushCampaign.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PushCampaignFindFirstOrThrowArgs>(args?: SelectSubset<T, PushCampaignFindFirstOrThrowArgs<ExtArgs>>): Prisma__PushCampaignClient<$Result.GetResult<Prisma.$PushCampaignPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more PushCampaigns that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PushCampaignFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PushCampaigns
+     * const pushCampaigns = await prisma.pushCampaign.findMany()
+     * 
+     * // Get first 10 PushCampaigns
+     * const pushCampaigns = await prisma.pushCampaign.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const pushCampaignWithIdOnly = await prisma.pushCampaign.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PushCampaignFindManyArgs>(args?: SelectSubset<T, PushCampaignFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PushCampaignPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a PushCampaign.
+     * @param {PushCampaignCreateArgs} args - Arguments to create a PushCampaign.
+     * @example
+     * // Create one PushCampaign
+     * const PushCampaign = await prisma.pushCampaign.create({
+     *   data: {
+     *     // ... data to create a PushCampaign
+     *   }
+     * })
+     * 
+     */
+    create<T extends PushCampaignCreateArgs>(args: SelectSubset<T, PushCampaignCreateArgs<ExtArgs>>): Prisma__PushCampaignClient<$Result.GetResult<Prisma.$PushCampaignPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many PushCampaigns.
+     * @param {PushCampaignCreateManyArgs} args - Arguments to create many PushCampaigns.
+     * @example
+     * // Create many PushCampaigns
+     * const pushCampaign = await prisma.pushCampaign.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PushCampaignCreateManyArgs>(args?: SelectSubset<T, PushCampaignCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many PushCampaigns and returns the data saved in the database.
+     * @param {PushCampaignCreateManyAndReturnArgs} args - Arguments to create many PushCampaigns.
+     * @example
+     * // Create many PushCampaigns
+     * const pushCampaign = await prisma.pushCampaign.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many PushCampaigns and only return the `id`
+     * const pushCampaignWithIdOnly = await prisma.pushCampaign.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends PushCampaignCreateManyAndReturnArgs>(args?: SelectSubset<T, PushCampaignCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PushCampaignPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a PushCampaign.
+     * @param {PushCampaignDeleteArgs} args - Arguments to delete one PushCampaign.
+     * @example
+     * // Delete one PushCampaign
+     * const PushCampaign = await prisma.pushCampaign.delete({
+     *   where: {
+     *     // ... filter to delete one PushCampaign
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PushCampaignDeleteArgs>(args: SelectSubset<T, PushCampaignDeleteArgs<ExtArgs>>): Prisma__PushCampaignClient<$Result.GetResult<Prisma.$PushCampaignPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one PushCampaign.
+     * @param {PushCampaignUpdateArgs} args - Arguments to update one PushCampaign.
+     * @example
+     * // Update one PushCampaign
+     * const pushCampaign = await prisma.pushCampaign.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PushCampaignUpdateArgs>(args: SelectSubset<T, PushCampaignUpdateArgs<ExtArgs>>): Prisma__PushCampaignClient<$Result.GetResult<Prisma.$PushCampaignPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more PushCampaigns.
+     * @param {PushCampaignDeleteManyArgs} args - Arguments to filter PushCampaigns to delete.
+     * @example
+     * // Delete a few PushCampaigns
+     * const { count } = await prisma.pushCampaign.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PushCampaignDeleteManyArgs>(args?: SelectSubset<T, PushCampaignDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PushCampaigns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PushCampaignUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PushCampaigns
+     * const pushCampaign = await prisma.pushCampaign.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PushCampaignUpdateManyArgs>(args: SelectSubset<T, PushCampaignUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one PushCampaign.
+     * @param {PushCampaignUpsertArgs} args - Arguments to update or create a PushCampaign.
+     * @example
+     * // Update or create a PushCampaign
+     * const pushCampaign = await prisma.pushCampaign.upsert({
+     *   create: {
+     *     // ... data to create a PushCampaign
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PushCampaign we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PushCampaignUpsertArgs>(args: SelectSubset<T, PushCampaignUpsertArgs<ExtArgs>>): Prisma__PushCampaignClient<$Result.GetResult<Prisma.$PushCampaignPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of PushCampaigns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PushCampaignCountArgs} args - Arguments to filter PushCampaigns to count.
+     * @example
+     * // Count the number of PushCampaigns
+     * const count = await prisma.pushCampaign.count({
+     *   where: {
+     *     // ... the filter for the PushCampaigns we want to count
+     *   }
+     * })
+    **/
+    count<T extends PushCampaignCountArgs>(
+      args?: Subset<T, PushCampaignCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PushCampaignCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PushCampaign.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PushCampaignAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PushCampaignAggregateArgs>(args: Subset<T, PushCampaignAggregateArgs>): Prisma.PrismaPromise<GetPushCampaignAggregateType<T>>
+
+    /**
+     * Group by PushCampaign.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PushCampaignGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PushCampaignGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PushCampaignGroupByArgs['orderBy'] }
+        : { orderBy?: PushCampaignGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PushCampaignGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPushCampaignGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PushCampaign model
+   */
+  readonly fields: PushCampaignFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PushCampaign.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PushCampaignClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PushCampaign model
+   */ 
+  interface PushCampaignFieldRefs {
+    readonly id: FieldRef<"PushCampaign", 'String'>
+    readonly tenantId: FieldRef<"PushCampaign", 'String'>
+    readonly locationId: FieldRef<"PushCampaign", 'String'>
+    readonly brandId: FieldRef<"PushCampaign", 'String'>
+    readonly title: FieldRef<"PushCampaign", 'String'>
+    readonly body: FieldRef<"PushCampaign", 'String'>
+    readonly status: FieldRef<"PushCampaign", 'String'>
+    readonly scheduledFor: FieldRef<"PushCampaign", 'DateTime'>
+    readonly startedAt: FieldRef<"PushCampaign", 'DateTime'>
+    readonly sentAt: FieldRef<"PushCampaign", 'DateTime'>
+    readonly targeted: FieldRef<"PushCampaign", 'Int'>
+    readonly delivered: FieldRef<"PushCampaign", 'Int'>
+    readonly failed: FieldRef<"PushCampaign", 'Int'>
+    readonly createdBy: FieldRef<"PushCampaign", 'String'>
+    readonly createdAt: FieldRef<"PushCampaign", 'DateTime'>
+    readonly updatedAt: FieldRef<"PushCampaign", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PushCampaign findUnique
+   */
+  export type PushCampaignFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushCampaign
+     */
+    select?: PushCampaignSelect<ExtArgs> | null
+    /**
+     * Filter, which PushCampaign to fetch.
+     */
+    where: PushCampaignWhereUniqueInput
+  }
+
+  /**
+   * PushCampaign findUniqueOrThrow
+   */
+  export type PushCampaignFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushCampaign
+     */
+    select?: PushCampaignSelect<ExtArgs> | null
+    /**
+     * Filter, which PushCampaign to fetch.
+     */
+    where: PushCampaignWhereUniqueInput
+  }
+
+  /**
+   * PushCampaign findFirst
+   */
+  export type PushCampaignFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushCampaign
+     */
+    select?: PushCampaignSelect<ExtArgs> | null
+    /**
+     * Filter, which PushCampaign to fetch.
+     */
+    where?: PushCampaignWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PushCampaigns to fetch.
+     */
+    orderBy?: PushCampaignOrderByWithRelationInput | PushCampaignOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PushCampaigns.
+     */
+    cursor?: PushCampaignWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PushCampaigns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PushCampaigns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PushCampaigns.
+     */
+    distinct?: PushCampaignScalarFieldEnum | PushCampaignScalarFieldEnum[]
+  }
+
+  /**
+   * PushCampaign findFirstOrThrow
+   */
+  export type PushCampaignFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushCampaign
+     */
+    select?: PushCampaignSelect<ExtArgs> | null
+    /**
+     * Filter, which PushCampaign to fetch.
+     */
+    where?: PushCampaignWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PushCampaigns to fetch.
+     */
+    orderBy?: PushCampaignOrderByWithRelationInput | PushCampaignOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PushCampaigns.
+     */
+    cursor?: PushCampaignWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PushCampaigns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PushCampaigns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PushCampaigns.
+     */
+    distinct?: PushCampaignScalarFieldEnum | PushCampaignScalarFieldEnum[]
+  }
+
+  /**
+   * PushCampaign findMany
+   */
+  export type PushCampaignFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushCampaign
+     */
+    select?: PushCampaignSelect<ExtArgs> | null
+    /**
+     * Filter, which PushCampaigns to fetch.
+     */
+    where?: PushCampaignWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PushCampaigns to fetch.
+     */
+    orderBy?: PushCampaignOrderByWithRelationInput | PushCampaignOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PushCampaigns.
+     */
+    cursor?: PushCampaignWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PushCampaigns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PushCampaigns.
+     */
+    skip?: number
+    distinct?: PushCampaignScalarFieldEnum | PushCampaignScalarFieldEnum[]
+  }
+
+  /**
+   * PushCampaign create
+   */
+  export type PushCampaignCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushCampaign
+     */
+    select?: PushCampaignSelect<ExtArgs> | null
+    /**
+     * The data needed to create a PushCampaign.
+     */
+    data: XOR<PushCampaignCreateInput, PushCampaignUncheckedCreateInput>
+  }
+
+  /**
+   * PushCampaign createMany
+   */
+  export type PushCampaignCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PushCampaigns.
+     */
+    data: PushCampaignCreateManyInput | PushCampaignCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PushCampaign createManyAndReturn
+   */
+  export type PushCampaignCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushCampaign
+     */
+    select?: PushCampaignSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many PushCampaigns.
+     */
+    data: PushCampaignCreateManyInput | PushCampaignCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PushCampaign update
+   */
+  export type PushCampaignUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushCampaign
+     */
+    select?: PushCampaignSelect<ExtArgs> | null
+    /**
+     * The data needed to update a PushCampaign.
+     */
+    data: XOR<PushCampaignUpdateInput, PushCampaignUncheckedUpdateInput>
+    /**
+     * Choose, which PushCampaign to update.
+     */
+    where: PushCampaignWhereUniqueInput
+  }
+
+  /**
+   * PushCampaign updateMany
+   */
+  export type PushCampaignUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PushCampaigns.
+     */
+    data: XOR<PushCampaignUpdateManyMutationInput, PushCampaignUncheckedUpdateManyInput>
+    /**
+     * Filter which PushCampaigns to update
+     */
+    where?: PushCampaignWhereInput
+  }
+
+  /**
+   * PushCampaign upsert
+   */
+  export type PushCampaignUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushCampaign
+     */
+    select?: PushCampaignSelect<ExtArgs> | null
+    /**
+     * The filter to search for the PushCampaign to update in case it exists.
+     */
+    where: PushCampaignWhereUniqueInput
+    /**
+     * In case the PushCampaign found by the `where` argument doesn't exist, create a new PushCampaign with this data.
+     */
+    create: XOR<PushCampaignCreateInput, PushCampaignUncheckedCreateInput>
+    /**
+     * In case the PushCampaign was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PushCampaignUpdateInput, PushCampaignUncheckedUpdateInput>
+  }
+
+  /**
+   * PushCampaign delete
+   */
+  export type PushCampaignDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushCampaign
+     */
+    select?: PushCampaignSelect<ExtArgs> | null
+    /**
+     * Filter which PushCampaign to delete.
+     */
+    where: PushCampaignWhereUniqueInput
+  }
+
+  /**
+   * PushCampaign deleteMany
+   */
+  export type PushCampaignDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PushCampaigns to delete
+     */
+    where?: PushCampaignWhereInput
+  }
+
+  /**
+   * PushCampaign without action
+   */
+  export type PushCampaignDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushCampaign
+     */
+    select?: PushCampaignSelect<ExtArgs> | null
   }
 
 
@@ -194506,9 +197738,13 @@ export namespace Prisma {
     tenantId: 'tenantId',
     locationId: 'locationId',
     brandId: 'brandId',
+    kind: 'kind',
+    platform: 'platform',
+    appId: 'appId',
     endpoint: 'endpoint',
     p256dh: 'p256dh',
     auth: 'auth',
+    marketingOptIn: 'marketingOptIn',
     customerId: 'customerId',
     deviceRef: 'deviceRef',
     userAgent: 'userAgent',
@@ -194531,6 +197767,57 @@ export namespace Prisma {
   };
 
   export type CustomerPushOrderScalarFieldEnum = (typeof CustomerPushOrderScalarFieldEnum)[keyof typeof CustomerPushOrderScalarFieldEnum]
+
+
+  export const PushAutomationScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    trigger: 'trigger',
+    enabled: 'enabled',
+    title: 'title',
+    body: 'body',
+    delayMinutes: 'delayMinutes',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type PushAutomationScalarFieldEnum = (typeof PushAutomationScalarFieldEnum)[keyof typeof PushAutomationScalarFieldEnum]
+
+
+  export const PushReviewRequestScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    orderId: 'orderId',
+    dueAt: 'dueAt',
+    status: 'status',
+    claimedAt: 'claimedAt',
+    sentAt: 'sentAt',
+    createdAt: 'createdAt'
+  };
+
+  export type PushReviewRequestScalarFieldEnum = (typeof PushReviewRequestScalarFieldEnum)[keyof typeof PushReviewRequestScalarFieldEnum]
+
+
+  export const PushCampaignScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    brandId: 'brandId',
+    title: 'title',
+    body: 'body',
+    status: 'status',
+    scheduledFor: 'scheduledFor',
+    startedAt: 'startedAt',
+    sentAt: 'sentAt',
+    targeted: 'targeted',
+    delivered: 'delivered',
+    failed: 'failed',
+    createdBy: 'createdBy',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type PushCampaignScalarFieldEnum = (typeof PushCampaignScalarFieldEnum)[keyof typeof PushCampaignScalarFieldEnum]
 
 
   export const ContractTemplateScalarFieldEnum: {
@@ -196924,6 +200211,9 @@ export namespace Prisma {
     tenantId: 'tenantId',
     locationId: 'locationId',
     brandId: 'brandId',
+    kind: 'kind',
+    platform: 'platform',
+    appId: 'appId',
     endpoint: 'endpoint',
     p256dh: 'p256dh',
     auth: 'auth',
@@ -196943,6 +200233,41 @@ export namespace Prisma {
   };
 
   export type CustomerPushOrderOrderByRelevanceFieldEnum = (typeof CustomerPushOrderOrderByRelevanceFieldEnum)[keyof typeof CustomerPushOrderOrderByRelevanceFieldEnum]
+
+
+  export const PushAutomationOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    trigger: 'trigger',
+    title: 'title',
+    body: 'body'
+  };
+
+  export type PushAutomationOrderByRelevanceFieldEnum = (typeof PushAutomationOrderByRelevanceFieldEnum)[keyof typeof PushAutomationOrderByRelevanceFieldEnum]
+
+
+  export const PushReviewRequestOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    orderId: 'orderId',
+    status: 'status'
+  };
+
+  export type PushReviewRequestOrderByRelevanceFieldEnum = (typeof PushReviewRequestOrderByRelevanceFieldEnum)[keyof typeof PushReviewRequestOrderByRelevanceFieldEnum]
+
+
+  export const PushCampaignOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    brandId: 'brandId',
+    title: 'title',
+    body: 'body',
+    status: 'status',
+    createdBy: 'createdBy'
+  };
+
+  export type PushCampaignOrderByRelevanceFieldEnum = (typeof PushCampaignOrderByRelevanceFieldEnum)[keyof typeof PushCampaignOrderByRelevanceFieldEnum]
 
 
   export const ContractTemplateOrderByRelevanceFieldEnum: {
@@ -212584,9 +215909,13 @@ export namespace Prisma {
     tenantId?: StringFilter<"CustomerPushSubscription"> | string
     locationId?: StringNullableFilter<"CustomerPushSubscription"> | string | null
     brandId?: StringNullableFilter<"CustomerPushSubscription"> | string | null
+    kind?: StringFilter<"CustomerPushSubscription"> | string
+    platform?: StringNullableFilter<"CustomerPushSubscription"> | string | null
+    appId?: StringNullableFilter<"CustomerPushSubscription"> | string | null
     endpoint?: StringFilter<"CustomerPushSubscription"> | string
-    p256dh?: StringFilter<"CustomerPushSubscription"> | string
-    auth?: StringFilter<"CustomerPushSubscription"> | string
+    p256dh?: StringNullableFilter<"CustomerPushSubscription"> | string | null
+    auth?: StringNullableFilter<"CustomerPushSubscription"> | string | null
+    marketingOptIn?: BoolFilter<"CustomerPushSubscription"> | boolean
     customerId?: StringNullableFilter<"CustomerPushSubscription"> | string | null
     deviceRef?: StringNullableFilter<"CustomerPushSubscription"> | string | null
     userAgent?: StringNullableFilter<"CustomerPushSubscription"> | string | null
@@ -212603,9 +215932,13 @@ export namespace Prisma {
     tenantId?: SortOrder
     locationId?: SortOrderInput | SortOrder
     brandId?: SortOrderInput | SortOrder
+    kind?: SortOrder
+    platform?: SortOrderInput | SortOrder
+    appId?: SortOrderInput | SortOrder
     endpoint?: SortOrder
-    p256dh?: SortOrder
-    auth?: SortOrder
+    p256dh?: SortOrderInput | SortOrder
+    auth?: SortOrderInput | SortOrder
+    marketingOptIn?: SortOrder
     customerId?: SortOrderInput | SortOrder
     deviceRef?: SortOrderInput | SortOrder
     userAgent?: SortOrderInput | SortOrder
@@ -212627,8 +215960,12 @@ export namespace Prisma {
     tenantId?: StringFilter<"CustomerPushSubscription"> | string
     locationId?: StringNullableFilter<"CustomerPushSubscription"> | string | null
     brandId?: StringNullableFilter<"CustomerPushSubscription"> | string | null
-    p256dh?: StringFilter<"CustomerPushSubscription"> | string
-    auth?: StringFilter<"CustomerPushSubscription"> | string
+    kind?: StringFilter<"CustomerPushSubscription"> | string
+    platform?: StringNullableFilter<"CustomerPushSubscription"> | string | null
+    appId?: StringNullableFilter<"CustomerPushSubscription"> | string | null
+    p256dh?: StringNullableFilter<"CustomerPushSubscription"> | string | null
+    auth?: StringNullableFilter<"CustomerPushSubscription"> | string | null
+    marketingOptIn?: BoolFilter<"CustomerPushSubscription"> | boolean
     customerId?: StringNullableFilter<"CustomerPushSubscription"> | string | null
     deviceRef?: StringNullableFilter<"CustomerPushSubscription"> | string | null
     userAgent?: StringNullableFilter<"CustomerPushSubscription"> | string | null
@@ -212645,9 +215982,13 @@ export namespace Prisma {
     tenantId?: SortOrder
     locationId?: SortOrderInput | SortOrder
     brandId?: SortOrderInput | SortOrder
+    kind?: SortOrder
+    platform?: SortOrderInput | SortOrder
+    appId?: SortOrderInput | SortOrder
     endpoint?: SortOrder
-    p256dh?: SortOrder
-    auth?: SortOrder
+    p256dh?: SortOrderInput | SortOrder
+    auth?: SortOrderInput | SortOrder
+    marketingOptIn?: SortOrder
     customerId?: SortOrderInput | SortOrder
     deviceRef?: SortOrderInput | SortOrder
     userAgent?: SortOrderInput | SortOrder
@@ -212669,9 +216010,13 @@ export namespace Prisma {
     tenantId?: StringWithAggregatesFilter<"CustomerPushSubscription"> | string
     locationId?: StringNullableWithAggregatesFilter<"CustomerPushSubscription"> | string | null
     brandId?: StringNullableWithAggregatesFilter<"CustomerPushSubscription"> | string | null
+    kind?: StringWithAggregatesFilter<"CustomerPushSubscription"> | string
+    platform?: StringNullableWithAggregatesFilter<"CustomerPushSubscription"> | string | null
+    appId?: StringNullableWithAggregatesFilter<"CustomerPushSubscription"> | string | null
     endpoint?: StringWithAggregatesFilter<"CustomerPushSubscription"> | string
-    p256dh?: StringWithAggregatesFilter<"CustomerPushSubscription"> | string
-    auth?: StringWithAggregatesFilter<"CustomerPushSubscription"> | string
+    p256dh?: StringNullableWithAggregatesFilter<"CustomerPushSubscription"> | string | null
+    auth?: StringNullableWithAggregatesFilter<"CustomerPushSubscription"> | string | null
+    marketingOptIn?: BoolWithAggregatesFilter<"CustomerPushSubscription"> | boolean
     customerId?: StringNullableWithAggregatesFilter<"CustomerPushSubscription"> | string | null
     deviceRef?: StringNullableWithAggregatesFilter<"CustomerPushSubscription"> | string | null
     userAgent?: StringNullableWithAggregatesFilter<"CustomerPushSubscription"> | string | null
@@ -212737,6 +216082,260 @@ export namespace Prisma {
     orderId?: StringWithAggregatesFilter<"CustomerPushOrder"> | string
     trackPath?: StringNullableWithAggregatesFilter<"CustomerPushOrder"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"CustomerPushOrder"> | Date | string
+  }
+
+  export type PushAutomationWhereInput = {
+    AND?: PushAutomationWhereInput | PushAutomationWhereInput[]
+    OR?: PushAutomationWhereInput[]
+    NOT?: PushAutomationWhereInput | PushAutomationWhereInput[]
+    id?: StringFilter<"PushAutomation"> | string
+    tenantId?: StringFilter<"PushAutomation"> | string
+    trigger?: StringFilter<"PushAutomation"> | string
+    enabled?: BoolFilter<"PushAutomation"> | boolean
+    title?: StringNullableFilter<"PushAutomation"> | string | null
+    body?: StringNullableFilter<"PushAutomation"> | string | null
+    delayMinutes?: IntNullableFilter<"PushAutomation"> | number | null
+    createdAt?: DateTimeFilter<"PushAutomation"> | Date | string
+    updatedAt?: DateTimeFilter<"PushAutomation"> | Date | string
+  }
+
+  export type PushAutomationOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    trigger?: SortOrder
+    enabled?: SortOrder
+    title?: SortOrderInput | SortOrder
+    body?: SortOrderInput | SortOrder
+    delayMinutes?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _relevance?: PushAutomationOrderByRelevanceInput
+  }
+
+  export type PushAutomationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    tenantId_trigger?: PushAutomationTenantIdTriggerCompoundUniqueInput
+    AND?: PushAutomationWhereInput | PushAutomationWhereInput[]
+    OR?: PushAutomationWhereInput[]
+    NOT?: PushAutomationWhereInput | PushAutomationWhereInput[]
+    tenantId?: StringFilter<"PushAutomation"> | string
+    trigger?: StringFilter<"PushAutomation"> | string
+    enabled?: BoolFilter<"PushAutomation"> | boolean
+    title?: StringNullableFilter<"PushAutomation"> | string | null
+    body?: StringNullableFilter<"PushAutomation"> | string | null
+    delayMinutes?: IntNullableFilter<"PushAutomation"> | number | null
+    createdAt?: DateTimeFilter<"PushAutomation"> | Date | string
+    updatedAt?: DateTimeFilter<"PushAutomation"> | Date | string
+  }, "id" | "tenantId_trigger">
+
+  export type PushAutomationOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    trigger?: SortOrder
+    enabled?: SortOrder
+    title?: SortOrderInput | SortOrder
+    body?: SortOrderInput | SortOrder
+    delayMinutes?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: PushAutomationCountOrderByAggregateInput
+    _avg?: PushAutomationAvgOrderByAggregateInput
+    _max?: PushAutomationMaxOrderByAggregateInput
+    _min?: PushAutomationMinOrderByAggregateInput
+    _sum?: PushAutomationSumOrderByAggregateInput
+  }
+
+  export type PushAutomationScalarWhereWithAggregatesInput = {
+    AND?: PushAutomationScalarWhereWithAggregatesInput | PushAutomationScalarWhereWithAggregatesInput[]
+    OR?: PushAutomationScalarWhereWithAggregatesInput[]
+    NOT?: PushAutomationScalarWhereWithAggregatesInput | PushAutomationScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"PushAutomation"> | string
+    tenantId?: StringWithAggregatesFilter<"PushAutomation"> | string
+    trigger?: StringWithAggregatesFilter<"PushAutomation"> | string
+    enabled?: BoolWithAggregatesFilter<"PushAutomation"> | boolean
+    title?: StringNullableWithAggregatesFilter<"PushAutomation"> | string | null
+    body?: StringNullableWithAggregatesFilter<"PushAutomation"> | string | null
+    delayMinutes?: IntNullableWithAggregatesFilter<"PushAutomation"> | number | null
+    createdAt?: DateTimeWithAggregatesFilter<"PushAutomation"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"PushAutomation"> | Date | string
+  }
+
+  export type PushReviewRequestWhereInput = {
+    AND?: PushReviewRequestWhereInput | PushReviewRequestWhereInput[]
+    OR?: PushReviewRequestWhereInput[]
+    NOT?: PushReviewRequestWhereInput | PushReviewRequestWhereInput[]
+    id?: StringFilter<"PushReviewRequest"> | string
+    tenantId?: StringFilter<"PushReviewRequest"> | string
+    orderId?: StringFilter<"PushReviewRequest"> | string
+    dueAt?: DateTimeFilter<"PushReviewRequest"> | Date | string
+    status?: StringFilter<"PushReviewRequest"> | string
+    claimedAt?: DateTimeNullableFilter<"PushReviewRequest"> | Date | string | null
+    sentAt?: DateTimeNullableFilter<"PushReviewRequest"> | Date | string | null
+    createdAt?: DateTimeFilter<"PushReviewRequest"> | Date | string
+  }
+
+  export type PushReviewRequestOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    orderId?: SortOrder
+    dueAt?: SortOrder
+    status?: SortOrder
+    claimedAt?: SortOrderInput | SortOrder
+    sentAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _relevance?: PushReviewRequestOrderByRelevanceInput
+  }
+
+  export type PushReviewRequestWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    orderId?: string
+    AND?: PushReviewRequestWhereInput | PushReviewRequestWhereInput[]
+    OR?: PushReviewRequestWhereInput[]
+    NOT?: PushReviewRequestWhereInput | PushReviewRequestWhereInput[]
+    tenantId?: StringFilter<"PushReviewRequest"> | string
+    dueAt?: DateTimeFilter<"PushReviewRequest"> | Date | string
+    status?: StringFilter<"PushReviewRequest"> | string
+    claimedAt?: DateTimeNullableFilter<"PushReviewRequest"> | Date | string | null
+    sentAt?: DateTimeNullableFilter<"PushReviewRequest"> | Date | string | null
+    createdAt?: DateTimeFilter<"PushReviewRequest"> | Date | string
+  }, "id" | "orderId">
+
+  export type PushReviewRequestOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    orderId?: SortOrder
+    dueAt?: SortOrder
+    status?: SortOrder
+    claimedAt?: SortOrderInput | SortOrder
+    sentAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: PushReviewRequestCountOrderByAggregateInput
+    _max?: PushReviewRequestMaxOrderByAggregateInput
+    _min?: PushReviewRequestMinOrderByAggregateInput
+  }
+
+  export type PushReviewRequestScalarWhereWithAggregatesInput = {
+    AND?: PushReviewRequestScalarWhereWithAggregatesInput | PushReviewRequestScalarWhereWithAggregatesInput[]
+    OR?: PushReviewRequestScalarWhereWithAggregatesInput[]
+    NOT?: PushReviewRequestScalarWhereWithAggregatesInput | PushReviewRequestScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"PushReviewRequest"> | string
+    tenantId?: StringWithAggregatesFilter<"PushReviewRequest"> | string
+    orderId?: StringWithAggregatesFilter<"PushReviewRequest"> | string
+    dueAt?: DateTimeWithAggregatesFilter<"PushReviewRequest"> | Date | string
+    status?: StringWithAggregatesFilter<"PushReviewRequest"> | string
+    claimedAt?: DateTimeNullableWithAggregatesFilter<"PushReviewRequest"> | Date | string | null
+    sentAt?: DateTimeNullableWithAggregatesFilter<"PushReviewRequest"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"PushReviewRequest"> | Date | string
+  }
+
+  export type PushCampaignWhereInput = {
+    AND?: PushCampaignWhereInput | PushCampaignWhereInput[]
+    OR?: PushCampaignWhereInput[]
+    NOT?: PushCampaignWhereInput | PushCampaignWhereInput[]
+    id?: StringFilter<"PushCampaign"> | string
+    tenantId?: StringFilter<"PushCampaign"> | string
+    locationId?: StringNullableFilter<"PushCampaign"> | string | null
+    brandId?: StringNullableFilter<"PushCampaign"> | string | null
+    title?: StringFilter<"PushCampaign"> | string
+    body?: StringFilter<"PushCampaign"> | string
+    status?: StringFilter<"PushCampaign"> | string
+    scheduledFor?: DateTimeNullableFilter<"PushCampaign"> | Date | string | null
+    startedAt?: DateTimeNullableFilter<"PushCampaign"> | Date | string | null
+    sentAt?: DateTimeNullableFilter<"PushCampaign"> | Date | string | null
+    targeted?: IntFilter<"PushCampaign"> | number
+    delivered?: IntFilter<"PushCampaign"> | number
+    failed?: IntFilter<"PushCampaign"> | number
+    createdBy?: StringNullableFilter<"PushCampaign"> | string | null
+    createdAt?: DateTimeFilter<"PushCampaign"> | Date | string
+    updatedAt?: DateTimeFilter<"PushCampaign"> | Date | string
+  }
+
+  export type PushCampaignOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrderInput | SortOrder
+    brandId?: SortOrderInput | SortOrder
+    title?: SortOrder
+    body?: SortOrder
+    status?: SortOrder
+    scheduledFor?: SortOrderInput | SortOrder
+    startedAt?: SortOrderInput | SortOrder
+    sentAt?: SortOrderInput | SortOrder
+    targeted?: SortOrder
+    delivered?: SortOrder
+    failed?: SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _relevance?: PushCampaignOrderByRelevanceInput
+  }
+
+  export type PushCampaignWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: PushCampaignWhereInput | PushCampaignWhereInput[]
+    OR?: PushCampaignWhereInput[]
+    NOT?: PushCampaignWhereInput | PushCampaignWhereInput[]
+    tenantId?: StringFilter<"PushCampaign"> | string
+    locationId?: StringNullableFilter<"PushCampaign"> | string | null
+    brandId?: StringNullableFilter<"PushCampaign"> | string | null
+    title?: StringFilter<"PushCampaign"> | string
+    body?: StringFilter<"PushCampaign"> | string
+    status?: StringFilter<"PushCampaign"> | string
+    scheduledFor?: DateTimeNullableFilter<"PushCampaign"> | Date | string | null
+    startedAt?: DateTimeNullableFilter<"PushCampaign"> | Date | string | null
+    sentAt?: DateTimeNullableFilter<"PushCampaign"> | Date | string | null
+    targeted?: IntFilter<"PushCampaign"> | number
+    delivered?: IntFilter<"PushCampaign"> | number
+    failed?: IntFilter<"PushCampaign"> | number
+    createdBy?: StringNullableFilter<"PushCampaign"> | string | null
+    createdAt?: DateTimeFilter<"PushCampaign"> | Date | string
+    updatedAt?: DateTimeFilter<"PushCampaign"> | Date | string
+  }, "id">
+
+  export type PushCampaignOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrderInput | SortOrder
+    brandId?: SortOrderInput | SortOrder
+    title?: SortOrder
+    body?: SortOrder
+    status?: SortOrder
+    scheduledFor?: SortOrderInput | SortOrder
+    startedAt?: SortOrderInput | SortOrder
+    sentAt?: SortOrderInput | SortOrder
+    targeted?: SortOrder
+    delivered?: SortOrder
+    failed?: SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: PushCampaignCountOrderByAggregateInput
+    _avg?: PushCampaignAvgOrderByAggregateInput
+    _max?: PushCampaignMaxOrderByAggregateInput
+    _min?: PushCampaignMinOrderByAggregateInput
+    _sum?: PushCampaignSumOrderByAggregateInput
+  }
+
+  export type PushCampaignScalarWhereWithAggregatesInput = {
+    AND?: PushCampaignScalarWhereWithAggregatesInput | PushCampaignScalarWhereWithAggregatesInput[]
+    OR?: PushCampaignScalarWhereWithAggregatesInput[]
+    NOT?: PushCampaignScalarWhereWithAggregatesInput | PushCampaignScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"PushCampaign"> | string
+    tenantId?: StringWithAggregatesFilter<"PushCampaign"> | string
+    locationId?: StringNullableWithAggregatesFilter<"PushCampaign"> | string | null
+    brandId?: StringNullableWithAggregatesFilter<"PushCampaign"> | string | null
+    title?: StringWithAggregatesFilter<"PushCampaign"> | string
+    body?: StringWithAggregatesFilter<"PushCampaign"> | string
+    status?: StringWithAggregatesFilter<"PushCampaign"> | string
+    scheduledFor?: DateTimeNullableWithAggregatesFilter<"PushCampaign"> | Date | string | null
+    startedAt?: DateTimeNullableWithAggregatesFilter<"PushCampaign"> | Date | string | null
+    sentAt?: DateTimeNullableWithAggregatesFilter<"PushCampaign"> | Date | string | null
+    targeted?: IntWithAggregatesFilter<"PushCampaign"> | number
+    delivered?: IntWithAggregatesFilter<"PushCampaign"> | number
+    failed?: IntWithAggregatesFilter<"PushCampaign"> | number
+    createdBy?: StringNullableWithAggregatesFilter<"PushCampaign"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"PushCampaign"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"PushCampaign"> | Date | string
   }
 
   export type ContractTemplateWhereInput = {
@@ -232094,9 +235693,13 @@ export namespace Prisma {
     tenantId: string
     locationId?: string | null
     brandId?: string | null
+    kind?: string
+    platform?: string | null
+    appId?: string | null
     endpoint: string
-    p256dh: string
-    auth: string
+    p256dh?: string | null
+    auth?: string | null
+    marketingOptIn?: boolean
     customerId?: string | null
     deviceRef?: string | null
     userAgent?: string | null
@@ -232113,9 +235716,13 @@ export namespace Prisma {
     tenantId: string
     locationId?: string | null
     brandId?: string | null
+    kind?: string
+    platform?: string | null
+    appId?: string | null
     endpoint: string
-    p256dh: string
-    auth: string
+    p256dh?: string | null
+    auth?: string | null
+    marketingOptIn?: boolean
     customerId?: string | null
     deviceRef?: string | null
     userAgent?: string | null
@@ -232132,9 +235739,13 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    kind?: StringFieldUpdateOperationsInput | string
+    platform?: NullableStringFieldUpdateOperationsInput | string | null
+    appId?: NullableStringFieldUpdateOperationsInput | string | null
     endpoint?: StringFieldUpdateOperationsInput | string
-    p256dh?: StringFieldUpdateOperationsInput | string
-    auth?: StringFieldUpdateOperationsInput | string
+    p256dh?: NullableStringFieldUpdateOperationsInput | string | null
+    auth?: NullableStringFieldUpdateOperationsInput | string | null
+    marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
     deviceRef?: NullableStringFieldUpdateOperationsInput | string | null
     userAgent?: NullableStringFieldUpdateOperationsInput | string | null
@@ -232151,9 +235762,13 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    kind?: StringFieldUpdateOperationsInput | string
+    platform?: NullableStringFieldUpdateOperationsInput | string | null
+    appId?: NullableStringFieldUpdateOperationsInput | string | null
     endpoint?: StringFieldUpdateOperationsInput | string
-    p256dh?: StringFieldUpdateOperationsInput | string
-    auth?: StringFieldUpdateOperationsInput | string
+    p256dh?: NullableStringFieldUpdateOperationsInput | string | null
+    auth?: NullableStringFieldUpdateOperationsInput | string | null
+    marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
     deviceRef?: NullableStringFieldUpdateOperationsInput | string | null
     userAgent?: NullableStringFieldUpdateOperationsInput | string | null
@@ -232170,9 +235785,13 @@ export namespace Prisma {
     tenantId: string
     locationId?: string | null
     brandId?: string | null
+    kind?: string
+    platform?: string | null
+    appId?: string | null
     endpoint: string
-    p256dh: string
-    auth: string
+    p256dh?: string | null
+    auth?: string | null
+    marketingOptIn?: boolean
     customerId?: string | null
     deviceRef?: string | null
     userAgent?: string | null
@@ -232188,9 +235807,13 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    kind?: StringFieldUpdateOperationsInput | string
+    platform?: NullableStringFieldUpdateOperationsInput | string | null
+    appId?: NullableStringFieldUpdateOperationsInput | string | null
     endpoint?: StringFieldUpdateOperationsInput | string
-    p256dh?: StringFieldUpdateOperationsInput | string
-    auth?: StringFieldUpdateOperationsInput | string
+    p256dh?: NullableStringFieldUpdateOperationsInput | string | null
+    auth?: NullableStringFieldUpdateOperationsInput | string | null
+    marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
     deviceRef?: NullableStringFieldUpdateOperationsInput | string | null
     userAgent?: NullableStringFieldUpdateOperationsInput | string | null
@@ -232206,9 +235829,13 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    kind?: StringFieldUpdateOperationsInput | string
+    platform?: NullableStringFieldUpdateOperationsInput | string | null
+    appId?: NullableStringFieldUpdateOperationsInput | string | null
     endpoint?: StringFieldUpdateOperationsInput | string
-    p256dh?: StringFieldUpdateOperationsInput | string
-    auth?: StringFieldUpdateOperationsInput | string
+    p256dh?: NullableStringFieldUpdateOperationsInput | string | null
+    auth?: NullableStringFieldUpdateOperationsInput | string | null
+    marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
     deviceRef?: NullableStringFieldUpdateOperationsInput | string | null
     userAgent?: NullableStringFieldUpdateOperationsInput | string | null
@@ -232272,6 +235899,300 @@ export namespace Prisma {
     orderId?: StringFieldUpdateOperationsInput | string
     trackPath?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PushAutomationCreateInput = {
+    id?: string
+    tenantId: string
+    trigger: string
+    enabled?: boolean
+    title?: string | null
+    body?: string | null
+    delayMinutes?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PushAutomationUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    trigger: string
+    enabled?: boolean
+    title?: string | null
+    body?: string | null
+    delayMinutes?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PushAutomationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    trigger?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    body?: NullableStringFieldUpdateOperationsInput | string | null
+    delayMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PushAutomationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    trigger?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    body?: NullableStringFieldUpdateOperationsInput | string | null
+    delayMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PushAutomationCreateManyInput = {
+    id?: string
+    tenantId: string
+    trigger: string
+    enabled?: boolean
+    title?: string | null
+    body?: string | null
+    delayMinutes?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PushAutomationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    trigger?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    body?: NullableStringFieldUpdateOperationsInput | string | null
+    delayMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PushAutomationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    trigger?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    body?: NullableStringFieldUpdateOperationsInput | string | null
+    delayMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PushReviewRequestCreateInput = {
+    id?: string
+    tenantId: string
+    orderId: string
+    dueAt: Date | string
+    status?: string
+    claimedAt?: Date | string | null
+    sentAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type PushReviewRequestUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    orderId: string
+    dueAt: Date | string
+    status?: string
+    claimedAt?: Date | string | null
+    sentAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type PushReviewRequestUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    dueAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PushReviewRequestUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    dueAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PushReviewRequestCreateManyInput = {
+    id?: string
+    tenantId: string
+    orderId: string
+    dueAt: Date | string
+    status?: string
+    claimedAt?: Date | string | null
+    sentAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type PushReviewRequestUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    dueAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PushReviewRequestUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    dueAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    claimedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PushCampaignCreateInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    brandId?: string | null
+    title: string
+    body: string
+    status?: string
+    scheduledFor?: Date | string | null
+    startedAt?: Date | string | null
+    sentAt?: Date | string | null
+    targeted?: number
+    delivered?: number
+    failed?: number
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PushCampaignUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    brandId?: string | null
+    title: string
+    body: string
+    status?: string
+    scheduledFor?: Date | string | null
+    startedAt?: Date | string | null
+    sentAt?: Date | string | null
+    targeted?: number
+    delivered?: number
+    failed?: number
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PushCampaignUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    body?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    targeted?: IntFieldUpdateOperationsInput | number
+    delivered?: IntFieldUpdateOperationsInput | number
+    failed?: IntFieldUpdateOperationsInput | number
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PushCampaignUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    body?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    targeted?: IntFieldUpdateOperationsInput | number
+    delivered?: IntFieldUpdateOperationsInput | number
+    failed?: IntFieldUpdateOperationsInput | number
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PushCampaignCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId?: string | null
+    brandId?: string | null
+    title: string
+    body: string
+    status?: string
+    scheduledFor?: Date | string | null
+    startedAt?: Date | string | null
+    sentAt?: Date | string | null
+    targeted?: number
+    delivered?: number
+    failed?: number
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PushCampaignUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    body?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    targeted?: IntFieldUpdateOperationsInput | number
+    delivered?: IntFieldUpdateOperationsInput | number
+    failed?: IntFieldUpdateOperationsInput | number
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PushCampaignUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    body?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    scheduledFor?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    targeted?: IntFieldUpdateOperationsInput | number
+    delivered?: IntFieldUpdateOperationsInput | number
+    failed?: IntFieldUpdateOperationsInput | number
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ContractTemplateCreateInput = {
@@ -246622,9 +250543,13 @@ export namespace Prisma {
     tenantId?: SortOrder
     locationId?: SortOrder
     brandId?: SortOrder
+    kind?: SortOrder
+    platform?: SortOrder
+    appId?: SortOrder
     endpoint?: SortOrder
     p256dh?: SortOrder
     auth?: SortOrder
+    marketingOptIn?: SortOrder
     customerId?: SortOrder
     deviceRef?: SortOrder
     userAgent?: SortOrder
@@ -246640,9 +250565,13 @@ export namespace Prisma {
     tenantId?: SortOrder
     locationId?: SortOrder
     brandId?: SortOrder
+    kind?: SortOrder
+    platform?: SortOrder
+    appId?: SortOrder
     endpoint?: SortOrder
     p256dh?: SortOrder
     auth?: SortOrder
+    marketingOptIn?: SortOrder
     customerId?: SortOrder
     deviceRef?: SortOrder
     userAgent?: SortOrder
@@ -246658,9 +250587,13 @@ export namespace Prisma {
     tenantId?: SortOrder
     locationId?: SortOrder
     brandId?: SortOrder
+    kind?: SortOrder
+    platform?: SortOrder
+    appId?: SortOrder
     endpoint?: SortOrder
     p256dh?: SortOrder
     auth?: SortOrder
+    marketingOptIn?: SortOrder
     customerId?: SortOrder
     deviceRef?: SortOrder
     userAgent?: SortOrder
@@ -246709,6 +250642,175 @@ export namespace Prisma {
     orderId?: SortOrder
     trackPath?: SortOrder
     createdAt?: SortOrder
+  }
+
+  export type PushAutomationOrderByRelevanceInput = {
+    fields: PushAutomationOrderByRelevanceFieldEnum | PushAutomationOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type PushAutomationTenantIdTriggerCompoundUniqueInput = {
+    tenantId: string
+    trigger: string
+  }
+
+  export type PushAutomationCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    trigger?: SortOrder
+    enabled?: SortOrder
+    title?: SortOrder
+    body?: SortOrder
+    delayMinutes?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PushAutomationAvgOrderByAggregateInput = {
+    delayMinutes?: SortOrder
+  }
+
+  export type PushAutomationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    trigger?: SortOrder
+    enabled?: SortOrder
+    title?: SortOrder
+    body?: SortOrder
+    delayMinutes?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PushAutomationMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    trigger?: SortOrder
+    enabled?: SortOrder
+    title?: SortOrder
+    body?: SortOrder
+    delayMinutes?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PushAutomationSumOrderByAggregateInput = {
+    delayMinutes?: SortOrder
+  }
+
+  export type PushReviewRequestOrderByRelevanceInput = {
+    fields: PushReviewRequestOrderByRelevanceFieldEnum | PushReviewRequestOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type PushReviewRequestCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    orderId?: SortOrder
+    dueAt?: SortOrder
+    status?: SortOrder
+    claimedAt?: SortOrder
+    sentAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type PushReviewRequestMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    orderId?: SortOrder
+    dueAt?: SortOrder
+    status?: SortOrder
+    claimedAt?: SortOrder
+    sentAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type PushReviewRequestMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    orderId?: SortOrder
+    dueAt?: SortOrder
+    status?: SortOrder
+    claimedAt?: SortOrder
+    sentAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type PushCampaignOrderByRelevanceInput = {
+    fields: PushCampaignOrderByRelevanceFieldEnum | PushCampaignOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type PushCampaignCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    title?: SortOrder
+    body?: SortOrder
+    status?: SortOrder
+    scheduledFor?: SortOrder
+    startedAt?: SortOrder
+    sentAt?: SortOrder
+    targeted?: SortOrder
+    delivered?: SortOrder
+    failed?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PushCampaignAvgOrderByAggregateInput = {
+    targeted?: SortOrder
+    delivered?: SortOrder
+    failed?: SortOrder
+  }
+
+  export type PushCampaignMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    title?: SortOrder
+    body?: SortOrder
+    status?: SortOrder
+    scheduledFor?: SortOrder
+    startedAt?: SortOrder
+    sentAt?: SortOrder
+    targeted?: SortOrder
+    delivered?: SortOrder
+    failed?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PushCampaignMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    title?: SortOrder
+    body?: SortOrder
+    status?: SortOrder
+    scheduledFor?: SortOrder
+    startedAt?: SortOrder
+    sentAt?: SortOrder
+    targeted?: SortOrder
+    delivered?: SortOrder
+    failed?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PushCampaignSumOrderByAggregateInput = {
+    targeted?: SortOrder
+    delivered?: SortOrder
+    failed?: SortOrder
   }
 
   export type ContractTemplateOrderByRelevanceInput = {
@@ -304720,9 +308822,13 @@ export namespace Prisma {
     tenantId: string
     locationId?: string | null
     brandId?: string | null
+    kind?: string
+    platform?: string | null
+    appId?: string | null
     endpoint: string
-    p256dh: string
-    auth: string
+    p256dh?: string | null
+    auth?: string | null
+    marketingOptIn?: boolean
     customerId?: string | null
     deviceRef?: string | null
     userAgent?: string | null
@@ -304738,9 +308844,13 @@ export namespace Prisma {
     tenantId: string
     locationId?: string | null
     brandId?: string | null
+    kind?: string
+    platform?: string | null
+    appId?: string | null
     endpoint: string
-    p256dh: string
-    auth: string
+    p256dh?: string | null
+    auth?: string | null
+    marketingOptIn?: boolean
     customerId?: string | null
     deviceRef?: string | null
     userAgent?: string | null
@@ -304772,9 +308882,13 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    kind?: StringFieldUpdateOperationsInput | string
+    platform?: NullableStringFieldUpdateOperationsInput | string | null
+    appId?: NullableStringFieldUpdateOperationsInput | string | null
     endpoint?: StringFieldUpdateOperationsInput | string
-    p256dh?: StringFieldUpdateOperationsInput | string
-    auth?: StringFieldUpdateOperationsInput | string
+    p256dh?: NullableStringFieldUpdateOperationsInput | string | null
+    auth?: NullableStringFieldUpdateOperationsInput | string | null
+    marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
     deviceRef?: NullableStringFieldUpdateOperationsInput | string | null
     userAgent?: NullableStringFieldUpdateOperationsInput | string | null
@@ -304790,9 +308904,13 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     locationId?: NullableStringFieldUpdateOperationsInput | string | null
     brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    kind?: StringFieldUpdateOperationsInput | string
+    platform?: NullableStringFieldUpdateOperationsInput | string | null
+    appId?: NullableStringFieldUpdateOperationsInput | string | null
     endpoint?: StringFieldUpdateOperationsInput | string
-    p256dh?: StringFieldUpdateOperationsInput | string
-    auth?: StringFieldUpdateOperationsInput | string
+    p256dh?: NullableStringFieldUpdateOperationsInput | string | null
+    auth?: NullableStringFieldUpdateOperationsInput | string | null
+    marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
     deviceRef?: NullableStringFieldUpdateOperationsInput | string | null
     userAgent?: NullableStringFieldUpdateOperationsInput | string | null
@@ -324574,6 +328692,18 @@ export namespace Prisma {
      * @deprecated Use CustomerPushOrderDefaultArgs instead
      */
     export type CustomerPushOrderArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = CustomerPushOrderDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use PushAutomationDefaultArgs instead
+     */
+    export type PushAutomationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PushAutomationDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use PushReviewRequestDefaultArgs instead
+     */
+    export type PushReviewRequestArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PushReviewRequestDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use PushCampaignDefaultArgs instead
+     */
+    export type PushCampaignArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PushCampaignDefaultArgs<ExtArgs>
     /**
      * @deprecated Use ContractTemplateDefaultArgs instead
      */

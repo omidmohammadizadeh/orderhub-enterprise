@@ -14,7 +14,7 @@ import { formatMoney } from "@orderhub/shared";
 // polls the same /v1/ordering/orders/:orderId/status endpoint the
 // inline tracker uses and renders the same step-timeline pattern.
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -25,10 +25,13 @@ import {
   ChevronLeft,
   ShoppingBag,
   Phone,
+  Star,
 } from "lucide-react";
 import { DeliveryTrackingMap } from "@/components/order/delivery-tracking-map";
 import { CustomerDriverChat } from "@/components/order/customer-driver-chat";
 import { OrderNotifications } from "@/components/order/order-notifications";
+import { LeaveReviewModal } from "@/components/storefront/leave-review-modal";
+import { reviewsClient } from "@/lib/api/reviews.client";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ??
@@ -109,6 +112,32 @@ export default function OrderStatusPage() {
 
   // Nothing left to be notified about once the food has landed.
   const isComplete = data?.status === "COMPLETED";
+
+  // The "How was your food?" push lands here with ?review=1. Read off
+  // window rather than useSearchParams, which would need a Suspense boundary
+  // around the whole page. Already-reviewed orders never show the ask.
+  const [reviewState, setReviewState] = useState<"unknown" | "open" | "offer" | "done">("unknown");
+  // A ref, not state: the modal closes itself from a timer set at submit
+  // time, so its onClose is the one from before the submit re-render.
+  const reviewSubmitted = useRef(false);
+  useEffect(() => {
+    if (!isComplete || reviewState !== "unknown") return;
+    let cancelled = false;
+    reviewsClient
+      .reviewed([params.orderId])
+      .then((ids) => {
+        if (cancelled) return;
+        if (ids.includes(params.orderId)) return setReviewState("done");
+        const asked = new URLSearchParams(window.location.search).get("review") === "1";
+        setReviewState(asked ? "open" : "offer");
+      })
+      .catch(() => {
+        if (!cancelled) setReviewState("offer");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isComplete, params.orderId, reviewState]);
 
   const isDelivery = data?.fulfillmentType === "DELIVERY";
   // Retail R3 — a shop picks an order; it doesn't cook it.
@@ -217,6 +246,30 @@ export default function OrderStatusPage() {
               <div className="mx-auto mt-6 max-w-sm">
                 <OrderNotifications orderId={params.orderId} slug={params.slug} />
               </div>
+            )}
+
+            {isComplete && reviewState === "offer" && (
+              <div className="mx-auto mt-6 max-w-sm">
+                <button
+                  type="button"
+                  onClick={() => setReviewState("open")}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-900 px-4 py-3 text-sm font-semibold text-white hover:bg-zinc-800"
+                >
+                  <Star className="h-4 w-4" /> Rate your order
+                </button>
+              </div>
+            )}
+            {reviewState === "open" && (
+              <LeaveReviewModal
+                orderId={params.orderId}
+                merchantName={data.location?.name ?? "the restaurant"}
+                // The modal shows its own thank-you, then closes itself; only
+                // then does the page drop the ask.
+                onClose={() => setReviewState(reviewSubmitted.current ? "done" : "offer")}
+                onSubmitted={() => {
+                  reviewSubmitted.current = true;
+                }}
+              />
             )}
 
             {/* Live delivery tracking — shown front-and-centre the moment the
