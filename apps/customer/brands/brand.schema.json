@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OrderHub customer app brand",
+  "description": "One restaurant's store app. brands/load.js enforces the same rules at build time.",
+  "type": "object",
+  "required": ["slug", "name", "brandId", "storefrontUrl", "primaryColor", "ios", "android"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "slug": {
+      "description": "File name and the last part of both store ids. Lowercase letters and digits only: Android package names can't contain hyphens.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]{1,30}$"
+    },
+    "name": { "description": "App name under the icon (keep it under ~12 characters).", "type": "string", "minLength": 1, "maxLength": 30 },
+    "brandId": { "description": "OrderHub Brand.id — push installs and offers are filed under it.", "type": "string" },
+    "locationId": { "description": "Optional Location.id, for a single-shop brand.", "type": ["string", "null"] },
+    "storefrontUrl": { "description": "Full storefront URL including ?brand= when the shop trades several brands.", "type": "string", "pattern": "^https://" },
+    "apiUrl": { "description": "API base ending in /api. Defaults to production.", "type": "string", "pattern": "^https?://" },
+    "primaryColor": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+    "backgroundColor": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+    "icon": { "description": "1024×1024 PNG, no alpha. Default brands/<slug>/icon.png", "type": "string" },
+    "adaptiveIcon": { "description": "Android foreground, 1024×1024 PNG with alpha. Default brands/<slug>/adaptive-icon.png", "type": "string" },
+    "splash": { "description": "Default brands/<slug>/splash.png", "type": "string" },
+    "notificationIcon": { "description": "Android status-bar icon, white on transparent. Default brands/<slug>/notification-icon.png", "type": "string" },
+    "version": { "description": "Store version string. Build numbers are managed remotely by EAS.", "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "ios": {
+      "type": "object",
+      "required": ["bundleId"],
+      "properties": {
+        "bundleId": { "type": "string", "pattern": "^com\\.orderhubsolutions\\.[a-z][a-z0-9]+$" },
+        "appleTeamId": { "description": "The CLIENT's Apple team (guideline 4.2.6).", "type": ["string", "null"] },
+        "ascAppId": { "description": "App Store Connect app id, once the app record exists.", "type": ["string", "null"] }
+      }
+    },
+    "android": {
+      "type": "object",
+      "required": ["package"],
+      "properties": {
+        "package": { "type": "string", "pattern": "^com\\.orderhubsolutions\\.[a-z][a-z0-9]+$" }
+      }
+    },
+    "easProjectId": { "description": "EAS project for this brand (one per brand, so OTA updates and credentials never cross brands). Null until `npm run brand -- init <slug>`.", "type": ["string", "null"] }
+  }
+}

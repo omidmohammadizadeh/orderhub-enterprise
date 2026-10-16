@@ -3,5 +3,6 @@ packages:
   - "packages/*"
   - "integrations/*"
   - "!apps/mobile"
+  - "!apps/customer"
   - "!apps/driver"
   - "!apps/caller-id"
