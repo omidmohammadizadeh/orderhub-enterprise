@@ -59,6 +59,13 @@ const config: ExpoConfig = {
       backgroundColor: brand.backgroundColor,
     },
     edgeToEdgeEnabled: true,
+    // Expo's defaults add these; the app needs none of them, and Play flags
+    // SYSTEM_ALERT_WINDOW and storage access as sensitive at review time.
+    blockedPermissions: [
+      "android.permission.SYSTEM_ALERT_WINDOW",
+      "android.permission.READ_EXTERNAL_STORAGE",
+      "android.permission.WRITE_EXTERNAL_STORAGE",
+    ],
   },
   plugins: [
     [
