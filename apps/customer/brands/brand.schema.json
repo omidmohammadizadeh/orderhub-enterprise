@@ -29,7 +29,8 @@
       "properties": {
         "bundleId": { "type": "string", "pattern": "^com\\.orderhubsolutions\\.[a-z][a-z0-9]+$" },
         "appleTeamId": { "description": "The CLIENT's Apple team (guideline 4.2.6).", "type": ["string", "null"] },
-        "ascAppId": { "description": "App Store Connect app id, once the app record exists.", "type": ["string", "null"] }
+        "ascAppId": { "description": "App Store Connect app id, once the app record exists.", "type": ["string", "null"] },
+        "appleSignIn": { "description": "Offer Sign in with Apple (default true). Needs the Sign in with Apple capability on the client's App ID, and is required by guideline 4.8 whenever Google sign-in is offered.", "type": "boolean" }
       }
     },
     "android": {
@@ -37,6 +38,16 @@
       "required": ["package"],
       "properties": {
         "package": { "type": "string", "pattern": "^com\\.orderhubsolutions\\.[a-z][a-z0-9]+$" }
+      }
+    },
+    "google": {
+      "description": "Native Sign in with Google. Omit until the brand's iOS OAuth client exists (README → Sign-in setup).",
+      "type": ["object", "null"],
+      "required": ["iosClientId"],
+      "properties": {
+        "iosClientId": { "description": "iOS OAuth client for this bundle id, in OrderHub's Google Cloud project.", "type": "string", "pattern": "^[0-9]+-[a-z0-9]+\\.apps\\.googleusercontent\\.com$" },
+        "webClientId": { "description": "Audience of the ID token. Defaults to OrderHub's web client (the API's GOOGLE_CLIENT_ID).", "type": "string", "pattern": "^[0-9]+-[a-z0-9]+\\.apps\\.googleusercontent\\.com$" },
+        "android": { "description": "Offer Google on Android (default true). Needs an Android OAuth client with the Play app-signing SHA-1.", "type": "boolean" }
       }
     },
     "easProjectId": { "description": "EAS project for this brand (one per brand, so OTA updates and credentials never cross brands). Null until `npm run brand -- init <slug>`.", "type": ["string", "null"] }

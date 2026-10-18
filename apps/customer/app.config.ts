@@ -42,6 +42,9 @@ const config: ExpoConfig = {
     bundleIdentifier: brand.ios.bundleId,
     supportsTablet: false,
     ...(brand.ios.appleTeamId ? { appleTeamId: brand.ios.appleTeamId } : {}),
+    // Adds the Sign in with Apple entitlement; EAS turns the capability on
+    // for the App ID (an existing profile must be regenerated — README).
+    usesAppleSignIn: brand.appleSignIn,
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
     },
@@ -68,6 +71,12 @@ const config: ExpoConfig = {
     ],
   },
   plugins: [
+    ...(brand.appleSignIn ? ["expo-apple-authentication"] : []),
+    // Only with a client id: the iOS SDK throws (and the app dies) if asked to
+    // sign in without its URL scheme registered.
+    ...(brand.google
+      ? [["@react-native-google-signin/google-signin", { iosUrlScheme: brand.google.iosUrlScheme }] as [string, object]]
+      : []),
     [
       "expo-notifications",
       {
@@ -95,6 +104,12 @@ const config: ExpoConfig = {
       apiUrl: brand.apiUrl,
       primaryColor: brand.primaryColor,
       backgroundColor: brand.backgroundColor,
+      signIn: {
+        apple: brand.appleSignIn,
+        google: brand.google
+          ? { iosClientId: brand.google.iosClientId, webClientId: brand.google.webClientId, android: brand.google.android }
+          : null,
+      },
     },
     ...(brand.easProjectId ? { eas: { projectId: brand.easProjectId } } : {}),
   },

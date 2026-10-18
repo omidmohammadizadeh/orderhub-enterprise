@@ -266,6 +266,9 @@ model CustomerAccount {
   /// Date only — for birthday offers. Asked, never required.
   dateOfBirth            DateTime? @db.Date
   googleId               String?   @unique
+  /// Sign in with Apple's stable per-team user id (`sub`), from the native
+  /// restaurant apps. Apple sends the name only on the first sign-in.
+  appleId                String?   @unique
   avatarUrl              String?
   isVerified             Boolean   @default(false)
   emailVerificationToken String? // set during signup, cleared on verify
@@ -377,7 +380,7 @@ model ApiKey {
   @@map("api_keys")
 }
 
-// ── AuditLog ─────────────────────────────��────────────────────────────────────
+// ── AuditLog ──────────────────────────────────────────────────────────────────
 model AuditLog {
   id         String  @id @default(cuid())
   tenantId   String
@@ -872,7 +875,7 @@ model Menu {
   // re-import of an unchanged menu can short-circuit.
   syncHash         String?
 
-  // ── Publish targets ────────────────────────────────────────────────────
+  // ── Publish targets ─────────���──────────────────────────────────────────
   // Slugs of platforms this menu has been pushed to (e.g. ["ubereats_uk",
   // "deliveroo_uk"]). Distinct from importStatus — these are outbound.
   publishedTo     String[]  @default([])
@@ -4189,7 +4192,7 @@ model WebhookRoute {
 
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE F — MOBILE ARCHITECTURE
-// ══════════════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════════���═════
 
 // Mobile/POS app sessions — separate from web DeviceSession
 model MobileSession {

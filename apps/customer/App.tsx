@@ -4,8 +4,9 @@ import { DefaultTheme, NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import * as Notifications from "expo-notifications";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { loadAuth } from "./src/auth";
 import { brand } from "./src/brand";
 import { flushPendingNavigation, navigationRef, openPushTarget, type RootParams, type TabParams } from "./src/navigation";
 import { registerOnLaunch } from "./src/push";
@@ -72,6 +73,13 @@ export default function App() {
   useEffect(() => {
     registerOnLaunch();
   }, []);
+
+  // The saved session first, so the storefront WebView starts signed in.
+  const [authLoaded, setAuthLoaded] = useState(false);
+  useEffect(() => {
+    loadAuth().finally(() => setAuthLoaded(true));
+  }, []);
+  if (!authLoaded) return null;
 
   return (
     <SafeAreaProvider>

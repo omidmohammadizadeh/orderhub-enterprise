@@ -4,8 +4,10 @@ import Constants from "expo-constants";
 import * as Linking from "expo-linking";
 import * as Notifications from "expo-notifications";
 import { type ReactNode, useCallback, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
+import { deleteAccount, refreshCustomer, signOut, useAuth } from "../auth";
 import { brand, withBrandQuery } from "../brand";
+import { SignInButtons } from "../components/SignInButtons";
 import { openStorefront } from "../navigation";
 import { getOffersPreference, getPushToken, registerOnLaunch, setOffers } from "../push";
 import { slugFromUrl } from "../storefront-bridge";
@@ -41,13 +43,39 @@ export function SettingsScreen() {
   const [offers, setOffersState] = useState(false);
   const [permission, setPermission] = useState<Notifications.PermissionStatus | null>(null);
   const slug = slugFromUrl(brand.storefrontUrl);
+  const auth = useAuth();
+  const signedIn = !!auth.token;
+  const who = auth.customer;
+  const name = [who?.firstName, who?.lastName].filter(Boolean).join(" ");
 
   useFocusEffect(
     useCallback(() => {
       getOffersPreference().then((v) => setOffersState(v === true));
       Notifications.getPermissionsAsync().then((p) => setPermission(p.status));
+      refreshCustomer();
     }, []),
   );
+
+  const confirmSignOut = () =>
+    Alert.alert("Sign out?", undefined, [
+      { text: "Cancel", style: "cancel" },
+      { text: "Sign out", style: "destructive", onPress: signOut },
+    ]);
+
+  const confirmDelete = () =>
+    Alert.alert(
+      "Delete your account?",
+      "Your saved details, addresses and rewards are deleted for good. Orders you've placed stay with the restaurant.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () =>
+            deleteAccount().catch((err) => Alert.alert("Couldn't delete your account", err?.message ?? "Please try again.")),
+        },
+      ],
+    );
 
   const toggleOffers = async (on: boolean) => {
     setOffersState(on);
@@ -94,6 +122,27 @@ export function SettingsScreen() {
 
       <Text style={styles.section}>Account</Text>
       <View style={styles.group}>
+        {signedIn ? (
+          <>
+            <Row
+              icon="person-outline"
+              title={name || who?.email || "Signed in"}
+              detail={name && who?.email ? who.email : undefined}
+            />
+            <View style={styles.divider} />
+          </>
+        ) : (
+          <>
+            <Row
+              icon="log-in-outline"
+              title="Sign in"
+              detail="Save your details and collect rewards on every order."
+              onPress={() => openStorefront(withBrandQuery(`/order/${slug}/account`))}
+            />
+            <SignInButtons />
+            <View style={styles.divider} />
+          </>
+        )}
         <Row
           icon="person-circle-outline"
           title="Your account"
@@ -106,6 +155,14 @@ export function SettingsScreen() {
           title="Rewards"
           onPress={() => openStorefront(withBrandQuery(`/order/${slug}/rewards`))}
         />
+        {signedIn ? (
+          <>
+            <View style={styles.divider} />
+            <Row icon="log-out-outline" title="Sign out" onPress={confirmSignOut} />
+            <View style={styles.divider} />
+            <Row icon="trash-outline" title="Delete account" onPress={confirmDelete} />
+          </>
+        ) : null}
       </View>
 
       <Text style={styles.footer}>

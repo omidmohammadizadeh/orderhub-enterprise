@@ -13,6 +13,7 @@
 //   * login()            — email/password authentication, return JWT
 //   * createOrLinkGoogle()— upsert Customer from Google profile (used by
 //                          the OAuth callback handler)
+//   * nativeSignIn()     — Google/Apple ID token from a restaurant's own app
 //   * getById()          — load Customer for the JWT strategy
 
 import {
@@ -28,6 +29,8 @@ import { randomBytes } from "node:crypto";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { EmailService } from "../../infrastructure/email/email.service";
 import { PasswordService } from "../auth/services/password.service";
+import { NativeOAuthService } from "../auth/services/native-oauth.service";
+import { CustomerNativeSignInDto } from "./dto/native-sign-in.dto";
 import { CustomerSignupDto } from "./dto/signup.dto";
 import { CustomerLoginDto } from "./dto/login.dto";
 import { UpdateCustomerProfileDto } from "./dto/update-profile.dto";
@@ -152,6 +155,7 @@ export class CustomerAuthService {
     private readonly jwt: JwtService,
     private readonly email: EmailService,
     private readonly config: ConfigService,
+    private readonly nativeOAuth?: NativeOAuthService,
   ) {}
 
   async signup(dto: CustomerSignupDto): Promise<{ pendingVerification: true; email: string }> {
@@ -320,6 +324,139 @@ export class CustomerAuthService {
         where: { id: customer.id },
         data: { lastLoginAt: new Date() },
       });
+    }
+    return {
+      accessToken: await this.signCustomerToken(customer),
+      customer: this.serialise(customer),
+    };
+  }
+
+  /**
+   * Sign-in from one of the white-label restaurant apps (apps/customer).
+   *
+   * Google refuses its OAuth page inside a WebView, so the app signs in with
+   * the native SDK and posts the ID token here; the storefront in the WebView
+   * then gets the session we return. Apple's guideline 4.8 requires Sign in
+   * with Apple wherever Google is offered, so both arrive here.
+   *
+   * Audiences are lists from the environment, not the staff app's ids: every
+   * brand's app is its own iOS bundle and its own Google OAuth client.
+   */
+  async nativeSignIn(dto: CustomerNativeSignInDto): Promise<{ accessToken: string; customer: any }> {
+    if (!this.nativeOAuth) throw new UnauthorizedException("Native sign-in is not available");
+    if (dto.provider === "google") {
+      const profile = await this.nativeOAuth.verifyGoogleIdToken(
+        dto.idToken,
+        this.customerAppGoogleAudiences(),
+      );
+      // An unverified Google address must never take over the account
+      // somebody else registered with it.
+      if (!profile.emailVerified) {
+        throw new UnauthorizedException("Your Google email address isn't verified");
+      }
+      this.logger.log(`Native Google sign-in (brand ${dto.brandId ?? "?"})`);
+      return this.createOrLinkGoogle({
+        googleId: profile.providerAccountId,
+        email: profile.email,
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        avatarUrl: profile.avatarUrl,
+      });
+    }
+    // No fallback email from the app: the address we may link an existing
+    // account on has to come from Apple's signed token, never the request.
+    const profile = await this.nativeOAuth.verifyAppleIdToken(
+      dto.idToken,
+      null,
+      { givenName: dto.firstName, familyName: dto.lastName },
+      this.customerAppAppleAudiences(),
+    );
+    this.logger.log(`Native Apple sign-in (brand ${dto.brandId ?? "?"})`);
+    return this.createOrLinkApple({
+      appleId: profile.providerAccountId,
+      email: profile.email,
+      emailVerified: profile.emailVerified,
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+    });
+  }
+
+  /**
+   * The app passes the web client id as `webClientId`, so most tokens are
+   * minted for GOOGLE_CLIENT_ID; a brand whose app uses its own clients lists
+   * them in CUSTOMER_APP_GOOGLE_CLIENT_IDS.
+   */
+  private customerAppGoogleAudiences(): string[] {
+    return [
+      this.config.get<string>("GOOGLE_CLIENT_ID") ?? "",
+      ...splitList(this.config.get<string>("CUSTOMER_APP_GOOGLE_CLIENT_IDS")),
+    ].filter(Boolean);
+  }
+
+  /** Every restaurant app's iOS bundle id, e.g. com.orderhubsolutions.kingstonpizza. */
+  private customerAppAppleAudiences(): string[] {
+    return splitList(this.config.get<string>("CUSTOMER_APP_APPLE_BUNDLE_IDS"));
+  }
+
+  /**
+   * Find or create the customer for a Sign in with Apple identity.
+   *
+   * Apple gives the name to the app on the first sign-in and never again, so
+   * it is saved then and only filled in later if still blank. A "Hide My
+   * Email" relay address is a real, stable address for this app, so it works
+   * as the account email.
+   */
+  async createOrLinkApple(profile: {
+    appleId: string;
+    email: string;
+    emailVerified: boolean;
+    firstName?: string;
+    lastName?: string;
+  }): Promise<{ accessToken: string; customer: any }> {
+    const emailNormalised = profile.email.trim().toLowerCase();
+    const firstName = (profile.firstName ?? "").trim();
+    const lastName = (profile.lastName ?? "").trim();
+    const db = (this.prisma as any).customerAccount;
+
+    let customer = await db.findUnique({ where: { appleId: profile.appleId } });
+    if (customer) {
+      customer = await db.update({
+        where: { id: customer.id },
+        data: {
+          lastLoginAt: new Date(),
+          ...(!customer.firstName && firstName ? { firstName } : {}),
+          ...(!customer.lastName && lastName ? { lastName } : {}),
+        },
+      });
+    } else {
+      // Link an account they already made with the same address — only when
+      // Apple vouches for that address.
+      const existing = profile.emailVerified
+        ? await db.findUnique({ where: { email: emailNormalised } })
+        : null;
+      if (existing) {
+        customer = await db.update({
+          where: { id: existing.id },
+          data: {
+            appleId: profile.appleId,
+            isVerified: true,
+            lastLoginAt: new Date(),
+            ...(!existing.firstName && firstName ? { firstName } : {}),
+            ...(!existing.lastName && lastName ? { lastName } : {}),
+          },
+        });
+      } else {
+        customer = await db.create({
+          data: {
+            email: emailNormalised,
+            appleId: profile.appleId,
+            firstName,
+            lastName,
+            isVerified: true,
+            lastLoginAt: new Date(),
+          },
+        });
+      }
     }
     return {
       accessToken: await this.signCustomerToken(customer),
@@ -633,6 +770,13 @@ export class CustomerAuthService {
       );
     }
   }
+}
+
+function splitList(value: string | undefined): string[] {
+  return (value ?? "")
+    .split(",")
+    .map((v) => v.trim())
+    .filter(Boolean);
 }
 
 function escapeHtml(s: string): string {

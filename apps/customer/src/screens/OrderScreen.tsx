@@ -2,9 +2,19 @@ import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, type RouteProp, useRoute } from "@react-navigation/native";
 import * as Linking from "expo-linking";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, BackHandler, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, BackHandler, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import WebView, { type WebViewMessageEvent, type WebViewNavigation } from "react-native-webview";
+import {
+  availableProviders,
+  type Provider,
+  sessionScript,
+  signIn,
+  SignInCancelled,
+  storefrontSessionChanged,
+  storefrontSignedOut,
+  useAuth,
+} from "../auth";
 import { Button } from "../components/Button";
 import { brand } from "../brand";
 import { openOrder, type TabParams } from "../navigation";
@@ -26,6 +36,25 @@ export function OrderScreen() {
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const handled = useRef(new Set<string>());
+  const auth = useAuth();
+  const [providers, setProviders] = useState<Provider[]>([]);
+  const [webKey, setWebKey] = useState(0);
+  const lastUrl = useRef<string | null>(null);
+  const shownVersion = useRef(auth.version);
+
+  useEffect(() => {
+    availableProviders().then(setProviders);
+  }, []);
+
+  // A native sign-in or sign-out: reload the page the customer is on with
+  // the new session in place (remounting, because the session script only
+  // runs as a page starts loading).
+  useEffect(() => {
+    if (auth.version === shownVersion.current) return;
+    shownVersion.current = auth.version;
+    setSource(lastUrl.current ?? brand.storefrontUrl);
+    setWebKey((k) => k + 1);
+  }, [auth.version]);
 
   // A notification or the Home screen asked for a particular page.
   useEffect(() => {
@@ -76,7 +105,18 @@ export function OrderScreen() {
       } catch {
         return;
       }
-      if (msg.type === "url") onUrl(msg.url);
+      if (msg.type === "url") {
+        lastUrl.current = msg.url;
+        onUrl(msg.url);
+      }
+      if (msg.type === "auth") storefrontSessionChanged(msg.token);
+      if (msg.type === "signed-out") storefrontSignedOut(msg.nonce);
+      if (msg.type === "sign-in" && (msg.provider === "apple" || msg.provider === "google")) {
+        signIn(msg.provider).catch((err) => {
+          if (err instanceof SignInCancelled) return;
+          Alert.alert("Couldn't sign you in", err?.message ?? "Please try again.");
+        });
+      }
       if (msg.type === "checkout") {
         const slug = slugFromUrl(msg.url) ?? slugFromUrl(brand.storefrontUrl);
         if (!slug) return;
@@ -92,6 +132,7 @@ export function OrderScreen() {
   const onNavigationStateChange = useCallback(
     (nav: WebViewNavigation) => {
       setCanGoBack(nav.canGoBack);
+      if (/^https?:/i.test(nav.url)) lastUrl.current = nav.url;
       onUrl(nav.url);
     },
     [onUrl],
@@ -139,10 +180,11 @@ export function OrderScreen() {
         </View>
       ) : null}
       <WebView
+        key={webKey}
         ref={webview}
         source={{ uri: source }}
         style={[styles.web, failed && styles.hidden]}
-        injectedJavaScriptBeforeContentLoaded={INJECTED_JS}
+        injectedJavaScriptBeforeContentLoaded={sessionScript(auth, providers) + INJECTED_JS}
         onMessage={onMessage}
         onNavigationStateChange={onNavigationStateChange}
         onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}

@@ -24840,6 +24840,7 @@ export namespace Prisma {
     addressArea: string | null
     dateOfBirth: Date | null
     googleId: string | null
+    appleId: string | null
     avatarUrl: string | null
     isVerified: boolean | null
     emailVerificationToken: string | null
@@ -24863,6 +24864,7 @@ export namespace Prisma {
     addressArea: string | null
     dateOfBirth: Date | null
     googleId: string | null
+    appleId: string | null
     avatarUrl: string | null
     isVerified: boolean | null
     emailVerificationToken: string | null
@@ -24886,6 +24888,7 @@ export namespace Prisma {
     addressArea: number
     dateOfBirth: number
     googleId: number
+    appleId: number
     avatarUrl: number
     isVerified: number
     emailVerificationToken: number
@@ -24911,6 +24914,7 @@ export namespace Prisma {
     addressArea?: true
     dateOfBirth?: true
     googleId?: true
+    appleId?: true
     avatarUrl?: true
     isVerified?: true
     emailVerificationToken?: true
@@ -24934,6 +24938,7 @@ export namespace Prisma {
     addressArea?: true
     dateOfBirth?: true
     googleId?: true
+    appleId?: true
     avatarUrl?: true
     isVerified?: true
     emailVerificationToken?: true
@@ -24957,6 +24962,7 @@ export namespace Prisma {
     addressArea?: true
     dateOfBirth?: true
     googleId?: true
+    appleId?: true
     avatarUrl?: true
     isVerified?: true
     emailVerificationToken?: true
@@ -25053,6 +25059,7 @@ export namespace Prisma {
     addressArea: string | null
     dateOfBirth: Date | null
     googleId: string | null
+    appleId: string | null
     avatarUrl: string | null
     isVerified: boolean
     emailVerificationToken: string | null
@@ -25093,6 +25100,7 @@ export namespace Prisma {
     addressArea?: boolean
     dateOfBirth?: boolean
     googleId?: boolean
+    appleId?: boolean
     avatarUrl?: boolean
     isVerified?: boolean
     emailVerificationToken?: boolean
@@ -25123,6 +25131,7 @@ export namespace Prisma {
     addressArea?: boolean
     dateOfBirth?: boolean
     googleId?: boolean
+    appleId?: boolean
     avatarUrl?: boolean
     isVerified?: boolean
     emailVerificationToken?: boolean
@@ -25146,6 +25155,7 @@ export namespace Prisma {
     addressArea?: boolean
     dateOfBirth?: boolean
     googleId?: boolean
+    appleId?: boolean
     avatarUrl?: boolean
     isVerified?: boolean
     emailVerificationToken?: boolean
@@ -25198,6 +25208,11 @@ export namespace Prisma {
        */
       dateOfBirth: Date | null
       googleId: string | null
+      /**
+       * Sign in with Apple's stable per-team user id (`sub`), from the native
+       * restaurant apps. Apple sends the name only on the first sign-in.
+       */
+      appleId: string | null
       avatarUrl: string | null
       isVerified: boolean
       emailVerificationToken: string | null
@@ -25617,6 +25632,7 @@ export namespace Prisma {
     readonly addressArea: FieldRef<"CustomerAccount", 'String'>
     readonly dateOfBirth: FieldRef<"CustomerAccount", 'DateTime'>
     readonly googleId: FieldRef<"CustomerAccount", 'String'>
+    readonly appleId: FieldRef<"CustomerAccount", 'String'>
     readonly avatarUrl: FieldRef<"CustomerAccount", 'String'>
     readonly isVerified: FieldRef<"CustomerAccount", 'Boolean'>
     readonly emailVerificationToken: FieldRef<"CustomerAccount", 'String'>
@@ -195129,6 +195145,7 @@ export namespace Prisma {
     addressArea: 'addressArea',
     dateOfBirth: 'dateOfBirth',
     googleId: 'googleId',
+    appleId: 'appleId',
     avatarUrl: 'avatarUrl',
     isVerified: 'isVerified',
     emailVerificationToken: 'emailVerificationToken',
@@ -198461,6 +198478,7 @@ export namespace Prisma {
     addressPostcode: 'addressPostcode',
     addressArea: 'addressArea',
     googleId: 'googleId',
+    appleId: 'appleId',
     avatarUrl: 'avatarUrl',
     emailVerificationToken: 'emailVerificationToken'
   };
@@ -202065,6 +202083,7 @@ export namespace Prisma {
     addressArea?: StringNullableFilter<"CustomerAccount"> | string | null
     dateOfBirth?: DateTimeNullableFilter<"CustomerAccount"> | Date | string | null
     googleId?: StringNullableFilter<"CustomerAccount"> | string | null
+    appleId?: StringNullableFilter<"CustomerAccount"> | string | null
     avatarUrl?: StringNullableFilter<"CustomerAccount"> | string | null
     isVerified?: BoolFilter<"CustomerAccount"> | boolean
     emailVerificationToken?: StringNullableFilter<"CustomerAccount"> | string | null
@@ -202094,6 +202113,7 @@ export namespace Prisma {
     addressArea?: SortOrderInput | SortOrder
     dateOfBirth?: SortOrderInput | SortOrder
     googleId?: SortOrderInput | SortOrder
+    appleId?: SortOrderInput | SortOrder
     avatarUrl?: SortOrderInput | SortOrder
     isVerified?: SortOrder
     emailVerificationToken?: SortOrderInput | SortOrder
@@ -202114,6 +202134,7 @@ export namespace Prisma {
     id?: string
     email?: string
     googleId?: string
+    appleId?: string
     AND?: CustomerAccountWhereInput | CustomerAccountWhereInput[]
     OR?: CustomerAccountWhereInput[]
     NOT?: CustomerAccountWhereInput | CustomerAccountWhereInput[]
@@ -202140,7 +202161,7 @@ export namespace Prisma {
     referralCodes?: ReferralCodeListRelationFilter
     referralsMade?: ReferralListRelationFilter
     referredBy?: XOR<ReferralNullableRelationFilter, ReferralWhereInput> | null
-  }, "id" | "email" | "googleId">
+  }, "id" | "email" | "googleId" | "appleId">
 
   export type CustomerAccountOrderByWithAggregationInput = {
     id?: SortOrder
@@ -202156,6 +202177,7 @@ export namespace Prisma {
     addressArea?: SortOrderInput | SortOrder
     dateOfBirth?: SortOrderInput | SortOrder
     googleId?: SortOrderInput | SortOrder
+    appleId?: SortOrderInput | SortOrder
     avatarUrl?: SortOrderInput | SortOrder
     isVerified?: SortOrder
     emailVerificationToken?: SortOrderInput | SortOrder
@@ -202185,6 +202207,7 @@ export namespace Prisma {
     addressArea?: StringNullableWithAggregatesFilter<"CustomerAccount"> | string | null
     dateOfBirth?: DateTimeNullableWithAggregatesFilter<"CustomerAccount"> | Date | string | null
     googleId?: StringNullableWithAggregatesFilter<"CustomerAccount"> | string | null
+    appleId?: StringNullableWithAggregatesFilter<"CustomerAccount"> | string | null
     avatarUrl?: StringNullableWithAggregatesFilter<"CustomerAccount"> | string | null
     isVerified?: BoolWithAggregatesFilter<"CustomerAccount"> | boolean
     emailVerificationToken?: StringNullableWithAggregatesFilter<"CustomerAccount"> | string | null
@@ -219673,6 +219696,7 @@ export namespace Prisma {
     addressArea?: string | null
     dateOfBirth?: Date | string | null
     googleId?: string | null
+    appleId?: string | null
     avatarUrl?: string | null
     isVerified?: boolean
     emailVerificationToken?: string | null
@@ -219702,6 +219726,7 @@ export namespace Prisma {
     addressArea?: string | null
     dateOfBirth?: Date | string | null
     googleId?: string | null
+    appleId?: string | null
     avatarUrl?: string | null
     isVerified?: boolean
     emailVerificationToken?: string | null
@@ -219731,6 +219756,7 @@ export namespace Prisma {
     addressArea?: NullableStringFieldUpdateOperationsInput | string | null
     dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    appleId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -219760,6 +219786,7 @@ export namespace Prisma {
     addressArea?: NullableStringFieldUpdateOperationsInput | string | null
     dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    appleId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -219789,6 +219816,7 @@ export namespace Prisma {
     addressArea?: string | null
     dateOfBirth?: Date | string | null
     googleId?: string | null
+    appleId?: string | null
     avatarUrl?: string | null
     isVerified?: boolean
     emailVerificationToken?: string | null
@@ -219812,6 +219840,7 @@ export namespace Prisma {
     addressArea?: NullableStringFieldUpdateOperationsInput | string | null
     dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    appleId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -219835,6 +219864,7 @@ export namespace Prisma {
     addressArea?: NullableStringFieldUpdateOperationsInput | string | null
     dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    appleId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -240203,6 +240233,7 @@ export namespace Prisma {
     addressArea?: SortOrder
     dateOfBirth?: SortOrder
     googleId?: SortOrder
+    appleId?: SortOrder
     avatarUrl?: SortOrder
     isVerified?: SortOrder
     emailVerificationToken?: SortOrder
@@ -240226,6 +240257,7 @@ export namespace Prisma {
     addressArea?: SortOrder
     dateOfBirth?: SortOrder
     googleId?: SortOrder
+    appleId?: SortOrder
     avatarUrl?: SortOrder
     isVerified?: SortOrder
     emailVerificationToken?: SortOrder
@@ -240249,6 +240281,7 @@ export namespace Prisma {
     addressArea?: SortOrder
     dateOfBirth?: SortOrder
     googleId?: SortOrder
+    appleId?: SortOrder
     avatarUrl?: SortOrder
     isVerified?: SortOrder
     emailVerificationToken?: SortOrder
@@ -286808,6 +286841,7 @@ export namespace Prisma {
     addressArea?: string | null
     dateOfBirth?: Date | string | null
     googleId?: string | null
+    appleId?: string | null
     avatarUrl?: string | null
     isVerified?: boolean
     emailVerificationToken?: string | null
@@ -286836,6 +286870,7 @@ export namespace Prisma {
     addressArea?: string | null
     dateOfBirth?: Date | string | null
     googleId?: string | null
+    appleId?: string | null
     avatarUrl?: string | null
     isVerified?: boolean
     emailVerificationToken?: string | null
@@ -287660,6 +287695,7 @@ export namespace Prisma {
     addressArea?: NullableStringFieldUpdateOperationsInput | string | null
     dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    appleId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -287688,6 +287724,7 @@ export namespace Prisma {
     addressArea?: NullableStringFieldUpdateOperationsInput | string | null
     dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    appleId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -310973,6 +311010,7 @@ export namespace Prisma {
     addressArea?: string | null
     dateOfBirth?: Date | string | null
     googleId?: string | null
+    appleId?: string | null
     avatarUrl?: string | null
     isVerified?: boolean
     emailVerificationToken?: string | null
@@ -311001,6 +311039,7 @@ export namespace Prisma {
     addressArea?: string | null
     dateOfBirth?: Date | string | null
     googleId?: string | null
+    appleId?: string | null
     avatarUrl?: string | null
     isVerified?: boolean
     emailVerificationToken?: string | null
@@ -311342,6 +311381,7 @@ export namespace Prisma {
     addressArea?: NullableStringFieldUpdateOperationsInput | string | null
     dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    appleId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -311370,6 +311410,7 @@ export namespace Prisma {
     addressArea?: NullableStringFieldUpdateOperationsInput | string | null
     dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    appleId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -311904,6 +311945,7 @@ export namespace Prisma {
     addressArea?: string | null
     dateOfBirth?: Date | string | null
     googleId?: string | null
+    appleId?: string | null
     avatarUrl?: string | null
     isVerified?: boolean
     emailVerificationToken?: string | null
@@ -311932,6 +311974,7 @@ export namespace Prisma {
     addressArea?: string | null
     dateOfBirth?: Date | string | null
     googleId?: string | null
+    appleId?: string | null
     avatarUrl?: string | null
     isVerified?: boolean
     emailVerificationToken?: string | null
@@ -312293,6 +312336,7 @@ export namespace Prisma {
     addressArea?: NullableStringFieldUpdateOperationsInput | string | null
     dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    appleId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -312321,6 +312365,7 @@ export namespace Prisma {
     addressArea?: NullableStringFieldUpdateOperationsInput | string | null
     dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    appleId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -313340,6 +313385,7 @@ export namespace Prisma {
     addressArea?: string | null
     dateOfBirth?: Date | string | null
     googleId?: string | null
+    appleId?: string | null
     avatarUrl?: string | null
     isVerified?: boolean
     emailVerificationToken?: string | null
@@ -313368,6 +313414,7 @@ export namespace Prisma {
     addressArea?: string | null
     dateOfBirth?: Date | string | null
     googleId?: string | null
+    appleId?: string | null
     avatarUrl?: string | null
     isVerified?: boolean
     emailVerificationToken?: string | null
@@ -313497,6 +313544,7 @@ export namespace Prisma {
     addressArea?: NullableStringFieldUpdateOperationsInput | string | null
     dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    appleId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -313525,6 +313573,7 @@ export namespace Prisma {
     addressArea?: NullableStringFieldUpdateOperationsInput | string | null
     dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    appleId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -313627,6 +313676,7 @@ export namespace Prisma {
     addressArea?: string | null
     dateOfBirth?: Date | string | null
     googleId?: string | null
+    appleId?: string | null
     avatarUrl?: string | null
     isVerified?: boolean
     emailVerificationToken?: string | null
@@ -313655,6 +313705,7 @@ export namespace Prisma {
     addressArea?: string | null
     dateOfBirth?: Date | string | null
     googleId?: string | null
+    appleId?: string | null
     avatarUrl?: string | null
     isVerified?: boolean
     emailVerificationToken?: string | null
@@ -313688,6 +313739,7 @@ export namespace Prisma {
     addressArea?: string | null
     dateOfBirth?: Date | string | null
     googleId?: string | null
+    appleId?: string | null
     avatarUrl?: string | null
     isVerified?: boolean
     emailVerificationToken?: string | null
@@ -313716,6 +313768,7 @@ export namespace Prisma {
     addressArea?: string | null
     dateOfBirth?: Date | string | null
     googleId?: string | null
+    appleId?: string | null
     avatarUrl?: string | null
     isVerified?: boolean
     emailVerificationToken?: string | null
@@ -313830,6 +313883,7 @@ export namespace Prisma {
     addressArea?: NullableStringFieldUpdateOperationsInput | string | null
     dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    appleId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -313858,6 +313912,7 @@ export namespace Prisma {
     addressArea?: NullableStringFieldUpdateOperationsInput | string | null
     dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    appleId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -313897,6 +313952,7 @@ export namespace Prisma {
     addressArea?: NullableStringFieldUpdateOperationsInput | string | null
     dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    appleId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -313925,6 +313981,7 @@ export namespace Prisma {
     addressArea?: NullableStringFieldUpdateOperationsInput | string | null
     dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    appleId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null

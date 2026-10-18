@@ -21,7 +21,7 @@ native, and the storefront is embedded only for menu and checkout (phase 1):
 | **Home** | Native. Banner, logo, open/closed + today's hours, the running offer, Collection/Delivery times, a live card for the order in progress, "Popular right now", call/directions, and the offers opt-in |
 | **Order** | The brand's storefront in a WebView (menu, basket, checkout, Stripe). It has a native top bar, back/reload, Android back handling and an offline screen |
 | **My orders** | Native list of orders placed or opened on this phone, each with live status. Links to the account's full history |
-| **Settings** | Order-update permission state, an **Offers & news** toggle, and links to the account and rewards |
+| **Settings** | Order-update permission state, an **Offers & news** toggle, **Sign in with Apple / Google**, sign out, **Delete account**, and links to the account and rewards |
 | *Order status* | Native tracker. It polls `GET /v1/ordering/orders/:id/status` every 10 s while it is open and the order is still moving: steps, ETA, driver + call button, items, total |
 
 ### Push (expo-notifications)
@@ -145,15 +145,71 @@ Notifications** shows a key under `eas credentials -p ios` for the brand.
   (`eas credentials -p android` → Push Notifications) and add `google-services.json` from a Firebase Android app
   with the brand's package name. **Not set up for the example brand yet.** Android tokens won't issue until it is.
 
+## Sign-in setup (Google + Apple)
+
+Google refuses its OAuth page inside a WebView (`disallowed_useragent`), so
+the app signs in natively and hands the storefront the session
+(`src/auth.ts`):
+
+1. The native SDK returns an ID token → `POST /v1/customer-auth/native {provider, idToken, firstName?, lastName?, brandId}`.
+   The API checks the token's audience and returns the same customer `accessToken` as email login. Apple sends the
+   name only on the first sign-in; the API saves it then.
+2. The app keeps the token in AsyncStorage and writes it into the WebView's `localStorage["orderhub.customerToken"]`
+   (what the storefront's `useCustomerAuth` reads) from `injectedJavaScriptBeforeContentLoaded`, then reloads the page.
+3. The bridge reports every change the storefront makes to that key, so an email sign-in or a sign-out on the
+   storefront shows in Settings too. A native sign-out clears the key and the session cookie, then reloads once.
+4. Inside the app the storefront's login modal swaps its web Google button for **Continue with Apple / Google**
+   buttons that call back into the app (`window.OrderHubApp`, set by the same script).
+
+Builds made before this change have no native modules; the code requires them lazily, so an OTA update hides the
+buttons there instead of crashing. Bump `version` in the brand file so the next store build carries them.
+
+### API environment (Render, orderhub-api)
+
+| Variable | Value |
+|---|---|
+| `GOOGLE_CLIENT_ID` | Already set: OrderHub's **web** client. The apps pass it as `webClientId`, so tokens on both platforms are minted for it |
+| `CUSTOMER_APP_GOOGLE_CLIENT_IDS` | Optional, comma-separated: extra audiences, for a brand whose `google.webClientId` isn't the default |
+| `CUSTOMER_APP_APPLE_BUNDLE_IDS` | **Required for Apple**, comma-separated: every brand's bundle id, e.g. `com.orderhubsolutions.kingstonpizza,com.orderhubsolutions.pizzaunopelton,com.orderhubsolutions.bestkebabs` |
+
+### Per brand: Google
+
+All clients live in OrderHub's Google Cloud project **331572609147** (the one that owns the web client), so the
+native SDK can mint tokens for the web client's audience. Google Cloud console → APIs & Services → Credentials →
+Create credentials → OAuth client ID:
+
+1. **iOS** client, bundle ID `com.orderhubsolutions.<slug>` (add the client's App Store ID and Team ID once known).
+   Put its client ID in the brand file:
+   ```json
+   "google": { "iosClientId": "331572609147-xxxx.apps.googleusercontent.com" }
+   ```
+   `brands/load.js` derives the reversed URL scheme the config plugin registers. Without `google`, the brand offers
+   Apple (iOS) and email only; the plugin is left out, because the iOS SDK crashes without its URL scheme.
+2. **Android** client, package `com.orderhubsolutions.<slug>`, with the **SHA-1 of the Play app-signing key**
+   (Play Console → the app → Test and release → App integrity → App signing). Add a second Android client with the
+   upload key's SHA-1 (`eas credentials -p android`) for internal / preview builds, which EAS signs itself. The app
+   carries no Android client ID: Google matches on package + SHA-1. Until both exist, Android sign-in fails with
+   `DEVELOPER_ERROR`; `"google": { …, "android": false }` hides the button meanwhile.
+3. OAuth consent screen: published (not *Testing*), or only listed test users can sign in.
+
+### Per brand: Apple
+
+1. In the **client's** Apple developer account: Certificates, IDs & Profiles → Identifiers →
+   `com.orderhubsolutions.<slug>` → tick **Sign in with Apple** (primary App ID). EAS normally does this itself on the
+   next build (the config sets `usesAppleSignIn`), but if the brand already has a provisioning profile, **delete it**
+   (`eas credentials -p ios` → Provisioning Profile → remove) so EAS makes one with the new entitlement; the old one
+   is reused otherwise and the build fails signing.
+2. Add the bundle ID to `CUSTOMER_APP_APPLE_BUNDLE_IDS` on the API.
+3. `"ios": { …, "appleSignIn": false }` turns it off for a brand. Don't ship Google on iOS without it (guideline 4.8).
+
 ## Before the first store submission
 
 These are not blockers for building, but App Review will raise them:
 
-* **Account deletion (5.1.1(v)).** The storefront lets customers create an account inside the app, so Apple requires
-  a way to delete it in-app. The storefront has no "Delete my account" yet. Add it to `/order/<slug>/account`.
-* **Google sign-in in a WebView.** Google blocks OAuth inside embedded WebViews (`disallowed_useragent`), and
-  guideline 4.8 then requires Sign in with Apple next to it. Email sign-in works. Either hide the Google button when
-  the user agent contains `OrderHubApp/`, or move sign-in native in phase 2.
+* **Account deletion (5.1.1(v))** is in Settings (signed in → *Delete account*, `DELETE /v1/customer-auth/me`) and on
+  the storefront's account page.
+* **Sign in with Apple (4.8)** shows wherever Google does, on iOS. Make sure the capability is on the client's App ID
+  before the build (see *Sign-in setup*).
 * Privacy "nutrition label" + privacy policy URL in App Store Connect. The app itself collects the push token, plus
   whatever the storefront collects at checkout.
 

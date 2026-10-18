@@ -266,6 +266,9 @@ model CustomerAccount {
   /// Date only — for birthday offers. Asked, never required.
   dateOfBirth            DateTime? @db.Date
   googleId               String?   @unique
+  /// Sign in with Apple's stable per-team user id (`sub`), from the native
+  /// restaurant apps. Apple sends the name only on the first sign-in.
+  appleId                String?   @unique
   avatarUrl              String?
   isVerified             Boolean   @default(false)
   emailVerificationToken String? // set during signup, cleared on verify

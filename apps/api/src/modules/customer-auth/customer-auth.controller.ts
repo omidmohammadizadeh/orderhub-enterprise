@@ -28,6 +28,7 @@ import {
 } from "./customer-auth.service";
 import { CustomerSignupDto } from "./dto/signup.dto";
 import { CustomerLoginDto } from "./dto/login.dto";
+import { CustomerNativeSignInDto } from "./dto/native-sign-in.dto";
 import { UpdateCustomerProfileDto } from "./dto/update-profile.dto";
 import { CustomerJwtGuard, CurrentCustomer } from "./customer.decorator";
 import type { CustomerGoogleProfile } from "./customer-google.strategy";
@@ -93,6 +94,20 @@ export class CustomerAuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const out = await this.customerAuth.login(dto);
+    if (out?.accessToken) this.setSessionCookie(res, out.accessToken);
+    return out;
+  }
+
+  // Native Google / Apple sign-in from a restaurant's own app. Returns the
+  // same session as email login; the app hands it to the storefront WebView.
+  @Public()
+  @Post("native")
+  @ApiOperation({ summary: "Customer sign-in with a native Google or Apple ID token" })
+  async native(
+    @Body() dto: CustomerNativeSignInDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const out = await this.customerAuth.nativeSignIn(dto);
     if (out?.accessToken) this.setSessionCookie(res, out.accessToken);
     return out;
   }

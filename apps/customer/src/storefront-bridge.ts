@@ -9,6 +9,11 @@
 
 export type BridgeMessage =
   | { type: "url"; url: string }
+  // The storefront saved or dropped its customer session (src/auth.ts).
+  | { type: "auth"; token: string | null }
+  // The storefront's login modal asked for a native Google / Apple sign-in.
+  | { type: "sign-in"; provider: "apple" | "google" }
+  | { type: "signed-out"; nonce: string }
   | { type: "checkout"; orderId: string; checkoutUrl: string | null; pendingPayment: boolean; url: string };
 
 export const INJECTED_JS = `(function () {
@@ -40,6 +45,29 @@ export const INJECTED_JS = `(function () {
   addCss();
   document.addEventListener("DOMContentLoaded", addCss);
   window.addEventListener("load", addCss);
+
+  // Mirror the storefront's customer session to the app (src/auth.ts), so
+  // signing in or out on either side shows on the other. Silent while the
+  // app is signing the page out, so a /me answered from the cookie in the
+  // meantime can't sign it straight back in.
+  var TOKEN_KEY = "orderhub.customerToken";
+  try {
+    var S = Storage.prototype, sSet = S.setItem, sRemove = S.removeItem;
+    S.setItem = function (k, v) {
+      if (this === window.localStorage && k === TOKEN_KEY) {
+        if (window.__ohSigningOut) return;
+        var r = sSet.apply(this, arguments);
+        send({ type: "auth", token: String(v) });
+        return r;
+      }
+      return sSet.apply(this, arguments);
+    };
+    S.removeItem = function (k) {
+      var r = sRemove.apply(this, arguments);
+      if (this === window.localStorage && k === TOKEN_KEY && !window.__ohSigningOut) send({ type: "auth", token: null });
+      return r;
+    };
+  } catch (e) {}
 
   function isCheckout(u) { return /\\/v1\\/[^?#]*\\/checkout(\\?|#|$)/.test(String(u || "")); }
   function onBody(text) {

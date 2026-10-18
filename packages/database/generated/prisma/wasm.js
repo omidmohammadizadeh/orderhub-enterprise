@@ -214,6 +214,7 @@ exports.Prisma.CustomerAccountScalarFieldEnum = {
   addressArea: 'addressArea',
   dateOfBirth: 'dateOfBirth',
   googleId: 'googleId',
+  appleId: 'appleId',
   avatarUrl: 'avatarUrl',
   isVerified: 'isVerified',
   emailVerificationToken: 'emailVerificationToken',
@@ -3039,6 +3040,7 @@ exports.Prisma.CustomerAccountOrderByRelevanceFieldEnum = {
   addressPostcode: 'addressPostcode',
   addressArea: 'addressArea',
   googleId: 'googleId',
+  appleId: 'appleId',
   avatarUrl: 'avatarUrl',
   emailVerificationToken: 'emailVerificationToken'
 };

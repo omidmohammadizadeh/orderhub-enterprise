@@ -9,6 +9,11 @@ export type Brand = {
   apiUrl: string;
   primaryColor: string;
   backgroundColor: string;
+  /** Native sign-in this build offers (app.config.ts → brands/<slug>.json). */
+  signIn?: {
+    apple: boolean;
+    google: { iosClientId: string; webClientId: string; android: boolean } | null;
+  };
 };
 
 // Baked in by app.config.ts from brands/<slug>.json.
