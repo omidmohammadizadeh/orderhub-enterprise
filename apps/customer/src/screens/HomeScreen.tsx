@@ -42,14 +42,28 @@ export function HomeScreen() {
   const load = useCallback(async () => {
     try {
       setInfo(await getStoreInfo());
+      return true;
     } catch {
       /* Home still works from the brand config alone */
+      return false;
     }
   }, []);
 
+  // The very first launch often fires before the network is up (or while the
+  // API wakes), and one miss left Home bare with no banner, logo or hours
+  // until a manual pull-to-refresh. Retry a few times with a growing gap.
   useEffect(() => {
-    load();
+    let cancelled = false;
+    (async () => {
+      for (let attempt = 0; attempt < 5 && !cancelled; attempt++) {
+        if (await load()) return;
+        await new Promise((r) => setTimeout(r, 2000 * (attempt + 1)));
+      }
+    })();
     getOffersPreference().then((v) => setOffersAsked(v !== null));
+    return () => {
+      cancelled = true;
+    };
   }, [load]);
 
   const startOrder = () => navigation.navigate("Order" as never);
