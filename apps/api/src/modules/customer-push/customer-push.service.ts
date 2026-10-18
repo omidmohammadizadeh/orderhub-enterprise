@@ -333,6 +333,21 @@ export class CustomerPushService {
         return;
       }
 
+      // RIDER_ARRIVED is overloaded: before pickup it means a courier is at
+      // the SHOP; only after outForDeliveryAt is stamped is our driver at the
+      // customer's door. "They're outside with your order" while the food is
+      // still on the pass would send someone to an empty doorstep.
+      if (trigger === "RIDER_ARRIVED") {
+        const order = await this.db().order.findUnique({
+          where: { id: args.orderId },
+          select: { outForDeliveryAt: true },
+        });
+        if (!order?.outForDeliveryAt) {
+          this.logger.log(`customer push RIDER_ARRIVED order=${args.orderId} — courier at the shop, not the door`);
+          return;
+        }
+      }
+
       const first = links[0].subscription;
       const automations = await this.automationsFor(first.tenantId);
 

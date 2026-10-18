@@ -123,3 +123,37 @@ describe("CustomerPushService tap target", () => {
     expect(upserts[0].update).toEqual({});
   });
 });
+
+// RIDER_ARRIVED is overloaded: before pickup a courier is at the SHOP. Telling
+// the customer "they're outside with your order" then sends them to an empty
+// doorstep, so it only goes out once the order has left (outForDeliveryAt).
+describe("CustomerPushService RIDER_ARRIVED", () => {
+  const build = (outForDeliveryAt: Date | null) => {
+    const prisma: any = {
+      customerPushOrder: {
+        findMany: jest.fn().mockResolvedValue([{ subscription: { tenantId: "t1" }, trackPath: null }]),
+      },
+      order: { findUnique: jest.fn().mockResolvedValue({ outForDeliveryAt }) },
+    };
+    const s: any = new CustomerPushService(prisma);
+    s.automationsFor = jest.fn().mockResolvedValue(new Map());
+    s.brandingFor = jest.fn().mockResolvedValue({ name: "Shop", icon: null });
+    s.sendTo = jest.fn().mockResolvedValue({ delivered: 1 });
+    return s;
+  };
+
+  it("stays quiet while the courier is at the shop", async () => {
+    const s = build(null);
+    await s.notifyOrderStatus({ orderId: "o1", status: "RIDER_ARRIVED" });
+    expect(s.sendTo).not.toHaveBeenCalled();
+  });
+
+  it("tells the customer once the driver is at their door", async () => {
+    const s = build(new Date());
+    await s.notifyOrderStatus({ orderId: "o1", status: "RIDER_ARRIVED", fulfillmentType: "DELIVERY" });
+    expect(s.sendTo).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ title: expect.stringContaining("arrived") }),
+    );
+  });
+});

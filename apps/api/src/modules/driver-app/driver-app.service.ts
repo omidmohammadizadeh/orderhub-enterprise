@@ -13,6 +13,7 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { HubRiseOrderSyncService } from "../integrations/hubrise/hubrise-order-sync.service";
 import { SocketService } from "../../infrastructure/socket/socket.service";
 import { ChatService } from "../chat/chat.service";
+import { CustomerPushService } from "../customer-push/customer-push.service";
 import { coercePostcodeFees, matchPostcodeFee } from "../dispatch/driver-earnings.service";
 import { TERMINAL_ORDER_STATUSES } from "../dispatch/dispatch-settlement.service";
 import {
@@ -57,6 +58,7 @@ export class DriverAppService {
     private readonly hubriseSync: HubRiseOrderSyncService,
     private readonly chat: ChatService,
     private readonly socket: SocketService,
+    private readonly customerPush: CustomerPushService,
   ) {}
 
   // ── Chat ────────────────────────────────────────────────────────────────────
@@ -111,6 +113,14 @@ export class DriverAppService {
     delivered: OrderStatus.COMPLETED,
     skip: OrderStatus.FAILED,
     cancel: OrderStatus.READY,
+  };
+
+  // Driver action → the stage the customer's phone hears about. Only the
+  // moments they care about: accept/skip/cancel are between us and the driver.
+  private static readonly CUSTOMER_PUSH_BY_ACTION: Partial<Record<JobAction, OrderStatus>> = {
+    start: OrderStatus.OUT_FOR_DELIVERY,
+    arrived: OrderStatus.RIDER_ARRIVED,
+    delivered: OrderStatus.COMPLETED,
   };
 
   // Resolve the current user to a Driver. If none is linked yet, auto-provision
@@ -645,7 +655,42 @@ export class DriverAppService {
       void this.hubriseSync.pushStatus({ orderId, newStatus: pushStatus });
     }
 
+    // The customer's app/browser too. The driver app writes the status
+    // straight to the database, so OrdersService.updateStatus (which sends
+    // the staff-side pushes) never runs: "on its way", "at your door" and
+    // "delivered" reached nobody when our own driver did the delivery.
+    const customerStatus = DriverAppService.CUSTOMER_PUSH_BY_ACTION[action];
+    if (customerStatus && !orderIsClosed) {
+      void this.notifyCustomer(orderId, customerStatus);
+    }
+
     return { ok: true, action };
+  }
+
+  /** Best-effort, like the board emit: never fails the driver's action. */
+  private async notifyCustomer(orderId: string, status: OrderStatus): Promise<void> {
+    try {
+      const order = await this.prisma.order.findUnique({
+        where: { id: orderId },
+        select: {
+          orderNumber: true,
+          displayId: true,
+          fulfillmentType: true,
+          location: { select: { onlineOrderingSlug: true, slug: true } },
+        },
+      });
+      if (!order) return;
+      await this.customerPush.notifyOrderStatus({
+        orderId,
+        status,
+        orderNumber: order.orderNumber,
+        displayId: order.displayId,
+        fulfillmentType: order.fulfillmentType,
+        storefrontSlug: order.location?.onlineOrderingSlug ?? order.location?.slug ?? null,
+      });
+    } catch {
+      /* notifyOrderStatus logs its own failures */
+    }
   }
 
   /**
