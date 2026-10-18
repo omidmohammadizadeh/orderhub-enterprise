@@ -27,7 +27,11 @@ const EAS = ["--yes", "eas-cli@latest"];
 function run(args, env, { capture = false } = {}) {
   const res = spawnSync("npx", [...EAS, ...args], {
     cwd: ROOT,
-    env: { ...process.env, ...env },
+    // Upload this folder only. Without these EAS archives from the git root,
+    // i.e. the whole monorepo (~39 MB instead of ~3 MB), and the upload
+    // stalls on slow links. .gitignore still keeps ios/, android/ and
+    // node_modules out.
+    env: { EAS_NO_VCS: "1", EAS_PROJECT_ROOT: ROOT, ...process.env, ...env },
     stdio: capture ? ["inherit", "pipe", "pipe"] : "inherit",
     encoding: "utf8",
   });
