@@ -154,7 +154,8 @@ export function OrderScreen() {
         setSupportMultipleWindows={false}
         sharedCookiesEnabled
         pullToRefreshEnabled
-        decelerationRate="normal"
+        // No decelerationRate: Android passes "normal" straight to a numeric
+        // native prop and the ClassCastException blanks the whole app.
       />
       {loading && !failed ? (
         <View style={styles.loading} pointerEvents="none">
