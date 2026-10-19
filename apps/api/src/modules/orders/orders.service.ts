@@ -1269,6 +1269,8 @@ export class OrdersService {
         ...((dto as any).guestPrepay === true ? { guestPrepay: true } : {}),
         // The marketing email that brought this order in (online checkout).
         ...(dto.emailAttribution ? { emailAttribution: dto.emailAttribution } : {}),
+        // The restaurant app (and phone platform) this online order came from.
+        ...(dto.appClient ? { appClient: dto.appClient } : {}),
         // Retail — the due-diligence record for an age-restricted sale:
         // what was checked, how, and by whom, stamped by the server.
         ...(dto.ageCheck

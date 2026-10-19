@@ -214,6 +214,9 @@ export class CreateOrderDto {
   /** Set by online checkout only, after it has verified the recipient row:
    *  the marketing email this order came from. Stored on Order.metadata. */
   @IsOptional() @IsObject() emailAttribution?: { campaignId: string; recipientId: string };
+  /** Set by online checkout only, from the request's user agent: which of
+   *  our restaurant apps placed this order. Stored on Order.metadata. */
+  @IsOptional() @IsObject() appClient?: { app: string; platform: "ios" | "android" | "unknown" };
   /** Retail — Challenge 25 record for an order with age-restricted products. */
   @ApiPropertyOptional({ type: OrderAgeCheckDto })
   @IsOptional()

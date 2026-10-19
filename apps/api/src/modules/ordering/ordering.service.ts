@@ -45,6 +45,7 @@ import { isShop, soldOutItemIds } from "../retail/retail-availability";
 import { parseSubstitutionPref, priceShortfall, toMinor } from "../retail/retail.logic";
 import { isCurrentlyOpen as isOpenAt } from "../../common/opening-hours.util";
 import { BasketPriceError, buildPricingContext, priceBasket } from "./checkout-pricing";
+import type { AppClient } from "./app-client";
 
 export interface CheckoutItemDto {
   menuItemId: string;
@@ -1581,7 +1582,7 @@ export class OrderingService {
     return { brandId: brandRow.id, hours: brandRow.openingHours ?? null };
   }
 
-  async checkout(slug: string, dto: CheckoutDto, brandIdOverride?: string) {
+  async checkout(slug: string, dto: CheckoutDto, brandIdOverride?: string, appClient?: AppClient | null) {
     const location = await this.prisma.location.findFirst({
       where: { OR: [{ onlineOrderingSlug: slug }, { slug }, { id: slug }] },
       include: { brand: { select: { tenantId: true } } },
@@ -2099,6 +2100,8 @@ export class OrderingService {
         // via OrdersService.create's marketing.consent event.
         marketingConsent: dto.marketingConsent,
         ...(emailAttribution ? { emailAttribution } : {}),
+        // Placed from one of our restaurant apps (App · Android / iPhone).
+        ...(appClient ? { appClient } : {}),
         paymentMethod: dto.paymentMethod ?? "CASH",
         paymentStatus: dto.paymentMethod === "CARD" ? "PENDING" : "PENDING",
         // Phase AP-5 — attribute the order to the signed-in customer

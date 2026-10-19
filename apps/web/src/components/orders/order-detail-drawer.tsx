@@ -13,7 +13,7 @@ import { ChargeReaderModal } from "../pos/charge-reader-modal";
 import { CashPaymentModal } from "../pos/cash-payment-modal";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
-import { PlatformBadge, FulfillmentBadge, TableBadge } from "./platform-badge";
+import { AppBadge, PlatformBadge, FulfillmentBadge, TableBadge } from "./platform-badge";
 import { useUpdateOrderStatus } from "../../hooks/use-live-orders";
 import { useAuthStore } from "../../stores/auth.store";
 import { DispatchModal } from "./dispatch-modal";
@@ -298,6 +298,7 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
       <div className="flex items-center justify-between border-b border-zinc-200 px-5 py-4">
         <div className="flex items-center gap-3">
           <PlatformBadge platform={order.platform} />
+          <AppBadge metadata={(order as any).metadata} />
           <FulfillmentBadge type={order.fulfillmentType} />
           {/* Dine-in: which table. findOne resolves the name. */}
           <TableBadge name={(order as any).tableName} />
