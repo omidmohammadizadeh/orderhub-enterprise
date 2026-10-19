@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import * as Notifications from "expo-notifications";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
+import { AppState } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { loadAuth } from "./src/auth";
 import { brand } from "./src/brand";
@@ -67,8 +68,27 @@ function useNotificationTaps() {
   }, [last]);
 }
 
+/** Opening the app is reading the news: whatever is still sitting in the
+ *  notification shade (order updates the customer never tapped) is cleared,
+ *  along with the icon badge, on launch and every time it comes back to the
+ *  foreground. */
+function useClearNotificationsOnOpen() {
+  useEffect(() => {
+    const clear = () => {
+      Notifications.dismissAllNotificationsAsync().catch(() => {});
+      Notifications.setBadgeCountAsync(0).catch(() => {});
+    };
+    clear();
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state === "active") clear();
+    });
+    return () => sub.remove();
+  }, []);
+}
+
 export default function App() {
   useNotificationTaps();
+  useClearNotificationsOnOpen();
 
   useEffect(() => {
     registerOnLaunch();
