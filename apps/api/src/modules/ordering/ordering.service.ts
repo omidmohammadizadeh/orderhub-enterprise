@@ -703,16 +703,26 @@ export class OrderingService {
     // (one row per brand), so the location-keyed lookup we used before
     // never saw those edits and prep-time changes silently no-op'd on
     // brand storefronts.
+    // A brand pinned at one of its OTHER shops (a multi-shop app: PIZZA UNO
+    // at pizza uno-newcastle). Its name, logo and menu still apply, but the
+    // shop's own address, phone, opening hours and ordering settings are the
+    // truth — the brand's are its main shop's, and showed Newcastle's
+    // customers Sunningdale's address.
+    const brandHomeElsewhere =
+      !!(overrideBrand as any)?.primaryLocationId && (overrideBrand as any).primaryLocationId !== location.id;
     const directConfigBrandId = overrideBrand?.id ?? location.brandId;
+    const brandDirectConfig = directConfigBrandId
+      ? await (this.prisma as any).directOrderingConfig.findUnique({
+          where: { brandId: directConfigBrandId },
+        })
+      : null;
+    const locationDirectConfig = await this.prisma.directOrderingConfig.findUnique({
+      where: { locationId: location.id },
+    });
     const directConfig =
-      (directConfigBrandId
-        ? await (this.prisma as any).directOrderingConfig.findUnique({
-            where: { brandId: directConfigBrandId },
-          })
-        : null) ??
-      (await this.prisma.directOrderingConfig.findUnique({
-        where: { locationId: location.id },
-      })) ?? {
+      (brandHomeElsewhere
+        ? locationDirectConfig ?? brandDirectConfig
+        : brandDirectConfig ?? locationDirectConfig) ?? {
         deliveryPrepMinutes: 45,
         collectionPrepMinutes: 20,
         acceptsCash: true,
@@ -967,7 +977,7 @@ export class OrderingService {
       if (typeof h === "object") return Object.keys(h).length > 0;
       return false;
     };
-    const effectiveHours = isHoursConfigured(
+    const effectiveHours = !brandHomeElsewhere && isHoursConfigured(
       (activeBrandForOps as any)?.openingHours,
     )
       ? (activeBrandForOps as any).openingHours
@@ -982,20 +992,22 @@ export class OrderingService {
     // address / phone — the original location data is still better
     // than nothing.
     const b = overrideBrand;
+    // At another of the brand's shops, the physical facts are the shop's.
+    const place = brandHomeElsewhere ? null : b;
     const locationView = {
       id: location.id,
       // Retail R3 — GROCERY/RETAIL switch the storefront to the shop layout.
       businessType: (location as any).businessType ?? "RESTAURANT",
       name: b?.name ?? location.name,
       slug: location.onlineOrderingSlug ?? location.slug,
-      phone: b?.phone ?? location.phone,
+      phone: place?.phone ?? location.phone,
       about: b?.about ?? location.about,
       logoUrl: b?.logoUrl ?? location.logoUrl,
-      addressLine1: b?.addressLine1 ?? location.addressLine1,
-      addressLine2: b?.addressLine2 ?? location.addressLine2,
-      city: b?.city ?? location.city,
-      postcode: b?.postcode ?? location.postcode,
-      country: b?.country ?? location.country,
+      addressLine1: place?.addressLine1 ?? location.addressLine1,
+      addressLine2: place?.addressLine2 ?? location.addressLine2,
+      city: place?.city ?? location.city,
+      postcode: place?.postcode ?? location.postcode,
+      country: place?.country ?? location.country,
       // Currency is location-only on purpose — it follows the till and the
       // bank account, not the brand, so a brand trading in two countries does
       // not force one currency onto both shops. The storefront needs it to
@@ -1597,7 +1609,10 @@ export class OrderingService {
       );
       return { brandId: null, hours: null };
     }
-    return { brandId: brandRow.id, hours: brandRow.openingHours ?? null };
+    // At another of the brand's shops the shop's own hours apply (same rule
+    // as the storefront's brandHomeElsewhere).
+    const elsewhere = !!brandRow.primaryLocationId && brandRow.primaryLocationId !== location.id;
+    return { brandId: brandRow.id, hours: elsewhere ? null : brandRow.openingHours ?? null };
   }
 
   /**

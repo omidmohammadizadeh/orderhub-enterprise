@@ -154,3 +154,24 @@ describe("checkout — shops linked to a brand's app", () => {
     await expect(resolve(NEWCASTLE, "brand_pizzauno")).resolves.toEqual({ brandId: null, hours: null });
   });
 });
+
+describe("checkout — another of the brand's shops keeps its own hours", () => {
+  it("drops the brand's hours away from its main shop, keeps them at the main shop", async () => {
+    const row = {
+      id: "brand_pizzauno",
+      tenantId: "tenant_1",
+      isSuspended: false,
+      openingHours: { mon: "11-22" },
+      primaryLocationId: "loc_sunningdale",
+      locations: [],
+      settings: { customerApp: { shopIds: ["loc_newcastle"] } },
+    };
+    const resolve = svc(row);
+    await expect(
+      resolve({ id: "loc_newcastle", brandId: "x", brand: { tenantId: "tenant_1" } }, "brand_pizzauno"),
+    ).resolves.toEqual({ brandId: "brand_pizzauno", hours: null });
+    await expect(
+      resolve({ id: "loc_sunningdale", brandId: "x", brand: { tenantId: "tenant_1" } }, "brand_pizzauno"),
+    ).resolves.toEqual({ brandId: "brand_pizzauno", hours: { mon: "11-22" } });
+  });
+});
