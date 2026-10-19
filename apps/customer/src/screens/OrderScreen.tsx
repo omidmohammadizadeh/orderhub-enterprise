@@ -158,6 +158,8 @@ export function OrderScreen() {
     return false;
   }, []);
 
+  const pageScript = sessionScript(auth, providers) + INJECTED_JS;
+
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
       <View style={styles.bar}>
@@ -197,7 +199,15 @@ export function OrderScreen() {
         ref={webview}
         source={{ uri: source }}
         style={[styles.web, failed && styles.hidden]}
-        injectedJavaScriptBeforeContentLoaded={sessionScript(auth, providers) + INJECTED_JS}
+        injectedJavaScriptBeforeContentLoaded={pageScript}
+        // Again once the page has loaded. Android runs the "before" script
+        // from onPageStarted, which races the new document: when it loses,
+        // the script lands on the old page and the storefront runs without
+        // the checkout hook, so a cash order (confirmed in place, no URL
+        // change) was never followed and every stage logged "no
+        // subscribers". Both scripts guard themselves, so this is a no-op
+        // whenever the first one took.
+        injectedJavaScript={pageScript}
         onMessage={onMessage}
         onNavigationStateChange={onNavigationStateChange}
         onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}

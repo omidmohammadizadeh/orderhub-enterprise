@@ -311,7 +311,12 @@ function toCustomer(c: any): Customer {
  */
 export function sessionScript(s: AuthState, providers: Provider[]): string {
   const j = JSON.stringify;
+  // Once per document: OrderScreen injects this before load AND after it
+  // (Android can lose the first), and a second run mid-sign-out would log
+  // out and reload twice.
   return `(function () {
+  if (window.__ohSession) return;
+  window.__ohSession = true;
   var K = ${j(STOREFRONT_TOKEN_KEY)}, D = "orderhub.app.signedOut";
   var want = ${j(s.token)}, out = ${j(s.signOutNonce)}, api = ${j(brand.apiUrl)};
   window.OrderHubApp = {
