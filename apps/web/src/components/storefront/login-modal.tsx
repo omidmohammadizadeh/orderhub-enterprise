@@ -14,7 +14,7 @@
 // Google OAuth button is wired in increment 2b; for now it shows a
 // "coming soon" toast so layout doesn't shift later.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Loader2, Mail, X } from "lucide-react";
 import { useCustomerAuth } from "../../hooks/use-customer-auth";
 
@@ -302,6 +302,14 @@ function appSignIn(): { signInProviders: AppProvider[]; signIn: (p: AppProvider)
 }
 
 function AppSignInButtons() {
+  // The app may learn which buttons it can offer after this page loaded; it
+  // says so with "orderhubapp:change", and the list is read again.
+  const [, rerender] = useState(0);
+  useEffect(() => {
+    const onChange = () => rerender((n) => n + 1);
+    window.addEventListener("orderhubapp:change", onChange);
+    return () => window.removeEventListener("orderhubapp:change", onChange);
+  }, []);
   const app = appSignIn();
   if (!app || app.signInProviders.length === 0) return null;
   return (

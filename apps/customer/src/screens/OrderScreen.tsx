@@ -46,6 +46,19 @@ export function OrderScreen() {
     availableProviders().then(setProviders);
   }, []);
 
+  // The list usually arrives after the page has started loading (it waits on
+  // the admin switch from the API), and the session script only runs as a
+  // page starts — so hand the late answer to the page that is already open.
+  // Without this, opening the Menu tab first left the sign-in box with email
+  // only until the next full page load.
+  useEffect(() => {
+    if (!providers.length) return;
+    webview.current?.injectJavaScript(
+      `(function(){var a=window.OrderHubApp;if(a){a.signInProviders=${JSON.stringify(providers)};` +
+        `window.dispatchEvent(new Event("orderhubapp:change"));}})();true;`,
+    );
+  }, [providers]);
+
   // A native sign-in or sign-out: reload the page the customer is on with
   // the new session in place (remounting, because the session script only
   // runs as a page starts loading).
