@@ -22,5 +22,8 @@
   "android": {
     "package": "com.orderhubsolutions.pizzauno"
   },
+  "google": {
+    "iosClientId": "331572609147-tg3vvcvfrntd2knklpvpfk237j909c45.apps.googleusercontent.com"
+  },
   "easProjectId": "b50d1b6b-9dee-4ae3-b1b6-e1f92c2189c3"
 }
