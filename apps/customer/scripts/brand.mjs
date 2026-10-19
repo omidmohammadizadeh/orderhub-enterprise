@@ -136,7 +136,23 @@ switch (cmd) {
       console.error("submit needs a platform: ios or android");
       process.exit(1);
     }
-    const res = run(["submit", "--platform", platform, "--profile", "production", "--latest", ...passthrough], brandEnv(brand));
+    // eas.json is shared by every brand, and `eas submit` only reads the App
+    // Store Connect app id from it (there is no flag), so a non-interactive
+    // iOS submit would stop to ask. Put this brand's id in for the duration
+    // of the submit and restore the file afterwards.
+    const easJson = path.join(ROOT, "eas.json");
+    const original = fs.readFileSync(easJson, "utf8");
+    if (platform === "ios" && brand.ios.ascAppId) {
+      const cfg = JSON.parse(original);
+      cfg.submit.production.ios = { ...(cfg.submit.production.ios || {}), ascAppId: String(brand.ios.ascAppId) };
+      fs.writeFileSync(easJson, JSON.stringify(cfg, null, 2) + "\n");
+    }
+    let res;
+    try {
+      res = run(["submit", "--platform", platform, "--profile", "production", "--latest", ...passthrough], brandEnv(brand));
+    } finally {
+      fs.writeFileSync(easJson, original);
+    }
     process.exit(res.status ?? 1);
   }
 
