@@ -47,7 +47,7 @@ import { parseSubstitutionPref, priceShortfall, toMinor } from "../retail/retail
 import { isCurrentlyOpen as isOpenAt } from "../../common/opening-hours.util";
 import { BasketPriceError, buildPricingContext, priceBasket } from "./checkout-pricing";
 import type { AppClient } from "./app-client";
-import { customerAppLinks } from "../admin/restaurant-apps";
+import { appShopIds, customerAppLinks } from "../admin/restaurant-apps";
 
 export interface CheckoutItemDto {
   menuItemId: string;
@@ -521,9 +521,11 @@ export class OrderingService {
         ? {
             id: overrideBrandRow.id,
             primaryLocationId: overrideBrandRow.primaryLocationId ?? null,
-            locationIds: (overrideBrandRow.locations ?? []).map(
-              (l: any) => l.id,
-            ),
+            locationIds: [
+              ...(overrideBrandRow.locations ?? []).map((l: any) => l.id),
+              // Shops linked in Admin → Restaurant apps ("Shops in this app").
+              ...appShopIds(overrideBrandRow.settings),
+            ],
           }
         : null,
     });
@@ -1571,6 +1573,7 @@ export class OrderingService {
         openingHours: true,
         primaryLocationId: true,
         locations: { select: { id: true } },
+        settings: true,
       },
     });
 
@@ -1583,7 +1586,7 @@ export class OrderingService {
         brand: {
           id: brandRow.id,
           primaryLocationId: brandRow.primaryLocationId ?? null,
-          locationIds: (brandRow.locations ?? []).map((l: any) => l.id),
+          locationIds: [...(brandRow.locations ?? []).map((l: any) => l.id), ...appShopIds(brandRow.settings)],
         },
       });
 
@@ -1609,11 +1612,19 @@ export class OrderingService {
   async brandShops(brandId: string) {
     const brand = await (this.prisma as any).brand.findUnique({
       where: { id: brandId },
-      select: { id: true, name: true, logoUrl: true, primaryLocationId: true, locations: { select: { id: true } } },
+      select: {
+        id: true,
+        name: true,
+        logoUrl: true,
+        primaryLocationId: true,
+        locations: { select: { id: true } },
+        settings: true,
+      },
     });
     if (!brand) throw new NotFoundException("Brand not found");
     const linked = new Set<string>(brand.locations.map((l: { id: string }) => l.id));
     if (brand.primaryLocationId) linked.add(brand.primaryLocationId);
+    for (const id of appShopIds(brand.settings)) linked.add(id);
     const rows = await (this.prisma as any).location.findMany({
       where: { isActive: true, deletedAt: null, OR: [{ id: { in: [...linked] } }, { brandId }] },
       select: {

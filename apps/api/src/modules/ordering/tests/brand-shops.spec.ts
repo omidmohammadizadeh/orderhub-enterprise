@@ -64,3 +64,22 @@ describe("OrderingService.brandShops", () => {
     expect(shop).toMatchObject({ locationId: "l1", lat: null, lng: null });
   });
 });
+
+describe("OrderingService.brandShops — shops linked in Admin → Restaurant apps", () => {
+  it("lists a shop the brand links through customerApp.shopIds", async () => {
+    const { s, prisma } = svc(
+      {
+        id: "b1",
+        name: "PIZZA UNO",
+        logoUrl: null,
+        primaryLocationId: "l1",
+        locations: [],
+        settings: { customerApp: { shopIds: ["l2"] } },
+      },
+      [loc({ id: "l1", latitude: 1, longitude: 1 }), loc({ id: "l2", name: "Newcastle", latitude: 2, longitude: 2 })],
+    );
+    const out = await s.brandShops("b1");
+    expect(out.shops.map((x: any) => x.locationId)).toEqual(["l1", "l2"]);
+    expect(prisma.location.findMany.mock.calls[0][0].where.OR[0].id.in.sort()).toEqual(["l1", "l2"]);
+  });
+});

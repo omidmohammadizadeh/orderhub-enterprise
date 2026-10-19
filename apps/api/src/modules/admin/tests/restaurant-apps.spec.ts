@@ -24,6 +24,7 @@ describe("restaurant app store links", () => {
       promote: true,
       androidPackage: null,
       iosAppStoreId: null,
+      shopIds: [],
     });
   });
 
@@ -57,5 +58,16 @@ describe("iOS onboarding details", () => {
 
   it("reads an empty brand as nothing done yet", () => {
     expect(readIosOnboarding(null).steps.live).toBe(false);
+  });
+});
+
+describe("shops in this app", () => {
+  const { cleanCustomerApp: clean, appShopIds } = jest.requireActual("../restaurant-apps");
+  it("keeps linked shop ids, de-duplicated, dropping junk", () => {
+    expect(clean({ shopIds: ["cmvft3lfd00jprfhbhqttj42x", "cmvft3lfd00jprfhbhqttj42x", "../x", 7] }).shopIds).toEqual([
+      "cmvft3lfd00jprfhbhqttj42x",
+    ]);
+    expect(appShopIds({ customerApp: { shopIds: ["a1b2c3d4e5f6"] } })).toEqual(["a1b2c3d4e5f6"]);
+    expect(appShopIds(null)).toEqual([]);
   });
 });

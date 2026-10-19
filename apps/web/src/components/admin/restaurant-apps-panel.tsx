@@ -21,12 +21,14 @@ import {
   ImageOff,
   Loader2,
   Megaphone,
+  MapPin,
   Search,
   Smartphone,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import {
   socialLoginClient,
+  type BrandShopOption,
   type CustomerAppStore,
   type IosOnboarding,
   type SocialLoginAdminRow,
@@ -316,8 +318,20 @@ function StoreForm({ row, onSaved }: { row: SocialLoginAdminRow; onSaved: (r: So
     promote: row.store.promote,
     androidPackage: row.store.androidPackage ?? androidGuess,
     iosAppStoreId: row.store.iosAppStoreId,
+    shopIds: row.store.shopIds ?? [],
   });
   const [saving, setSaving] = useState(false);
+  const [shops, setShops] = useState<BrandShopOption[] | null>(null);
+
+  useEffect(() => {
+    socialLoginClient
+      .shops(row.brandId)
+      .then(setShops)
+      .catch(() => setShops([]));
+  }, [row.brandId]);
+
+  const toggleShop = (id: string, on: boolean) =>
+    setForm((f) => ({ ...f, shopIds: on ? [...new Set([...f.shopIds, id])] : f.shopIds.filter((x) => x !== id) }));
 
   const save = async () => {
     setSaving(true);
@@ -327,6 +341,7 @@ function StoreForm({ row, onSaved }: { row: SocialLoginAdminRow; onSaved: (r: So
           promote: form.promote,
           androidPackage: form.androidPackage?.trim() || null,
           iosAppStoreId: form.iosAppStoreId?.trim() || null,
+          shopIds: form.shopIds,
         }),
       );
       toast.success("Saved");
@@ -366,6 +381,40 @@ function StoreForm({ row, onSaved }: { row: SocialLoginAdminRow; onSaved: (r: So
           className={input}
         />
       </label>
+      <fieldset className="mt-4">
+        <legend className="flex items-center gap-1.5 text-sm font-medium text-zinc-800">
+          <MapPin className="h-3.5 w-3.5" aria-hidden /> Shops in this app
+        </legend>
+        <p className="mt-0.5 text-xs text-zinc-500">
+          A multi-shop app lists these shops, nearest first, and orders placed for one land on that shop&rsquo;s
+          order board under this brand. Needs <code className="rounded bg-zinc-100 px-1">&quot;multiShop&quot;: true</code>{" "}
+          in the app&rsquo;s brand file.
+        </p>
+        {!shops ? (
+          <Loader2 className="mt-2 h-4 w-4 animate-spin text-zinc-400" aria-label="Loading shops" />
+        ) : (
+          <ul className="mt-2 max-h-56 space-y-1 overflow-y-auto rounded-lg border border-zinc-200 p-2">
+            {shops.map((shop) => (
+              <li key={shop.id}>
+                <label className={`flex items-center gap-2 text-sm ${shop.isActive ? "text-zinc-800" : "text-zinc-400"}`}>
+                  <input
+                    type="checkbox"
+                    checked={shop.fixed || form.shopIds.includes(shop.id)}
+                    disabled={shop.fixed}
+                    onChange={(e) => toggleShop(shop.id, e.target.checked)}
+                    className="h-4 w-4 rounded border-zinc-300"
+                  />
+                  <span className="truncate">
+                    {shop.name}
+                    {shop.postcode ? <span className="text-zinc-400"> · {shop.postcode}</span> : null}
+                  </span>
+                  {shop.fixed ? <span className="ml-auto shrink-0 text-[11px] text-zinc-400">main shop</span> : null}
+                </label>
+              </li>
+            ))}
+          </ul>
+        )}
+      </fieldset>
       <label className="mt-3 flex items-center gap-2 text-sm font-medium text-zinc-800">
         <input
           type="checkbox"

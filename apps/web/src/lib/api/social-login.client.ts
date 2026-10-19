@@ -12,6 +12,18 @@ export interface CustomerAppStore {
   promote: boolean;
   androidPackage: string | null;
   iosAppStoreId: string | null;
+  /** Extra shops the brand's app sells from ("Shops in this app"). */
+  shopIds: string[];
+}
+
+export interface BrandShopOption {
+  id: string;
+  name: string;
+  postcode: string | null;
+  isActive: boolean;
+  /** Always in the app: the brand's own shop or its primary shop. */
+  fixed: boolean;
+  linked: boolean;
 }
 
 export interface IosOnboarding {
@@ -53,6 +65,9 @@ export const socialLoginClient = {
         androidGoogle: flags.android.google,
       })
       .then((r) => r.data),
+
+  shops: (brandId: string) =>
+    apiClient.get<BrandShopOption[]>(`/v1/admin/social-login/${brandId}/shops`).then((r) => r.data),
 
   setStore: (brandId: string, store: CustomerAppStore) =>
     apiClient.put<SocialLoginAdminRow>(`/v1/admin/social-login/${brandId}/store`, store).then((r) => r.data),

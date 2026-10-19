@@ -122,3 +122,35 @@ describe("checkout — the pinned brand must trade at this shop", () => {
     });
   });
 });
+
+// A multi-shop restaurant app (Admin → Restaurant apps → Shops in this app):
+// PIZZA UNO's app orders at Newcastle must be tagged PIZZA UNO at Newcastle.
+describe("checkout — shops linked to a brand's app", () => {
+  const NEWCASTLE = { id: "loc_newcastle", brandId: "brand_placeholder", brand: { tenantId: "tenant_1" } };
+
+  it("pins the brand at a shop its app links", async () => {
+    const resolve = svc({
+      id: "brand_pizzauno",
+      tenantId: "tenant_1",
+      isSuspended: false,
+      openingHours: null,
+      primaryLocationId: "loc_sunningdale",
+      locations: [],
+      settings: { customerApp: { shopIds: ["loc_newcastle"] } },
+    });
+    await expect(resolve(NEWCASTLE, "brand_pizzauno")).resolves.toEqual({ brandId: "brand_pizzauno", hours: null });
+  });
+
+  it("still refuses a shop the app doesn't link", async () => {
+    const resolve = svc({
+      id: "brand_pizzauno",
+      tenantId: "tenant_1",
+      isSuspended: false,
+      openingHours: null,
+      primaryLocationId: "loc_sunningdale",
+      locations: [],
+      settings: { customerApp: { shopIds: ["loc_other"] } },
+    });
+    await expect(resolve(NEWCASTLE, "brand_pizzauno")).resolves.toEqual({ brandId: null, hours: null });
+  });
+});

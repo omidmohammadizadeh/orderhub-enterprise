@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Put } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { IsBoolean, IsOptional, IsString } from "class-validator";
+import { IsArray, IsBoolean, IsOptional, IsString } from "class-validator";
 import { SocialLoginService } from "./social-login.service";
 import { Roles } from "../../common/decorators/roles.decorator";
 import { Public } from "../../common/decorators/public.decorator";
@@ -15,6 +15,7 @@ class SetSocialLoginDto {
 
 class SetStoreDto {
   @IsBoolean() promote!: boolean;
+  @IsOptional() @IsArray() @IsString({ each: true }) shopIds?: string[];
   @IsOptional() @IsString() androidPackage?: string | null;
   @IsOptional() @IsString() iosAppStoreId?: string | null;
 }
@@ -56,6 +57,12 @@ export class SocialLoginController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.socialLogin.setIosOnboarding(brandId, body, user.userId);
+  }
+
+  @Get(":brandId/shops")
+  @ApiOperation({ summary: "The business's shops, and which ones this brand's app sells from" })
+  shops(@Param("brandId") brandId: string) {
+    return this.socialLogin.shopsFor(brandId);
   }
 
   @Put(":brandId/store")

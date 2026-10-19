@@ -9,6 +9,10 @@ export type CustomerAppConfig = {
   promote: boolean;
   androidPackage: string | null;
   iosAppStoreId: string | null;
+  /** More shops this brand's app sells from, beyond the shop it belongs to
+   *  and its primary shop. A multi-shop app's picker lists them, and the
+   *  storefront and checkout accept ?brand= there (brandOverrideServesLocation). */
+  shopIds: string[];
 };
 
 /** What customer-facing surfaces get: real store links, or nothing. */
@@ -26,7 +30,13 @@ export function readCustomerApp(settings: unknown): CustomerAppConfig {
   const raw = (settings as { customerApp?: any } | null)?.customerApp;
   const pkg = typeof raw?.androidPackage === "string" && PACKAGE_RE.test(raw.androidPackage) ? raw.androidPackage : null;
   const ios = typeof raw?.iosAppStoreId === "string" && APP_STORE_ID_RE.test(raw.iosAppStoreId) ? raw.iosAppStoreId : null;
-  return { promote: raw?.promote === true, androidPackage: pkg, iosAppStoreId: ios };
+  const shopIds = Array.isArray(raw?.shopIds) ? raw.shopIds.filter((x: unknown) => typeof x === "string" && x) : [];
+  return { promote: raw?.promote === true, androidPackage: pkg, iosAppStoreId: ios, shopIds };
+}
+
+/** The extra shop ids a brand's settings link it to (see shopIds). */
+export function appShopIds(settings: unknown): string[] {
+  return readCustomerApp(settings).shopIds;
 }
 
 /** Links to promote, or null when promotion is off or there's no store link. */
@@ -45,6 +55,7 @@ export function cleanCustomerApp(input: {
   promote?: unknown;
   androidPackage?: unknown;
   iosAppStoreId?: unknown;
+  shopIds?: unknown;
 }): CustomerAppConfig {
   const pkg = typeof input.androidPackage === "string" ? input.androidPackage.trim() : "";
   const ios = typeof input.iosAppStoreId === "string" ? input.iosAppStoreId.trim().replace(/^id/i, "") : "";
@@ -52,7 +63,11 @@ export function cleanCustomerApp(input: {
   if (ios && !APP_STORE_ID_RE.test(ios)) throw new Error("App Store ID is the number in the app's App Store link, e.g. 6824555180");
   const promote = input.promote === true;
   if (promote && !pkg && !ios) throw new Error("Add at least one store link before promoting the app");
-  return { promote, androidPackage: pkg || null, iosAppStoreId: ios || null };
+  const shopIds = Array.isArray(input.shopIds)
+    ? [...new Set(input.shopIds.filter((x): x is string => typeof x === "string" && /^[a-z0-9]{10,40}$/.test(x)))]
+    : [];
+  if (shopIds.length > 200) throw new Error("Too many shops");
+  return { promote, androidPackage: pkg || null, iosAppStoreId: ios || null, shopIds };
 }
 
 /** Where a restaurant is in getting its own iPhone app live, on its own Apple

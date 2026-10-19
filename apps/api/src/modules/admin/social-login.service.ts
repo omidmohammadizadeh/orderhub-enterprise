@@ -160,9 +160,20 @@ export class SocialLoginService {
     }
     const brand = await this.prisma.brand.findFirst({
       where: { id: brandId, deletedAt: null },
-      select: { settings: true },
+      select: { settings: true, tenantId: true },
     });
     if (!brand) throw new NotFoundException("Brand not found");
+    // Only shops of the same business: ?brand= swaps the menu, the name on the
+    // receipt and the Stripe account, so a shop elsewhere must never join.
+    if (customerApp.shopIds.length) {
+      const ok = await this.prisma.location.findMany({
+        where: { id: { in: customerApp.shopIds }, deletedAt: null, brand: { tenantId: brand.tenantId } },
+        select: { id: true },
+      });
+      if (ok.length !== customerApp.shopIds.length) {
+        throw new BadRequestException("One of those shops isn't part of this business");
+      }
+    }
     const settings = { ...((brand.settings as Record<string, unknown> | null) ?? {}), customerApp };
     const b = await this.prisma.brand.update({
       where: { id: brandId },
@@ -171,6 +182,31 @@ export class SocialLoginService {
     });
     this.logger.log(`Customer app store settings for brand ${brandId} by ${actorId ?? "?"}: ${JSON.stringify(customerApp)}`);
     return this.toRow(b as BrandRow, await this.appIdsByBrand());
+  }
+
+  /** Every shop of the brand's business, for the "Shops in this app" list:
+   *  which ones the app already sells from, and why. */
+  async shopsFor(brandId: string) {
+    const brand = await this.prisma.brand.findFirst({
+      where: { id: brandId, deletedAt: null },
+      select: { id: true, tenantId: true, primaryLocationId: true, settings: true },
+    });
+    if (!brand) throw new NotFoundException("Brand not found");
+    const linked = new Set(readCustomerApp(brand.settings).shopIds);
+    const locations = await this.prisma.location.findMany({
+      where: { deletedAt: null, brand: { tenantId: brand.tenantId } },
+      select: { id: true, name: true, postcode: true, brandId: true, isActive: true },
+      orderBy: { name: "asc" },
+    });
+    return locations.map((l) => ({
+      id: l.id,
+      name: l.name,
+      postcode: l.postcode?.trim() || null,
+      isActive: l.isActive,
+      // Always in the app: the brand's own shop or its primary one.
+      fixed: l.brandId === brand.id || l.id === brand.primaryLocationId,
+      linked: linked.has(l.id),
+    }));
   }
 
   /** The restaurant's Apple details and onboarding progress. */
