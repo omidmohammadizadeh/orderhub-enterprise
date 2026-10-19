@@ -2433,7 +2433,8 @@ export class OrderingService {
         cancelReason: true,
         total: true,
         // currency: Retail R3 — the picking summary shows a refund amount.
-        location: { select: { name: true, currency: true, businessType: true } },
+        // latitude/longitude: the app's live map shows where the food came from.
+        location: { select: { name: true, currency: true, businessType: true, latitude: true, longitude: true } },
         // Phase AX-4 — live delivery tracking: destination + the assigned
         // driver's name/phone and last known GPS so the customer can watch
         // the driver approach, call them, or chat.
@@ -2528,6 +2529,12 @@ export class OrderingService {
       destination:
         order.deliveryLat != null && order.deliveryLng != null
           ? { lat: order.deliveryLat, lng: order.deliveryLng }
+          : null,
+      // Where the food left from, when the shop has been placed on a map
+      // (DeliveryZonesService fills Location.latitude lazily).
+      shop:
+        (order as any).location?.latitude != null && (order as any).location?.longitude != null
+          ? { lat: (order as any).location.latitude, lng: (order as any).location.longitude }
           : null,
       driver,
     };
