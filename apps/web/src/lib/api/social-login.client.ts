@@ -8,6 +8,28 @@ export interface SocialLoginFlags {
   android: { google: boolean };
 }
 
+export interface CustomerAppStore {
+  promote: boolean;
+  androidPackage: string | null;
+  iosAppStoreId: string | null;
+}
+
+export interface IosOnboarding {
+  contactEmail: string | null;
+  teamId: string | null;
+  keyId: string | null;
+  issuerId: string | null;
+  steps: {
+    enrolled: boolean;
+    keyReceived: boolean;
+    appRecordCreated: boolean;
+    built: boolean;
+    submitted: boolean;
+    live: boolean;
+  };
+  notes: string | null;
+}
+
 export interface SocialLoginAdminRow extends SocialLoginFlags {
   brandId: string;
   brandName: string;
@@ -15,6 +37,8 @@ export interface SocialLoginAdminRow extends SocialLoginFlags {
   logoUrl: string | null;
   /** Bundle ids of this brand's apps seen registering for push. */
   appIds: string[];
+  store: CustomerAppStore;
+  iosOnboarding: IosOnboarding;
 }
 
 export const socialLoginClient = {
@@ -28,5 +52,13 @@ export const socialLoginClient = {
         iosGoogle: flags.ios.google,
         androidGoogle: flags.android.google,
       })
+      .then((r) => r.data),
+
+  setStore: (brandId: string, store: CustomerAppStore) =>
+    apiClient.put<SocialLoginAdminRow>(`/v1/admin/social-login/${brandId}/store`, store).then((r) => r.data),
+
+  setIosOnboarding: (brandId: string, onboarding: IosOnboarding) =>
+    apiClient
+      .put<SocialLoginAdminRow>(`/v1/admin/social-login/${brandId}/ios-onboarding`, onboarding)
       .then((r) => r.data),
 };

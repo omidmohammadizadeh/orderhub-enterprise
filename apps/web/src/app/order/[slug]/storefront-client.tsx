@@ -35,6 +35,8 @@ import {
 } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { readEmailRef, rememberEmailRef } from "@/lib/email-marketing/attribution";
+import { useInRestaurantApp } from "@/lib/in-restaurant-app";
+import { AppInstallBanner, AppInstallCard, type CustomerAppLinks } from "@/components/storefront/app-install";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   formatMoney,
@@ -142,8 +144,7 @@ import {
 } from "@/lib/api/group-orders.client";
 import { publicReservationsClient } from "@/lib/api/reservations.client";
 import { cn } from "@/lib/utils";
-import { DeliveryTrackingMap } from "@/components/order/delivery-tracking-map";
-import { CustomerDriverChat } from "@/components/order/customer-driver-chat";
+import { LiveDeliveryPanel } from "@/components/order/live-delivery-panel";
 import {
   ModifierSelectionModal,
 } from "@/components/pos/modifier-selection-modal";
@@ -397,6 +398,8 @@ function WhatsAppIcon({ className }: { className?: string }) {
 
 function OrderPage() {
   const { slug } = useParams<{ slug: string }>();
+  // Inside one of the restaurant apps (WebView user agent "OrderHubApp/").
+  const inApp = useInRestaurantApp();
   // Phase AW — brand context. /brand/<slug> redirects here with
   // ?brand=<id>; we forward that to the API so the storefront returns
   // the brand's identity (name, logo, address, about, Stripe Connect)
@@ -1868,6 +1871,7 @@ function OrderPage() {
         onReset={() => setConfirmedOrderId(null)}
         storeSlug={slug}
         brandId={brandId}
+        customerApp={(storefront as any).customerApp ?? null}
       />
     );
   }
@@ -1897,7 +1901,9 @@ function OrderPage() {
     storefront.whatsapp?.enabled && storefront.whatsapp.displayPhoneNumber
       ? storefront.whatsapp.displayPhoneNumber.replace(/\D/g, "")
       : "";
-  const whatsappHref = waDigits
+  // Not inside the restaurant's own app: it already is the ordering channel,
+  // and sending its customer off to WhatsApp mid-order is a step backwards.
+  const whatsappHref = waDigits && !inApp
     ? `https://wa.me/${waDigits}?text=${encodeURIComponent(
         `Hi ${headerTitle}, I'd like to place an order.`,
       )}`
@@ -1954,6 +1960,13 @@ function OrderPage() {
       />
       {/* Top nav. No basket here: on a phone it lives in the bar at the
           bottom where the thumb is, on a laptop in the panel beside the menu. */}
+      {/* "Get the app" on phones, when this brand's own app is promoted. */}
+      <AppInstallBanner
+        app={(storefront as any).customerApp ?? null}
+        brandKey={brandId ?? slug}
+        name={headerTitle}
+        logoUrl={logoUrl}
+      />
       <header className="sticky top-0 z-40 h-16 border-b border-sf-border bg-sf-surface">
         <div className="mx-auto flex h-full max-w-6xl items-center gap-3 px-4">
           {logoUrl ? (
@@ -4524,11 +4537,14 @@ function OrderConfirmed({
   onReset,
   storeSlug,
   brandId,
+  customerApp,
 }: {
   orderId: string;
   storeName: string;
   onReset: () => void;
   storeSlug: string;
+  /** The brand's own app, when it's being promoted. */
+  customerApp?: CustomerAppLinks | null;
   // Phase AW — passed through so the "Back to menu" anchor in
   // AcceptedScreen rebuilds the URL with ?brand=<id>; without it the
   // anchor falls back to the location's default storefront.
@@ -4580,6 +4596,7 @@ function OrderConfirmed({
       onReset={onReset}
       storeSlug={storeSlug}
       brandId={brandId}
+      customerApp={customerApp}
     />
   );
 }
@@ -4683,8 +4700,10 @@ function AcceptedScreen({
   onReset,
   storeSlug,
   brandId,
+  customerApp,
 }: {
   data: StatusPayload;
+  customerApp?: CustomerAppLinks | null;
   storeName: string;
   onReset: () => void;
   /** Phase AP-5 — used by the "Back to menu" link to navigate without
@@ -4772,40 +4791,13 @@ function AcceptedScreen({
         {/* Live delivery tracking — appears the moment the driver starts the
             job (status → out for delivery): map, call + chat, front-and-centre. */}
         {data.driver && (
-          <div className="mb-8 space-y-4 text-left">
-            <div className="flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
-              <div>
-                <p className="text-xs font-medium text-emerald-700">Your driver</p>
-                <p className="text-sm font-bold text-zinc-900">{data.driver.name ?? "On the way"}</p>
-              </div>
-              {data.driver.phone && (
-                <a
-                  href={`tel:${data.driver.phone}`}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-600"
-                >
-                  <Phone className="h-4 w-4" /> Call
-                </a>
-              )}
-            </div>
-
-            {(data.driver.lat != null && data.driver.lng != null) || data.destination ? (
-              <DeliveryTrackingMap
-                driver={
-                  data.driver.lat != null && data.driver.lng != null
-                    ? { lat: data.driver.lat, lng: data.driver.lng }
-                    : null
-                }
-                destination={data.destination ?? null}
-              />
-            ) : (
-              <p className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 text-center text-xs text-zinc-500">
-                Waiting for your driver&apos;s location…
-              </p>
-            )}
-
-            <CustomerDriverChat orderId={data.id} driverName={data.driver.name} />
+          <div className="mb-8 text-left">
+            <LiveDeliveryPanel order={data as any} orderId={data.id} />
           </div>
         )}
+
+        {/* Next time, the restaurant's own app (when it's being promoted). */}
+        <AppInstallCard app={customerApp} name={storeName} className="mb-8" />
 
         {/* Vertical timeline — each step lights up as the POS marks it. */}
         <ol className="text-left">

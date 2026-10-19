@@ -1,5 +1,13 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import {
+  type CustomerAppConfig,
+  type IosOnboarding,
+  cleanCustomerApp,
+  cleanIosOnboarding,
+  readCustomerApp,
+  readIosOnboarding,
+} from "./restaurant-apps";
 
 // ── Social login (Admin Dashboard → Social login) ──────────────────────────
 //
@@ -28,6 +36,10 @@ export interface SocialLoginAdminRow extends SocialLoginFlags {
   logoUrl: string | null;
   /** Bundle ids of this brand's native apps seen registering for push. */
   appIds: string[];
+  /** Store listing + whether customers are sent to it. */
+  store: CustomerAppConfig;
+  /** Getting the iPhone app live on the restaurant's own Apple account. */
+  iosOnboarding: IosOnboarding;
 }
 
 export const SOCIAL_LOGIN_OFF: SocialLoginFlags = {
@@ -89,6 +101,8 @@ export class SocialLoginService {
       tenantName: b.tenant.name,
       logoUrl: b.logoUrl?.trim() || b.locations.map((l) => l.logoUrl?.trim()).find(Boolean) || null,
       appIds: (apps.get(b.id) ?? []).sort(),
+      store: readCustomerApp(b.settings),
+      iosOnboarding: readIosOnboarding(b.settings),
       ...readSocialLogin(b.settings),
     };
   }
@@ -100,7 +114,7 @@ export class SocialLoginService {
       this.appIdsByBrand(),
     ]);
     const rank = (r: SocialLoginAdminRow) =>
-      (r.ios.apple || r.ios.google || r.android.google ? 2 : 0) + (r.appIds.length ? 1 : 0);
+      (r.ios.apple || r.ios.google || r.android.google || r.store.promote ? 2 : 0) + (r.appIds.length ? 1 : 0);
     return (brands as BrandRow[])
       .map((b) => this.toRow(b, apps))
       .sort((a, b) => rank(b) - rank(a) || a.brandName.localeCompare(b.brandName));
@@ -129,6 +143,56 @@ export class SocialLoginService {
     this.logger.log(
       `Social login for brand ${brandId} by ${actorId ?? "?"}: ${JSON.stringify(settings.socialLogin)}`,
     );
+    return this.toRow(b as BrandRow, await this.appIdsByBrand());
+  }
+
+  /** Store links + promote switch (Admin → Restaurant apps). */
+  async setStore(
+    brandId: string,
+    input: { promote?: unknown; androidPackage?: unknown; iosAppStoreId?: unknown },
+    actorId?: string,
+  ): Promise<SocialLoginAdminRow> {
+    let customerApp: CustomerAppConfig;
+    try {
+      customerApp = cleanCustomerApp(input);
+    } catch (e) {
+      throw new BadRequestException((e as Error).message);
+    }
+    const brand = await this.prisma.brand.findFirst({
+      where: { id: brandId, deletedAt: null },
+      select: { settings: true },
+    });
+    if (!brand) throw new NotFoundException("Brand not found");
+    const settings = { ...((brand.settings as Record<string, unknown> | null) ?? {}), customerApp };
+    const b = await this.prisma.brand.update({
+      where: { id: brandId },
+      data: { settings: settings as any },
+      select: BRAND_SELECT,
+    });
+    this.logger.log(`Customer app store settings for brand ${brandId} by ${actorId ?? "?"}: ${JSON.stringify(customerApp)}`);
+    return this.toRow(b as BrandRow, await this.appIdsByBrand());
+  }
+
+  /** The restaurant's Apple details and onboarding progress. */
+  async setIosOnboarding(brandId: string, input: Record<string, unknown>, actorId?: string): Promise<SocialLoginAdminRow> {
+    let iosOnboarding: IosOnboarding;
+    try {
+      iosOnboarding = cleanIosOnboarding(input ?? {});
+    } catch (e) {
+      throw new BadRequestException((e as Error).message);
+    }
+    const brand = await this.prisma.brand.findFirst({
+      where: { id: brandId, deletedAt: null },
+      select: { settings: true },
+    });
+    if (!brand) throw new NotFoundException("Brand not found");
+    const settings = { ...((brand.settings as Record<string, unknown> | null) ?? {}), iosOnboarding };
+    const b = await this.prisma.brand.update({
+      where: { id: brandId },
+      data: { settings: settings as any },
+      select: BRAND_SELECT,
+    });
+    this.logger.log(`iOS onboarding for brand ${brandId} updated by ${actorId ?? "?"}`);
     return this.toRow(b as BrandRow, await this.appIdsByBrand());
   }
 

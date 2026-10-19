@@ -47,6 +47,7 @@ import { parseSubstitutionPref, priceShortfall, toMinor } from "../retail/retail
 import { isCurrentlyOpen as isOpenAt } from "../../common/opening-hours.util";
 import { BasketPriceError, buildPricingContext, priceBasket } from "./checkout-pricing";
 import type { AppClient } from "./app-client";
+import { customerAppLinks } from "../admin/restaurant-apps";
 
 export interface CheckoutItemDto {
   menuItemId: string;
@@ -428,6 +429,8 @@ export class OrderingService {
       include: {
         brand: {
           select: {
+            // Restaurant app store links (Brand.settings.customerApp).
+            settings: true,
             id: true,
             name: true,
             slug: true,
@@ -470,6 +473,7 @@ export class OrderingService {
       ? await (this.prisma as any).brand.findUnique({
           where: { id: brandIdOverride },
           select: {
+            settings: true,
             id: true,
             // Whose shop this brand actually trades at — checked below before
             // any of it is allowed to overlay the location.
@@ -1054,7 +1058,10 @@ export class OrderingService {
           cuisine: b.cuisine,
           about: b.about,
         }
-      : location.brand;
+      : // settings is selected only for customerApp below; never send it out.
+        (location as any).brand
+        ? (({ settings: _settings, ...publicBrand }: any) => publicBrand)((location as any).brand)
+        : (location as any).brand;
     const closed = pauseSnapshot.paused
       ? {
           brandName:
@@ -1259,6 +1266,9 @@ export class OrderingService {
       // An UNVERIFIED domain must never be named: Cloudflare hasn't issued
       // its certificate yet, so pointing the canonical there would point
       // Google at a URL that doesn't serve.
+      // The brand's own app, when we're promoting it: store links for the
+      // storefront's install banner (null otherwise; see restaurant-apps.ts).
+      customerApp: customerAppLinks((overrideBrand ?? (location as any).brand)?.settings),
       seo: {
         customDomain: verifiedCustomDomain(
           overrideBrand ?? (location as any).brand,
@@ -1330,6 +1340,8 @@ export class OrderingService {
       customDomain: store?.seo?.customDomain ?? null,
       directOrderingEnabled: store?.seo?.directOrderingEnabled ?? true,
       hasMenu: categories.some((c) => (c?.items?.length ?? 0) > 0),
+      // Apple's Smart App Banner, when the brand's iOS app is being promoted.
+      iosAppStoreId: store?.customerApp?.iosAppStoreId ?? null,
     };
   }
 

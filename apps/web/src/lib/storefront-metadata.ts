@@ -31,6 +31,8 @@ export interface StorefrontSeo {
   customDomain: string | null;
   directOrderingEnabled: boolean;
   hasMenu: boolean;
+  /** The brand's iOS app, while it's being promoted (Admin → Restaurant apps). */
+  iosAppStoreId?: string | null;
 }
 
 /**
@@ -225,6 +227,9 @@ export async function storefrontMetadata(
     // Lets Next resolve any relative URL below, and silences its warning.
     ...(canonical ? { metadataBase: new URL(canonical) } : {}),
     ...(canonical ? { alternates: { canonical } } : {}),
+    // Apple's Smart App Banner: Safari on iPhone offers the restaurant's own
+    // app above the page, with Open/Get handled by iOS.
+    ...(seo?.iosAppStoreId ? { itunes: { appId: seo.iosAppStoreId } } : {}),
     robots: indexable(seo)
       ? { index: true, follow: true }
       : { index: false, follow: true },

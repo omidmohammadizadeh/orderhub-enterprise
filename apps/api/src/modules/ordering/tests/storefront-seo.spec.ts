@@ -182,6 +182,7 @@ describe("getStorefrontSeo", () => {
       "hasMenu",
       "hasStoredImage",
       "image",
+      "iosAppStoreId",
       "name",
       "postcode",
     ]);

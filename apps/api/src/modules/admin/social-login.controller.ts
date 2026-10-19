@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Put } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { IsBoolean } from "class-validator";
+import { IsBoolean, IsOptional, IsString } from "class-validator";
 import { SocialLoginService } from "./social-login.service";
 import { Roles } from "../../common/decorators/roles.decorator";
 import { Public } from "../../common/decorators/public.decorator";
@@ -11,6 +11,12 @@ class SetSocialLoginDto {
   @IsBoolean() iosApple!: boolean;
   @IsBoolean() iosGoogle!: boolean;
   @IsBoolean() androidGoogle!: boolean;
+}
+
+class SetStoreDto {
+  @IsBoolean() promote!: boolean;
+  @IsOptional() @IsString() androidPackage?: string | null;
+  @IsOptional() @IsString() iosAppStoreId?: string | null;
 }
 
 // Admin Dashboard → Social login. PLATFORM_ADMIN only: whether an app ships
@@ -40,6 +46,22 @@ export class SocialLoginController {
       { ios: { apple: dto.iosApple, google: dto.iosGoogle }, android: { google: dto.androidGoogle } },
       user.userId,
     );
+  }
+
+  @Put(":brandId/ios-onboarding")
+  @ApiOperation({ summary: "A restaurant's Apple developer details and iOS onboarding progress" })
+  setIosOnboarding(
+    @Param("brandId") brandId: string,
+    @Body() body: Record<string, unknown>,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.socialLogin.setIosOnboarding(brandId, body, user.userId);
+  }
+
+  @Put(":brandId/store")
+  @ApiOperation({ summary: "A brand app's store listing, and whether customers are sent to it" })
+  setStore(@Param("brandId") brandId: string, @Body() dto: SetStoreDto, @CurrentUser() user: AuthenticatedUser) {
+    return this.socialLogin.setStore(brandId, dto, user.userId);
   }
 }
 

@@ -9,6 +9,7 @@
 
 import Link from "next/link";
 import {
+  Smartphone,
   ArrowRight,
   ClipboardCheck,
   Globe,
@@ -64,6 +65,13 @@ const TOOLS: AdminTool[] = [
     blurb:
       "Pick the brands shown with their logo in the \u201cTrusted by\u201d section of the homepage.",
     icon: Globe,
+  },
+  {
+    href: "/dashboard/admin/restaurant-apps",
+    title: "Restaurant apps",
+    blurb:
+      "Store links and promotion for each restaurant's own app, and the step-by-step for getting its iPhone app live on the restaurant's Apple account.",
+    icon: Smartphone,
   },
   {
     href: "/dashboard/admin/social-login",
