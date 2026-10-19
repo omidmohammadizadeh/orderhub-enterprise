@@ -65,6 +65,10 @@ export type PushContent = {
   urlFor?: (sub: any) => string | null;
 };
 
+/** How long after acceptance a newly subscribed device still gets the
+ *  "accepted" push it missed (see subscribe()). */
+const ACCEPTED_CATCH_UP_MS = 10 * 60_000;
+
 @Injectable()
 export class CustomerPushService {
   private readonly logger = new Logger(CustomerPushService.name);
@@ -137,6 +141,11 @@ export class CustomerPushService {
         locationId: true,
         brandId: true,
         customerId: true,
+        status: true,
+        acceptedAt: true,
+        orderNumber: true,
+        displayId: true,
+        fulfillmentType: true,
       },
     });
     if (!order) throw new NotFoundException("Order not found");
@@ -171,6 +180,8 @@ export class CustomerPushService {
     });
 
     const trackPath = safePath(args.trackPath);
+    const linkKey = { subscriptionId_orderId: { subscriptionId: sub.id, orderId: order.id } };
+    const alreadyLinked = await this.db().customerPushOrder.findUnique({ where: linkKey, select: { orderId: true } });
     await this.db().customerPushOrder.upsert({
       where: {
         subscriptionId_orderId: { subscriptionId: sub.id, orderId: order.id },
@@ -180,6 +191,23 @@ export class CustomerPushService {
       // the tracking page both re-subscribe, and only one of them may know it.
       update: trackPath ? { trackPath } : {},
     });
+
+    // Auto-accept moves the order to ACCEPTED inside checkout, a second
+    // before the app (or page) can subscribe, so the "accepted" push went
+    // out to nobody. A device that links itself to an order that is still
+    // freshly ACCEPTED gets that push now — once, this device only. Older
+    // acceptances stay quiet: opening yesterday's order shouldn't buzz.
+    const acceptedMs = order.acceptedAt ? Date.now() - new Date(order.acceptedAt).getTime() : Infinity;
+    if (!alreadyLinked && order.status === "ACCEPTED" && acceptedMs <= ACCEPTED_CATCH_UP_MS) {
+      void this.notifyOrderStatus({
+        orderId: order.id,
+        status: "ACCEPTED",
+        orderNumber: order.orderNumber,
+        displayId: order.displayId,
+        fulfillmentType: order.fulfillmentType,
+        onlySubscriptionId: sub.id,
+      }).catch(() => undefined);
+    }
 
     return { ok: true };
   }
@@ -312,6 +340,8 @@ export class CustomerPushService {
     displayId?: string | null;
     fulfillmentType?: string | null;
     storefrontSlug?: string | null;
+    /** Only this device — catching one late subscriber up (subscribe()). */
+    onlySubscriptionId?: string;
   }): Promise<void> {
     try {
       // Every other status is internal bookkeeping. Buzzing someone's phone
@@ -320,7 +350,11 @@ export class CustomerPushService {
       const trigger: PushTrigger = args.status;
 
       const links = await this.db().customerPushOrder.findMany({
-        where: { orderId: args.orderId, subscription: { isActive: true } },
+        where: {
+          orderId: args.orderId,
+          ...(args.onlySubscriptionId ? { subscriptionId: args.onlySubscriptionId } : {}),
+          subscription: { isActive: true },
+        },
         include: { subscription: true },
       });
       // Say so out loud. Silence on the happy path meant a clean log was

@@ -77,7 +77,7 @@ describe("CustomerPushService native installs", () => {
     const prisma: any = {
       order: { findUnique: async () => order },
       customerPushSubscription: { upsert: async (a: any) => (upserts.push(a), { id: "s1" }) },
-      customerPushOrder: { upsert: async () => undefined },
+      customerPushOrder: { findUnique: async () => null, upsert: async () => undefined },
     };
     await new CustomerPushService(prisma).subscribe({
       orderId: "o1",
@@ -99,7 +99,7 @@ describe("CustomerPushService native installs", () => {
     const prisma: any = {
       order: { findUnique: async () => order },
       customerPushSubscription: { upsert: async (a: any) => (upserts.push(a), { id: "s1" }) },
-      customerPushOrder: { upsert: async () => undefined },
+      customerPushOrder: { findUnique: async () => null, upsert: async () => undefined },
     };
     const s = new CustomerPushService(prisma);
     await s.subscribe({ orderId: "o1", endpoint: "https://push.example/x", p256dh: "p", auth: "a" });
