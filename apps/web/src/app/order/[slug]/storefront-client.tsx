@@ -1528,6 +1528,25 @@ function OrderPage() {
         .then((r) => r.data);
     },
     onSuccess: (order) => {
+      // Inside a restaurant's own app: tell the shell about the order so it
+      // follows it for push. The app's injected checkout hook can miss on
+      // Android (its script races the page load), and a cash order confirms
+      // in place with no URL for it to notice — so every stage went out to
+      // "no subscribers". ReactNativeWebView is added natively to every page.
+      try {
+        const rn = (window as any).ReactNativeWebView;
+        if (order?.id && rn?.postMessage) {
+          rn.postMessage(
+            JSON.stringify({
+              type: "checkout",
+              orderId: String(order.id),
+              checkoutUrl: order.checkoutUrl || null,
+              pendingPayment: !!order.clientSecret,
+              url: window.location.href,
+            }),
+          );
+        }
+      } catch {}
       // Embedded card — the order exists but isn't paid yet, so open the
       // payment sheet over the page. The cart is deliberately NOT cleared
       // here: if the customer backs out or their card is declined, they
