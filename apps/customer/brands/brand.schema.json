@@ -40,6 +40,10 @@
         "package": { "type": "string", "pattern": "^com\\.orderhubsolutions\\.[a-z][a-z0-9]+$" }
       }
     },
+    "multiShop": {
+      "description": "One app for a brand trading at several shops: on first open the customer allows location and picks from the brand's shops, nearest first (GET /v1/ordering/brands/:brandId/shops). storefrontUrl/locationId are then only the fallback.",
+      "type": "boolean"
+    },
     "google": {
       "description": "Native Sign in with Google. Omit until the brand's iOS OAuth client exists (README → Sign-in setup).",
       "type": ["object", "null"],

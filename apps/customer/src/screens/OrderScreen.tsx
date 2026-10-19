@@ -22,6 +22,7 @@ import { saveOrder } from "../orders";
 import { followOrder } from "../push";
 import { type BridgeMessage, INJECTED_JS, orderFromUrl, slugFromUrl } from "../storefront-bridge";
 import { colors } from "../theme";
+import { useShop } from "../shop";
 
 // Menu and checkout are the storefront itself (phase 1): one menu, one set
 // of prices and payment flows, no second implementation to drift. The native
@@ -68,6 +69,17 @@ export function OrderScreen() {
     setSource(lastUrl.current ?? brand.storefrontUrl);
     setWebKey((k) => k + 1);
   }, [auth.version]);
+
+  // Multi-shop app: a different shop picked → its menu, from the top.
+  const shop = useShop();
+  const shownShop = useRef(shop?.locationId);
+  useEffect(() => {
+    if (shop?.locationId === shownShop.current) return;
+    shownShop.current = shop?.locationId;
+    lastUrl.current = null;
+    setSource(brand.storefrontUrl);
+    setWebKey((k) => k + 1);
+  }, [shop?.locationId]);
 
   // A notification or the Home screen asked for a particular page.
   useEffect(() => {

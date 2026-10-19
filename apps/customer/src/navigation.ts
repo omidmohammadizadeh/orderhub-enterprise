@@ -12,6 +12,7 @@ export type TabParams = {
 export type RootParams = {
   Tabs: { screen?: keyof TabParams; params?: TabParams[keyof TabParams] } | undefined;
   OrderStatus: { orderId: string; slug: string };
+  ShopPicker: undefined;
 };
 
 export const navigationRef = createNavigationContainerRef<RootParams>();
@@ -39,6 +40,10 @@ export function openOrder(orderId: string, slug: string) {
     if (current?.name === "OrderStatus" && (current.params as RootParams["OrderStatus"])?.orderId === orderId) return;
     navigationRef.dispatch(StackActions.push("OrderStatus", { orderId, slug }));
   });
+}
+
+export function openShopPicker() {
+  whenReady(() => navigationRef.navigate("ShopPicker"));
 }
 
 export function openStorefront(path?: string | null) {

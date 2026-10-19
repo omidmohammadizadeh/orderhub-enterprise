@@ -68,10 +68,25 @@ const config: ExpoConfig = {
       "android.permission.SYSTEM_ALERT_WINDOW",
       "android.permission.READ_EXTERNAL_STORAGE",
       "android.permission.WRITE_EXTERNAL_STORAGE",
+      ...(brand.multiShop
+        ? []
+        : ["android.permission.ACCESS_COARSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"]),
     ],
   },
   plugins: [
     ...(brand.appleSignIn ? ["expo-apple-authentication"] : []),
+    // Nearest-shop picker. Only a multi-shop app asks for location; the rest
+    // block the permissions below so Play's Data safety form stays simple.
+    ...(brand.multiShop
+      ? [
+          [
+            "expo-location",
+            {
+              locationWhenInUsePermission: `${brand.name} uses your location to show the shop nearest to you.`,
+            },
+          ] as [string, object],
+        ]
+      : []),
     // Only with a client id: the iOS SDK throws (and the app dies) if asked to
     // sign in without its URL scheme registered.
     ...(brand.google
@@ -104,6 +119,7 @@ const config: ExpoConfig = {
       apiUrl: brand.apiUrl,
       primaryColor: brand.primaryColor,
       backgroundColor: brand.backgroundColor,
+      multiShop: brand.multiShop,
       signIn: {
         apple: brand.appleSignIn,
         google: brand.google

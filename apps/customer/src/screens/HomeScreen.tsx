@@ -11,11 +11,12 @@ import { Button } from "../components/Button";
 import { Card } from "../components/Card";
 import { StatusPill } from "../components/StatusPill";
 import { isFinished, money, orderLabel } from "../format";
-import { openOrder } from "../navigation";
+import { openOrder, openShopPicker } from "../navigation";
 import { useSavedOrders } from "../orders";
 import { getOffersPreference, setOffers } from "../push";
 import { colors, radius } from "../theme";
 import { useOrderStatus } from "../useOrderStatus";
+import { multiShop, useShop } from "../shop";
 
 const DAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 
@@ -38,6 +39,8 @@ export function HomeScreen() {
   const [info, setInfo] = useState<StoreInfo | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [offersAsked, setOffersAsked] = useState(true);
+  // Multi-shop app: the shop the customer picked. Switching shop reloads Home.
+  const shop = useShop();
 
   const load = useCallback(async () => {
     try {
@@ -64,7 +67,7 @@ export function HomeScreen() {
     return () => {
       cancelled = true;
     };
-  }, [load]);
+  }, [load, shop?.locationId]);
 
   const startOrder = () => navigation.navigate("Order" as never);
   const latest = orders?.[0];
@@ -72,6 +75,25 @@ export function HomeScreen() {
   const logo = imageUrl(info?.brand?.logoUrl ?? info?.menu?.logoImage);
   const currency = info?.location.currency ?? null;
   const hours = info ? todaysHours(info) : null;
+  // Where to send people. A multi-shop app uses the picked shop's own address
+  // and phone: the storefront overlays the BRAND's address, which for a brand
+  // trading at several shops is at best one of them.
+  const findUs = (() => {
+    if (multiShop && shop) {
+      const address = [shop.address, shop.postcode].filter(Boolean).join(", ");
+      return {
+        address,
+        phone: shop.phone ?? info?.location.phone ?? null,
+        query: shop.lat != null && shop.lng != null ? `${shop.lat},${shop.lng}` : [shop.name, address].join(", "),
+      };
+    }
+    if (!info) return null;
+    return {
+      address: [info.location.addressLine1, info.location.postcode].filter(Boolean).join(", "),
+      phone: info.location.phone,
+      query: [info.location.name, info.location.addressLine1, info.location.postcode].filter(Boolean).join(", "),
+    };
+  })();
 
   return (
     <ScrollView
@@ -100,6 +122,21 @@ export function HomeScreen() {
           {logo ? <Image source={{ uri: logo }} style={styles.logo} resizeMode="contain" /> : null}
           <View style={{ flex: 1 }}>
             <Text style={styles.name}>{brand.name}</Text>
+            {multiShop && shop ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Ordering from ${shop.name}. Change shop`}
+                onPress={openShopPicker}
+                hitSlop={8}
+                style={styles.shopRow}
+              >
+                <Ionicons name="location" size={14} color={colors.primary} />
+                <Text style={styles.shopName} numberOfLines={1}>
+                  {shop.name}
+                </Text>
+                <Text style={styles.shopChange}>Change</Text>
+              </Pressable>
+            ) : null}
             {info ? (
               <View style={styles.metaRow}>
                 <View style={[styles.openDot, { backgroundColor: info.isOpen ? colors.success : colors.danger }]} />
@@ -200,18 +237,16 @@ export function HomeScreen() {
           </View>
         ) : null}
 
-        {info ? (
+        {findUs ? (
           <Card>
             <Text style={styles.sectionTitle}>Find us</Text>
-            <Text style={styles.muted}>
-              {[info.location.addressLine1, info.location.postcode].filter(Boolean).join(", ")}
-            </Text>
+            <Text style={styles.muted}>{findUs.address}</Text>
             <View style={styles.offerButtons}>
-              {info.location.phone ? (
+              {findUs.phone ? (
                 <Button
                   title="Call"
                   variant="secondary"
-                  onPress={() => Linking.openURL(`tel:${info.location.phone!.replace(/\s+/g, "")}`)}
+                  onPress={() => Linking.openURL(`tel:${findUs.phone!.replace(/\s+/g, "")}`)}
                   style={{ flex: 1 }}
                 />
               ) : null}
@@ -219,9 +254,7 @@ export function HomeScreen() {
                 title="Directions"
                 variant="secondary"
                 onPress={() => {
-                  const q = encodeURIComponent(
-                    [info.location.name, info.location.addressLine1, info.location.postcode].filter(Boolean).join(", "),
-                  );
+                  const q = encodeURIComponent(findUs.query);
                   Linking.openURL(
                     Platform.OS === "ios" ? `https://maps.apple.com/?q=${q}` : `https://www.google.com/maps/search/?api=1&query=${q}`,
                   );
@@ -253,6 +286,9 @@ function LatestOrder({ orderId, slug }: { orderId: string; slug: string }) {
 }
 
 const styles = StyleSheet.create({
+  shopRow: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 4 },
+  shopName: { flexShrink: 1, fontSize: 14, fontWeight: "600", color: colors.text },
+  shopChange: { fontSize: 14, fontWeight: "700", color: colors.primary, marginLeft: 6 },
   root: { flex: 1, backgroundColor: colors.background },
   hero: { height: 210, overflow: "hidden" },
   heroShade: { backgroundColor: "rgba(0,0,0,0.15)" },

@@ -9,6 +9,9 @@ export type Brand = {
   apiUrl: string;
   primaryColor: string;
   backgroundColor: string;
+  /** One app, several shops: the customer picks one (src/shop.ts), which
+   *  then rewrites storefrontUrl and locationId above for the session. */
+  multiShop?: boolean;
   /** Native sign-in this build offers (app.config.ts → brands/<slug>.json). */
   signIn?: {
     apple: boolean;

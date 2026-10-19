@@ -91,6 +91,9 @@ function loadBrand(slug) {
     // Sign in with Apple needs the capability on the client's App ID; off
     // only for a brand whose team can't have it yet.
     appleSignIn: b.ios.appleSignIn !== false,
+    // One app for a brand trading at several shops: the customer picks the
+    // nearest (device location) instead of the app being fixed to locationId.
+    multiShop: b.multiShop === true,
   };
 }
 

@@ -1,0 +1,26 @@
+{
+  "$schema": "./brand.schema.json",
+  "slug": "pizzauno",
+  "name": "Pizza Uno",
+  "brandId": "cmqiefkuy002yc3386en62sn6",
+  "locationId": "cmptil6110001lrxzbsqw2iwn",
+  "storefrontUrl": "https://www.orderhubsolutions.com/order/cmptil6110001lrxzbsqw2iwn?brand=cmqiefkuy002yc3386en62sn6",
+  "apiUrl": "https://orderhub-api-0re6.onrender.com/api",
+  "primaryColor": "#C62828",
+  "backgroundColor": "#FEF7E4",
+  "icon": "brands/pizzauno/icon.png",
+  "adaptiveIcon": "brands/pizzauno/adaptive-icon.png",
+  "splash": "brands/pizzauno/splash.png",
+  "notificationIcon": "brands/pizzauno/notification-icon.png",
+  "version": "1.1.0",
+  "multiShop": true,
+  "ios": {
+    "bundleId": "com.orderhubsolutions.pizzauno",
+    "appleTeamId": "ANR7VRQRYT",
+    "ascAppId": null
+  },
+  "android": {
+    "package": "com.orderhubsolutions.pizzauno"
+  },
+  "easProjectId": "b50d1b6b-9dee-4ae3-b1b6-e1f92c2189c3"
+}
