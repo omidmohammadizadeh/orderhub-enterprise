@@ -51,6 +51,13 @@ export function openStorefront(path?: string | null) {
  *  storefront tab. */
 export function openPushTarget(path: unknown) {
   const p = typeof path === "string" ? path : null;
+  // "How was your food?" lands on the storefront's tracking page with
+  // ?review=1, which opens its review form. The native tracker has no form,
+  // so sending it there would swallow the ask.
+  if (p && /[?&]review=1(&|#|$)/.test(p)) {
+    openStorefront(p);
+    return;
+  }
   const order = p ? orderFromUrl(p) : null;
   if (order) openOrder(order.orderId, order.slug);
   else openStorefront(p);
