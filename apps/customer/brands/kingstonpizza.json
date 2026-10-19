@@ -21,5 +21,8 @@
   "android": {
     "package": "com.orderhubsolutions.kingstonpizza"
   },
+  "google": {
+    "iosClientId": "331572609147-m5s7r1dvl1kiksng10b5po9j98hda31r.apps.googleusercontent.com"
+  },
   "easProjectId": "8712b2a4-fd3e-4bfe-8a45-2fb38bd83869"
 }

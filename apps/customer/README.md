@@ -201,6 +201,12 @@ Create credentials → OAuth client ID:
    `DEVELOPER_ERROR`; `"google": { …, "android": false }` hides the button meanwhile.
 3. OAuth consent screen: published (not *Testing*), or only listed test users can sign in.
 
+**Done so far (19 Oct 2026, project order-hub-solutions):** iOS clients for kingstonpizza, pizzaunopelton and
+bestkebabs (ids in their brand files). Android clients: kingstonpizza and pizzaunopelton with their EAS upload-key
+SHA-1s, and all three with the local `android/app/debug.keystore` SHA-1 (`5E:8F:16:06:…`) for emulator builds.
+Still to add: the **Play app-signing** SHA-1 of each app once it exists in Play Console, and bestkebabs' EAS upload
+key after its first EAS Android build.
+
 ### Per brand: Apple
 
 1. In the **client's** Apple developer account: Certificates, IDs & Profiles → Identifiers →

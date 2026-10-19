@@ -21,5 +21,8 @@
   "android": {
     "package": "com.orderhubsolutions.pizzaunopelton"
   },
+  "google": {
+    "iosClientId": "331572609147-jjg27rtvsrcq6ordtp57rdr2g0p6qigr.apps.googleusercontent.com"
+  },
   "easProjectId": "a1414263-55a7-4801-9183-c646db461a2c"
 }
