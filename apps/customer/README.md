@@ -164,6 +164,15 @@ the app signs in natively and hands the storefront the session
 Builds made before this change have no native modules; the code requires them lazily, so an OTA update hides the
 buttons there instead of crashing. Bump `version` in the brand file so the next store build carries them.
 
+### Switching it on: Admin Dashboard → Social login
+
+Each app shows a button only when **both** are true: the build can offer it (client ids / Apple capability below),
+and a platform admin switched it on for that brand in **Admin Dashboard → Social login** (iOS Apple, iOS Google,
+Android Google; stored on `Brand.settings.socialLogin`). The app reads
+`GET /v1/public/customer-app/<brandId>/social-login` at launch (cached for offline), so this decides per store
+submission without a new build. Everything starts **off**. iOS Google needs iOS Apple on (guideline 4.8): the API
+refuses it otherwise, and the app never shows Google alone on iOS.
+
 ### API environment (Render, orderhub-api)
 
 | Variable | Value |

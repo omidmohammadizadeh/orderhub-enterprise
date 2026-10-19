@@ -12,6 +12,8 @@ import { AdminService } from "./admin.service";
 import { DashboardAccessService } from "./dashboard-access.service";
 import { DispatchChargingService } from "./dispatch-charging.service";
 import { WebsiteShowcaseService } from "./website-showcase.service";
+import { PublicSocialLoginController, SocialLoginController } from "./social-login.controller";
+import { SocialLoginService } from "./social-login.service";
 import { DatabaseModule } from "../../infrastructure/database/database.module";
 
 @Module({
@@ -29,12 +31,15 @@ import { DatabaseModule } from "../../infrastructure/database/database.module";
     DispatchChargingController,
     WebsiteShowcaseController,
     PublicWebsiteShowcaseController,
+    SocialLoginController,
+    PublicSocialLoginController,
   ],
   providers: [
     AdminService,
     DashboardAccessService,
     DispatchChargingService,
     WebsiteShowcaseService,
+    SocialLoginService,
   ],
 })
 export class AdminModule {}

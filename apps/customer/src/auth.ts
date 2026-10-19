@@ -103,8 +103,8 @@ function googleModule(): typeof import("@react-native-google-signin/google-signi
   }
 }
 
-/** Which buttons this build can offer. Apple is iOS only (guideline 4.8). */
-export async function availableProviders(): Promise<Provider[]> {
+/** What the build can offer: native module present and configured. */
+async function buildProviders(): Promise<Provider[]> {
   const out: Provider[] = [];
   if (Platform.OS === "ios" && signInConfig.apple) {
     const apple = appleModule();
@@ -115,6 +115,61 @@ export async function availableProviders(): Promise<Provider[]> {
     out.push("google");
   }
   return out;
+}
+
+// ── Admin switch (Admin Dashboard → Social login) ───────────────────────
+//
+// Which buttons this brand's app may show, per platform. Off unless the
+// platform team switched it on, so an app submitted without social sign-in
+// stays that way. The last answer is kept for offline launches; with none
+// at all, nothing shows.
+
+type SocialLoginFlags = { ios: { apple: boolean; google: boolean }; android: { google: boolean } };
+const FLAGS_KEY = "orderhub.socialLogin";
+const FLAGS_TTL_MS = 5 * 60 * 1000;
+let flagsCache: { at: number; value: Promise<SocialLoginFlags | null> } | null = null;
+
+async function fetchFlags(): Promise<SocialLoginFlags | null> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 8000);
+  try {
+    const res = await fetch(
+      `${brand.apiUrl}/v1/public/customer-app/${encodeURIComponent(brand.brandId)}/social-login`,
+      { signal: ctrl.signal },
+    );
+    if (!res.ok) throw new Error(String(res.status));
+    const flags = (await res.json()) as SocialLoginFlags;
+    AsyncStorage.setItem(FLAGS_KEY, JSON.stringify(flags)).catch(() => {});
+    return flags;
+  } catch {
+    const saved = await AsyncStorage.getItem(FLAGS_KEY).catch(() => null);
+    return saved ? (JSON.parse(saved) as SocialLoginFlags) : null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function socialLoginFlags(): Promise<SocialLoginFlags | null> {
+  if (!flagsCache || Date.now() - flagsCache.at > FLAGS_TTL_MS) {
+    flagsCache = { at: Date.now(), value: fetchFlags() };
+  }
+  return flagsCache.value;
+}
+
+/** The buttons to show: what the build can do AND what the admin switched on. */
+export async function availableProviders(): Promise<Provider[]> {
+  const [canDo, flags] = await Promise.all([buildProviders(), socialLoginFlags()]);
+  if (!flags) return [];
+  const on = (p: Provider) =>
+    Platform.OS === "ios"
+      ? p === "apple"
+        ? flags.ios?.apple === true
+        : flags.ios?.google === true && flags.ios?.apple === true
+      : p === "google" && flags.android?.google === true;
+  const shown = canDo.filter(on);
+  // Never Google alone on iOS, even if this build can't offer Apple (4.8).
+  if (Platform.OS === "ios" && !shown.includes("apple")) return [];
+  return shown;
 }
 
 export class SignInCancelled extends Error {}

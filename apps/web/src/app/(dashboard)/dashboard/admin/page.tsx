@@ -12,6 +12,7 @@ import {
   ArrowRight,
   ClipboardCheck,
   Globe,
+  KeyRound,
   LayoutList,
   Lock,
   Rocket,
@@ -63,6 +64,13 @@ const TOOLS: AdminTool[] = [
     blurb:
       "Pick the brands shown with their logo in the \u201cTrusted by\u201d section of the homepage.",
     icon: Globe,
+  },
+  {
+    href: "/dashboard/admin/social-login",
+    title: "Social login",
+    blurb:
+      "Choose whether each restaurant app shows Sign in with Apple and Google on iOS, and Google on Android — decide per app before you submit it.",
+    icon: KeyRound,
   },
   {
     href: "/dashboard/admin/release-readiness",
