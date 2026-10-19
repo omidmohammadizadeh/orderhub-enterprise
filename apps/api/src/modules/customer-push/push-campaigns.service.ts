@@ -10,6 +10,7 @@ import {
   REVIEW_DELAY_RANGE,
   REVIEW_TRIGGER,
   TITLE_MAX,
+  effectiveReviewRow,
   isEnabled,
   isPushTrigger,
   resolveMessage,
@@ -149,6 +150,115 @@ export class PushCampaignsService {
       update: data,
     });
     return this.listAutomations(tenantId);
+  }
+
+  // ── Review ask per location ──────────────────────────────────────────────
+
+  /** Every shop with its review-ask settings: its own row, or "follows the
+   *  business" (own: null), plus how many app installs it has, so the page
+   *  can put the shops with an app first. */
+  async listLocationReviews(tenantId: string) {
+    const [locations, rows, installs] = await Promise.all([
+      this.db().location.findMany({
+        where: { brand: { tenantId }, deletedAt: null },
+        select: { id: true, name: true, brandId: true, timezone: true },
+        orderBy: { name: "asc" },
+      }),
+      this.db().pushLocationReview.findMany({ where: { tenantId } }),
+      this.db().customerPushSubscription.findMany({
+        where: { tenantId, isActive: true, kind: "EXPO" },
+        select: { locationId: true, brandId: true },
+      }),
+    ]);
+    const byLocation = new Map<string, any>(rows.map((r: any) => [r.locationId, r]));
+    return locations
+      .map((l: any) => {
+        const row = byLocation.get(l.id) ?? null;
+        return {
+          locationId: l.id,
+          name: l.name,
+          timezone: l.timezone,
+          appInstalls: installs.filter(
+            (i: any) => i.locationId === l.id || (!i.locationId && i.brandId && i.brandId === l.brandId),
+          ).length,
+          own: row
+            ? {
+                enabled: row.enabled,
+                delayMinutes: row.delayMinutes,
+                title: row.title,
+                body: row.body,
+                sendFromHour: row.sendFromHour,
+                sendUntilHour: row.sendUntilHour,
+              }
+            : null,
+        };
+      })
+      .sort((a: any, b: any) => b.appInstalls - a.appInstalls || a.name.localeCompare(b.name));
+  }
+
+  async saveLocationReview(
+    tenantId: string,
+    locationId: string,
+    input: {
+      enabled?: boolean;
+      delayMinutes?: number | null;
+      title?: string | null;
+      body?: string | null;
+      sendFromHour?: number | null;
+      sendUntilHour?: number | null;
+    },
+  ) {
+    await this.requireLocation(tenantId, locationId);
+    const delayMinutes = input.delayMinutes == null ? null : Math.round(Number(input.delayMinutes));
+    if (
+      delayMinutes != null &&
+      (!Number.isFinite(delayMinutes) || delayMinutes < REVIEW_DELAY_RANGE.min || delayMinutes > REVIEW_DELAY_RANGE.max)
+    ) {
+      throw new BadRequestException(
+        `Send the review request between ${REVIEW_DELAY_RANGE.min} minutes and 24 hours after the order completes`,
+      );
+    }
+    const hour = (v: unknown, label: string): number | null => {
+      if (v == null || v === "") return null;
+      const n = Number(v);
+      if (!Number.isInteger(n) || n < 0 || n > 23) throw new BadRequestException(`${label} must be an hour from 0 to 23`);
+      return n;
+    };
+    const sendFromHour = hour(input.sendFromHour, "Send from");
+    const sendUntilHour = hour(input.sendUntilHour, "Send until");
+    if ((sendFromHour == null) !== (sendUntilHour == null)) {
+      throw new BadRequestException("Set both ends of the sending hours, or neither");
+    }
+    const data = {
+      enabled: input.enabled ?? true,
+      delayMinutes,
+      title: this.cleanText(input.title, TITLE_MAX, "Title"),
+      body: this.cleanText(input.body, BODY_MAX, "Message"),
+      sendFromHour,
+      sendUntilHour,
+    };
+    await this.db().pushLocationReview.upsert({
+      where: { locationId },
+      create: { tenantId, locationId, ...data },
+      update: data,
+    });
+    return this.listLocationReviews(tenantId);
+  }
+
+  /** Back to following the business setting. */
+  async clearLocationReview(tenantId: string, locationId: string) {
+    await this.requireLocation(tenantId, locationId);
+    await this.db().pushLocationReview.deleteMany({ where: { tenantId, locationId } });
+    return this.listLocationReviews(tenantId);
+  }
+
+  /** Location has no tenantId of its own; it belongs through its brand. */
+  private async requireLocation(tenantId: string, locationId: string) {
+    const found = await this.db().location.findFirst({
+      where: { id: locationId, brand: { tenantId } },
+      select: { id: true },
+    });
+    if (!found) throw new NotFoundException("Location not found");
   }
 
   /** Blank means "use the default"; too long is an error, not a silent cut. */
@@ -429,15 +539,23 @@ export class PushCampaignsService {
   async sendReviewRequest(request: { tenantId: string; orderId: string; dueAt: Date }): Promise<boolean> {
     if (Date.now() - new Date(request.dueAt).getTime() > REVIEW_MAX_AGE_MS) return false;
 
-    const automations = await this.push.automationsFor(request.tenantId);
-    const row = automations.get(REVIEW_TRIGGER);
-    if (!isEnabled(REVIEW_TRIGGER, row)) return false;
-
     const [order, existing] = await Promise.all([
-      this.db().order.findUnique({ where: { id: request.orderId }, select: { status: true } }),
+      this.db().order.findUnique({
+        where: { id: request.orderId },
+        select: { status: true, locationId: true },
+      }),
       this.db().review.findUnique({ where: { orderId: request.orderId }, select: { id: true } }),
     ]);
     if (!order || order.status !== "COMPLETED" || existing) return false;
+
+    // Settings as they are now, not when the ask was queued: a location that
+    // switched its ask off in the meantime is not asked.
+    const automations = await this.push.automationsFor(request.tenantId);
+    const row = effectiveReviewRow(
+      automations.get(REVIEW_TRIGGER),
+      await this.push.locationReviewFor(order.locationId),
+    );
+    if (!isEnabled(REVIEW_TRIGGER, row)) return false;
 
     const links = await this.db().customerPushOrder.findMany({
       where: { orderId: request.orderId, subscription: { isActive: true } },

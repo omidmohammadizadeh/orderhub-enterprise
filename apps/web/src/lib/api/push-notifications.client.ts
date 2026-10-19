@@ -57,6 +57,24 @@ export interface PushCampaignInput {
   brandId?: string | null;
 }
 
+/** One shop's own review-ask settings; null `own` = follows the business. */
+export type LocationReviewSetting = {
+  enabled: boolean;
+  delayMinutes: number | null;
+  title: string | null;
+  body: string | null;
+  sendFromHour: number | null;
+  sendUntilHour: number | null;
+};
+
+export type LocationReview = {
+  locationId: string;
+  name: string;
+  timezone: string;
+  appInstalls: number;
+  own: LocationReviewSetting | null;
+};
+
 export const PUSH_TITLE_MAX = 65;
 export const PUSH_BODY_MAX = 240;
 
@@ -71,6 +89,15 @@ export const pushNotificationsClient = {
     trigger: PushTrigger,
     body: { enabled: boolean; title: string | null; body: string | null; delayMinutes?: number | null },
   ) => apiClient.put<PushAutomation[]>(`${BASE}/automations/${trigger}`, body).then((r) => r.data),
+
+  locationReviews: () =>
+    apiClient.get<LocationReview[]>(`${BASE}/review/locations`).then((r) => r.data),
+
+  saveLocationReview: (locationId: string, body: LocationReviewSetting) =>
+    apiClient.put<LocationReview[]>(`${BASE}/review/locations/${locationId}`, body).then((r) => r.data),
+
+  clearLocationReview: (locationId: string) =>
+    apiClient.delete<LocationReview[]>(`${BASE}/review/locations/${locationId}`).then((r) => r.data),
 
   audience: (target: { locationId?: string | null; brandId?: string | null }) =>
     apiClient

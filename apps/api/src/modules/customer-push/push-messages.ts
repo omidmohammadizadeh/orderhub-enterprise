@@ -134,3 +134,68 @@ export function storefrontRootFrom(trackPath?: string | null): string | null {
 export function isExpoToken(token: unknown): token is string {
   return typeof token === "string" && /^Expo(nent)?PushToken\[[^\]]{10,200}\]$/.test(token);
 }
+
+/** One location's own review-ask settings (push_location_reviews). */
+export type LocationReviewRow = {
+  enabled: boolean;
+  delayMinutes: number | null;
+  title: string | null;
+  body: string | null;
+  sendFromHour: number | null;
+  sendUntilHour: number | null;
+};
+
+/** The review settings that apply to an order: the location's own row when
+ *  it has one, its blank text falling back to the business text. */
+export function effectiveReviewRow(
+  business?: AutomationRow | null,
+  location?: LocationReviewRow | null,
+): AutomationRow | null {
+  if (!location) return business ?? null;
+  return {
+    trigger: REVIEW_TRIGGER,
+    enabled: location.enabled,
+    title: location.title ?? business?.title ?? null,
+    body: location.body ?? business?.body ?? null,
+    delayMinutes: location.delayMinutes ?? business?.delayMinutes ?? null,
+  };
+}
+
+/** The hour (0–23) it is at `at` on the wall clock in `timeZone`. */
+export function localHour(at: Date, timeZone: string): number {
+  try {
+    const h = new Intl.DateTimeFormat("en-GB", { timeZone, hour: "numeric", hourCycle: "h23" }).format(at);
+    return Number(h) % 24;
+  } catch {
+    return at.getUTCHours();
+  }
+}
+
+/** Is `hour` inside [from, until)? A window like 18–2 runs over midnight. */
+export function inSendWindow(hour: number, from: number, until: number): boolean {
+  if (from === until) return true;
+  return from < until ? hour >= from && hour < until : hour >= from || hour < until;
+}
+
+/**
+ * When an ask due at `due` may actually go out: unchanged inside the
+ * location's sending hours, otherwise the next time its clock reads
+ * sendFromHour:00. An order finished at 23:30 asks at 11:00 the next morning,
+ * not at a quarter past midnight.
+ */
+export function fitSendWindow(
+  due: Date,
+  timeZone: string,
+  sendFromHour: number | null,
+  sendUntilHour: number | null,
+): Date {
+  if (sendFromHour == null || sendUntilHour == null) return due;
+  if (inSendWindow(localHour(due, timeZone), sendFromHour, sendUntilHour)) return due;
+  const hour = 60 * 60_000;
+  const startOfHour = Math.floor(due.getTime() / hour) * hour;
+  for (let i = 1; i <= 48; i++) {
+    const candidate = new Date(startOfHour + i * hour);
+    if (localHour(candidate, timeZone) === sendFromHour) return candidate;
+  }
+  return due;
+}

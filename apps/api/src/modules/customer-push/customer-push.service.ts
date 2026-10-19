@@ -3,8 +3,11 @@ import webpush from "web-push";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import {
   type AutomationRow,
+  type LocationReviewRow,
   type PushTrigger,
   REVIEW_TRIGGER,
+  effectiveReviewRow,
+  fitSendWindow,
   isEnabled,
   isExpoToken,
   isPushTrigger,
@@ -439,14 +442,31 @@ export class CustomerPushService {
 
   /** One ask per order, however many times COMPLETED fires — upsert on the
    *  unique orderId rather than create-and-catch. */
-  private async queueReviewRequest(tenantId: string, orderId: string, row?: AutomationRow | null) {
+  private async queueReviewRequest(tenantId: string, orderId: string, businessRow?: AutomationRow | null) {
+    const order = await this.db().order.findUnique({
+      where: { id: orderId },
+      select: { locationId: true, location: { select: { timezone: true } } },
+    });
+    const locationRow = await this.locationReviewFor(order?.locationId);
+    const row = effectiveReviewRow(businessRow, locationRow);
     if (!isEnabled(REVIEW_TRIGGER, row)) return;
-    const dueAt = new Date(Date.now() + reviewDelayMinutes(row) * 60_000);
+    const dueAt = fitSendWindow(
+      new Date(Date.now() + reviewDelayMinutes(row) * 60_000),
+      order?.location?.timezone || "Europe/London",
+      locationRow?.sendFromHour ?? null,
+      locationRow?.sendUntilHour ?? null,
+    );
     await this.db().pushReviewRequest.upsert({
       where: { orderId },
       create: { tenantId, orderId, dueAt },
       update: {},
     });
+  }
+
+  /** A location's own review-ask settings, or null to follow the business. */
+  async locationReviewFor(locationId?: string | null): Promise<LocationReviewRow | null> {
+    if (!locationId) return null;
+    return (await this.db().pushLocationReview.findUnique({ where: { locationId } })) ?? null;
   }
 
   // ── Sending ───────────────────────────────────────────────────────────────

@@ -5544,6 +5544,31 @@ model PushAutomation {
   @@map("push_automations")
 }
 
+// One location's own "How was your food?" settings, overriding the business
+// row in push_automations (trigger REVIEW_REQUEST). No row = follow the
+// business setting. Text left null falls back to the business text, then the
+// built-in default.
+model PushLocationReview {
+  id            String  @id @default(cuid())
+  tenantId      String
+  locationId    String  @unique
+  enabled       Boolean @default(true)
+  // Minutes after the order completes.
+  delayMinutes  Int?
+  title         String?
+  body          String?
+  // Local hours (0–23, the location's timezone) an ask may go out in; one
+  // due outside them waits for sendFromHour. Both null = any time.
+  sendFromHour  Int?
+  sendUntilHour Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("push_location_reviews")
+}
+
 // "How was your food?" — queued when an order completes, sent by a cron once
 // the delay has passed. orderId is unique so a COMPLETED that fires twice
 // (two tills, a retry) can only ever queue one ask.
@@ -6120,7 +6145,7 @@ model KeetaAuthorization {
 
 // ══════════════════════════════════════════════════════════════════════════════
 // EMAIL MARKETING — restaurants email their own customers (Resend, per email)
-// ══════════════════════════════════════════════════════════════════════════════
+// ══════════════════════════��═══════════════════════════════════════════════════
 //
 // Separate from the SMS audience on purpose: consent is per CHANNEL in UK law
 // (PECR), so a customer who ticked "offers by SMS" has not agreed to email,

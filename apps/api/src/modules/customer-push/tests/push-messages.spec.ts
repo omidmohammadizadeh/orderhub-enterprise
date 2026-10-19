@@ -134,6 +134,8 @@ describe("CustomerPushService native installs", () => {
         ],
       },
       pushReviewRequest: { upsert: async (a: any) => queued.push(a) },
+      order: { findUnique: async () => ({ locationId: "l1", location: { timezone: "Europe/London" } }) },
+      pushLocationReview: { findUnique: async () => null },
     };
     const s = new CustomerPushService(prisma);
     const sendTo = jest.spyOn(s, "sendTo");
@@ -204,3 +206,76 @@ describe("PushCampaignsService", () => {
     expect(updates[updates.length - 1].data).toMatchObject({ status: "SENT", targeted: 2, delivered: 1, failed: 1 });
   });
 });
+
+describe("review ask per location", () => {
+  const { effectiveReviewRow, fitSendWindow, inSendWindow } = jest.requireActual("../push-messages");
+  const business = { trigger: "REVIEW_REQUEST", enabled: true, title: "Biz title", body: null, delayMinutes: 45 };
+
+  it("follows the business when the shop has no row of its own", () => {
+    expect(effectiveReviewRow(business, null)).toBe(business);
+  });
+
+  it("uses the shop's own switch and delay, falling back to the business text", () => {
+    const row = effectiveReviewRow(business, {
+      enabled: false,
+      delayMinutes: 90,
+      title: null,
+      body: "Shop body",
+      sendFromHour: 11,
+      sendUntilHour: 21,
+    });
+    expect(row).toEqual({ trigger: "REVIEW_REQUEST", enabled: false, title: "Biz title", body: "Shop body", delayMinutes: 90 });
+  });
+
+  it("knows overnight windows", () => {
+    expect(inSendWindow(23, 18, 2)).toBe(true);
+    expect(inSendWindow(1, 18, 2)).toBe(true);
+    expect(inSendWindow(3, 18, 2)).toBe(false);
+    expect(inSendWindow(12, 11, 21)).toBe(true);
+    expect(inSendWindow(21, 11, 21)).toBe(false);
+  });
+
+  it("sends inside the hours unchanged", () => {
+    const due = new Date("2026-07-10T14:30:00Z"); // 15:30 London (BST)
+    expect(fitSendWindow(due, "Europe/London", 11, 21)).toEqual(due);
+  });
+
+  it("holds a late ask until the window opens next morning, in the shop's time", () => {
+    const due = new Date("2026-07-10T23:15:00Z"); // 00:15 London on the 11th
+    expect(fitSendWindow(due, "Europe/London", 11, 21).toISOString()).toBe("2026-07-11T10:00:00.000Z"); // 11:00 BST
+  });
+
+  it("works in winter time and other timezones", () => {
+    expect(fitSendWindow(new Date("2026-12-10T22:00:00Z"), "Europe/London", 11, 21).toISOString()).toBe(
+      "2026-12-11T11:00:00.000Z",
+    );
+    expect(fitSendWindow(new Date("2026-12-10T19:00:00Z"), "Asia/Dubai", 11, 21).toISOString()).toBe(
+      "2026-12-11T07:00:00.000Z",
+    );
+  });
+
+  it("any time when no hours are set", () => {
+    const due = new Date("2026-07-10T23:15:00Z");
+    expect(fitSendWindow(due, "Europe/London", null, null)).toEqual(due);
+  });
+});
+
+  it("uses the shop's own setting: switched off there means no ask", async () => {
+    const queued: any[] = [];
+    const prisma: any = {
+      customerPushOrder: {
+        findMany: async () => [{ trackPath: "/order/demo/status/o1", subscription: { id: "s1", tenantId: "t1", kind: "WEB" } }],
+      },
+      pushAutomation: { findMany: async () => [] },
+      pushReviewRequest: { upsert: async (a: any) => queued.push(a) },
+      order: { findUnique: async () => ({ locationId: "l1", location: { timezone: "Europe/London" } }) },
+      pushLocationReview: {
+        findUnique: async () => ({ enabled: false, delayMinutes: null, title: null, body: null, sendFromHour: null, sendUntilHour: null }),
+      },
+    };
+    const s = new CustomerPushService(prisma);
+    jest.spyOn(s, "sendTo").mockResolvedValue({ delivered: 1 } as any);
+    await s.notifyOrderStatus({ orderId: "o1", status: "COMPLETED" });
+    expect(queued).toHaveLength(0);
+  });
+

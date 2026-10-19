@@ -2477,6 +2477,20 @@ exports.Prisma.PushAutomationScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.PushLocationReviewScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  enabled: 'enabled',
+  delayMinutes: 'delayMinutes',
+  title: 'title',
+  body: 'body',
+  sendFromHour: 'sendFromHour',
+  sendUntilHour: 'sendUntilHour',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.PushReviewRequestScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -4433,6 +4447,14 @@ exports.Prisma.PushAutomationOrderByRelevanceFieldEnum = {
   body: 'body'
 };
 
+exports.Prisma.PushLocationReviewOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  title: 'title',
+  body: 'body'
+};
+
 exports.Prisma.PushReviewRequestOrderByRelevanceFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -5354,6 +5376,7 @@ exports.Prisma.ModelName = {
   CustomerPushSubscription: 'CustomerPushSubscription',
   CustomerPushOrder: 'CustomerPushOrder',
   PushAutomation: 'PushAutomation',
+  PushLocationReview: 'PushLocationReview',
   PushReviewRequest: 'PushReviewRequest',
   PushCampaign: 'PushCampaign',
   ContractTemplate: 'ContractTemplate',

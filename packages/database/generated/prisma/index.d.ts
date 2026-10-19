@@ -704,6 +704,11 @@ export type CustomerPushOrder = $Result.DefaultSelection<Prisma.$CustomerPushOrd
  */
 export type PushAutomation = $Result.DefaultSelection<Prisma.$PushAutomationPayload>
 /**
+ * Model PushLocationReview
+ * 
+ */
+export type PushLocationReview = $Result.DefaultSelection<Prisma.$PushLocationReviewPayload>
+/**
  * Model PushReviewRequest
  * 
  */
@@ -3190,6 +3195,16 @@ export class PrismaClient<
   get pushAutomation(): Prisma.PushAutomationDelegate<ExtArgs>;
 
   /**
+   * `prisma.pushLocationReview`: Exposes CRUD operations for the **PushLocationReview** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PushLocationReviews
+    * const pushLocationReviews = await prisma.pushLocationReview.findMany()
+    * ```
+    */
+  get pushLocationReview(): Prisma.PushLocationReviewDelegate<ExtArgs>;
+
+  /**
    * `prisma.pushReviewRequest`: Exposes CRUD operations for the **PushReviewRequest** model.
     * Example usage:
     * ```ts
@@ -4026,6 +4041,7 @@ export namespace Prisma {
     CustomerPushSubscription: 'CustomerPushSubscription',
     CustomerPushOrder: 'CustomerPushOrder',
     PushAutomation: 'PushAutomation',
+    PushLocationReview: 'PushLocationReview',
     PushReviewRequest: 'PushReviewRequest',
     PushCampaign: 'PushCampaign',
     ContractTemplate: 'ContractTemplate',
@@ -4067,7 +4083,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "promoCodeRedemption" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "salonService" | "salonStaff" | "salonTimeOff" | "salonAppointment" | "salonQueueEntry" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "productVariant" | "productStockLevel" | "productStockMovement" | "refundLine" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "yangoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "pushAutomation" | "pushReviewRequest" | "pushCampaign" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "loyaltyMember" | "loyaltyPassDevice" | "referralProgram" | "referralCode" | "referral" | "keetaAuthorization" | "emailContact" | "emailCampaign" | "emailAutomation" | "emailBirthdaySend" | "emailCampaignRecipient" | "buildGuide" | "buildStepTemplate" | "buildGuideTraining" | "assemblyChart" | "menuAutoPublish" | "autoDispatchRule" | "autoDispatchRun"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "promoCodeRedemption" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "salonService" | "salonStaff" | "salonTimeOff" | "salonAppointment" | "salonQueueEntry" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "productVariant" | "productStockLevel" | "productStockMovement" | "refundLine" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "yangoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "pushAutomation" | "pushLocationReview" | "pushReviewRequest" | "pushCampaign" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "loyaltyMember" | "loyaltyPassDevice" | "referralProgram" | "referralCode" | "referral" | "keetaAuthorization" | "emailContact" | "emailCampaign" | "emailAutomation" | "emailBirthdaySend" | "emailCampaignRecipient" | "buildGuide" | "buildStepTemplate" | "buildGuideTraining" | "assemblyChart" | "menuAutoPublish" | "autoDispatchRule" | "autoDispatchRun"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -13658,6 +13674,76 @@ export namespace Prisma {
           count: {
             args: Prisma.PushAutomationCountArgs<ExtArgs>
             result: $Utils.Optional<PushAutomationCountAggregateOutputType> | number
+          }
+        }
+      }
+      PushLocationReview: {
+        payload: Prisma.$PushLocationReviewPayload<ExtArgs>
+        fields: Prisma.PushLocationReviewFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PushLocationReviewFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushLocationReviewPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PushLocationReviewFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushLocationReviewPayload>
+          }
+          findFirst: {
+            args: Prisma.PushLocationReviewFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushLocationReviewPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PushLocationReviewFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushLocationReviewPayload>
+          }
+          findMany: {
+            args: Prisma.PushLocationReviewFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushLocationReviewPayload>[]
+          }
+          create: {
+            args: Prisma.PushLocationReviewCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushLocationReviewPayload>
+          }
+          createMany: {
+            args: Prisma.PushLocationReviewCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.PushLocationReviewCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushLocationReviewPayload>[]
+          }
+          delete: {
+            args: Prisma.PushLocationReviewDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushLocationReviewPayload>
+          }
+          update: {
+            args: Prisma.PushLocationReviewUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushLocationReviewPayload>
+          }
+          deleteMany: {
+            args: Prisma.PushLocationReviewDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PushLocationReviewUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.PushLocationReviewUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PushLocationReviewPayload>
+          }
+          aggregate: {
+            args: Prisma.PushLocationReviewAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePushLocationReview>
+          }
+          groupBy: {
+            args: Prisma.PushLocationReviewGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PushLocationReviewGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PushLocationReviewCountArgs<ExtArgs>
+            result: $Utils.Optional<PushLocationReviewCountAggregateOutputType> | number
           }
         }
       }
@@ -166971,6 +167057,998 @@ export namespace Prisma {
 
 
   /**
+   * Model PushLocationReview
+   */
+
+  export type AggregatePushLocationReview = {
+    _count: PushLocationReviewCountAggregateOutputType | null
+    _avg: PushLocationReviewAvgAggregateOutputType | null
+    _sum: PushLocationReviewSumAggregateOutputType | null
+    _min: PushLocationReviewMinAggregateOutputType | null
+    _max: PushLocationReviewMaxAggregateOutputType | null
+  }
+
+  export type PushLocationReviewAvgAggregateOutputType = {
+    delayMinutes: number | null
+    sendFromHour: number | null
+    sendUntilHour: number | null
+  }
+
+  export type PushLocationReviewSumAggregateOutputType = {
+    delayMinutes: number | null
+    sendFromHour: number | null
+    sendUntilHour: number | null
+  }
+
+  export type PushLocationReviewMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    enabled: boolean | null
+    delayMinutes: number | null
+    title: string | null
+    body: string | null
+    sendFromHour: number | null
+    sendUntilHour: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PushLocationReviewMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    locationId: string | null
+    enabled: boolean | null
+    delayMinutes: number | null
+    title: string | null
+    body: string | null
+    sendFromHour: number | null
+    sendUntilHour: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PushLocationReviewCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    locationId: number
+    enabled: number
+    delayMinutes: number
+    title: number
+    body: number
+    sendFromHour: number
+    sendUntilHour: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type PushLocationReviewAvgAggregateInputType = {
+    delayMinutes?: true
+    sendFromHour?: true
+    sendUntilHour?: true
+  }
+
+  export type PushLocationReviewSumAggregateInputType = {
+    delayMinutes?: true
+    sendFromHour?: true
+    sendUntilHour?: true
+  }
+
+  export type PushLocationReviewMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    enabled?: true
+    delayMinutes?: true
+    title?: true
+    body?: true
+    sendFromHour?: true
+    sendUntilHour?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PushLocationReviewMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    enabled?: true
+    delayMinutes?: true
+    title?: true
+    body?: true
+    sendFromHour?: true
+    sendUntilHour?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PushLocationReviewCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    locationId?: true
+    enabled?: true
+    delayMinutes?: true
+    title?: true
+    body?: true
+    sendFromHour?: true
+    sendUntilHour?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type PushLocationReviewAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PushLocationReview to aggregate.
+     */
+    where?: PushLocationReviewWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PushLocationReviews to fetch.
+     */
+    orderBy?: PushLocationReviewOrderByWithRelationInput | PushLocationReviewOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PushLocationReviewWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PushLocationReviews from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PushLocationReviews.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PushLocationReviews
+    **/
+    _count?: true | PushLocationReviewCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: PushLocationReviewAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: PushLocationReviewSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PushLocationReviewMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PushLocationReviewMaxAggregateInputType
+  }
+
+  export type GetPushLocationReviewAggregateType<T extends PushLocationReviewAggregateArgs> = {
+        [P in keyof T & keyof AggregatePushLocationReview]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePushLocationReview[P]>
+      : GetScalarType<T[P], AggregatePushLocationReview[P]>
+  }
+
+
+
+
+  export type PushLocationReviewGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PushLocationReviewWhereInput
+    orderBy?: PushLocationReviewOrderByWithAggregationInput | PushLocationReviewOrderByWithAggregationInput[]
+    by: PushLocationReviewScalarFieldEnum[] | PushLocationReviewScalarFieldEnum
+    having?: PushLocationReviewScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PushLocationReviewCountAggregateInputType | true
+    _avg?: PushLocationReviewAvgAggregateInputType
+    _sum?: PushLocationReviewSumAggregateInputType
+    _min?: PushLocationReviewMinAggregateInputType
+    _max?: PushLocationReviewMaxAggregateInputType
+  }
+
+  export type PushLocationReviewGroupByOutputType = {
+    id: string
+    tenantId: string
+    locationId: string
+    enabled: boolean
+    delayMinutes: number | null
+    title: string | null
+    body: string | null
+    sendFromHour: number | null
+    sendUntilHour: number | null
+    createdAt: Date
+    updatedAt: Date
+    _count: PushLocationReviewCountAggregateOutputType | null
+    _avg: PushLocationReviewAvgAggregateOutputType | null
+    _sum: PushLocationReviewSumAggregateOutputType | null
+    _min: PushLocationReviewMinAggregateOutputType | null
+    _max: PushLocationReviewMaxAggregateOutputType | null
+  }
+
+  type GetPushLocationReviewGroupByPayload<T extends PushLocationReviewGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PushLocationReviewGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PushLocationReviewGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PushLocationReviewGroupByOutputType[P]>
+            : GetScalarType<T[P], PushLocationReviewGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PushLocationReviewSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    enabled?: boolean
+    delayMinutes?: boolean
+    title?: boolean
+    body?: boolean
+    sendFromHour?: boolean
+    sendUntilHour?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["pushLocationReview"]>
+
+  export type PushLocationReviewSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    enabled?: boolean
+    delayMinutes?: boolean
+    title?: boolean
+    body?: boolean
+    sendFromHour?: boolean
+    sendUntilHour?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["pushLocationReview"]>
+
+  export type PushLocationReviewSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    locationId?: boolean
+    enabled?: boolean
+    delayMinutes?: boolean
+    title?: boolean
+    body?: boolean
+    sendFromHour?: boolean
+    sendUntilHour?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+
+  export type $PushLocationReviewPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PushLocationReview"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      locationId: string
+      enabled: boolean
+      delayMinutes: number | null
+      title: string | null
+      body: string | null
+      sendFromHour: number | null
+      sendUntilHour: number | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["pushLocationReview"]>
+    composites: {}
+  }
+
+  type PushLocationReviewGetPayload<S extends boolean | null | undefined | PushLocationReviewDefaultArgs> = $Result.GetResult<Prisma.$PushLocationReviewPayload, S>
+
+  type PushLocationReviewCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<PushLocationReviewFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: PushLocationReviewCountAggregateInputType | true
+    }
+
+  export interface PushLocationReviewDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PushLocationReview'], meta: { name: 'PushLocationReview' } }
+    /**
+     * Find zero or one PushLocationReview that matches the filter.
+     * @param {PushLocationReviewFindUniqueArgs} args - Arguments to find a PushLocationReview
+     * @example
+     * // Get one PushLocationReview
+     * const pushLocationReview = await prisma.pushLocationReview.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PushLocationReviewFindUniqueArgs>(args: SelectSubset<T, PushLocationReviewFindUniqueArgs<ExtArgs>>): Prisma__PushLocationReviewClient<$Result.GetResult<Prisma.$PushLocationReviewPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one PushLocationReview that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {PushLocationReviewFindUniqueOrThrowArgs} args - Arguments to find a PushLocationReview
+     * @example
+     * // Get one PushLocationReview
+     * const pushLocationReview = await prisma.pushLocationReview.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PushLocationReviewFindUniqueOrThrowArgs>(args: SelectSubset<T, PushLocationReviewFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PushLocationReviewClient<$Result.GetResult<Prisma.$PushLocationReviewPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first PushLocationReview that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PushLocationReviewFindFirstArgs} args - Arguments to find a PushLocationReview
+     * @example
+     * // Get one PushLocationReview
+     * const pushLocationReview = await prisma.pushLocationReview.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PushLocationReviewFindFirstArgs>(args?: SelectSubset<T, PushLocationReviewFindFirstArgs<ExtArgs>>): Prisma__PushLocationReviewClient<$Result.GetResult<Prisma.$PushLocationReviewPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first PushLocationReview that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PushLocationReviewFindFirstOrThrowArgs} args - Arguments to find a PushLocationReview
+     * @example
+     * // Get one PushLocationReview
+     * const pushLocationReview = await prisma.pushLocationReview.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PushLocationReviewFindFirstOrThrowArgs>(args?: SelectSubset<T, PushLocationReviewFindFirstOrThrowArgs<ExtArgs>>): Prisma__PushLocationReviewClient<$Result.GetResult<Prisma.$PushLocationReviewPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more PushLocationReviews that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PushLocationReviewFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PushLocationReviews
+     * const pushLocationReviews = await prisma.pushLocationReview.findMany()
+     * 
+     * // Get first 10 PushLocationReviews
+     * const pushLocationReviews = await prisma.pushLocationReview.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const pushLocationReviewWithIdOnly = await prisma.pushLocationReview.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PushLocationReviewFindManyArgs>(args?: SelectSubset<T, PushLocationReviewFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PushLocationReviewPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a PushLocationReview.
+     * @param {PushLocationReviewCreateArgs} args - Arguments to create a PushLocationReview.
+     * @example
+     * // Create one PushLocationReview
+     * const PushLocationReview = await prisma.pushLocationReview.create({
+     *   data: {
+     *     // ... data to create a PushLocationReview
+     *   }
+     * })
+     * 
+     */
+    create<T extends PushLocationReviewCreateArgs>(args: SelectSubset<T, PushLocationReviewCreateArgs<ExtArgs>>): Prisma__PushLocationReviewClient<$Result.GetResult<Prisma.$PushLocationReviewPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many PushLocationReviews.
+     * @param {PushLocationReviewCreateManyArgs} args - Arguments to create many PushLocationReviews.
+     * @example
+     * // Create many PushLocationReviews
+     * const pushLocationReview = await prisma.pushLocationReview.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PushLocationReviewCreateManyArgs>(args?: SelectSubset<T, PushLocationReviewCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many PushLocationReviews and returns the data saved in the database.
+     * @param {PushLocationReviewCreateManyAndReturnArgs} args - Arguments to create many PushLocationReviews.
+     * @example
+     * // Create many PushLocationReviews
+     * const pushLocationReview = await prisma.pushLocationReview.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many PushLocationReviews and only return the `id`
+     * const pushLocationReviewWithIdOnly = await prisma.pushLocationReview.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends PushLocationReviewCreateManyAndReturnArgs>(args?: SelectSubset<T, PushLocationReviewCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PushLocationReviewPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a PushLocationReview.
+     * @param {PushLocationReviewDeleteArgs} args - Arguments to delete one PushLocationReview.
+     * @example
+     * // Delete one PushLocationReview
+     * const PushLocationReview = await prisma.pushLocationReview.delete({
+     *   where: {
+     *     // ... filter to delete one PushLocationReview
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PushLocationReviewDeleteArgs>(args: SelectSubset<T, PushLocationReviewDeleteArgs<ExtArgs>>): Prisma__PushLocationReviewClient<$Result.GetResult<Prisma.$PushLocationReviewPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one PushLocationReview.
+     * @param {PushLocationReviewUpdateArgs} args - Arguments to update one PushLocationReview.
+     * @example
+     * // Update one PushLocationReview
+     * const pushLocationReview = await prisma.pushLocationReview.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PushLocationReviewUpdateArgs>(args: SelectSubset<T, PushLocationReviewUpdateArgs<ExtArgs>>): Prisma__PushLocationReviewClient<$Result.GetResult<Prisma.$PushLocationReviewPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more PushLocationReviews.
+     * @param {PushLocationReviewDeleteManyArgs} args - Arguments to filter PushLocationReviews to delete.
+     * @example
+     * // Delete a few PushLocationReviews
+     * const { count } = await prisma.pushLocationReview.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PushLocationReviewDeleteManyArgs>(args?: SelectSubset<T, PushLocationReviewDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PushLocationReviews.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PushLocationReviewUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PushLocationReviews
+     * const pushLocationReview = await prisma.pushLocationReview.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PushLocationReviewUpdateManyArgs>(args: SelectSubset<T, PushLocationReviewUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one PushLocationReview.
+     * @param {PushLocationReviewUpsertArgs} args - Arguments to update or create a PushLocationReview.
+     * @example
+     * // Update or create a PushLocationReview
+     * const pushLocationReview = await prisma.pushLocationReview.upsert({
+     *   create: {
+     *     // ... data to create a PushLocationReview
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PushLocationReview we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PushLocationReviewUpsertArgs>(args: SelectSubset<T, PushLocationReviewUpsertArgs<ExtArgs>>): Prisma__PushLocationReviewClient<$Result.GetResult<Prisma.$PushLocationReviewPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of PushLocationReviews.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PushLocationReviewCountArgs} args - Arguments to filter PushLocationReviews to count.
+     * @example
+     * // Count the number of PushLocationReviews
+     * const count = await prisma.pushLocationReview.count({
+     *   where: {
+     *     // ... the filter for the PushLocationReviews we want to count
+     *   }
+     * })
+    **/
+    count<T extends PushLocationReviewCountArgs>(
+      args?: Subset<T, PushLocationReviewCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PushLocationReviewCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PushLocationReview.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PushLocationReviewAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PushLocationReviewAggregateArgs>(args: Subset<T, PushLocationReviewAggregateArgs>): Prisma.PrismaPromise<GetPushLocationReviewAggregateType<T>>
+
+    /**
+     * Group by PushLocationReview.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PushLocationReviewGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PushLocationReviewGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PushLocationReviewGroupByArgs['orderBy'] }
+        : { orderBy?: PushLocationReviewGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PushLocationReviewGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPushLocationReviewGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PushLocationReview model
+   */
+  readonly fields: PushLocationReviewFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PushLocationReview.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PushLocationReviewClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PushLocationReview model
+   */ 
+  interface PushLocationReviewFieldRefs {
+    readonly id: FieldRef<"PushLocationReview", 'String'>
+    readonly tenantId: FieldRef<"PushLocationReview", 'String'>
+    readonly locationId: FieldRef<"PushLocationReview", 'String'>
+    readonly enabled: FieldRef<"PushLocationReview", 'Boolean'>
+    readonly delayMinutes: FieldRef<"PushLocationReview", 'Int'>
+    readonly title: FieldRef<"PushLocationReview", 'String'>
+    readonly body: FieldRef<"PushLocationReview", 'String'>
+    readonly sendFromHour: FieldRef<"PushLocationReview", 'Int'>
+    readonly sendUntilHour: FieldRef<"PushLocationReview", 'Int'>
+    readonly createdAt: FieldRef<"PushLocationReview", 'DateTime'>
+    readonly updatedAt: FieldRef<"PushLocationReview", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PushLocationReview findUnique
+   */
+  export type PushLocationReviewFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushLocationReview
+     */
+    select?: PushLocationReviewSelect<ExtArgs> | null
+    /**
+     * Filter, which PushLocationReview to fetch.
+     */
+    where: PushLocationReviewWhereUniqueInput
+  }
+
+  /**
+   * PushLocationReview findUniqueOrThrow
+   */
+  export type PushLocationReviewFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushLocationReview
+     */
+    select?: PushLocationReviewSelect<ExtArgs> | null
+    /**
+     * Filter, which PushLocationReview to fetch.
+     */
+    where: PushLocationReviewWhereUniqueInput
+  }
+
+  /**
+   * PushLocationReview findFirst
+   */
+  export type PushLocationReviewFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushLocationReview
+     */
+    select?: PushLocationReviewSelect<ExtArgs> | null
+    /**
+     * Filter, which PushLocationReview to fetch.
+     */
+    where?: PushLocationReviewWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PushLocationReviews to fetch.
+     */
+    orderBy?: PushLocationReviewOrderByWithRelationInput | PushLocationReviewOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PushLocationReviews.
+     */
+    cursor?: PushLocationReviewWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PushLocationReviews from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PushLocationReviews.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PushLocationReviews.
+     */
+    distinct?: PushLocationReviewScalarFieldEnum | PushLocationReviewScalarFieldEnum[]
+  }
+
+  /**
+   * PushLocationReview findFirstOrThrow
+   */
+  export type PushLocationReviewFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushLocationReview
+     */
+    select?: PushLocationReviewSelect<ExtArgs> | null
+    /**
+     * Filter, which PushLocationReview to fetch.
+     */
+    where?: PushLocationReviewWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PushLocationReviews to fetch.
+     */
+    orderBy?: PushLocationReviewOrderByWithRelationInput | PushLocationReviewOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PushLocationReviews.
+     */
+    cursor?: PushLocationReviewWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PushLocationReviews from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PushLocationReviews.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PushLocationReviews.
+     */
+    distinct?: PushLocationReviewScalarFieldEnum | PushLocationReviewScalarFieldEnum[]
+  }
+
+  /**
+   * PushLocationReview findMany
+   */
+  export type PushLocationReviewFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushLocationReview
+     */
+    select?: PushLocationReviewSelect<ExtArgs> | null
+    /**
+     * Filter, which PushLocationReviews to fetch.
+     */
+    where?: PushLocationReviewWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PushLocationReviews to fetch.
+     */
+    orderBy?: PushLocationReviewOrderByWithRelationInput | PushLocationReviewOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PushLocationReviews.
+     */
+    cursor?: PushLocationReviewWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PushLocationReviews from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PushLocationReviews.
+     */
+    skip?: number
+    distinct?: PushLocationReviewScalarFieldEnum | PushLocationReviewScalarFieldEnum[]
+  }
+
+  /**
+   * PushLocationReview create
+   */
+  export type PushLocationReviewCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushLocationReview
+     */
+    select?: PushLocationReviewSelect<ExtArgs> | null
+    /**
+     * The data needed to create a PushLocationReview.
+     */
+    data: XOR<PushLocationReviewCreateInput, PushLocationReviewUncheckedCreateInput>
+  }
+
+  /**
+   * PushLocationReview createMany
+   */
+  export type PushLocationReviewCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PushLocationReviews.
+     */
+    data: PushLocationReviewCreateManyInput | PushLocationReviewCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PushLocationReview createManyAndReturn
+   */
+  export type PushLocationReviewCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushLocationReview
+     */
+    select?: PushLocationReviewSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many PushLocationReviews.
+     */
+    data: PushLocationReviewCreateManyInput | PushLocationReviewCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PushLocationReview update
+   */
+  export type PushLocationReviewUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushLocationReview
+     */
+    select?: PushLocationReviewSelect<ExtArgs> | null
+    /**
+     * The data needed to update a PushLocationReview.
+     */
+    data: XOR<PushLocationReviewUpdateInput, PushLocationReviewUncheckedUpdateInput>
+    /**
+     * Choose, which PushLocationReview to update.
+     */
+    where: PushLocationReviewWhereUniqueInput
+  }
+
+  /**
+   * PushLocationReview updateMany
+   */
+  export type PushLocationReviewUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PushLocationReviews.
+     */
+    data: XOR<PushLocationReviewUpdateManyMutationInput, PushLocationReviewUncheckedUpdateManyInput>
+    /**
+     * Filter which PushLocationReviews to update
+     */
+    where?: PushLocationReviewWhereInput
+  }
+
+  /**
+   * PushLocationReview upsert
+   */
+  export type PushLocationReviewUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushLocationReview
+     */
+    select?: PushLocationReviewSelect<ExtArgs> | null
+    /**
+     * The filter to search for the PushLocationReview to update in case it exists.
+     */
+    where: PushLocationReviewWhereUniqueInput
+    /**
+     * In case the PushLocationReview found by the `where` argument doesn't exist, create a new PushLocationReview with this data.
+     */
+    create: XOR<PushLocationReviewCreateInput, PushLocationReviewUncheckedCreateInput>
+    /**
+     * In case the PushLocationReview was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PushLocationReviewUpdateInput, PushLocationReviewUncheckedUpdateInput>
+  }
+
+  /**
+   * PushLocationReview delete
+   */
+  export type PushLocationReviewDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushLocationReview
+     */
+    select?: PushLocationReviewSelect<ExtArgs> | null
+    /**
+     * Filter which PushLocationReview to delete.
+     */
+    where: PushLocationReviewWhereUniqueInput
+  }
+
+  /**
+   * PushLocationReview deleteMany
+   */
+  export type PushLocationReviewDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PushLocationReviews to delete
+     */
+    where?: PushLocationReviewWhereInput
+  }
+
+  /**
+   * PushLocationReview without action
+   */
+  export type PushLocationReviewDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PushLocationReview
+     */
+    select?: PushLocationReviewSelect<ExtArgs> | null
+  }
+
+
+  /**
    * Model PushReviewRequest
    */
 
@@ -197801,6 +198879,23 @@ export namespace Prisma {
   export type PushAutomationScalarFieldEnum = (typeof PushAutomationScalarFieldEnum)[keyof typeof PushAutomationScalarFieldEnum]
 
 
+  export const PushLocationReviewScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    enabled: 'enabled',
+    delayMinutes: 'delayMinutes',
+    title: 'title',
+    body: 'body',
+    sendFromHour: 'sendFromHour',
+    sendUntilHour: 'sendUntilHour',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type PushLocationReviewScalarFieldEnum = (typeof PushLocationReviewScalarFieldEnum)[keyof typeof PushLocationReviewScalarFieldEnum]
+
+
   export const PushReviewRequestScalarFieldEnum: {
     id: 'id',
     tenantId: 'tenantId',
@@ -200262,6 +201357,17 @@ export namespace Prisma {
   };
 
   export type PushAutomationOrderByRelevanceFieldEnum = (typeof PushAutomationOrderByRelevanceFieldEnum)[keyof typeof PushAutomationOrderByRelevanceFieldEnum]
+
+
+  export const PushLocationReviewOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    locationId: 'locationId',
+    title: 'title',
+    body: 'body'
+  };
+
+  export type PushLocationReviewOrderByRelevanceFieldEnum = (typeof PushLocationReviewOrderByRelevanceFieldEnum)[keyof typeof PushLocationReviewOrderByRelevanceFieldEnum]
 
 
   export const PushReviewRequestOrderByRelevanceFieldEnum: {
@@ -216181,6 +217287,91 @@ export namespace Prisma {
     delayMinutes?: IntNullableWithAggregatesFilter<"PushAutomation"> | number | null
     createdAt?: DateTimeWithAggregatesFilter<"PushAutomation"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"PushAutomation"> | Date | string
+  }
+
+  export type PushLocationReviewWhereInput = {
+    AND?: PushLocationReviewWhereInput | PushLocationReviewWhereInput[]
+    OR?: PushLocationReviewWhereInput[]
+    NOT?: PushLocationReviewWhereInput | PushLocationReviewWhereInput[]
+    id?: StringFilter<"PushLocationReview"> | string
+    tenantId?: StringFilter<"PushLocationReview"> | string
+    locationId?: StringFilter<"PushLocationReview"> | string
+    enabled?: BoolFilter<"PushLocationReview"> | boolean
+    delayMinutes?: IntNullableFilter<"PushLocationReview"> | number | null
+    title?: StringNullableFilter<"PushLocationReview"> | string | null
+    body?: StringNullableFilter<"PushLocationReview"> | string | null
+    sendFromHour?: IntNullableFilter<"PushLocationReview"> | number | null
+    sendUntilHour?: IntNullableFilter<"PushLocationReview"> | number | null
+    createdAt?: DateTimeFilter<"PushLocationReview"> | Date | string
+    updatedAt?: DateTimeFilter<"PushLocationReview"> | Date | string
+  }
+
+  export type PushLocationReviewOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    enabled?: SortOrder
+    delayMinutes?: SortOrderInput | SortOrder
+    title?: SortOrderInput | SortOrder
+    body?: SortOrderInput | SortOrder
+    sendFromHour?: SortOrderInput | SortOrder
+    sendUntilHour?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _relevance?: PushLocationReviewOrderByRelevanceInput
+  }
+
+  export type PushLocationReviewWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    locationId?: string
+    AND?: PushLocationReviewWhereInput | PushLocationReviewWhereInput[]
+    OR?: PushLocationReviewWhereInput[]
+    NOT?: PushLocationReviewWhereInput | PushLocationReviewWhereInput[]
+    tenantId?: StringFilter<"PushLocationReview"> | string
+    enabled?: BoolFilter<"PushLocationReview"> | boolean
+    delayMinutes?: IntNullableFilter<"PushLocationReview"> | number | null
+    title?: StringNullableFilter<"PushLocationReview"> | string | null
+    body?: StringNullableFilter<"PushLocationReview"> | string | null
+    sendFromHour?: IntNullableFilter<"PushLocationReview"> | number | null
+    sendUntilHour?: IntNullableFilter<"PushLocationReview"> | number | null
+    createdAt?: DateTimeFilter<"PushLocationReview"> | Date | string
+    updatedAt?: DateTimeFilter<"PushLocationReview"> | Date | string
+  }, "id" | "locationId">
+
+  export type PushLocationReviewOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    enabled?: SortOrder
+    delayMinutes?: SortOrderInput | SortOrder
+    title?: SortOrderInput | SortOrder
+    body?: SortOrderInput | SortOrder
+    sendFromHour?: SortOrderInput | SortOrder
+    sendUntilHour?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: PushLocationReviewCountOrderByAggregateInput
+    _avg?: PushLocationReviewAvgOrderByAggregateInput
+    _max?: PushLocationReviewMaxOrderByAggregateInput
+    _min?: PushLocationReviewMinOrderByAggregateInput
+    _sum?: PushLocationReviewSumOrderByAggregateInput
+  }
+
+  export type PushLocationReviewScalarWhereWithAggregatesInput = {
+    AND?: PushLocationReviewScalarWhereWithAggregatesInput | PushLocationReviewScalarWhereWithAggregatesInput[]
+    OR?: PushLocationReviewScalarWhereWithAggregatesInput[]
+    NOT?: PushLocationReviewScalarWhereWithAggregatesInput | PushLocationReviewScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"PushLocationReview"> | string
+    tenantId?: StringWithAggregatesFilter<"PushLocationReview"> | string
+    locationId?: StringWithAggregatesFilter<"PushLocationReview"> | string
+    enabled?: BoolWithAggregatesFilter<"PushLocationReview"> | boolean
+    delayMinutes?: IntNullableWithAggregatesFilter<"PushLocationReview"> | number | null
+    title?: StringNullableWithAggregatesFilter<"PushLocationReview"> | string | null
+    body?: StringNullableWithAggregatesFilter<"PushLocationReview"> | string | null
+    sendFromHour?: IntNullableWithAggregatesFilter<"PushLocationReview"> | number | null
+    sendUntilHour?: IntNullableWithAggregatesFilter<"PushLocationReview"> | number | null
+    createdAt?: DateTimeWithAggregatesFilter<"PushLocationReview"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"PushLocationReview"> | Date | string
   }
 
   export type PushReviewRequestWhereInput = {
@@ -236015,6 +237206,104 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type PushLocationReviewCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    enabled?: boolean
+    delayMinutes?: number | null
+    title?: string | null
+    body?: string | null
+    sendFromHour?: number | null
+    sendUntilHour?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PushLocationReviewUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    enabled?: boolean
+    delayMinutes?: number | null
+    title?: string | null
+    body?: string | null
+    sendFromHour?: number | null
+    sendUntilHour?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PushLocationReviewUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    delayMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    body?: NullableStringFieldUpdateOperationsInput | string | null
+    sendFromHour?: NullableIntFieldUpdateOperationsInput | number | null
+    sendUntilHour?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PushLocationReviewUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    delayMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    body?: NullableStringFieldUpdateOperationsInput | string | null
+    sendFromHour?: NullableIntFieldUpdateOperationsInput | number | null
+    sendUntilHour?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PushLocationReviewCreateManyInput = {
+    id?: string
+    tenantId: string
+    locationId: string
+    enabled?: boolean
+    delayMinutes?: number | null
+    title?: string | null
+    body?: string | null
+    sendFromHour?: number | null
+    sendUntilHour?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PushLocationReviewUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    delayMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    body?: NullableStringFieldUpdateOperationsInput | string | null
+    sendFromHour?: NullableIntFieldUpdateOperationsInput | number | null
+    sendUntilHour?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PushLocationReviewUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    delayMinutes?: NullableIntFieldUpdateOperationsInput | number | null
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    body?: NullableStringFieldUpdateOperationsInput | string | null
+    sendFromHour?: NullableIntFieldUpdateOperationsInput | number | null
+    sendUntilHour?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type PushReviewRequestCreateInput = {
     id?: string
     tenantId: string
@@ -250730,6 +252019,66 @@ export namespace Prisma {
 
   export type PushAutomationSumOrderByAggregateInput = {
     delayMinutes?: SortOrder
+  }
+
+  export type PushLocationReviewOrderByRelevanceInput = {
+    fields: PushLocationReviewOrderByRelevanceFieldEnum | PushLocationReviewOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type PushLocationReviewCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    enabled?: SortOrder
+    delayMinutes?: SortOrder
+    title?: SortOrder
+    body?: SortOrder
+    sendFromHour?: SortOrder
+    sendUntilHour?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PushLocationReviewAvgOrderByAggregateInput = {
+    delayMinutes?: SortOrder
+    sendFromHour?: SortOrder
+    sendUntilHour?: SortOrder
+  }
+
+  export type PushLocationReviewMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    enabled?: SortOrder
+    delayMinutes?: SortOrder
+    title?: SortOrder
+    body?: SortOrder
+    sendFromHour?: SortOrder
+    sendUntilHour?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PushLocationReviewMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    locationId?: SortOrder
+    enabled?: SortOrder
+    delayMinutes?: SortOrder
+    title?: SortOrder
+    body?: SortOrder
+    sendFromHour?: SortOrder
+    sendUntilHour?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PushLocationReviewSumOrderByAggregateInput = {
+    delayMinutes?: SortOrder
+    sendFromHour?: SortOrder
+    sendUntilHour?: SortOrder
   }
 
   export type PushReviewRequestOrderByRelevanceInput = {
@@ -328753,6 +330102,10 @@ export namespace Prisma {
      * @deprecated Use PushAutomationDefaultArgs instead
      */
     export type PushAutomationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PushAutomationDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use PushLocationReviewDefaultArgs instead
+     */
+    export type PushLocationReviewArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PushLocationReviewDefaultArgs<ExtArgs>
     /**
      * @deprecated Use PushReviewRequestDefaultArgs instead
      */

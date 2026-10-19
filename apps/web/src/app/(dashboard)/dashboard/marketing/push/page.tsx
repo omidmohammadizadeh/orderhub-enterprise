@@ -17,6 +17,7 @@ import {
   Check,
   Globe,
   Loader2,
+  MapPin,
   Pencil,
   Plus,
   Send,
@@ -31,6 +32,8 @@ import {
   PUSH_BODY_MAX,
   PUSH_TITLE_MAX,
   pushNotificationsClient,
+  type LocationReview,
+  type LocationReviewSetting,
   type PushAutomation,
   type PushCampaign,
   type PushCampaignStatus,
@@ -610,7 +613,236 @@ function AutomationsTab() {
       <ul className="mt-4 space-y-3">
         {data?.map((a) => <AutomationRow key={a.trigger} automation={a} />)}
       </ul>
+      <LocationReviews business={data?.find((a) => a.trigger === "REVIEW_REQUEST") ?? null} />
     </div>
+  );
+}
+
+// ── Review ask, per shop ────────────────────────────────────────────────────
+
+const HOURS = Array.from({ length: 24 }, (_, h) => h);
+const hourLabel = (h: number) => `${String(h).padStart(2, "0")}:00`;
+
+function delayLabel(minutes: number): string {
+  return REVIEW_DELAYS.find((d) => d.value === minutes)?.label ?? `${minutes} minutes`;
+}
+
+/** "45 minutes after · 11:00–21:00" — what a shop's setting does, in one line. */
+function describeReview(own: LocationReviewSetting | null, business: PushAutomation | null): string {
+  if (!own) {
+    if (!business?.enabled) return "Follows your business setting · off";
+    return `Follows your business setting · ${delayLabel(business.delayMinutes ?? 45)} after`;
+  }
+  if (!own.enabled) return "Off for this shop";
+  const delay = own.delayMinutes ?? business?.delayMinutes ?? 45;
+  const hours =
+    own.sendFromHour != null && own.sendUntilHour != null
+      ? ` · only ${hourLabel(own.sendFromHour)}–${hourLabel(own.sendUntilHour)}`
+      : "";
+  return `${delayLabel(delay)} after${hours}`;
+}
+
+function LocationReviews({ business }: { business: PushAutomation | null }) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["push-location-reviews"],
+    queryFn: pushNotificationsClient.locationReviews,
+  });
+  if (error) return <p className="mt-6 text-sm text-red-600">{apiErrorMessage(error)}</p>;
+  if (isLoading || !data?.length) return null;
+
+  return (
+    <section className="mt-8" aria-labelledby="review-by-shop">
+      <h2 id="review-by-shop" className="flex items-center gap-2 text-base font-semibold text-zinc-900">
+        <Star className="h-4 w-4 text-amber-500" aria-hidden /> Review ask by shop
+      </h2>
+      <p className="mt-1 text-sm text-zinc-500">
+        Give a shop its own timing, sending hours and wording for &ldquo;Leave a review&rdquo;. Asks that fall outside
+        a shop&rsquo;s sending hours wait until they open, in the shop&rsquo;s own time.
+      </p>
+      <ul className="mt-3 space-y-2">
+        {data.map((l) => (
+          <LocationReviewRow key={l.locationId} location={l} business={business} />
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function LocationReviewRow({ location, business }: { location: LocationReview; business: PushAutomation | null }) {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const own = location.own;
+  const [enabled, setEnabled] = useState(own?.enabled ?? true);
+  const [delay, setDelay] = useState(own?.delayMinutes ?? business?.delayMinutes ?? 45);
+  const [limitHours, setLimitHours] = useState(own?.sendFromHour != null);
+  const [from, setFrom] = useState(own?.sendFromHour ?? 11);
+  const [until, setUntil] = useState(own?.sendUntilHour ?? 21);
+  const [title, setTitle] = useState(own?.title ?? "");
+  const [body, setBody] = useState(own?.body ?? "");
+
+  const done = (rows: LocationReview[]) => {
+    qc.setQueryData(["push-location-reviews"], rows);
+    setOpen(false);
+  };
+  const save = useMutation({
+    mutationFn: () =>
+      pushNotificationsClient.saveLocationReview(location.locationId, {
+        enabled,
+        delayMinutes: delay,
+        title: title.trim() || null,
+        body: body.trim() || null,
+        sendFromHour: limitHours ? from : null,
+        sendUntilHour: limitHours ? until : null,
+      }),
+    onSuccess: done,
+  });
+  const reset = useMutation({
+    mutationFn: () => pushNotificationsClient.clearLocationReview(location.locationId),
+    onSuccess: done,
+  });
+  const busy = save.isPending || reset.isPending;
+  const delayOptions = REVIEW_DELAYS.some((d) => d.value === delay)
+    ? REVIEW_DELAYS
+    : [...REVIEW_DELAYS, { value: delay, label: `${delay} minutes` }];
+  const selectCls =
+    "mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200";
+
+  return (
+    <li className="rounded-xl border border-zinc-200 bg-white">
+      <div className="flex items-center gap-3 px-4 py-3">
+        <MapPin className="h-4 w-4 shrink-0 text-zinc-400" aria-hidden />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-semibold text-zinc-900">{location.name}</span>
+            {location.appInstalls > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-700">
+                <Smartphone className="h-3 w-3" aria-hidden />
+                {location.appInstalls} app {location.appInstalls === 1 ? "install" : "installs"}
+              </span>
+            )}
+            {own && (
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800">
+                Own setting
+              </span>
+            )}
+          </div>
+          <p className="truncate text-sm text-zinc-500">{describeReview(own, business)}</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          className="rounded-lg px-2.5 py-1.5 text-sm font-medium text-indigo-700 hover:bg-indigo-50"
+        >
+          {open ? "Close" : "Edit"}
+        </button>
+      </div>
+
+      {open && (
+        <div className="space-y-4 border-t border-zinc-100 px-4 py-4">
+          <label className="flex items-center gap-2 text-sm font-medium text-zinc-800">
+            <input
+              type="checkbox"
+              checked={enabled}
+              onChange={(e) => setEnabled(e.target.checked)}
+              className="h-4 w-4 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500"
+            />
+            Ask this shop&rsquo;s customers for a review
+          </label>
+          <div className={cn("space-y-4", !enabled && "pointer-events-none opacity-50")}>
+            <label className="block">
+              <span className="text-sm font-medium text-zinc-800">Send it</span>
+              <select value={delay} onChange={(e) => setDelay(Number(e.target.value))} className={cn(selectCls, "sm:w-72")}>
+                {delayOptions.map((d) => (
+                  <option key={d.value} value={d.value}>
+                    {d.label} after the order completes
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium text-zinc-800">
+                <input
+                  type="checkbox"
+                  checked={limitHours}
+                  onChange={(e) => setLimitHours(e.target.checked)}
+                  className="h-4 w-4 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500"
+                />
+                Only send between certain hours
+              </label>
+              {limitHours && (
+                <div className="mt-2 flex flex-wrap items-end gap-3">
+                  <label className="block">
+                    <span className="text-xs text-zinc-500">From</span>
+                    <select value={from} onChange={(e) => setFrom(Number(e.target.value))} className={selectCls}>
+                      {HOURS.map((h) => (
+                        <option key={h} value={h}>
+                          {hourLabel(h)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="block">
+                    <span className="text-xs text-zinc-500">Until</span>
+                    <select value={until} onChange={(e) => setUntil(Number(e.target.value))} className={selectCls}>
+                      {HOURS.map((h) => (
+                        <option key={h} value={h}>
+                          {hourLabel(h)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <span className="pb-2 text-xs text-zinc-500">{location.timezone} time</span>
+                </div>
+              )}
+            </div>
+            <Field label="Title" count={title.length} max={PUSH_TITLE_MAX}>
+              <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                maxLength={PUSH_TITLE_MAX}
+                placeholder={business?.title || business?.defaultTitle || ""}
+                className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+              />
+            </Field>
+            <Field label="Message" count={body.length} max={PUSH_BODY_MAX}>
+              <textarea
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+                maxLength={PUSH_BODY_MAX}
+                rows={2}
+                placeholder={business?.body || business?.defaultBody || ""}
+                className="w-full resize-none rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+              />
+            </Field>
+          </div>
+          {(save.error || reset.error) && (
+            <p className="text-sm text-red-600">{apiErrorMessage(save.error ?? reset.error)}</p>
+          )}
+          <div className="flex flex-wrap justify-end gap-2">
+            {own && (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => reset.mutate()}
+                className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
+              >
+                Follow business setting
+              </button>
+            )}
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => save.mutate()}
+              className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+            >
+              {save.isPending && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
+              Save for this shop
+            </button>
+          </div>
+        </div>
+      )}
+    </li>
   );
 }
 

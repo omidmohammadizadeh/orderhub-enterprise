@@ -40,6 +40,39 @@ export class PushAdminController {
     return this.svc.saveAutomation(user.tenantId, trigger, body ?? {});
   }
 
+  @Get("review/locations")
+  @Roles(...MARKETING_ROLES)
+  @ApiOperation({ summary: "Each shop's review-ask settings (own, or following the business)" })
+  locationReviews(@CurrentUser() user: AuthenticatedUser) {
+    return this.svc.listLocationReviews(user.tenantId);
+  }
+
+  @Put("review/locations/:locationId")
+  @Roles(...MARKETING_ROLES)
+  @ApiOperation({ summary: "Give one shop its own review-ask timing, hours and wording" })
+  saveLocationReview(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("locationId") locationId: string,
+    @Body()
+    body: {
+      enabled?: boolean;
+      delayMinutes?: number | null;
+      title?: string | null;
+      body?: string | null;
+      sendFromHour?: number | null;
+      sendUntilHour?: number | null;
+    },
+  ) {
+    return this.svc.saveLocationReview(user.tenantId, locationId, body ?? {});
+  }
+
+  @Delete("review/locations/:locationId")
+  @Roles(...MARKETING_ROLES)
+  @ApiOperation({ summary: "Put a shop back on the business review-ask setting" })
+  clearLocationReview(@CurrentUser() user: AuthenticatedUser, @Param("locationId") locationId: string) {
+    return this.svc.clearLocationReview(user.tenantId, locationId);
+  }
+
   @Get("audience")
   @Roles(...MARKETING_ROLES)
   audience(
