@@ -24,11 +24,9 @@ import {
   XCircle,
   ChevronLeft,
   ShoppingBag,
-  Phone,
   Star,
 } from "lucide-react";
-import { DeliveryTrackingMap } from "@/components/order/delivery-tracking-map";
-import { CustomerDriverChat } from "@/components/order/customer-driver-chat";
+import { LiveDeliveryPanel } from "@/components/order/live-delivery-panel";
 import { OrderNotifications } from "@/components/order/order-notifications";
 import { LeaveReviewModal } from "@/components/storefront/leave-review-modal";
 import { reviewsClient } from "@/lib/api/reviews.client";
@@ -275,38 +273,8 @@ export default function OrderStatusPage() {
             {/* Live delivery tracking — shown front-and-centre the moment the
                 driver starts the job (status → out for delivery). */}
             {!isCancelled && data.driver && (
-              <div className="mt-6 space-y-4">
-                <div className="flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
-                  <div>
-                    <p className="text-xs font-medium text-emerald-700">Your driver</p>
-                    <p className="text-sm font-bold text-zinc-900">{data.driver.name ?? "On the way"}</p>
-                  </div>
-                  {data.driver.phone && (
-                    <a
-                      href={`tel:${data.driver.phone}`}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-600"
-                    >
-                      <Phone className="h-4 w-4" /> Call
-                    </a>
-                  )}
-                </div>
-
-                {(data.driver.lat != null && data.driver.lng != null) || data.destination ? (
-                  <DeliveryTrackingMap
-                    driver={
-                      data.driver.lat != null && data.driver.lng != null
-                        ? { lat: data.driver.lat, lng: data.driver.lng }
-                        : null
-                    }
-                    destination={data.destination ?? null}
-                  />
-                ) : (
-                  <p className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 text-center text-xs text-zinc-500">
-                    Waiting for your driver&apos;s location…
-                  </p>
-                )}
-
-                <CustomerDriverChat orderId={params.orderId} driverName={data.driver.name} />
+              <div className="mt-6">
+                <LiveDeliveryPanel order={data as any} orderId={params.orderId} />
               </div>
             )}
 

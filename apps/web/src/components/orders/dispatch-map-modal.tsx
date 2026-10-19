@@ -198,7 +198,7 @@ export function DispatchMapModal({
           <Legend color="#dc2626" label="≤5 min / late" />
           <Legend color="#2563eb" label="Picked (stop #)" />
           <Legend color="#9ca3af" label="With a driver / done" />
-          <span>🚗 green free · red busy</span>
+          <span>Drivers: green free · dark on a job · purple courier</span>
           {unplaced > 0 && (
             <span className="text-amber-700">
               {unplaced} {unplaced === 1 ? "delivery has" : "deliveries have"} no
