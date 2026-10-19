@@ -157,7 +157,14 @@ import {
   itemAllowsFulfillment,
 } from "@orderhub/shared";
 import { displayPrice } from "@/lib/menu/display-price";
-import { cartIsStale, clearCart, loadCart, saveCart } from "@/lib/cart-storage";
+import {
+  cartIsStale,
+  clearCart,
+  loadCart,
+  loadFulfillment,
+  saveCart,
+  saveFulfillment,
+} from "@/lib/cart-storage";
 import { forgetCheckout, readCheckout, rememberCheckout } from "@/lib/checkout-resume";
 import type { SelectedModifier, ProductSku } from "@orderhub/shared";
 
@@ -547,6 +554,20 @@ function OrderPage() {
   const [fulfillmentType, setFulfillmentType] = useState<"PICKUP" | "DELIVERY">(
     "PICKUP",
   );
+  // Kept with the basket (lib/cart-storage) — a reload used to bring the
+  // basket back but reset this to collection, so a customer who chose
+  // delivery and then signed in paid for a collection order. Same
+  // read-before-write key guard as the basket above.
+  const [fulfillmentHydratedKey, setFulfillmentHydratedKey] = useState<string | null>(null);
+  useEffect(() => {
+    const saved = loadFulfillment(cartKey);
+    if (saved) setFulfillmentType(saved);
+    setFulfillmentHydratedKey(cartKey);
+  }, [cartKey]);
+  useEffect(() => {
+    if (fulfillmentHydratedKey !== cartKey) return;
+    saveFulfillment(cartKey, fulfillmentType);
+  }, [fulfillmentType, cartKey, fulfillmentHydratedKey]);
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [scheduledFor, setScheduledFor] = useState<string | null>(null); // ISO
   const [modalItem, setModalItem] = useState<MenuItem | null>(null);
@@ -1803,6 +1824,21 @@ function OrderPage() {
       setPostcodeLookupLoading(false);
     }
   };
+
+  // Never sit on a mode the shop doesn't offer. A delivery-only shop shows
+  // just the Delivery pill, but the page starts on collection — so nothing
+  // looked selected and an order placed without tapping it went through as
+  // a collection.
+  useEffect(() => {
+    if (groupMode || !cfg) return;
+    const acceptDelivery = cfg.acceptsDelivery ?? true;
+    const acceptCollection = cfg.acceptsCollection ?? true;
+    if (fulfillmentType === "PICKUP" && !acceptCollection && acceptDelivery) {
+      setFulfillmentType("DELIVERY");
+    } else if (fulfillmentType === "DELIVERY" && !acceptDelivery && acceptCollection) {
+      setFulfillmentType("PICKUP");
+    }
+  }, [fulfillmentType, cfg, groupMode]);
 
   // ── Render ───────────────────────────────────────────────────────────────
 

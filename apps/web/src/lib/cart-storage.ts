@@ -158,3 +158,61 @@ export function cartIsStale(
   if (touchedAt === null) return false; // nothing to judge — leave it alone
   return now - touchedAt > CART_TTL_MS;
 }
+
+// Delivery or collection, kept with the basket.
+//
+// It used to live only in page state, defaulting to collection. The basket
+// came back after a reload; the choice didn't. So a customer who picked
+// Delivery, then signed in (the app's Apple/Google sign-in reloads the page),
+// refreshed, or came back from another page, landed on checkout with their
+// basket intact and Collection quietly selected again — and paid for a
+// collection order. Same twelve hours as the basket, so it never outlives the
+// order it was chosen for.
+
+export type StoredFulfillment = "PICKUP" | "DELIVERY";
+
+interface StoredFulfillmentEntry {
+  v: 1;
+  savedAt: number;
+  type: StoredFulfillment;
+}
+
+const fulfillmentKey = (cartKey: string) => `${cartKey}.fulfillment`;
+
+/** The saved choice for this basket, or null when there isn't a live one. */
+export function loadFulfillment(
+  cartKey: string,
+  now: number = Date.now(),
+): StoredFulfillment | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(fulfillmentKey(cartKey));
+    if (!raw) return null;
+    const value = JSON.parse(raw) as Partial<StoredFulfillmentEntry>;
+    if (
+      (value?.type === "PICKUP" || value?.type === "DELIVERY") &&
+      typeof value.savedAt === "number" &&
+      now - value.savedAt <= CART_TTL_MS
+    ) {
+      return value.type;
+    }
+    window.localStorage.removeItem(fulfillmentKey(cartKey));
+  } catch {
+    /* blocked or corrupt — fall back to the page default */
+  }
+  return null;
+}
+
+export function saveFulfillment(
+  cartKey: string,
+  type: StoredFulfillment,
+  now: number = Date.now(),
+): void {
+  if (typeof window === "undefined") return;
+  try {
+    const payload: StoredFulfillmentEntry = { v: 1, savedAt: now, type };
+    window.localStorage.setItem(fulfillmentKey(cartKey), JSON.stringify(payload));
+  } catch {
+    /* quota / private mode — the choice still holds for this visit */
+  }
+}
