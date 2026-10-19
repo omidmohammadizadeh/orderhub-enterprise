@@ -62,6 +62,13 @@ const config: ExpoConfig = {
       backgroundColor: brand.backgroundColor,
     },
     edgeToEdgeEnabled: true,
+    // Live delivery map on Android (Google Maps SDK). The key is extractable
+    // from any APK, so it never sits in git: an EAS environment variable,
+    // restricted to these apps and to Maps SDK for Android. iOS uses Apple
+    // Maps and needs no key. Without one the tracker shows its card view.
+    ...(process.env.GOOGLE_MAPS_API_KEY_ANDROID
+      ? { config: { googleMaps: { apiKey: process.env.GOOGLE_MAPS_API_KEY_ANDROID } } }
+      : {}),
     // Expo's defaults add these; the app needs none of them, and Play flags
     // SYSTEM_ALERT_WINDOW and storage access as sensitive at review time.
     blockedPermissions: [
@@ -120,6 +127,8 @@ const config: ExpoConfig = {
       primaryColor: brand.primaryColor,
       backgroundColor: brand.backgroundColor,
       multiShop: brand.multiShop,
+      // Whether this Android build carries a Maps key (iOS always has a map).
+      androidMap: !!process.env.GOOGLE_MAPS_API_KEY_ANDROID,
       signIn: {
         apple: brand.appleSignIn,
         google: brand.google

@@ -12,7 +12,7 @@
   "adaptiveIcon": "brands/pizzauno/adaptive-icon.png",
   "splash": "brands/pizzauno/splash.png",
   "notificationIcon": "brands/pizzauno/notification-icon.png",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "multiShop": true,
   "ios": {
     "bundleId": "com.orderhubsolutions.pizzauno",

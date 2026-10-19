@@ -5,6 +5,9 @@ import { getOrderStatus, type OrderStatusPayload } from "./api";
 import { isFinished } from "./format";
 
 const POLL_MS = 10_000;
+// The driver is moving and the map is open: refresh about as often as the
+// driver app reports its position.
+const LIVE_POLL_MS = 3_000;
 
 /** Polls the public tracking endpoint while the screen is focused and the
  *  order is still moving. Push does the alerting; this keeps the screen
@@ -14,6 +17,7 @@ export function useOrderStatus(orderId: string, { poll = true } = {}) {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const finished = order ? isFinished(order.status) : false;
+  const live = order?.status === "OUT_FOR_DELIVERY" || order?.status === "RIDER_ARRIVED";
   const alive = useRef(true);
 
   useEffect(() => {
@@ -46,9 +50,9 @@ export function useOrderStatus(orderId: string, { poll = true } = {}) {
       if (!poll || finished) return;
       const timer = setInterval(() => {
         if (AppState.currentState === "active") load();
-      }, POLL_MS);
+      }, live ? LIVE_POLL_MS : POLL_MS);
       return () => clearInterval(timer);
-    }, [load, poll, finished]),
+    }, [load, poll, finished, live]),
   );
 
   return { order, error, refreshing, refresh };

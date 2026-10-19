@@ -12,6 +12,8 @@ export type Brand = {
   /** One app, several shops: the customer picks one (src/shop.ts), which
    *  then rewrites storefrontUrl and locationId above for the session. */
   multiShop?: boolean;
+  /** This Android build has a Google Maps key, so the live map can draw. */
+  androidMap?: boolean;
   /** Native sign-in this build offers (app.config.ts → brands/<slug>.json). */
   signIn?: {
     apple: boolean;

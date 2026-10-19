@@ -12,7 +12,7 @@
   "adaptiveIcon": "brands/bestkebabs/adaptive-icon.png",
   "splash": "brands/bestkebabs/splash.png",
   "notificationIcon": "brands/bestkebabs/notification-icon.png",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "ios": {
     "bundleId": "com.orderhubsolutions.bestkebabs",
     "appleTeamId": null,

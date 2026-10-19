@@ -53,7 +53,11 @@ export type OrderStatusPayload = {
   total: number | string;
   location: { name: string; currency: string | null } | null;
   items: { id: string; name: string; quantity: number; unitPrice: number | string }[];
-  driver: { name: string; phone: string | null } | null;
+  /** Live delivery tracking: the driver's last GPS fix (own-fleet drivers),
+   *  the delivery address and the shop, each null when unknown. */
+  driver: { name: string; phone: string | null; lat: number | null; lng: number | null; lastPingAt: string | null } | null;
+  destination: { lat: number; lng: number } | null;
+  shop?: { lat: number; lng: number } | null;
 };
 
 export async function getOrderStatus(orderId: string): Promise<OrderStatusPayload> {
