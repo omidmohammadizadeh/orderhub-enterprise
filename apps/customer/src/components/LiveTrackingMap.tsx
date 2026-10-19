@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Easing, Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { Animated, Easing, Image, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
 import { type LatLng, bearing, milesBetween } from "../live-tracking";
 import { colors } from "../theme";
@@ -29,6 +29,7 @@ function useGlide(target: LatLng | null): LatLng | null {
   const [shown, setShown] = useState<LatLng | null>(target);
   const from = useRef<LatLng | null>(target);
   const frame = useRef<number | null>(null);
+  const lastSet = useRef(0);
 
   useEffect(() => {
     if (!target) return;
@@ -43,7 +44,13 @@ function useGlide(target: LatLng | null): LatLng | null {
       const e = 1 - Math.pow(1 - k, 3); // ease-out
       const p = { lat: start.lat + (target.lat - start.lat) * e, lng: start.lng + (target.lng - start.lng) * e };
       from.current = p;
-      setShown(p);
+      // Android moves the marker through the native map on every update, so
+      // ~12 updates a second is smooth there without flooding the bridge.
+      const now = Date.now();
+      if (k >= 1 || Platform.OS === "ios" || now - lastSet.current >= 80) {
+        lastSet.current = now;
+        setShown(p);
+      }
       if (k < 1) frame.current = requestAnimationFrame(step);
     };
     if (frame.current) cancelAnimationFrame(frame.current);
@@ -94,6 +101,34 @@ const ANDROID_STYLE = [
   { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#e5e7eb" }] },
   { featureType: "water", elementType: "geometry", stylers: [{ color: "#dbeafe" }] },
 ];
+
+/**
+ * Android draws custom marker views from a snapshot, and on React Native's
+ * new architecture that snapshot came out blank or clipped (#NU9QY), while
+ * keeping it live froze the app. So Android uses image markers (pre-drawn in
+ * assets/map, rotated natively by the map) and iOS keeps native views.
+ */
+const ANDROID = Platform.OS === "android";
+// react-native-maps 1.20 on the new architecture reads Marker.image as a
+// string (a URI or an Android drawable name). Handing it require()'s numeric
+// id threw a ClassCastException while mounting and blanked the screen, and
+// in a release build the asset resolver hands back an empty uri (expo-updates
+// owns asset resolution), so the marker fell back to a stock red pin. The
+// release bundler also files each image as a drawable named after its path —
+// assets/map/driver-arrived.png → assets_map_driverarrived — which the native
+// marker loads directly.
+/* eslint-disable @typescript-eslint/no-require-imports */
+const asset = (mod: number, drawable: string) => {
+  const uri = Image.resolveAssetSource(mod)?.uri;
+  return { uri: uri || drawable } as never;
+};
+const IMG = {
+  driver: asset(require("../../assets/map/driver.png"), "assets_map_driver"),
+  arrived: asset(require("../../assets/map/driver-arrived.png"), "assets_map_driverarrived"),
+  home: asset(require("../../assets/map/home.png"), "assets_map_home"),
+  shop: asset(require("../../assets/map/shop.png"), "assets_map_shop"),
+};
+/* eslint-enable @typescript-eslint/no-require-imports */
 
 export function LiveTrackingMap({ driver, destination, shop, bottomInset, arrived }: Props) {
   const map = useRef<MapView>(null);
@@ -158,11 +193,15 @@ export function LiveTrackingMap({ driver, destination, shop, bottomInset, arrive
         pitchEnabled={false}
       >
         {shop && !shown ? (
-          <Marker coordinate={toCoord(shop)} anchor={{ x: 0.5, y: 0.5 }} tracksViewChanges={false}>
-            <View style={styles.shopPin}>
-              <Ionicons name="restaurant" size={16} color={colors.primary} />
-            </View>
-          </Marker>
+          ANDROID ? (
+            <Marker coordinate={toCoord(shop)} anchor={{ x: 0.5, y: 0.5 }} image={IMG.shop} tracksViewChanges={false} />
+          ) : (
+            <Marker coordinate={toCoord(shop)} anchor={{ x: 0.5, y: 0.5 }} tracksViewChanges={false}>
+              <View style={styles.shopPin} collapsable={false}>
+                <Ionicons name="restaurant" size={16} color={colors.primary} />
+              </View>
+            </Marker>
+          )
         ) : null}
 
         {shown && destination ? (
@@ -176,37 +215,46 @@ export function LiveTrackingMap({ driver, destination, shop, bottomInset, arrive
         ) : null}
 
         {destination ? (
-          <Marker coordinate={toCoord(destination)} anchor={{ x: 0.5, y: 1 }} tracksViewChanges={false}>
-            <View style={styles.homeWrap}>
-              <View style={styles.homePin}>
-                <Ionicons name="home" size={16} color="#fff" />
+          ANDROID ? (
+            <Marker coordinate={toCoord(destination)} anchor={{ x: 0.5, y: 1 }} image={IMG.home} tracksViewChanges={false} />
+          ) : (
+            <Marker coordinate={toCoord(destination)} anchor={{ x: 0.5, y: 1 }} tracksViewChanges={false}>
+              <View style={styles.homeWrap} collapsable={false}>
+                <View style={styles.homePin}>
+                  <Ionicons name="home" size={16} color="#fff" />
+                </View>
+                <View style={styles.homeTail} />
               </View>
-              <View style={styles.homeTail} />
-            </View>
-          </Marker>
+            </Marker>
+          )
         ) : null}
 
         {shown ? (
-          <Marker
-            coordinate={toCoord(shown)}
-            anchor={{ x: 0.5, y: 0.5 }}
-            // iOS animates the halo natively; Android snapshots marker views,
-            // so it gets a still ring and is redrawn only when it turns.
-            tracksViewChanges={Platform.OS === "ios"}
-            zIndex={10}
-          >
-            <View style={styles.driverWrap}>
-              {Platform.OS === "ios" && !arrived ? <Pulse /> : <View style={styles.ring} />}
-              <View style={[styles.driverDot, arrived && { backgroundColor: colors.success }]}>
-                <Ionicons
-                  name={arrived ? "checkmark" : "navigate"}
-                  size={20}
-                  color="#fff"
-                  style={arrived ? undefined : { transform: [{ rotate: `${heading - 45}deg` }] }}
-                />
+          ANDROID ? (
+            <Marker
+              coordinate={toCoord(shown)}
+              anchor={{ x: 0.5, y: 0.5 }}
+              image={arrived ? IMG.arrived : IMG.driver}
+              rotation={arrived ? 0 : heading}
+              flat
+              tracksViewChanges={false}
+              zIndex={10}
+            />
+          ) : (
+            <Marker coordinate={toCoord(shown)} anchor={{ x: 0.5, y: 0.5 }} tracksViewChanges zIndex={10}>
+              <View style={styles.driverWrap} collapsable={false}>
+                {!arrived ? <Pulse /> : <View style={styles.ring} />}
+                <View style={[styles.driverDot, arrived && { backgroundColor: colors.success }]}>
+                  <Ionicons
+                    name={arrived ? "checkmark" : "navigate"}
+                    size={20}
+                    color="#fff"
+                    style={arrived ? undefined : { transform: [{ rotate: `${heading - 45}deg` }] }}
+                  />
+                </View>
               </View>
-            </View>
-          </Marker>
+            </Marker>
+          )
         ) : null}
       </MapView>
 
@@ -255,9 +303,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
-    elevation: 6,
   },
-  homeWrap: { alignItems: "center" },
+  // Marker views get explicit sizes: Android snapshots them into a bitmap and
+  // clips anything outside the measured box (and any elevation shadow).
+  homeWrap: { width: 40, height: 46, alignItems: "center" },
   homePin: {
     width: 36,
     height: 36,
@@ -267,7 +316,6 @@ const styles = StyleSheet.create({
     borderColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
-    elevation: 5,
   },
   homeTail: {
     width: 0,
@@ -289,7 +337,6 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
-    elevation: 4,
   },
   recentre: {
     position: "absolute",

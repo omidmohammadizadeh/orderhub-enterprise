@@ -234,7 +234,13 @@ function LiveDelivery({ order, slug, orderId, refreshing, refresh }: LiveProps) 
         <View style={styles.liveRow}>
           <View style={[styles.liveDot, (stale || !driverPos) && { backgroundColor: colors.muted }]} />
           <Text style={styles.liveText}>
-            {arrived ? "At your door" : driverPos && !stale ? `Live · updated ${ago}` : "On its way"}
+            {arrived
+              ? "At your door"
+              : driverPos && !stale
+                ? `Live · updated ${ago}`
+                : driverPos && ago
+                  ? `Last seen ${ago}`
+                  : "On its way"}
           </Text>
         </View>
 
