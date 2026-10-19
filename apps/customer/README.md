@@ -202,10 +202,11 @@ Create credentials → OAuth client ID:
 3. OAuth consent screen: published (not *Testing*), or only listed test users can sign in.
 
 **Done so far (19 Oct 2026, project order-hub-solutions):** iOS clients for kingstonpizza, pizzaunopelton and
-bestkebabs (ids in their brand files). Android clients: kingstonpizza and pizzaunopelton with their EAS upload-key
-SHA-1s, and all three with the local `android/app/debug.keystore` SHA-1 (`5E:8F:16:06:…`) for emulator builds.
-Still to add: the **Play app-signing** SHA-1 of each app once it exists in Play Console, and bestkebabs' EAS upload
-key after its first EAS Android build.
+bestkebabs (ids in their brand files). Android clients for kingstonpizza and pizzaunopelton with the EAS upload key
+and both Play app-signing keys (the org Play account, developer 7811250872041921096, shows a current and a previous
+signing key since the 17 Oct key upgrade), and for all three with the local `android/app/debug.keystore` SHA-1
+(`5E:8F:16:06:…`) for emulator builds. Still to add for bestkebabs: its EAS upload key and Play signing key once it
+has an Android build and a Play app.
 
 ### Per brand: Apple
 
