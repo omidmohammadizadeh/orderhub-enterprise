@@ -40,6 +40,7 @@ import { resolveNestedModifierGroups } from "../menus/nested-modifier-groups";
 import { PauseService } from "../pauses/pause.service";
 import { MarketingService } from "../marketing/marketing.service";
 import { DeliveryZonesService } from "../delivery-zones/delivery-zones.service";
+import { GeocodingService } from "../dispatch/geocoding.service";
 import { EmailMarketingService } from "../email-marketing/email-marketing.service";
 import { isShop, soldOutItemIds } from "../retail/retail-availability";
 import { parseSubstitutionPref, priceShortfall, toMinor } from "../retail/retail.logic";
@@ -353,6 +354,8 @@ export class OrderingService {
     // Email marketing: checkout consent + "this order came from an email".
     // Optional so the existing positional test constructors keep working.
     @Optional() private readonly emailMarketing?: EmailMarketingService,
+    // Places a delivery address on the app's live map (placeDeliveryAddress).
+    @Optional() private readonly geocoder?: GeocodingService,
   ) {}
 
   /**
@@ -2434,12 +2437,20 @@ export class OrderingService {
         total: true,
         // currency: Retail R3 — the picking summary shows a refund amount.
         // latitude/longitude: the app's live map shows where the food came from.
-        location: { select: { name: true, currency: true, businessType: true, latitude: true, longitude: true } },
+        location: {
+          select: { name: true, currency: true, businessType: true, latitude: true, longitude: true, country: true },
+        },
         // Phase AX-4 — live delivery tracking: destination + the assigned
         // driver's name/phone and last known GPS so the customer can watch
         // the driver approach, call them, or chat.
         deliveryLat: true,
         deliveryLng: true,
+        // To place a delivery address on the map the first time it's tracked.
+        geocodedAt: true,
+        addressLine1: true,
+        city: true,
+        postcode: true,
+        deliveryAddress: true,
         driverAssignment: {
           select: {
             status: true,
@@ -2489,7 +2500,22 @@ export class OrderingService {
               : null,
           }
         : null;
-    const { driverAssignment: _ignored, items: rawItems, subtotal: _s, discount: _d, ...rest } = order;
+    const {
+      driverAssignment: _ignored,
+      items: rawItems,
+      subtotal: _s,
+      discount: _d,
+      geocodedAt: _g,
+      addressLine1: _a1,
+      city: _c,
+      postcode: _p,
+      deliveryAddress: _da,
+      ...rest
+    } = order;
+    const destinationPoint =
+      order.deliveryLat != null && order.deliveryLng != null
+        ? { lat: order.deliveryLat, lng: order.deliveryLng }
+        : await this.placeDeliveryAddress(order as any);
     // Retail R3 — once a shop has picked the order, tell the customer what
     // was unavailable or swapped and what went back to them. metadata stays
     // server-side; only this summary leaves.
@@ -2526,10 +2552,7 @@ export class OrderingService {
       ...rest,
       items: rawItems.map(({ metadata: _m, totalPrice: _t, ...it }: any) => it),
       picking,
-      destination:
-        order.deliveryLat != null && order.deliveryLng != null
-          ? { lat: order.deliveryLat, lng: order.deliveryLng }
-          : null,
+      destination: destinationPoint,
       // Where the food left from, when the shop has been placed on a map
       // (DeliveryZonesService fills Location.latitude lazily).
       shop:
@@ -2538,6 +2561,54 @@ export class OrderingService {
           : null,
       driver,
     };
+  }
+
+  /**
+   * Put a delivery address on the map for the live tracker, once. Orders from
+   * the storefront are only geocoded when someone opens the dispatch map, so
+   * an order dispatched from the board reached the customer's app with no
+   * destination: no home pin, no arrival time. Only while the delivery is
+   * live, only when no attempt has been made (geocodedAt), and the result —
+   * or the failed attempt — is saved so a 3-second poll never re-geocodes.
+   */
+  private async placeDeliveryAddress(order: {
+    id: string;
+    status: string;
+    fulfillmentType: string;
+    geocodedAt: Date | null;
+    addressLine1: string | null;
+    city: string | null;
+    postcode: string | null;
+    deliveryAddress: unknown;
+    location?: { country?: string | null } | null;
+  }): Promise<{ lat: number; lng: number } | null> {
+    const live = ["READY", "PENDING_DISPATCH", "ASSIGNED_DRIVER", "ACCEPTED_BY_DRIVER", "OUT_FOR_DELIVERY", "RIDER_ARRIVED"];
+    if (order.geocodedAt || !live.includes(order.status) || order.fulfillmentType === "PICKUP" || order.fulfillmentType === "DINE_IN") {
+      return null;
+    }
+    const a = (order.deliveryAddress && typeof order.deliveryAddress === "object" ? order.deliveryAddress : {}) as Record<
+      string,
+      unknown
+    >;
+    const str = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
+    const parts = [
+      str(order.addressLine1) ?? str(a.line1) ?? str(a.street),
+      str(a.line2),
+      str(order.city) ?? str(a.city),
+      str(order.postcode) ?? str(a.postcode),
+    ].filter(Boolean);
+    if (!parts.length) return null;
+    if (!this.geocoder) return null;
+    const point = await this.geocoder.geocode(parts.join(", "), order.location?.country ?? "GB").catch(() => null);
+    await this.prisma.order
+      .update({
+        where: { id: order.id },
+        data: point
+          ? { deliveryLat: point.lat, deliveryLng: point.lng, geocodedAt: new Date() }
+          : { geocodedAt: new Date() },
+      })
+      .catch(() => undefined);
+    return point;
   }
 
   /**
