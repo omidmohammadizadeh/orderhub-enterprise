@@ -1582,6 +1582,74 @@ export class OrderingService {
     return { brandId: brandRow.id, hours: brandRow.openingHours ?? null };
   }
 
+  /**
+   * Every shop a brand trades at, for a restaurant app that serves several
+   * (the customer picks the nearest). Same membership rule as ?brand=:
+   * the brand IS the location's brand, names it as primary, or lists it — so
+   * the tenant-wide placeholder brand, linked to nothing, lists nothing.
+   * Coordinates come from DeliveryZonesService.locateShop, geocoded once and
+   * cached on the Location; a shop that can't be placed still lists, without
+   * a position.
+   */
+  async brandShops(brandId: string) {
+    const brand = await (this.prisma as any).brand.findUnique({
+      where: { id: brandId },
+      select: { id: true, name: true, logoUrl: true, primaryLocationId: true, locations: { select: { id: true } } },
+    });
+    if (!brand) throw new NotFoundException("Brand not found");
+    const linked = new Set<string>(brand.locations.map((l: { id: string }) => l.id));
+    if (brand.primaryLocationId) linked.add(brand.primaryLocationId);
+    const rows = await (this.prisma as any).location.findMany({
+      where: { isActive: true, deletedAt: null, OR: [{ id: { in: [...linked] } }, { brandId }] },
+      select: {
+        id: true,
+        brandId: true,
+        name: true,
+        slug: true,
+        onlineOrderingSlug: true,
+        addressLine1: true,
+        city: true,
+        postcode: true,
+        phone: true,
+        timezone: true,
+        openingHours: true,
+        latitude: true,
+        longitude: true,
+      },
+      orderBy: { name: "asc" },
+    });
+    const shops = await Promise.all(
+      rows
+        .filter((l: any) =>
+          brandOverrideServesLocation({
+            location: l,
+            brand: { id: brand.id, primaryLocationId: brand.primaryLocationId, locationIds: [...linked] },
+          }),
+        )
+        .map(async (l: any) => {
+          let lat: number | null = l.latitude ?? null;
+          let lng: number | null = l.longitude ?? null;
+          if (lat == null || lng == null) {
+            const found = await this.deliveryZones.locateShop(l.id).catch(() => null);
+            lat = found?.lat ?? null;
+            lng = found?.lng ?? null;
+          }
+          return {
+            locationId: l.id,
+            storeSlug: l.onlineOrderingSlug ?? l.slug ?? l.id,
+            name: l.name,
+            address: [l.addressLine1, l.city].filter(Boolean).join(", ").trim() || null,
+            postcode: l.postcode?.trim() || null,
+            phone: l.phone ?? null,
+            lat,
+            lng,
+            isOpen: isOpenAt(l.openingHours as any, l.timezone),
+          };
+        }),
+    );
+    return { brand: { id: brand.id, name: brand.name, logoUrl: brand.logoUrl ?? null }, shops };
+  }
+
   async checkout(slug: string, dto: CheckoutDto, brandIdOverride?: string, appClient?: AppClient | null) {
     const location = await this.prisma.location.findFirst({
       where: { OR: [{ onlineOrderingSlug: slug }, { slug }, { id: slug }] },

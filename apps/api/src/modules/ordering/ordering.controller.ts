@@ -85,6 +85,13 @@ export class OrderingController {
   }
 
   @Public()
+  @Get("brands/:brandId/shops")
+  @ApiOperation({ summary: "The shops a brand trades at, with positions, for a multi-shop restaurant app" })
+  brandShops(@Param("brandId") brandId: string) {
+    return this.ordering.brandShops(brandId);
+  }
+
+  @Public()
   @Post("store/:slug/checkout")
   @Throttle({ short: { limit: 3, ttl: 10000 }, medium: { limit: 20, ttl: 60000 } })
   @ApiOperation({ summary: "Submit an online order" })
