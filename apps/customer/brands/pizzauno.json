@@ -17,7 +17,7 @@
   "ios": {
     "bundleId": "com.orderhubsolutions.pizzauno",
     "appleTeamId": "ANR7VRQRYT",
-    "ascAppId": null
+    "ascAppId": "6824555180"
   },
   "android": {
     "package": "com.orderhubsolutions.pizzauno"
