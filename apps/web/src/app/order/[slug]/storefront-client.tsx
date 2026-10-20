@@ -563,8 +563,18 @@ function OrderPage() {
   // read-before-write key guard as the basket above.
   const [fulfillmentHydratedKey, setFulfillmentHydratedKey] = useState<string | null>(null);
   useEffect(() => {
-    const saved = loadFulfillment(cartKey);
+    // ?mode=delivery|collection (the restaurant apps' Home buttons) beats
+    // the saved choice, then leaves the URL so a reload keeps what the
+    // customer changes it to afterwards.
+    const asked = new URL(window.location.href).searchParams.get("mode");
+    const fromLink = asked === "delivery" ? "DELIVERY" : asked === "collection" ? "PICKUP" : null;
+    const saved = fromLink ?? loadFulfillment(cartKey);
     if (saved) setFulfillmentType(saved);
+    if (fromLink) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("mode");
+      window.history.replaceState(null, "", url.toString());
+    }
     setFulfillmentHydratedKey(cartKey);
   }, [cartKey]);
   useEffect(() => {
