@@ -14,7 +14,7 @@ import { HubRiseOrderSyncService } from "../integrations/hubrise/hubrise-order-s
 import { SocketService } from "../../infrastructure/socket/socket.service";
 import { ChatService } from "../chat/chat.service";
 import { CustomerPushService } from "../customer-push/customer-push.service";
-import { coercePostcodeFees, matchPostcodeFee } from "../dispatch/driver-earnings.service";
+import { coercePostcodeFees, isCashPayment, matchPostcodeFee } from "../dispatch/driver-earnings.service";
 import { TERMINAL_ORDER_STATUSES } from "../dispatch/dispatch-settlement.service";
 import {
   coordsFromDeliveryAddress,
@@ -413,8 +413,7 @@ export class DriverAppService {
     const rules = coercePostcodeFees((driver as any).postcodeFees);
     for (const a of deliveredToday) {
       const total = Number(a.order.total);
-      const method = (a.order.paymentMethod ?? "").toUpperCase();
-      if (method.includes("CASH")) cashTotal += total;
+      if (isCashPayment(a.order.paymentMethod)) cashTotal += total;
       else cardTotal += total;
       deliveryFees += matchPostcodeFee(rules, a.order.postcode);
     }
@@ -469,8 +468,7 @@ export class DriverAppService {
     const workedDays = new Set<string>();
     for (const a of delivered) {
       const t = Number(a.order.total);
-      const method = (a.order.paymentMethod ?? "").toUpperCase();
-      if (method.includes("CASH")) {
+      if (isCashPayment(a.order.paymentMethod)) {
         cashCount += 1;
         cashTotal += t;
       } else {

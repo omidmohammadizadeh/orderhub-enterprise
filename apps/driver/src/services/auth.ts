@@ -10,9 +10,15 @@ import { canRetryRefresh, isSessionDead } from "./session-policy";
 
 const TOKEN_KEY = "orderhub.driver.tokens";
 
+// EXPO_PUBLIC_DRIVER_API_URL points a dev build at an API on this machine
+// (http://localhost:4000/api; 10.0.2.2 from the Android emulator). Honoured in
+// __DEV__ only, so an `eas update` run from a shell that has it set can never
+// ship a store build pointed at a laptop.
+const DEV_API_URL = typeof __DEV__ !== "undefined" && __DEV__ ? process.env.EXPO_PUBLIC_DRIVER_API_URL : undefined;
 const API_URL =
-  (Constants.expoConfig?.extra?.apiUrl as string | undefined) ??
-  "https://orderhub-api-0re6.onrender.com/api";
+  DEV_API_URL ||
+  ((Constants.expoConfig?.extra?.apiUrl as string | undefined) ??
+    "https://orderhub-api-0re6.onrender.com/api");
 
 export const api = axios.create({ baseURL: API_URL, timeout: 15000 });
 

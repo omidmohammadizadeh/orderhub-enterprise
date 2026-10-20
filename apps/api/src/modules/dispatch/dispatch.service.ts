@@ -13,9 +13,10 @@ import {
 } from "@orderhub/database";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
-import { coercePostcodeFees, matchPostcodeFee } from "./driver-earnings.service";
+import { coercePostcodeFees, isCashPayment, matchPostcodeFee } from "./driver-earnings.service";
 import { driverIdsForLocations } from "../../common/access/accessible-locations";
 import { GeocodingService } from "./geocoding.service";
+import { TERMINAL_ORDER_STATUSES } from "./dispatch-settlement.service";
 import { ExpoPushService } from "../driver-app/expo-push.service";
 
 // Order is "assigned" (a driver has it → grey + locked on the map) once it's
@@ -1001,16 +1002,34 @@ export class DispatchService {
   async unassign(user: AuthenticatedUser, orderId: string) {
     const a = await this.prisma.driverAssignment.findUnique({
       where: { orderId },
-      select: { id: true, driverId: true },
+      select: { id: true, driverId: true, status: true },
     });
     if (!a) return { ok: true };
 
-    // Tenant guard via the order.
+    // Tenant AND location guard via the order — assign refuses an order
+    // outside the caller's shops, so pulling one back must too.
     const order = await this.prisma.order.findFirst({
       where: { id: orderId, tenantId: user.tenantId },
-      select: { id: true },
+      select: { id: true, status: true, locationId: true, displayId: true, orderNumber: true },
     });
     if (!order) throw new ForbiddenException("No access to that order");
+    const accessible = await this.resolveAccessibleLocationIds(user);
+    const ref = order.displayId ?? (order.orderNumber != null ? `#${order.orderNumber}` : order.id);
+    if (!order.locationId || !accessible.includes(order.locationId)) {
+      throw new ForbiddenException(`${ref} isn't in one of your locations.`);
+    }
+
+    // Only a live stop can go back to the board. Without this a stale button
+    // (or a second click) on a delivered or cancelled order wrote READY over
+    // its final status and put a finished order back up for dispatch.
+    const live: DriverAssignmentStatus[] = [
+      DriverAssignmentStatus.ASSIGNED,
+      DriverAssignmentStatus.ACCEPTED,
+      DriverAssignmentStatus.PICKED_UP,
+    ];
+    if (!live.includes(a.status) || TERMINAL_ORDER_STATUSES.includes(order.status)) {
+      throw new BadRequestException(`${ref} is already finished — refresh the dashboard.`);
+    }
 
     await this.prisma.driverAssignment.update({
       where: { orderId },
@@ -1262,8 +1281,7 @@ export class DispatchService {
       let deliveryFees = 0;
       for (const a of delivered) {
         const t = Number(a.order.total);
-        const method = (a.order.paymentMethod ?? "").toUpperCase();
-        if (method.includes("CASH") || method === "") cash += t;
+        if (isCashPayment(a.order.paymentMethod)) cash += t;
         else card += t;
         deliveryFees += matchPostcodeFee(fees, a.order.postcode);
       }

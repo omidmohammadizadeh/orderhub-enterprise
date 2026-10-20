@@ -327,3 +327,27 @@ eas secret:list
 5. First build after this: check the map renders on the job card. A blank grey
    map with the Google logo in the corner means the key is wrong or the
    restriction does not match the signing certificate.
+
+## 11. Look and feel (dark redesign, 2026-10-20)
+
+Everything visual comes from `src/theme.ts` (colour tokens `C`, radii `R`,
+the graphite `DARK_MAP_STYLE`, `mapProps`, ETA maths) and `src/components/ui.tsx`
+(`Icon` = Ionicons from `@expo/vector-icons`, `RoundButton`, `Button`,
+`Header`, `Segmented`, `Pulse`, `StatusDot`). No new native module was added
+for it, so the redesign ships as an OTA to 1.0.3 installs. Keep it that way:
+`expo-haptics`, `expo-linear-gradient`, `react-native-svg` etc. would each need
+a binary and a version bump (§6.2).
+
+- Map: Google with `DARK_MAP_STYLE` in every store build. A local dev build
+  has no keys, so iOS falls back to Apple Maps dark and Android shows
+  `MapPlaceholder` (`MAP_AVAILABLE` in theme.ts) — both `__DEV__` only.
+  Apple Maps ignores camera `zoom`; frame with `animateToRegion`.
+- Job card: full-screen map + bottom sheet. `mapPadding` lifts the map's
+  frame above the sheet, so `fitToCoordinates` only needs small padding — use
+  both and the route ends up off-screen.
+- The route line is a straight dashed driver→drop line with the same ETA
+  formula as the customer tracking page (×1.3 at 15 mph + 1 min).
+- `SlideToConfirm` reads its handler through a ref: the three steps render the
+  same component in the same slot, so a captured closure would replay "start".
+- Local testing against a local API: `EXPO_PUBLIC_DRIVER_API_URL=http://localhost:4000/api npx expo start --dev-client`
+  (honoured in `__DEV__` only), plus `adb reverse tcp:4000 tcp:4000` on Android.
