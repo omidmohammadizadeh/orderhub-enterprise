@@ -348,8 +348,9 @@ export async function goOffline() {
 export async function sendPing(p: { lat: number; lng: number; heading?: number; speed?: number }) {
   await api.post("/v1/driver/ping", p);
 }
-export async function registerPushToken(token: string) {
-  await api.post("/v1/driver/push-token", { token });
+/** `format: "data"` = this install presents job alerts itself (job-push-task.ts). */
+export async function registerPushToken(token: string, format?: "data") {
+  await api.post("/v1/driver/push-token", format ? { token, format } : { token });
 }
 export type JobActionType = "accept" | "start" | "arrived" | "delivered" | "skip" | "cancel";
 export async function jobAction(orderId: string, action: JobActionType) {

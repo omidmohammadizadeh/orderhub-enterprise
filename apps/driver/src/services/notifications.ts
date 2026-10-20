@@ -1,6 +1,8 @@
 // Push notifications for the driver app. When dispatch assigns a job, the
-// server sends a push with category "new-job" — which renders **Accept** and
-// **Reject** buttons directly on the notification, even when the app is closed.
+// driver gets an alert with category "new-job" — **Accept** and **Reject**
+// buttons on the notification itself. iOS draws them from the push; Android
+// only draws them on an alert the app presents, which job-push-task.ts does
+// from a data-only push (so they also show when the app is closed).
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -9,11 +11,10 @@ import * as Location from "expo-location";
 import Constants from "expo-constants";
 import { Platform } from "react-native";
 import { registerPushToken, jobAction } from "./auth";
+import { JOB_CATEGORY, JOB_CHANNEL, claimResponse, parseJobResponse } from "./job-push";
+import { registerJobPushTask } from "./job-push-task";
 
-export const JOB_CATEGORY = "new-job";
-// Android caches a channel's sound/importance at creation — changing them
-// requires a NEW channel id. Bump this whenever the channel config changes.
-export const JOB_CHANNEL = "jobs-v2";
+export { JOB_CATEGORY, JOB_CHANNEL };
 // Chat messages (operator + customer) — heads-up with the default tone.
 export const MESSAGES_CHANNEL = "messages";
 // Bundled via app.json → expo-notifications.sounds — the same chime the
@@ -171,8 +172,11 @@ export async function registerForPush(): Promise<string | null> {
       projectId ? { projectId } : undefined,
     );
     const token = tokenResp.data;
+    // Ask for data-only job pushes only once the task that presents them is
+    // registered — otherwise the job alert would arrive with nothing to show it.
+    const presentsJobsItself = await registerJobPushTask();
     try {
-      await registerPushToken(token);
+      await registerPushToken(token, presentsJobsItself ? "data" : undefined);
     } catch {
       // not fatal — driver can still use the app; retried on next launch
     }
@@ -186,25 +190,26 @@ export async function registerForPush(): Promise<string | null> {
  * Wire notification taps to the app. For a new-job alert: ACCEPT (or tapping the
  * body) accepts, REJECT skips. For a chat alert (data.type === "chat"): open the
  * relevant conversation instead. Returns an unsubscribe fn.
+ *
+ * Also picks up the tap that cold-launched the app (ACCEPT on an alert while
+ * the app was closed): that response fired before this listener existed.
  */
 export function attachJobResponseHandler(handlers: {
   onJobAccepted?: (orderId: string) => void;
   onOpenChat?: (info: { channel?: string; orderId?: string }) => void;
 }) {
-  const sub = Notifications.addNotificationResponseReceivedListener(async (resp) => {
-    const data = resp.notification.request.content.data as {
-      type?: string;
-      orderId?: string;
-      channel?: string;
-    };
+  const handle = async (resp: Notifications.NotificationResponse) => {
+    const parsed = parseJobResponse(resp);
+    if (!parsed || !claimResponse(parsed.key)) return;
+    const data = parsed.data as { type?: string; channel?: string };
     // Chat notification — never run a job action; just open the conversation.
-    if (data?.type === "chat") {
-      handlers.onOpenChat?.({ channel: data.channel, orderId: data.orderId });
+    if (data.type === "chat") {
+      handlers.onOpenChat?.({ channel: data.channel, orderId: parsed.orderId ?? undefined });
       return;
     }
-    const orderId = data?.orderId;
+    const orderId = parsed.orderId;
     if (!orderId) return;
-    if (resp.actionIdentifier === "REJECT") {
+    if (parsed.actionIdentifier === "REJECT") {
       try {
         await jobAction(orderId, "skip");
       } catch {
@@ -218,6 +223,21 @@ export function attachJobResponseHandler(handlers: {
       // ignore
     }
     handlers.onJobAccepted?.(orderId);
-  });
+  };
+
+  const sub = Notifications.addNotificationResponseReceivedListener(handle);
+  const launch = Notifications.getLastNotificationResponse();
+  // Only a fresh tap: the last response outlives the alert, and accepting an
+  // hour-old run on the next launch would be a surprise.
+  if (launch && Date.now() - epochMs(launch.notification.date) < LAUNCH_RESPONSE_MAX_AGE_MS) {
+    handle(launch).finally(() => Notifications.clearLastNotificationResponse());
+  }
   return () => sub.remove();
+}
+
+const LAUNCH_RESPONSE_MAX_AGE_MS = 10 * 60_000;
+
+// iOS reports a notification's date in seconds, Android in milliseconds.
+function epochMs(date: number): number {
+  return date < 1e12 ? date * 1000 : date;
 }

@@ -3217,6 +3217,10 @@ model DriverPresence {
   activeAssignmentId String? // set while ON_JOB — drives the "locked" state
   socketId           String?
   pushToken          String? // Expo push token for dispatch notifications
+  // "data" = this install presents job alerts itself from a data-only push, so
+  // Android shows the Accept/Reject buttons even when the app is closed (driver
+  // app 1.0.4+ on Android). Null = send the ordinary alert push.
+  pushJobFormat      String?
   lastPingAt         DateTime?
 
   createdAt DateTime @default(now())

@@ -946,7 +946,7 @@ export class DispatchService {
 
     const presence = await this.prisma.driverPresence.findUnique({
       where: { driverId },
-      select: { pushToken: true },
+      select: { pushToken: true, pushJobFormat: true },
     });
 
     // All or nothing. ids[] is the operator's stop order → sequence 1..N.
@@ -989,7 +989,7 @@ export class DispatchService {
       .catch(() => undefined);
 
     const n = ids.length;
-    await this.expoPush.sendNewJob(presence?.pushToken, {
+    await this.expoPush.sendNewJob(presence, {
       orderId: ids[0] ?? "",
       title: "New delivery run",
       body: `${n} ${n === 1 ? "order" : "orders"} assigned to you — Accept or Reject`,

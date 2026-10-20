@@ -3217,6 +3217,10 @@ model DriverPresence {
   activeAssignmentId String? // set while ON_JOB — drives the "locked" state
   socketId           String?
   pushToken          String? // Expo push token for dispatch notifications
+  // "data" = this install presents job alerts itself from a data-only push, so
+  // Android shows the Accept/Reject buttons even when the app is closed (driver
+  // app 1.0.4+ on Android). Null = send the ordinary alert push.
+  pushJobFormat      String?
   lastPingAt         DateTime?
 
   createdAt DateTime @default(now())
@@ -4190,9 +4194,9 @@ model WebhookRoute {
   @@map("webhook_routes")
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════════════��═
 // PHASE F — MOBILE ARCHITECTURE
-// ════════════════════════════════════════════════════════════════════════���═════
+// ══════════════════════════════════════════════════════════════════════════════
 
 // Mobile/POS app sessions — separate from web DeviceSession
 model MobileSession {
@@ -6143,9 +6147,9 @@ model KeetaAuthorization {
   @@map("keeta_authorizations")
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════���═══════════════════════════════
 // EMAIL MARKETING — restaurants email their own customers (Resend, per email)
-// ══════════════════════════��═══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════════
 //
 // Separate from the SMS audience on purpose: consent is per CHANNEL in UK law
 // (PECR), so a customer who ticked "offers by SMS" has not agreed to email,

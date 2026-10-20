@@ -99851,6 +99851,7 @@ export namespace Prisma {
     activeAssignmentId: string | null
     socketId: string | null
     pushToken: string | null
+    pushJobFormat: string | null
     lastPingAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -99869,6 +99870,7 @@ export namespace Prisma {
     activeAssignmentId: string | null
     socketId: string | null
     pushToken: string | null
+    pushJobFormat: string | null
     lastPingAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -99887,6 +99889,7 @@ export namespace Prisma {
     activeAssignmentId: number
     socketId: number
     pushToken: number
+    pushJobFormat: number
     lastPingAt: number
     createdAt: number
     updatedAt: number
@@ -99921,6 +99924,7 @@ export namespace Prisma {
     activeAssignmentId?: true
     socketId?: true
     pushToken?: true
+    pushJobFormat?: true
     lastPingAt?: true
     createdAt?: true
     updatedAt?: true
@@ -99939,6 +99943,7 @@ export namespace Prisma {
     activeAssignmentId?: true
     socketId?: true
     pushToken?: true
+    pushJobFormat?: true
     lastPingAt?: true
     createdAt?: true
     updatedAt?: true
@@ -99957,6 +99962,7 @@ export namespace Prisma {
     activeAssignmentId?: true
     socketId?: true
     pushToken?: true
+    pushJobFormat?: true
     lastPingAt?: true
     createdAt?: true
     updatedAt?: true
@@ -100062,6 +100068,7 @@ export namespace Prisma {
     activeAssignmentId: string | null
     socketId: string | null
     pushToken: string | null
+    pushJobFormat: string | null
     lastPingAt: Date | null
     createdAt: Date
     updatedAt: Date
@@ -100099,6 +100106,7 @@ export namespace Prisma {
     activeAssignmentId?: boolean
     socketId?: boolean
     pushToken?: boolean
+    pushJobFormat?: boolean
     lastPingAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -100118,6 +100126,7 @@ export namespace Prisma {
     activeAssignmentId?: boolean
     socketId?: boolean
     pushToken?: boolean
+    pushJobFormat?: boolean
     lastPingAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -100137,6 +100146,7 @@ export namespace Prisma {
     activeAssignmentId?: boolean
     socketId?: boolean
     pushToken?: boolean
+    pushJobFormat?: boolean
     lastPingAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -100167,6 +100177,7 @@ export namespace Prisma {
       activeAssignmentId: string | null
       socketId: string | null
       pushToken: string | null
+      pushJobFormat: string | null
       lastPingAt: Date | null
       createdAt: Date
       updatedAt: Date
@@ -100576,6 +100587,7 @@ export namespace Prisma {
     readonly activeAssignmentId: FieldRef<"DriverPresence", 'String'>
     readonly socketId: FieldRef<"DriverPresence", 'String'>
     readonly pushToken: FieldRef<"DriverPresence", 'String'>
+    readonly pushJobFormat: FieldRef<"DriverPresence", 'String'>
     readonly lastPingAt: FieldRef<"DriverPresence", 'DateTime'>
     readonly createdAt: FieldRef<"DriverPresence", 'DateTime'>
     readonly updatedAt: FieldRef<"DriverPresence", 'DateTime'>
@@ -197716,6 +197728,7 @@ export namespace Prisma {
     activeAssignmentId: 'activeAssignmentId',
     socketId: 'socketId',
     pushToken: 'pushToken',
+    pushJobFormat: 'pushJobFormat',
     lastPingAt: 'lastPingAt',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
@@ -200525,7 +200538,8 @@ export namespace Prisma {
     locationId: 'locationId',
     activeAssignmentId: 'activeAssignmentId',
     socketId: 'socketId',
-    pushToken: 'pushToken'
+    pushToken: 'pushToken',
+    pushJobFormat: 'pushJobFormat'
   };
 
   export type DriverPresenceOrderByRelevanceFieldEnum = (typeof DriverPresenceOrderByRelevanceFieldEnum)[keyof typeof DriverPresenceOrderByRelevanceFieldEnum]
@@ -211235,6 +211249,7 @@ export namespace Prisma {
     activeAssignmentId?: StringNullableFilter<"DriverPresence"> | string | null
     socketId?: StringNullableFilter<"DriverPresence"> | string | null
     pushToken?: StringNullableFilter<"DriverPresence"> | string | null
+    pushJobFormat?: StringNullableFilter<"DriverPresence"> | string | null
     lastPingAt?: DateTimeNullableFilter<"DriverPresence"> | Date | string | null
     createdAt?: DateTimeFilter<"DriverPresence"> | Date | string
     updatedAt?: DateTimeFilter<"DriverPresence"> | Date | string
@@ -211254,6 +211269,7 @@ export namespace Prisma {
     activeAssignmentId?: SortOrderInput | SortOrder
     socketId?: SortOrderInput | SortOrder
     pushToken?: SortOrderInput | SortOrder
+    pushJobFormat?: SortOrderInput | SortOrder
     lastPingAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -211277,6 +211293,7 @@ export namespace Prisma {
     activeAssignmentId?: StringNullableFilter<"DriverPresence"> | string | null
     socketId?: StringNullableFilter<"DriverPresence"> | string | null
     pushToken?: StringNullableFilter<"DriverPresence"> | string | null
+    pushJobFormat?: StringNullableFilter<"DriverPresence"> | string | null
     lastPingAt?: DateTimeNullableFilter<"DriverPresence"> | Date | string | null
     createdAt?: DateTimeFilter<"DriverPresence"> | Date | string
     updatedAt?: DateTimeFilter<"DriverPresence"> | Date | string
@@ -211296,6 +211313,7 @@ export namespace Prisma {
     activeAssignmentId?: SortOrderInput | SortOrder
     socketId?: SortOrderInput | SortOrder
     pushToken?: SortOrderInput | SortOrder
+    pushJobFormat?: SortOrderInput | SortOrder
     lastPingAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -211322,6 +211340,7 @@ export namespace Prisma {
     activeAssignmentId?: StringNullableWithAggregatesFilter<"DriverPresence"> | string | null
     socketId?: StringNullableWithAggregatesFilter<"DriverPresence"> | string | null
     pushToken?: StringNullableWithAggregatesFilter<"DriverPresence"> | string | null
+    pushJobFormat?: StringNullableWithAggregatesFilter<"DriverPresence"> | string | null
     lastPingAt?: DateTimeNullableWithAggregatesFilter<"DriverPresence"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"DriverPresence"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"DriverPresence"> | Date | string
@@ -230300,6 +230319,7 @@ export namespace Prisma {
     activeAssignmentId?: string | null
     socketId?: string | null
     pushToken?: string | null
+    pushJobFormat?: string | null
     lastPingAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -230319,6 +230339,7 @@ export namespace Prisma {
     activeAssignmentId?: string | null
     socketId?: string | null
     pushToken?: string | null
+    pushJobFormat?: string | null
     lastPingAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -230336,6 +230357,7 @@ export namespace Prisma {
     activeAssignmentId?: NullableStringFieldUpdateOperationsInput | string | null
     socketId?: NullableStringFieldUpdateOperationsInput | string | null
     pushToken?: NullableStringFieldUpdateOperationsInput | string | null
+    pushJobFormat?: NullableStringFieldUpdateOperationsInput | string | null
     lastPingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -230355,6 +230377,7 @@ export namespace Prisma {
     activeAssignmentId?: NullableStringFieldUpdateOperationsInput | string | null
     socketId?: NullableStringFieldUpdateOperationsInput | string | null
     pushToken?: NullableStringFieldUpdateOperationsInput | string | null
+    pushJobFormat?: NullableStringFieldUpdateOperationsInput | string | null
     lastPingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -230373,6 +230396,7 @@ export namespace Prisma {
     activeAssignmentId?: string | null
     socketId?: string | null
     pushToken?: string | null
+    pushJobFormat?: string | null
     lastPingAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -230390,6 +230414,7 @@ export namespace Prisma {
     activeAssignmentId?: NullableStringFieldUpdateOperationsInput | string | null
     socketId?: NullableStringFieldUpdateOperationsInput | string | null
     pushToken?: NullableStringFieldUpdateOperationsInput | string | null
+    pushJobFormat?: NullableStringFieldUpdateOperationsInput | string | null
     lastPingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -230408,6 +230433,7 @@ export namespace Prisma {
     activeAssignmentId?: NullableStringFieldUpdateOperationsInput | string | null
     socketId?: NullableStringFieldUpdateOperationsInput | string | null
     pushToken?: NullableStringFieldUpdateOperationsInput | string | null
+    pushJobFormat?: NullableStringFieldUpdateOperationsInput | string | null
     lastPingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -247645,6 +247671,7 @@ export namespace Prisma {
     activeAssignmentId?: SortOrder
     socketId?: SortOrder
     pushToken?: SortOrder
+    pushJobFormat?: SortOrder
     lastPingAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -247670,6 +247697,7 @@ export namespace Prisma {
     activeAssignmentId?: SortOrder
     socketId?: SortOrder
     pushToken?: SortOrder
+    pushJobFormat?: SortOrder
     lastPingAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -247688,6 +247716,7 @@ export namespace Prisma {
     activeAssignmentId?: SortOrder
     socketId?: SortOrder
     pushToken?: SortOrder
+    pushJobFormat?: SortOrder
     lastPingAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -300467,6 +300496,7 @@ export namespace Prisma {
     activeAssignmentId?: string | null
     socketId?: string | null
     pushToken?: string | null
+    pushJobFormat?: string | null
     lastPingAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -300484,6 +300514,7 @@ export namespace Prisma {
     activeAssignmentId?: string | null
     socketId?: string | null
     pushToken?: string | null
+    pushJobFormat?: string | null
     lastPingAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -300877,6 +300908,7 @@ export namespace Prisma {
     activeAssignmentId?: NullableStringFieldUpdateOperationsInput | string | null
     socketId?: NullableStringFieldUpdateOperationsInput | string | null
     pushToken?: NullableStringFieldUpdateOperationsInput | string | null
+    pushJobFormat?: NullableStringFieldUpdateOperationsInput | string | null
     lastPingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -300894,6 +300926,7 @@ export namespace Prisma {
     activeAssignmentId?: NullableStringFieldUpdateOperationsInput | string | null
     socketId?: NullableStringFieldUpdateOperationsInput | string | null
     pushToken?: NullableStringFieldUpdateOperationsInput | string | null
+    pushJobFormat?: NullableStringFieldUpdateOperationsInput | string | null
     lastPingAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string

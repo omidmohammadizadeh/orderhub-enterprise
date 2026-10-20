@@ -1509,6 +1509,7 @@ exports.Prisma.DriverPresenceScalarFieldEnum = {
   activeAssignmentId: 'activeAssignmentId',
   socketId: 'socketId',
   pushToken: 'pushToken',
+  pushJobFormat: 'pushJobFormat',
   lastPingAt: 'lastPingAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -3808,7 +3809,8 @@ exports.Prisma.DriverPresenceOrderByRelevanceFieldEnum = {
   locationId: 'locationId',
   activeAssignmentId: 'activeAssignmentId',
   socketId: 'socketId',
-  pushToken: 'pushToken'
+  pushToken: 'pushToken',
+  pushJobFormat: 'pushJobFormat'
 };
 
 exports.Prisma.DriverAssignmentOrderByRelevanceFieldEnum = {

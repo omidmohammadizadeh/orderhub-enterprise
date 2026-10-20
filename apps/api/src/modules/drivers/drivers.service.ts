@@ -332,9 +332,9 @@ export class DriversService {
     // device — fires even when the driver app is closed.
     const presence = await this.prisma.driverPresence.findUnique({
       where: { driverId: dto.driverId },
-      select: { pushToken: true },
+      select: { pushToken: true, pushJobFormat: true },
     });
-    await this.expoPush.sendNewJob(presence?.pushToken, {
+    await this.expoPush.sendNewJob(presence, {
       orderId: dto.orderId,
       title: "New delivery waiting",
       body: `Order #${assignment.order.displayId ?? dto.orderId.slice(-5)} is waiting for you — Accept or Reject`,

@@ -274,9 +274,14 @@ export class DriverAppService {
     });
   }
 
-  async registerPushToken(user: AuthenticatedUser, token: string) {
+  async registerPushToken(user: AuthenticatedUser, token: string, format?: string) {
     const driver = await this.resolveDriver(user);
-    await this.upsertPresence(driver, { pushToken: token });
+    // The format travels with the token: whichever phone registered last is
+    // the one that gets the push, so it is also the one whose format counts.
+    await this.upsertPresence(driver, {
+      pushToken: token,
+      pushJobFormat: format === "data" ? "data" : null,
+    });
     return { ok: true };
   }
 
