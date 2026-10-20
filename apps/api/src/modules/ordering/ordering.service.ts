@@ -597,15 +597,17 @@ export class OrderingService {
     // slot; unpinned ones prefer the location's primary brand. Legacy
     // cascades below are untouched so un-republished locations keep
     // working exactly as before.
-    const assignedMenuId = await this.menuAssignments.resolveAssignedMenuId(
-      overrideBrand
-        ? { locationId: location.id, channel, brandId: menuBrandId }
-        : {
-            locationId: location.id,
-            channel,
-            preferBrandId: location.brandId,
-          },
-    );
+    // A brand pinned at one of its OTHER shops (PIZZA UNO's app at
+    // pizza uno-newcastle). Without a menu published for the brand at this
+    // shop, the brand-wide fallback served the main shop's menu here; the
+    // shop's own menu (what it serves unpinned) is the right one.
+    const brandHomeElsewhere =
+      !!(overrideBrand as any)?.primaryLocationId && (overrideBrand as any).primaryLocationId !== location.id;
+    const unpinnedSlot = { locationId: location.id, channel, preferBrandId: location.brandId };
+    const assignedMenuId =
+      (await this.menuAssignments.resolveAssignedMenuId(
+        overrideBrand ? { locationId: location.id, channel, brandId: menuBrandId } : unpinnedSlot,
+      )) ?? (brandHomeElsewhere ? await this.menuAssignments.resolveAssignedMenuId(unpinnedSlot) : null);
     const assignedMenu = assignedMenuId
       ? await this.prisma.menu.findFirst({
           where: { id: assignedMenuId },
@@ -616,7 +618,14 @@ export class OrderingService {
     const menu =
       assignedMenu ??
       (overrideBrand
-        ? (await this.prisma.menu.findFirst({
+        ? (brandHomeElsewhere
+            ? await this.prisma.menu.findFirst({
+                where: { locationId: location.id, isActive: true, deletedAt: null },
+                orderBy: { updatedAt: "desc" },
+                include: menuInclude,
+              })
+            : null) ??
+          (await this.prisma.menu.findFirst({
             where: {
               brandId: menuBrandId,
               isActive: true,
@@ -708,8 +717,6 @@ export class OrderingService {
     // shop's own address, phone, opening hours and ordering settings are the
     // truth — the brand's are its main shop's, and showed Newcastle's
     // customers Sunningdale's address.
-    const brandHomeElsewhere =
-      !!(overrideBrand as any)?.primaryLocationId && (overrideBrand as any).primaryLocationId !== location.id;
     const directConfigBrandId = overrideBrand?.id ?? location.brandId;
     const brandDirectConfig = directConfigBrandId
       ? await (this.prisma as any).directOrderingConfig.findUnique({
