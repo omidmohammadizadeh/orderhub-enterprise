@@ -1350,6 +1350,7 @@ export default function PosPage() {
     setCart([]);
     setLoyaltyMember(null);
     setLoyaltyRewardId(null);
+    setLoyaltyMoneyReward(null);
   }, []);
 
   /**
@@ -1706,6 +1707,8 @@ export default function PosPage() {
   // un-spends the reward; a line with no reward behind it (a basket restored
   // from a saved draft after a reload) is free food nobody earned, so it goes.
   useEffect(() => {
+    // A money-off reward goes with the reward id, wherever that was cleared.
+    if (!loyaltyRewardId && loyaltyMoneyReward) setLoyaltyMoneyReward(null);
     // A money-off reward has no line to follow.
     if (loyaltyRewardId && !loyaltyMoneyReward && !cart.some((l) => l.id === `loyalty-${loyaltyRewardId}`)) {
       setLoyaltyRewardId(null);
@@ -2403,7 +2406,9 @@ export default function PosPage() {
                 await submitMutation.mutateAsync(p);
               }}
               multiBuys={multiBuys}
-              loyaltyReward={loyaltyMoneyReward && !editOrderId ? loyaltyMoneyReward : null}
+              loyaltyReward={
+                loyaltyMember && loyaltyRewardId && loyaltyMoneyReward && !editOrderId ? loyaltyMoneyReward : null
+              }
               submitting={submitMutation.isPending}
               submitButtonLabel={editOrderId ? "Save changes" : undefined}
               existingDeliveryFee={editOrderDeliveryFee ?? undefined}
