@@ -7,28 +7,35 @@ import {
   PanResponder,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
-import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { Polyline } from "react-native-maps";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Job, JobActionType, jobAction, getCustomerChat, sendCustomerChat } from "@/services/auth";
-import { SlideToConfirm } from "@/components/SlideToConfirm";
+import { SlideToConfirm, SliderSpacer } from "@/components/SlideToConfirm";
+import { DriverMarker, DropMarker } from "@/components/MapMarkers";
+import { Icon, IconName, RoundButton } from "@/components/ui";
+import { MapPlaceholder } from "@/components/MapPlaceholder";
 import { ChatScreen } from "@/screens/ChatScreen";
+import { C, R, MAP_AVAILABLE, etaMinutes, mapProps, milesBetween, money, mono, shadow } from "@/theme";
 import type { LatLng } from "../../App";
 
 // Deadline colours match the dispatch console house pins.
 function deadline(deadlineAt: string | null): { text: string; color: string; late: boolean } | null {
   if (!deadlineAt) return null;
   const mins = Math.round((new Date(deadlineAt).getTime() - Date.now()) / 60_000);
-  if (mins < 0) return { text: `${Math.abs(mins)}min after deadline`, color: "#dc2626", late: true };
-  const color = mins <= 5 ? "#dc2626" : mins <= 15 ? "#f97316" : "#16a34a";
-  return { text: `Due in ${mins}min`, color, late: false };
+  if (mins < 0) return { text: `${Math.abs(mins)} min late`, color: C.danger, late: true };
+  const color = mins <= 5 ? C.danger : mins <= 15 ? C.warn : C.go;
+  return { text: `Due in ${mins} min`, color, late: false };
 }
+
+const STEPS = ["Assigned", "Picked up", "Arrived", "Delivered"] as const;
 
 export function JobScreen({
   job,
-  total,
   pos,
   onChanged,
   onBack,
@@ -40,7 +47,7 @@ export function JobScreen({
   onNext,
 }: {
   job: Job;
-  total: number;
+  total?: number; // stops in the run (kept for callers; the pager uses count)
   pos: LatLng | null;
   onChanged: () => void;
   onBack?: () => void; // back to a list (manual view)
@@ -51,12 +58,14 @@ export function JobScreen({
   onPrev?: () => void;
   onNext?: () => void;
 }) {
+  const insets = useSafeAreaInsets();
   // Local mirror so start/arrived advance the slider instantly (server confirms
   // via onChanged → poll).
   const [local, setLocal] = useState<Job>(job);
   const [submitting, setSubmitting] = useState(false);
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [sheetH, setSheetH] = useState(360);
   const [, tick] = useState(0); // re-render so the deadline pill counts down
   const mapRef = useRef<MapView | null>(null);
 
@@ -65,7 +74,7 @@ export function JobScreen({
   const canSwipe = stops > 1;
 
   // Horizontal swipe over the details area → previous / next stop. Scoped to the
-  // details section so it never fights the bottom slide-to-confirm or the map.
+  // details section so it never fights the slide-to-confirm or the map.
   const swipe = useMemo(
     () =>
       PanResponder.create({
@@ -87,31 +96,33 @@ export function JobScreen({
 
   const o = local.order;
   const address = [o.addressLine1, o.addressLine2, o.city, o.postcode].filter(Boolean).join(", ");
+  const street = [o.addressLine1, o.addressLine2].filter(Boolean).join(", ");
+  const area = [o.city, o.postcode].filter(Boolean).join(" · ");
   const pickedUp = local.status === "PICKED_UP";
   const arrived = !!local.arrivedAt;
+  const step = arrived ? 2 : pickedUp ? 1 : 0;
   const due = deadline(o.deadlineAt);
+  const isCash = (o.paymentMethod ?? "").toUpperCase().includes("CASH");
   const dest: LatLng | null =
-    o.deliveryLat != null && o.deliveryLng != null
-      ? { latitude: o.deliveryLat, longitude: o.deliveryLng }
-      : null;
-  const coordLabel =
-    o.deliveryLat != null && o.deliveryLng != null
-      ? `${o.deliveryLat.toFixed(4)}, ${o.deliveryLng.toFixed(4)}`
-      : null;
+    o.deliveryLat != null && o.deliveryLng != null ? { latitude: o.deliveryLat, longitude: o.deliveryLng } : null;
+  const miles = pos && dest ? milesBetween(pos, dest) : null;
+  const eta = pos && dest ? etaMinutes(pos, dest) : null;
 
-  // Fit the map to driver + destination once we have them.
+  // Fit the map to driver + destination.
   useEffect(() => {
     const points = [pos, dest].filter(Boolean) as LatLng[];
     if (points.length === 2) {
       mapRef.current?.fitToCoordinates(points, {
-        edgePadding: { top: 60, right: 60, bottom: 60, left: 60 },
+        // mapPadding already lifts the map's frame above the sheet; this is
+        // just breathing room inside what's left.
+        edgePadding: { top: 90, right: 60, bottom: 50, left: 60 },
         animated: true,
       });
     } else if (points.length === 1) {
-      mapRef.current?.animateCamera({ center: points[0], zoom: 14 }, { duration: 400 });
+      mapRef.current?.animateToRegion({ ...points[0], latitudeDelta: 0.02, longitudeDelta: 0.02 }, 400);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pos?.latitude, pos?.longitude, dest?.latitude, dest?.longitude]);
+  }, [pos?.latitude, pos?.longitude, dest?.latitude, dest?.longitude, sheetH]);
 
   const initialRegion = dest
     ? { ...dest, latitudeDelta: 0.04, longitudeDelta: 0.04 }
@@ -163,9 +174,7 @@ export function JobScreen({
   }
 
   // Whichever number Call will actually dial is the one whose PIN matters.
-  const callPin = o.courierPhone
-    ? o.courierPhoneAccessCode
-    : o.customerPhoneAccessCode;
+  const callPin = o.courierPhone ? o.courierPhoneAccessCode : o.customerPhoneAccessCode;
 
   function call() {
     if (o.courierPhone) {
@@ -212,17 +221,17 @@ export function JobScreen({
       const detail = (err as any)?.response?.data?.message;
       Alert.alert(
         "Error",
-        (Array.isArray(detail) ? detail.join("\n") : detail) ||
-          (err as Error)?.message ||
-          "Try again",
+        (Array.isArray(detail) ? detail.join("\n") : detail) || (err as Error)?.message || "Try again",
       );
       // A refused action means our copy of the job is stale — refresh so a card
       // for an order that has already closed drops off the screen.
       onChanged();
-    } finally {
-      if (action === "start" || action === "arrived") setSubmitting(false);
-      // For terminal actions keep the spinner until App unmounts this card.
+      // The card stays up, so the slider must come back for another try.
+      setSubmitting(false);
+      return;
     }
+    if (action === "start" || action === "arrived") setSubmitting(false);
+    // For terminal actions keep the spinner until App unmounts this card.
   }
 
   function confirmSkip() {
@@ -240,175 +249,216 @@ export function JobScreen({
     ]);
   }
 
-  const stopLabel = `${local.sequence ?? 1}/${total || 1}.`;
   const orderRef = `#${o.displayId ?? o.orderNumber ?? o.id.slice(-5)}`;
-  // Secondary reference (the platform/external id) — shown when we have a
-  // human displayId, mirroring "#002 vNUHOnOWb7".
-  const extRef = o.displayId ? o.id.slice(-10) : "";
+  const stopNo = local.sequence ?? 1;
+  const headline = arrived ? "At the door" : pickedUp ? "Heading to customer" : "Collect & start";
+  const subline = arrived
+    ? isCash
+      ? "Take payment, hand over, then slide"
+      : "Hand over the order, then slide"
+    : pickedUp
+      ? "Slide when you reach the address"
+      : "Pick up the order, then slide to start";
 
   return (
     <View style={styles.container}>
-      {/* Map */}
-      <View style={styles.mapWrap}>
+      {MAP_AVAILABLE ? (
         <MapView
           ref={mapRef}
-          provider={PROVIDER_GOOGLE}
+          {...mapProps}
           style={StyleSheet.absoluteFill}
           initialRegion={initialRegion}
           showsUserLocation={false}
+          showsCompass={false}
+          toolbarEnabled={false}
+          mapPadding={{ top: 0, right: 0, bottom: sheetH - 20, left: 0 }}
         >
-          {pos && (
-            <Marker coordinate={pos} title="You" anchor={{ x: 0.5, y: 0.5 }}>
-              <View style={styles.carBadge}>
-                <Text style={{ fontSize: 18 }}>🚗</Text>
-              </View>
-            </Marker>
+          {pos && dest && (
+            <Polyline
+              coordinates={[pos, dest]}
+              strokeColor={C.go}
+              strokeWidth={4}
+              lineDashPattern={[10, 8]}
+              lineCap="round"
+            />
           )}
-          {dest && <Marker coordinate={dest} title={o.customerName ?? "Customer"} description={coordLabel ?? undefined} pinColor="#dc2626" />}
+          {pos && <DriverMarker coordinate={pos} heading={pos.heading} />}
+          {dest && <DropMarker coordinate={dest} label={String(stopNo)} title={o.customerName ?? "Customer"} />}
         </MapView>
+      ) : (
+        <MapPlaceholder />
+      )}
 
-        {/* Map overlay buttons */}
-        {(canMinimize || onBack) && (
-          <Pressable style={[styles.fab, styles.fabTL]} onPress={canMinimize ? onMinimize : onBack}>
-            <Text style={styles.fabIcon}>‹</Text>
-          </Pressable>
+      {/* Top overlay: back · stop pager · deadline */}
+      <View style={styles.topRow} pointerEvents="box-none">
+        {canMinimize || onBack ? (
+          <RoundButton
+            icon={canMinimize ? "chevron-down" : "chevron-back"}
+            onPress={canMinimize ? onMinimize : onBack}
+            accessibilityLabel={canMinimize ? "Show the map" : "Back"}
+          />
+        ) : (
+          <View style={{ width: 48 }} />
         )}
-        <Pressable style={[styles.fab, styles.fabTR]} onPress={navigate}>
-          <Text style={styles.navIcon}>➤</Text>
-        </Pressable>
-        {coordLabel && (
-          <View style={styles.coordChip}>
-            <Text style={styles.coordChipText}>{coordLabel}</Text>
-          </View>
-        )}
-      </View>
-
-      {/* Action bar */}
-      <View style={styles.actionBar}>
-        <Pressable style={styles.sideAction} onPress={notify}>
-          <Text style={styles.sideIcon}>✉️</Text>
-          <Text style={styles.sideLabel}>notify</Text>
-        </Pressable>
-        <Pressable style={styles.callBtn} onPress={call}>
-          <Text style={styles.callIcon}>📞</Text>
-        </Pressable>
-        <Pressable style={styles.sideAction} onPress={() => setOptionsOpen(true)}>
-          <Text style={styles.sideIcon}>☰</Text>
-          <Text style={styles.sideLabel}>options</Text>
-        </Pressable>
-      </View>
-
-      {/* Details (swipe left/right to see other stops in a multi-drop run) */}
-      <View style={styles.details} {...swipe.panHandlers}>
-        {canSwipe && (
-          <View style={styles.pager}>
-            <Pressable onPress={onPrev} hitSlop={10} disabled={idx === 0} style={{ opacity: idx === 0 ? 0.25 : 1 }}>
-              <Text style={styles.pagerChev}>‹</Text>
+        {canSwipe ? (
+          <View style={[styles.pager, shadow]}>
+            <Pressable onPress={onPrev} disabled={idx === 0} hitSlop={10} style={{ opacity: idx === 0 ? 0.25 : 1 }}>
+              <Icon name="chevron-back" size={18} />
             </Pressable>
-            <View style={styles.dots}>
-              {Array.from({ length: stops }).map((_, i) => (
-                <View key={i} style={[styles.dot, i === idx && styles.dotActive]} />
-              ))}
-            </View>
+            <Text style={styles.pagerText}>
+              Stop {idx + 1} of {stops}
+            </Text>
             <Pressable
               onPress={onNext}
-              hitSlop={10}
               disabled={idx === stops - 1}
+              hitSlop={10}
               style={{ opacity: idx === stops - 1 ? 0.25 : 1 }}
             >
-              <Text style={styles.pagerChev}>›</Text>
+              <Icon name="chevron-forward" size={18} />
             </Pressable>
           </View>
+        ) : (
+          <View />
         )}
-        <Text style={styles.orderLine}>
-          <Text style={styles.stopNo}>{stopLabel} </Text>
-          {orderRef} {extRef ? <Text style={styles.extRef}>{extRef}</Text> : null}
-        </Text>
-        {coordLabel && <Text style={styles.subCoord}>{coordLabel}</Text>}
-        <Text style={styles.customer}>{o.customerName ?? "Customer"}</Text>
-        {!!address && <Text style={styles.address}>{address}</Text>}
-        {!!o.specialInstructions && <Text style={styles.note}>“{o.specialInstructions}”</Text>}
-
-        {/* Masked-number access code, shown as well as auto-dialled. Some
-            networks and diallers ignore pause characters in a tel: URL, and
-            a driver stood at a door with no way to see the PIN is stuck.
-            Belt as well as braces — Call still keys it in automatically. */}
-        {!!callPin && (
-          <Text style={styles.pin}>
-            CALL PIN <Text style={styles.pinCode}>{callPin}</Text>
-          </Text>
+        {due ? (
+          <View style={[styles.dueChip, shadow, { borderColor: due.color }]}>
+            <Icon name={due.late ? "alert-circle" : "time"} size={14} color={due.color} />
+            <Text style={[styles.dueText, { color: due.color }]}>{due.text}</Text>
+          </View>
+        ) : (
+          <View style={{ width: 48 }} />
         )}
-
-        <View style={styles.metaRow}>
-          <View style={styles.metaCell}>
-            <Text style={styles.metaLabel}>{(o.paymentMethod ?? "—").toUpperCase()}</Text>
-            <Text style={styles.metaValue}>£{o.total}</Text>
-          </View>
-          <View style={[styles.metaCell, styles.metaCellRight]}>
-            {due ? (
-              <>
-                <Text style={[styles.metaLabel, { color: due.color }]}>
-                  {due.late ? "After deadline" : "Deadline"}
-                </Text>
-                <Text style={[styles.metaValue, { color: due.color }]}>{due.text}</Text>
-              </>
-            ) : (
-              <>
-                <Text style={styles.metaLabel}>STATUS</Text>
-                <Text style={styles.metaValue}>{arrived ? "ARRIVED" : local.status}</Text>
-              </>
-            )}
-          </View>
-        </View>
       </View>
 
-      {/* Slide action */}
-      <View style={styles.footer}>
-        {submitting ? (
-          <View style={styles.busy}>
-            <ActivityIndicator color="#0F172A" />
+      {/* Bottom sheet */}
+      <View
+        style={[styles.sheet, shadow, { paddingBottom: Math.max(insets.bottom, 14) }]}
+        onLayout={(e) => setSheetH(e.nativeEvent.layout.height)}
+      >
+        <Pressable style={[styles.navBtn, shadow]} onPress={navigate} accessibilityLabel="Navigate">
+          <Icon name="navigate" size={18} color="#fff" />
+          <Text style={styles.navText}>Navigate</Text>
+        </Pressable>
+
+        <Steps step={step} />
+
+        <ScrollView
+          style={{ flexGrow: 0 }}
+          contentContainerStyle={{ paddingBottom: 6 }}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+        >
+          <View {...swipe.panHandlers}>
+            <View style={styles.refRow}>
+              <Text style={styles.ref}>{orderRef}</Text>
+              <View style={styles.refDot} />
+              {/* The stop's number in the original run — the same number as its
+                  map pin and the dispatcher's sequence. The pager above counts
+                  stops still to do, which shrinks as drops complete. */}
+              <Text style={styles.refStop}>Drop {stopNo}</Text>
+              {!!o.platform && <Text style={styles.platform}>{o.platform.replace(/_/g, " ")}</Text>}
+            </View>
+            <Text style={styles.headline}>{headline}</Text>
+            <Text style={styles.subline}>{subline}</Text>
+
+            <View style={styles.card}>
+              <View style={styles.custRow}>
+                <View style={styles.custIcon}>
+                  <Icon name="person" size={18} color={C.textDim} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.customer} numberOfLines={1}>
+                    {o.customerName ?? "Customer"}
+                  </Text>
+                  {!!street && <Text style={styles.address}>{street}</Text>}
+                  {!!area && <Text style={styles.area}>{area}</Text>}
+                </View>
+                {miles != null && eta != null && (
+                  <View style={styles.eta}>
+                    <Text style={styles.etaValue}>{eta}</Text>
+                    <Text style={styles.etaUnit}>min</Text>
+                    <Text style={styles.etaMiles}>{miles.toFixed(1)} mi</Text>
+                  </View>
+                )}
+              </View>
+
+              {!!o.specialInstructions && (
+                <View style={styles.note}>
+                  <Icon name="chatbox-ellipses" size={15} color={C.warn} />
+                  <Text style={styles.noteText}>{o.specialInstructions}</Text>
+                </View>
+              )}
+
+              {/* Masked-number access code, shown as well as auto-dialled. Some
+                  networks and diallers ignore pause characters in a tel: URL,
+                  and a driver stood at a door with no way to see the PIN is
+                  stuck. Call still keys it in automatically. */}
+              {!!callPin && (
+                <View style={styles.pin}>
+                  <Text style={styles.pinLabel}>CALL PIN</Text>
+                  <Text style={styles.pinCode}>{callPin}</Text>
+                </View>
+              )}
+            </View>
+
+            <View style={[styles.payRow, isCash && styles.payRowCash]}>
+              <Icon name={isCash ? "cash" : "card"} size={20} color={isCash ? C.brand : C.textDim} />
+              <Text style={[styles.payLabel, isCash && { color: C.brand }]}>
+                {isCash ? "Collect cash" : `Paid · ${(o.paymentMethod ?? "online").replace(/_/g, " ").toLowerCase()}`}
+              </Text>
+              <Text style={[styles.payValue, isCash && { color: C.brand }]}>{money(o.total)}</Text>
+            </View>
           </View>
-        ) : !pickedUp ? (
-          <SlideToConfirm label="Slide to start delivery" color="#16a34a" onConfirm={() => act("start")} />
-        ) : !arrived ? (
-          <SlideToConfirm label="Arrived at customer" color="#f97316" onConfirm={() => act("arrived")} />
-        ) : (
-          <SlideToConfirm label="Slide to delivered ✓" color="#475569" onConfirm={() => act("delivered")} />
-        )}
+
+          <View style={styles.actions}>
+            <Action icon="call" label="Call" tone={C.go} onPress={call} />
+            <Action icon="chatbubble-ellipses" label="Message" onPress={() => setChatOpen(true)} />
+            <Action icon="paper-plane" label="Text" onPress={notify} />
+            <Action icon="ellipsis-horizontal" label="More" onPress={() => setOptionsOpen(true)} />
+          </View>
+        </ScrollView>
+
+        <View style={{ marginTop: 10 }}>
+          {submitting ? (
+            <SliderSpacer>
+              <ActivityIndicator color={C.text} />
+            </SliderSpacer>
+          ) : !pickedUp ? (
+            <SlideToConfirm label="Slide to start delivery" color={C.go} icon="arrow-forward" onConfirm={() => act("start")} />
+          ) : !arrived ? (
+            <SlideToConfirm label="Arrived at customer" color={C.warn} icon="location" onConfirm={() => act("arrived")} />
+          ) : (
+            <SlideToConfirm label="Slide to delivered" color={C.info} icon="checkmark" onConfirm={() => act("delivered")} />
+          )}
+        </View>
       </View>
 
       {/* Options sheet — dismissable (tap a row, the backdrop, or Close) */}
       <Modal visible={optionsOpen} transparent animationType="slide" onRequestClose={() => setOptionsOpen(false)}>
         <Pressable style={styles.sheetBackdrop} onPress={() => setOptionsOpen(false)}>
-          <Pressable style={styles.sheet} onPress={() => {}}>
-            <View style={styles.sheetHandle} />
-            <Text style={styles.sheetTitle}>Delivery options</Text>
-            <Pressable
-              style={styles.sheetRow}
+          <Pressable style={[styles.optSheet, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]} onPress={() => {}}>
+            <View style={styles.handle} />
+            <Text style={styles.optTitle}>DELIVERY OPTIONS · {orderRef}</Text>
+            <OptRow
+              icon="navigate-outline"
+              label="Navigate"
               onPress={() => {
                 setOptionsOpen(false);
                 navigate();
               }}
-            >
-              <Text style={styles.sheetRowText}>Navigate</Text>
-            </Pressable>
-            <Pressable
-              style={styles.sheetRow}
+            />
+            <OptRow
+              icon="chatbubble-ellipses-outline"
+              label="Message customer"
               onPress={() => {
                 setOptionsOpen(false);
                 setChatOpen(true);
               }}
-            >
-              <Text style={styles.sheetRowText}>Message customer</Text>
-            </Pressable>
-            <Pressable style={styles.sheetRow} onPress={confirmSkip}>
-              <Text style={[styles.sheetRowText, { color: "#b45309" }]}>Skip (no answer)</Text>
-            </Pressable>
-            <Pressable style={styles.sheetRow} onPress={confirmCancel}>
-              <Text style={[styles.sheetRowText, { color: "#dc2626" }]}>Cancel job</Text>
-            </Pressable>
-            <Pressable style={styles.sheetClose} onPress={() => setOptionsOpen(false)}>
-              <Text style={styles.sheetCloseText}>Close</Text>
+            />
+            <OptRow icon="person-remove-outline" label="Skip (no answer)" color={C.warn} onPress={confirmSkip} />
+            <OptRow icon="close-circle-outline" label="Cancel job" color={C.danger} onPress={confirmCancel} />
+            <Pressable style={styles.optClose} onPress={() => setOptionsOpen(false)}>
+              <Text style={styles.optCloseText}>Close</Text>
             </Pressable>
           </Pressable>
         </Pressable>
@@ -418,136 +468,240 @@ export function JobScreen({
       <Modal visible={chatOpen} animationType="slide" onRequestClose={() => setChatOpen(false)}>
         <ChatScreen
           title={o.customerName ?? "Customer"}
-          subtitle={orderRef}
+          subtitle={`Delivery chat · ${orderRef}`}
           mine="DRIVER"
           load={() => getCustomerChat(o.id)}
           send={(text) => sendCustomerChat(o.id, text)}
           onBack={() => setChatOpen(false)}
+          standalone
         />
       </Modal>
     </View>
   );
 }
 
+function Steps({ step }: { step: number }) {
+  return (
+    <View style={styles.steps}>
+      {STEPS.map((s, i) => {
+        const done = i <= step;
+        const current = i === step + 1;
+        return (
+          <View key={s} style={{ flex: 1 }}>
+            <View style={[styles.stepBar, done && styles.stepBarDone, current && styles.stepBarNext]} />
+            <Text style={[styles.stepText, done && { color: C.text }, current && { color: C.go }]} numberOfLines={1}>
+              {s}
+            </Text>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
+function Action({ icon, label, onPress, tone }: { icon: IconName; label: string; onPress: () => void; tone?: string }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={(s) => [styles.action, s.pressed && { transform: [{ scale: 0.95 }], opacity: 0.85 }]}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+    >
+      <View style={[styles.actionIcon, tone ? { backgroundColor: tone, borderColor: tone } : null]}>
+        <Icon name={icon} size={20} color={tone ? C.onAccent : C.text} />
+      </View>
+      <Text style={styles.actionLabel}>{label}</Text>
+    </Pressable>
+  );
+}
+
+function OptRow({ icon, label, color = C.text, onPress }: { icon: IconName; label: string; color?: string; onPress: () => void }) {
+  return (
+    <Pressable style={(s) => [styles.optRow, s.pressed && { backgroundColor: C.surface2 }]} onPress={onPress}>
+      <Icon name={icon} size={21} color={color} />
+      <Text style={[styles.optRowText, { color }]}>{label}</Text>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  mapWrap: { flex: 1, minHeight: 220 },
-  carBadge: {
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    width: 36,
+  container: { flex: 1, backgroundColor: C.bg },
+  topRow: {
+    position: "absolute",
+    top: 10,
+    left: 14,
+    right: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  pager: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    height: 44,
+    paddingHorizontal: 14,
+    borderRadius: R.pill,
+    backgroundColor: C.glass,
+    borderWidth: 1,
+    borderColor: C.border,
+  },
+  pagerText: { color: C.text, fontWeight: "800", fontSize: 14 },
+  dueChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
     height: 36,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "#2563eb",
-  },
-  fab: {
-    position: "absolute",
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  fabTL: { top: 12, left: 12 },
-  fabTR: { top: 12, right: 12 },
-  fabIcon: { fontSize: 26, fontWeight: "800", color: "#0F172A", marginTop: -2 },
-  navIcon: { fontSize: 18, color: "#2563eb", transform: [{ rotate: "-45deg" }] },
-  coordChip: {
-    position: "absolute",
-    alignSelf: "center",
-    bottom: 14,
-    backgroundColor: "#fff",
-    borderRadius: 8,
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
+    borderRadius: R.pill,
+    backgroundColor: C.glass,
+    borderWidth: 1,
   },
-  coordChipText: { fontSize: 13, fontWeight: "700", color: "#0F172A" },
-  actionBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-around",
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
-    backgroundColor: "#fff",
-  },
-  sideAction: { alignItems: "center", width: 70, gap: 2 },
-  sideIcon: { fontSize: 20 },
-  sideLabel: { fontSize: 12, color: "#64748b", fontWeight: "600" },
-  callBtn: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: "#16a34a",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: -28,
-    borderWidth: 4,
-    borderColor: "#fff",
-    elevation: 6,
-    shadowColor: "#000",
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-  },
-  callIcon: { fontSize: 26 },
-  details: { paddingHorizontal: 18, paddingTop: 14 },
-  pager: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },
-  pagerChev: { fontSize: 28, fontWeight: "800", color: "#2563eb", paddingHorizontal: 8 },
-  dots: { flexDirection: "row", gap: 6 },
-  dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: "#cbd5e1" },
-  dotActive: { backgroundColor: "#2563eb", width: 18 },
-  sheetBackdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "flex-end" },
-  sheet: { backgroundColor: "#fff", borderTopLeftRadius: 18, borderTopRightRadius: 18, paddingHorizontal: 18, paddingTop: 10, paddingBottom: 28 },
-  sheetHandle: { alignSelf: "center", width: 40, height: 4, borderRadius: 2, backgroundColor: "#cbd5e1", marginBottom: 12 },
-  sheetTitle: { fontSize: 13, fontWeight: "700", color: "#94a3b8", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 },
-  sheetRow: { paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: "#f1f5f9" },
-  sheetRowText: { fontSize: 17, fontWeight: "700", color: "#0F172A" },
-  sheetClose: { marginTop: 14, backgroundColor: "#f1f5f9", borderRadius: 12, paddingVertical: 15, alignItems: "center" },
-  sheetCloseText: { fontSize: 16, fontWeight: "800", color: "#334155" },
-  orderLine: { fontSize: 18, fontWeight: "800", color: "#0F172A" },
-  stopNo: { color: "#2563eb" },
-  extRef: { color: "#94a3b8", fontWeight: "700", fontSize: 15 },
-  subCoord: { fontSize: 13, color: "#94a3b8", marginTop: 2 },
-  customer: { fontSize: 16, fontWeight: "700", color: "#334155", marginTop: 6 },
-  address: { fontSize: 14, color: "#475569", marginTop: 2 },
-  note: { fontStyle: "italic", color: "#b45309", marginTop: 6 },
-  metaRow: {
-    flexDirection: "row",
-    marginTop: 14,
+  dueText: { fontWeight: "800", fontSize: 13 },
+  sheet: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    maxHeight: "68%",
+    backgroundColor: C.bg,
+    borderTopLeftRadius: R.xl,
+    borderTopRightRadius: R.xl,
     borderTopWidth: 1,
-    borderTopColor: "#e2e8f0",
+    borderColor: C.border,
+    paddingHorizontal: 16,
+    paddingTop: 14,
   },
-  metaCell: { flex: 1, paddingVertical: 12 },
-  metaCellRight: { alignItems: "flex-end", borderLeftWidth: 1, borderLeftColor: "#e2e8f0", paddingLeft: 12 },
-  pin: {
-    marginTop: 10,
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#92400e",
-    backgroundColor: "#fef3c7",
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    letterSpacing: 0.5,
+  navBtn: {
+    position: "absolute",
+    right: 16,
+    top: -62,
+    height: 46,
+    paddingHorizontal: 18,
+    borderRadius: R.pill,
+    backgroundColor: C.info,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  navText: { color: "#fff", fontWeight: "900", fontSize: 15 },
+  steps: { flexDirection: "row", gap: 6, marginBottom: 12 },
+  stepBar: { height: 4, borderRadius: 2, backgroundColor: C.surface3 },
+  stepBarDone: { backgroundColor: C.go },
+  stepBarNext: { backgroundColor: "rgba(30,214,127,0.35)" },
+  stepText: { color: C.textMute, fontSize: 10, fontWeight: "800", marginTop: 5, letterSpacing: 0.3 },
+  refRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  ref: { color: C.textDim, fontFamily: mono, fontSize: 13, fontWeight: "700" },
+  refDot: { width: 3, height: 3, borderRadius: 2, backgroundColor: C.textMute },
+  refStop: { color: C.textDim, fontSize: 13, fontWeight: "700" },
+  platform: {
+    marginLeft: "auto",
+    color: C.textDim,
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 0.6,
+    textTransform: "uppercase",
+    backgroundColor: C.surface2,
+    borderRadius: 6,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
     overflow: "hidden",
   },
-  pinCode: { fontSize: 18, fontWeight: "800", color: "#78350f", letterSpacing: 1 },
-  metaLabel: { fontSize: 11, color: "#94a3b8", fontWeight: "700", letterSpacing: 0.5 },
-  metaValue: { fontSize: 18, fontWeight: "800", color: "#0F172A", marginTop: 2 },
-  footer: { padding: 16, borderTopWidth: 1, borderTopColor: "#e2e8f0" },
-  busy: { height: 60, alignItems: "center", justifyContent: "center" },
+  headline: { color: C.text, fontSize: 22, fontWeight: "900", marginTop: 4 },
+  subline: { color: C.textDim, fontSize: 14, marginTop: 2 },
+  card: {
+    marginTop: 12,
+    backgroundColor: C.surface,
+    borderRadius: R.lg,
+    borderWidth: 1,
+    borderColor: C.border,
+    padding: 12,
+    gap: 10,
+  },
+  custRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  custIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: C.surface3,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  customer: { color: C.text, fontSize: 17, fontWeight: "800" },
+  address: { color: C.textDim, fontSize: 14, marginTop: 2 },
+  area: { color: C.textMute, fontSize: 13, marginTop: 1, fontWeight: "600" },
+  eta: {
+    alignItems: "center",
+    paddingLeft: 12,
+    borderLeftWidth: StyleSheet.hairlineWidth,
+    borderLeftColor: C.border,
+  },
+  etaValue: { color: C.go, fontSize: 24, fontWeight: "900", fontVariant: ["tabular-nums"], lineHeight: 26 },
+  etaUnit: { color: C.go, fontSize: 11, fontWeight: "800" },
+  etaMiles: { color: C.textMute, fontSize: 11, fontWeight: "700", marginTop: 2 },
+  note: {
+    flexDirection: "row",
+    gap: 8,
+    backgroundColor: "rgba(245,165,36,0.1)",
+    borderRadius: R.sm,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "rgba(245,165,36,0.3)",
+  },
+  noteText: { flex: 1, color: "#F7CD7E", fontSize: 14, lineHeight: 19 },
+  pin: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: C.surface2,
+    borderRadius: R.sm,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  pinLabel: { color: C.textMute, fontSize: 11, fontWeight: "800", letterSpacing: 1 },
+  pinCode: { color: C.text, fontSize: 22, fontWeight: "900", letterSpacing: 4, fontFamily: mono },
+  payRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginTop: 10,
+    paddingHorizontal: 14,
+    height: 52,
+    borderRadius: R.md,
+    backgroundColor: C.surface,
+    borderWidth: 1,
+    borderColor: C.border,
+  },
+  payRowCash: { backgroundColor: "rgba(255,122,26,0.1)", borderColor: "rgba(255,122,26,0.45)" },
+  payLabel: { flex: 1, color: C.textDim, fontSize: 15, fontWeight: "800", textTransform: "capitalize" },
+  payValue: { color: C.text, fontSize: 20, fontWeight: "900", fontVariant: ["tabular-nums"] },
+  actions: { flexDirection: "row", justifyContent: "space-between", marginTop: 12 },
+  action: { flex: 1, alignItems: "center", gap: 6 },
+  actionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: C.surface2,
+    borderWidth: 1,
+    borderColor: C.border,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  actionLabel: { color: C.textDim, fontSize: 12, fontWeight: "700" },
+  sheetBackdrop: { flex: 1, backgroundColor: C.overlay, justifyContent: "flex-end" },
+  optSheet: {
+    backgroundColor: C.surface,
+    borderTopLeftRadius: R.xl,
+    borderTopRightRadius: R.xl,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderColor: C.border,
+  },
+  handle: { alignSelf: "center", width: 40, height: 4, borderRadius: 2, backgroundColor: C.borderStrong, marginBottom: 14 },
+  optTitle: { fontSize: 11, fontWeight: "800", color: C.textMute, letterSpacing: 1, marginBottom: 6 },
+  optRow: { flexDirection: "row", alignItems: "center", gap: 14, paddingVertical: 15, paddingHorizontal: 6, borderRadius: R.sm },
+  optRowText: { fontSize: 16, fontWeight: "800" },
+  optClose: { marginTop: 10, backgroundColor: C.surface3, borderRadius: R.md, paddingVertical: 15, alignItems: "center" },
+  optCloseText: { fontSize: 16, fontWeight: "800", color: C.text },
 });

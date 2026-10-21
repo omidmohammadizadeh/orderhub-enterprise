@@ -88,6 +88,10 @@ export interface JetGoEstimateBody {
   deliveryOptions?: {
     unreachablePreference?: "DROP_OFF" | "RETURN";
     dropoffAction?: "CONTACTLESS" | "MEET_AT_DOOR";
+    /** Ask JET to generate a PIN the customer must read out to the courier.
+     *  DSP_GENERATED is the only provider JET supports — there is no option to
+     *  supply our own code. The PIN comes back on the PROOFOFDELIVERY webhook. */
+    proofOfDelivery?: { pinCode?: { type: "DSP_GENERATED" } };
   };
   /** Advance orders only, 1 hour–5 days out. Never send both. */
   targetDeliverTime?: string;
@@ -128,6 +132,60 @@ export interface JetGoCollectPoint {
   timeZone?: string;
   countryCode?: string;
   shortName?: string;
+  /** Our own id, echoed back. Set at onboarding so a newly created collect
+   *  point can be matched to the location that asked for it. */
+  corporateIdentifier?: string;
+}
+
+/**
+ * POST /v1/collect-point/onboarding — register a shop with JET Go without a
+ * human doing it.
+ *
+ * Two traps, both load-bearing:
+ *  • `country` is a THREE-letter code ("GBR"), not the ISO-2 we store.
+ *  • the coordinates and address are nested under `location` here, but FLAT on
+ *    the PATCH, and this call spells it `PickupInstructions` while the PATCH
+ *    spells it `pickUpInstructions`. They are not interchangeable.
+ *
+ * `collectPointName` and `locationName` are the two halves of the name JET
+ * displays as "collectPointName (locationName)" — brand outside the bracket,
+ * branch inside it.
+ */
+export interface JetGoOnboardCollectPointBody {
+  referenceId: string;
+  collectPointName: string;
+  locationName: string;
+  email: string;
+  phoneNumber: string;
+  corporateIdentifier?: string;
+  location: {
+    latitude: number;
+    longitude: number;
+    address: string;
+    city: string;
+    province?: string;
+    /** 3-letter country code. */
+    country: string;
+    postalCode?: string;
+    PickupInstructions?: string;
+  };
+}
+
+/** PATCH /v1/collect-point/:id — every field optional, and FLAT (see above). */
+export interface JetGoUpdateCollectPointBody {
+  collectPointName?: string;
+  locationName?: string;
+  email?: string;
+  phoneNumber?: string;
+  latitude?: number;
+  longitude?: number;
+  address?: string;
+  city?: string;
+  province?: string;
+  country?: string;
+  postalCode?: string;
+  pickUpInstructions?: string;
+  corporateIdentifier?: string;
 }
 
 export interface JetGoNotificationConfigBody {
@@ -278,6 +336,35 @@ export class JetGoClientService {
       `/v1/delivery/collect-points?limit=${limit}&offset=${offset}`,
     );
     return Array.isArray(json?.collectPoints) ? json.collectPoints : [];
+  }
+
+  /**
+   * POST /v1/collect-point/onboarding — register a new collect point.
+   *
+   * Answers **202 with no body and no id**. The collect point shows up in
+   * GET /collect-points some time later, so the id has to be resolved by
+   * polling that list for our `corporateIdentifier`. Treat a resolved 202 as
+   * "JET accepted the form", never as "the shop can now dispatch".
+   */
+  async onboardCollectPoint(
+    creds: JetGoCreds,
+    body: JetGoOnboardCollectPointBody,
+  ): Promise<void> {
+    await this.request(creds, "POST", "/v1/collect-point/onboarding", body);
+  }
+
+  /** PATCH /v1/collect-point/:id — amend a collect point already onboarded. */
+  async updateCollectPoint(
+    creds: JetGoCreds,
+    collectPointId: string,
+    body: JetGoUpdateCollectPointBody,
+  ): Promise<void> {
+    await this.request(
+      creds,
+      "PATCH",
+      `/v1/collect-point/${encodeURIComponent(collectPointId)}`,
+      body,
+    );
   }
 
   /** POST /v1/delivery/estimate — availability + price, and the requestId that

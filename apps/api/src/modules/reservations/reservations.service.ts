@@ -5,6 +5,8 @@ import {
 } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { SocketService } from "../../infrastructure/socket/socket.service";
+import { hoursConfigured, isCurrentlyOpen } from "../../common/opening-hours.util";
+import { ReservationEmailService } from "./reservation-email.service";
 
 // Table reservations (Phase 3 of table service).
 //
@@ -63,7 +65,14 @@ export class ReservationsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly socket: SocketService,
+    private readonly emails?: ReservationEmailService,
   ) {}
+
+  /** Guest email, never awaited — see ReservationEmailService. */
+  private notify(kind: "confirmed" | "updated" | "cancelled", r: { id: string; customerEmail?: string | null }) {
+    if (!r?.customerEmail) return;
+    void this.emails?.send(kind, r.id);
+  }
 
   private async assertLocation(tenantId: string, locationId: string) {
     const loc = await this.prisma.location.findFirst({
@@ -96,10 +105,33 @@ export class ReservationsService {
   async settingsFor(locationId: string) {
     const loc = await this.prisma.location.findUnique({
       where: { id: locationId },
-      select: { id: true, name: true, settings: true },
+      select: {
+        id: true,
+        name: true,
+        settings: true,
+        phone: true,
+        logoUrl: true,
+        addressLine1: true,
+        city: true,
+        postcode: true,
+        brand: { select: { logoUrl: true } },
+      },
     });
     if (!loc) throw new NotFoundException("Location not found");
-    return { locationId: loc.id, locationName: loc.name, ...this.readSettings(loc.settings) };
+    return {
+      locationId: loc.id,
+      locationName: loc.name,
+      // Public anyway (it's on the shop's door) — lets the booking page look
+      // like the restaurant rather than like us.
+      logoUrl: loc.logoUrl ?? loc.brand?.logoUrl ?? null,
+      phone: loc.phone ?? null,
+      address:
+        [loc.addressLine1, loc.city, loc.postcode]
+          .map((p) => (p ?? "").trim())
+          .filter(Boolean)
+          .join(", ") || null,
+      ...this.readSettings(loc.settings),
+    };
   }
 
   // ── Diary ───────────────────────────────────────────────────────────
@@ -164,38 +196,92 @@ export class ReservationsService {
       },
     });
 
-    const overlaps = bookings.filter((b) => {
-      const bStart = b.startsAt.getTime();
-      const bEnd = bStart + b.durationMins * 60_000;
-      return bStart < endsAt.getTime() && bEnd > startsAt.getTime();
-    });
-    const takenTableIds = new Set(
-      overlaps.map((b) => b.tableId).filter(Boolean) as string[],
-    );
-    // Bookings with no table assigned still eat capacity — count them so
-    // we never promise more tables than we actually have free.
-    const unassignedOverlaps = overlaps.filter((b) => !b.tableId).length;
-
-    const bigEnough = tables.filter((t) => (t.seats ?? 99) >= partySize);
-    const free = bigEnough.filter((t) => !takenTableIds.has(t.id));
-    // Hold back one table per unassigned booking, smallest first, so the
-    // floor keeps the flexibility it already promised away.
-    const available = free.slice(unassignedOverlaps);
+    const fit = freeTables(tables, bookings, startsAt, endsAt, partySize);
 
     return {
       startsAt,
       endsAt,
       partySize,
-      available: available.map((t) => ({
+      available: fit.available.map((t) => ({
         id: t.id,
         name: t.name,
         seats: t.seats,
         area: t.area,
       })),
       // Useful for the staff diary: what's booked, not just what's free.
-      takenCount: takenTableIds.size + unassignedOverlaps,
-      totalConsidered: bigEnough.length,
+      takenCount: fit.takenCount,
+      totalConsidered: fit.totalConsidered,
     };
+  }
+
+  /**
+   * Every bookable start time on one day, for the guest's time picker.
+   *
+   * One read of the tables and one of the day's bookings, then each
+   * candidate is checked in memory with the same rule availability() uses —
+   * asking /availability once per slot would be 40+ round trips per day the
+   * guest taps.
+   *
+   * `from`/`to` are the guest's local midnight bounds (their browser is in
+   * the restaurant's town); opening hours are checked in the LOCATION's
+   * timezone, the same way the phone line checks them.
+   */
+  async publicSlots(locationId: string, from: Date, to: Date, partySize: number) {
+    const loc = await this.prisma.location.findUnique({
+      where: { id: locationId },
+      select: { id: true, settings: true, openingHours: true, timezone: true },
+    });
+    if (!loc) throw new NotFoundException("Location not found");
+    const settings = this.readSettings(loc.settings);
+    if (!settings.tableServiceEnabled || !settings.onlineEnabled) return { slots: [] };
+    if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime()) || to <= from) {
+      throw new BadRequestException("Invalid day");
+    }
+    // A day is at most 25 hours (clocks going back); refuse anything wider.
+    if (to.getTime() - from.getTime() > 26 * 3600_000) {
+      throw new BadRequestException("Ask for one day at a time");
+    }
+    const party = Math.max(1, Math.round(partySize) || 2);
+    if (party > settings.maxPartySize) return { slots: [] };
+
+    const tz = loc.timezone || "Europe/London";
+    const hasHours = hoursConfigured(loc.openingHours);
+    const earliest = Date.now() + settings.leadTimeMins * 60_000;
+    const latest = addDays(new Date(), settings.maxDaysAhead).getTime();
+
+    const tables = await this.prisma.table.findMany({
+      where: { locationId, isActive: true, outOfService: false, bookableOnline: true },
+      orderBy: [{ seats: "asc" }, { sortOrder: "asc" }],
+    });
+    const bookings = await this.prisma.tableReservation.findMany({
+      where: {
+        locationId,
+        status: { in: LIVE_STATUSES },
+        startsAt: {
+          gte: new Date(from.getTime() - 12 * 3600_000),
+          lte: new Date(to.getTime() + 12 * 3600_000),
+        },
+      },
+    });
+
+    const STEP = 15;
+    const slots: { startsAt: string; available: boolean }[] = [];
+    for (let t = from.getTime(); t < to.getTime(); t += STEP * 60_000) {
+      const at = new Date(t);
+      const wall = new Date(at.toLocaleString("en-US", { timeZone: tz }));
+      const mins = wall.getHours() * 60 + wall.getMinutes();
+      // With hours set, the shop's own hours decide. Without them, offer a
+      // sensible dining window instead of 3am.
+      const open = hasHours
+        ? isCurrentlyOpen(loc.openingHours, tz, at)
+        : mins >= 12 * 60 && mins <= 21 * 60 + 30;
+      if (!open) continue;
+      if (t < earliest || t > latest) continue;
+      const end = new Date(t + settings.slotMinutes * 60_000);
+      const fit = freeTables(tables, bookings, at, end, party);
+      slots.push({ startsAt: at.toISOString(), available: fit.available.length > 0 });
+    }
+    return { slots };
   }
 
   // ── Create ──────────────────────────────────────────────────────────
@@ -291,12 +377,16 @@ export class ReservationsService {
 
   async create(tenantId: string, input: CreateReservationInput) {
     const loc = await this.assertLocation(tenantId, input.locationId);
-    return this.createInternal(
+    const created = await this.createInternal(
       tenantId,
       input,
       this.readSettings(loc.settings),
       { onlineOnly: false },
     );
+    // Taken over the phone by staff: the guest still gets it in writing
+    // when they gave an email.
+    this.notify("confirmed", created);
+    return created;
   }
 
   /** Storefront booking form. No JWT — the location id is the only key. */
@@ -312,6 +402,14 @@ export class ReservationsService {
         "This restaurant isn't taking online bookings at the moment.",
       );
     }
+    // The confirmation goes by email, so an online booking needs an address
+    // that can take one.
+    const email = String(input.customerEmail ?? "").trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      throw new BadRequestException(
+        "Please enter your email so we can send your confirmation.",
+      );
+    }
     const created = await this.createInternal(
       loc.brand.tenantId,
       { ...input, source: "ONLINE" },
@@ -320,6 +418,7 @@ export class ReservationsService {
     );
 
     this.announce(created);
+    this.notify("confirmed", created);
     // Never leak the internal table assignment to the guest.
     return {
       reference: created.reference,
@@ -437,6 +536,7 @@ export class ReservationsService {
       { onlineOnly: true },
     );
     this.announce(created);
+    this.notify("confirmed", created);
     return created;
   }
 
@@ -570,7 +670,11 @@ export class ReservationsService {
   async update(
     tenantId: string,
     id: string,
-    input: Partial<CreateReservationInput> & { status?: ReservationStatus },
+    input: Partial<CreateReservationInput> & {
+      status?: ReservationStatus;
+      /** Email the guest about a new time / party size. Default: yes. */
+      notifyCustomer?: boolean;
+    },
   ) {
     const r = await this.assertReservation(tenantId, id);
     const startsAt = input.startsAt ? new Date(input.startsAt) : r.startsAt;
@@ -601,7 +705,7 @@ export class ReservationsService {
       }
     }
 
-    return this.prisma.tableReservation.update({
+    const updated = await this.prisma.tableReservation.update({
       where: { id },
       data: {
         ...(input.customerName !== undefined
@@ -629,13 +733,36 @@ export class ReservationsService {
             }
           : {}),
       },
-      include: { table: { select: { id: true, name: true } } },
+      include: { table: { select: { id: true, name: true, area: true } } },
     });
+
+    // The guest hears about what THEY see: the time, the day, how many.
+    // Which table the floor put them on is not their business, so a table
+    // shuffle sends nothing.
+    if (input.notifyCustomer !== false && LIVE_STATUSES.includes(updated.status as ReservationStatus)) {
+      const guestFacingChange =
+        updated.startsAt.getTime() !== r.startsAt.getTime() ||
+        updated.partySize !== r.partySize;
+      if (guestFacingChange) this.notify("updated", updated);
+    }
+    if (
+      input.notifyCustomer !== false &&
+      input.status === "CANCELLED" &&
+      r.status !== "CANCELLED"
+    ) {
+      this.notify("cancelled", updated);
+    }
+    return updated;
   }
 
-  async setStatus(tenantId: string, id: string, status: ReservationStatus) {
-    await this.assertReservation(tenantId, id);
-    return this.prisma.tableReservation.update({
+  async setStatus(
+    tenantId: string,
+    id: string,
+    status: ReservationStatus,
+    opts?: { notifyCustomer?: boolean },
+  ) {
+    const before = await this.assertReservation(tenantId, id);
+    const updated = await this.prisma.tableReservation.update({
       where: { id },
       data: {
         status,
@@ -643,8 +770,80 @@ export class ReservationsService {
           ? { cancelledAt: new Date() }
           : {}),
       },
-      include: { table: { select: { id: true, name: true } } },
+      include: { table: { select: { id: true, name: true, area: true } } },
     });
+    if (
+      status === "CANCELLED" &&
+      before.status !== "CANCELLED" &&
+      opts?.notifyCustomer !== false
+    ) {
+      this.notify("cancelled", updated);
+    }
+    return updated;
+  }
+
+  /**
+   * One booking, plus this guest's other bookings at the same shop — the
+   * details drawer shows "3rd visit, 1 no-show" so the floor knows who is
+   * walking in. Matched by email, or the last nine digits of the phone
+   * (numbers arrive as +44, 0044 or 07…).
+   */
+  async get(tenantId: string, id: string) {
+    const r = await this.prisma.tableReservation.findFirst({
+      where: { id, tenantId },
+      include: { table: { select: { id: true, name: true, area: true } } },
+    });
+    if (!r) throw new NotFoundException("Reservation not found");
+    const email = r.customerEmail?.trim().toLowerCase() || null;
+    const tail = String(r.customerPhone ?? "").replace(/\D/g, "").slice(-9);
+    let history: any[] = [];
+    if (email || tail.length === 9) {
+      const others = await this.prisma.tableReservation.findMany({
+        where: {
+          tenantId,
+          locationId: r.locationId,
+          id: { not: r.id },
+          OR: [
+            ...(email ? [{ customerEmail: { equals: email, mode: "insensitive" as const } }] : []),
+            ...(tail.length === 9 ? [{ customerPhone: { contains: tail.slice(-6) } }] : []),
+          ],
+        },
+        orderBy: { startsAt: "desc" },
+        take: 50,
+        select: {
+          id: true,
+          startsAt: true,
+          partySize: true,
+          status: true,
+          customerEmail: true,
+          customerPhone: true,
+          reference: true,
+        },
+      });
+      // `contains` on six digits is only a pre-filter; confirm on nine.
+      history = others
+        .filter(
+          (o) =>
+            (email && o.customerEmail?.trim().toLowerCase() === email) ||
+            (tail.length === 9 &&
+              String(o.customerPhone ?? "").replace(/\D/g, "").slice(-9) === tail),
+        )
+        .slice(0, 12)
+        .map(({ customerEmail: _e, customerPhone: _p, ...rest }) => rest);
+    }
+    return { ...r, history };
+  }
+
+  /** Staff "resend confirmation" from the details drawer. */
+  async resendConfirmation(tenantId: string, id: string) {
+    const r = await this.assertReservation(tenantId, id);
+    if (!r.customerEmail) {
+      throw new BadRequestException("This booking has no email address.");
+    }
+    const kind = r.status === "CANCELLED" ? "cancelled" : "confirmed";
+    const sent = (await this.emails?.send(kind, r.id)) ?? false;
+    if (!sent) throw new BadRequestException("Couldn't send the email — check the address.");
+    return { ok: true, to: r.customerEmail };
   }
 
   /**
@@ -699,6 +898,41 @@ export class ReservationsService {
     await this.prisma.tableReservation.delete({ where: { id } });
     return { ok: true };
   }
+}
+
+/**
+ * Which tables can take a party for [startsAt, endsAt), given the live
+ * bookings around it. Pure, so the guest slot grid can run it 50 times
+ * against one read.
+ */
+function freeTables<T extends { id: string; seats: number | null }>(
+  tables: T[],
+  bookings: { tableId: string | null; startsAt: Date; durationMins: number }[],
+  startsAt: Date,
+  endsAt: Date,
+  partySize: number,
+) {
+  const overlaps = bookings.filter((b) => {
+    const bStart = b.startsAt.getTime();
+    const bEnd = bStart + b.durationMins * 60_000;
+    return bStart < endsAt.getTime() && bEnd > startsAt.getTime();
+  });
+  const takenTableIds = new Set(
+    overlaps.map((b) => b.tableId).filter(Boolean) as string[],
+  );
+  // Bookings with no table assigned still eat capacity — count them so
+  // we never promise more tables than we actually have free.
+  const unassignedOverlaps = overlaps.filter((b) => !b.tableId).length;
+
+  const bigEnough = tables.filter((t) => (t.seats ?? 99) >= partySize);
+  const free = bigEnough.filter((t) => !takenTableIds.has(t.id));
+  // Hold back one table per unassigned booking, smallest first, so the
+  // floor keeps the flexibility it already promised away.
+  return {
+    available: free.slice(unassignedOverlaps),
+    takenCount: takenTableIds.size + unassignedOverlaps,
+    totalConsidered: bigEnough.length,
+  };
 }
 
 function startOfDay(d: Date): Date {

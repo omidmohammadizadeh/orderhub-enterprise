@@ -13,7 +13,10 @@ export type AlertTrigger =
   | "RIDER_ARRIVED"
   | "SCHEDULED_ORDER_READY"
   | "PRINTER_OFFLINE"
-  | "FAILED_PRINT";
+  | "FAILED_PRINT"
+  | "NEW_APPOINTMENT"
+  | "APPOINTMENT_CANCELLED"
+  | "WALK_IN_JOINED";
 
 export interface UpsertAlertDto {
   locationId: string;

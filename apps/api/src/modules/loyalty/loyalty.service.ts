@@ -1,5 +1,6 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from "@nestjs/common";
-import { OnEvent } from "@nestjs/event-emitter";
+import { BadRequestException, Injectable, Logger, NotFoundException, Optional } from "@nestjs/common";
+import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
+import { isStampIconKey } from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 
 // Stamp cards.
@@ -48,11 +49,22 @@ const EARNING = new Set(["COMPLETED"]);
 /** The order is not happening. Whatever it earned comes back. */
 const REVOKING = new Set(["CANCELLED", "REJECTED", "FAILED", "REFUNDED"]);
 
+/** Who holds a card: a storefront account (online) or a walk-in member
+ *  (wallet card scanned at the till). Exactly one is set. */
+export type LoyaltyHolder = { customerAccountId: string } | { memberId: string };
+
+/** Fired whenever a walk-in member's stamps or rewards change, so their
+ *  Apple/Google Wallet pass can be refreshed. */
+export const MEMBER_CHANGED = "loyalty.member_changed";
+
 @Injectable()
 export class LoyaltyService {
   private readonly logger = new Logger(LoyaltyService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Optional() private readonly events?: EventEmitter2,
+  ) {}
 
   // ── Operator side ────────────────────────────────────────────────────────
 
@@ -73,8 +85,17 @@ export class LoyaltyService {
       minimumSpend: null,
       rewardItemId: null,
       rewardLabel: "Free item",
+      rewardType: "FREE_ITEM",
+      rewardPercent: null,
+      rewardMaxDiscount: null,
+      rewardMinOrder: null,
       rewardExpiryDays: null,
       rewardItem: null,
+      walkInEnabled: false,
+      cardTitle: null,
+      cardColor: null,
+      cardLogoUrl: null,
+      stampIcon: null,
     };
   }
 
@@ -87,7 +108,16 @@ export class LoyaltyService {
       minimumSpend?: number | null;
       rewardItemId?: string | null;
       rewardLabel?: string;
+      rewardType?: string;
+      rewardPercent?: number | null;
+      rewardMaxDiscount?: number | null;
+      rewardMinOrder?: number | null;
       rewardExpiryDays?: number | null;
+      walkInEnabled?: boolean;
+      cardTitle?: string | null;
+      cardColor?: string | null;
+      cardLogoUrl?: string | null;
+      stampIcon?: string | null;
     },
   ) {
     await this.assertLocation(tenantId, locationId);
@@ -99,7 +129,8 @@ export class LoyaltyService {
     // A one-stamp card is a discount, not a loyalty scheme, and twenty is
     // already past the point anyone finishes one.
 
-    if (dto.rewardItemId) {
+    // A percent card has no reward item, so a leftover id is ignored, not checked.
+    if (dto.rewardItemId && dto.rewardType !== "PERCENT_OFF") {
       const item = await this.prisma.menuItem.findFirst({
         // MenuItem carries no tenantId of its own — it hangs off the brand.
         where: { id: dto.rewardItemId, brandId: { in: await this.brandIds(tenantId) } },
@@ -108,10 +139,22 @@ export class LoyaltyService {
       if (!item) throw new BadRequestException("Reward item not found");
     }
 
+    // Percentage off the order: a whole number 1-100, with an optional cap
+    // and minimum order. A percent card has no reward item.
+    const percentCard = dto.rewardType === "PERCENT_OFF";
+    const money = (v: number | null | undefined) =>
+      v === null || v === undefined || !Number.isFinite(Number(v)) || Number(v) <= 0
+        ? null
+        : Math.round(Number(v) * 100) / 100;
+    const rewardPercent = percentCard ? Math.round(Number(dto.rewardPercent)) : null;
+    if (percentCard && (!Number.isFinite(rewardPercent!) || rewardPercent! < 1 || rewardPercent! > 100)) {
+      throw new BadRequestException("Enter a percentage between 1 and 100.");
+    }
+
     // Turning it ON without saying what the reward is would put an empty
     // promise on every customer's card.
-    const label = (dto.rewardLabel ?? "").trim();
-    if (dto.isActive && !label && !dto.rewardItemId) {
+    const label = (dto.rewardLabel ?? "").trim() || (percentCard ? `${rewardPercent}% off your order` : "");
+    if (dto.isActive && !percentCard && !label && !dto.rewardItemId) {
       throw new BadRequestException(
         "Choose a reward, or describe it, before switching the card on.",
       );
@@ -124,20 +167,42 @@ export class LoyaltyService {
         dto.minimumSpend === null || dto.minimumSpend === undefined
           ? null
           : Math.max(0, Number(dto.minimumSpend)),
-      rewardItemId: dto.rewardItemId ?? null,
+      rewardItemId: percentCard ? null : (dto.rewardItemId ?? null),
       rewardLabel: label || "Free item",
+      rewardType: percentCard ? "PERCENT_OFF" : "FREE_ITEM",
+      rewardPercent,
+      rewardMaxDiscount: percentCard ? money(dto.rewardMaxDiscount) : null,
+      rewardMinOrder: percentCard ? money(dto.rewardMinOrder) : null,
       rewardExpiryDays:
         dto.rewardExpiryDays === null || dto.rewardExpiryDays === undefined
           ? null
           : Math.max(1, Math.round(dto.rewardExpiryDays)),
+      // Walk-in card fields: only when sent, so an older dashboard saving the
+      // online card cannot switch the walk-in card off.
+      ...(dto.walkInEnabled !== undefined ? { walkInEnabled: !!dto.walkInEnabled } : {}),
+      ...(dto.cardTitle !== undefined ? { cardTitle: dto.cardTitle?.trim().slice(0, 40) || null } : {}),
+      ...(dto.cardColor !== undefined
+        ? {
+            cardColor:
+              dto.cardColor && /^#[0-9a-fA-F]{6}$/.test(dto.cardColor) ? dto.cardColor.toUpperCase() : null,
+          }
+        : {}),
+      ...(dto.cardLogoUrl !== undefined
+        ? { cardLogoUrl: dto.cardLogoUrl && /^https:\/\//i.test(dto.cardLogoUrl) ? dto.cardLogoUrl : null }
+        : {}),
+      ...(dto.stampIcon !== undefined ? { stampIcon: isStampIconKey(dto.stampIcon) ? dto.stampIcon : null } : {}),
     };
 
-    return this.prisma.loyaltyCard.upsert({
+    const saved = await this.prisma.loyaltyCard.upsert({
       where: { locationId },
       create: { tenantId, locationId, ...data },
       update: data,
       include: { rewardItem: { select: { id: true, name: true } } },
     });
+    // Wallet passes already on people's phones show the name, colour and
+    // reward — they follow the change.
+    this.events?.emit("loyalty.card_changed", { locationId });
+    return saved;
   }
 
   // ── Earning ──────────────────────────────────────────────────────────────
@@ -166,7 +231,11 @@ export class LoyaltyService {
         await this.revokeForOrder(payload.orderId);
         return;
       }
-      if (payload.toStatus !== "COMPLETED") return;
+      // Any forward move re-checks: a walk-in card stamps as soon as the
+      // order is PAID (a card-machine sale is held PENDING until the charge
+      // lands, then accepted), so the customer sees it at the counter.
+      // awardForOrder decides eligibility; the unique orderId makes the
+      // repeat calls free.
       await this.awardForOrder(payload.orderId);
     } catch (err) {
       this.logger.warn(
@@ -183,17 +252,29 @@ export class LoyaltyService {
         tenantId: true,
         locationId: true,
         customerAccountId: true,
+        loyaltyMemberId: true,
         subtotal: true,
         total: true,
         status: true,
+        paymentStatus: true,
       },
     });
     const none = { stamped: false, earnedReward: false };
-    // Anything at or past acceptance counts — a shop that goes straight to
-    // PREPARING, or an order completed by a tab closing, has still accepted it.
-    if (!order || !EARNING.has(order.status)) return none;
+    if (!order || REVOKING.has(order.status)) return none;
     // Guest checkouts cannot hold a card — there is nobody to give it to.
-    if (!order.customerAccountId) return none;
+    const holder: LoyaltyHolder | null = order.customerAccountId
+      ? { customerAccountId: order.customerAccountId }
+      : order.loyaltyMemberId
+        ? { memberId: order.loyaltyMemberId }
+        : null;
+    if (!holder) return none;
+    // Online: only a finished order earns. Walk-in: the customer is standing
+    // at the counter with the card on their phone, so it earns the moment it
+    // is paid — and is still taken back by a cancel or refund like any other.
+    const earning =
+      EARNING.has(order.status) ||
+      ("memberId" in holder && order.paymentStatus === "PAID");
+    if (!earning) return none;
 
     const card = await this.prisma.loyaltyCard.findUnique({
       where: { locationId: order.locationId },
@@ -207,12 +288,16 @@ export class LoyaltyService {
       return none;
     }
 
+    // A storefront account linked to a wallet card (or the reverse) stamps
+    // BOTH ids, so the online card and the wallet pass count the same stamps.
+    const owners = await this.ownerIds(card.id, holder);
+
     try {
       await this.prisma.loyaltyStamp.create({
         data: {
           tenantId: order.tenantId,
           cardId: card.id,
-          customerAccountId: order.customerAccountId,
+          ...owners,
           orderId: order.id,
           spend,
         },
@@ -224,10 +309,8 @@ export class LoyaltyService {
       throw err;
     }
 
-    const earnedReward = await this.maybeMintReward(
-      card,
-      order.customerAccountId,
-    );
+    const earnedReward = await this.maybeMintReward(card, holder, owners);
+    this.memberChanged(owners);
     return { stamped: true, earnedReward };
   }
 
@@ -241,9 +324,14 @@ export class LoyaltyService {
   async revokeForOrder(orderId: string): Promise<void> {
     const stamp = await this.prisma.loyaltyStamp.findUnique({
       where: { orderId },
-      select: { id: true, cardId: true, customerAccountId: true },
+      select: { id: true, cardId: true, customerAccountId: true, memberId: true },
     });
     if (!stamp) return;
+    const holder: LoyaltyHolder | null = stamp.customerAccountId
+      ? { customerAccountId: stamp.customerAccountId }
+      : stamp.memberId
+        ? { memberId: stamp.memberId }
+        : null;
 
     await this.prisma.loyaltyStamp.delete({ where: { id: stamp.id } });
 
@@ -251,14 +339,15 @@ export class LoyaltyService {
       where: { id: stamp.cardId },
       select: { id: true, stampsRequired: true },
     });
-    if (!card) return;
+    if (!card || !holder) return;
+    this.memberChanged({ memberId: stamp.memberId });
 
     const [stamps, rewards] = await Promise.all([
       this.prisma.loyaltyStamp.count({
-        where: { cardId: card.id, customerAccountId: stamp.customerAccountId },
+        where: { cardId: card.id, ...holder },
       }),
       this.prisma.loyaltyReward.count({
-        where: { cardId: card.id, customerAccountId: stamp.customerAccountId },
+        where: { cardId: card.id, ...holder },
       }),
     ]);
 
@@ -267,7 +356,7 @@ export class LoyaltyService {
       const spare = await this.prisma.loyaltyReward.findFirst({
         where: {
           cardId: card.id,
-          customerAccountId: stamp.customerAccountId,
+          ...holder,
           claimedAt: null,
         },
         orderBy: { earnedAt: "desc" },
@@ -280,6 +369,102 @@ export class LoyaltyService {
       }
     }
     this.logger.log(`Stamp for order ${orderId} withdrawn`);
+  }
+
+  // ── Stamps without a sale ────────────────────────────────────────────────
+  //
+  // The Scan loyalty card page: a shop that only wants the card (no till
+  // sale through us) scans it and gives a stamp. Same stamps, same rewards,
+  // same wallet pass — the stamp simply has no order. requestKey stands in
+  // for the order id as the defence against a double tap or a retry.
+
+  /** Give a walk-in member `count` stamps. Replaying the same requestKey adds nothing. */
+  async stampWithoutSale(input: {
+    card: {
+      id: string;
+      tenantId: string;
+      locationId: string;
+      stampsRequired: number;
+      rewardLabel: string;
+      rewardItemId: string | null;
+      rewardExpiryDays: number | null;
+      rewardType?: string;
+      rewardPercent?: number | null;
+      rewardMaxDiscount?: unknown;
+      rewardMinOrder?: unknown;
+    };
+    memberId: string;
+    count: number;
+    requestKey: string;
+    staffUserId: string | null;
+  }): Promise<{ stampIds: string[]; rewardsEarned: number }> {
+    const { card, memberId } = input;
+    const holder: LoyaltyHolder = { memberId };
+    const owners = await this.ownerIds(card.id, holder);
+    const keys = Array.from({ length: input.count }, (_, i) => `manual:${memberId}:${input.requestKey}:${i}`);
+    await this.prisma.loyaltyStamp.createMany({
+      data: keys.map((requestKey) => ({
+        tenantId: card.tenantId,
+        cardId: card.id,
+        ...owners,
+        source: "MANUAL",
+        requestKey,
+        staffUserId: input.staffUserId,
+        spend: 0,
+      })),
+      skipDuplicates: true,
+    });
+    const stamps = await this.prisma.loyaltyStamp.findMany({
+      where: { requestKey: { in: keys } },
+      select: { id: true },
+    });
+    // Several stamps at once can complete more than one card.
+    let rewardsEarned = 0;
+    for (let i = 0; i < input.count; i++) {
+      if (!(await this.maybeMintReward(card, holder, owners))) break;
+      rewardsEarned++;
+    }
+    this.memberChanged(owners);
+    return { stampIds: stamps.map((x) => x.id), rewardsEarned };
+  }
+
+  /**
+   * Take back stamps given without a sale — the Undo straight after a
+   * mistake. Only MANUAL stamps, only this member's, only recent ones; a
+   * reward they completed goes too while it is still unspent.
+   */
+  async undoStampsWithoutSale(
+    card: { id: string; stampsRequired: number },
+    memberId: string,
+    stampIds: string[],
+    since: Date,
+  ): Promise<number> {
+    const holder: LoyaltyHolder = { memberId };
+    const { count } = await this.prisma.loyaltyStamp.deleteMany({
+      where: {
+        id: { in: stampIds },
+        cardId: card.id,
+        memberId,
+        source: "MANUAL",
+        createdAt: { gte: since },
+      },
+    });
+    if (!count) return 0;
+    const [stamps, rewards] = await Promise.all([
+      this.prisma.loyaltyStamp.count({ where: { cardId: card.id, ...holder } }),
+      this.prisma.loyaltyReward.count({ where: { cardId: card.id, ...holder } }),
+    ]);
+    let extra = rewards - Math.floor(stamps / card.stampsRequired);
+    while (extra-- > 0) {
+      const spare = await this.prisma.loyaltyReward.findFirst({
+        where: { cardId: card.id, ...holder, claimedAt: null },
+        orderBy: { earnedAt: "desc" },
+      });
+      if (!spare) break;
+      await this.prisma.loyaltyReward.delete({ where: { id: spare.id } });
+    }
+    this.memberChanged({ memberId });
+    return count;
   }
 
   /**
@@ -298,15 +483,20 @@ export class LoyaltyService {
       rewardLabel: string;
       rewardItemId: string | null;
       rewardExpiryDays: number | null;
+      rewardType?: string;
+      rewardPercent?: number | null;
+      rewardMaxDiscount?: unknown;
+      rewardMinOrder?: unknown;
     },
-    customerAccountId: string,
+    holder: LoyaltyHolder,
+    owners: { customerAccountId?: string; memberId?: string } = holder,
   ): Promise<boolean> {
     const [stamps, rewards] = await Promise.all([
       this.prisma.loyaltyStamp.count({
-        where: { cardId: card.id, customerAccountId },
+        where: { cardId: card.id, ...holder },
       }),
       this.prisma.loyaltyReward.count({
-        where: { cardId: card.id, customerAccountId },
+        where: { cardId: card.id, ...holder },
       }),
     ]);
 
@@ -321,10 +511,17 @@ export class LoyaltyService {
         // card at all, so a reward has to know its own shop.
         locationId: card.locationId,
         source: "LOYALTY",
-        customerAccountId,
+        ...owners,
         // Frozen. Tomorrow's offer does not rewrite today's promise.
         label: card.rewardLabel,
-        rewardItemId: card.rewardItemId,
+        rewardItemId: card.rewardType === "PERCENT_OFF" ? null : card.rewardItemId,
+        ...(card.rewardType === "PERCENT_OFF" && card.rewardPercent
+          ? {
+              percentOff: card.rewardPercent,
+              maxDiscount: card.rewardMaxDiscount != null ? Number(card.rewardMaxDiscount) : null,
+              minOrder: card.rewardMinOrder != null ? Number(card.rewardMinOrder) : null,
+            }
+          : {}),
         expiresAt: card.rewardExpiryDays
           ? new Date(Date.now() + card.rewardExpiryDays * 86_400_000)
           : null,
@@ -366,13 +563,18 @@ export class LoyaltyService {
       lifetimeStamps: stamps,
       minimumSpend: card.minimumSpend ? Number(card.minimumSpend) : null,
       rewardLabel: card.rewardLabel,
-      rewardItem: card.rewardItem,
+      rewardItem: card.rewardType === "PERCENT_OFF" ? null : card.rewardItem,
+      rewardType: card.rewardType,
+      rewardPercent: card.rewardPercent,
       rewards: live.map((r) => ({
         id: r.id,
         label: r.label,
         rewardItemId: r.rewardItemId,
         source: r.source,
         amountOff: r.amountOff ? Number(r.amountOff) : null,
+        percentOff: r.percentOff ?? null,
+        maxDiscount: r.maxDiscount != null ? Number(r.maxDiscount) : null,
+        minOrder: r.minOrder != null ? Number(r.minOrder) : null,
         earnedAt: r.earnedAt,
         expiresAt: r.expiresAt,
       })),
@@ -390,7 +592,13 @@ export class LoyaltyService {
       },
       orderBy: { earnedAt: "asc" },
     });
-    return rewards;
+    // Money as numbers: the storefront works the discount out from these.
+    return rewards.map((r) => ({
+      ...r,
+      amountOff: r.amountOff != null ? Number(r.amountOff) : null,
+      maxDiscount: r.maxDiscount != null ? Number(r.maxDiscount) : null,
+      minOrder: r.minOrder != null ? Number(r.minOrder) : null,
+    }));
   }
 
   /**
@@ -411,6 +619,43 @@ export class LoyaltyService {
       where: { id: reward.id },
       data: { claimedAt: new Date(), claimedOrderId: orderId },
     });
+  }
+
+  /**
+   * Both ids a stamp or reward should carry: the holder's own, plus the other
+   * side of a storefront-account ↔ wallet-card link when there is one.
+   */
+  async ownerIds(cardId: string, holder: LoyaltyHolder): Promise<{ customerAccountId?: string; memberId?: string }> {
+    if ("customerAccountId" in holder) {
+      const member = await this.prisma.loyaltyMember.findUnique({
+        where: { cardId_customerAccountId: { cardId, customerAccountId: holder.customerAccountId } },
+        select: { id: true },
+      });
+      return { customerAccountId: holder.customerAccountId, ...(member ? { memberId: member.id } : {}) };
+    }
+    const member = await this.prisma.loyaltyMember.findUnique({
+      where: { id: holder.memberId },
+      select: { customerAccountId: true },
+    });
+    return { memberId: holder.memberId, ...(member?.customerAccountId ? { customerAccountId: member.customerAccountId } : {}) };
+  }
+
+  /**
+   * Mint whatever rewards a card is now owed — after two halves of one
+   * customer's stamps were joined, the total can complete a card at once.
+   */
+  async settleRewards(cardId: string, holder: LoyaltyHolder): Promise<void> {
+    const card = await this.prisma.loyaltyCard.findUnique({ where: { id: cardId } });
+    if (!card) return;
+    const owners = await this.ownerIds(cardId, holder);
+    for (let i = 0; i < 20; i++) {
+      if (!(await this.maybeMintReward(card, holder, owners))) break;
+    }
+  }
+
+  /** A walk-in card changed — its wallet pass has to follow. */
+  private memberChanged(ids: { memberId?: string | null }) {
+    if (ids.memberId) this.events?.emit(MEMBER_CHANGED, { memberId: ids.memberId });
   }
 
   private async brandIds(tenantId: string): Promise<string[]> {

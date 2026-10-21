@@ -174,3 +174,24 @@ export function describeMaskedAddress(
   if (!parts.some(isMaskedValue)) return null;
   return "Address withheld by the delivery partner — their courier is delivering";
 }
+
+// ── House number ────────────────────────────────────────────────────────────
+//
+// A UK delivery with only a street on it cannot be delivered: "Maple Grove"
+// and "Ash Terrace" both reached Best Kebab's drivers on 14 Oct 2026 with no
+// number, and the driver had to ring round. The storefront keeps the number in
+// its own box (line2) while a picked address can carry it at the start of
+// line1 ("35 Brunel Street"), so either counts. A house NAME in the number box
+// ("Rose Cottage") counts too.
+
+/** True when the address says which door: a number or name in line2, or a
+ *  number at the start of / standing alone in line1. */
+export function hasHouseNumberOrName(address: {
+  line1?: string | null;
+  line2?: string | null;
+}): boolean {
+  if (String(address.line2 ?? "").trim().length > 0) return true;
+  const line1 = String(address.line1 ?? "").trim();
+  // "35 Brunel Street", "35a High St", "Flat 2, 10 Oak Road", "Unit 4".
+  return /(^|[\s,])\d+[a-z]?(?=$|[\s,/-])/i.test(line1);
+}

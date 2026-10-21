@@ -51,6 +51,10 @@ export interface Order {
   isWalkIn?: boolean;
   paymentStatus?: string | null;
   customerInfo: { name: string; phone?: string; email?: string };
+  /** Dine-in: which table. `tableName` is resolved server-side (tableId has
+   *  no Prisma relation) by findLiveOrders / findMany / findOne. */
+  tableId?: string | null;
+  tableName?: string | null;
   deliveryAddress?: {
     line1: string;
     line2?: string;

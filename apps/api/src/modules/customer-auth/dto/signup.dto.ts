@@ -34,4 +34,16 @@ export class CustomerSignupDto {
   @IsString()
   @IsOptional()
   storeSlug?: string;
+
+  // Where the customer signed up — a brand's own domain or ours — and the
+  // brand they were ordering from, so the confirmation link brings them back
+  // to the same site and the same basket. The origin is only used when it is
+  // one we serve (see CustomerAuthService.trustedStorefrontOrigin).
+  @IsString()
+  @IsOptional()
+  origin?: string;
+
+  @IsString()
+  @IsOptional()
+  brandId?: string;
 }

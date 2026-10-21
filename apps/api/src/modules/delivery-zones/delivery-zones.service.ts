@@ -431,7 +431,18 @@ export class DeliveryZonesService {
       locationId = brand?.primaryLocationId ?? null;
     }
     if (!locationId) return null;
+    return this.locateShop(locationId);
+  }
 
+  /**
+   * Where a shop is, geocoded from its own address on first use and cached.
+   *
+   * Public because JET Go onboarding needs the same answer: JET requires
+   * coordinates to register a collect point, and nothing else in the app
+   * writes Location.latitude — a shop that has never used distance-based
+   * delivery simply has none. Two callers, one geocoder, one cache.
+   */
+  async locateShop(locationId: string): Promise<{ lat: number; lng: number } | null> {
     const loc = await this.prisma.location.findFirst({
       where: { id: locationId },
       select: {

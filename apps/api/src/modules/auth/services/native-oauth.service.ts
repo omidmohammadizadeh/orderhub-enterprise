@@ -6,7 +6,9 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { OAuth2Client } from "google-auth-library";
-import { createRemoteJWKSet, jwtVerify } from "jose";
+// Type-only: jose is ESM-only, and loading it lazily keeps every module that
+// imports this service (the customer storefront auth too) loadable under Jest.
+import type * as Jose from "jose";
 import type { OAuthProfile } from "../interfaces/oauth-provider.interface";
 
 // NativeOAuthService verifies ID tokens that come from native mobile
@@ -27,9 +29,7 @@ export class NativeOAuthService {
 
   // Apple's signing keys, fetched and cached by `jose`. The remote set
   // refreshes itself when an unknown `kid` is encountered.
-  private readonly appleJwks = createRemoteJWKSet(
-    new URL("https://appleid.apple.com/auth/keys"),
-  );
+  private appleJwks?: ReturnType<typeof Jose.createRemoteJWKSet>;
 
   constructor(private readonly config: ConfigService) {}
 
@@ -38,11 +38,19 @@ export class NativeOAuthService {
   // Mobile sends the `idToken` returned by @react-native-google-signin/google-signin.
   // We verify against the set of valid audiences (iOS client ID + Web client ID;
   // Android sign-in uses the Web client ID as its audience, by design).
-  async verifyGoogleIdToken(idToken: string): Promise<OAuthProfile> {
-    const audiences = [
-      this.config.get<string>("GOOGLE_IOS_CLIENT_ID"),
-      this.config.get<string>("GOOGLE_CLIENT_ID"), // Web client ID
-    ].filter((v): v is string => !!v && v.length > 0);
+  //
+  // `audienceOverride` lets another caller (the white-label customer apps,
+  // each with its own client IDs) verify against its own list instead.
+  async verifyGoogleIdToken(
+    idToken: string,
+    audienceOverride?: string[],
+  ): Promise<OAuthProfile> {
+    const audiences = (
+      audienceOverride ?? [
+        this.config.get<string>("GOOGLE_IOS_CLIENT_ID"),
+        this.config.get<string>("GOOGLE_CLIENT_ID"), // Web client ID
+      ]
+    ).filter((v): v is string => !!v && v.length > 0);
 
     if (audiences.length === 0) {
       throw new ServiceUnavailableException(
@@ -94,12 +102,14 @@ export class NativeOAuthService {
     idToken: string,
     fallbackEmail?: string | null,
     fallbackFullName?: { givenName?: string | null; familyName?: string | null },
+    audienceOverride?: string[],
   ): Promise<OAuthProfile> {
     // APPLE_BUNDLE_ID may be a comma-separated list so multiple native apps
     // (e.g. the POS app + the driver app, each with its own bundle id) all
     // validate against the same API.
-    const audiences = (this.config.get<string>("APPLE_BUNDLE_ID") ?? "")
-      .split(",")
+    const audiences = (
+      audienceOverride ?? (this.config.get<string>("APPLE_BUNDLE_ID") ?? "").split(",")
+    )
       .map((s) => s.trim())
       .filter(Boolean);
     if (audiences.length === 0) {
@@ -110,7 +120,11 @@ export class NativeOAuthService {
 
     let payload: Record<string, unknown>;
     try {
-      const verified = await jwtVerify(idToken, this.appleJwks, {
+      const jose: typeof Jose = await import("jose");
+      this.appleJwks ??= jose.createRemoteJWKSet(
+        new URL("https://appleid.apple.com/auth/keys"),
+      );
+      const verified = await jose.jwtVerify(idToken, this.appleJwks, {
         issuer: "https://appleid.apple.com",
         audience: audiences,
       });

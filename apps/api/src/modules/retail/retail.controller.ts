@@ -137,6 +137,15 @@ export class RetailController {
     return this.catalog.barcodeIndex(user.tenantId, locationId);
   }
 
+  @Post("locations/:locationId/test-barcodes")
+  @Roles(...CATALOG_MANAGE)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Testing aid: give unbarcoded products an in-store test barcode (049…)" })
+  async testBarcodes(@CurrentUser() user: AuthenticatedUser, @Param("locationId") locationId: string) {
+    await this.access.assertAccess(user, locationId);
+    return this.catalog.assignTestBarcodes(user.tenantId, locationId);
+  }
+
   @Get("locations/:locationId/deals")
   @Roles(...TILL_ROLES)
   @ApiOperation({ summary: "Multi-buy deals live on this till (POS channel)" })

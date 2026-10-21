@@ -4,13 +4,14 @@
 // navy title bar, then the charts side by side, six to an A4 landscape sheet.
 // ?menu=… prints every charted product on a menu; ?item=… prints one.
 
-import { Suspense } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthHydrated } from "@/stores/auth.store";
 import { Loader2, Printer } from "lucide-react";
 import type { AssemblyChartDto } from "@orderhub/shared";
 import { assemblyChartsClient } from "@/lib/api/assembly-charts.client";
+import { printLinksClient } from "@/lib/print-links";
 import { BOARD_BG, ChartColumn } from "@/components/assembly-charts/chart-column";
 
 const PER_SHEET = 6;
@@ -31,21 +32,28 @@ function PrintAssemblyCharts() {
   const params = useSearchParams();
   const menuId = params.get("menu");
   const itemId = params.get("item");
+  // ?pt= is a signed print link (the tablet app opens us in the device
+  // browser, where nobody is signed in) — it needs no session.
+  const pt = params.get("pt");
 
   // This page is outside the dashboard tree, so nothing has restored the
   // signed-in session yet: wait for the persisted tokens before calling the
   // API, or the first request goes out without them, 401s, and bounces to /login.
   const hydrated = useAuthHydrated();
   const q = useQuery({
-    queryKey: ["assembly-charts-print", menuId, itemId],
-    enabled: hydrated && !!(menuId || itemId),
+    queryKey: ["assembly-charts-print", menuId, itemId, pt],
+    enabled: (!!pt || hydrated) && !!(menuId || itemId),
     retry: false,
     queryFn: async (): Promise<{ heading: string; charts: AssemblyChartDto[] }> => {
       if (menuId) {
-        const r = await assemblyChartsClient.printMenu(menuId);
+        const r = pt
+          ? await printLinksClient.read<Awaited<ReturnType<typeof assemblyChartsClient.printMenu>>>(pt)
+          : await assemblyChartsClient.printMenu(menuId);
         return { heading: r.menuName, charts: r.charts };
       }
-      const r = await assemblyChartsClient.getForItem(itemId!);
+      const r = pt
+        ? await printLinksClient.read<Awaited<ReturnType<typeof assemblyChartsClient.getForItem>>>(pt)
+        : await assemblyChartsClient.getForItem(itemId!);
       return {
         heading: r.chart?.title ?? "",
         charts: r.chart ? [{ ...r.chart, heroImageUrl: r.chart.heroImageUrl ?? r.productImageUrl }] : [],
@@ -53,15 +61,41 @@ function PrintAssemblyCharts() {
     },
   });
 
+  // ?download=1 (Kitchen training's "Download PDF") opens the browser's
+  // print / Save-as-PDF dialog once, after the photos have loaded.
+  const download = params.get("download") === "1";
+  const printed = useRef(false);
+  const ready = !!q.data && q.data.charts.length > 0;
+  useEffect(() => {
+    if (!download || !ready || printed.current) return;
+    printed.current = true;
+    const imgs = [...document.images].filter((img) => !img.complete);
+    const loaded = Promise.all(
+      imgs.map(
+        (img) =>
+          new Promise((r) => {
+            img.addEventListener("load", r, { once: true });
+            img.addEventListener("error", r, { once: true });
+          }),
+      ),
+    );
+    const timeout = new Promise((r) => setTimeout(r, 8000));
+    Promise.race([loaded, timeout]).then(() => window.print());
+  }, [download, ready]);
+
   if (!menuId && !itemId) return <Centered>Nothing to print — open this from a product or a menu.</Centered>;
-  if (q.isPending || !hydrated)
+  if (q.isPending || (!pt && !hydrated))
     return (
       <Centered>
         <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Loading charts…
       </Centered>
     );
   if (q.isError || !q.data)
-    return <Centered>Could not load the charts. Make sure you are signed in to the dashboard in this browser.</Centered>;
+    return (
+      <Centered>
+        {pt ? "This link has expired — tap Download again in Kitchen training." : "Could not load the charts. Make sure you are signed in to the dashboard in this browser."}
+      </Centered>
+    );
 
   const { heading, charts } = q.data;
   const sheets: AssemblyChartDto[][] = [];
@@ -112,14 +146,52 @@ function PrintAssemblyCharts() {
                 </span>
               )}
             </header>
-            <div className="flex flex-1 items-start justify-center gap-[5mm]">
-              {sheet.map((c) => (
-                <ChartColumn key={c.id} chart={c} size="sm" className="w-[42mm]" />
-              ))}
-            </div>
+            <FitToSheet>
+              <div className="flex items-start justify-center gap-[5mm]">
+                {sheet.map((c) => (
+                  <ChartColumn key={c.id} chart={c} size="sm" className="w-[42mm]" />
+                ))}
+              </div>
+            </FitToSheet>
           </section>
         ))
       )}
     </div>
   );
 }
+
+/**
+ * Shrinks a sheet's columns to fit the A4 page. A tall build (a quadruple
+ * patty burger is ~11 layers) ran past the bottom of the fixed-height sheet
+ * and the bottom bun was cut off in print. transform: scale doesn't change
+ * layout, so the natural height stays measurable; a ResizeObserver re-fits
+ * when product photos finish loading and the column grows.
+ */
+function FitToSheet({ children }: { children: React.ReactNode }) {
+  const outer = useRef<HTMLDivElement>(null);
+  const inner = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+  useEffect(() => {
+    const fit = () => {
+      const o = outer.current;
+      const i = inner.current;
+      if (!o || !i) return;
+      const natural = i.offsetHeight;
+      const room = o.clientHeight;
+      setScale(natural > room && room > 0 ? room / natural : 1);
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    if (inner.current) ro.observe(inner.current);
+    if (outer.current) ro.observe(outer.current);
+    return () => ro.disconnect();
+  }, []);
+  return (
+    <div ref={outer} className="relative min-h-0 flex-1 overflow-hidden">
+      <div ref={inner} style={{ transform: `scale(${scale})`, transformOrigin: "top center" }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+

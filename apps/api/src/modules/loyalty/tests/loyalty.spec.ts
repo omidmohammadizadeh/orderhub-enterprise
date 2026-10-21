@@ -17,6 +17,7 @@ const svc = (over: Record<string, any> = {}) => {
       update: jest.fn(),
     },
     location: { findFirst: jest.fn().mockResolvedValue({ id: "loc-1" }) },
+    loyaltyMember: { findUnique: jest.fn().mockResolvedValue(null) },
     brand: { findMany: jest.fn().mockResolvedValue([{ id: "brand-1" }]) },
     menuItem: { findFirst: jest.fn().mockResolvedValue({ id: "item-1" }) },
     ...over,
@@ -241,10 +242,61 @@ describe("the order.status_changed listener", () => {
     expect(prisma.loyaltyStamp.create).toHaveBeenCalled();
   });
 
-  it("ignores a transition that is neither completion nor cancellation", async () => {
+  it("does not stamp an online order that is only accepted", async () => {
     const { s, prisma } = listen();
+    prisma.order.findUnique.mockResolvedValue({
+      id: "order-1", tenantId: "t1", locationId: "loc-1", customerAccountId: "cust-1",
+      subtotal: 20, total: 20, status: "ACCEPTED", paymentStatus: "PAID",
+    });
     await s.onOrderStatusChanged({ orderId: "order-1", toStatus: "ACCEPTED" });
     expect(prisma.loyaltyStamp.create).not.toHaveBeenCalled();
+  });
+
+  // Walk-in cards: the customer is at the counter, so a paid order stamps now.
+  it("stamps a walk-in card as soon as the order is paid", async () => {
+    const { s, prisma } = listen();
+    prisma.order.findUnique.mockResolvedValue({
+      id: "order-1", tenantId: "t1", locationId: "loc-1", customerAccountId: null, loyaltyMemberId: "mem-1",
+      subtotal: 4, total: 4, status: "ACCEPTED", paymentStatus: "PAID",
+    });
+    await s.onOrderStatusChanged({ orderId: "order-1", toStatus: "ACCEPTED" });
+    expect(prisma.loyaltyStamp.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ memberId: "mem-1", orderId: "order-1" }),
+    });
+    expect(prisma.loyaltyStamp.create.mock.calls[0][0].data).not.toHaveProperty("customerAccountId");
+  });
+
+  it("stamps BOTH ids when the online account is linked to a wallet card", async () => {
+    const { s, prisma } = listen();
+    prisma.loyaltyMember.findUnique.mockResolvedValue({ id: "mem-9" });
+    await s.onOrderStatusChanged({ orderId: "order-1", toStatus: "COMPLETED" });
+    expect(prisma.loyaltyStamp.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ customerAccountId: "cust-1", memberId: "mem-9" }),
+    });
+  });
+
+  it("waits for the money before stamping a walk-in card", async () => {
+    const { s, prisma } = listen();
+    prisma.order.findUnique.mockResolvedValue({
+      id: "order-1", tenantId: "t1", locationId: "loc-1", customerAccountId: null, loyaltyMemberId: "mem-1",
+      subtotal: 4, total: 4, status: "PENDING", paymentStatus: "PENDING",
+    });
+    await s.onOrderStatusChanged({ orderId: "order-1", toStatus: "PENDING" });
+    expect(prisma.loyaltyStamp.create).not.toHaveBeenCalled();
+  });
+
+  it("mints a walk-in reward on the member, not an account", async () => {
+    const { s, prisma } = listen();
+    prisma.order.findUnique.mockResolvedValue({
+      id: "order-1", tenantId: "t1", locationId: "loc-1", customerAccountId: null, loyaltyMemberId: "mem-1",
+      subtotal: 4, total: 4, status: "ACCEPTED", paymentStatus: "PAID",
+    });
+    prisma.loyaltyStamp.count.mockResolvedValue(6);
+    await s.awardForOrder("order-1");
+    expect(prisma.loyaltyStamp.count).toHaveBeenCalledWith({ where: { cardId: "card-1", memberId: "mem-1" } });
+    expect(prisma.loyaltyReward.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ memberId: "mem-1", label: "Free regular chips" }),
+    });
   });
 
   it("takes the stamp back when the order is cancelled", async () => {

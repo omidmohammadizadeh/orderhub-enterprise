@@ -25,17 +25,27 @@ function svc(orderStatus: string) {
       }),
       update: jest.fn().mockResolvedValue({}),
     },
-    order: { update: jest.fn().mockResolvedValue({}) },
+    order: {
+      update: jest.fn().mockResolvedValue({}),
+      findUnique: jest.fn().mockResolvedValue({
+        orderNumber: 42,
+        displayId: "A42",
+        fulfillmentType: "DELIVERY",
+        location: { onlineOrderingSlug: "shop", slug: "shop-slug" },
+      }),
+    },
   };
   const hubriseSync = { pushStatus: jest.fn() };
+  const customerPush = { notifyOrderStatus: jest.fn().mockResolvedValue(undefined) };
   const s: any = Object.create(DriverAppService.prototype);
   s.prisma = prisma;
   s.hubriseSync = hubriseSync;
+  s.customerPush = customerPush;
   s.logger = { log: jest.fn(), warn: jest.fn(), error: jest.fn() };
   s.resolveDriver = jest.fn().mockResolvedValue({ id: "d1", tenantId: "t1" });
   s.upsertPresence = jest.fn().mockResolvedValue({});
   s.emitBoardUpdate = jest.fn().mockResolvedValue(undefined);
-  return { s: s as DriverAppService, prisma, hubriseSync };
+  return { s: s as DriverAppService, prisma, hubriseSync, customerPush };
 }
 
 const user: any = { userId: "u1", tenantId: "t1" };
@@ -55,6 +65,15 @@ describe("jobAction on an order that has already closed", () => {
       expect(hubriseSync.pushStatus).not.toHaveBeenCalled();
     },
   );
+
+  it("never tells the customer about a stale card", async () => {
+    const { s, customerPush } = svc("COMPLETED");
+
+    await s.jobAction(user, "o1", "delivered");
+    await new Promise((r) => setImmediate(r));
+
+    expect(customerPush.notifyOrderStatus).not.toHaveBeenCalled();
+  });
 
   it("still lets the driver clear a stale card, without touching the order", async () => {
     const { s, prisma, hubriseSync } = svc("COMPLETED");
@@ -97,5 +116,46 @@ describe("jobAction on an order that has already closed", () => {
       data: { status: "CANCELLED" },
     });
     expect(prisma.order.update).not.toHaveBeenCalled();
+  });
+});
+
+// The driver app writes the order status straight to the database, so the
+// customer pushes that OrdersService.updateStatus sends never ran when our own
+// driver delivered: "on its way", "at your door" and "delivered" reached nobody.
+describe("jobAction tells the customer", () => {
+  it.each([
+    ["start", "OUT_FOR_DELIVERY"],
+    ["arrived", "RIDER_ARRIVED"],
+    ["delivered", "COMPLETED"],
+  ] as const)("%s → %s", async (action, status) => {
+    const { s, customerPush } = svc("ASSIGNED_DRIVER");
+
+    await s.jobAction(user, "o1", action);
+    await new Promise((r) => setImmediate(r));
+
+    expect(customerPush.notifyOrderStatus).toHaveBeenCalledWith({
+      orderId: "o1",
+      status,
+      orderNumber: 42,
+      displayId: "A42",
+      fulfillmentType: "DELIVERY",
+      storefrontSlug: "shop",
+    });
+  });
+
+  it.each(["accept", "skip", "cancel"] as const)("stays quiet on %s", async (action) => {
+    const { s, customerPush } = svc("ASSIGNED_DRIVER");
+
+    await s.jobAction(user, "o1", action);
+    await new Promise((r) => setImmediate(r));
+
+    expect(customerPush.notifyOrderStatus).not.toHaveBeenCalled();
+  });
+
+  it("a push failure never fails the driver's tap", async () => {
+    const { s, customerPush } = svc("OUT_FOR_DELIVERY");
+    customerPush.notifyOrderStatus.mockRejectedValue(new Error("expo down"));
+
+    await expect(s.jobAction(user, "o1", "delivered")).resolves.toEqual({ ok: true, action: "delivered" });
   });
 });

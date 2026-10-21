@@ -42,7 +42,8 @@ import {
 import type { CreateOrderDto } from "./dto/create-order.dto";
 import type { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
 import { activeDojoLock } from "../payments/dojo/dojo-lock";
-import { isRetailType } from "../retail/retail.logic";
+import { isCounterSaleType } from "../retail/retail.logic";
+import { WalkInLoyaltyService } from "../loyalty/walk-in/walk-in-loyalty.service";
 import type { CanonicalOrder } from "@orderhub/shared";
 
 // Phase AM — if the operator scheduled this order more than this many seconds
@@ -223,6 +224,32 @@ function testAddressFor(country: string | null | undefined) {
   return { ...hit, country: key || "GB" };
 }
 
+/**
+ * The brand a till order is filed under.
+ *
+ * POS (till + kiosk): the location's "POS display name" brand WINS when set.
+ * The till never asks staff for a brand — it sends the brand of whichever menu
+ * the cart was built from — so with a multi-brand menu published to the till,
+ * every counter order at Pizza Uno landed as "burgerz and friez". The setting
+ * exists to say "this counter is Pizza Uno", so it overrides.
+ *
+ * VOICE: fallback only. The phone line may legitimately belong to one brand.
+ * Anything else (ONLINE/DIRECT): never touched — a storefront customer chose
+ * the brand (Monster Burgerz orders once landed as Pizza Uno that way).
+ */
+export function resolvePosDisplayBrand(input: {
+  source: string;
+  requestedBrandId?: string | null;
+  posBrandId?: string | null;
+}): string | undefined {
+  const requested = input.requestedBrandId || undefined;
+  const pinned = input.posBrandId || undefined;
+  if (!pinned) return requested;
+  if (input.source === "POS") return pinned;
+  if (input.source === "VOICE") return requested ?? pinned;
+  return requested;
+}
+
 @Injectable()
 export class OrdersService {
   private readonly logger = new Logger(OrdersService.name);
@@ -258,6 +285,8 @@ export class OrdersService {
     // Dojo card-machine refunds on cancel. Last and optional so existing
     // positional test constructions keep lining up.
     @Optional() private readonly dojo?: DojoService,
+    // Walk-in loyalty card scanned at the till. Optional for the same reason.
+    @Optional() private readonly walkInLoyalty?: WalkInLoyaltyService,
   ) {}
 
   /**
@@ -398,7 +427,7 @@ export class OrdersService {
       // human, so it still governs everything else at a shop. The payment
       // guards further down still hold an unpaid sale back.
       const shopCounterSale =
-        isRetailType(location?.businessType) &&
+        isCounterSaleType(location?.businessType) &&
         (await this.prisma.order.count({
           where: { id: orderId, orderSource: "POS", isWalkIn: true, tableId: null },
         })) > 0;
@@ -933,16 +962,22 @@ export class OrdersService {
         this.logger.warn(
           `Concurrent ingest detected for ${canonical.platform}/${canonical.externalId} — returning existing order`,
         );
-        const existing = await this.prisma.order.findFirst({
-          where: canonical.externalId
-            ? {
-                externalId: canonical.externalId,
-                platform: canonical.platform,
-              }
-            : {
-                idempotencyKey: canonical.idempotencyKey,
-              },
-        });
+        const existing =
+          (canonical.externalId
+            ? await this.prisma.order.findFirst({
+                where: {
+                  externalId: canonical.externalId,
+                  platform: canonical.platform,
+                },
+              })
+            : null) ??
+          // Two replays of one till order racing each other: each minted its
+          // own externalId, so only the idempotencyKey ties them together.
+          (canonical.idempotencyKey
+            ? await this.prisma.order.findFirst({
+                where: { idempotencyKey: canonical.idempotencyKey, locationId },
+              })
+            : null);
         if (existing) {
           // Safety net: if the order is still PENDING (e.g. the original
           // create event failed to auto-accept), try again on this repeat
@@ -1081,14 +1116,58 @@ export class OrdersService {
 
   // ── Direct order creation (POS / staff) ──────────────
 
+  /**
+   * The order an idempotencyKey already created, if any. Keys are unique
+   * across the whole table, so the location check is what stops a key from
+   * one shop ever handing back another shop's order.
+   */
+  private async findIdempotentReplay(
+    idempotencyKey: string,
+    locationId: string,
+  ): Promise<Order | null> {
+    const existing = await this.prisma.order.findFirst({
+      where: { idempotencyKey },
+    });
+    if (!existing) return null;
+    if (existing.locationId !== locationId) {
+      throw new ConflictException("idempotencyKey already used");
+    }
+    return existing;
+  }
+
   async create(dto: CreateOrderDto, tenantId: string, actorUserId?: string): Promise<Order> {
     const location = await this.prisma.location.findFirst({
       where: { id: dto.locationId, brand: { tenantId } },
     });
     if (!location) throw new NotFoundException("Location not found");
 
+    // A replay of an order we already have — the till lost the response, or
+    // the offline queue is re-sending after a reconnect. Return the original.
+    // This can't be left to the P2002 safety net in ingestCanonical: that
+    // looks the existing row up by externalId, and create() mints a fresh
+    // random externalId on every call, so the lookup found nothing and the
+    // replay died as a 500 — an offline order then retried for ever and
+    // never reached the board.
+    if (dto.idempotencyKey) {
+      const replay = await this.findIdempotentReplay(dto.idempotencyKey, dto.locationId);
+      if (replay) return replay;
+    }
+
     const scheduledFor = dto.scheduledFor ? new Date(dto.scheduledFor) : undefined;
     const isScheduled = dto.isScheduled === true || this.isFutureScheduled(scheduledFor);
+
+    // A loyalty reward on the basket must still be there to spend. Checked
+    // before anything is written: two tills scanning the same card must not
+    // both hand over the free coffee.
+    if (dto.loyaltyMemberId && dto.loyaltyRewardId && this.walkInLoyalty) {
+      await this.walkInLoyalty.assertRewardSpendable(
+        tenantId,
+        dto.locationId,
+        dto.loyaltyMemberId,
+        dto.loyaltyRewardId,
+        dto.idempotencyKey,
+      );
+    }
 
     // Both POS and the storefront share this create path, but the
     // Orders dashboard renders the "channel" pill from `platform`.
@@ -1133,10 +1212,11 @@ export class OrdersService {
       const posBrandId = (loc?.settings as any)?.posBrandId as
         | string
         | undefined;
-      const countertop = resolvedSource === "POS" || resolvedSource === "VOICE";
-      if (!effectiveBrandId && countertop && posBrandId) {
-        effectiveBrandId = posBrandId;
-      }
+      effectiveBrandId = resolvePosDisplayBrand({
+        source: resolvedSource,
+        requestedBrandId: effectiveBrandId,
+        posBrandId,
+      });
     }
 
     // Service charge is decided HERE, not by the till. A client-computed
@@ -1226,6 +1306,20 @@ export class OrdersService {
         ...((dto as any).guestPrepay === true ? { guestPrepay: true } : {}),
         // The marketing email that brought this order in (online checkout).
         ...(dto.emailAttribution ? { emailAttribution: dto.emailAttribution } : {}),
+        // Taken on a till with no connection and synced later: when it was
+        // really taken, the reference on its offline ticket, and whether that
+        // ticket already printed (so the tablet doesn't print it twice).
+        ...(dto.offline
+          ? {
+              offline: {
+                takenAt: dto.offline.takenAt,
+                ...(dto.offline.ref ? { ref: dto.offline.ref } : {}),
+                ...(dto.offline.printedLocally ? { printedLocally: true } : {}),
+              },
+            }
+          : {}),
+        // The restaurant app (and phone platform) this online order came from.
+        ...(dto.appClient ? { appClient: dto.appClient } : {}),
         // Retail — the due-diligence record for an age-restricted sale:
         // what was checked, how, and by whom, stamped by the server.
         ...(dto.ageCheck
@@ -1346,6 +1440,7 @@ export class OrdersService {
           tenantId,
           code: dto.promoCode,
           orderId: order.id,
+          locationId: order.locationId,
           customerAccountId: (dto as any).customerAccountId ?? null,
           customerEmail: dto.customerInfo?.email ?? null,
           customerPhone: dto.customerInfo?.phone ?? null,
@@ -1368,6 +1463,11 @@ export class OrdersService {
         source: (order as any).orderSource ?? "POS",
         consent: dto.marketingConsent === true,
       });
+    }
+
+    // Walk-in loyalty card: link it, spend the reward, stamp it if paid.
+    if (dto.loyaltyMemberId && this.walkInLoyalty) {
+      await this.walkInLoyalty.attachOrder(order.id, tenantId, dto.loyaltyMemberId, dto.loyaltyRewardId);
     }
 
     return order;
@@ -2863,7 +2963,7 @@ export class OrdersService {
         location: { select: { businessType: true } },
       },
     });
-    if (!o || !isRetailType(o.location?.businessType)) return false;
+    if (!o || !isCounterSaleType(o.location?.businessType)) return false;
     if (o.orderSource !== "POS" || o.isWalkIn !== true || o.tableId) return false;
     if (o.paymentStatus !== "PAID" || o.status !== "ACCEPTED") return false;
 
@@ -3128,6 +3228,8 @@ export class OrdersService {
       }),
     ]);
 
+    await this.attachTableNames(orders);
+
     return { total, page, limit, orders };
   }
 
@@ -3269,6 +3371,43 @@ export class OrdersService {
       orderBy: { createdAt: "desc" },
     });
     return rows.map((r) => r.id);
+  }
+
+  /**
+   * Stamp the table's NAME onto any row that carries a tableId.
+   *
+   * Order.tableId has no Prisma relation, so it can't ride along on an
+   * include — it needs this second, indexed lookup, batched for the whole
+   * page. Shared by the live board and order history because "which table
+   * is this?" is the same question on both, and a dine-in order that
+   * identified itself only by the guest's name on one of them sent staff
+   * hunting round the room.
+   *
+   * Cosmetic, and treated as such: a failure here must never take down a
+   * board. Rows come back without the name and everything else still works.
+   */
+  private async attachTableNames(rows: unknown[]): Promise<void> {
+    try {
+      const tableIds = [
+        ...new Set(
+          rows
+            .map((r) => (r as any).tableId as string | null | undefined)
+            .filter((id): id is string => !!id),
+        ),
+      ];
+      if (!tableIds.length) return;
+      const tables = await this.prisma.table.findMany({
+        where: { id: { in: tableIds } },
+        select: { id: true, name: true },
+      });
+      const byId = new Map(tables.map((t) => [t.id, t.name]));
+      for (const r of rows) {
+        const tid = (r as any).tableId;
+        if (tid) (r as any).tableName = byId.get(tid) ?? null;
+      }
+    } catch {
+      /* table names are cosmetic — never fail the board over them */
+    }
   }
 
   async findLiveOrders(user: AuthenticatedUser, locationId?: string) {
@@ -3563,31 +3702,7 @@ export class OrdersService {
   ): Promise<Array<T & { customerVisitCount: number; customerVisitTag: string }>> {
     if (rows.length === 0) return [] as any;
 
-    // Table Tabs — stamp the table's NAME onto dine-in rows (Order.tableId
-    // has no Prisma relation). The board shows it and the tablet print
-    // bridge prints "TABLE X" from the same field.
-    try {
-      const tableIds = [
-        ...new Set(
-          rows
-            .map((r) => (r as any).tableId as string | null | undefined)
-            .filter((id): id is string => !!id),
-        ),
-      ];
-      if (tableIds.length) {
-        const tables = await this.prisma.table.findMany({
-          where: { id: { in: tableIds } },
-          select: { id: true, name: true },
-        });
-        const byId = new Map(tables.map((t) => [t.id, t.name]));
-        for (const r of rows) {
-          const tid = (r as any).tableId;
-          if (tid) (r as any).tableName = byId.get(tid) ?? null;
-        }
-      }
-    } catch {
-      /* table names are cosmetic — never fail the board over them */
-    }
+    await this.attachTableNames(rows);
 
     // Build a per-row identity key. Marketplaces mask the customer
     // phone (Uber / Just Eat / Deliveroo / HubRise rotate the number

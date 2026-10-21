@@ -6,6 +6,7 @@ import { useState } from "react";
 import {
   alertsClient,
   ALERT_TRIGGERS,
+  SALON_ALERT_TRIGGERS,
   type AlertConfig,
 } from "@/lib/api/printers.client";
 import { locationsClient } from "@/lib/api/locations.client";
@@ -29,9 +30,19 @@ const DEFAULT_SOUND_BY_TRIGGER: Record<string, string> = {
   SCHEDULED_ORDER_READY: "/sounds/new_order.mp3",
   PRINTER_OFFLINE: "/sounds/canceled_order.mp3",
   FAILED_PRINT: "/sounds/canceled_order.mp3",
+  NEW_APPOINTMENT: "/sounds/new_order.mp3",
+  APPOINTMENT_CANCELLED: "/sounds/canceled_order.mp3",
+  WALK_IN_JOINED: "/sounds/new_order.mp3",
 };
 
-export function AlertsTab({ locationId }: { locationId?: string }) {
+export function AlertsTab({
+  locationId,
+  only,
+}: {
+  locationId?: string;
+  /** Show just these triggers (the salon settings page shows its own three). */
+  only?: readonly string[];
+}) {
   const qc = useQueryClient();
   const [pickedLocation, setPickedLocation] = useState(locationId ?? "");
 
@@ -76,6 +87,14 @@ export function AlertsTab({ locationId }: { locationId?: string }) {
     );
   }
 
+  // Salon triggers only on salon locations; restaurants don't see them.
+  const isSalon = (locationsQuery.data ?? []).find((l: any) => l.id === effectiveLoc)?.businessType === "SALON";
+  const triggers = ALERT_TRIGGERS.filter((t) =>
+    only
+      ? only.includes(t.value)
+      : isSalon || !(SALON_ALERT_TRIGGERS as readonly string[]).includes(t.value),
+  );
+
   const byTrigger = new Map<string, AlertConfig>(
     (alertsQuery.data ?? []).map((a) => [a.trigger, a]),
   );
@@ -87,7 +106,7 @@ export function AlertsTab({ locationId }: { locationId?: string }) {
         every browser tab logged in to this location.
       </p>
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-        {ALERT_TRIGGERS.map((t) => {
+        {triggers.map((t) => {
           const cur = byTrigger.get(t.value);
           return (
             <AlertCard
@@ -235,12 +254,14 @@ function AlertCard({
       </label>
       <div className="flex justify-between">
         <button
+          type="button"
           onClick={preview}
           className="text-xs font-semibold text-violet-700 hover:text-violet-800"
         >
           ▶ Preview
         </button>
         <button
+          type="button"
           onClick={() =>
             onSave({
               enabled,

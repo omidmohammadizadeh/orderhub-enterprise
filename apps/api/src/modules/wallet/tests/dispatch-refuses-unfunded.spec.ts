@@ -74,7 +74,12 @@ function jetGo(wallet: any, client: Row = {}) {
     location: { id: "loc1", name: "Shop", country: "GB", currency: "GBP", prepTime: 20 },
     cfg: { collectPointId: "cp-1", market: "UK", environment: "sandbox", active: true },
   });
-  s.db = () => ({ order: { update: jest.fn().mockResolvedValue({}) } });
+  s.db = () => ({
+    order: { update: jest.fn().mockResolvedValue({}) },
+    // Nothing age-restricted — these tests are about the wallet, not the door.
+    orderItem: { findMany: async () => [] },
+    menuItem: { findMany: async () => [] },
+  });
   return s;
 }
 
@@ -175,7 +180,12 @@ function uber(wallet: any, client: Row = {}) {
     },
     cfg: { active: true },
   });
-  s.db = () => ({ order: { update: jest.fn().mockResolvedValue({}) } });
+  s.db = () => ({
+    order: { update: jest.fn().mockResolvedValue({}) },
+    // Nothing age-restricted — these tests are about the wallet, not the door.
+    orderItem: { findMany: async () => [] },
+    menuItem: { findMany: async () => [] },
+  });
   return s;
 }
 

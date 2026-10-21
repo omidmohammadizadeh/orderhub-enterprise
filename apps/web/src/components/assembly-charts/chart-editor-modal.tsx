@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { assemblyChartsClient, CHART_KEYS_QUERY } from "@/lib/api/assembly-charts.client";
 import { BOARD_BG, ChartColumn } from "./chart-column";
 import { LayerArt, ingredientLabel } from "./layer-art";
+import { openPrintPage } from "@/lib/print-links";
 
 function newId() {
   return typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -284,7 +285,7 @@ export function ChartEditorModal({ open, itemId, itemName, onClose }: Props) {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => window.open(`/print/assembly-charts?item=${encodeURIComponent(itemId)}`, "_blank")}
+                onClick={() => openPrintPage(`/print/assembly-charts?item=${encodeURIComponent(itemId)}`, { kind: "charts-item", id: itemId })}
                 title="Print this chart (saved version)"
               >
                 <Printer className="mr-1.5 h-3.5 w-3.5" /> Print

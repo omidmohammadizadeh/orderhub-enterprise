@@ -6,12 +6,11 @@ import { useEffect, useRef } from "react";
 import { useCurrency } from "@/hooks/use-currency";
 import { useGoogleMaps } from "@/lib/hooks/use-google-maps";
 import type { DispatchFeed } from "@/lib/api/dispatch.client";
+import { TRACKING_MAP_STYLE, bearing, driverIconSvg, orderPinSvg, shopIconSvg } from "@/lib/maps/tracking-style";
 
 // UK fallback centre when no location has been geocoded yet.
 const UK_CENTER = { lat: 52.4814, lng: -1.8998 };
 
-// House-shaped marker (roof + body), centred so the countdown sits in the body.
-const HOUSE_PATH = "M0,-16 L14,-4 L10,-4 L10,12 L-10,12 L-10,-4 L-14,-4 Z";
 
 function orderColor(deadlineAt: string | null, now: number): string {
   if (!deadlineAt) return "#3b82f6"; // blue — no deadline known
@@ -43,6 +42,7 @@ export function DispatchMap({
   selecting = false,
   selectedIds = [],
   onSelectOrder,
+  minHeight = "70vh",
 }: {
   feed: DispatchFeed | undefined;
   now: number;
@@ -50,6 +50,9 @@ export function DispatchMap({
   selecting?: boolean;
   selectedIds?: string[];
   onSelectOrder?: (id: string) => void;
+  /** Floor for the map's height; the dispatch page fills the viewport, the
+   *  operator dashboard embeds it in a panel. */
+  minHeight?: string;
 }) {
   // Prices follow the selected location's currency, not a hardcoded pound.
   const { money } = useCurrency();
@@ -69,7 +72,9 @@ export function DispatchMap({
       zoom: 11,
       disableDefaultUI: true,
       zoomControl: true,
-      styles: [{ elementType: "labels.icon", stylers: [{ visibility: "off" }] }],
+      // The same quiet grey base as the customer apps' live map.
+      styles: TRACKING_MAP_STYLE,
+      clickableIcons: false,
     });
     infoRef.current = new g.maps.InfoWindow();
   }, [ready]);
@@ -108,8 +113,7 @@ export function DispatchMap({
             map,
             position: pos,
             title: loc.name,
-            icon: transparentIcon,
-            label: { text: "🏢", fontSize: "34px" },
+            icon: { url: shopIconSvg(), scaledSize: new g.maps.Size(40, 40), anchor: new g.maps.Point(20, 20) },
             zIndex: 60,
           }),
         );
@@ -123,7 +127,7 @@ export function DispatchMap({
           new g.maps.Marker({
             map,
             position: pos,
-            icon: { ...transparentIcon, labelOrigin: new g.maps.Point(0, 28) },
+            icon: { ...transparentIcon, labelOrigin: new g.maps.Point(0, 34) },
             label: {
               text: loc.name,
               color: "#0f172a",
@@ -172,28 +176,24 @@ export function DispatchMap({
 
       m.setPosition({ lat: o.lat, lng: o.lng });
       const fill = selected ? "#2563eb" : o.done || o.assigned ? "#9ca3af" : color;
-      m.setIcon({
-        path: HOUSE_PATH,
-        fillColor: fill,
-        fillOpacity: o.done || o.assigned ? 0.9 : 1,
-        strokeColor: selected ? "#1e3a8a" : "#ffffff",
-        strokeWeight: selected ? 3 : 1.5,
-        scale: o.done ? 1.1 : selected ? 1.7 : 1.5,
-        anchor: new g.maps.Point(0, 12),
-        labelOrigin: new g.maps.Point(0, 4),
-      });
-      m.setLabel({
-        text: selected
-          ? String(selIdx + 1)
-          : o.done
-            ? "✓"
-            : o.assigned
-              ? "•"
-              : minutesLabel(o.deadlineAt, now),
-        color: "#ffffff",
-        fontSize: "12px",
-        fontWeight: "800",
-      });
+      const text = selected
+        ? String(selIdx + 1)
+        : o.done
+          ? "✓"
+          : o.assigned
+            ? "•"
+            : minutesLabel(o.deadlineAt, now);
+      // Only redraw when the pin's look changes, not on every 1 s tick.
+      const look = `${fill}|${text}|${selected}`;
+      if (m.get("ohLook") !== look) {
+        m.set("ohLook", look);
+        m.setIcon({
+          url: orderPinSvg(fill, text, selected ? "#1e3a8a" : "#ffffff"),
+          scaledSize: new g.maps.Size(selected ? 48 : 40, selected ? 55 : 46),
+          anchor: new g.maps.Point(selected ? 24 : 20, selected ? 55 : 46),
+        });
+        m.setLabel(null);
+      }
       m.setZIndex(selected ? 120 : o.done || o.assigned ? 40 : 100);
     }
 
@@ -207,17 +207,25 @@ export function DispatchMap({
         m = new g.maps.Marker({ map, title: d.name, zIndex: 80 });
         markersRef.current.set(key, m);
       }
-      m.setPosition({ lat: d.lat, lng: d.lng });
-      // Car marker — green when available (ONLINE), red when busy (ON_JOB).
-      m.setIcon({
-        path: g.maps.SymbolPath.CIRCLE,
-        fillColor: d.status === "ON_JOB" ? "#dc2626" : "#16a34a",
-        fillOpacity: 1,
-        strokeColor: "#ffffff",
-        strokeWeight: 2,
-        scale: 15,
-      });
-      m.setLabel({ text: "🚗", fontSize: "16px" });
+      // Same driver disc as the customer apps: arrow turned the way they're
+      // moving (from the previous fix); green = available, dark = on a job.
+      const prev = m.get("ohPos") as { lat: number; lng: number } | undefined;
+      const here = { lat: d.lat, lng: d.lng };
+      let heading = (m.get("ohHeading") as number | undefined) ?? 0;
+      if (prev && (prev.lat !== here.lat || prev.lng !== here.lng)) heading = bearing(prev, here);
+      m.set("ohPos", here);
+      m.set("ohHeading", heading);
+      m.setPosition(here);
+      const dLook = `${d.status}|${Math.round(heading)}`;
+      if (m.get("ohLook") !== dLook) {
+        m.set("ohLook", dLook);
+        m.setIcon({
+          url: driverIconSvg(heading, false, d.status === "ON_JOB" ? "#111827" : "#16a34a"),
+          scaledSize: new g.maps.Size(52, 52),
+          anchor: new g.maps.Point(26, 26),
+        });
+        m.setLabel(null);
+      }
 
       // Click a driver dot → name, status, last-seen time, and their current
       // location (reverse-geocoded from the live GPS ping). Re-bound each pass
@@ -276,16 +284,17 @@ export function DispatchMap({
       }
       m.setPosition({ lat: c.lat, lng: c.lng });
       m.setTitle(`${c.name || "Courier"} · ${c.platform}`);
-      m.setIcon({
-        path: g.maps.SymbolPath.CIRCLE,
-        fillColor: "#7c3aed",
-        // Older fix = fainter pin. 0 min → solid, 10+ min → clearly washed out.
-        fillOpacity: Math.max(0.35, 1 - c.ageMinutes / 12),
-        strokeColor: "#ffffff",
-        strokeWeight: 2,
-        scale: 13,
-      });
-      m.setLabel({ text: "🛵", fontSize: "15px" });
+      if (m.get("ohLook") !== "courier") {
+        m.set("ohLook", "courier");
+        m.setIcon({
+          url: driverIconSvg(0, false, "#7c3aed"),
+          scaledSize: new g.maps.Size(46, 46),
+          anchor: new g.maps.Point(23, 23),
+        });
+        m.setLabel(null);
+      }
+      // Older fix = fainter pin. 0 min → solid, 10+ min → clearly washed out.
+      m.setOpacity(Math.max(0.35, 1 - c.ageMinutes / 12));
 
       g.maps.event.clearListeners(m, "click");
       m.addListener("click", () => {
@@ -360,7 +369,7 @@ export function DispatchMap({
     <div
       ref={containerRef}
       className="w-full rounded-lg"
-      style={{ height: "100%", minHeight: "70vh" }}
+      style={{ height: "100%", minHeight }}
     />
   );
 }

@@ -44,6 +44,17 @@ export interface Reservation {
   table: { id: string; name: string; area: string | null } | null;
 }
 
+/** One booking plus the same guest's other bookings at this shop. */
+export interface ReservationDetail extends Reservation {
+  history: {
+    id: string;
+    startsAt: string;
+    partySize: number;
+    status: ReservationStatus;
+    reference: string;
+  }[];
+}
+
 export interface CreateReservationInput {
   locationId: string;
   tableId?: string | null;
@@ -79,6 +90,9 @@ export interface AvailabilityResult {
 export interface ReservationSettings {
   locationId: string;
   locationName: string;
+  logoUrl?: string | null;
+  phone?: string | null;
+  address?: string | null;
   tableServiceEnabled: boolean;
   onlineEnabled: boolean;
   maxPartySize: number;
@@ -135,20 +149,38 @@ export const reservationsClient = {
       .get<AvailabilityResult>(`/v1/reservations/availability`, { params })
       .then((r) => r.data),
 
+  get: (id: string) =>
+    apiClient
+      .get<ReservationDetail>(`/v1/reservations/${id}`)
+      .then((r) => r.data),
+
   create: (input: CreateReservationInput) =>
     apiClient.post<Reservation>(`/v1/reservations`, input).then((r) => r.data),
 
   update: (
     id: string,
-    input: Partial<CreateReservationInput> & { status?: ReservationStatus },
+    input: Partial<CreateReservationInput> & {
+      status?: ReservationStatus;
+      /** Email the guest a new time / party size. The API defaults to yes. */
+      notifyCustomer?: boolean;
+    },
   ) =>
     apiClient
       .patch<Reservation>(`/v1/reservations/${id}`, input)
       .then((r) => r.data),
 
-  setStatus: (id: string, status: ReservationStatus) =>
+  setStatus: (
+    id: string,
+    status: ReservationStatus,
+    opts?: { notifyCustomer?: boolean },
+  ) =>
     apiClient
-      .post<Reservation>(`/v1/reservations/${id}/status`, { status })
+      .post<Reservation>(`/v1/reservations/${id}/status`, { status, ...opts })
+      .then((r) => r.data),
+
+  resendEmail: (id: string) =>
+    apiClient
+      .post<{ ok: true; to: string }>(`/v1/reservations/${id}/resend-email`)
       .then((r) => r.data),
 
   /** The party arrived: seats them, opens the table's tab, fills covers. */
@@ -198,6 +230,16 @@ export const publicReservationsClient = {
       `/v1/reservations/public/availability?locationId=${encodeURIComponent(
         params.locationId,
       )}&startsAt=${encodeURIComponent(params.startsAt)}&partySize=${params.partySize}`,
+    ),
+
+  /** Every bookable start time on one local day, with whether it's free. */
+  slots: (params: { locationId: string; date: string; partySize: number }) =>
+    publicFetch<{ slots: { startsAt: string; available: boolean }[] }>(
+      `/v1/reservations/public/slots?locationId=${encodeURIComponent(
+        params.locationId,
+      )}&from=${encodeURIComponent(startOfDayIso(params.date))}&to=${encodeURIComponent(
+        endOfDayIso(params.date),
+      )}&partySize=${params.partySize}`,
     ),
 
   create: (input: CreateReservationInput) =>
@@ -264,6 +306,40 @@ export function formatLongDate(date: string): string {
     month: "long",
     year: "numeric",
   });
+}
+
+/** Monday of the week containing `date` ("YYYY-MM-DD"). */
+export function startOfWeek(date: string): string {
+  const [y, m, d] = date.split("-").map(Number);
+  const x = new Date(y ?? 1970, (m ?? 1) - 1, d ?? 1);
+  const back = (x.getDay() + 6) % 7; // Monday = 0
+  return shiftDate(date, -back);
+}
+
+/** First of the month containing `date`. */
+export function startOfMonth(date: string): string {
+  return `${date.slice(0, 7)}-01`;
+}
+
+/** Same day-of-month `n` months away, clamped to the month's length. */
+export function shiftMonth(date: string, n: number): string {
+  const [y, m, d] = date.split("-").map(Number);
+  const first = new Date(y ?? 1970, (m ?? 1) - 1 + n, 1);
+  const last = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate();
+  first.setDate(Math.min(d ?? 1, last));
+  return toDateInput(first);
+}
+
+/** Minutes past local midnight. */
+export function minutesOfDay(iso: string): number {
+  const d = new Date(iso);
+  return d.getHours() * 60 + d.getMinutes();
+}
+
+/** "19:30" for a minute-of-day. */
+export function minuteLabel(min: number): string {
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${p(Math.floor(min / 60) % 24)}:${p(min % 60)}`;
 }
 
 export const RESERVATION_STATUS_LABELS: Record<ReservationStatus, string> = {

@@ -64,6 +64,26 @@ const SOLUTIONS: MenuItem[] = [
     description: "Take orders in the chat customers use",
     href: "/solutions/whatsapp-ordering",
   },
+  {
+    label: "Loyalty card",
+    description: "A stamp card in their phone's wallet",
+    href: "/solutions/loyalty-card",
+  },
+  {
+    label: "Supermarkets & convenience",
+    description: "Scan till, stock, weighed goods and online grocery",
+    href: "/solutions/supermarkets",
+  },
+  {
+    label: "Beauty salons",
+    description: "Bookings, deposits, diary and checkout",
+    href: "/solutions/beauty-salons",
+  },
+  {
+    label: "Hair & barber shops",
+    description: "Walk-in queue, bookings and a TV by the door",
+    href: "/solutions/barbers",
+  },
 ];
 
 const INTEGRATIONS: MenuItem[] = [
@@ -207,7 +227,7 @@ function MegaMenu({
               ))}
             </ul>
           ) : (
-            <ul>
+            <ul className={items.length > 8 ? "grid w-[620px] grid-cols-2" : undefined}>
               {items.map((it) => (
                 <li key={it.label}>
                   <Link

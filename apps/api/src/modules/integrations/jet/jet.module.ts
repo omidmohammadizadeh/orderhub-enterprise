@@ -18,6 +18,7 @@ import { JetOrderModificationService } from "./jet-order-modification.service";
 import { JetController } from "./jet.controller";
 import { JetWebhookController } from "./jet-webhook.controller";
 import { JetLifecycleController } from "./jet-lifecycle.controller";
+import { JetStoreControlAdapter } from "./jet-store-control.adapter";
 
 // Phase JE — direct Just Eat Takeaway (JET Connect) integration.
 //
@@ -48,6 +49,7 @@ import { JetLifecycleController } from "./jet-lifecycle.controller";
     JetItemAvailabilityService,
     JetStoreStatusService,
     JetOrderModificationService,
+    JetStoreControlAdapter,
   ],
   exports: [
     JetClientService,
@@ -56,6 +58,7 @@ import { JetLifecycleController } from "./jet-lifecycle.controller";
     JetMenuPublishService,
     JetItemAvailabilityService,
     JetStoreStatusService,
+    JetStoreControlAdapter,
   ],
 })
 export class JetModule {}

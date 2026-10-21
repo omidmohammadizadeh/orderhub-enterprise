@@ -2,6 +2,7 @@ import { NotFoundException } from "@nestjs/common";
 import {
   DASHBOARD_TABS,
   dashboardTabForPath,
+  dashboardTabsCoveringPath,
   disabledTabsFromSettings,
   normaliseDisabledTabs,
 } from "@orderhub/shared";
@@ -63,6 +64,29 @@ describe("dashboard tab registry", () => {
     expect(dashboardTabForPath("/dashboard/settings/kitchen")?.key).toBe(
       "kitchen-screens",
     );
+  });
+
+  it("gives barber and marketing sub-pages their own toggles", () => {
+    // Zagros Barbers: Appointments, Walk-ins and Kitchen training stayed on
+    // screen because nothing in the picker could switch them off.
+    expect(dashboardTabForPath("/dashboard/salon")?.key).toBe("salon-appointments");
+    expect(dashboardTabForPath("/dashboard/salon/queue")?.key).toBe("salon-walk-ins");
+    expect(dashboardTabForPath("/dashboard/training")?.key).toBe("training");
+    expect(dashboardTabForPath("/dashboard/marketing/email")?.key).toBe(
+      "marketing-email",
+    );
+  });
+
+  it("lists the sections above a page, most specific first", () => {
+    // Marketing switched off must still take Email with it, even though
+    // Email now has a toggle of its own.
+    expect(
+      dashboardTabsCoveringPath("/dashboard/marketing/email").map((t) => t.key),
+    ).toEqual(["marketing-email", "marketing"]);
+    expect(
+      dashboardTabsCoveringPath("/dashboard/salon/queue").map((t) => t.key),
+    ).toEqual(["salon-walk-ins", "salon-appointments"]);
+    expect(dashboardTabsCoveringPath("/dashboard/secrets")).toEqual([]);
   });
 
   it("owns no admin-only pages", () => {

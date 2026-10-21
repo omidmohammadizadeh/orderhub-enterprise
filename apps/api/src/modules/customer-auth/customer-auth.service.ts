@@ -13,6 +13,7 @@
 //   * login()            — email/password authentication, return JWT
 //   * createOrLinkGoogle()— upsert Customer from Google profile (used by
 //                          the OAuth callback handler)
+//   * nativeSignIn()     — Google/Apple ID token from a restaurant's own app
 //   * getById()          — load Customer for the JWT strategy
 
 import {
@@ -28,8 +29,22 @@ import { randomBytes } from "node:crypto";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { EmailService } from "../../infrastructure/email/email.service";
 import { PasswordService } from "../auth/services/password.service";
+import { NativeOAuthService } from "../auth/services/native-oauth.service";
+import { CustomerNativeSignInDto } from "./dto/native-sign-in.dto";
 import { CustomerSignupDto } from "./dto/signup.dto";
 import { CustomerLoginDto } from "./dto/login.dto";
+import { UpdateCustomerProfileDto } from "./dto/update-profile.dto";
+
+/** Our own sites. Brand custom domains are checked against the database. */
+const OWN_STOREFRONT_ORIGINS = new Set([
+  "https://www.orderhubsolutions.com",
+  "https://orderhubsolutions.com",
+  "https://orderhub-web.onrender.com",
+  "http://localhost:3000",
+]);
+
+const toDateOnly = (d: Date | null | undefined): string | null =>
+  d ? d.toISOString().slice(0, 10) : null;
 
 // Phase AP-5 — fields the customer "My Orders" page needs and nothing
 // else. Includes the location's slug + name + Google review URL so
@@ -140,6 +155,7 @@ export class CustomerAuthService {
     private readonly jwt: JwtService,
     private readonly email: EmailService,
     private readonly config: ConfigService,
+    private readonly nativeOAuth?: NativeOAuthService,
   ) {}
 
   async signup(dto: CustomerSignupDto): Promise<{ pendingVerification: true; email: string }> {
@@ -187,6 +203,8 @@ export class CustomerAuthService {
       firstName: customer.firstName,
       token,
       storeSlug: dto.storeSlug,
+      origin: dto.origin,
+      brandId: dto.brandId,
     });
 
     this.logger.log(
@@ -306,6 +324,139 @@ export class CustomerAuthService {
         where: { id: customer.id },
         data: { lastLoginAt: new Date() },
       });
+    }
+    return {
+      accessToken: await this.signCustomerToken(customer),
+      customer: this.serialise(customer),
+    };
+  }
+
+  /**
+   * Sign-in from one of the white-label restaurant apps (apps/customer).
+   *
+   * Google refuses its OAuth page inside a WebView, so the app signs in with
+   * the native SDK and posts the ID token here; the storefront in the WebView
+   * then gets the session we return. Apple's guideline 4.8 requires Sign in
+   * with Apple wherever Google is offered, so both arrive here.
+   *
+   * Audiences are lists from the environment, not the staff app's ids: every
+   * brand's app is its own iOS bundle and its own Google OAuth client.
+   */
+  async nativeSignIn(dto: CustomerNativeSignInDto): Promise<{ accessToken: string; customer: any }> {
+    if (!this.nativeOAuth) throw new UnauthorizedException("Native sign-in is not available");
+    if (dto.provider === "google") {
+      const profile = await this.nativeOAuth.verifyGoogleIdToken(
+        dto.idToken,
+        this.customerAppGoogleAudiences(),
+      );
+      // An unverified Google address must never take over the account
+      // somebody else registered with it.
+      if (!profile.emailVerified) {
+        throw new UnauthorizedException("Your Google email address isn't verified");
+      }
+      this.logger.log(`Native Google sign-in (brand ${dto.brandId ?? "?"})`);
+      return this.createOrLinkGoogle({
+        googleId: profile.providerAccountId,
+        email: profile.email,
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        avatarUrl: profile.avatarUrl,
+      });
+    }
+    // No fallback email from the app: the address we may link an existing
+    // account on has to come from Apple's signed token, never the request.
+    const profile = await this.nativeOAuth.verifyAppleIdToken(
+      dto.idToken,
+      null,
+      { givenName: dto.firstName, familyName: dto.lastName },
+      this.customerAppAppleAudiences(),
+    );
+    this.logger.log(`Native Apple sign-in (brand ${dto.brandId ?? "?"})`);
+    return this.createOrLinkApple({
+      appleId: profile.providerAccountId,
+      email: profile.email,
+      emailVerified: profile.emailVerified,
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+    });
+  }
+
+  /**
+   * The app passes the web client id as `webClientId`, so most tokens are
+   * minted for GOOGLE_CLIENT_ID; a brand whose app uses its own clients lists
+   * them in CUSTOMER_APP_GOOGLE_CLIENT_IDS.
+   */
+  private customerAppGoogleAudiences(): string[] {
+    return [
+      this.config.get<string>("GOOGLE_CLIENT_ID") ?? "",
+      ...splitList(this.config.get<string>("CUSTOMER_APP_GOOGLE_CLIENT_IDS")),
+    ].filter(Boolean);
+  }
+
+  /** Every restaurant app's iOS bundle id, e.g. com.orderhubsolutions.kingstonpizza. */
+  private customerAppAppleAudiences(): string[] {
+    return splitList(this.config.get<string>("CUSTOMER_APP_APPLE_BUNDLE_IDS"));
+  }
+
+  /**
+   * Find or create the customer for a Sign in with Apple identity.
+   *
+   * Apple gives the name to the app on the first sign-in and never again, so
+   * it is saved then and only filled in later if still blank. A "Hide My
+   * Email" relay address is a real, stable address for this app, so it works
+   * as the account email.
+   */
+  async createOrLinkApple(profile: {
+    appleId: string;
+    email: string;
+    emailVerified: boolean;
+    firstName?: string;
+    lastName?: string;
+  }): Promise<{ accessToken: string; customer: any }> {
+    const emailNormalised = profile.email.trim().toLowerCase();
+    const firstName = (profile.firstName ?? "").trim();
+    const lastName = (profile.lastName ?? "").trim();
+    const db = (this.prisma as any).customerAccount;
+
+    let customer = await db.findUnique({ where: { appleId: profile.appleId } });
+    if (customer) {
+      customer = await db.update({
+        where: { id: customer.id },
+        data: {
+          lastLoginAt: new Date(),
+          ...(!customer.firstName && firstName ? { firstName } : {}),
+          ...(!customer.lastName && lastName ? { lastName } : {}),
+        },
+      });
+    } else {
+      // Link an account they already made with the same address — only when
+      // Apple vouches for that address.
+      const existing = profile.emailVerified
+        ? await db.findUnique({ where: { email: emailNormalised } })
+        : null;
+      if (existing) {
+        customer = await db.update({
+          where: { id: existing.id },
+          data: {
+            appleId: profile.appleId,
+            isVerified: true,
+            lastLoginAt: new Date(),
+            ...(!existing.firstName && firstName ? { firstName } : {}),
+            ...(!existing.lastName && lastName ? { lastName } : {}),
+          },
+        });
+      } else {
+        customer = await db.create({
+          data: {
+            email: emailNormalised,
+            appleId: profile.appleId,
+            firstName,
+            lastName,
+            isVerified: true,
+            lastLoginAt: new Date(),
+          },
+        });
+      }
     }
     return {
       accessToken: await this.signCustomerToken(customer),
@@ -447,7 +598,115 @@ export class CustomerAuthService {
       phone: customer.phone,
       avatarUrl: customer.avatarUrl,
       isVerified: customer.isVerified,
+      addressLine1: customer.addressLine1 ?? null,
+      addressLine2: customer.addressLine2 ?? null,
+      addressCity: customer.addressCity ?? null,
+      addressPostcode: customer.addressPostcode ?? null,
+      addressArea: customer.addressArea ?? null,
+      dateOfBirth: toDateOnly(customer.dateOfBirth),
     };
+  }
+
+  /**
+   * The customer's own details — phone, saved address, date of birth.
+   *
+   * Only the fields sent are touched; null clears an optional one. Saved
+   * from "My account" and from the "save my details" box at checkout, so the
+   * next order on ANY of the customer's shops starts filled in.
+   */
+  async updateProfile(id: string, dto: UpdateCustomerProfileDto) {
+    const clean = (v: string | null | undefined) =>
+      v === undefined ? undefined : (v ?? "").trim() || null;
+    const data: Record<string, unknown> = {};
+    if (dto.firstName !== undefined) data.firstName = dto.firstName.trim();
+    if (dto.lastName !== undefined) data.lastName = dto.lastName.trim();
+    for (const key of [
+      "phone",
+      "addressLine1",
+      "addressLine2",
+      "addressCity",
+      "addressArea",
+    ] as const) {
+      const value = clean(dto[key]);
+      if (value !== undefined) data[key] = value;
+    }
+    const postcode = clean(dto.addressPostcode);
+    if (postcode !== undefined) data.addressPostcode = postcode?.toUpperCase() ?? null;
+    if (dto.dateOfBirth !== undefined) {
+      data.dateOfBirth = dto.dateOfBirth ? this.parseDateOfBirth(dto.dateOfBirth) : null;
+    }
+    const updated = await (this.prisma as any).customerAccount.update({
+      where: { id },
+      data,
+    });
+    return this.serialise(updated);
+  }
+
+  /**
+   * Delete a customer's account for good.
+   *
+   * What goes: the login, saved details and address, loyalty stamps and
+   * rewards, referral codes (all cascade off CustomerAccount). What stays:
+   * the orders themselves, unlinked (Order.customerAccountId is SetNull) —
+   * they are the restaurant's sales records, not the customer's account, and
+   * a shop must still be able to refund or account for last week's order.
+   *
+   * The typed confirmation is checked here as well as in the UI so a stray
+   * DELETE from a script can't take an account with it.
+   */
+  async deleteAccount(id: string, confirm?: string): Promise<void> {
+    if ((confirm ?? "").trim().toUpperCase() !== "DELETE") {
+      throw new BadRequestException('Type DELETE to confirm.');
+    }
+    await (this.prisma as any).customerAccount.delete({ where: { id } });
+    this.logger.log(`customer account ${id} deleted at the customer's request`);
+  }
+
+  /** A real calendar date, not in the future, not before 1900. */
+  private parseDateOfBirth(value: string): Date {
+    const date = new Date(`${value}T00:00:00.000Z`);
+    const valid =
+      !Number.isNaN(date.getTime()) &&
+      // Rejects 2001-02-30, which Date would roll into March.
+      date.toISOString().slice(0, 10) === value &&
+      date.getUTCFullYear() >= 1900 &&
+      date.getTime() <= Date.now();
+    if (!valid) throw new BadRequestException("That date of birth isn't valid.");
+    return date;
+  }
+
+  /**
+   * The origin to send a customer back to after Google sign-in or an email
+   * confirmation — or null when it isn't one we serve.
+   *
+   * A brand's own domain has its own localStorage: sending somebody who
+   * started on thegrillshack.co.uk back to orderhubsolutions.com signs them in
+   * on a site they weren't using and leaves their basket behind on the one
+   * they were. So brand custom domains count, the same ones CORS accepts —
+   * and nothing else, or the redirect is an open redirect.
+   */
+  async trustedStorefrontOrigin(candidate?: string | null): Promise<string | null> {
+    const raw = (candidate ?? "").trim().replace(/\/$/, "");
+    if (!raw) return null;
+    let url: URL;
+    try {
+      url = new URL(raw);
+    } catch {
+      return null;
+    }
+    // A bare origin only — no path, query or credentials riding along.
+    if (url.origin !== raw) return null;
+    if (OWN_STOREFRONT_ORIGINS.has(url.origin)) return url.origin;
+    if (url.protocol !== "https:") return null;
+    const host = url.hostname.toLowerCase().replace(/^www\./, "");
+    const brand = await (this.prisma as any).brand.findFirst({
+      where: {
+        deletedAt: null,
+        customDomain: { in: [host, `www.${host}`], mode: "insensitive" },
+      },
+      select: { id: true },
+    });
+    return brand ? url.origin : null;
   }
 
   private async sendConfirmationEmail(opts: {
@@ -455,15 +714,21 @@ export class CustomerAuthService {
     firstName: string;
     token: string;
     storeSlug?: string;
+    origin?: string;
+    brandId?: string;
   }) {
+    // Back to the site they signed up on, so the confirmation lands where
+    // their basket is (a brand domain's storage is its own).
     const webUrl =
+      (await this.trustedStorefrontOrigin(opts.origin)) ??
       this.config.get<string>("WEB_URL") ??
       "https://www.orderhubsolutions.com";
     // Link lands on the storefront's confirm page so the customer ends
     // up back at the menu they were trying to order from. Without
     // storeSlug, fall back to the marketing homepage.
+    const brandSuffix = opts.brandId ? `&brand=${encodeURIComponent(opts.brandId)}` : "";
     const confirmPath = opts.storeSlug
-      ? `/order/${encodeURIComponent(opts.storeSlug)}/auth/confirm?token=${opts.token}`
+      ? `/order/${encodeURIComponent(opts.storeSlug)}/auth/confirm?token=${opts.token}${brandSuffix}`
       : `/auth/confirm?token=${opts.token}`;
     const url = `${webUrl}${confirmPath}`;
 
@@ -505,6 +770,13 @@ export class CustomerAuthService {
       );
     }
   }
+}
+
+function splitList(value: string | undefined): string[] {
+  return (value ?? "")
+    .split(",")
+    .map((v) => v.trim())
+    .filter(Boolean);
 }
 
 function escapeHtml(s: string): string {

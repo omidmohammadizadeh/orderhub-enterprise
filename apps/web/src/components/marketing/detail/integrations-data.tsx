@@ -397,7 +397,7 @@ export const INTEGRATIONS: Integration[] = [
     navDescription: "Card machines, refunds & Pay at Table",
     category: "Payments",
     accent: "#e2d5c7",
-    status: "soon",
+    status: "live",
     badge: "Payments · Card machines",
     title: "Your Dojo card machine, driven from the till",
     subtitle:

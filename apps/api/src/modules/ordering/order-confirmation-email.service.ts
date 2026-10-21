@@ -4,6 +4,7 @@ import { Cron } from "@nestjs/schedule";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { formatMoney, renderPoweredBy } from "@orderhub/shared";
 import { EmailService } from "../../infrastructure/email/email.service";
+import { customerAppLinks } from "../admin/restaurant-apps";
 
 // The confirmation email a customer gets after ordering online.
 //
@@ -95,7 +96,8 @@ export class OrderConfirmationEmailService {
               timezone: true,
             },
           },
-          brand: { select: { name: true, logoUrl: true } },
+          // settings: the brand's own app, if we're promoting it (customerApp).
+          brand: { select: { name: true, logoUrl: true, settings: true } },
           // Both address sources. Without these the fallbacks below read
           // undefined for ever, which is how the first live order reached
           // the kitchen with no email sent.
@@ -327,6 +329,33 @@ export class OrderConfirmationEmailService {
     return raw.split(/\s+/)[0] ?? "";
   }
 
+  /**
+   * "Order faster in our app" with store buttons, when the brand's own app is
+   * being promoted (Admin → Restaurant apps) — and not to someone who just
+   * ordered from it. Plain bulletproof buttons: email clients block SVG and
+   * strip most images until the reader allows them.
+   */
+  private appBlock(order: any, ink: string, muted: string, font: string): string {
+    if ((order.metadata as any)?.appClient) return "";
+    const links = customerAppLinks(order.brand?.settings);
+    if (!links) return "";
+    const name = this.esc(this.shopName(order));
+    const btn = (href: string, label: string) =>
+      `<td bgcolor="${ink}" style="border-radius:10px;background:${ink};"><a href="${href}" target="_blank" style="display:inline-block;padding:10px 18px;font-family:${font};font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:10px;">${label}</a></td>`;
+    const buttons = [
+      links.ios ? btn(links.ios, "Download on the App Store") : "",
+      links.ios && links.android ? `<td width="8"></td>` : "",
+      links.android ? btn(links.android, "Get it on Google Play") : "",
+    ].join("");
+    return `<tr><td style="padding:0 32px 24px 32px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f4f5;border-radius:14px;">
+    <tr><td align="center" style="padding:18px 16px 6px 16px;font-family:${font};font-size:16px;font-weight:800;color:${ink};">Order faster with the ${name} app</td></tr>
+    <tr><td align="center" style="padding:0 16px 14px 16px;font-family:${font};font-size:13px;color:${muted};">Live driver tracking, order updates and offers, all in one place.</td></tr>
+    <tr><td align="center" style="padding:0 16px 18px 16px;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr>${buttons}</tr></table></td></tr>
+  </table>
+</td></tr>`;
+  }
+
   private body(order: any): string {
     const FONT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
     const ink = "#18181b";
@@ -415,6 +444,7 @@ export class OrderConfirmationEmailService {
   </tr></table>
 </td></tr>
 
+${this.appBlock(order, ink, muted, FONT)}
 <tr><td style="padding:0 32px;">
   <div style="font-family:${FONT};font-size:12px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:${muted};padding-bottom:4px;border-bottom:1px solid #e4e4e7;">Your order</div>
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${rows}</table>

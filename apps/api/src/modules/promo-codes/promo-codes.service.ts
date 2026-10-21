@@ -9,6 +9,7 @@ import {
 import type { PromoCodeType } from "@orderhub/database";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { WalletService } from "../wallet/wallet.service";
+import { pickForLocation, scopesOverlap } from "./promo-scope";
 
 // Phase AM — PromoCode CRUD + validate.
 //
@@ -103,13 +104,50 @@ export class PromoCodesService {
     });
   }
 
+  /** The code with this text that works at this shop (see promo-scope.ts). */
+  async findForLocation(tenantId: string, code: string, locationId: string | null | undefined) {
+    const rows = await this.prisma.promoCode.findMany({ where: { tenantId, code: code.trim().toUpperCase() } });
+    return pickForLocation(rows, locationId);
+  }
+
+  /**
+   * Refuse a code whose text is already used by another code at any of the
+   * same shops. Runs inside the transaction that writes, behind an advisory
+   * lock on (tenant, text), so two shops saving "20OFF" for the same shop at
+   * once can't both win — the database no longer has a unique key for it.
+   */
+  private async assertNoClash(
+    tx: any,
+    tenantId: string,
+    code: string,
+    locationIds: string[],
+    exceptId?: string,
+  ): Promise<void> {
+    await tx.$executeRawUnsafe(`SELECT pg_advisory_xact_lock(hashtext($1))`, `promo:${tenantId}:${code}`);
+    const same: { id: string; locationIds: string[] }[] = await tx.promoCode.findMany({
+      where: { tenantId, code, ...(exceptId ? { id: { not: exceptId } } : {}) },
+      select: { id: true, locationIds: true },
+    });
+    const clash = same.find((o) => scopesOverlap(o.locationIds, locationIds));
+    if (!clash) return;
+    if (!clash.locationIds.length) {
+      throw new ConflictException(`Promo code "${code}" already exists for every shop`);
+    }
+    const shared = locationIds.length ? clash.locationIds.filter((l) => locationIds.includes(l)) : clash.locationIds;
+    const shops = await tx.location.findMany({ where: { id: { in: shared } }, select: { name: true } });
+    const names = shops.map((l: { name: string }) => l.name).join(", ");
+    throw new ConflictException(`Promo code "${code}" already exists${names ? ` at ${names}` : ""}`);
+  }
+
   async create(tenantId: string, dto: CreatePromoCodeDto) {
     const code = (dto.code ?? "").trim().toUpperCase();
     if (!code) throw new BadRequestException("code is required");
     if (dto.value < 0) throw new BadRequestException("value must be ≥ 0");
+    const locationIds = dto.locationIds ?? [];
 
-    try {
-      return await this.prisma.promoCode.create({
+    return this.prisma.$transaction(async (tx: any) => {
+      await this.assertNoClash(tx, tenantId, code, locationIds);
+      return tx.promoCode.create({
         data: {
           tenantId,
           code,
@@ -122,16 +160,11 @@ export class PromoCodesService {
           startAt: dto.startAt ? new Date(dto.startAt) : null,
           expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null,
           isActive: dto.isActive ?? true,
-          locationIds: dto.locationIds ?? [],
+          locationIds,
           showOnPos: dto.showOnPos ?? true,
         },
       });
-    } catch (err: any) {
-      if (err?.code === "P2002") {
-        throw new ConflictException(`Promo code "${code}" already exists`);
-      }
-      throw err;
-    }
+    });
   }
 
   async update(tenantId: string, id: string, dto: UpdatePromoCodeDto) {
@@ -140,7 +173,13 @@ export class PromoCodesService {
     });
     if (!existing) throw new NotFoundException("Promo code not found");
 
-    return this.prisma.promoCode.update({
+    return this.prisma.$transaction(async (tx: any) => {
+      // A new text or a wider set of shops can collide with another code.
+      if (dto.code !== undefined || dto.locationIds !== undefined) {
+        const code = dto.code !== undefined ? dto.code.trim().toUpperCase() : existing.code;
+        await this.assertNoClash(tx, tenantId, code, dto.locationIds ?? existing.locationIds, id);
+      }
+      return tx.promoCode.update({
       where: { id },
       data: {
         ...(dto.code !== undefined && { code: dto.code.trim().toUpperCase() }),
@@ -160,6 +199,7 @@ export class PromoCodesService {
         ...(dto.locationIds !== undefined && { locationIds: dto.locationIds }),
         ...(dto.showOnPos !== undefined && { showOnPos: dto.showOnPos }),
       },
+      });
     });
   }
 
@@ -183,10 +223,13 @@ export class PromoCodesService {
     const code = (input.code ?? "").trim().toUpperCase();
     if (!code) return { valid: false, reason: "code is required" };
 
-    const promo = await this.prisma.promoCode.findFirst({
-      where: { tenantId, code },
-    });
-    if (!promo) return { valid: false, reason: "Promo code not found" };
+    const rows = await this.prisma.promoCode.findMany({ where: { tenantId, code } });
+    const promo = pickForLocation(rows, input.locationId);
+    if (!promo) {
+      return rows.length
+        ? { valid: false, reason: "Promo code not valid at this location" }
+        : { valid: false, reason: "Promo code not found" };
+    }
     if (!promo.isActive) return { valid: false, reason: "Promo code is inactive" };
 
     const now = new Date();
@@ -332,30 +375,46 @@ export class PromoCodesService {
     if (locationId) params.push(locationId);
     else if (allowed) params.push(allowed);
     const stats = await this.prisma.$queryRawUnsafe<
-      { code: string; orders: number; revenue: number; discount: number; last_at: Date | null }[]
+      { code: string; location_id: string | null; orders: number; revenue: number; discount: number; last_at: Date | null }[]
     >(
-      `SELECT upper(trim(metadata->>'promoCode')) AS code, COUNT(*)::int AS orders,
+      `SELECT upper(trim(metadata->>'promoCode')) AS code, "locationId" AS location_id, COUNT(*)::int AS orders,
               COALESCE(SUM(total), 0)::float AS revenue, COALESCE(SUM(discount), 0)::float AS discount,
               MAX("createdAt") AS last_at
        FROM orders
        WHERE "tenantId" = $1 AND upper(trim(metadata->>'promoCode')) = ANY($2::text[])
          AND status::text NOT IN ('${NOT_REAL.join("','")}') ${scopeSql}
-       GROUP BY 1`,
+       GROUP BY 1, 2`,
       ...params,
     );
-    const byCode = new Map(stats.map((r) => [r.code, r]));
+    // Two shops' "20OFF" are two codes: each order counts for the one valid
+    // at the shop it was placed at.
+    const sameText = new Map<string, typeof codes>();
+    for (const c of codes) sameText.set(c.code, [...(sameText.get(c.code) ?? []), c]);
+    const byId = new Map<string, { orders: number; revenue: number; discount: number; last_at: Date | null }>();
+    for (const r of stats) {
+      const owner = pickForLocation(sameText.get(r.code) ?? [], r.location_id);
+      if (!owner) continue;
+      const acc = byId.get(owner.id) ?? { orders: 0, revenue: 0, discount: 0, last_at: null };
+      acc.orders += Number(r.orders);
+      acc.revenue += Number(r.revenue);
+      acc.discount += Number(r.discount);
+      if (r.last_at && (!acc.last_at || r.last_at > acc.last_at)) acc.last_at = r.last_at;
+      byId.set(owner.id, acc);
+    }
 
     // Which emails promise each code (campaign drafts/scheduled/sent and
     // automations) — so deleting or pausing one isn't a surprise.
-    const usedIn = await this.prisma.$queryRawUnsafe<{ code: string; kind: string; id: string; name: string; status: string }[]>(
+    const usedIn = await this.prisma.$queryRawUnsafe<
+      { code: string; kind: string; id: string; name: string; status: string; location_id: string | null }[]
+    >(
       // jsonb::text always prints `"code": "VALUE"` (one space after the colon).
-      `SELECT c.code, 'campaign' AS kind, ec.id, ec.name, ec.status
+      `SELECT c.code, 'campaign' AS kind, ec.id, ec.name, ec.status, ec."locationId" AS location_id
        FROM email_campaigns ec CROSS JOIN unnest($2::text[]) AS c(code)
        WHERE ec."tenantId" = $1 AND ec."automationId" IS NULL AND ec.status <> 'CANCELLED'
          AND ec.design::text ILIKE '%"code": "' || c.code || '"%'
        UNION ALL
        SELECT c.code, 'automation' AS kind, ea.id, ea.type AS name,
-              CASE WHEN ea.enabled THEN 'ON' ELSE 'OFF' END AS status
+              CASE WHEN ea.enabled THEN 'ON' ELSE 'OFF' END AS status, ea."locationId" AS location_id
        FROM email_automations ea CROSS JOIN unnest($2::text[]) AS c(code)
        WHERE ea."tenantId" = $1 AND ea.design::text ILIKE '%"code": "' || c.code || '"%'`,
       tenantId,
@@ -364,7 +423,7 @@ export class PromoCodesService {
 
     const now = new Date();
     return codes.map((c) => {
-      const r = byCode.get(c.code);
+      const r = byId.get(c.id);
       const status = !c.isActive
         ? "PAUSED"
         : c.expiresAt && c.expiresAt < now
@@ -400,7 +459,7 @@ export class PromoCodesService {
           lastUsedAt: r?.last_at ?? null,
         },
         usedIn: usedIn
-          .filter((u) => u.code === c.code)
+          .filter((u) => u.code === c.code && (!u.location_id || pickForLocation(sameText.get(c.code) ?? [], u.location_id)?.id === c.id))
           .map((u) => ({ kind: u.kind, id: u.id, name: u.name, status: u.status })),
       };
     });
@@ -416,6 +475,21 @@ export class PromoCodesService {
     if (allowed) {
       params.push(allowed);
       scope = `AND o."locationId" = ANY($3::text[])`;
+    }
+    // Another shop's "20OFF" is a different code: only this one's shops.
+    if (promo.locationIds.length) {
+      params.push(promo.locationIds);
+      scope += ` AND o."locationId" = ANY($${params.length}::text[])`;
+    } else {
+      const others = await this.prisma.promoCode.findMany({
+        where: { tenantId, code: promo.code, id: { not: promo.id } },
+        select: { locationIds: true },
+      });
+      const elsewhere = others.flatMap((o) => o.locationIds);
+      if (elsewhere.length) {
+        params.push(elsewhere);
+        scope += ` AND NOT (o."locationId" = ANY($${params.length}::text[]))`;
+      }
     }
     const rows = await this.prisma.$queryRawUnsafe<any[]>(
       `SELECT o.id, o."displayId", o."orderNumber", o."createdAt", o.total::float AS total,
@@ -481,15 +555,14 @@ export class PromoCodesService {
     tenantId: string;
     code: string;
     orderId: string;
+    /** The order's shop — picks which "20OFF" this was when shops share a text. */
+    locationId?: string | null;
     customerAccountId?: string | null;
     customerEmail?: string | null;
     customerPhone?: string | null;
   }): Promise<void> {
     const code = args.code.trim().toUpperCase();
-    const promo = await this.prisma.promoCode.findFirst({
-      where: { tenantId: args.tenantId, code },
-      select: { id: true },
-    });
+    const promo = await this.findForLocation(args.tenantId, code, args.locationId);
     if (!promo) return;
     const who = this.identity(args);
     const created = await this.prisma.promoCodeRedemption.createMany({
@@ -510,11 +583,9 @@ export class PromoCodesService {
     }
   }
 
-  async incrementUsage(tenantId: string, code: string): Promise<void> {
-    const normalised = code.trim().toUpperCase();
-    await this.prisma.promoCode.updateMany({
-      where: { tenantId, code: normalised },
-      data: { usedCount: { increment: 1 } },
-    });
+  async incrementUsage(tenantId: string, code: string, locationId?: string | null): Promise<void> {
+    const promo = await this.findForLocation(tenantId, code, locationId);
+    if (!promo) return;
+    await this.prisma.promoCode.update({ where: { id: promo.id }, data: { usedCount: { increment: 1 } } });
   }
 }

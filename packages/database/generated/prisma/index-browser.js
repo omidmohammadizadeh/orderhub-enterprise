@@ -207,7 +207,14 @@ exports.Prisma.CustomerAccountScalarFieldEnum = {
   firstName: 'firstName',
   lastName: 'lastName',
   phone: 'phone',
+  addressLine1: 'addressLine1',
+  addressLine2: 'addressLine2',
+  addressCity: 'addressCity',
+  addressPostcode: 'addressPostcode',
+  addressArea: 'addressArea',
+  dateOfBirth: 'dateOfBirth',
   googleId: 'googleId',
+  appleId: 'appleId',
   avatarUrl: 'avatarUrl',
   isVerified: 'isVerified',
   emailVerificationToken: 'emailVerificationToken',
@@ -291,6 +298,7 @@ exports.Prisma.BrandScalarFieldEnum = {
   name: 'name',
   slug: 'slug',
   logoUrl: 'logoUrl',
+  primaryColor: 'primaryColor',
   settings: 'settings',
   metadata: 'metadata',
   isActive: 'isActive',
@@ -992,7 +1000,8 @@ exports.Prisma.OrderScalarFieldEnum = {
   metadata: 'metadata',
   sourceMetadata: 'sourceMetadata',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  loyaltyMemberId: 'loyaltyMemberId'
 };
 
 exports.Prisma.OrderNumberSequenceScalarFieldEnum = {
@@ -1145,6 +1154,124 @@ exports.Prisma.TableReservationScalarFieldEnum = {
   seatedAt: 'seatedAt',
   cancelledAt: 'cancelledAt',
   reference: 'reference',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SalonServiceScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  category: 'category',
+  name: 'name',
+  description: 'description',
+  price: 'price',
+  priceFrom: 'priceFrom',
+  durationMins: 'durationMins',
+  bufferMins: 'bufferMins',
+  processingStartMins: 'processingStartMins',
+  processingMins: 'processingMins',
+  depositType: 'depositType',
+  depositValue: 'depositValue',
+  requiresPatchTest: 'requiresPatchTest',
+  bookableOnline: 'bookableOnline',
+  isActive: 'isActive',
+  sortOrder: 'sortOrder',
+  imageUrl: 'imageUrl',
+  addons: 'addons',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SalonStaffScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  userId: 'userId',
+  name: 'name',
+  title: 'title',
+  bio: 'bio',
+  avatarUrl: 'avatarUrl',
+  colour: 'colour',
+  bookableOnline: 'bookableOnline',
+  acceptsWalkIns: 'acceptsWalkIns',
+  isActive: 'isActive',
+  sortOrder: 'sortOrder',
+  weeklyHours: 'weeklyHours',
+  serviceIds: 'serviceIds',
+  priceOverrides: 'priceOverrides',
+  commissionPercent: 'commissionPercent',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SalonTimeOffScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  staffId: 'staffId',
+  startsAt: 'startsAt',
+  endsAt: 'endsAt',
+  reason: 'reason',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.SalonAppointmentScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  staffId: 'staffId',
+  customerId: 'customerId',
+  customerName: 'customerName',
+  customerPhone: 'customerPhone',
+  customerEmail: 'customerEmail',
+  startsAt: 'startsAt',
+  endsAt: 'endsAt',
+  status: 'status',
+  source: 'source',
+  anyStaff: 'anyStaff',
+  services: 'services',
+  totalPrice: 'totalPrice',
+  notes: 'notes',
+  staffNotes: 'staffNotes',
+  reference: 'reference',
+  manageToken: 'manageToken',
+  depositAmount: 'depositAmount',
+  depositStatus: 'depositStatus',
+  depositOrderId: 'depositOrderId',
+  depositPaidAt: 'depositPaidAt',
+  orderId: 'orderId',
+  tipAmount: 'tipAmount',
+  checkedInAt: 'checkedInAt',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  cancelledAt: 'cancelledAt',
+  cancelReason: 'cancelReason',
+  reminderSentAt: 'reminderSentAt',
+  rebookNudgeSentAt: 'rebookNudgeSentAt',
+  reviewRequestSentAt: 'reviewRequestSentAt',
+  queueEntryId: 'queueEntryId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SalonQueueEntryScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  customerName: 'customerName',
+  customerPhone: 'customerPhone',
+  serviceIds: 'serviceIds',
+  serviceSummary: 'serviceSummary',
+  estimatedMins: 'estimatedMins',
+  preferredStaffId: 'preferredStaffId',
+  staffId: 'staffId',
+  status: 'status',
+  source: 'source',
+  publicToken: 'publicToken',
+  calledAt: 'calledAt',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt',
+  appointmentId: 'appointmentId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -1382,6 +1509,7 @@ exports.Prisma.DriverPresenceScalarFieldEnum = {
   activeAssignmentId: 'activeAssignmentId',
   socketId: 'socketId',
   pushToken: 'pushToken',
+  pushJobFormat: 'pushJobFormat',
   lastPingAt: 'lastPingAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -2203,6 +2331,13 @@ exports.Prisma.JetGoConfigScalarFieldEnum = {
   webhookToken: 'webhookToken',
   webhookSecret: 'webhookSecret',
   active: 'active',
+  requirePinOnDelivery: 'requirePinOnDelivery',
+  alcoholAgeRestriction: 'alcoholAgeRestriction',
+  alcoholIdScan: 'alcoholIdScan',
+  onboardingReference: 'onboardingReference',
+  onboardingStatus: 'onboardingStatus',
+  onboardingError: 'onboardingError',
+  onboardingAt: 'onboardingAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -2306,9 +2441,13 @@ exports.Prisma.CustomerPushSubscriptionScalarFieldEnum = {
   tenantId: 'tenantId',
   locationId: 'locationId',
   brandId: 'brandId',
+  kind: 'kind',
+  platform: 'platform',
+  appId: 'appId',
   endpoint: 'endpoint',
   p256dh: 'p256dh',
   auth: 'auth',
+  marketingOptIn: 'marketingOptIn',
   customerId: 'customerId',
   deviceRef: 'deviceRef',
   userAgent: 'userAgent',
@@ -2325,6 +2464,62 @@ exports.Prisma.CustomerPushOrderScalarFieldEnum = {
   orderId: 'orderId',
   trackPath: 'trackPath',
   createdAt: 'createdAt'
+};
+
+exports.Prisma.PushAutomationScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  trigger: 'trigger',
+  enabled: 'enabled',
+  title: 'title',
+  body: 'body',
+  delayMinutes: 'delayMinutes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PushLocationReviewScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  enabled: 'enabled',
+  delayMinutes: 'delayMinutes',
+  title: 'title',
+  body: 'body',
+  sendFromHour: 'sendFromHour',
+  sendUntilHour: 'sendUntilHour',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PushReviewRequestScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  orderId: 'orderId',
+  dueAt: 'dueAt',
+  status: 'status',
+  claimedAt: 'claimedAt',
+  sentAt: 'sentAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.PushCampaignScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  title: 'title',
+  body: 'body',
+  status: 'status',
+  scheduledFor: 'scheduledFor',
+  startedAt: 'startedAt',
+  sentAt: 'sentAt',
+  targeted: 'targeted',
+  delivered: 'delivered',
+  failed: 'failed',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.ContractTemplateScalarFieldEnum = {
@@ -2403,7 +2598,16 @@ exports.Prisma.LoyaltyCardScalarFieldEnum = {
   minimumSpend: 'minimumSpend',
   rewardItemId: 'rewardItemId',
   rewardLabel: 'rewardLabel',
+  rewardType: 'rewardType',
+  rewardPercent: 'rewardPercent',
+  rewardMaxDiscount: 'rewardMaxDiscount',
+  rewardMinOrder: 'rewardMinOrder',
   rewardExpiryDays: 'rewardExpiryDays',
+  walkInEnabled: 'walkInEnabled',
+  cardTitle: 'cardTitle',
+  cardColor: 'cardColor',
+  cardLogoUrl: 'cardLogoUrl',
+  stampIcon: 'stampIcon',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -2413,7 +2617,11 @@ exports.Prisma.LoyaltyStampScalarFieldEnum = {
   tenantId: 'tenantId',
   cardId: 'cardId',
   customerAccountId: 'customerAccountId',
+  memberId: 'memberId',
   orderId: 'orderId',
+  source: 'source',
+  requestKey: 'requestKey',
+  staffUserId: 'staffUserId',
   spend: 'spend',
   createdAt: 'createdAt'
 };
@@ -2425,13 +2633,49 @@ exports.Prisma.LoyaltyRewardScalarFieldEnum = {
   locationId: 'locationId',
   source: 'source',
   amountOff: 'amountOff',
+  percentOff: 'percentOff',
+  maxDiscount: 'maxDiscount',
+  minOrder: 'minOrder',
   customerAccountId: 'customerAccountId',
+  memberId: 'memberId',
   label: 'label',
   rewardItemId: 'rewardItemId',
   earnedAt: 'earnedAt',
   expiresAt: 'expiresAt',
   claimedAt: 'claimedAt',
-  claimedOrderId: 'claimedOrderId'
+  claimedOrderId: 'claimedOrderId',
+  claimedByUserId: 'claimedByUserId'
+};
+
+exports.Prisma.LoyaltyMemberScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  cardId: 'cardId',
+  locationId: 'locationId',
+  code: 'code',
+  publicToken: 'publicToken',
+  email: 'email',
+  phone: 'phone',
+  customerAccountId: 'customerAccountId',
+  firstName: 'firstName',
+  marketingConsent: 'marketingConsent',
+  source: 'source',
+  passUpdatedAt: 'passUpdatedAt',
+  googleObjectAt: 'googleObjectAt',
+  verifyCodeHash: 'verifyCodeHash',
+  verifyExpiresAt: 'verifyExpiresAt',
+  verifyAttempts: 'verifyAttempts',
+  lastSeenAt: 'lastSeenAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.LoyaltyPassDeviceScalarFieldEnum = {
+  id: 'id',
+  memberId: 'memberId',
+  deviceLibraryId: 'deviceLibraryId',
+  pushToken: 'pushToken',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.ReferralProgramScalarFieldEnum = {
@@ -2577,6 +2821,17 @@ exports.Prisma.EmailAutomationScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.EmailBirthdaySendScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  automationId: 'automationId',
+  locationId: 'locationId',
+  contactId: 'contactId',
+  email: 'email',
+  year: 'year',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.EmailCampaignRecipientScalarFieldEnum = {
   id: 'id',
   campaignId: 'campaignId',
@@ -2665,6 +2920,47 @@ exports.Prisma.MenuAutoPublishScalarFieldEnum = {
   lastStatus: 'lastStatus',
   lastResult: 'lastResult',
   createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AutoDispatchRuleScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  enabled: 'enabled',
+  priority: 'priority',
+  locationId: 'locationId',
+  brandIds: 'brandIds',
+  channels: 'channels',
+  strategy: 'strategy',
+  providers: 'providers',
+  fallback: 'fallback',
+  trigger: 'trigger',
+  delayMinutes: 'delayMinutes',
+  maxPriceMinor: 'maxPriceMinor',
+  dryRun: 'dryRun',
+  enabledAt: 'enabledAt',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AutoDispatchRunScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  orderId: 'orderId',
+  locationId: 'locationId',
+  ruleId: 'ruleId',
+  status: 'status',
+  dueAt: 'dueAt',
+  attempts: 'attempts',
+  quotes: 'quotes',
+  provider: 'provider',
+  priceMinor: 'priceMinor',
+  jobId: 'jobId',
+  error: 'error',
+  finishedAt: 'finishedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -2760,7 +3056,13 @@ exports.Prisma.CustomerAccountOrderByRelevanceFieldEnum = {
   firstName: 'firstName',
   lastName: 'lastName',
   phone: 'phone',
+  addressLine1: 'addressLine1',
+  addressLine2: 'addressLine2',
+  addressCity: 'addressCity',
+  addressPostcode: 'addressPostcode',
+  addressArea: 'addressArea',
   googleId: 'googleId',
+  appleId: 'appleId',
   avatarUrl: 'avatarUrl',
   emailVerificationToken: 'emailVerificationToken'
 };
@@ -2819,6 +3121,7 @@ exports.Prisma.BrandOrderByRelevanceFieldEnum = {
   name: 'name',
   slug: 'slug',
   logoUrl: 'logoUrl',
+  primaryColor: 'primaryColor',
   description: 'description',
   cuisine: 'cuisine',
   primaryLocationId: 'primaryLocationId',
@@ -3209,7 +3512,8 @@ exports.Prisma.OrderOrderByRelevanceFieldEnum = {
   callerId: 'callerId',
   discountType: 'discountType',
   paymentProvider: 'paymentProvider',
-  cancelReason: 'cancelReason'
+  cancelReason: 'cancelReason',
+  loyaltyMemberId: 'loyaltyMemberId'
 };
 
 exports.Prisma.OrderNumberSequenceOrderByRelevanceFieldEnum = {
@@ -3311,6 +3615,75 @@ exports.Prisma.TableReservationOrderByRelevanceFieldEnum = {
   notes: 'notes',
   orderId: 'orderId',
   reference: 'reference'
+};
+
+exports.Prisma.SalonServiceOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  category: 'category',
+  name: 'name',
+  description: 'description',
+  depositType: 'depositType',
+  imageUrl: 'imageUrl'
+};
+
+exports.Prisma.SalonStaffOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  userId: 'userId',
+  name: 'name',
+  title: 'title',
+  bio: 'bio',
+  avatarUrl: 'avatarUrl',
+  colour: 'colour',
+  serviceIds: 'serviceIds'
+};
+
+exports.Prisma.SalonTimeOffOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  staffId: 'staffId',
+  reason: 'reason'
+};
+
+exports.Prisma.SalonAppointmentOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  staffId: 'staffId',
+  customerId: 'customerId',
+  customerName: 'customerName',
+  customerPhone: 'customerPhone',
+  customerEmail: 'customerEmail',
+  status: 'status',
+  source: 'source',
+  notes: 'notes',
+  staffNotes: 'staffNotes',
+  reference: 'reference',
+  manageToken: 'manageToken',
+  depositStatus: 'depositStatus',
+  depositOrderId: 'depositOrderId',
+  orderId: 'orderId',
+  cancelReason: 'cancelReason',
+  queueEntryId: 'queueEntryId'
+};
+
+exports.Prisma.SalonQueueEntryOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  customerName: 'customerName',
+  customerPhone: 'customerPhone',
+  serviceIds: 'serviceIds',
+  serviceSummary: 'serviceSummary',
+  preferredStaffId: 'preferredStaffId',
+  staffId: 'staffId',
+  status: 'status',
+  source: 'source',
+  publicToken: 'publicToken',
+  appointmentId: 'appointmentId'
 };
 
 exports.Prisma.KdsTicketOrderByRelevanceFieldEnum = {
@@ -3443,7 +3816,8 @@ exports.Prisma.DriverPresenceOrderByRelevanceFieldEnum = {
   locationId: 'locationId',
   activeAssignmentId: 'activeAssignmentId',
   socketId: 'socketId',
-  pushToken: 'pushToken'
+  pushToken: 'pushToken',
+  pushJobFormat: 'pushJobFormat'
 };
 
 exports.Prisma.DriverAssignmentOrderByRelevanceFieldEnum = {
@@ -3981,7 +4355,10 @@ exports.Prisma.JetGoConfigOrderByRelevanceFieldEnum = {
   collectPointId: 'collectPointId',
   collectPointName: 'collectPointName',
   webhookToken: 'webhookToken',
-  webhookSecret: 'webhookSecret'
+  webhookSecret: 'webhookSecret',
+  onboardingReference: 'onboardingReference',
+  onboardingStatus: 'onboardingStatus',
+  onboardingError: 'onboardingError'
 };
 
 exports.Prisma.YangoConfigOrderByRelevanceFieldEnum = {
@@ -4053,6 +4430,9 @@ exports.Prisma.CustomerPushSubscriptionOrderByRelevanceFieldEnum = {
   tenantId: 'tenantId',
   locationId: 'locationId',
   brandId: 'brandId',
+  kind: 'kind',
+  platform: 'platform',
+  appId: 'appId',
   endpoint: 'endpoint',
   p256dh: 'p256dh',
   auth: 'auth',
@@ -4066,6 +4446,40 @@ exports.Prisma.CustomerPushOrderOrderByRelevanceFieldEnum = {
   subscriptionId: 'subscriptionId',
   orderId: 'orderId',
   trackPath: 'trackPath'
+};
+
+exports.Prisma.PushAutomationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  trigger: 'trigger',
+  title: 'title',
+  body: 'body'
+};
+
+exports.Prisma.PushLocationReviewOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  title: 'title',
+  body: 'body'
+};
+
+exports.Prisma.PushReviewRequestOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  orderId: 'orderId',
+  status: 'status'
+};
+
+exports.Prisma.PushCampaignOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  title: 'title',
+  body: 'body',
+  status: 'status',
+  createdBy: 'createdBy'
 };
 
 exports.Prisma.ContractTemplateOrderByRelevanceFieldEnum = {
@@ -4120,7 +4534,12 @@ exports.Prisma.LoyaltyCardOrderByRelevanceFieldEnum = {
   tenantId: 'tenantId',
   locationId: 'locationId',
   rewardItemId: 'rewardItemId',
-  rewardLabel: 'rewardLabel'
+  rewardLabel: 'rewardLabel',
+  rewardType: 'rewardType',
+  cardTitle: 'cardTitle',
+  cardColor: 'cardColor',
+  cardLogoUrl: 'cardLogoUrl',
+  stampIcon: 'stampIcon'
 };
 
 exports.Prisma.LoyaltyStampOrderByRelevanceFieldEnum = {
@@ -4128,7 +4547,11 @@ exports.Prisma.LoyaltyStampOrderByRelevanceFieldEnum = {
   tenantId: 'tenantId',
   cardId: 'cardId',
   customerAccountId: 'customerAccountId',
-  orderId: 'orderId'
+  memberId: 'memberId',
+  orderId: 'orderId',
+  source: 'source',
+  requestKey: 'requestKey',
+  staffUserId: 'staffUserId'
 };
 
 exports.Prisma.LoyaltyRewardOrderByRelevanceFieldEnum = {
@@ -4138,9 +4561,33 @@ exports.Prisma.LoyaltyRewardOrderByRelevanceFieldEnum = {
   locationId: 'locationId',
   source: 'source',
   customerAccountId: 'customerAccountId',
+  memberId: 'memberId',
   label: 'label',
   rewardItemId: 'rewardItemId',
-  claimedOrderId: 'claimedOrderId'
+  claimedOrderId: 'claimedOrderId',
+  claimedByUserId: 'claimedByUserId'
+};
+
+exports.Prisma.LoyaltyMemberOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  cardId: 'cardId',
+  locationId: 'locationId',
+  code: 'code',
+  publicToken: 'publicToken',
+  email: 'email',
+  phone: 'phone',
+  customerAccountId: 'customerAccountId',
+  firstName: 'firstName',
+  source: 'source',
+  verifyCodeHash: 'verifyCodeHash'
+};
+
+exports.Prisma.LoyaltyPassDeviceOrderByRelevanceFieldEnum = {
+  id: 'id',
+  memberId: 'memberId',
+  deviceLibraryId: 'deviceLibraryId',
+  pushToken: 'pushToken'
 };
 
 exports.Prisma.ReferralProgramOrderByRelevanceFieldEnum = {
@@ -4231,6 +4678,15 @@ exports.Prisma.EmailAutomationOrderByRelevanceFieldEnum = {
   createdBy: 'createdBy'
 };
 
+exports.Prisma.EmailBirthdaySendOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  automationId: 'automationId',
+  locationId: 'locationId',
+  contactId: 'contactId',
+  email: 'email'
+};
+
 exports.Prisma.EmailCampaignRecipientOrderByRelevanceFieldEnum = {
   id: 'id',
   campaignId: 'campaignId',
@@ -4297,6 +4753,31 @@ exports.Prisma.MenuAutoPublishOrderByRelevanceFieldEnum = {
   lastStatus: 'lastStatus',
   createdBy: 'createdBy'
 };
+
+exports.Prisma.AutoDispatchRuleOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  locationId: 'locationId',
+  brandIds: 'brandIds',
+  channels: 'channels',
+  strategy: 'strategy',
+  providers: 'providers',
+  trigger: 'trigger',
+  createdBy: 'createdBy'
+};
+
+exports.Prisma.AutoDispatchRunOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  orderId: 'orderId',
+  locationId: 'locationId',
+  ruleId: 'ruleId',
+  status: 'status',
+  provider: 'provider',
+  jobId: 'jobId',
+  error: 'error'
+};
 exports.TenantPlan = exports.$Enums.TenantPlan = {
   STARTER: 'STARTER',
   PROFESSIONAL: 'PROFESSIONAL',
@@ -4352,7 +4833,8 @@ exports.OAuthProvider = exports.$Enums.OAuthProvider = {
 exports.BusinessType = exports.$Enums.BusinessType = {
   RESTAURANT: 'RESTAURANT',
   GROCERY: 'GROCERY',
-  RETAIL: 'RETAIL'
+  RETAIL: 'RETAIL',
+  SALON: 'SALON'
 };
 
 exports.LocationGoLiveStatus = exports.$Enums.LocationGoLiveStatus = {
@@ -4594,7 +5076,10 @@ exports.AlertTrigger = exports.$Enums.AlertTrigger = {
   RIDER_ARRIVED: 'RIDER_ARRIVED',
   SCHEDULED_ORDER_READY: 'SCHEDULED_ORDER_READY',
   PRINTER_OFFLINE: 'PRINTER_OFFLINE',
-  FAILED_PRINT: 'FAILED_PRINT'
+  FAILED_PRINT: 'FAILED_PRINT',
+  NEW_APPOINTMENT: 'NEW_APPOINTMENT',
+  APPOINTMENT_CANCELLED: 'APPOINTMENT_CANCELLED',
+  WALK_IN_JOINED: 'WALK_IN_JOINED'
 };
 
 exports.DriverPresenceStatus = exports.$Enums.DriverPresenceStatus = {
@@ -4817,6 +5302,11 @@ exports.Prisma.ModelName = {
   Table: 'Table',
   KioskDevice: 'KioskDevice',
   TableReservation: 'TableReservation',
+  SalonService: 'SalonService',
+  SalonStaff: 'SalonStaff',
+  SalonTimeOff: 'SalonTimeOff',
+  SalonAppointment: 'SalonAppointment',
+  SalonQueueEntry: 'SalonQueueEntry',
   KdsTicket: 'KdsTicket',
   Printer: 'Printer',
   PrintJob: 'PrintJob',
@@ -4895,12 +5385,18 @@ exports.Prisma.ModelName = {
   GroupOrderItem: 'GroupOrderItem',
   CustomerPushSubscription: 'CustomerPushSubscription',
   CustomerPushOrder: 'CustomerPushOrder',
+  PushAutomation: 'PushAutomation',
+  PushLocationReview: 'PushLocationReview',
+  PushReviewRequest: 'PushReviewRequest',
+  PushCampaign: 'PushCampaign',
   ContractTemplate: 'ContractTemplate',
   Contract: 'Contract',
   ContractEvent: 'ContractEvent',
   LoyaltyCard: 'LoyaltyCard',
   LoyaltyStamp: 'LoyaltyStamp',
   LoyaltyReward: 'LoyaltyReward',
+  LoyaltyMember: 'LoyaltyMember',
+  LoyaltyPassDevice: 'LoyaltyPassDevice',
   ReferralProgram: 'ReferralProgram',
   ReferralCode: 'ReferralCode',
   Referral: 'Referral',
@@ -4908,12 +5404,15 @@ exports.Prisma.ModelName = {
   EmailContact: 'EmailContact',
   EmailCampaign: 'EmailCampaign',
   EmailAutomation: 'EmailAutomation',
+  EmailBirthdaySend: 'EmailBirthdaySend',
   EmailCampaignRecipient: 'EmailCampaignRecipient',
   BuildGuide: 'BuildGuide',
   BuildStepTemplate: 'BuildStepTemplate',
   BuildGuideTraining: 'BuildGuideTraining',
   AssemblyChart: 'AssemblyChart',
-  MenuAutoPublish: 'MenuAutoPublish'
+  MenuAutoPublish: 'MenuAutoPublish',
+  AutoDispatchRule: 'AutoDispatchRule',
+  AutoDispatchRun: 'AutoDispatchRun'
 };
 
 /**

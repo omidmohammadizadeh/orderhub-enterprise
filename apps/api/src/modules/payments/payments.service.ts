@@ -324,9 +324,13 @@ export class PaymentsService {
 
     if (this.stripe) {
       try {
-        const connectAccount = await this.prisma.stripeConnectAccount.findFirst({
-          where: { tenantId },
-        });
+        // Same resolver as every other charge — "any account in the tenant"
+        // picked another brand's account.
+        const connectAccount = await this.resolveConnectAccount(
+          tenantId,
+          order.locationId,
+          (order as any).brandId ?? null,
+        );
 
         const intentParams: any = {
           amount: Math.round(total.toNumber() * 100), // Stripe expects pence
@@ -829,8 +833,13 @@ export class PaymentsService {
     if (locationLevel) {
       return { id: locationLevel.id, stripeAccountId: locationLevel.stripeAccountId };
     }
+    // Tenant-level means BOTH scopes null. A brand's own account (AW-30
+    // embedded onboarding) also has locationId null, so without
+    // `brandId: null` every shop in the tenant that had no account of its
+    // own was paid into whichever brand onboarded first (Clifton's QR
+    // payments landed on JINTY'S, 2026-10-09).
     const tenantLevel = await (this.prisma as any).stripeConnectAccount.findFirst({
-      where: { tenantId, locationId: null, chargesEnabled: true },
+      where: { tenantId, locationId: null, brandId: null, chargesEnabled: true },
     });
     if (tenantLevel) {
       return { id: tenantLevel.id, stripeAccountId: tenantLevel.stripeAccountId };
@@ -1829,15 +1838,20 @@ export class PaymentsService {
     // driver or the counter is collecting money that is already being paid
     // online. Stripe's webhook settles it to CARD PAID from there.
     //
-    // Only from CASH, and only while unpaid: an order already on a link or a
-    // QR keeps the method it was placed under.
-    if (order.paymentMethod === "CASH") {
+    // Any unpaid method moves onto the link — not just CASH. A collection
+    // taken as "card at the counter" (CARD_TERMINAL) and then switched to
+    // delivery can no longer be paid at the counter, so the link is the only
+    // way left to take the money; leaving it on CARD_TERMINAL had the board
+    // still expecting a card machine at the door. An order already on a link
+    // or a QR keeps the method it was placed under.
+    const current = String(order.paymentMethod ?? "");
+    if (current !== "PAYMENT_LINK" && current !== "QR_CODE") {
       await this.prisma.order.update({
         where: { id: order.id },
         data: { paymentMethod: "PAYMENT_LINK" as any },
       });
       this.logger.log(
-        `Order ${order.id} switched from cash to payment link at the operator's request`,
+        `Order ${order.id} switched from ${current || "no method"} to payment link at the operator's request`,
       );
     }
 

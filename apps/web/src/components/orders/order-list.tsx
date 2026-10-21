@@ -48,7 +48,7 @@ import { OrderDetailDrawer } from "./order-detail-drawer";
 import { OrderActions } from "./order-actions";
 import { DispatchModal } from "./dispatch-modal";
 import { PaymentBadge } from "./order-card";
-import { PlatformBadge, FulfillmentBadge } from "./platform-badge";
+import { AppBadge, PlatformBadge, FulfillmentBadge, TableBadge } from "./platform-badge";
 import { useLiveOrders } from "../../hooks/use-live-orders";
 import type { Order } from "../../lib/api/orders.client";
 import { isAwaitingOurPayment } from "@/lib/orders/awaiting-payment";
@@ -1027,7 +1027,10 @@ function OrderCard({
               : order.platform
           }
         />
+        <AppBadge metadata={(order as any).metadata} />
         <FulfillmentBadge type={order.fulfillmentType} />
+        {/* Dine-in: which table, always. The guest's name doesn't say. */}
+        <TableBadge name={order.tableName} />
         <DeliveryTypeBadge type={(order as any).deliveryType} />
         <PaymentBadge
           method={(order as any).paymentMethod}
@@ -1163,6 +1166,9 @@ function OrderRow({
               : order.platform
           }
         />
+        <div className="mt-1">
+          <AppBadge metadata={(order as any).metadata} />
+        </div>
       </Td>
       {/* Brand + location — the brand the order belongs to (resolved
           from the marketplace payload for HubRise) with the fulfilling
@@ -1182,7 +1188,12 @@ function OrderRow({
         </div>
       </Td>
       <Td>
-        <FulfillmentBadge type={order.fulfillmentType} />
+        <div className="flex flex-col items-start gap-1">
+          <FulfillmentBadge type={order.fulfillmentType} />
+          {/* Dine-in: which table, always. Stacked rather than inline so a
+              long table name can't squeeze the columns beside it. */}
+          <TableBadge name={order.tableName} />
+        </div>
       </Td>
       <Td>
         {/* Phase AV — Delivery type pill. PLATFORM = marketplace

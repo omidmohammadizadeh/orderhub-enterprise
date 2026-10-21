@@ -31,6 +31,7 @@ import {
   applyReceiptOffer,
   applyReturnsCode,
   printerRenderOptions,
+  describeQrDecision,
 } from "../lib/printing/print-order";
 import { isAwaitingOurPayment } from "../lib/orders/awaiting-payment";
 import {
@@ -191,6 +192,9 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
         );
       }
       let printedAny = false;
+      // What the QR gates said, reported with markOrderPrinted exactly as a
+      // reprint does — the first print is usually the only one.
+      let qrDecision: Record<string, unknown> | null = null;
       for (const p of btPrinters) {
         const copies = copiesFor(p);
         if (copies < 1) continue;
@@ -206,11 +210,22 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
           // on the slip) while a reprint of the same order got the raster and
           // came out right. printFont was missing too, so the per-printer
           // typeface never applied to a first print either.
+          const renderOpts = printerRenderOptions(p);
           const { receipt, receiptWithQr, qrSlip } = await renderReceiptParts(
             pPayload,
             p.paperWidth ?? 80,
-            printerRenderOptions(p),
+            renderOpts,
           );
+          qrDecision = describeQrDecision({
+            printer: p,
+            renderOpts,
+            order,
+            offer,
+            payload: pPayload,
+            qrSlip,
+            receiptWithQr,
+            auto: true,
+          });
           // Detached: plain receipts, then the QR on its own ticket. Applied
           // here as well as on reprint — a setting that only worked on one of
           // the two is exactly the drift this comment block already warns of.
@@ -242,7 +257,7 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
       // Clear this order's server-side job(s) from the queue + bump
       // "last print" — the receipt has physically printed.
       if (printedAny && order?.id) {
-        void printersClient.markOrderPrinted(order.id);
+        void printersClient.markOrderPrinted(order.id, qrDecision ?? undefined);
       }
     };
 
@@ -260,7 +275,11 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
       if (isAwaitingOurPayment(o as any)) continue;
 
       if (!printedNewRef.current.has(o.id)) {
-        if (btPrinters.length === 0) {
+        // Taken offline on a till that printed its ticket there and then.
+        // The kitchen already has the paper; printing again on sync would
+        // send a second copy of every order from the outage.
+        const printedOffline = (o as any).metadata?.offline?.printedLocally === true;
+        if (btPrinters.length === 0 || printedOffline) {
           printedNewRef.current.add(o.id);
           printedLinesRef.current.set(o.id, lineSig(o));
         } else if (hasItems(o)) {

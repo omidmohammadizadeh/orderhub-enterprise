@@ -24,6 +24,21 @@ const config: Config = {
           600: "#ea580c",
           700: "#c2410c",
         },
+        // Customer storefront surfaces — CSS variables set on .sf-root
+        // (globals.css) so light/dark and the brand accent need no JS. The
+        // fallbacks keep shared pieces (tab bar) light on pages without it.
+        sf: {
+          bg: "var(--sf-bg, #f7f7f8)",
+          surface: "var(--sf-surface, #ffffff)",
+          raised: "var(--sf-raised, #f1f1f3)",
+          text: "var(--sf-text, #18181b)",
+          muted: "var(--sf-muted, #5f5f68)",
+          border: "var(--sf-border, #e6e6e9)",
+          "border-strong": "var(--sf-border-strong, #d0d0d6)",
+          accent: "var(--sf-accent, #f97316)",
+          cta: "var(--sf-cta, #c2410c)",
+          promo: "var(--sf-promo, #dc2626)",
+        },
         // Sidebar palette
         sidebar: {
           bg: "#0a0a0b",
@@ -49,6 +64,7 @@ const config: Config = {
         "spin-slow": "spin 3s linear infinite",
         "fade-in": "fadeIn 0.15s ease-out",
         "slide-in-left": "slideInLeft 0.2s ease-out",
+        "slide-in-right": "slideInRight 0.22s cubic-bezier(.2,.8,.2,1)",
       },
       keyframes: {
         fadeIn: {
@@ -58,6 +74,10 @@ const config: Config = {
         slideInLeft: {
           from: { opacity: "0", transform: "translateX(-8px)" },
           to: { opacity: "1", transform: "translateX(0)" },
+        },
+        slideInRight: {
+          from: { transform: "translateX(100%)" },
+          to: { transform: "translateX(0)" },
         },
       },
       borderRadius: {

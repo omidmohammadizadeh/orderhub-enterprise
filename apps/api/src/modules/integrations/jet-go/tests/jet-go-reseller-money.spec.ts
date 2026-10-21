@@ -156,7 +156,12 @@ describe("what the wallet statement says", () => {
       location: { id: "loc1", name: "Shop", country: "GB", currency: "GBP", prepTime: 20 },
       cfg: { reseller, collectPointId: "cp-1", market: "UK", environment: "sandbox", active: true },
     });
-    s.db = () => ({ order: { update: jest.fn().mockResolvedValue({}) } });
+    s.db = () => ({
+      order: { update: jest.fn().mockResolvedValue({}) },
+      // No age-restricted lines — this suite is about money, not the door.
+      orderItem: { findMany: async () => [] },
+      menuItem: { findMany: async () => [] },
+    });
     return { s, debits };
   }
 

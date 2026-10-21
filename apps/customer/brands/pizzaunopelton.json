@@ -1,0 +1,28 @@
+{
+  "$schema": "./brand.schema.json",
+  "slug": "pizzaunopelton",
+  "name": "Pizza Uno Pelton",
+  "brandId": "cmr9mir5w0007j0x9qsgtwge6",
+  "locationId": "cmr9mhydj0005j0x9fllb7meg",
+  "storefrontUrl": "https://www.orderhubsolutions.com/order/cmr9mhydj0005j0x9fllb7meg?brand=cmr9mir5w0007j0x9qsgtwge6",
+  "apiUrl": "https://orderhub-api-0re6.onrender.com/api",
+  "primaryColor": "#C62828",
+  "backgroundColor": "#FFFFFF",
+  "icon": "brands/pizzaunopelton/icon.png",
+  "adaptiveIcon": "brands/pizzaunopelton/adaptive-icon.png",
+  "splash": "brands/pizzaunopelton/splash.png",
+  "notificationIcon": "brands/pizzaunopelton/notification-icon.png",
+  "version": "1.2.0",
+  "ios": {
+    "bundleId": "com.orderhubsolutions.pizzaunopelton",
+    "appleTeamId": null,
+    "ascAppId": null
+  },
+  "android": {
+    "package": "com.orderhubsolutions.pizzaunopelton"
+  },
+  "google": {
+    "iosClientId": "331572609147-jjg27rtvsrcq6ordtp57rdr2g0p6qigr.apps.googleusercontent.com"
+  },
+  "easProjectId": "a1414263-55a7-4801-9183-c646db461a2c"
+}

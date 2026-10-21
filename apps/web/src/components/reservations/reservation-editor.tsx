@@ -26,6 +26,8 @@ export function ReservationEditor({
   reservation,
   defaultDate,
   defaultDurationMins,
+  defaultTime,
+  defaultTableId,
   onClose,
   onSaved,
 }: {
@@ -34,6 +36,10 @@ export function ReservationEditor({
   /** Day the diary is showing — a new booking should land on it, not today. */
   defaultDate: string;
   defaultDurationMins: number;
+  /** "19:30" — set when the booking was started from a slot on the calendar. */
+  defaultTime?: string;
+  /** The table column the slot was clicked in. */
+  defaultTableId?: string | null;
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -49,12 +55,14 @@ export function ReservationEditor({
     existingStart ? toDateInput(existingStart) : defaultDate,
   );
   const [time, setTime] = useState(
-    existingStart ? toTimeInput(existingStart) : "19:00",
+    existingStart ? toTimeInput(existingStart) : (defaultTime ?? "19:00"),
   );
   const [duration, setDuration] = useState(
     String(reservation?.durationMins ?? defaultDurationMins),
   );
-  const [tableId, setTableId] = useState(reservation?.tableId ?? "");
+  const [tableId, setTableId] = useState(
+    reservation ? (reservation.tableId ?? "") : (defaultTableId ?? ""),
+  );
   const [notes, setNotes] = useState(reservation?.notes ?? "");
 
   const party = Number(partySize) || 0;

@@ -5,6 +5,7 @@ import {
   Logger,
   Optional,
 } from "@nestjs/common";
+import { activeSplash } from "./storefront-splash";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import {
   currencyForCountry,
@@ -21,6 +22,11 @@ import {
   currencySymbol,
   normaliseSellBy,
   weighedLineName,
+  isPlausibleCustomerPhone,
+  hasHouseNumberOrName,
+  postcodeRequiredFor,
+  loyaltyRewardDiscount,
+  loyaltyRewardKind,
 } from "@orderhub/shared";
 import { OrdersService } from "../orders/orders.service";
 import { PromoCodesService } from "../promo-codes/promo-codes.service";
@@ -36,11 +42,14 @@ import { resolveNestedModifierGroups } from "../menus/nested-modifier-groups";
 import { PauseService } from "../pauses/pause.service";
 import { MarketingService } from "../marketing/marketing.service";
 import { DeliveryZonesService } from "../delivery-zones/delivery-zones.service";
+import { GeocodingService } from "../dispatch/geocoding.service";
 import { EmailMarketingService } from "../email-marketing/email-marketing.service";
 import { isShop, soldOutItemIds } from "../retail/retail-availability";
 import { parseSubstitutionPref, priceShortfall, toMinor } from "../retail/retail.logic";
 import { isCurrentlyOpen as isOpenAt } from "../../common/opening-hours.util";
 import { BasketPriceError, buildPricingContext, priceBasket } from "./checkout-pricing";
+import type { AppClient } from "./app-client";
+import { appShopIds, customerAppLinks } from "../admin/restaurant-apps";
 
 export interface CheckoutItemDto {
   menuItemId: string;
@@ -348,6 +357,8 @@ export class OrderingService {
     // Email marketing: checkout consent + "this order came from an email".
     // Optional so the existing positional test constructors keep working.
     @Optional() private readonly emailMarketing?: EmailMarketingService,
+    // Places a delivery address on the app's live map (placeDeliveryAddress).
+    @Optional() private readonly geocoder?: GeocodingService,
   ) {}
 
   /**
@@ -420,10 +431,14 @@ export class OrderingService {
       include: {
         brand: {
           select: {
+            // Restaurant app store links (Brand.settings.customerApp).
+            settings: true,
             id: true,
             name: true,
             slug: true,
             logoUrl: true,
+            // The storefront's accent — each brand wears its own colour.
+            primaryColor: true,
             metadata: true,
             // Phase AW-30 — brand-level opening hours + prep config
             // override the location's when set. Brand wins for "is the
@@ -460,6 +475,7 @@ export class OrderingService {
       ? await (this.prisma as any).brand.findUnique({
           where: { id: brandIdOverride },
           select: {
+            settings: true,
             id: true,
             // Whose shop this brand actually trades at — checked below before
             // any of it is allowed to overlay the location.
@@ -468,6 +484,7 @@ export class OrderingService {
             name: true,
             slug: true,
             logoUrl: true,
+            primaryColor: true,
             about: true,
             phone: true,
             addressLine1: true,
@@ -506,9 +523,11 @@ export class OrderingService {
         ? {
             id: overrideBrandRow.id,
             primaryLocationId: overrideBrandRow.primaryLocationId ?? null,
-            locationIds: (overrideBrandRow.locations ?? []).map(
-              (l: any) => l.id,
-            ),
+            locationIds: [
+              ...(overrideBrandRow.locations ?? []).map((l: any) => l.id),
+              // Shops linked in Admin → Restaurant apps ("Shops in this app").
+              ...appShopIds(overrideBrandRow.settings),
+            ],
           }
         : null,
     });
@@ -580,15 +599,17 @@ export class OrderingService {
     // slot; unpinned ones prefer the location's primary brand. Legacy
     // cascades below are untouched so un-republished locations keep
     // working exactly as before.
-    const assignedMenuId = await this.menuAssignments.resolveAssignedMenuId(
-      overrideBrand
-        ? { locationId: location.id, channel, brandId: menuBrandId }
-        : {
-            locationId: location.id,
-            channel,
-            preferBrandId: location.brandId,
-          },
-    );
+    // A brand pinned at one of its OTHER shops (PIZZA UNO's app at
+    // pizza uno-newcastle). Without a menu published for the brand at this
+    // shop, the brand-wide fallback served the main shop's menu here; the
+    // shop's own menu (what it serves unpinned) is the right one.
+    const brandHomeElsewhere =
+      !!(overrideBrand as any)?.primaryLocationId && (overrideBrand as any).primaryLocationId !== location.id;
+    const unpinnedSlot = { locationId: location.id, channel, preferBrandId: location.brandId };
+    const assignedMenuId =
+      (await this.menuAssignments.resolveAssignedMenuId(
+        overrideBrand ? { locationId: location.id, channel, brandId: menuBrandId } : unpinnedSlot,
+      )) ?? (brandHomeElsewhere ? await this.menuAssignments.resolveAssignedMenuId(unpinnedSlot) : null);
     const assignedMenu = assignedMenuId
       ? await this.prisma.menu.findFirst({
           where: { id: assignedMenuId },
@@ -599,7 +620,14 @@ export class OrderingService {
     const menu =
       assignedMenu ??
       (overrideBrand
-        ? (await this.prisma.menu.findFirst({
+        ? (brandHomeElsewhere
+            ? await this.prisma.menu.findFirst({
+                where: { locationId: location.id, isActive: true, deletedAt: null },
+                orderBy: { updatedAt: "desc" },
+                include: menuInclude,
+              })
+            : null) ??
+          (await this.prisma.menu.findFirst({
             where: {
               brandId: menuBrandId,
               isActive: true,
@@ -686,16 +714,24 @@ export class OrderingService {
     // (one row per brand), so the location-keyed lookup we used before
     // never saw those edits and prep-time changes silently no-op'd on
     // brand storefronts.
+    // A brand pinned at one of its OTHER shops (a multi-shop app: PIZZA UNO
+    // at pizza uno-newcastle). Its name, logo and menu still apply, but the
+    // shop's own address, phone, opening hours and ordering settings are the
+    // truth — the brand's are its main shop's, and showed Newcastle's
+    // customers Sunningdale's address.
     const directConfigBrandId = overrideBrand?.id ?? location.brandId;
+    const brandDirectConfig = directConfigBrandId
+      ? await (this.prisma as any).directOrderingConfig.findUnique({
+          where: { brandId: directConfigBrandId },
+        })
+      : null;
+    const locationDirectConfig = await this.prisma.directOrderingConfig.findUnique({
+      where: { locationId: location.id },
+    });
     const directConfig =
-      (directConfigBrandId
-        ? await (this.prisma as any).directOrderingConfig.findUnique({
-            where: { brandId: directConfigBrandId },
-          })
-        : null) ??
-      (await this.prisma.directOrderingConfig.findUnique({
-        where: { locationId: location.id },
-      })) ?? {
+      (brandHomeElsewhere
+        ? locationDirectConfig ?? brandDirectConfig
+        : brandDirectConfig ?? locationDirectConfig) ?? {
         deliveryPrepMinutes: 45,
         collectionPrepMinutes: 20,
         acceptsCash: true,
@@ -950,7 +986,7 @@ export class OrderingService {
       if (typeof h === "object") return Object.keys(h).length > 0;
       return false;
     };
-    const effectiveHours = isHoursConfigured(
+    const effectiveHours = !brandHomeElsewhere && isHoursConfigured(
       (activeBrandForOps as any)?.openingHours,
     )
       ? (activeBrandForOps as any).openingHours
@@ -965,20 +1001,22 @@ export class OrderingService {
     // address / phone — the original location data is still better
     // than nothing.
     const b = overrideBrand;
+    // At another of the brand's shops, the physical facts are the shop's.
+    const place = brandHomeElsewhere ? null : b;
     const locationView = {
       id: location.id,
       // Retail R3 — GROCERY/RETAIL switch the storefront to the shop layout.
       businessType: (location as any).businessType ?? "RESTAURANT",
       name: b?.name ?? location.name,
       slug: location.onlineOrderingSlug ?? location.slug,
-      phone: b?.phone ?? location.phone,
+      phone: place?.phone ?? location.phone,
       about: b?.about ?? location.about,
       logoUrl: b?.logoUrl ?? location.logoUrl,
-      addressLine1: b?.addressLine1 ?? location.addressLine1,
-      addressLine2: b?.addressLine2 ?? location.addressLine2,
-      city: b?.city ?? location.city,
-      postcode: b?.postcode ?? location.postcode,
-      country: b?.country ?? location.country,
+      addressLine1: place?.addressLine1 ?? location.addressLine1,
+      addressLine2: place?.addressLine2 ?? location.addressLine2,
+      city: place?.city ?? location.city,
+      postcode: place?.postcode ?? location.postcode,
+      country: place?.country ?? location.country,
       // Currency is location-only on purpose — it follows the till and the
       // bank account, not the brand, so a brand trading in two countries does
       // not force one currency onto both shops. The storefront needs it to
@@ -1039,10 +1077,14 @@ export class OrderingService {
           name: b.name,
           slug: b.slug,
           logoUrl: b.logoUrl,
+          primaryColor: b.primaryColor ?? null,
           cuisine: b.cuisine,
           about: b.about,
         }
-      : location.brand;
+      : // settings is selected only for customerApp below; never send it out.
+        (location as any).brand
+        ? (({ settings: _settings, ...publicBrand }: any) => publicBrand)((location as any).brand)
+        : (location as any).brand;
     const closed = pauseSnapshot.paused
       ? {
           brandName:
@@ -1225,6 +1267,13 @@ export class OrderingService {
       freeItem,
       multiBuys,
       whatsapp,
+      // The phone welcome screen, if one is scheduled for today at THIS
+      // location. Never on the till's menu (?channel=POS): a guest at a
+      // table wants the food, not an advert.
+      splash:
+        channel === "ONLINE"
+          ? activeSplash((location as any).settings, location.timezone)
+          : null,
       location: dedupeLogo(locationView, brandView),
       brand: brandView,
       // Phase BS — facts the storefront's server-rendered <head> needs, and
@@ -1240,6 +1289,9 @@ export class OrderingService {
       // An UNVERIFIED domain must never be named: Cloudflare hasn't issued
       // its certificate yet, so pointing the canonical there would point
       // Google at a URL that doesn't serve.
+      // The brand's own app, when we're promoting it: store links for the
+      // storefront's install banner (null otherwise; see restaurant-apps.ts).
+      customerApp: customerAppLinks((overrideBrand ?? (location as any).brand)?.settings),
       seo: {
         customDomain: verifiedCustomDomain(
           overrideBrand ?? (location as any).brand,
@@ -1311,6 +1363,8 @@ export class OrderingService {
       customDomain: store?.seo?.customDomain ?? null,
       directOrderingEnabled: store?.seo?.directOrderingEnabled ?? true,
       hasMenu: categories.some((c) => (c?.items?.length ?? 0) > 0),
+      // Apple's Smart App Banner, when the brand's iOS app is being promoted.
+      iosAppStoreId: store?.customerApp?.iosAppStoreId ?? null,
     };
   }
 
@@ -1412,7 +1466,7 @@ export class OrderingService {
    * card is in a state they cannot see is worse than quietly charging them
    * and leaving the reward on their card for next time.
    */
-  private async buildLoyaltyLine(
+  private async spendableLoyaltyReward(
     rewardId: string | undefined,
     customerAccountId: string | undefined,
     locationId: string,
@@ -1436,7 +1490,10 @@ export class OrderingService {
       );
       return null;
     }
+    return reward;
+  }
 
+  private async buildLoyaltyLine(reward: { id: string; label: string; rewardItemId: string | null }) {
     const item = reward.rewardItemId
       ? await this.prisma.menuItem.findUnique({
           where: { id: reward.rewardItemId },
@@ -1540,6 +1597,7 @@ export class OrderingService {
         openingHours: true,
         primaryLocationId: true,
         locations: { select: { id: true } },
+        settings: true,
       },
     });
 
@@ -1552,7 +1610,7 @@ export class OrderingService {
         brand: {
           id: brandRow.id,
           primaryLocationId: brandRow.primaryLocationId ?? null,
-          locationIds: (brandRow.locations ?? []).map((l: any) => l.id),
+          locationIds: [...(brandRow.locations ?? []).map((l: any) => l.id), ...appShopIds(brandRow.settings)],
         },
       });
 
@@ -1563,10 +1621,89 @@ export class OrderingService {
       );
       return { brandId: null, hours: null };
     }
-    return { brandId: brandRow.id, hours: brandRow.openingHours ?? null };
+    // At another of the brand's shops the shop's own hours apply (same rule
+    // as the storefront's brandHomeElsewhere).
+    const elsewhere = !!brandRow.primaryLocationId && brandRow.primaryLocationId !== location.id;
+    return { brandId: brandRow.id, hours: elsewhere ? null : brandRow.openingHours ?? null };
   }
 
-  async checkout(slug: string, dto: CheckoutDto, brandIdOverride?: string) {
+  /**
+   * Every shop a brand trades at, for a restaurant app that serves several
+   * (the customer picks the nearest). Same membership rule as ?brand=:
+   * the brand IS the location's brand, names it as primary, or lists it — so
+   * the tenant-wide placeholder brand, linked to nothing, lists nothing.
+   * Coordinates come from DeliveryZonesService.locateShop, geocoded once and
+   * cached on the Location; a shop that can't be placed still lists, without
+   * a position.
+   */
+  async brandShops(brandId: string) {
+    const brand = await (this.prisma as any).brand.findUnique({
+      where: { id: brandId },
+      select: {
+        id: true,
+        name: true,
+        logoUrl: true,
+        primaryLocationId: true,
+        locations: { select: { id: true } },
+        settings: true,
+      },
+    });
+    if (!brand) throw new NotFoundException("Brand not found");
+    const linked = new Set<string>(brand.locations.map((l: { id: string }) => l.id));
+    if (brand.primaryLocationId) linked.add(brand.primaryLocationId);
+    for (const id of appShopIds(brand.settings)) linked.add(id);
+    const rows = await (this.prisma as any).location.findMany({
+      where: { isActive: true, deletedAt: null, OR: [{ id: { in: [...linked] } }, { brandId }] },
+      select: {
+        id: true,
+        brandId: true,
+        name: true,
+        slug: true,
+        onlineOrderingSlug: true,
+        addressLine1: true,
+        city: true,
+        postcode: true,
+        phone: true,
+        timezone: true,
+        openingHours: true,
+        latitude: true,
+        longitude: true,
+      },
+      orderBy: { name: "asc" },
+    });
+    const shops = await Promise.all(
+      rows
+        .filter((l: any) =>
+          brandOverrideServesLocation({
+            location: l,
+            brand: { id: brand.id, primaryLocationId: brand.primaryLocationId, locationIds: [...linked] },
+          }),
+        )
+        .map(async (l: any) => {
+          let lat: number | null = l.latitude ?? null;
+          let lng: number | null = l.longitude ?? null;
+          if (lat == null || lng == null) {
+            const found = await this.deliveryZones.locateShop(l.id).catch(() => null);
+            lat = found?.lat ?? null;
+            lng = found?.lng ?? null;
+          }
+          return {
+            locationId: l.id,
+            storeSlug: l.onlineOrderingSlug ?? l.slug ?? l.id,
+            name: l.name,
+            address: [l.addressLine1, l.city].filter(Boolean).join(", ").trim() || null,
+            postcode: l.postcode?.trim() || null,
+            phone: l.phone ?? null,
+            lat,
+            lng,
+            isOpen: isOpenAt(l.openingHours as any, l.timezone),
+          };
+        }),
+    );
+    return { brand: { id: brand.id, name: brand.name, logoUrl: brand.logoUrl ?? null }, shops };
+  }
+
+  async checkout(slug: string, dto: CheckoutDto, brandIdOverride?: string, appClient?: AppClient | null) {
     const location = await this.prisma.location.findFirst({
       where: { OR: [{ onlineOrderingSlug: slug }, { slug }, { id: slug }] },
       include: { brand: { select: { tenantId: true } } },
@@ -1574,6 +1711,26 @@ export class OrderingService {
 
     if (!location || !location.isActive || location.deletedAt) {
       throw new NotFoundException("Store not found");
+    }
+
+    // The storefront checks both of these before it lets the customer press
+    // Place order; this is the same rule for anything that skips the page.
+    // An order the shop cannot phone, or a UK delivery with no door number,
+    // left Best Kebab's drivers stuck in the street (14 Oct 2026).
+    if (!isPlausibleCustomerPhone(dto.customerInfo?.phone, location.country)) {
+      throw new BadRequestException(
+        "Please enter a phone number the restaurant can call you on.",
+      );
+    }
+    if (
+      dto.fulfillmentType === "DELIVERY" &&
+      postcodeRequiredFor(location.country ?? "GB") &&
+      dto.deliveryAddress &&
+      !hasHouseNumberOrName(dto.deliveryAddress)
+    ) {
+      throw new BadRequestException(
+        "Please add your house number or name so the driver can find you.",
+      );
     }
 
     // Phase AW — when a brand is pinned via /brand/<slug>?brand=<id>,
@@ -1991,7 +2148,22 @@ export class OrderingService {
     // Campaign and promo don't stack — the better one applies, as on the
     // storefront. Both computed here; the browser's `discount` is ignored.
     // Multi-buy savings stack underneath (they're shelf prices, not offers).
-    const serverDiscount = round2(multiBuy.savings + Math.max(promoDiscount, campaignDiscount));
+    const offerDiscount = round2(multiBuy.savings + Math.max(promoDiscount, campaignDiscount));
+    // A money-off loyalty or referral reward (% off, or £ off) comes off what
+    // is left after those. Worked out from the REWARD — the id is the only
+    // thing the browser sends. A minimum order not met gives 0 and the reward
+    // stays on the card for next time.
+    const loyaltyReward = await this.spendableLoyaltyReward(
+      dto.loyaltyRewardId,
+      dto.customerAccountId,
+      location.id,
+    );
+    const loyaltyKind = loyaltyReward ? loyaltyRewardKind(loyaltyReward) : null;
+    const loyaltyDiscount =
+      loyaltyReward && loyaltyKind !== "FREE_ITEM"
+        ? loyaltyRewardDiscount(loyaltyReward, serverSubtotal - offerDiscount).amount
+        : 0;
+    const serverDiscount = round2(offerDiscount + loyaltyDiscount);
     // Tax is never negative (nothing the storefront sends, today, anyway).
     const serverTax = round2(Math.max(0, Number(dto.taxAmount ?? 0) || 0));
     // Tip is customer-set, so it's an untrusted number that raises the
@@ -2019,11 +2191,8 @@ export class OrderingService {
     // A line rather than a discount, because staff need to see the THING. A
     // ticket that says "-£3.50" tells a kitchen nothing about what to put in
     // the bag, and a customer querying it has nothing to point at.
-    const loyaltyLine = await this.buildLoyaltyLine(
-      dto.loyaltyRewardId,
-      dto.customerAccountId,
-      location.id,
-    );
+    const loyaltyLine =
+      loyaltyReward && loyaltyKind === "FREE_ITEM" ? await this.buildLoyaltyLine(loyaltyReward) : null;
     if (loyaltyLine) items.push(loyaltyLine);
 
     // Checked against the database, not trusted: an attribution has to name a
@@ -2048,6 +2217,7 @@ export class OrderingService {
         taxAmount: serverTax,
         deliveryFee: serverDeliveryFee,
         discount: serverDiscount,
+        ...(loyaltyDiscount > 0 && offerDiscount === 0 ? { discountType: "LOYALTY" } : {}),
         total: serverTotal,
         tipAmount: serverTip,
         specialInstructions: minAge
@@ -2064,6 +2234,8 @@ export class OrderingService {
         // via OrdersService.create's marketing.consent event.
         marketingConsent: dto.marketingConsent,
         ...(emailAttribution ? { emailAttribution } : {}),
+        // Placed from one of our restaurant apps (App · Android / iPhone).
+        ...(appClient ? { appClient } : {}),
         paymentMethod: dto.paymentMethod ?? "CASH",
         paymentStatus: dto.paymentMethod === "CARD" ? "PENDING" : "PENDING",
         // Phase AP-5 — attribute the order to the signed-in customer
@@ -2081,7 +2253,7 @@ export class OrderingService {
     // rather than fired and forgotten: the food is already on the ticket for
     // free, and a card that still shows the reward afterwards would let it be
     // spent again on the next order.
-    if (loyaltyLine && dto.loyaltyRewardId && dto.customerAccountId) {
+    if ((loyaltyLine || loyaltyDiscount > 0) && dto.loyaltyRewardId && dto.customerAccountId) {
       try {
         await this.prisma.loyaltyReward.updateMany({
           where: { id: dto.loyaltyRewardId, claimedAt: null },
@@ -2131,7 +2303,8 @@ export class OrderingService {
       customerAccountId: dto.customerAccountId ?? null,
       isNewCustomer,
       discountCampaignId: appliedDiscountCampaign?.id ?? null,
-      discountAmount: round2(serverDiscount - multiBuy.savings),
+      // The loyalty reward is not a campaign's money.
+      discountAmount: round2(serverDiscount - multiBuy.savings - loyaltyDiscount),
       freeDeliveryCampaignId: appliedFreeDeliveryCampaign?.campaignId ?? null,
       multiBuys: multiBuy.applied.map((a) => ({ campaignId: a.dealId, discount: a.saving })),
     }).catch((err) =>
@@ -2327,12 +2500,21 @@ export class OrderingService {
         cancelReason: true,
         total: true,
         // currency: Retail R3 — the picking summary shows a refund amount.
-        location: { select: { name: true, currency: true, businessType: true } },
+        // latitude/longitude: the app's live map shows where the food came from.
+        location: {
+          select: { name: true, currency: true, businessType: true, latitude: true, longitude: true, country: true },
+        },
         // Phase AX-4 — live delivery tracking: destination + the assigned
         // driver's name/phone and last known GPS so the customer can watch
         // the driver approach, call them, or chat.
         deliveryLat: true,
         deliveryLng: true,
+        // To place a delivery address on the map the first time it's tracked.
+        geocodedAt: true,
+        addressLine1: true,
+        city: true,
+        postcode: true,
+        deliveryAddress: true,
         driverAssignment: {
           select: {
             status: true,
@@ -2382,7 +2564,22 @@ export class OrderingService {
               : null,
           }
         : null;
-    const { driverAssignment: _ignored, items: rawItems, subtotal: _s, discount: _d, ...rest } = order;
+    const {
+      driverAssignment: _ignored,
+      items: rawItems,
+      subtotal: _s,
+      discount: _d,
+      geocodedAt: _g,
+      addressLine1: _a1,
+      city: _c,
+      postcode: _p,
+      deliveryAddress: _da,
+      ...rest
+    } = order;
+    const destinationPoint =
+      order.deliveryLat != null && order.deliveryLng != null
+        ? { lat: order.deliveryLat, lng: order.deliveryLng }
+        : await this.placeDeliveryAddress(order as any);
     // Retail R3 — once a shop has picked the order, tell the customer what
     // was unavailable or swapped and what went back to them. metadata stays
     // server-side; only this summary leaves.
@@ -2419,12 +2616,63 @@ export class OrderingService {
       ...rest,
       items: rawItems.map(({ metadata: _m, totalPrice: _t, ...it }: any) => it),
       picking,
-      destination:
-        order.deliveryLat != null && order.deliveryLng != null
-          ? { lat: order.deliveryLat, lng: order.deliveryLng }
+      destination: destinationPoint,
+      // Where the food left from, when the shop has been placed on a map
+      // (DeliveryZonesService fills Location.latitude lazily).
+      shop:
+        (order as any).location?.latitude != null && (order as any).location?.longitude != null
+          ? { lat: (order as any).location.latitude, lng: (order as any).location.longitude }
           : null,
       driver,
     };
+  }
+
+  /**
+   * Put a delivery address on the map for the live tracker, once. Orders from
+   * the storefront are only geocoded when someone opens the dispatch map, so
+   * an order dispatched from the board reached the customer's app with no
+   * destination: no home pin, no arrival time. Only while the delivery is
+   * live, only when no attempt has been made (geocodedAt), and the result —
+   * or the failed attempt — is saved so a 3-second poll never re-geocodes.
+   */
+  private async placeDeliveryAddress(order: {
+    id: string;
+    status: string;
+    fulfillmentType: string;
+    geocodedAt: Date | null;
+    addressLine1: string | null;
+    city: string | null;
+    postcode: string | null;
+    deliveryAddress: unknown;
+    location?: { country?: string | null } | null;
+  }): Promise<{ lat: number; lng: number } | null> {
+    const live = ["READY", "PENDING_DISPATCH", "ASSIGNED_DRIVER", "ACCEPTED_BY_DRIVER", "OUT_FOR_DELIVERY", "RIDER_ARRIVED"];
+    if (order.geocodedAt || !live.includes(order.status) || order.fulfillmentType === "PICKUP" || order.fulfillmentType === "DINE_IN") {
+      return null;
+    }
+    const a = (order.deliveryAddress && typeof order.deliveryAddress === "object" ? order.deliveryAddress : {}) as Record<
+      string,
+      unknown
+    >;
+    const str = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
+    const parts = [
+      str(order.addressLine1) ?? str(a.line1) ?? str(a.street),
+      str(a.line2),
+      str(order.city) ?? str(a.city),
+      str(order.postcode) ?? str(a.postcode),
+    ].filter(Boolean);
+    if (!parts.length) return null;
+    if (!this.geocoder) return null;
+    const point = await this.geocoder.geocode(parts.join(", "), order.location?.country ?? "GB").catch(() => null);
+    await this.prisma.order
+      .update({
+        where: { id: order.id },
+        data: point
+          ? { deliveryLat: point.lat, deliveryLng: point.lng, geocodedAt: new Date() }
+          : { geocodedAt: new Date() },
+      })
+      .catch(() => undefined);
+    return point;
   }
 
   /**

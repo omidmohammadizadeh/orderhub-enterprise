@@ -1,4 +1,6 @@
 import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Icon } from "@/components/ui";
+import { C, R } from "@/theme";
 
 // Pre-permission location notice, shown BEFORE the system location prompt.
 //
@@ -32,7 +34,9 @@ export function LocationDisclosure({
     >
       <View style={styles.backdrop}>
         <View style={styles.card}>
-          <Text style={styles.icon}>📍</Text>
+          <View style={styles.icon}>
+            <Icon name="location" size={28} color={C.onAccent} />
+          </View>
           <Text style={styles.title}>Location sharing</Text>
           <ScrollView style={{ maxHeight: 300 }} contentContainerStyle={{ paddingBottom: 4 }}>
             <Text style={styles.body}>
@@ -65,7 +69,7 @@ export function LocationDisclosure({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.55)",
+    backgroundColor: C.overlay,
     alignItems: "center",
     justifyContent: "center",
     padding: 24,
@@ -73,22 +77,32 @@ const styles = StyleSheet.create({
   card: {
     width: "100%",
     maxWidth: 420,
-    backgroundColor: "#fff",
-    borderRadius: 18,
+    backgroundColor: C.surface,
+    borderRadius: R.xl,
+    borderWidth: 1,
+    borderColor: C.border,
     padding: 22,
   },
-  icon: { fontSize: 34, textAlign: "center" },
-  title: { fontSize: 20, fontWeight: "800", color: "#0F172A", textAlign: "center", marginTop: 6, marginBottom: 12 },
-  body: { fontSize: 15, lineHeight: 22, color: "#334155" },
-  bold: { fontWeight: "800", color: "#0F172A" },
+  icon: {
+    alignSelf: "center",
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: C.go,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  title: { fontSize: 21, fontWeight: "900", color: C.text, textAlign: "center", marginTop: 12, marginBottom: 12 },
+  body: { fontSize: 15, lineHeight: 22, color: C.textDim },
+  bold: { fontWeight: "800", color: C.text },
   accept: {
     marginTop: 18,
-    backgroundColor: "#16a34a",
-    borderRadius: 12,
-    paddingVertical: 15,
+    backgroundColor: C.go,
+    borderRadius: R.md,
+    paddingVertical: 16,
     alignItems: "center",
   },
-  acceptText: { color: "#fff", fontWeight: "800", fontSize: 16 },
+  acceptText: { color: C.onAccent, fontWeight: "900", fontSize: 16 },
   decline: { marginTop: 10, paddingVertical: 10, alignItems: "center" },
-  declineText: { color: "#64748b", fontWeight: "700", fontSize: 15 },
+  declineText: { color: C.textDim, fontWeight: "700", fontSize: 15 },
 });

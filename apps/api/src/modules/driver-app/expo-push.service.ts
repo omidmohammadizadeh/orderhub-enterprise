@@ -6,13 +6,35 @@ import { Injectable, Logger } from "@nestjs/common";
 export class ExpoPushService {
   private readonly logger = new Logger(ExpoPushService.name);
 
-  /** New-job alert with Accept/Reject actions + the new-order chime. */
+  /**
+   * New-job alert with Accept/Reject actions + the new-order chime.
+   *
+   * Android only draws a category's buttons when the app itself presents the
+   * notification. An ordinary alert push is drawn by the system whenever the
+   * app is backgrounded or closed — no buttons. So an install that registered
+   * `pushJobFormat: "data"` (Android driver app 1.0.4+) gets a data-only push
+   * instead, and its background task presents the alert with the category.
+   * Older installs and iOS keep the alert push, which iOS renders with buttons.
+   *
+   * DRIVER_JOB_PUSH_DATA_ONLY=false switches every phone back to the alert push
+   * without an app release, should a handset fail to wake the app for it.
+   */
   async sendNewJob(
-    pushToken: string | null | undefined,
+    target: { pushToken: string | null; pushJobFormat?: string | null } | null | undefined,
     opts: { orderId: string; title: string; body: string },
   ): Promise<void> {
+    const label = `order ${opts.orderId}`;
+    if (target?.pushJobFormat === "data" && process.env.DRIVER_JOB_PUSH_DATA_ONLY !== "false") {
+      await this.post(
+        target.pushToken,
+        // No title/body: anything with them is drawn by the system, not the app.
+        { data: { type: "new-job", orderId: opts.orderId, title: opts.title, body: opts.body } },
+        label,
+      );
+      return;
+    }
     await this.post(
-      pushToken,
+      target?.pushToken,
       {
         title: opts.title,
         body: opts.body,
@@ -22,7 +44,7 @@ export class ExpoPushService {
         categoryId: "new-job",
         data: { orderId: opts.orderId },
       },
-      `order ${opts.orderId}`,
+      label,
     );
   }
 

@@ -10,7 +10,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, Download, FileSpreadsheet, Loader2, PackagePlus, Search, Truck } from "lucide-react";
+import { AlertTriangle, Download, FileSpreadsheet, Loader2, PackagePlus, Search, Tags, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCurrency } from "@/hooks/use-currency";
 import { locationsClient } from "@/lib/api/locations.client";
@@ -148,6 +148,12 @@ export default function StockPage() {
             <Button variant="outline" size="sm" onClick={() => setNewProduct({})}>
               <PackagePlus className="mr-1.5 h-4 w-4" /> New product
             </Button>
+            <Link
+              href="/dashboard/stock/labels"
+              className="inline-flex h-8 items-center rounded-md border border-zinc-200 bg-white px-3 text-sm font-medium text-zinc-800 hover:bg-zinc-50"
+            >
+              <Tags className="mr-1.5 h-4 w-4" /> Test labels
+            </Link>
             <Button size="sm" onClick={() => setImportOpen(true)}>
               <FileSpreadsheet className="mr-1.5 h-4 w-4" /> Import spreadsheet
             </Button>

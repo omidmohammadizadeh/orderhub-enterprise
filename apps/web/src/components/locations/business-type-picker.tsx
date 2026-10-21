@@ -7,7 +7,7 @@
 // the shop is pointed at. Everything stays available to every type, so
 // picking the wrong one is fixed by picking again.
 
-import { Shirt, ShoppingBasket, UtensilsCrossed } from 'lucide-react';
+import { Scissors, Shirt, ShoppingBasket, UtensilsCrossed } from 'lucide-react';
 import type { BusinessType } from '@/lib/api/locations.client';
 
 const OPTIONS: Array<{
@@ -34,6 +34,12 @@ const OPTIONS: Array<{
     hint: 'Clothes, shoes, gifts — sizes and colours, each with its own barcode.',
     Icon: Shirt,
   },
+  {
+    value: 'SALON',
+    label: 'Barber / salon',
+    hint: 'Appointments, a walk-in queue and online booking for barbers, hair and nails.',
+    Icon: Scissors,
+  },
 ];
 
 export function BusinessTypePicker({
@@ -46,7 +52,7 @@ export function BusinessTypePicker({
   disabled?: boolean;
 }) {
   return (
-    <div role="radiogroup" aria-label="Business type" className="grid gap-2 sm:grid-cols-3">
+    <div role="radiogroup" aria-label="Business type" className="grid gap-2 sm:grid-cols-2">
       {OPTIONS.map(({ value: v, label, hint, Icon }) => {
         const active = v === value;
         return (

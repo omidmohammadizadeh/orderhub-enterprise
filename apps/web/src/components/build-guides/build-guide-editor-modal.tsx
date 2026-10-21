@@ -23,6 +23,7 @@ import {
   type BuildGuideStep,
 } from "@/lib/api/build-guides.client";
 import { BuildGuideSteps } from "./build-guide-steps";
+import { openPrintPage } from "@/lib/print-links";
 
 interface DraftStep {
   id: string;
@@ -233,7 +234,7 @@ export function BuildGuideEditorModal({ open, itemId, itemName, onClose }: Props
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => window.open(`/print/build-guides?item=${encodeURIComponent(itemId)}`, "_blank")}
+                onClick={() => openPrintPage(`/print/build-guides?item=${encodeURIComponent(itemId)}`, { kind: "guides-item", id: itemId })}
                 title="Print this guide on A4 (saved version)"
               >
                 <Printer className="mr-1.5 h-3.5 w-3.5" />

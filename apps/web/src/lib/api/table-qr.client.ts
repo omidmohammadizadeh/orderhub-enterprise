@@ -163,10 +163,21 @@ export const tableQrClient = {
       `${API_BASE}/v1/table-qr/${encodeURIComponent(token)}`,
     ),
 
-  tab: (token: string) =>
-    getJson<TableQrTab>(
-      `${API_BASE}/v1/table-qr/${encodeURIComponent(token)}/tab`,
-    ),
+  /**
+   * `myOrderIds` is this phone's own list, and only matters at a
+   * pay-at-the-table shop: there is no tab there, and nothing on the table
+   * row marks where one party's sitting ends and the next begins, so
+   * anything table-wide would show the new party what the last one ate.
+   * The server checks each id against the table before returning it.
+   */
+  tab: (token: string, myOrderIds: string[] = []) => {
+    const qs = myOrderIds.length
+      ? `?orders=${encodeURIComponent(myOrderIds.join(","))}`
+      : "";
+    return getJson<TableQrTab>(
+      `${API_BASE}/v1/table-qr/${encodeURIComponent(token)}/tab${qs}`,
+    );
+  },
 
   sendRound: async (
     token: string,
@@ -210,9 +221,11 @@ export const tableQrClient = {
     token: string,
     body: {
       items: TableQrOrderItem[];
-      customerName?: string;
-      /** Required by Tap (Gulf shops) — it won't take a charge without one. */
-      customerEmail?: string;
+      /** Both required here: Tap won't take a charge without an email, and
+       *  every prepaying guest is owed a bill an emailed receipt can
+       *  actually reach. */
+      customerName: string;
+      customerEmail: string;
       notes?: string | null;
       /** Same stable per-basket id as sendRound — a retry replays the
        *  same intent instead of writing a second order. */

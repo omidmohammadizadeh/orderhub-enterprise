@@ -106,6 +106,17 @@ export class AgentController {
     return this.images.startMenuBanner(user.tenantId, body.menuId, body.brief);
   }
 
+  // The phone welcome screen. Same job map as banners, so the job is polled
+  // at menu-banner/:jobId.
+  @Post("storefront-splash")
+  @ApiOperation({ summary: "Generate a phone welcome picture for a location" })
+  startStorefrontSplash(
+    @Body() body: { locationId: string; brief?: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.images.startStorefrontSplash(user.tenantId, body.locationId, body.brief);
+  }
+
   @Get("menu-banner/:jobId")
   @ApiOperation({ summary: "Poll a banner job for its image" })
   menuBannerJob(@Param("jobId") jobId: string): BannerJob | { status: "unknown" } {

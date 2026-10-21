@@ -65,7 +65,7 @@ describe("CustomerPushService tap target", () => {
     const prisma: any = {
       order: { findUnique: async () => order },
       customerPushSubscription: { upsert: async () => ({ id: "s1" }) },
-      customerPushOrder: { upsert: async (a: any) => upserts.push(a) },
+      customerPushOrder: { findUnique: async () => null, upsert: async (a: any) => upserts.push(a) },
     };
     const s = new CustomerPushService(prisma);
     await s.subscribe({
@@ -84,7 +84,7 @@ describe("CustomerPushService tap target", () => {
     const prisma: any = {
       order: { findUnique: async () => order },
       customerPushSubscription: { upsert: async () => ({ id: "s1" }) },
-      customerPushOrder: { upsert: async (a: any) => upserts.push(a) },
+      customerPushOrder: { findUnique: async () => null, upsert: async (a: any) => upserts.push(a) },
     };
     const s = new CustomerPushService(prisma);
 
@@ -109,7 +109,7 @@ describe("CustomerPushService tap target", () => {
     const prisma: any = {
       order: { findUnique: async () => order },
       customerPushSubscription: { upsert: async () => ({ id: "s1" }) },
-      customerPushOrder: { upsert: async (a: any) => upserts.push(a) },
+      customerPushOrder: { findUnique: async () => null, upsert: async (a: any) => upserts.push(a) },
     };
     const s = new CustomerPushService(prisma);
     await s.subscribe({
@@ -121,5 +121,90 @@ describe("CustomerPushService tap target", () => {
     // An update that blanked trackPath would lose the good path recorded by
     // whichever page subscribed first.
     expect(upserts[0].update).toEqual({});
+  });
+});
+
+// RIDER_ARRIVED is overloaded: before pickup a courier is at the SHOP. Telling
+// the customer "they're outside with your order" then sends them to an empty
+// doorstep, so it only goes out once the order has left (outForDeliveryAt).
+describe("CustomerPushService RIDER_ARRIVED", () => {
+  const build = (outForDeliveryAt: Date | null) => {
+    const prisma: any = {
+      customerPushOrder: {
+        findMany: jest.fn().mockResolvedValue([{ subscription: { tenantId: "t1" }, trackPath: null }]),
+      },
+      order: { findUnique: jest.fn().mockResolvedValue({ outForDeliveryAt }) },
+    };
+    const s: any = new CustomerPushService(prisma);
+    s.automationsFor = jest.fn().mockResolvedValue(new Map());
+    s.brandingFor = jest.fn().mockResolvedValue({ name: "Shop", icon: null });
+    s.sendTo = jest.fn().mockResolvedValue({ delivered: 1 });
+    return s;
+  };
+
+  it("stays quiet while the courier is at the shop", async () => {
+    const s = build(null);
+    await s.notifyOrderStatus({ orderId: "o1", status: "RIDER_ARRIVED" });
+    expect(s.sendTo).not.toHaveBeenCalled();
+  });
+
+  it("tells the customer once the driver is at their door", async () => {
+    const s = build(new Date());
+    await s.notifyOrderStatus({ orderId: "o1", status: "RIDER_ARRIVED", fulfillmentType: "DELIVERY" });
+    expect(s.sendTo).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ title: expect.stringContaining("arrived") }),
+    );
+  });
+});
+
+// Auto-accept flips the order to ACCEPTED inside checkout, a second before
+// the app subscribes, so "accepted" went to nobody (order cmvf5plsn, 19 Oct).
+describe("CustomerPushService subscribe — accepted catch-up", () => {
+  const build = (order: any, alreadyLinked = false) => {
+    const prisma: any = {
+      order: { findUnique: async () => ({ id: "o1", tenantId: "t1", locationId: "l1", brandId: null, customerId: null, ...order }) },
+      customerPushSubscription: { upsert: async () => ({ id: "s1" }) },
+      customerPushOrder: {
+        findUnique: async () => (alreadyLinked ? { orderId: "o1" } : null),
+        upsert: async () => undefined,
+      },
+    };
+    const s: any = new CustomerPushService(prisma);
+    s.notifyOrderStatus = jest.fn().mockResolvedValue(undefined);
+    return s;
+  };
+  const sub = (s: any) => s.subscribe({ orderId: "o1", expoToken: "ExponentPushToken[abcdefghij12]", platform: "android", appId: "x" });
+
+  it("sends the missed Accepted push to the new device only", async () => {
+    const s = build({ status: "ACCEPTED", acceptedAt: new Date(Date.now() - 2000), orderNumber: 7 });
+    await sub(s);
+    expect(s.notifyOrderStatus).toHaveBeenCalledWith(
+      expect.objectContaining({ orderId: "o1", status: "ACCEPTED", orderNumber: 7, onlySubscriptionId: "s1" }),
+    );
+  });
+
+  it("does not resend when the device was already following the order", async () => {
+    const s = build({ status: "ACCEPTED", acceptedAt: new Date() }, true);
+    await sub(s);
+    expect(s.notifyOrderStatus).not.toHaveBeenCalled();
+  });
+
+  it("stays quiet for an old acceptance or an order that has moved on", async () => {
+    const old = build({ status: "ACCEPTED", acceptedAt: new Date(Date.now() - 11 * 60_000) });
+    await sub(old);
+    expect(old.notifyOrderStatus).not.toHaveBeenCalled();
+    const pending = build({ status: "PENDING", acceptedAt: null });
+    await sub(pending);
+    expect(pending.notifyOrderStatus).not.toHaveBeenCalled();
+  });
+});
+
+describe("CustomerPushService notifyOrderStatus — one device", () => {
+  it("filters the links to that subscription", async () => {
+    const findMany = jest.fn().mockResolvedValue([]);
+    const s = new CustomerPushService({ customerPushOrder: { findMany } } as any);
+    await s.notifyOrderStatus({ orderId: "o1", status: "ACCEPTED", onlySubscriptionId: "s1" });
+    expect(findMany.mock.calls[0][0].where).toMatchObject({ orderId: "o1", subscriptionId: "s1" });
   });
 });

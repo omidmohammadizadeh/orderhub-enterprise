@@ -55,7 +55,30 @@ export interface Customer {
   phone: string | null;
   avatarUrl: string | null;
   isVerified: boolean;
+  /** Saved delivery address — prefills checkout on every storefront. */
+  addressLine1?: string | null;
+  /** Flat / house number. */
+  addressLine2?: string | null;
+  addressCity?: string | null;
+  addressPostcode?: string | null;
+  /** Gulf community that prices delivery where there is no postcode. */
+  addressArea?: string | null;
+  /** YYYY-MM-DD, for birthday offers. */
+  dateOfBirth?: string | null;
 }
+
+/** What "My account" and "save my details" can change. null clears a field. */
+export type CustomerProfilePatch = Partial<{
+  firstName: string;
+  lastName: string;
+  phone: string | null;
+  addressLine1: string | null;
+  addressLine2: string | null;
+  addressCity: string | null;
+  addressPostcode: string | null;
+  addressArea: string | null;
+  dateOfBirth: string | null;
+}>;
 
 export interface UseCustomerAuthReturn {
   customer: Customer | null;
@@ -65,6 +88,9 @@ export interface UseCustomerAuthReturn {
   signup: (input: SignupInput) => Promise<{ pendingVerification: boolean }>;
   logout: () => void;
   refresh: () => Promise<void>;
+  updateProfile: (patch: CustomerProfilePatch) => Promise<Customer>;
+  /** Permanently deletes the account, then signs out. `confirm` must be "DELETE". */
+  deleteAccount: (confirm: string) => Promise<void>;
 }
 
 export interface SignupInput {
@@ -75,6 +101,9 @@ export interface SignupInput {
   phone?: string;
   marketingOptIn?: boolean;
   storeSlug?: string;
+  /** The site they signed up on, so the confirmation link returns there. */
+  origin?: string;
+  brandId?: string;
 }
 
 export function useCustomerAuth(): UseCustomerAuthReturn {
@@ -252,7 +281,33 @@ export function useCustomerAuth(): UseCustomerAuthReturn {
     }
   }, [token, logout]);
 
-  return { customer, isLoading, token, login, signup, logout, refresh };
+  const updateProfile = useCallback(
+    async (patch: CustomerProfilePatch) => {
+      const res = await axios.patch(`${API_BASE}/v1/customer-auth/me`, patch, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        withCredentials: true,
+      });
+      const updated = res.data as Customer;
+      setCustomer(updated);
+      broadcastAuth({ customer: updated, token });
+      return updated;
+    },
+    [token],
+  );
+
+  const deleteAccount = useCallback(
+    async (confirm: string) => {
+      await axios.delete(`${API_BASE}/v1/customer-auth/me`, {
+        data: { confirm },
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        withCredentials: true,
+      });
+      logout();
+    },
+    [token, logout],
+  );
+
+  return { customer, isLoading, token, login, signup, logout, refresh, updateProfile, deleteAccount };
 }
 
 /**

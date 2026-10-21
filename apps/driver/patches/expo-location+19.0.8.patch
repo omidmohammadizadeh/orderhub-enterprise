@@ -1,0 +1,24 @@
+diff --git a/node_modules/expo-location/android/src/main/java/expo/modules/location/services/LocationTaskService.kt b/node_modules/expo-location/android/src/main/java/expo/modules/location/services/LocationTaskService.kt
+index 80647ab..8f38eb2 100644
+--- a/node_modules/expo-location/android/src/main/java/expo/modules/location/services/LocationTaskService.kt
++++ b/node_modules/expo-location/android/src/main/java/expo/modules/location/services/LocationTaskService.kt
+@@ -89,10 +89,18 @@ class LocationTaskService : Service() {
+     }
+ 
+     return builder.setCategory(Notification.CATEGORY_SERVICE)
+-      .setSmallIcon(applicationInfo.icon)
++      .setSmallIcon(smallIcon())
+       .build()
+   }
+ 
++  // The status bar draws a small icon as a white silhouette, so the launcher
++  // icon comes out as a blank square. Use the monochrome icon expo-notifications
++  // generates from app.json (drawable/notification_icon) when there is one.
++  private fun smallIcon(): Int {
++    val id = resources.getIdentifier("notification_icon", "drawable", packageName)
++    return if (id != 0) id else applicationInfo.icon
++  }
++
+   @TargetApi(26)
+   private fun prepareChannel(id: String?) {
+     val notificationManager = getSystemService(NOTIFICATION_SERVICE) as? NotificationManager

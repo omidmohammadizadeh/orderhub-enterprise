@@ -58,6 +58,6 @@ import { AppleStrategy } from "./strategies/oauth/apple.strategy";
   ],
   // TokenService and AuditLogService are used by other modules
   // (e.g. future ApiKeyModule, WebhooksModule)
-  exports: [AuthService, TokenService, AuditLogService, PasswordService, JwtModule],
+  exports: [AuthService, TokenService, AuditLogService, PasswordService, JwtModule, NativeOAuthService],
 })
 export class AuthModule {}

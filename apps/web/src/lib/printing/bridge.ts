@@ -687,7 +687,7 @@ export async function qrToRaster(
     // React 18 commits asynchronously and qrcode.react paints in an effect,
     // so wait for the canvas to exist and have been drawn.
     const canvas = await waitForCanvas(host);
-    if (canvas && canvas.width > 0) {
+    if (canvas && canvas.width > 0 && canvasHasInk(canvas)) {
       // The backing store is devicePixelRatio-scaled; resample to whole dots.
       let w = Math.min(maxWidthDots, canvas.width);
       w = Math.floor(w / 8) * 8; // raster rows are whole bytes
@@ -718,8 +718,35 @@ export async function qrToRaster(
     if (host?.parentNode) host.parentNode.removeChild(host);
   }
 
-  qrRasterCache.set(key, result);
+  // Only a drawn code is worth keeping. A blank or failed render used to be
+  // cached too, for the whole session, so one bad first draw meant every
+  // ticket for that link printed an empty QR slip until the app restarted —
+  // Grill Stop's "/brand/grill-stop" on 2026-10-15, while the shop's other
+  // brands (one shared link, drawn fine) kept their codes.
+  if (result && rasterHasInk(result)) qrRasterCache.set(key, result);
+  else result = null;
   return result;
+}
+
+/** True when a canvas holds any dark pixel (QR modules are black). */
+function canvasHasInk(canvas: HTMLCanvasElement): boolean {
+  try {
+    const ctx = canvas.getContext("2d");
+    if (!ctx || !canvas.width || !canvas.height) return false;
+    const d = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    for (let i = 0; i < d.length; i += 4) {
+      if (d[i + 3]! > 128 && d[i]! < 128) return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+/** True when a GS v 0 block sets at least one dot (past its 8-byte header). */
+export function rasterHasInk(raster: number[]): boolean {
+  for (let i = 8; i < raster.length; i++) if (raster[i] !== 0) return true;
+  return false;
 }
 
 /**
@@ -739,7 +766,11 @@ function waitForCanvas(
     const deadline = Date.now() + timeoutMs;
     const tick = () => {
       const canvas = host.querySelector("canvas") as HTMLCanvasElement | null;
-      if (canvas && canvas.width > 0) {
+      // Existing is not the same as drawn. React creates the canvas, sized,
+      // BEFORE qrcode.react paints it in an effect, so returning on width
+      // alone sometimes read back a blank white square — most often on a
+      // busy or backgrounded tablet, which is exactly when auto-print runs.
+      if (canvas && canvas.width > 0 && canvasHasInk(canvas)) {
         resolve(canvas);
         return;
       }

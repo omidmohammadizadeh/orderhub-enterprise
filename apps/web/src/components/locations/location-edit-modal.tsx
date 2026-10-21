@@ -556,7 +556,7 @@ function GeneralTab({
       {location?.id && (
         <Field
           label="POS display name"
-          help="Which brand's name POS and printed receipts show for this location's walk-in & phone orders. Leave as 'Order's own brand' to use whichever brand the menu belongs to."
+          help="Every till and kiosk order at this location is filed under this brand, whichever menu it was rung up from (name on the order board, receipts and card payments). AI phone orders use it only when they have no brand of their own. Leave as 'Order's own brand' to use the menu's brand."
         >
           <select
             value={posBrandId}

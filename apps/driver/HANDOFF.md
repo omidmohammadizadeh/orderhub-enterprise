@@ -44,7 +44,7 @@ and cash-up logic is in `apps/api/src/modules/dispatch/driver-earnings.service.t
 |---|---|
 | Expo name / slug | Order Hub Driver / `orderhub-driver` |
 | URL scheme | `orderhubdriver` |
-| Version | **1.0.3** (bumped from 1.0.2 when expo-updates landed — it is also the OTA `runtimeVersion`, see §9) |
+| Version | **1.0.4** (new logo + notification icon + background job buttons, all native; 1.0.3 was expo-updates landing — the version is also the OTA `runtimeVersion`, see §9) |
 | Bundle ID (both platforms) | `com.orderhubsolutions.driver` |
 | EAS project ID | `b0f31947-3c20-48ef-8537-6e6988a26d7c` |
 | EAS owner | `maclondas` |
@@ -89,11 +89,43 @@ POST_NOTIFICATIONS, VIBRATE, WAKE_LOCK.
 foreground service enabled), expo-notifications (bundles
 `assets/sounds/new_order.wav`), expo-splash-screen, expo-build-properties.
 
+**Icons** are cut from `assets/brand/logo-source.webp` by
+`scripts/make-brand-assets.py` (crop + scale only, never redrawn): `icon.png`
+(tile on #0A0C0F, no wordmark), `adaptive-icon.png` (tile inside Android's 66%
+safe circle, transparent, background colour in app.json), `splash-icon.png`
+(sized for Android 12's 192 dp splash circle at `imageWidth` 200),
+`notification-icon.png` (white arrow, tinted #1ED67F) and `brand/logo-full.png`.
+Re-run the script if the artwork changes.
+
+**Status-bar icon.** expo-notifications turns `notification-icon.png` into
+`drawable/notification_icon` and makes it FCM's default too. expo-location's
+foreground service ("Sharing your location…") hard-codes the launcher icon,
+which renders as a white square, so `patches/expo-location+19.0.8.patch`
+(applied by `postinstall: patch-package`) makes it use that drawable. Upgrading
+expo-location means re-making the patch — `npm install` fails loudly if it no
+longer applies.
+
 **Push channels** (`src/services/notifications.ts`): jobs go to channel
 `jobs-v2` with sound `new_order.wav` at MAX importance; chat goes to channel
 `messages` at HIGH with the default sound. Android caches a channel's sound at
 creation — **changing the job sound requires a new channel id**, which is why
 it is already on `-v2`.
+
+**Accept/Reject on Android with the app closed (1.0.4).** Android only draws a
+category's buttons on a notification the *app* presents; an alert push
+(title/body) is drawn by the system whenever the app isn't in the foreground,
+with no buttons. So on Android the app registers a background notification task
+(`src/services/job-push-task.ts`) and sends `format: "data"` with its push
+token; the API (`expo-push.service.ts` `sendNewJob`) then sends that phone a
+data-only push, and the task presents the alert locally with the `new-job`
+category. REJECT runs in the task (no app launch); ACCEPT opens the app and the
+response listener accepts, including from a cold launch
+(`getLastNotificationResponse`). With the app closed the task can't refresh an
+expired access token (only the foreground rotates — §4), so a failed reject
+posts "Reject didn't go through — open the app". iOS and pre-1.0.4 installs
+keep the alert push. Kill switch: `DRIVER_JOB_PUSH_DATA_ONLY=false` on the API
+sends everyone the alert push again (no buttons on Android in the background,
+but the alert can't be lost if some handset refuses to wake the app).
 
 `google-services.json` is **committed on purpose** and explicitly un-ignored in
 `.gitignore`, because EAS Build applies gitignore patterns even to tracked
@@ -327,3 +359,27 @@ eas secret:list
 5. First build after this: check the map renders on the job card. A blank grey
    map with the Google logo in the corner means the key is wrong or the
    restriction does not match the signing certificate.
+
+## 11. Look and feel (dark redesign, 2026-10-20)
+
+Everything visual comes from `src/theme.ts` (colour tokens `C`, radii `R`,
+the graphite `DARK_MAP_STYLE`, `mapProps`, ETA maths) and `src/components/ui.tsx`
+(`Icon` = Ionicons from `@expo/vector-icons`, `RoundButton`, `Button`,
+`Header`, `Segmented`, `Pulse`, `StatusDot`). No new native module was added
+for it, so the redesign ships as an OTA to 1.0.3 installs. Keep it that way:
+`expo-haptics`, `expo-linear-gradient`, `react-native-svg` etc. would each need
+a binary and a version bump (§6.2).
+
+- Map: Google with `DARK_MAP_STYLE` in every store build. A local dev build
+  has no keys, so iOS falls back to Apple Maps dark and Android shows
+  `MapPlaceholder` (`MAP_AVAILABLE` in theme.ts) — both `__DEV__` only.
+  Apple Maps ignores camera `zoom`; frame with `animateToRegion`.
+- Job card: full-screen map + bottom sheet. `mapPadding` lifts the map's
+  frame above the sheet, so `fitToCoordinates` only needs small padding — use
+  both and the route ends up off-screen.
+- The route line is a straight dashed driver→drop line with the same ETA
+  formula as the customer tracking page (×1.3 at 15 mph + 1 min).
+- `SlideToConfirm` reads its handler through a ref: the three steps render the
+  same component in the same slot, so a captured closure would replay "start".
+- Local testing against a local API: `EXPO_PUBLIC_DRIVER_API_URL=http://localhost:4000/api npx expo start --dev-client`
+  (honoured in `__DEV__` only), plus `adb reverse tcp:4000 tcp:4000` on Android.

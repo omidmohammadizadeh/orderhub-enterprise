@@ -49,6 +49,27 @@ export const DASHBOARD_TABS: DashboardTabDef[] = [
   },
   { key: "pos", label: "POS", href: "/dashboard/pos", group: "Main", hint: "Till / counter ordering." },
   {
+    key: "salon-appointments",
+    label: "Appointments",
+    href: "/dashboard/salon",
+    group: "Main",
+    hint: "Barbers / salons: the booking diary. Off also hides Walk-ins and the salon settings beneath it.",
+  },
+  {
+    key: "salon-walk-ins",
+    label: "Walk-ins",
+    href: "/dashboard/salon/queue",
+    group: "Main",
+    hint: "Barbers / salons: the walk-in queue.",
+  },
+  {
+    key: "loyalty-scan",
+    label: "Scan loyalty card",
+    href: "/dashboard/loyalty-scan",
+    group: "Main",
+    hint: "Scan wallet loyalty cards and give stamps without a sale.",
+  },
+  {
     key: "tables",
     label: "Tables",
     href: "/dashboard/tables",
@@ -77,7 +98,38 @@ export const DASHBOARD_TABS: DashboardTabDef[] = [
     group: "Main",
     hint: "Text campaigns (billed from the SMS wallet).",
   },
-  { key: "marketing", label: "Marketing", href: "/dashboard/marketing", group: "Main", hint: "Campaigns and offers." },
+  {
+    key: "marketing-promo-codes",
+    label: "Promo codes",
+    href: "/dashboard/marketing/promo-codes",
+    group: "Main",
+  },
+  {
+    key: "marketing-welcome-screen",
+    label: "Welcome screen",
+    href: "/dashboard/marketing/welcome-screen",
+    group: "Main",
+    hint: "Storefront splash screen.",
+  },
+  {
+    key: "marketing-email",
+    label: "Email Marketing",
+    href: "/dashboard/marketing/email",
+    group: "Main",
+  },
+  {
+    key: "marketing-push",
+    label: "Push Notifications",
+    href: "/dashboard/marketing/push",
+    group: "Main",
+  },
+  {
+    key: "marketing",
+    label: "Marketing",
+    href: "/dashboard/marketing",
+    group: "Main",
+    hint: "Campaigns and offers. Off also hides every Marketing page beneath it.",
+  },
   { key: "video-studio", label: "AI Studio", href: "/dashboard/video-studio", group: "Main", hint: "AI marketing videos." },
   { key: "reviews", label: "Reviews", href: "/dashboard/reviews", group: "Main" },
   { key: "analytics", label: "Analytics", href: "/dashboard/analytics", group: "Main" },
@@ -98,6 +150,13 @@ export const DASHBOARD_TABS: DashboardTabDef[] = [
     href: "/dashboard/orders/kitchen",
     group: "Operations",
     hint: "KDS screens. Hiding this does not sign out a kitchen-screen device.",
+  },
+  {
+    key: "training",
+    label: "Kitchen training",
+    href: "/dashboard/training",
+    group: "Operations",
+    hint: "How-to-build guides and assembly charts. Off for non-food shops.",
   },
   { key: "dispatch", label: "Dispatch", href: "/dashboard/dispatch", group: "Operations", hint: "Driver dispatch console." },
   { key: "cashier", label: "Cashier", href: "/dashboard/orders/cashier", group: "Operations" },
@@ -135,6 +194,18 @@ export function dashboardTabByKey(key: string): DashboardTabDef | undefined {
  */
 export function dashboardTabForPath(pathname: string): DashboardTabDef | undefined {
   return BY_HREF_DESC.find(
+    (t) => pathname === t.href || pathname.startsWith(`${t.href}/`),
+  );
+}
+
+/**
+ * Every tab that covers a path, most specific first: the owning tab, then
+ * the sections it sits inside. A disabled section hides everything beneath
+ * it — switching Marketing off must take Promo codes and Email with it, not
+ * leave them reachable because they now have toggles of their own.
+ */
+export function dashboardTabsCoveringPath(pathname: string): DashboardTabDef[] {
+  return BY_HREF_DESC.filter(
     (t) => pathname === t.href || pathname.startsWith(`${t.href}/`),
   );
 }

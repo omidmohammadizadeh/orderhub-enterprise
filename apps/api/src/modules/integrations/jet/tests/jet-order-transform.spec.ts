@@ -706,3 +706,86 @@ describe("JET promotions — a discounted item is not a second item", () => {
     expect(warnings.join(" ")).toMatch(/lines total 39\.98 but JET charged for 19\.99/);
   });
 });
+
+// THE OPPOSITE SHAPE: a discounted item that is ONLY in promotions[].
+//
+// Greek Bite order 967563678, 10 Oct 2026. Just Eat's ticket: 2x Can Coke Zero,
+// Buffalo Gyros&Rice Bowl, Dirty Greek Platter (No Tomato, Garlic Mayo), Hummus
+// with Pitta — £29.35. Ours printed only the hummus and the Cokes. Both mains
+// were 20% off (£1.78 + £2.18) and JET sent them ONLY inside promotions[].items,
+// so the 963789475 fix (skip discount items) threw them away.
+describe("JET promotions — a discounted item missing from the top level", () => {
+  const item = (name: string, plu: string, price: number, children: any[] = []) => ({
+    children,
+    description: "",
+    name,
+    notes: "",
+    plu,
+    price,
+    unitDepositAmount: 0,
+  });
+  const coke = () => item("Can Coke Zero", "PROD-CZ", 180);
+  const hummus = () => item("Hummus with Pitta", "PROD-HP", 595);
+  const bowl = () => item("Buffalo Gyros&Rice Bowl", "PROD-BB", 890);
+  const platter = () =>
+    item("Dirty Greek Platter", "PROD-DG", 1090, [
+      { name: "No Tomato", plu: "PROD-NT", price: 0 },
+      { name: "Garlic Mayo", plu: "PROD-GM", price: 0 },
+    ]);
+
+  const envelope = {
+    id: "mibdq8ygtu2kcf1mdm5j2q",
+    third_party_order_reference: "967563678",
+    type: "delivery-by-delivery-partner",
+    location: { id: 440883, timezone: "Europe/London" },
+    items: [coke(), coke(), hummus()],
+    promotions: [
+      { discount_value: 178, items: [bowl()], promotion_id: "", type: "ITEM_LEVEL_DISCOUNT" },
+      { discount_value: 218, items: [platter()], promotion_id: "", type: "ITEM_LEVEL_DISCOUNT" },
+    ],
+    payment: {
+      adjustments: [
+        { name: "discount", price: { inc_tax: 396, tax: 0 } },
+        { name: "serviceCharge", price: { inc_tax: 279, tax: 0 } },
+      ],
+      deposit: 0,
+      final: { inc_tax: 2818, tax: 0 },
+      items_in_cart: { inc_tax: 2935, tax: 0 },
+    },
+  };
+
+  it("sends the bowl and the platter to the kitchen", () => {
+    const c = transformJetOrder(envelope as any)!.canonical;
+    const names = c.items.map((i) => `${i.quantity}x ${i.name}`);
+
+    expect(names).toEqual([
+      "2x Can Coke Zero",
+      "1x Hummus with Pitta",
+      "1x Buffalo Gyros&Rice Bowl",
+      "1x Dirty Greek Platter",
+    ]);
+    const p = c.items.find((i) => i.name === "Dirty Greek Platter")!;
+    expect(p.modifiers.map((m) => m.name)).toEqual(["No Tomato", "Garlic Mayo"]);
+  });
+
+  it("lines add up to exactly what JET charged for — no warning", () => {
+    const { canonical, warnings } = transformJetOrder(envelope as any)!;
+
+    expect(canonical.items.reduce((s, i) => s + i.totalPrice, 0)).toBeCloseTo(29.35, 2);
+    expect(warnings.join(" ")).not.toMatch(/possible duplicated item/i);
+    expect(canonical.total).toBeCloseTo(28.18, 2);
+  });
+
+  it("without a cart total, merges only what the top level does not already hold", () => {
+    const noCart = {
+      ...envelope,
+      items: [coke(), coke(), hummus(), bowl()],
+      payment: { ...envelope.payment, items_in_cart: undefined },
+    };
+
+    const c = transformJetOrder(noCart as any)!.canonical;
+
+    expect(c.items.find((i) => i.name === "Buffalo Gyros&Rice Bowl")!.quantity).toBe(1);
+    expect(c.items.find((i) => i.name === "Dirty Greek Platter")!.quantity).toBe(1);
+  });
+});

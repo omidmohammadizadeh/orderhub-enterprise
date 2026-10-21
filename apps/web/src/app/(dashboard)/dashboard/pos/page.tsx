@@ -31,6 +31,7 @@ import {
   ScanBarcode,
   RotateCcw,
   Camera,
+  Gift,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -51,6 +52,7 @@ import {
   sellByLabel,
   weighedLineName,
   type SellBy,
+  loyaltyRewardKind,
 } from "@orderhub/shared";
 import { WeighModal } from "@/components/retail/weigh-modal";
 import { AgeCheckModal, type AgePrompt } from "@/components/retail/age-check-modal";
@@ -113,9 +115,22 @@ import {
   cacheMenu,
   getCachedMenu,
   enqueueOrder,
+  getQueued,
   newLocalId,
+  removeQueued,
+  settleQueued,
+  updateQueued,
+  type QueuedPayment,
 } from "@/lib/pos/idb-storage";
 import { startSyncWorker } from "@/lib/pos/sync-worker";
+import {
+  canTakeOffline,
+  holdsForPayment,
+  isNetworkFailure,
+  offlineOrderForPrint,
+  offlineRef,
+} from "@/lib/pos/offline-policy";
+import { OfflineCardModal } from "@/components/pos/offline-card-modal";
 import { useOnlineStatus, useSyncQueue } from "@/lib/pos/use-online-status";
 import { tablesClient } from "@/lib/api/tables.client";
 import { SplitBillModal } from "@/components/pos/split-bill-modal";
@@ -134,10 +149,27 @@ import { findByBarcode, useBarcodeScanner } from "@/lib/pos/barcode-scanner";
 import { isShopType } from "@/components/locations/business-type-picker";
 import { RetailReturnsModal } from "@/components/pos/retail-returns-modal";
 import { CameraScanModal, isCameraScanSupported } from "@/components/pos/camera-scan-modal";
+import { LoyaltyTillModal } from "@/components/pos/loyalty-till-modal";
+import { walkInTill, type TillMember } from "@/lib/api/loyalty-walk-in.client";
 
 interface PersistedCart {
   cart: CartLine[];
   draft: PartialDraft;
+}
+
+/** What placing an order hands to onSuccess. */
+interface PlacedOrder {
+  id: string;
+  scheduled?: boolean;
+  edited: boolean;
+  paymentMethod?: string;
+  total?: number;
+  /** Saved on this till only — `id` is a local id until it syncs. */
+  offline: boolean;
+  /** Offline and still being paid for (walk-in cash, card on the machine). */
+  heldForPayment?: boolean;
+  dineIn: "first" | "round" | null;
+  walkInCash?: boolean;
 }
 
 export default function PosPage() {
@@ -399,7 +431,14 @@ export default function PosPage() {
   const [chargeOrder, setChargeOrder] = useState<{ id: string; amount: number } | null>(null);
   // Walk-in cash keypad. Held separately from chargeOrder so a card charge and
   // a cash settle can never share a modal state and pop the wrong one.
-  const [cashOrder, setCashOrder] = useState<{ id: string; amount: number } | null>(null);
+  // `offline` = the order is still only on this till (a local id).
+  const [cashOrder, setCashOrder] = useState<
+    { id: string; amount: number; offline?: boolean } | null
+  >(null);
+  // An offline card sale waiting for "approved on the machine".
+  const [offlineCardOrder, setOfflineCardOrder] = useState<
+    { id: string; amount: number } | null
+  >(null);
   // Table Tabs — true while the charge modal is settling a tab (so its close
   // handler completes the order + frees the table when paid).
   const [closingTab, setClosingTab] = useState(false);
@@ -702,9 +741,61 @@ export default function PosPage() {
       );
   }, [activeCategory, draft.fulfillmentType]);
 
+  // ── Offline payment + kitchen ticket ───────────────────────────────────────
+
+  /**
+   * Print an offline order's ticket straight to this shop's printers — they
+   * are on the local Bluetooth / LAN, so the kitchen still gets paper with
+   * the internet down. Skipped once the order has synced: from then on the
+   * tablet's normal auto-print owns it, and printing here as well would give
+   * the kitchen two copies.
+   */
+  const printOfflineTicket = async (localId: string) => {
+    if (!hasNativeBridge()) return;
+    const row = await getQueued(localId).catch(() => undefined);
+    if (!row || row.status === "syncing") return;
+    try {
+      await printOrderViaBridge(
+        offlineOrderForPrint(localId, row.body as Record<string, any>, {
+          location: locationQuery.data ?? null,
+          queuedAt: row.queuedAt,
+        }),
+        { newOrder: true },
+      );
+      await updateQueued(localId, { printedLocally: true });
+    } catch (e: any) {
+      setSubmitFeedback(`Saved offline, but the ticket didn't print — ${e?.message ?? "printer error"}`);
+      window.setTimeout(() => setSubmitFeedback(null), 8000);
+    }
+  };
+
+  /**
+   * Record a payment against an order taken offline — in the queue if it is
+   * still there, on the server if it synced while the payment screen was open.
+   */
+  const settleOfflineOrder = async (localId: string, payment: QueuedPayment) => {
+    const where = await settleQueued(localId, payment);
+    if ("serverId" in where) {
+      await apiClient.patch(`/v1/orders/${where.serverId}/payment-status`, {
+        paymentStatus: payment.paymentStatus,
+        paymentMethod: payment.paymentMethod,
+      });
+      return;
+    }
+    if ("missing" in where) {
+      throw new Error("This order is no longer on this till — check the Orders board.");
+    }
+    void printOfflineTicket(localId);
+  };
+
   // ── Submit ────────────────────────────────────────────────────────────────
   const submitMutation = useMutation({
-    mutationFn: async (payload: PlaceOrderPayload) => {
+    // React Query's default ("online") PAUSES a mutation while the browser
+    // reports offline — so with the internet down "Place order" just spun and
+    // the offline queue below was never reached. This mutation handles being
+    // offline itself.
+    networkMode: "always",
+    mutationFn: async (payload: PlaceOrderPayload): Promise<PlacedOrder> => {
       if (!selectedLocationId) throw new Error("Select a location first");
 
       // Stable id used as the server idempotencyKey (retry-safe: the unique
@@ -767,6 +858,18 @@ export default function PosPage() {
         paymentStatus: payload.paymentStatus,
         isScheduled: payload.isScheduled,
         marketingConsent: payload.marketingConsent,
+        // Walk-in loyalty card scanned for this order; the stamp lands when
+        // it is paid, and a reward on it is spent with it.
+        ...(loyaltyMember && !editOrderId ? { loyaltyMemberId: loyaltyMember.id } : {}),
+        // A free-item reward is spent with its line; a money-off one only
+        // when it actually took money off (under its minimum order it stays
+        // on the card).
+        ...(loyaltyMember &&
+        loyaltyRewardId &&
+        !editOrderId &&
+        (!loyaltyMoneyReward || payload.loyaltyDiscount > 0)
+          ? { loyaltyRewardId }
+          : {}),
         // Challenge 25 — the record that ID was checked for this sale.
         ...(cartMinAge ? { ageCheck: { minAge: cartMinAge, method: "TILL_ID_CHECK" as const } } : {}),
       };
@@ -860,15 +963,12 @@ export default function PosPage() {
         };
       }
 
-      // Offline: queue the order locally and sync on reconnect. Cash (and
-      // externally-settled) only — card/online need connectivity to authorise.
-      if (typeof navigator !== "undefined" && !navigator.onLine) {
-        if (
-          payload.paymentMethod !== "CASH" &&
-          payload.paymentMethod !== "EXTERNAL"
-        ) {
+      // Offline: keep the order on this till and sync it on reconnect. Only
+      // what can be settled without a connection — see canTakeOffline.
+      const queueOffline = async () => {
+        if (!canTakeOffline(payload.paymentMethod)) {
           throw new Error(
-            "You're offline — only cash orders can be taken. Reconnect to take card or online payments.",
+            "You're offline — take cash, or card on your own card machine. Payment links and QR codes need a connection.",
           );
         }
         // Never let a stalled IndexedDB spin "Place order" forever — cap it.
@@ -897,13 +997,34 @@ export default function PosPage() {
           paymentMethod: payload.paymentMethod,
           total: payload.total,
           offline: true,
+          // Still collecting (walk-in cash, card on the machine): the
+          // payment step opens next, exactly as it does online.
+          heldForPayment: holdsForPayment(body),
           dineIn: null,
         };
+      };
+      if (typeof navigator !== "undefined" && !navigator.onLine) {
+        return queueOffline();
       }
 
-      const created = (await apiClient.post("/v1/orders", body)).data as {
-        id: string;
-      };
+      // The browser can say "online" while the shop's line is down (Wi-Fi up,
+      // broadband out) — the commonest outage there is. A request that never
+      // got an answer is queued instead of lost; the idempotencyKey means
+      // that if it DID land, the sync gets the same order back, not a twin.
+      let created: { id: string };
+      try {
+        created = (
+          await apiClient.post("/v1/orders", body, { timeout: 20_000 })
+        ).data as { id: string };
+      } catch (err) {
+        if (isNetworkFailure(err)) {
+          if (canTakeOffline(payload.paymentMethod)) return queueOffline();
+          throw new Error(
+            "No connection — take cash, or card on your own card machine. Payment links and QR codes need the internet.",
+          );
+        }
+        throw err;
+      }
 
       // Accept every POS order on placement — including scheduled ones.
       // Scheduled orders fire the print pipeline straight away with the
@@ -968,11 +1089,14 @@ export default function PosPage() {
         paymentMethod,
         total,
         offline: wasOffline,
+        heldForPayment,
         dineIn,
         walkInCash,
       },
       variables,
     ) => {
+      // The card was on that order; the next customer starts without one.
+      if (!edited) clearLoyalty();
       // Dine-in tab: this round went to the kitchen. No charge now (pay at the
       // end via "Pay & close"); just reset the cart and refresh the tab.
       if (dineIn) {
@@ -991,11 +1115,19 @@ export default function PosPage() {
         window.setTimeout(() => setSubmitFeedback(null), 4000);
         return;
       }
-      // Offline: the order is saved locally and will sync on reconnect. No
-      // charge/pay-link modals (cash only), just confirm + reset.
+      // Offline: the order is saved on this till and syncs on reconnect.
+      // Anything still being paid for opens its payment step; everything
+      // else goes straight to the kitchen printer.
       if (wasOffline) {
+        if (heldForPayment && paymentMethod === "CARD_TERMINAL") {
+          setOfflineCardOrder({ id, amount: Number(total ?? 0) });
+        } else if (heldForPayment) {
+          setCashOrder({ id, amount: Number(total ?? 0), offline: true });
+        } else {
+          void printOfflineTicket(id);
+        }
         setSubmitFeedback(
-          `Saved offline (${id.slice(-6)}). It'll sync automatically when you're back online.`,
+          `Saved offline as ${offlineRef(id)}. It'll sync automatically when you're back online.`,
         );
         setCart([]);
         setDraft({});
@@ -1207,12 +1339,19 @@ export default function PosPage() {
   }, []);
 
   const changeQty = useCallback((id: string, qty: number) => {
+    // A loyalty reward is one free item; more of it would be more free food.
+    if (id.startsWith("loyalty-")) return;
     setCart((prev) =>
       prev.map((l) => (l.id === id ? { ...l, quantity: qty } : l)),
     );
   }, []);
 
-  const clearCart = useCallback(() => setCart([]), []);
+  const clearCart = useCallback(() => {
+    setCart([]);
+    setLoyaltyMember(null);
+    setLoyaltyRewardId(null);
+    setLoyaltyMoneyReward(null);
+  }, []);
 
   /**
    * The header tools, defined once and rendered twice — as a button row from
@@ -1299,6 +1438,27 @@ export default function PosPage() {
   const [returnsOpen, setReturnsOpen] = useState(false);
   const [returnsCode, setReturnsCode] = useState<string | undefined>(undefined);
   const [cameraOpen, setCameraOpen] = useState(false);
+  // Walk-in loyalty card (Apple/Google Wallet) on this order.
+  const [loyaltyOpen, setLoyaltyOpen] = useState(false);
+  const [loyaltyScan, setLoyaltyScan] = useState<string | undefined>(undefined);
+  const [loyaltyMember, setLoyaltyMember] = useState<TillMember | null>(null);
+  const [loyaltyRewardId, setLoyaltyRewardId] = useState<string | null>(null);
+  // Set when the chosen reward is money off (% or £) rather than a free item:
+  // it has no cart line, and the cart panel takes it off the total.
+  const [loyaltyMoneyReward, setLoyaltyMoneyReward] = useState<TillMember["rewards"][number] | null>(null);
+  const loyaltyStatusQuery = useQuery({
+    queryKey: ["loyalty-till-status", selectedLocationId],
+    queryFn: () => walkInTill.status(selectedLocationId!),
+    enabled: !!selectedLocationId && online,
+    staleTime: 5 * 60_000,
+  });
+  const loyaltyOn = !!loyaltyStatusQuery.data?.enabled;
+  const clearLoyalty = useCallback(() => {
+    setLoyaltyMember(null);
+    setLoyaltyRewardId(null);
+    setLoyaltyMoneyReward(null);
+    setLoyaltyScan(undefined);
+  }, []);
   const [scanNotice, setScanNotice] = useState<{ tone: "ok" | "warn"; text: string } | null>(null);
   const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const notify = useCallback((tone: "ok" | "warn", text: string) => {
@@ -1428,8 +1588,22 @@ export default function PosPage() {
     [notify, money],
   );
   const addScanned = useCallback(
-    (entry: BarcodeEntry) => gateAge(entry.menuItemId, entry.name, () => addScannedNow(entry), entry.minAge),
-    [gateAge, addScannedNow],
+    (entry: BarcodeEntry) => {
+      // A loose product's ordinary barcode (a bag or shelf sticker with no
+      // weight in it) says WHAT it is, not how much: ask for the weight, the
+      // same as tapping its tile. Adding "1" would charge the per-kg price.
+      if (normaliseSellBy(entry.sellBy)) {
+        let item: MenuItem | undefined;
+        for (const c of categories)
+          for (const l of c.items ?? []) if (!item && l.item?.id === entry.menuItemId) item = l.item as MenuItem;
+        if (item) {
+          setWeighItem(item);
+          return;
+        }
+      }
+      gateAge(entry.menuItemId, entry.name, () => addScannedNow(entry), entry.minAge);
+    },
+    [gateAge, addScannedNow, categories],
   );
 
   const handleScan = useCallback(
@@ -1440,6 +1614,14 @@ export default function PosPage() {
         setReturnsOpen(true);
         return;
       }
+      // A customer's wallet loyalty card.
+      if (/^OHL[:;]/i.test(code)) {
+        setLoyaltyScan(code);
+        setLoyaltyOpen(true);
+        return;
+      }
+      // Restaurants scan loyalty cards only; products are a shop thing.
+      if (!isShop) return;
       if (step === "start") setStep("menu");
       const entry = findByBarcode(barcodeIndex, code);
       if (entry) {
@@ -1496,7 +1678,7 @@ export default function PosPage() {
     },
     // addWeighed is re-created each render; it only reads stable setters + the menu.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [step, barcodeIndex, sellableItemIds, addScanned, notify, online, selectedLocationId, categories, locationQuery.data, money],
+    [step, isShop, barcodeIndex, sellableItemIds, addScanned, notify, online, selectedLocationId, categories, locationQuery.data, money],
   );
 
   const anyModalOpen =
@@ -1505,6 +1687,7 @@ export default function PosPage() {
     !!agePrompt ||
     !!chargeOrder ||
     !!cashOrder ||
+    !!offlineCardOrder ||
     !!payLinkOrder ||
     showFeeModal ||
     showPromosModal ||
@@ -1516,8 +1699,55 @@ export default function PosPage() {
     splitOpen ||
     coloursOpen ||
     returnsOpen ||
-    cameraOpen;
-  useBarcodeScanner(isShop && !anyModalOpen, (code) => void handleScan(code));
+    cameraOpen ||
+    loyaltyOpen;
+  useBarcodeScanner((isShop || loyaltyOn) && !anyModalOpen, (code) => void handleScan(code));
+
+  // The free item and the reward travel together. Taking the line off
+  // un-spends the reward; a line with no reward behind it (a basket restored
+  // from a saved draft after a reload) is free food nobody earned, so it goes.
+  useEffect(() => {
+    // A money-off reward goes with the reward id, wherever that was cleared.
+    if (!loyaltyRewardId && loyaltyMoneyReward) setLoyaltyMoneyReward(null);
+    // A money-off reward has no line to follow.
+    if (loyaltyRewardId && !loyaltyMoneyReward && !cart.some((l) => l.id === `loyalty-${loyaltyRewardId}`)) {
+      setLoyaltyRewardId(null);
+    }
+    if ((!loyaltyRewardId || loyaltyMoneyReward) && cart.some((l) => l.id.startsWith("loyalty-"))) {
+      setCart((prev) => prev.filter((l) => !l.id.startsWith("loyalty-")));
+    }
+  }, [cart, loyaltyRewardId, loyaltyMoneyReward]);
+
+  const redeemLoyaltyReward = useCallback(
+    (member: TillMember, reward: TillMember["rewards"][number]) => {
+      setLoyaltyMember(member);
+      setLoyaltyRewardId(reward.id);
+      if (loyaltyRewardKind(reward) !== "FREE_ITEM") {
+        // % or £ off the whole order: no line, the cart panel takes it off.
+        setLoyaltyMoneyReward(reward);
+        setCart((prev) => prev.filter((l) => !l.id.startsWith("loyalty-")));
+        if (step === "start") setStep("menu");
+        notify("ok", `${reward.label} — comes off the total`);
+        return;
+      }
+      setLoyaltyMoneyReward(null);
+      setCart((prev) => [
+        ...prev.filter((l) => !l.id.startsWith("loyalty-")),
+        {
+          id: `loyalty-${reward.id}`,
+          menuItemId: reward.rewardItemId ?? "",
+          displayName: `★ ${reward.rewardItemName ?? reward.label} (loyalty reward)`,
+          unitPrice: 0,
+          quantity: 1,
+          modifiers: [],
+          notes: "Loyalty reward — free",
+        },
+      ]);
+      if (step === "start") setStep("menu");
+      notify("ok", `${reward.label} added free`);
+    },
+    [step, notify],
+  );
 
   /** Reminds staff which kind of order they're building, once past step 1. */
   const orderTypeLabel =
@@ -1549,6 +1779,18 @@ export default function PosPage() {
       onClick: () => setReturnsOpen(true),
       disabled: !selectedLocationId || !online,
       show: isShop,
+    },
+    {
+      key: "loyalty",
+      label: loyaltyMember ? `Loyalty · ${loyaltyMember.firstName ?? "card"}` : "Loyalty card",
+      title: "Scan a customer's wallet loyalty card, or sign them up",
+      icon: Gift,
+      onClick: () => {
+        setLoyaltyScan(undefined);
+        setLoyaltyOpen(true);
+      },
+      disabled: !selectedLocationId || !online || !!editOrderId,
+      show: loyaltyOn,
     },
     {
       key: "camera-scan",
@@ -1881,7 +2123,7 @@ export default function PosPage() {
         >
           <span>
             {!online
-              ? "Offline — cash orders are saved on this device and sync automatically when you reconnect."
+              ? "Offline — orders are saved on this till (cash, pay on collection, or card on your own machine) and sync automatically when you reconnect."
               : `${pendingSync} offline order${pendingSync === 1 ? "" : "s"} waiting to sync…`}
           </span>
           {pendingSync > 0 && (
@@ -2116,6 +2358,34 @@ export default function PosPage() {
               <X className="h-4 w-4" />
               Back to menu
             </button>
+            {loyaltyMember && (
+              <button
+                type="button"
+                onClick={() => {
+                  setLoyaltyScan(undefined);
+                  setLoyaltyOpen(true);
+                }}
+                className="mb-2 flex w-full items-center gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-left"
+              >
+                <Gift className="h-4 w-4 shrink-0 text-amber-600" />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-semibold text-zinc-900">
+                    {loyaltyMember.firstName ?? "Loyalty card"} · {loyaltyMember.stamps}/{loyaltyMember.stampsRequired}{" "}
+                    stamps
+                  </span>
+                  <span className="block text-[11px] text-zinc-600">
+                    {loyaltyRewardId
+                      ? loyaltyMoneyReward
+                        ? `${loyaltyMoneyReward.label} · stamp lands when paid`
+                        : "Reward added free · stamp lands when paid"
+                      : loyaltyMember.rewards.length > 0
+                        ? `${loyaltyMember.rewards.length} reward ready — tap to add`
+                        : "Earns a stamp when paid"}
+                  </span>
+                </span>
+                <span className="text-xs font-medium text-amber-700">Change</span>
+              </button>
+            )}
             <PosCartPanel
               key={cartResetKey}
               locationId={selectedLocationId}
@@ -2136,6 +2406,9 @@ export default function PosPage() {
                 await submitMutation.mutateAsync(p);
               }}
               multiBuys={multiBuys}
+              loyaltyReward={
+                loyaltyMember && loyaltyRewardId && loyaltyMoneyReward && !editOrderId ? loyaltyMoneyReward : null
+              }
               submitting={submitMutation.isPending}
               submitButtonLabel={editOrderId ? "Save changes" : undefined}
               existingDeliveryFee={editOrderDeliveryFee ?? undefined}
@@ -2235,6 +2508,30 @@ export default function PosPage() {
           onCashRefunded={() => void openDrawer()}
         />
       )}
+      {loyaltyOpen && selectedLocationId && (
+        <LoyaltyTillModal
+          locationId={selectedLocationId}
+          joinUrl={loyaltyStatusQuery.data?.joinUrl ?? null}
+          initialQuery={loyaltyScan}
+          attached={loyaltyMember}
+          attachedRewardId={loyaltyRewardId}
+          onAttach={(m) => {
+            setLoyaltyMember(m);
+            if (step === "start") setStep("menu");
+          }}
+          onRedeem={redeemLoyaltyReward}
+          onDetach={() => {
+            setLoyaltyMember(null);
+            setLoyaltyRewardId(null);
+            setLoyaltyMoneyReward(null);
+            setCart((prev) => prev.filter((l) => !l.id.startsWith("loyalty-")));
+          }}
+          onClose={() => {
+            setLoyaltyOpen(false);
+            setLoyaltyScan(undefined);
+          }}
+        />
+      )}
       {cameraOpen && (
         <CameraScanModal
           onClose={() => setCameraOpen(false)}
@@ -2299,6 +2596,15 @@ export default function PosPage() {
         orderId={cashOrder?.id ?? null}
         locationId={selectedLocationId ?? null}
         amount={cashOrder?.amount ?? 0}
+        onSettle={
+          cashOrder?.offline
+            ? () =>
+                settleOfflineOrder(cashOrder.id, {
+                  paymentStatus: "PAID",
+                  paymentMethod: "CASH",
+                })
+            : undefined
+        }
         onClose={() => {
           // Closing WITHOUT taking the money leaves the order PENDING and
           // unprinted on purpose — it is genuinely unpaid, and the Orders
@@ -2308,7 +2614,9 @@ export default function PosPage() {
           setCashOrder(null);
           if (pending) {
             setSubmitFeedback(
-              "Order saved but not paid — take the cash from the Orders board to print the ticket.",
+              pending.offline
+                ? `${offlineRef(pending.id)} saved offline but NOT paid — it will wait in "Waiting for payment" once it syncs.`
+                : "Order saved but not paid — take the cash from the Orders board to print the ticket.",
             );
             window.setTimeout(() => setSubmitFeedback(null), 8000);
           }
@@ -2319,6 +2627,52 @@ export default function PosPage() {
           setCashOrder(null);
           setSubmitFeedback("Cash taken — ticket printing.");
           window.setTimeout(() => setSubmitFeedback(null), 4000);
+        }}
+      />
+
+      {/* Offline card sale — taken on the shop's own card machine. */}
+      <OfflineCardModal
+        open={!!offlineCardOrder}
+        amount={offlineCardOrder?.amount ?? 0}
+        reference={offlineCardOrder ? offlineRef(offlineCardOrder.id) : ""}
+        onApproved={async () => {
+          if (!offlineCardOrder) return;
+          // MANUAL: the money went through the shop's own machine, not our
+          // Stripe account — keeps it out of Stripe reconciliation.
+          await settleOfflineOrder(offlineCardOrder.id, {
+            paymentStatus: "PAID",
+            paymentMethod: "CARD_TERMINAL",
+            paymentProvider: "MANUAL",
+          });
+          setOfflineCardOrder(null);
+          setSubmitFeedback("Card approved — ticket printing.");
+          window.setTimeout(() => setSubmitFeedback(null), 4000);
+        }}
+        onPayCash={() => {
+          const o = offlineCardOrder;
+          setOfflineCardOrder(null);
+          if (o) setCashOrder({ ...o, offline: true });
+        }}
+        onCancelSale={async () => {
+          if (!offlineCardOrder) return;
+          const row = await getQueued(offlineCardOrder.id);
+          if (!row || row.status === "syncing") {
+            throw new Error("It has already synced — cancel it from the Orders board.");
+          }
+          await removeQueued(offlineCardOrder.id);
+          setOfflineCardOrder(null);
+          setSubmitFeedback("Sale cancelled — nothing was charged.");
+          window.setTimeout(() => setSubmitFeedback(null), 4000);
+        }}
+        onClose={() => {
+          const o = offlineCardOrder;
+          setOfflineCardOrder(null);
+          if (o) {
+            setSubmitFeedback(
+              `${offlineRef(o.id)} saved offline but NOT paid — it will wait in "Waiting for payment" once it syncs.`,
+            );
+            window.setTimeout(() => setSubmitFeedback(null), 8000);
+          }
         }}
       />
 

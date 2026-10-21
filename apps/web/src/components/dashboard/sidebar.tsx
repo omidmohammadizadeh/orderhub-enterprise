@@ -43,6 +43,7 @@ import {
   Banknote,
   MessageSquare,
   Mail,
+  BellRing,
   Ticket,
   Clapperboard,
   CalendarDays,
@@ -51,7 +52,11 @@ import {
   ShieldCheck,
   ScanBarcode,
   ShoppingBasket,
-  Star } from "lucide-react";
+  Star,
+  Scissors,
+  UsersRound,
+  ScanLine,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SidebarLocationSwitcher } from "./sidebar-location-switcher";
 import { Badge } from "@/components/ui/badge";
@@ -64,7 +69,6 @@ import { leadsClient } from "@/lib/api/leads.client";
 import { locationsClient } from "@/lib/api/locations.client";
 import { queryKeys } from "@/lib/api/query-keys";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
-import { dashboardTabForPath } from "@orderhub/shared";
 import { useDashboardTabAccess } from "@/hooks/use-dashboard-tabs";
 
 interface NavItem {
@@ -77,6 +81,8 @@ interface NavItem {
   requiresTableService?: boolean;
   /** Retail R1 — hidden unless the selected location is a shop. */
   requiresShop?: boolean;
+  /** Salon — hidden unless the selected location is a barber / salon. */
+  requiresSalon?: boolean;
 }
 
 // Phase AR — every NavItem optionally declares which roles see it.
@@ -128,6 +134,11 @@ const BILLING_ROLES = [
 const primaryNav: NavItem[] = [
   { href: "/dashboard/orders", label: "Orders", icon: ShoppingBag, badge: "0", roles: DRIVER_TIER },
   { href: "/dashboard/pos", label: "POS", icon: ShoppingBag, roles: STAFF_TIER },
+  { href: "/dashboard/loyalty-scan", label: "Scan loyalty card", icon: ScanLine, roles: SHOP_FLOOR },
+  // Barbers, hair and nail salons: the appointment diary and the walk-in
+  // queue lead the menu at a SALON location.
+  { href: "/dashboard/salon", label: "Appointments", icon: Scissors, roles: STAFF_TIER, requiresSalon: true },
+  { href: "/dashboard/salon/queue", label: "Walk-ins", icon: UsersRound, roles: STAFF_TIER, requiresSalon: true },
   { href: "/dashboard/tables", label: "Tables", icon: UtensilsCrossed, roles: STAFF_TIER },
   // Reservations only make sense once dine-in is switched on for this
   // location. Tables itself stays unconditional on purpose — it's where
@@ -168,8 +179,10 @@ const primaryNav: NavItem[] = [
   { href: "/dashboard/customers", label: "Customers", icon: Users, roles: MANAGER_TIER },
   { href: "/dashboard/marketing", label: "Marketing", icon: Megaphone, roles: MANAGER_TIER_PLUS },
   { href: "/dashboard/marketing/promo-codes", label: "Promo codes", icon: Ticket, roles: MANAGER_TIER_PLUS },
+  { href: "/dashboard/marketing/welcome-screen", label: "Welcome screen", icon: Smartphone, roles: MANAGER_TIER_PLUS },
   { href: "/dashboard/marketing/sms", label: "SMS Marketing", icon: MessageSquare, roles: FINANCE_ROLES },
   { href: "/dashboard/marketing/email", label: "Email Marketing", icon: Mail, roles: FINANCE_ROLES },
+  { href: "/dashboard/marketing/push", label: "Push Notifications", icon: BellRing, roles: FINANCE_ROLES },
   { href: "/dashboard/video-studio", label: "AI Studio", icon: Clapperboard, roles: MANAGER_TIER },
   // Drivers consolidated into the Dispatch console (Fleet tab) — Phase AX.
   { href: "/dashboard/reviews", label: "Reviews", icon: Star, roles: MANAGER_TIER },
@@ -343,14 +356,14 @@ function _Sidebar() {
     ?.enabled;
   const businessType = (locationQuery.data as any)?.businessType;
   const isShop = businessType === "GROCERY" || businessType === "RETAIL";
+  const isSalon = businessType === "SALON";
 
   // Admin Dashboard → Dashboard access. A tab switched off for the selected
   // location is gone for everyone who works there, whatever their role — so
   // this filter runs AFTER the role filter and can only ever take away.
   // Platform admins and device accounts are exempt (see the hook).
   const tabAccess = useDashboardTabAccess();
-  const tabVisible = (href: string) =>
-    !tabAccess.isHidden(dashboardTabForPath(href)?.key);
+  const tabVisible = (href: string) => !tabAccess.hiddenTabForPath(href);
 
   return (
     <aside className="flex h-screen w-[220px] flex-shrink-0 flex-col bg-[#0a0a0b] border-r border-white/[0.06]">
@@ -389,6 +402,7 @@ function _Sidebar() {
                 (user?.role && item.roles.includes(user.role))) &&
               (!item.requiresTableService || tableServiceOn) &&
               (!item.requiresShop || isShop) &&
+              (!item.requiresSalon || isSalon) &&
               tabVisible(item.href),
           )
           .map((item) => {
@@ -403,7 +417,11 @@ function _Sidebar() {
               <SidebarNavItem
                 key={item.href}
                 item={withBadge}
-                isActive={pathname.startsWith(item.href)}
+                isActive={
+                  pathname.startsWith(item.href) &&
+                  // Walk-ins lives under the diary's path; light one, not both.
+                  !(item.href === "/dashboard/salon" && pathname.startsWith("/dashboard/salon/queue"))
+                }
               />
             );
           })}

@@ -54,7 +54,7 @@ function DetailNav() {
 
         <nav className="hidden items-center gap-1 md:flex">
           <MegaMenu label="Solutions" href="/solutions">
-            <ul className="w-[360px] p-2">
+            <ul className="grid w-[680px] grid-cols-2 gap-x-1 p-2">
               {SOLUTIONS.map((s) => (
                 <li key={s.slug}>
                   <Link

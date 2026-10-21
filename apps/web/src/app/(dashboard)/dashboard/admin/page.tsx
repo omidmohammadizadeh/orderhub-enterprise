@@ -9,14 +9,17 @@
 
 import Link from "next/link";
 import {
+  Smartphone,
   ArrowRight,
   ClipboardCheck,
   Globe,
+  KeyRound,
   LayoutList,
   Lock,
   Rocket,
   ShieldCheck,
   Wallet,
+  Zap,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth.store";
 
@@ -50,11 +53,32 @@ const TOOLS: AdminTool[] = [
     icon: Wallet,
   },
   {
+    href: "/dashboard/admin/auto-dispatch",
+    title: "Auto dispatch",
+    blurb:
+      "Send deliveries to Stuart, Uber Direct, JET Go or Yango on their own — a fixed provider or the cheapest live quote, by brand and channel, at the moment you choose.",
+    icon: Zap,
+  },
+  {
     href: "/dashboard/admin/website-showcase",
     title: "Website showcase",
     blurb:
       "Pick the brands shown with their logo in the \u201cTrusted by\u201d section of the homepage.",
     icon: Globe,
+  },
+  {
+    href: "/dashboard/admin/restaurant-apps",
+    title: "Restaurant apps",
+    blurb:
+      "Store links and promotion for each restaurant's own app, and the step-by-step for getting its iPhone app live on the restaurant's Apple account.",
+    icon: Smartphone,
+  },
+  {
+    href: "/dashboard/admin/social-login",
+    title: "Social login",
+    blurb:
+      "Choose whether each restaurant app shows Sign in with Apple and Google on iOS, and Google on Android — decide per app before you submit it.",
+    icon: KeyRound,
   },
   {
     href: "/dashboard/admin/release-readiness",

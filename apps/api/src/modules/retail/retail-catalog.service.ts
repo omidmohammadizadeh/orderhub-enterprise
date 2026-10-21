@@ -204,6 +204,8 @@ export class RetailCatalogService {
         plu: true,
         imageUrl: true,
         sellBy: true,
+        scaleCode: true,
+        minAge: true,
         productVariants: {
           orderBy: { sortOrder: "asc" },
           include: { stockLevels: { where: { locationId }, select: { quantity: true } } },
@@ -219,6 +221,8 @@ export class RetailCatalogService {
       imageUrl: it.imageUrl,
       /** Weighed products are stocked in grams. */
       sellBy: it.sellBy,
+      scaleCode: it.scaleCode,
+      minAge: it.minAge,
       variants: it.productVariants.map((v) => this.variantView(v)),
     }));
     if (opts.lowOnly) {
@@ -282,6 +286,64 @@ export class RetailCatalogService {
       throw new ConflictException(`Barcode ${barcode ?? ""} is already on another product`);
     }
     throw err;
+  }
+
+  /**
+   * Testing aid (managers): give every product on this till that has no
+   * barcode a made-up one, so a shop can try scanning before it has its real
+   * stock in. Codes are EAN-13s in the "049…" in-store range — they mean
+   * nothing outside this business and never clash with a manufacturer's.
+   * Weighed products are skipped (they use scale labels). A product with no
+   * variant at all gets a Default one, not stock-counted, so selling it
+   * behaves exactly as before.
+   */
+  async assignTestBarcodes(tenantId: string, locationId: string): Promise<{ assigned: number; created: number }> {
+    await this.location(tenantId, locationId);
+    const itemIds = await this.tillItemIds(tenantId, locationId);
+    if (!itemIds.length) return { assigned: 0, created: 0 };
+    const items = await this.prisma.menuItem.findMany({
+      where: { id: { in: itemIds.slice(0, 1000) } },
+      select: {
+        id: true,
+        sellBy: true,
+        productVariants: { select: { id: true, barcode: true, isActive: true } },
+      },
+    });
+    const used = new Set(
+      (
+        await this.prisma.productVariant.findMany({
+          where: { tenantId, barcode: { startsWith: "049" } },
+          select: { barcode: true },
+        })
+      ).map((v) => v.barcode),
+    );
+    let seq = 1;
+    const next = () => {
+      for (;;) {
+        const code = withEanCheckDigit(`049${String(seq++).padStart(9, "0")}`);
+        if (!used.has(code)) {
+          used.add(code);
+          return code;
+        }
+      }
+    };
+    let assigned = 0;
+    let created = 0;
+    for (const item of items) {
+      if (item.sellBy) continue;
+      if (item.productVariants.length === 0) {
+        await this.createVariant(tenantId, item.id, { name: "Default", barcode: next(), trackStock: false });
+        created++;
+        continue;
+      }
+      for (const v of item.productVariants) {
+        if (!v.isActive || v.barcode) continue;
+        await this.updateVariant(tenantId, v.id, { barcode: next() });
+        assigned++;
+      }
+    }
+    this.logger.log(`Test barcodes for location ${locationId}: ${assigned} assigned, ${created} new variants`);
+    return { assigned, created };
   }
 
   async createVariant(tenantId: string, menuItemId: string, input: VariantInput) {
@@ -705,4 +767,11 @@ export class RetailCatalogService {
     if (count > 0) throw new BadRequestException("This product already has variants");
     return this.createVariant(tenantId, menuItemId, { name: "Default", ...input });
   }
+}
+
+/** "049000000001" → "0490000000014": append the EAN-13 check digit. */
+function withEanCheckDigit(twelve: string): string {
+  let sum = 0;
+  for (let i = 0; i < 12; i++) sum += Number(twelve[i]) * (i % 2 === 0 ? 1 : 3);
+  return twelve + String((10 - (sum % 10)) % 10);
 }

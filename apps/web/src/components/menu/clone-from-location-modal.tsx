@@ -7,7 +7,7 @@
 
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { X, Copy, Loader2, ChevronRight, Check } from "lucide-react";
+import { X, Copy, Loader2, ChevronRight, Check, Search } from "lucide-react";
 import { menusClient } from "@/lib/api/menus.client";
 import { locationsClient } from "@/lib/api/locations.client";
 
@@ -28,12 +28,16 @@ export function CloneFromLocationModal({
   const [sourceLocationId, setSourceLocationId] = useState<string>("");
   const [selectedMenuId, setSelectedMenuId] = useState<string>("");
   const [name, setName] = useState<string>("");
+  // Tenants run dozens of shops, and a plain <select> meant scrolling the
+  // whole alphabet to find one. Type to narrow instead.
+  const [locationQuery, setLocationQuery] = useState<string>("");
 
   useEffect(() => {
     if (open) {
       setSourceLocationId("");
       setSelectedMenuId("");
       setName("");
+      setLocationQuery("");
     }
   }, [open]);
 
@@ -44,8 +48,24 @@ export function CloneFromLocationModal({
   });
 
   // Other locations only — you clone FROM another location INTO the current one.
-  const otherLocations = (locationsQuery.data ?? []).filter(
-    (l: any) => l.id !== targetLocationId,
+  const otherLocations = (locationsQuery.data ?? [])
+    .filter((l: any) => l.id !== targetLocationId)
+    .sort((a: any, b: any) =>
+      String(a.name ?? "").localeCompare(String(b.name ?? ""), undefined, {
+        sensitivity: "base",
+      }),
+    );
+
+  // Matches anywhere in the name, ignoring case, so "kebab" finds
+  // "Fattoush kebab addlestone" as well as "BEST KEBAB".
+  const q = locationQuery.trim().toLowerCase();
+  const matchingLocations = q
+    ? otherLocations.filter((l: any) =>
+        String(l.name ?? "").toLowerCase().includes(q),
+      )
+    : otherLocations;
+  const sourceLocation = otherLocations.find(
+    (l: any) => l.id === sourceLocationId,
   );
 
   const menusQuery = useQuery({
@@ -87,21 +107,85 @@ export function CloneFromLocationModal({
             <label className="mb-1 block text-xs font-medium text-zinc-500">
               1. Location to copy from
             </label>
-            <select
-              value={sourceLocationId}
-              onChange={(e) => {
-                setSourceLocationId(e.target.value);
-                setSelectedMenuId("");
-              }}
-              className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
-            >
-              <option value="">Select a location…</option>
-              {otherLocations.map((l: any) => (
-                <option key={l.id} value={l.id}>
-                  {l.name}
-                </option>
-              ))}
-            </select>
+            {sourceLocation ? (
+              // Picked: show it, with a way back to the list.
+              <div className="flex items-center justify-between rounded-md border border-violet-500 bg-violet-50 px-3 py-2 text-sm">
+                <span className="truncate font-medium text-zinc-900">
+                  {sourceLocation.name}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSourceLocationId("");
+                    setSelectedMenuId("");
+                  }}
+                  className="ml-3 shrink-0 text-xs font-semibold text-violet-700 hover:text-violet-900"
+                >
+                  Change
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="relative">
+                  <Search
+                    className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
+                    aria-hidden="true"
+                  />
+                  <input
+                    type="search"
+                    autoFocus
+                    value={locationQuery}
+                    onChange={(e) => setLocationQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      // Enter takes the only (or first) match, so a typed
+                      // name plus Enter is all it takes.
+                      if (e.key === "Enter" && matchingLocations[0]) {
+                        e.preventDefault();
+                        setSourceLocationId(matchingLocations[0].id);
+                        setSelectedMenuId("");
+                      }
+                    }}
+                    placeholder="Search locations…"
+                    aria-label="Search locations to copy from"
+                    className="w-full rounded-md border border-zinc-300 py-2 pl-9 pr-3 text-sm focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
+                  />
+                </div>
+                {locationsQuery.isLoading ? (
+                  <div className="py-4 text-center">
+                    <Loader2 className="mx-auto h-5 w-5 animate-spin text-zinc-300" />
+                  </div>
+                ) : otherLocations.length > 0 ? (
+                  <div
+                    role="listbox"
+                    aria-label="Locations"
+                    className="mt-1.5 max-h-56 space-y-1 overflow-y-auto"
+                  >
+                    {matchingLocations.length === 0 ? (
+                      <p className="px-3 py-3 text-center text-sm text-zinc-400">
+                        No location matches “{locationQuery.trim()}”.
+                      </p>
+                    ) : (
+                      matchingLocations.map((l: any) => (
+                        <button
+                          key={l.id}
+                          type="button"
+                          role="option"
+                          aria-selected={false}
+                          onClick={() => {
+                            setSourceLocationId(l.id);
+                            setSelectedMenuId("");
+                          }}
+                          className="flex w-full items-center justify-between rounded-md border border-zinc-200 px-3 py-2 text-left text-sm hover:bg-zinc-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-violet-600"
+                        >
+                          <span className="truncate text-zinc-900">{l.name}</span>
+                          <ChevronRight className="h-4 w-4 shrink-0 text-zinc-300" />
+                        </button>
+                      ))
+                    )}
+                  </div>
+                ) : null}
+              </>
+            )}
             {locationsQuery.isSuccess && otherLocations.length === 0 && (
               <p className="mt-1 text-xs text-zinc-400">
                 You don’t have another location to copy from.

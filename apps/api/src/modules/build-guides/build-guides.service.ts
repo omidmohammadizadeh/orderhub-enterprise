@@ -256,7 +256,7 @@ export class BuildGuidesService {
       const src = s as Record<string, unknown>;
       const text = clip(src.text, MAX_TEXT) ?? "";
       let imageUrl = typeof src.imageUrl === "string" && src.imageUrl.trim() ? src.imageUrl.trim() : null;
-      if (imageUrl && !/^(https?:|data:image\/)/i.test(imageUrl)) imageUrl = null;
+      if (imageUrl && !/^(https?:|data:image\/|\/api\/v1\/)/i.test(imageUrl)) imageUrl = null;
       // Photos come from the dashboard as data URIs when the upload endpoint
       // was unreachable — push them to storage so the JSON stays small.
       imageUrl = (await rehostImageIfInline(this.storage, imageUrl, `build-guides/${tenantId}`)) ?? null;

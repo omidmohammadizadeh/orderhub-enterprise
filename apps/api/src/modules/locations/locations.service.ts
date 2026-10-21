@@ -263,7 +263,7 @@ export function parseBusinessType(v: unknown): BusinessType | undefined {
   if (v === undefined || v === null || v === "") return undefined;
   const t = String(v).toUpperCase();
   if (!isBusinessType(t)) {
-    throw new BadRequestException("Business type must be RESTAURANT, GROCERY or RETAIL");
+    throw new BadRequestException("Business type must be RESTAURANT, GROCERY, RETAIL or SALON");
   }
   return t;
 }

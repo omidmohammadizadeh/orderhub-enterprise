@@ -279,7 +279,7 @@ describe("the right restaurant's dishes", () => {
 describe("offer codes must work before an email goes out", () => {
   const design = (code: string) => ({ blocks: [{ id: "o", type: "offer", title: "20% OFF", code }] });
   function withPromo(promo: any) {
-    const { svc } = make({ promoCode: { findFirst: jest.fn().mockResolvedValue(promo) } });
+    const { svc } = make({ promoCode: { findMany: jest.fn().mockResolvedValue(promo ? [promo] : []) } });
     return svc;
   }
   const c = (code: string) => ({ tenantId: "t1", locationId: "L1", design: design(code) });

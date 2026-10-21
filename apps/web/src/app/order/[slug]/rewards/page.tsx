@@ -24,6 +24,9 @@ import { useCustomerAuth } from "@/hooks/use-customer-auth";
 import { StorefrontTabBar } from "@/components/storefront/tab-bar";
 import { PoweredByOrderHub } from "@/components/storefront/powered-by";
 import { ReferAFriend } from "@/components/storefront/refer-a-friend";
+import { WalletCard } from "@/components/loyalty/wallet-card";
+import { WalletButtons } from "@/components/loyalty/wallet-buttons";
+import { walkInPublic } from "@/lib/api/loyalty-walk-in.client";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "/api";
 
@@ -69,6 +72,33 @@ export default function StorefrontRewardsPage() {
         })
         .then((r) => r.data),
   });
+
+  // The same card the shop designed for Apple/Google Wallet. Opening Rewards
+  // links this account to the shop's wallet card (matching an in-store card by
+  // email), so online orders and till visits fill ONE card — and the QR on it
+  // works at the counter too.
+  const { data: walletToken, isError: linkFailed } = useQuery({
+    queryKey: ["loyalty-wallet-link", locationId, customer?.id],
+    enabled: !!locationId && !!token && card?.active === true,
+    staleTime: Infinity,
+    retry: 1,
+    queryFn: () =>
+      axios
+        .post(
+          `${API_BASE}/v1/loyalty/walk-in/link-account`,
+          { locationId },
+          { headers: { Authorization: `Bearer ${token}` } },
+        )
+        .then((r) => r.data.token as string),
+  });
+  const { data: walletCard, isError: walletCardFailed } = useQuery({
+    queryKey: ["loyalty-wallet-card", walletToken],
+    enabled: !!walletToken,
+    queryFn: () => walkInPublic.card(walletToken!),
+  });
+
+  // Old card design only if the wallet card can't be had; a placeholder while it loads.
+  const walletUnavailable = linkFailed || walletCardFailed;
 
   const required = card?.stampsRequired ?? 6;
   const filled = card?.stamps ?? 0;
@@ -189,8 +219,53 @@ export default function StorefrontRewardsPage() {
         </Panel>
       )}
 
-      {/* ── The card ─────────────────────────────────────────────────── */}
-      {card?.active && (
+      {/* ── The shop's wallet card (same design as Apple/Google Wallet) ── */}
+      {card?.active && walletCard && walletToken && (
+        <section className="oh-card-in px-5 pb-2">
+          <WalletCard
+            title={walletCard.title}
+            color={walletCard.color}
+            stampIcon={walletCard.stampIcon}
+            logoUrl={walletCard.logoUrl}
+            stamps={walletCard.stamps}
+            stampsRequired={walletCard.stampsRequired}
+            rewardLabel={walletCard.rewardLabel}
+            rewardsReady={walletCard.rewards.length}
+            firstName={walletCard.firstName}
+            scan={walletCard.scan}
+            code={walletCard.code}
+            highlightLast={newestIndex !== null}
+          />
+          <p className="mt-4 text-sm font-semibold text-zinc-200">
+            {walletCard.rewards.length > 0
+              ? "Claim your reward at checkout, or show this card at the till."
+              : `${walletCard.stampsRequired - walletCard.stamps} more ${
+                  walletCard.stampsRequired - walletCard.stamps === 1 ? "order" : "orders"
+                } to go — online or in store.`}
+          </p>
+          {card.minimumSpend ? (
+            <p className="mt-1 text-xs text-zinc-500">
+              Spend {formatMoney(card.minimumSpend, currency)} or more to earn a stamp.
+            </p>
+          ) : null}
+          <div className="mt-5">
+            <WalletButtons
+              token={walletToken}
+              wallet={walletCard.wallet}
+              fallbackText="Show the QR on this card at the till when you order in store."
+            />
+          </div>
+        </section>
+      )}
+
+      {card?.active && !walletCard && !walletUnavailable && (
+        <section className="px-5 pb-2" aria-busy="true">
+          <div className="h-56 animate-pulse rounded-[22px] bg-white/[0.06]" />
+        </section>
+      )}
+
+      {/* ── Fallback: the plain card, if the wallet card can't be loaded ── */}
+      {card?.active && !walletCard && walletUnavailable && (
         <section className="px-5 pb-2">
           <div
             className={`oh-card-in relative overflow-hidden rounded-3xl p-5 shadow-2xl ${

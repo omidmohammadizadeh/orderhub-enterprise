@@ -154,6 +154,9 @@ export function OrderNotifications({
   slug: string;
 }) {
   const [state, setState] = useState<State>("checking");
+  // Offers are a separate yes from order updates, and unticked by default:
+  // turning on "tell me when it's ready" must never sign anyone up to adverts.
+  const [offers, setOffers] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -266,12 +269,13 @@ export function OrderNotifications({
         keys: sub.toJSON().keys,
         deviceRef: deviceRef(),
         trackPath: `/order/${slug}/status/${orderId}`,
+        marketingOptIn: offers,
       });
       setState("on");
     } catch {
       setState("failed");
     }
-  }, [orderId, slug]);
+  }, [orderId, slug, offers]);
 
   if (state === "checking" || state === "unsupported") return null;
 
@@ -325,6 +329,15 @@ export function OrderNotifications({
       >
         {state === "working" ? "Turning on…" : "Turn on notifications"}
       </button>
+      <label className="mt-2 flex cursor-pointer items-start gap-2 text-[11px] leading-snug text-zinc-600">
+        <input
+          type="checkbox"
+          checked={offers}
+          onChange={(e) => setOffers(e.target.checked)}
+          className="mt-0.5 h-3.5 w-3.5 rounded border-zinc-300"
+        />
+        Also send me the occasional offer from this restaurant
+      </label>
       {state === "failed" && (
         <p className="mt-1.5 text-[11px] text-amber-600">
           Couldn&apos;t turn those on. This page still updates live.

@@ -23,6 +23,7 @@ const PAGE_TITLES: Record<string, { title: string; description?: string }> = {
   "/dashboard/inventory":         { title: "Inventory", description: "Stock levels, suppliers, and purchase orders" },
   "/dashboard/stock":             { title: "Stock & barcodes", description: "Barcodes, stock counts and spreadsheet import" },
   "/dashboard/picking":           { title: "Picking", description: "Pick online orders aisle by aisle" },
+  "/dashboard/loyalty-scan":      { title: "Scan loyalty card", description: "Give stamps and rewards without a sale" },
   "/dashboard/payments":          { title: "Payments", description: "Ledger, payouts, and Stripe Connect" },
   "/dashboard/billing":           { title: "Billing", description: "Subscription, plans, and invoices" },
   "/dashboard/integrations/careem": { title: "Careem", description: "Connection status and incoming notifications" },

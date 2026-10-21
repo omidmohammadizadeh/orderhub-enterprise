@@ -13,7 +13,10 @@ function make(codes: any[] = [], scoped: string[] | null = ["L1"]) {
       delete: jest.fn().mockResolvedValue({}),
     },
     $queryRawUnsafe: jest.fn(),
+    $executeRawUnsafe: jest.fn(),
+    location: { findMany: jest.fn().mockResolvedValue([]) },
   };
+  prisma.$transaction = (fn: any) => fn(prisma);
   const wallet: any = {
     accessibleLocationIds: jest.fn(async (_t: string, _u: string, role: string) =>
       ["PLATFORM_ADMIN", "TENANT_OWNER"].includes(role) ? null : scoped,

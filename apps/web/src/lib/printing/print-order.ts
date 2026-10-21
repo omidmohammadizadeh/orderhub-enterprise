@@ -7,6 +7,7 @@
 // so the caller can surface it.
 
 import { printersClient } from "../api/printers.client";
+import { cachedFetch } from "../pos/offline-cache";
 import { pinnedPrinter, chooseReceiptPrinters } from "../../stores/device.store";
 import { formatMoney } from "@orderhub/shared";
 import { marketingClient } from "../api/marketing.client";
@@ -42,6 +43,15 @@ const QR_EXCLUDED = new Set([
   "WHATSAPP",
   "WHATS_APP",
 ]);
+
+// The printers are on the shop's own Bluetooth / LAN, so a ticket can print
+// with no internet at all — provided the till still knows which printers it
+// has. The last list per location is served when the fetch fails.
+export function listPrintersCached(locationId: string): Promise<any[]> {
+  return cachedFetch(`orderhub-pos:printers:${locationId}`, () =>
+    printersClient.list(locationId),
+  );
+}
 
 export function isMarketplaceOrder(order: any): boolean {
   const src = String(order?.orderSource ?? order?.platform ?? "").toUpperCase();
@@ -100,6 +110,43 @@ export async function resolveReceiptOffer(
   } catch {
     return null;
   }
+}
+
+/**
+ * The QR gates for one printed ticket, posted with markOrderPrinted and logged
+ * by the API as "QR decision: …". Reprint AND auto-print send it: auto-print
+ * used not to, so the first (and usually only) print of an order left no
+ * trace, and "why was there no QR?" could only be answered by reprinting.
+ */
+export function describeQrDecision(a: {
+  printer: any;
+  renderOpts: { qrCode?: boolean; qrDialect?: string };
+  order: any;
+  offer: ReceiptOffer | null;
+  payload: any;
+  qrSlip?: Uint8Array | null;
+  receiptWithQr?: Uint8Array | null;
+  auto?: boolean;
+}): Record<string, unknown> {
+  return {
+    printer: a.printer?.name ?? a.printer?.ipAddress ?? "?",
+    ...(a.auto ? { auto: true } : {}),
+    qrEnabled: !!a.renderOpts.qrCode,
+    dialect: a.renderOpts.qrDialect,
+    // marketplace=false has two very different causes: the order really
+    // is one of our own channels (POS/online never get the QR — that
+    // customer already orders direct), or the offer lookup bailed. These
+    // three fields separate them without another round of guessing.
+    src: String(a.order?.orderSource ?? a.order?.platform ?? "?"),
+    offer: a.offer ? "ok" : "NULL",
+    orderBrand: a.order?.brandId ? "yes" : "NONE",
+    marketplace: !!a.offer?.isMarketplace,
+    offerUrl: a.offer?.url ? "yes" : "NONE",
+    qrData: a.payload?.qrData ? "yes" : "NONE",
+    detachedOpt: !!a.printer?.defaults?.qrDetached,
+    slipBytes: a.qrSlip?.length ?? 0,
+    withQrBytes: a.receiptWithQr?.length ?? 0,
+  };
 }
 
 // Apply a resolved offer onto a receipt payload: logo for every order,
@@ -203,7 +250,7 @@ export async function openCashDrawerViaBridge(
       "The cash drawer opens through the printer, which only works inside the OrderHub Solutions tablet app.",
     );
   }
-  const printers = await printersClient.list(locationId);
+  const printers = await listPrintersCached(locationId);
   const reachable = printers.filter(
     (p: any) =>
       p.locationId === locationId &&
@@ -231,14 +278,18 @@ export async function openCashDrawerViaBridge(
 
 export async function printOrderViaBridge(
   order: any,
-  opts?: { billMode?: boolean },
+  opts?: {
+    billMode?: boolean;
+    /** A first print of a new order (offline till) — use the new-order copy count. */
+    newOrder?: boolean;
+  },
 ): Promise<string> {
   if (!hasNativeBridge()) {
     throw new Error(
       "Native printing only works inside the OrderHub Solutions tablet app.",
     );
   }
-  const printers = await printersClient.list(order.locationId);
+  const printers = await listPrintersCached(order.locationId);
   // Bluetooth or LAN printers at this location that the current app
   // build can actually reach.
   const reachable = printers.filter(
@@ -325,7 +376,9 @@ export async function printOrderViaBridge(
     try {
       const copies = Math.max(
         1,
-        Number((p as any).defaults?.copiesReprint ?? 1) || 1,
+        Number(
+          (p as any).defaults?.[opts?.newOrder ? "copiesNewOrder" : "copiesReprint"] ?? 1,
+        ) || 1,
       );
       // Plain + QR-attached variants come back separately so extra copies
       // repeat the plain receipt — only the last (bag) copy carries the QR.
@@ -336,26 +389,15 @@ export async function printOrderViaBridge(
         p.paperWidth ?? 80,
         renderOpts,
       );
-      qrDecision = {
-        printer: (p as any)?.name ?? p.ipAddress ?? "?",
-        qrEnabled: !!renderOpts.qrCode,
-        dialect: renderOpts.qrDialect,
-        // marketplace=false has two very different causes: the order really
-        // is one of our own channels (POS/online never get the QR — that
-        // customer already orders direct), or the offer lookup bailed. These
-        // three fields separate them without another round of guessing.
-        src: String(
-          (order as any)?.orderSource ?? (order as any)?.platform ?? "?",
-        ),
-        offer: offer ? "ok" : "NULL",
-        orderBrand: (order as any)?.brandId ? "yes" : "NONE",
-        marketplace: !!offer?.isMarketplace,
-        offerUrl: offer?.url ? "yes" : "NONE",
-        qrData: (payload as any)?.qrData ? "yes" : "NONE",
-        detachedOpt: !!(p as any).defaults?.qrDetached,
-        slipBytes: qrSlip?.length ?? 0,
-        withQrBytes: receiptWithQr?.length ?? 0,
-      };
+      qrDecision = describeQrDecision({
+        printer: p,
+        renderOpts,
+        order,
+        offer,
+        payload,
+        qrSlip,
+        receiptWithQr,
+      });
       // Detached: plain receipts, then the QR on its own ticket.
       const detached = (p as any).defaults?.qrDetached ? qrSlip : null;
       await writeToPrinter(
@@ -385,7 +427,10 @@ export async function printOrderViaBridge(
 
   // At least one printer produced the receipt — clear the order's queued
   // job(s) + bump "last print" (this also logs the success server-side).
-  void printersClient.markOrderPrinted(order.id, qrDecision ?? undefined);
+  // An offline order has no server row yet — the sync clears its job instead.
+  if (!String(order.id ?? "").startsWith("local:")) {
+    void printersClient.markOrderPrinted(order.id, qrDecision ?? undefined);
+  }
 
   if (failures.length) {
     // Some (not all) printers failed — log the dead one(s) too.

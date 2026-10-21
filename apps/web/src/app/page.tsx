@@ -396,6 +396,10 @@ function SiteFooter({ brand }: { brand: SiteBrand }) {
               { label: "Dispatch console", href: "/solutions/dispatch" },
               { label: "WhatsApp AI ordering", href: "/solutions/whatsapp-ordering" },
               { label: "AI phone ordering", href: "/solutions/voice-ai" },
+              { label: "Loyalty card", href: "/solutions/loyalty-card" },
+              { label: "Supermarkets", href: "/solutions/supermarkets" },
+              { label: "Beauty salons", href: "/solutions/beauty-salons" },
+              { label: "Hair & barbers", href: "/solutions/barbers" },
             ]}
           />
           <FooterCol
