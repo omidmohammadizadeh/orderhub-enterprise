@@ -26,6 +26,16 @@ export class OrderAgeCheckDto {
   method!: "TILL_ID_CHECK" | "CUSTOMER_CONFIRMED";
 }
 
+/** POS offline queue — an order taken with no connection, synced later. */
+export class OfflineOrderDto {
+  /** When the till actually took it (ISO). */
+  @ApiProperty() @IsString() @MaxLength(40) takenAt!: string;
+  /** The reference printed on its offline ticket, e.g. "OFF-7F3A". */
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(20) ref?: string;
+  /** The ticket already printed on the till while offline. */
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() printedLocally?: boolean;
+}
+
 export class OrderModifierDto {
   @ApiProperty() @IsString() name!: string;
   @ApiProperty() @IsNumber() price!: number;
@@ -133,6 +143,12 @@ export class CreateOrderDto {
   @ApiPropertyOptional() @IsOptional() @IsString() specialInstructions?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() scheduledFor?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() idempotencyKey?: string;
+  /** Set by the POS offline queue when it syncs an order taken offline. */
+  @ApiPropertyOptional()
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => OfflineOrderDto)
+  offline?: OfflineOrderDto;
   // Table Tabs — set on a DINE_IN order that is a table's running tab.
   @ApiPropertyOptional() @IsOptional() @IsString() tableId?: string;
 
@@ -174,7 +190,7 @@ export class CreateOrderDto {
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) preparationMinutes?: number;
   @ApiPropertyOptional()
   @IsOptional()
-  @IsEnum(["PERCENT_10", "PERCENT_20", "FREE_DELIVERY", "PROMO_CODE", "MANUAL"])
+  @IsEnum(["PERCENT_10", "PERCENT_20", "FREE_DELIVERY", "PROMO_CODE", "MANUAL", "LOYALTY"])
   discountType?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() promoCode?: string;
   @ApiPropertyOptional()

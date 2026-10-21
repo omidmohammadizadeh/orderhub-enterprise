@@ -199,8 +199,16 @@ export const STAMP_ICONS = {
     group: "Services",
     svg: '<path d="M8.8 10.5h6.4v10.5H8.8zM10 10.5V5.6L14 3v7.5z"/>',
   },
+  carwash: {
+    label: "Car wash",
+    group: "Services",
+    // A car under three falling drops: reads as "wash", not "garage".
+    svg:
+      '<path d="M5 15.4l1.3-2.9a1.6 1.6 0 0 1 1.5-1h8.4a1.6 1.6 0 0 1 1.5 1l1.3 2.9h.5a1.3 1.3 0 0 1 1.3 1.3V20h-1.7v.9a1.2 1.2 0 0 1-2.4 0V20H7.3v.9a1.2 1.2 0 0 1-2.4 0V20H3.2v-3.3a1.3 1.3 0 0 1 1.3-1.3z"/>' +
+      '<path stroke="none" d="M6.5 3.2c-1.25 1.75-1.9 2.75-1.9 3.6a1.9 1.9 0 0 0 3.8 0c0-.85-.65-1.85-1.9-3.6zM12 1.6c-1.25 1.75-1.9 2.75-1.9 3.6a1.9 1.9 0 0 0 3.8 0c0-.85-.65-1.85-1.9-3.6zM17.5 3.2c-1.25 1.75-1.9 2.75-1.9 3.6a1.9 1.9 0 0 0 3.8 0c0-.85-.65-1.85-1.9-3.6z"/>',
+  },
   car: {
-    label: "Car wash / garage",
+    label: "Garage / car service",
     group: "Services",
     svg:
       '<path d="M5 11l1.8-4.2a2 2 0 0 1 1.8-1.3h6.8a2 2 0 0 1 1.8 1.3L19 11h.5a1.5 1.5 0 0 1 1.5 1.5V17h-2v1.5a1.5 1.5 0 0 1-3 0V17H8v1.5a1.5 1.5 0 0 1-3 0V17H3v-4.5A1.5 1.5 0 0 1 4.5 11z"/>',

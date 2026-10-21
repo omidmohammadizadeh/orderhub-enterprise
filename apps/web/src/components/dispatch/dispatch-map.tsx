@@ -42,6 +42,7 @@ export function DispatchMap({
   selecting = false,
   selectedIds = [],
   onSelectOrder,
+  minHeight = "70vh",
 }: {
   feed: DispatchFeed | undefined;
   now: number;
@@ -49,6 +50,9 @@ export function DispatchMap({
   selecting?: boolean;
   selectedIds?: string[];
   onSelectOrder?: (id: string) => void;
+  /** Floor for the map's height; the dispatch page fills the viewport, the
+   *  operator dashboard embeds it in a panel. */
+  minHeight?: string;
 }) {
   // Prices follow the selected location's currency, not a hardcoded pound.
   const { money } = useCurrency();
@@ -365,7 +369,7 @@ export function DispatchMap({
     <div
       ref={containerRef}
       className="w-full rounded-lg"
-      style={{ height: "100%", minHeight: "70vh" }}
+      style={{ height: "100%", minHeight }}
     />
   );
 }

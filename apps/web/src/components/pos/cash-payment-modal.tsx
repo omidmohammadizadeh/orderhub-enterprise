@@ -33,6 +33,7 @@ export function CashPaymentModal({
   amount,
   onClose,
   onPaid,
+  onSettle,
 }: {
   open: boolean;
   orderId: string | null;
@@ -41,6 +42,11 @@ export function CashPaymentModal({
   amount: number;
   onClose: () => void;
   onPaid?: () => void;
+  /**
+   * Record the payment some other way than PATCHing the order — the offline
+   * till, whose order is still only on this device. Throw to report failure.
+   */
+  onSettle?: () => Promise<void>;
 }) {
   // Prices follow the selected location's currency, not a hardcoded pound.
   const { money, symbol, currency } = useCurrency();
@@ -86,10 +92,14 @@ export function CashPaymentModal({
   const settle = async (tenderedGbp: number) => {
     setSaving(true);
     try {
-      await apiClient.patch(`/v1/orders/${orderId}/payment-status`, {
-        paymentStatus: "PAID",
-        paymentMethod: "CASH",
-      });
+      if (onSettle) {
+        await onSettle();
+      } else {
+        await apiClient.patch(`/v1/orders/${orderId}/payment-status`, {
+          paymentStatus: "PAID",
+          paymentMethod: "CASH",
+        });
+      }
       const due = Math.round((tenderedGbp - amount) * 100) / 100;
       setDone({ change: Math.max(0, due) });
       onPaid?.();
@@ -101,7 +111,11 @@ export function CashPaymentModal({
         );
       }
     } catch (e: any) {
-      toast.error(e?.response?.data?.message ?? "Couldn't record the payment");
+      toast.error(
+        e?.response?.data?.message ??
+          (onSettle ? e?.message : null) ??
+          "Couldn't record the payment",
+      );
     } finally {
       setSaving(false);
     }

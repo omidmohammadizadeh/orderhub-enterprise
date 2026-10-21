@@ -7,8 +7,7 @@ import { brand } from "../brand";
 import { Button } from "../components/Button";
 import { Card } from "../components/Card";
 import { dateTime, headline, isDelivery, isFailed, isFinished, money, orderLabel, progress, time } from "../format";
-import { openStorefront, type RootParams } from "../navigation";
-import { trackPathFor } from "../push";
+import type { RootParams } from "../navigation";
 import { type LatLng, agoLabel, etaMinutes, milesBetween } from "../live-tracking";
 import { colors, radius } from "../theme";
 import { useOrderStatus } from "../useOrderStatus";
@@ -64,12 +63,6 @@ export function OrderStatusScreen({ route, navigation }: Props) {
           <>
             <Text style={styles.muted}>We couldn't load this order.</Text>
             <Button title="Try again" onPress={refresh} style={{ marginTop: 16, alignSelf: "stretch" }} />
-            <Button
-              title="View on the website"
-              variant="secondary"
-              onPress={() => openStorefront(trackPathFor(slug, orderId))}
-              style={{ marginTop: 10, alignSelf: "stretch" }}
-            />
           </>
         ) : (
           <ActivityIndicator color={colors.primary} />
@@ -169,12 +162,6 @@ export function OrderStatusScreen({ route, navigation }: Props) {
         </View>
         {order.receivedAt ? <Text style={styles.muted}>Placed {dateTime(order.receivedAt)}</Text> : null}
       </Card>
-
-      <Button
-        title="View on the website"
-        variant="secondary"
-        onPress={() => openStorefront(trackPathFor(slug, orderId))}
-      />
     </ScrollView>
   );
 }
@@ -295,12 +282,6 @@ function LiveDelivery({ order, slug, orderId, refreshing, refresh }: LiveProps) 
           </View>
           {order.receivedAt ? <Text style={styles.muted}>Placed {dateTime(order.receivedAt)}</Text> : null}
         </Card>
-
-        <Button
-          title="View on the website"
-          variant="secondary"
-          onPress={() => openStorefront(trackPathFor(slug, orderId))}
-        />
       </ScrollView>
     </View>
   );

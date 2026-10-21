@@ -85,6 +85,10 @@ export class LoyaltyService {
       minimumSpend: null,
       rewardItemId: null,
       rewardLabel: "Free item",
+      rewardType: "FREE_ITEM",
+      rewardPercent: null,
+      rewardMaxDiscount: null,
+      rewardMinOrder: null,
       rewardExpiryDays: null,
       rewardItem: null,
       walkInEnabled: false,
@@ -104,6 +108,10 @@ export class LoyaltyService {
       minimumSpend?: number | null;
       rewardItemId?: string | null;
       rewardLabel?: string;
+      rewardType?: string;
+      rewardPercent?: number | null;
+      rewardMaxDiscount?: number | null;
+      rewardMinOrder?: number | null;
       rewardExpiryDays?: number | null;
       walkInEnabled?: boolean;
       cardTitle?: string | null;
@@ -121,7 +129,8 @@ export class LoyaltyService {
     // A one-stamp card is a discount, not a loyalty scheme, and twenty is
     // already past the point anyone finishes one.
 
-    if (dto.rewardItemId) {
+    // A percent card has no reward item, so a leftover id is ignored, not checked.
+    if (dto.rewardItemId && dto.rewardType !== "PERCENT_OFF") {
       const item = await this.prisma.menuItem.findFirst({
         // MenuItem carries no tenantId of its own — it hangs off the brand.
         where: { id: dto.rewardItemId, brandId: { in: await this.brandIds(tenantId) } },
@@ -130,10 +139,22 @@ export class LoyaltyService {
       if (!item) throw new BadRequestException("Reward item not found");
     }
 
+    // Percentage off the order: a whole number 1-100, with an optional cap
+    // and minimum order. A percent card has no reward item.
+    const percentCard = dto.rewardType === "PERCENT_OFF";
+    const money = (v: number | null | undefined) =>
+      v === null || v === undefined || !Number.isFinite(Number(v)) || Number(v) <= 0
+        ? null
+        : Math.round(Number(v) * 100) / 100;
+    const rewardPercent = percentCard ? Math.round(Number(dto.rewardPercent)) : null;
+    if (percentCard && (!Number.isFinite(rewardPercent!) || rewardPercent! < 1 || rewardPercent! > 100)) {
+      throw new BadRequestException("Enter a percentage between 1 and 100.");
+    }
+
     // Turning it ON without saying what the reward is would put an empty
     // promise on every customer's card.
-    const label = (dto.rewardLabel ?? "").trim();
-    if (dto.isActive && !label && !dto.rewardItemId) {
+    const label = (dto.rewardLabel ?? "").trim() || (percentCard ? `${rewardPercent}% off your order` : "");
+    if (dto.isActive && !percentCard && !label && !dto.rewardItemId) {
       throw new BadRequestException(
         "Choose a reward, or describe it, before switching the card on.",
       );
@@ -146,8 +167,12 @@ export class LoyaltyService {
         dto.minimumSpend === null || dto.minimumSpend === undefined
           ? null
           : Math.max(0, Number(dto.minimumSpend)),
-      rewardItemId: dto.rewardItemId ?? null,
+      rewardItemId: percentCard ? null : (dto.rewardItemId ?? null),
       rewardLabel: label || "Free item",
+      rewardType: percentCard ? "PERCENT_OFF" : "FREE_ITEM",
+      rewardPercent,
+      rewardMaxDiscount: percentCard ? money(dto.rewardMaxDiscount) : null,
+      rewardMinOrder: percentCard ? money(dto.rewardMinOrder) : null,
       rewardExpiryDays:
         dto.rewardExpiryDays === null || dto.rewardExpiryDays === undefined
           ? null
@@ -363,6 +388,10 @@ export class LoyaltyService {
       rewardLabel: string;
       rewardItemId: string | null;
       rewardExpiryDays: number | null;
+      rewardType?: string;
+      rewardPercent?: number | null;
+      rewardMaxDiscount?: unknown;
+      rewardMinOrder?: unknown;
     };
     memberId: string;
     count: number;
@@ -454,6 +483,10 @@ export class LoyaltyService {
       rewardLabel: string;
       rewardItemId: string | null;
       rewardExpiryDays: number | null;
+      rewardType?: string;
+      rewardPercent?: number | null;
+      rewardMaxDiscount?: unknown;
+      rewardMinOrder?: unknown;
     },
     holder: LoyaltyHolder,
     owners: { customerAccountId?: string; memberId?: string } = holder,
@@ -481,7 +514,14 @@ export class LoyaltyService {
         ...owners,
         // Frozen. Tomorrow's offer does not rewrite today's promise.
         label: card.rewardLabel,
-        rewardItemId: card.rewardItemId,
+        rewardItemId: card.rewardType === "PERCENT_OFF" ? null : card.rewardItemId,
+        ...(card.rewardType === "PERCENT_OFF" && card.rewardPercent
+          ? {
+              percentOff: card.rewardPercent,
+              maxDiscount: card.rewardMaxDiscount != null ? Number(card.rewardMaxDiscount) : null,
+              minOrder: card.rewardMinOrder != null ? Number(card.rewardMinOrder) : null,
+            }
+          : {}),
         expiresAt: card.rewardExpiryDays
           ? new Date(Date.now() + card.rewardExpiryDays * 86_400_000)
           : null,
@@ -523,13 +563,18 @@ export class LoyaltyService {
       lifetimeStamps: stamps,
       minimumSpend: card.minimumSpend ? Number(card.minimumSpend) : null,
       rewardLabel: card.rewardLabel,
-      rewardItem: card.rewardItem,
+      rewardItem: card.rewardType === "PERCENT_OFF" ? null : card.rewardItem,
+      rewardType: card.rewardType,
+      rewardPercent: card.rewardPercent,
       rewards: live.map((r) => ({
         id: r.id,
         label: r.label,
         rewardItemId: r.rewardItemId,
         source: r.source,
         amountOff: r.amountOff ? Number(r.amountOff) : null,
+        percentOff: r.percentOff ?? null,
+        maxDiscount: r.maxDiscount != null ? Number(r.maxDiscount) : null,
+        minOrder: r.minOrder != null ? Number(r.minOrder) : null,
         earnedAt: r.earnedAt,
         expiresAt: r.expiresAt,
       })),
@@ -547,7 +592,13 @@ export class LoyaltyService {
       },
       orderBy: { earnedAt: "asc" },
     });
-    return rewards;
+    // Money as numbers: the storefront works the discount out from these.
+    return rewards.map((r) => ({
+      ...r,
+      amountOff: r.amountOff != null ? Number(r.amountOff) : null,
+      maxDiscount: r.maxDiscount != null ? Number(r.maxDiscount) : null,
+      minOrder: r.minOrder != null ? Number(r.minOrder) : null,
+    }));
   }
 
   /**

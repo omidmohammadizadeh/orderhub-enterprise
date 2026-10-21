@@ -120,6 +120,17 @@ describe("checkout — service-mode enforcement", () => {
 // A loyalty reward is food leaving the kitchen for nothing, so the rules
 // around it are about money: the client says WHICH reward, never what it is
 // worth, and a reward can only ever be spent once.
+// Checkout finds the spendable reward, then (for a free-item reward) turns it
+// into the £0 line — the two private steps, run together as checkout does.
+async function lineFor(s: OrderingService, rewardId?: string, custId?: string, locId = "loc-1") {
+  const priv = s as unknown as {
+    spendableLoyaltyReward: (a?: string, b?: string, c?: string) => Promise<any>;
+    buildLoyaltyLine: (r: any) => Promise<any>;
+  };
+  const reward = await priv.spendableLoyaltyReward(rewardId, custId, locId);
+  return reward ? priv.buildLoyaltyLine(reward) : null;
+}
+
 describe("checkout — spending a loyalty reward", () => {
   const build = (reward: unknown, item: unknown = { id: "i1", name: "Regular Chips", plu: "12" }) => {
     const prisma = {
@@ -130,12 +141,7 @@ describe("checkout — spending a loyalty reward", () => {
     (s as unknown as { prisma: unknown }).prisma = prisma;
     (s as unknown as { logger: unknown }).logger = { warn: jest.fn(), error: jest.fn() };
     return {
-      build: (rewardId?: string, custId?: string, locId = "loc-1") =>
-        (
-          s as unknown as {
-            buildLoyaltyLine: (a?: string, b?: string, c?: string) => Promise<any>;
-          }
-        ).buildLoyaltyLine(rewardId, custId, locId),
+      build: (rewardId?: string, custId?: string, locId = "loc-1") => lineFor(s, rewardId, custId, locId),
       prisma,
     };
   };
@@ -227,11 +233,7 @@ describe("an order that is only a reward", () => {
     (s as unknown as { prisma: unknown }).prisma = prisma;
     (s as unknown as { logger: unknown }).logger = { warn: jest.fn(), error: jest.fn() };
 
-    const line = await (
-      s as unknown as {
-        buildLoyaltyLine: (a?: string, b?: string, c?: string) => Promise<any>;
-      }
-    ).buildLoyaltyLine("r1", "cust-1", "loc-1");
+    const line = await lineFor(s, "r1", "cust-1", "loc-1");
 
     expect(line).toMatchObject({ name: "Whole Chicken", quantity: 1, totalPrice: 0 });
     expect(line.notes).toMatch(/LOYALTY REWARD/);

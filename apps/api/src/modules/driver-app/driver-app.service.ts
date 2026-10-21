@@ -14,7 +14,7 @@ import { HubRiseOrderSyncService } from "../integrations/hubrise/hubrise-order-s
 import { SocketService } from "../../infrastructure/socket/socket.service";
 import { ChatService } from "../chat/chat.service";
 import { CustomerPushService } from "../customer-push/customer-push.service";
-import { coercePostcodeFees, matchPostcodeFee } from "../dispatch/driver-earnings.service";
+import { coercePostcodeFees, isCashPayment, matchPostcodeFee } from "../dispatch/driver-earnings.service";
 import { TERMINAL_ORDER_STATUSES } from "../dispatch/dispatch-settlement.service";
 import {
   coordsFromDeliveryAddress,
@@ -274,9 +274,14 @@ export class DriverAppService {
     });
   }
 
-  async registerPushToken(user: AuthenticatedUser, token: string) {
+  async registerPushToken(user: AuthenticatedUser, token: string, format?: string) {
     const driver = await this.resolveDriver(user);
-    await this.upsertPresence(driver, { pushToken: token });
+    // The format travels with the token: whichever phone registered last is
+    // the one that gets the push, so it is also the one whose format counts.
+    await this.upsertPresence(driver, {
+      pushToken: token,
+      pushJobFormat: format === "data" ? "data" : null,
+    });
     return { ok: true };
   }
 
@@ -413,8 +418,7 @@ export class DriverAppService {
     const rules = coercePostcodeFees((driver as any).postcodeFees);
     for (const a of deliveredToday) {
       const total = Number(a.order.total);
-      const method = (a.order.paymentMethod ?? "").toUpperCase();
-      if (method.includes("CASH")) cashTotal += total;
+      if (isCashPayment(a.order.paymentMethod)) cashTotal += total;
       else cardTotal += total;
       deliveryFees += matchPostcodeFee(rules, a.order.postcode);
     }
@@ -469,8 +473,7 @@ export class DriverAppService {
     const workedDays = new Set<string>();
     for (const a of delivered) {
       const t = Number(a.order.total);
-      const method = (a.order.paymentMethod ?? "").toUpperCase();
-      if (method.includes("CASH")) {
+      if (isCashPayment(a.order.paymentMethod)) {
         cashCount += 1;
         cashTotal += t;
       } else {

@@ -1,15 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import Constants from "expo-constants";
-import * as Linking from "expo-linking";
-import * as Notifications from "expo-notifications";
 import { type ReactNode, useCallback, useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
+import { Alert, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
 import { deleteAccount, refreshCustomer, signOut, useAuth } from "../auth";
 import { brand, withBrandQuery } from "../brand";
 import { SignInButtons } from "../components/SignInButtons";
 import { openStorefront } from "../navigation";
-import { getOffersPreference, getPushToken, registerOnLaunch, setOffers } from "../push";
+import { type Access, useAccess } from "../permissions";
+import { getOffersPreference, setOffers } from "../push";
 import { slugFromUrl } from "../storefront-bridge";
 import { colors, radius } from "../theme";
 
@@ -39,9 +38,21 @@ function Row({ icon, title, detail, right, onPress }: {
   );
 }
 
+function AccessPill({ access }: { access: Access | null }) {
+  if (!access) return null;
+  const on = access === "on";
+  return (
+    <View style={[styles.pill, on ? styles.pillOn : { backgroundColor: colors.primary }]}>
+      <Text style={[styles.pillText, { color: on ? colors.success : colors.onPrimary }]}>
+        {on ? "On" : access === "settings" ? "Settings" : "Allow"}
+      </Text>
+    </View>
+  );
+}
+
 export function SettingsScreen() {
   const [offers, setOffersState] = useState(false);
-  const [permission, setPermission] = useState<Notifications.PermissionStatus | null>(null);
+  const access = useAccess();
   const slug = slugFromUrl(brand.storefrontUrl);
   const auth = useAuth();
   const signedIn = !!auth.token;
@@ -51,9 +62,9 @@ export function SettingsScreen() {
   useFocusEffect(
     useCallback(() => {
       getOffersPreference().then((v) => setOffersState(v === true));
-      Notifications.getPermissionsAsync().then((p) => setPermission(p.status));
+      access.refresh();
       refreshCustomer();
-    }, []),
+    }, [access.refresh]),
   );
 
   const confirmSignOut = () =>
@@ -80,15 +91,9 @@ export function SettingsScreen() {
   const toggleOffers = async (on: boolean) => {
     setOffersState(on);
     // Turning offers on needs notifications on: ask now if we never got a token.
-    if (on && permission !== "granted") {
-      await getPushToken();
-      setPermission((await Notifications.getPermissionsAsync()).status);
-      await registerOnLaunch();
-    }
+    if (on && access.notifications !== "on") await access.allowNotifications();
     await setOffers(on);
   };
-
-  const notificationsOn = permission === "granted";
 
   return (
     <ScrollView style={styles.root} contentContainerStyle={styles.content}>
@@ -98,12 +103,31 @@ export function SettingsScreen() {
           icon="notifications-outline"
           title="Order updates"
           detail={
-            notificationsOn
+            access.notifications === "on"
               ? "We'll tell you when your order is accepted, ready and on its way."
-              : "Turned off — tap to allow notifications in Settings."
+              : access.notifications === "settings"
+                ? "Turned off. Tap to turn them on in your phone's Settings."
+                : "Off. Tap to allow notifications."
           }
-          onPress={notificationsOn ? undefined : () => Linking.openSettings()}
+          onPress={access.notifications === "on" ? () => Linking.openSettings() : access.allowNotifications}
+          right={<AccessPill access={access.notifications} />}
         />
+        {access.location ? (
+          <>
+            <View style={styles.divider} />
+            <Row
+              icon="location-outline"
+              title="Location"
+              detail={
+                access.location === "on"
+                  ? "Used to show your nearest shop."
+                  : "Allow it to show the shop closest to you."
+              }
+              onPress={access.location === "on" ? () => Linking.openSettings() : access.allowLocation}
+              right={<AccessPill access={access.location} />}
+            />
+          </>
+        ) : null}
         <View style={styles.divider} />
         <Row
           icon="pricetag-outline"
@@ -191,5 +215,8 @@ const styles = StyleSheet.create({
   rowTitle: { fontSize: 16, fontWeight: "600", color: colors.text },
   rowDetail: { fontSize: 13, color: colors.muted, marginTop: 2, lineHeight: 18 },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginLeft: 52 },
+  pill: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: radius.chip },
+  pillOn: { backgroundColor: "#DCFCE7" },
+  pillText: { fontSize: 13, fontWeight: "800" },
   footer: { textAlign: "center", color: colors.muted, fontSize: 13, marginTop: 32, lineHeight: 20 },
 });

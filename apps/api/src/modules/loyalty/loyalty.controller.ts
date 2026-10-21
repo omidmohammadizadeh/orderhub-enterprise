@@ -52,6 +52,10 @@ export class LoyaltyController {
       minimumSpend?: number | null;
       rewardItemId?: string | null;
       rewardLabel?: string;
+      rewardType?: string;
+      rewardPercent?: number | null;
+      rewardMaxDiscount?: number | null;
+      rewardMinOrder?: number | null;
       rewardExpiryDays?: number | null;
       walkInEnabled?: boolean;
       cardTitle?: string | null;

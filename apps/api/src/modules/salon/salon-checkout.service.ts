@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from "@nestjs/common";
-import { linesTotal, round2 } from "@orderhub/shared";
+import { linesTotal, loyaltyRewardDiscount, loyaltyRewardKind, round2 } from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { OrdersService } from "../orders/orders.service";
 import { applyCredit, checkoutTotal, linesForCheckout, storedLines, type CheckoutLine } from "./salon-lines";
@@ -138,12 +138,17 @@ export class SalonCheckoutService {
           ...(input.loyaltyMemberId ? { memberId: input.loyaltyMemberId } : {}),
           claimedAt: null,
         },
-        select: { label: true, amountOff: true },
+        select: { label: true, amountOff: true, percentOff: true, maxDiscount: true, minOrder: true },
       });
       if (!reward) throw new BadRequestException("That reward has already been used or isn't on this card");
-      if (reward.amountOff != null) {
-        rewardValue = Math.min(checkoutTotal(lines), Number(reward.amountOff));
-        lines = applyCredit(lines, rewardValue, `Reward: ${reward.label}`).lines;
+      if (loyaltyRewardKind(reward) !== "FREE_ITEM") {
+        // Money off (£ or %): spread across the lines like the deposit.
+        const { amount, short } = loyaltyRewardDiscount(reward, checkoutTotal(lines));
+        if (short > 0) {
+          throw new BadRequestException(`That reward needs ${short.toFixed(2)} more on the bill before it can be used.`);
+        }
+        rewardValue = amount;
+        if (rewardValue > 0) lines = applyCredit(lines, rewardValue, `Reward: ${reward.label}`).lines;
       } else {
         const loc = await this.prisma.location.findUnique({ where: { id: appt.locationId }, select: { settings: true } });
         const chosen = readSalonSettings(loc?.settings).loyaltyRewardServiceId;

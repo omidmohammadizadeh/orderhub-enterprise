@@ -69,7 +69,6 @@ import { leadsClient } from "@/lib/api/leads.client";
 import { locationsClient } from "@/lib/api/locations.client";
 import { queryKeys } from "@/lib/api/query-keys";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
-import { dashboardTabForPath } from "@orderhub/shared";
 import { useDashboardTabAccess } from "@/hooks/use-dashboard-tabs";
 
 interface NavItem {
@@ -364,8 +363,7 @@ function _Sidebar() {
   // this filter runs AFTER the role filter and can only ever take away.
   // Platform admins and device accounts are exempt (see the hook).
   const tabAccess = useDashboardTabAccess();
-  const tabVisible = (href: string) =>
-    !tabAccess.isHidden(dashboardTabForPath(href)?.key);
+  const tabVisible = (href: string) => !tabAccess.hiddenTabForPath(href);
 
   return (
     <aside className="flex h-screen w-[220px] flex-shrink-0 flex-col bg-[#0a0a0b] border-r border-white/[0.06]">

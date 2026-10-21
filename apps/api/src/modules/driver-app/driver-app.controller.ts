@@ -78,9 +78,9 @@ export class DriverAppController {
   @ApiOperation({ summary: "Register the Expo push token for job alerts" })
   pushToken(
     @CurrentUser() user: AuthenticatedUser,
-    @Body() body: { token: string },
+    @Body() body: { token: string; format?: string },
   ) {
-    return this.driverApp.registerPushToken(user, body.token);
+    return this.driverApp.registerPushToken(user, body.token, body.format);
   }
 
   // ── Chat ─────────────────────────────────────────────────────────────────

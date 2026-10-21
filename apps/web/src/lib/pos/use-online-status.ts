@@ -7,7 +7,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { QueuedOrder } from "./idb-storage";
 import { listQueue } from "./idb-storage";
-import { drainQueue } from "./sync-worker";
+import { drainQueue, retryFailed } from "./sync-worker";
 
 export function useOnlineStatus(): boolean {
   const [online, setOnline] = useState<boolean>(() =>
@@ -58,8 +58,9 @@ export function useSyncQueue(): {
     };
   }, [refresh]);
 
+  // "Retry now" also puts parked (failed) orders back in line.
   const retry = useCallback(() => {
-    void drainQueue().then(refresh);
+    void retryFailed().then(refresh);
   }, [refresh]);
 
   const pending = queue.filter(

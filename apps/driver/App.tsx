@@ -10,7 +10,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
-import { ActivityIndicator, Alert, AppState, Platform, View } from "react-native";
+import { ActivityIndicator, Alert, AppState, Platform, Vibration, View } from "react-native";
 import * as Location from "expo-location";
 import * as Linking from "expo-linking";
 import * as SecureStore from "expo-secure-store";
@@ -54,8 +54,20 @@ import { OrdersScreen } from "@/screens/OrdersScreen";
 import { CashUpScreen } from "@/screens/CashUpScreen";
 import { LocationDisclosure } from "@/components/LocationDisclosure";
 import type { OrdersTab } from "@/components/Drawer";
+import { NewJobBanner } from "@/components/NewJobBanner";
+import { C } from "@/theme";
 
-export type LatLng = { latitude: number; longitude: number };
+// heading: degrees from north, null when the phone has no fix on it (iOS
+// reports -1 then).
+export type LatLng = { latitude: number; longitude: number; heading?: number | null };
+
+function toPos(c: Location.LocationObjectCoords): LatLng {
+  return {
+    latitude: c.latitude,
+    longitude: c.longitude,
+    heading: c.heading != null && c.heading >= 0 ? c.heading : null,
+  };
+}
 
 const LOCATION_CONSENT_KEY = "orderhub.driver.locationConsent";
 
@@ -81,12 +93,16 @@ export default function App() {
   // iOS going online proceeds DIRECTLY to Apple's own permission dialogs —
   // the Info.plist purpose strings carry the explanation.
   const [locationConsent, setLocationConsent] = useState(Platform.OS === "ios");
+  // The stored answer arrives asynchronously; until it has, "no consent" is
+  // only "not read yet" and must not be acted on.
+  const [consentLoaded, setConsentLoaded] = useState(Platform.OS === "ios");
   const [showDisclosure, setShowDisclosure] = useState(false);
   useEffect(() => {
     if (Platform.OS === "ios") return; // no disclosure gate on iOS
     SecureStore.getItemAsync(LOCATION_CONSENT_KEY)
       .then((v) => setLocationConsent(v === "1"))
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setConsentLoaded(true));
   }, []);
 
   // Live driver position — owned here so it survives screen changes.
@@ -183,14 +199,14 @@ export default function App() {
     if (fg.status !== "granted") return;
     try {
       const cur = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      setPos({ latitude: cur.coords.latitude, longitude: cur.coords.longitude });
+      setPos(toPos(cur.coords));
     } catch {
       /* ignore */
     }
     watchRef.current = await Location.watchPositionAsync(
       { accuracy: Location.Accuracy.Balanced, timeInterval: 5000, distanceInterval: 20 },
       (loc) => {
-        setPos({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+        setPos(toPos(loc.coords));
         const now = Date.now();
         if (now - lastPingRef.current > 10_000) {
           lastPingRef.current = now;
@@ -210,6 +226,23 @@ export default function App() {
     watchRef.current = null;
   }, []);
 
+  // Heartbeat. The watch only pings after 20 m of movement, so a driver
+  // parked at the shop between runs went silent and dispatch couldn't tell
+  // "waiting" from "app closed / no signal". Re-send the last position every
+  // minute while online so the operator's "last seen" stays honest.
+  const posRef = useRef<LatLng | null>(null);
+  posRef.current = pos;
+  useEffect(() => {
+    if (!online || !locationConsent) return;
+    const t = setInterval(() => {
+      const p = posRef.current;
+      if (!p || Date.now() - lastPingRef.current < 55_000) return;
+      lastPingRef.current = Date.now();
+      sendPing({ lat: p.latitude, lng: p.longitude, heading: p.heading ?? undefined }).catch(() => {});
+    }, 15_000);
+    return () => clearInterval(t);
+  }, [online, locationConsent]);
+
   // Location only ever starts once the driver has consented via the prominent
   // disclosure — so no system location prompt can fire before it (Play policy).
   useEffect(() => {
@@ -221,6 +254,23 @@ export default function App() {
       stopLocationUpdates().catch(() => {});
     }
   }, [online, locationConsent, startWatch, stopWatch]);
+
+  // That effect fires once per change of online/consent — and both can be true
+  // before the OS grant lands (consent is recorded before the permission
+  // dialog; a driver mid-run is already online). Both starters bail without a
+  // grant, so tracking silently never began. Retry whenever the app comes back
+  // to the foreground — which is also how a grant made in Settings arrives.
+  const ensureTracking = useCallback(() => {
+    if (!online || !locationConsent) return;
+    startWatch();
+    startLocationUpdates().catch(() => {});
+  }, [online, locationConsent, startWatch]);
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (st) => {
+      if (st === "active") ensureTracking();
+    });
+    return () => sub.remove();
+  }, [ensureTracking]);
 
   const runOnline = useCallback(
     async (next: boolean) => {
@@ -249,9 +299,15 @@ export default function App() {
   // ONLINE without a usable location grant on THIS device, quietly drop to
   // OFFLINE; the driver flips the toggle when ready, and THAT tap triggers
   // the permission dialogs.
+  //
+  // Never for a driver holding stops, though. Going offline clears their
+  // active-job pointer, hides them from dispatch and stops the customer's live
+  // tracking — mid-delivery, just because they opened the app on a new phone.
+  // On Android show the disclosure so they can turn location on; iOS can't
+  // prompt without a tap, so leave them online with their run.
   const reconciledRef = useRef(false);
   useEffect(() => {
-    if (reconciledRef.current || !online) return;
+    if (reconciledRef.current || !online || !consentLoaded || !day) return;
     reconciledRef.current = true;
     (async () => {
       try {
@@ -259,12 +315,18 @@ export default function App() {
         const deviceReady =
           fg.status === "granted" &&
           (Platform.OS === "ios" || locationConsent);
-        if (!deviceReady) await runOnline(false);
+        if (deviceReady) return;
+        const holdingStops = day.active.length > 0 || me?.presence?.status === "ON_JOB";
+        if (holdingStops) {
+          if (Platform.OS !== "ios") setShowDisclosure(true);
+          return;
+        }
+        await runOnline(false);
       } catch {
         /* leave presence as-is */
       }
     })();
-  }, [online, locationConsent, runOnline]);
+  }, [online, consentLoaded, day, me, locationConsent, runOnline]);
 
   // Going online starts location sharing. Android: prominent disclosure
   // first (Google Play policy), which then requests permission. iOS: the
@@ -324,6 +386,13 @@ export default function App() {
     } catch {
       // never block going online on this
     }
+    // Already online (a driver mid-run on a new phone) means the tracking
+    // effect won't fire again — start it now the grant exists. Called directly:
+    // this closure still holds the pre-consent render.
+    if (online) {
+      startWatch();
+      startLocationUpdates().catch(() => {});
+    }
     runOnline(true);
   }
 
@@ -333,13 +402,25 @@ export default function App() {
   function declineDisclosure() {
     setShowDisclosure(false);
     // Being online requires location consent — if they decline, go offline.
-    if (online) runOnline(false);
+    // Except mid-run: that would orphan the stops they're carrying.
+    const holdingStops = (day?.active.length ?? 0) > 0 || me?.presence?.status === "ON_JOB";
+    if (online && !holdingStops) runOnline(false);
   }
 
   // ── Active-job routing ──────────────────────────────────────────────────────
-  // Stops ordered by their multi-drop sequence; the driver can swipe between them.
+  // Stops in driving order; the driver can swipe between them. Sequence alone
+  // isn't enough: every dispatch numbers its run from 1, so a job sent while
+  // the driver is mid-run used to jump ahead of the stop they had already
+  // picked up and were driving to. A started stop comes first, then older
+  // runs before newer ones, then the run's own sequence.
   const activeSorted = useMemo<Job[]>(
-    () => [...(day?.active ?? [])].sort((a, b) => (a.sequence ?? 99) - (b.sequence ?? 99)),
+    () =>
+      [...(day?.active ?? [])].sort(
+        (a, b) =>
+          Number(b.status === "PICKED_UP") - Number(a.status === "PICKED_UP") ||
+          new Date(a.assignedAt).getTime() - new Date(b.assignedAt).getTime() ||
+          (a.sequence ?? 99) - (b.sequence ?? 99),
+      ),
     [day],
   );
   const [viewIndex, setViewIndex] = useState(0);
@@ -361,6 +442,28 @@ export default function App() {
   useEffect(() => {
     if (anyStarted) setMinimized(false);
   }, [anyStarted]);
+
+  // A stop that wasn't on the last poll is a fresh dispatch. The push already
+  // rang if the app was in the background; in the foreground buzz the phone
+  // and flash a banner too, because a driver glancing at a mounted phone may
+  // not catch a silent screen change.
+  const seenStopsRef = useRef<Set<string> | null>(null);
+  const [newJobs, setNewJobs] = useState(0);
+  useEffect(() => {
+    if (!day) return;
+    const ids = new Set(day.active.map((j) => j.id));
+    const seen = seenStopsRef.current;
+    seenStopsRef.current = ids;
+    if (!seen) return; // first load after launch/sign-in — nothing is "new"
+    const fresh = [...ids].filter((id) => !seen.has(id)).length;
+    if (fresh > 0) {
+      setNewJobs(fresh);
+      Vibration.vibrate(Platform.OS === "android" ? [0, 350, 150, 350] : 400);
+    }
+  }, [day]);
+  useEffect(() => {
+    if (!tokens) seenStopsRef.current = null;
+  }, [tokens]);
 
   // ── OTA updates ─────────────────────────────────────────────────────────────
   // expo-updates checks at cold launch by itself, but a driver keeps this app
@@ -420,8 +523,8 @@ export default function App() {
 
   if (!hydrated) {
     return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#0F172A" }}>
-        <ActivityIndicator color="#fff" />
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: C.bg }}>
+        <ActivityIndicator color={C.text} />
       </View>
     );
   }
@@ -542,9 +645,10 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#0F172A" }} edges={["top"]}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={["top"]}>
         <StatusBar style="light" />
         {renderBody()}
+        <NewJobBanner count={newJobs} onDone={() => setNewJobs(0)} />
         <LocationDisclosure
           visible={showDisclosure}
           onAccept={acceptDisclosure}

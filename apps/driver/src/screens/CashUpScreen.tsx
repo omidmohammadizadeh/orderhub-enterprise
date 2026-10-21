@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CashUp, getCashUp } from "@/services/auth";
+import { Header, Icon, IconName, Segmented } from "@/components/ui";
+import { C, R, money } from "@/theme";
 
 type PeriodKey = "today" | "7" | "30" | "month";
 
@@ -21,21 +24,24 @@ const PERIODS: { key: PeriodKey; label: string }[] = [
   { key: "today", label: "Today" },
   { key: "7", label: "7 days" },
   { key: "30", label: "30 days" },
-  { key: "month", label: "This month" },
+  { key: "month", label: "Month" },
 ];
 
 export function CashUpScreen({ onBack }: { onBack: () => void }) {
+  const insets = useSafeAreaInsets();
   const [period, setPeriod] = useState<PeriodKey>("today");
   const [data, setData] = useState<CashUp | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   const load = useCallback(async (key: PeriodKey) => {
     setLoading(true);
     try {
       const { from, to } = rangeFor(key);
       setData(await getCashUp(from, to));
+      setError(false);
     } catch {
-      /* ignore */
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -45,49 +51,55 @@ export function CashUpScreen({ onBack }: { onBack: () => void }) {
     load(period);
   }, [period, load]);
 
+  // What the driver hands back: cash in pocket minus what they earned. Negative
+  // means the shop owes the driver — same rule as the operator's cash-up.
+  const handover = Number(data?.cashTotal ?? 0) - Number(data?.earning ?? 0);
+
   return (
     <View style={styles.container}>
-      <View style={styles.topbar}>
-        <Pressable onPress={onBack} hitSlop={10}>
-          <Text style={styles.back}>‹ Back</Text>
-        </Pressable>
-        <Text style={styles.title}>Cash up</Text>
-        <View style={{ width: 50 }} />
+      <Header title="Cash up" subtitle="Earnings and takings" onBack={onBack} />
+      <View style={{ padding: 14, paddingBottom: 0 }}>
+        <Segmented options={PERIODS} value={period} onChange={setPeriod} />
       </View>
 
-      <View style={styles.periods}>
-        {PERIODS.map((p) => (
-          <Pressable key={p.key} onPress={() => setPeriod(p.key)} style={[styles.period, period === p.key && styles.periodActive]}>
-            <Text style={[styles.periodText, period === p.key && styles.periodTextActive]}>{p.label}</Text>
-          </Pressable>
-        ))}
-      </View>
-
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
+      <ScrollView contentContainerStyle={{ padding: 14, paddingBottom: Math.max(insets.bottom, 14) + 8, gap: 12 }}>
         {loading ? (
-          <ActivityIndicator style={{ marginTop: 40 }} />
+          <ActivityIndicator style={{ marginTop: 40 }} color={C.textDim} />
+        ) : error ? (
+          <Text style={styles.error}>Couldn&apos;t load your cash-up. Check your signal and try again.</Text>
         ) : (
           <>
-            <View style={styles.earnCard}>
-              <Text style={styles.earnLabel}>Your earnings</Text>
-              <Text style={styles.earnValue}>£{data?.earning ?? "0.00"}</Text>
-              <Text style={styles.earnBreakdown}>
-                £{data?.startupFee ?? "0.00"} start-up + £{data?.deliveryFees ?? "0.00"} delivery
+            <View style={styles.hero}>
+              <Text style={styles.heroLabel}>YOUR EARNINGS</Text>
+              <Text style={styles.heroValue}>{money(data?.earning)}</Text>
+              <View style={styles.heroSplit}>
+                <Text style={styles.heroPart}>
+                  <Text style={styles.heroPartValue}>{money(data?.startupFee)}</Text> start-up
+                </Text>
+                <Text style={styles.heroPlus}>+</Text>
+                <Text style={styles.heroPart}>
+                  <Text style={styles.heroPartValue}>{money(data?.deliveryFees)}</Text> delivery fees
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.grid}>
+              <Tile icon="cube-outline" label="Deliveries" value={String(data?.deliveries ?? 0)} />
+              <Tile icon="receipt-outline" label="Collected" value={money(data?.total)} />
+            </View>
+            <View style={styles.grid}>
+              <Tile icon="cash-outline" label={`Cash · ${plural(data?.cashCount ?? 0, "order")}`} value={money(data?.cashTotal)} accent={C.brand} />
+              <Tile icon="card-outline" label={`Card · ${plural(data?.cardCount ?? 0, "order")}`} value={money(data?.cardTotal)} accent={C.info} />
+            </View>
+
+            <View style={styles.handover}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.handoverLabel}>{handover >= 0 ? "Cash to hand in" : "Shop owes you"}</Text>
+                <Text style={styles.handoverSub}>Cash collected minus your earnings</Text>
+              </View>
+              <Text style={[styles.handoverValue, { color: handover >= 0 ? C.text : C.go }]}>
+                {money(Math.abs(handover))}
               </Text>
-            </View>
-
-            <View style={styles.totalCard}>
-              <Text style={styles.totalValue}>£{data?.total ?? "0.00"}</Text>
-              <Text style={styles.totalLabel}>collected · {data?.deliveries ?? 0} deliveries</Text>
-            </View>
-
-            <View style={styles.row}>
-              <Stat label="Cash orders" value={`${data?.cashCount ?? 0}`} />
-              <Stat label="Cash total" value={`£${data?.cashTotal ?? "0.00"}`} accent="#16a34a" />
-            </View>
-            <View style={styles.row}>
-              <Stat label="Card orders" value={`${data?.cardCount ?? 0}`} />
-              <Stat label="Card total" value={`£${data?.cardTotal ?? "0.00"}`} accent="#2563eb" />
             </View>
           </>
         )}
@@ -96,41 +108,61 @@ export function CashUpScreen({ onBack }: { onBack: () => void }) {
   );
 }
 
-function Stat({ label, value, accent }: { label: string; value: string; accent?: string }) {
+function Tile({ icon, label, value, accent }: { icon: IconName; label: string; value: string; accent?: string }) {
   return (
-    <View style={styles.stat}>
-      <Text style={[styles.statValue, accent ? { color: accent } : null]}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
+    <View style={styles.tile}>
+      <Icon name={icon} size={18} color={accent ?? C.textDim} />
+      <Text style={[styles.tileValue, accent ? { color: accent } : null]} numberOfLines={1} adjustsFontSizeToFit>
+        {value}
+      </Text>
+      <Text style={styles.tileLabel}>{label}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f1f5f9" },
-  topbar: {
+  container: { flex: 1, backgroundColor: C.bg },
+  error: { color: C.danger, textAlign: "center", marginTop: 30 },
+  hero: {
+    backgroundColor: C.surface,
+    borderRadius: R.xl,
+    borderWidth: 1,
+    borderColor: "rgba(30,214,127,0.35)",
+    padding: 22,
+    alignItems: "center",
+  },
+  heroLabel: { color: C.textMute, fontWeight: "800", fontSize: 11, letterSpacing: 1.4 },
+  heroValue: { color: C.go, fontSize: 48, fontWeight: "900", marginTop: 4, fontVariant: ["tabular-nums"] },
+  heroSplit: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8 },
+  heroPart: { color: C.textDim, fontSize: 13 },
+  heroPartValue: { color: C.text, fontWeight: "800" },
+  heroPlus: { color: C.textMute, fontWeight: "800" },
+  grid: { flexDirection: "row", gap: 12 },
+  tile: {
+    flex: 1,
+    backgroundColor: C.surface,
+    borderRadius: R.lg,
+    borderWidth: 1,
+    borderColor: C.border,
+    padding: 16,
+    gap: 6,
+  },
+  tileValue: { fontSize: 24, fontWeight: "900", color: C.text, fontVariant: ["tabular-nums"] },
+  tileLabel: { color: C.textMute, fontSize: 12, fontWeight: "700" },
+  handover: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    backgroundColor: "#0F172A",
+    backgroundColor: C.surface2,
+    borderRadius: R.lg,
+    borderWidth: 1,
+    borderColor: C.borderStrong,
+    padding: 16,
   },
-  back: { color: "#fff", fontSize: 16, width: 50 },
-  title: { color: "#fff", fontSize: 16, fontWeight: "800" },
-  periods: { flexDirection: "row", gap: 8, padding: 12, backgroundColor: "#0F172A", flexWrap: "wrap" },
-  period: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: "#1e293b" },
-  periodActive: { backgroundColor: "#f97316" },
-  periodText: { color: "#cbd5e1", fontWeight: "600", fontSize: 12 },
-  periodTextActive: { color: "#fff" },
-  earnCard: { backgroundColor: "#f97316", borderRadius: 16, padding: 22, alignItems: "center", marginBottom: 14 },
-  earnLabel: { color: "#fff", fontWeight: "700", opacity: 0.9 },
-  earnValue: { color: "#fff", fontSize: 42, fontWeight: "900", marginTop: 2 },
-  earnBreakdown: { color: "#fff", opacity: 0.9, marginTop: 4, fontSize: 12 },
-  totalCard: { backgroundColor: "#0F172A", borderRadius: 16, padding: 22, alignItems: "center", marginBottom: 14 },
-  totalValue: { color: "#fff", fontSize: 38, fontWeight: "900" },
-  totalLabel: { color: "#cbd5e1", marginTop: 4 },
-  row: { flexDirection: "row", gap: 12, marginBottom: 12 },
-  stat: { flex: 1, backgroundColor: "#fff", borderRadius: 12, padding: 16 },
-  statValue: { fontSize: 22, fontWeight: "800", color: "#0F172A" },
-  statLabel: { color: "#64748b", fontSize: 12, marginTop: 4 },
+  handoverLabel: { color: C.text, fontWeight: "800", fontSize: 15 },
+  handoverSub: { color: C.textMute, fontSize: 12, marginTop: 2 },
+  handoverValue: { fontSize: 24, fontWeight: "900", fontVariant: ["tabular-nums"] },
 });
+
+function plural(n: number, word: string): string {
+  return `${n} ${word}${n === 1 ? "" : "s"}`;
+}

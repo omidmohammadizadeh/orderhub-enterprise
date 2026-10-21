@@ -1509,6 +1509,7 @@ exports.Prisma.DriverPresenceScalarFieldEnum = {
   activeAssignmentId: 'activeAssignmentId',
   socketId: 'socketId',
   pushToken: 'pushToken',
+  pushJobFormat: 'pushJobFormat',
   lastPingAt: 'lastPingAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -2597,6 +2598,10 @@ exports.Prisma.LoyaltyCardScalarFieldEnum = {
   minimumSpend: 'minimumSpend',
   rewardItemId: 'rewardItemId',
   rewardLabel: 'rewardLabel',
+  rewardType: 'rewardType',
+  rewardPercent: 'rewardPercent',
+  rewardMaxDiscount: 'rewardMaxDiscount',
+  rewardMinOrder: 'rewardMinOrder',
   rewardExpiryDays: 'rewardExpiryDays',
   walkInEnabled: 'walkInEnabled',
   cardTitle: 'cardTitle',
@@ -2628,6 +2633,9 @@ exports.Prisma.LoyaltyRewardScalarFieldEnum = {
   locationId: 'locationId',
   source: 'source',
   amountOff: 'amountOff',
+  percentOff: 'percentOff',
+  maxDiscount: 'maxDiscount',
+  minOrder: 'minOrder',
   customerAccountId: 'customerAccountId',
   memberId: 'memberId',
   label: 'label',
@@ -3808,7 +3816,8 @@ exports.Prisma.DriverPresenceOrderByRelevanceFieldEnum = {
   locationId: 'locationId',
   activeAssignmentId: 'activeAssignmentId',
   socketId: 'socketId',
-  pushToken: 'pushToken'
+  pushToken: 'pushToken',
+  pushJobFormat: 'pushJobFormat'
 };
 
 exports.Prisma.DriverAssignmentOrderByRelevanceFieldEnum = {
@@ -4526,6 +4535,7 @@ exports.Prisma.LoyaltyCardOrderByRelevanceFieldEnum = {
   locationId: 'locationId',
   rewardItemId: 'rewardItemId',
   rewardLabel: 'rewardLabel',
+  rewardType: 'rewardType',
   cardTitle: 'cardTitle',
   cardColor: 'cardColor',
   cardLogoUrl: 'cardLogoUrl',

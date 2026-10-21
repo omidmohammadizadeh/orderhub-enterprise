@@ -25,6 +25,8 @@ import {
   isPlausibleCustomerPhone,
   hasHouseNumberOrName,
   postcodeRequiredFor,
+  loyaltyRewardDiscount,
+  loyaltyRewardKind,
 } from "@orderhub/shared";
 import { OrdersService } from "../orders/orders.service";
 import { PromoCodesService } from "../promo-codes/promo-codes.service";
@@ -1467,7 +1469,7 @@ export class OrderingService {
    * card is in a state they cannot see is worse than quietly charging them
    * and leaving the reward on their card for next time.
    */
-  private async buildLoyaltyLine(
+  private async spendableLoyaltyReward(
     rewardId: string | undefined,
     customerAccountId: string | undefined,
     locationId: string,
@@ -1491,7 +1493,10 @@ export class OrderingService {
       );
       return null;
     }
+    return reward;
+  }
 
+  private async buildLoyaltyLine(reward: { id: string; label: string; rewardItemId: string | null }) {
     const item = reward.rewardItemId
       ? await this.prisma.menuItem.findUnique({
           where: { id: reward.rewardItemId },
@@ -2152,7 +2157,22 @@ export class OrderingService {
     // Campaign and promo don't stack — the better one applies, as on the
     // storefront. Both computed here; the browser's `discount` is ignored.
     // Multi-buy savings stack underneath (they're shelf prices, not offers).
-    const serverDiscount = round2(multiBuy.savings + Math.max(promoDiscount, campaignDiscount));
+    const offerDiscount = round2(multiBuy.savings + Math.max(promoDiscount, campaignDiscount));
+    // A money-off loyalty or referral reward (% off, or £ off) comes off what
+    // is left after those. Worked out from the REWARD — the id is the only
+    // thing the browser sends. A minimum order not met gives 0 and the reward
+    // stays on the card for next time.
+    const loyaltyReward = await this.spendableLoyaltyReward(
+      dto.loyaltyRewardId,
+      dto.customerAccountId,
+      location.id,
+    );
+    const loyaltyKind = loyaltyReward ? loyaltyRewardKind(loyaltyReward) : null;
+    const loyaltyDiscount =
+      loyaltyReward && loyaltyKind !== "FREE_ITEM"
+        ? loyaltyRewardDiscount(loyaltyReward, serverSubtotal - offerDiscount).amount
+        : 0;
+    const serverDiscount = round2(offerDiscount + loyaltyDiscount);
     // Tax is never negative (nothing the storefront sends, today, anyway).
     const serverTax = round2(Math.max(0, Number(dto.taxAmount ?? 0) || 0));
     // Tip is customer-set, so it's an untrusted number that raises the
@@ -2180,11 +2200,8 @@ export class OrderingService {
     // A line rather than a discount, because staff need to see the THING. A
     // ticket that says "-£3.50" tells a kitchen nothing about what to put in
     // the bag, and a customer querying it has nothing to point at.
-    const loyaltyLine = await this.buildLoyaltyLine(
-      dto.loyaltyRewardId,
-      dto.customerAccountId,
-      location.id,
-    );
+    const loyaltyLine =
+      loyaltyReward && loyaltyKind === "FREE_ITEM" ? await this.buildLoyaltyLine(loyaltyReward) : null;
     if (loyaltyLine) items.push(loyaltyLine);
 
     // Checked against the database, not trusted: an attribution has to name a
@@ -2209,6 +2226,7 @@ export class OrderingService {
         taxAmount: serverTax,
         deliveryFee: serverDeliveryFee,
         discount: serverDiscount,
+        ...(loyaltyDiscount > 0 && offerDiscount === 0 ? { discountType: "LOYALTY" } : {}),
         total: serverTotal,
         tipAmount: serverTip,
         specialInstructions: minAge
@@ -2244,7 +2262,7 @@ export class OrderingService {
     // rather than fired and forgotten: the food is already on the ticket for
     // free, and a card that still shows the reward afterwards would let it be
     // spent again on the next order.
-    if (loyaltyLine && dto.loyaltyRewardId && dto.customerAccountId) {
+    if ((loyaltyLine || loyaltyDiscount > 0) && dto.loyaltyRewardId && dto.customerAccountId) {
       try {
         await this.prisma.loyaltyReward.updateMany({
           where: { id: dto.loyaltyRewardId, claimedAt: null },
@@ -2294,7 +2312,8 @@ export class OrderingService {
       customerAccountId: dto.customerAccountId ?? null,
       isNewCustomer,
       discountCampaignId: appliedDiscountCampaign?.id ?? null,
-      discountAmount: round2(serverDiscount - multiBuy.savings),
+      // The loyalty reward is not a campaign's money.
+      discountAmount: round2(serverDiscount - multiBuy.savings - loyaltyDiscount),
       freeDeliveryCampaignId: appliedFreeDeliveryCampaign?.campaignId ?? null,
       multiBuys: multiBuy.applied.map((a) => ({ campaignId: a.dealId, discount: a.saving })),
     }).catch((err) =>

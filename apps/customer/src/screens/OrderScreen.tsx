@@ -110,9 +110,26 @@ export function OrderScreen() {
     const key = `${orderId}:${open}`;
     if (open && !handled.current.has(key)) {
       handled.current.add(key);
+      backToMenu.current = true;
       openOrder(orderId, slug);
     }
   }, []);
+
+  // The tracker opened over this tab while the page underneath moved on to
+  // the storefront's own tracking/confirmation page. Coming back (the
+  // tracker's back arrow) lands on the menu again, not on a second, web
+  // version of the tracker. Done on return rather than at checkout so the
+  // storefront has finished clearing the basket first.
+  const backToMenu = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (!backToMenu.current) return;
+      backToMenu.current = false;
+      lastUrl.current = null;
+      setSource(brand.storefrontUrl);
+      setWebKey((k) => k + 1);
+    }, []),
+  );
 
   const onUrl = useCallback(
     (url: string) => {
