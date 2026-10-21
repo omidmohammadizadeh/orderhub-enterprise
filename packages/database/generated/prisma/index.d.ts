@@ -409,6 +409,16 @@ export type WhatsAppConversation = $Result.DefaultSelection<Prisma.$WhatsAppConv
  */
 export type StripeConnectAccount = $Result.DefaultSelection<Prisma.$StripeConnectAccountPayload>
 /**
+ * Model MollieConnection
+ * One brand's Mollie account, connected to our platform through Mollie
+ * Connect (OAuth). Mollie is opt-in per brand and sits alongside Stripe: a
+ * brand whose row has `enabled` true takes its online card payments through
+ * Mollie, everyone else stays on Stripe (or Tap in the Gulf). No relations on
+ * purpose — the brand/tenant ids are enough, and keeping Brand untouched
+ * keeps this a pure add.
+ */
+export type MollieConnection = $Result.DefaultSelection<Prisma.$MollieConnectionPayload>
+/**
  * Model Payment
  * 
  */
@@ -2605,6 +2615,16 @@ export class PrismaClient<
   get stripeConnectAccount(): Prisma.StripeConnectAccountDelegate<ExtArgs>;
 
   /**
+   * `prisma.mollieConnection`: Exposes CRUD operations for the **MollieConnection** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MollieConnections
+    * const mollieConnections = await prisma.mollieConnection.findMany()
+    * ```
+    */
+  get mollieConnection(): Prisma.MollieConnectionDelegate<ExtArgs>;
+
+  /**
    * `prisma.payment`: Exposes CRUD operations for the **Payment** model.
     * Example usage:
     * ```ts
@@ -3982,6 +4002,7 @@ export namespace Prisma {
     ChatMessage: 'ChatMessage',
     WhatsAppConversation: 'WhatsAppConversation',
     StripeConnectAccount: 'StripeConnectAccount',
+    MollieConnection: 'MollieConnection',
     Payment: 'Payment',
     PaymentMethod: 'PaymentMethod',
     Refund: 'Refund',
@@ -4083,7 +4104,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "promoCodeRedemption" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "salonService" | "salonStaff" | "salonTimeOff" | "salonAppointment" | "salonQueueEntry" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "payment" | "paymentMethod" | "refund" | "productVariant" | "productStockLevel" | "productStockMovement" | "refundLine" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "yangoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "pushAutomation" | "pushLocationReview" | "pushReviewRequest" | "pushCampaign" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "loyaltyMember" | "loyaltyPassDevice" | "referralProgram" | "referralCode" | "referral" | "keetaAuthorization" | "emailContact" | "emailCampaign" | "emailAutomation" | "emailBirthdaySend" | "emailCampaignRecipient" | "buildGuide" | "buildStepTemplate" | "buildGuideTraining" | "assemblyChart" | "menuAutoPublish" | "autoDispatchRule" | "autoDispatchRun"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "promoCodeRedemption" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "salonService" | "salonStaff" | "salonTimeOff" | "salonAppointment" | "salonQueueEntry" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "mollieConnection" | "payment" | "paymentMethod" | "refund" | "productVariant" | "productStockLevel" | "productStockMovement" | "refundLine" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "yangoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "pushAutomation" | "pushLocationReview" | "pushReviewRequest" | "pushCampaign" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "loyaltyMember" | "loyaltyPassDevice" | "referralProgram" | "referralCode" | "referral" | "keetaAuthorization" | "emailContact" | "emailCampaign" | "emailAutomation" | "emailBirthdaySend" | "emailCampaignRecipient" | "buildGuide" | "buildStepTemplate" | "buildGuideTraining" | "assemblyChart" | "menuAutoPublish" | "autoDispatchRule" | "autoDispatchRun"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -9544,6 +9565,76 @@ export namespace Prisma {
           count: {
             args: Prisma.StripeConnectAccountCountArgs<ExtArgs>
             result: $Utils.Optional<StripeConnectAccountCountAggregateOutputType> | number
+          }
+        }
+      }
+      MollieConnection: {
+        payload: Prisma.$MollieConnectionPayload<ExtArgs>
+        fields: Prisma.MollieConnectionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MollieConnectionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MollieConnectionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MollieConnectionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MollieConnectionPayload>
+          }
+          findFirst: {
+            args: Prisma.MollieConnectionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MollieConnectionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MollieConnectionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MollieConnectionPayload>
+          }
+          findMany: {
+            args: Prisma.MollieConnectionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MollieConnectionPayload>[]
+          }
+          create: {
+            args: Prisma.MollieConnectionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MollieConnectionPayload>
+          }
+          createMany: {
+            args: Prisma.MollieConnectionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MollieConnectionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MollieConnectionPayload>[]
+          }
+          delete: {
+            args: Prisma.MollieConnectionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MollieConnectionPayload>
+          }
+          update: {
+            args: Prisma.MollieConnectionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MollieConnectionPayload>
+          }
+          deleteMany: {
+            args: Prisma.MollieConnectionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MollieConnectionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.MollieConnectionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MollieConnectionPayload>
+          }
+          aggregate: {
+            args: Prisma.MollieConnectionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMollieConnection>
+          }
+          groupBy: {
+            args: Prisma.MollieConnectionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MollieConnectionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MollieConnectionCountArgs<ExtArgs>
+            result: $Utils.Optional<MollieConnectionCountAggregateOutputType> | number
           }
         }
       }
@@ -106053,6 +106144,1090 @@ export namespace Prisma {
 
 
   /**
+   * Model MollieConnection
+   */
+
+  export type AggregateMollieConnection = {
+    _count: MollieConnectionCountAggregateOutputType | null
+    _min: MollieConnectionMinAggregateOutputType | null
+    _max: MollieConnectionMaxAggregateOutputType | null
+  }
+
+  export type MollieConnectionMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    brandId: string | null
+    organizationId: string | null
+    organizationName: string | null
+    profileId: string | null
+    accessTokenExpiresAt: Date | null
+    scope: string | null
+    status: string | null
+    canReceivePayments: boolean | null
+    canReceiveSettlements: boolean | null
+    onboardingDashboardUrl: string | null
+    clientLinkId: string | null
+    clientLinkUrl: string | null
+    enabled: boolean | null
+    connectedAt: Date | null
+    lastError: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MollieConnectionMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    brandId: string | null
+    organizationId: string | null
+    organizationName: string | null
+    profileId: string | null
+    accessTokenExpiresAt: Date | null
+    scope: string | null
+    status: string | null
+    canReceivePayments: boolean | null
+    canReceiveSettlements: boolean | null
+    onboardingDashboardUrl: string | null
+    clientLinkId: string | null
+    clientLinkUrl: string | null
+    enabled: boolean | null
+    connectedAt: Date | null
+    lastError: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MollieConnectionCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    brandId: number
+    organizationId: number
+    organizationName: number
+    profileId: number
+    accessTokenEnc: number
+    refreshTokenEnc: number
+    accessTokenExpiresAt: number
+    scope: number
+    status: number
+    canReceivePayments: number
+    canReceiveSettlements: number
+    onboardingDashboardUrl: number
+    clientLinkId: number
+    clientLinkUrl: number
+    enabled: number
+    connectedAt: number
+    lastError: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type MollieConnectionMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    brandId?: true
+    organizationId?: true
+    organizationName?: true
+    profileId?: true
+    accessTokenExpiresAt?: true
+    scope?: true
+    status?: true
+    canReceivePayments?: true
+    canReceiveSettlements?: true
+    onboardingDashboardUrl?: true
+    clientLinkId?: true
+    clientLinkUrl?: true
+    enabled?: true
+    connectedAt?: true
+    lastError?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MollieConnectionMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    brandId?: true
+    organizationId?: true
+    organizationName?: true
+    profileId?: true
+    accessTokenExpiresAt?: true
+    scope?: true
+    status?: true
+    canReceivePayments?: true
+    canReceiveSettlements?: true
+    onboardingDashboardUrl?: true
+    clientLinkId?: true
+    clientLinkUrl?: true
+    enabled?: true
+    connectedAt?: true
+    lastError?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MollieConnectionCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    brandId?: true
+    organizationId?: true
+    organizationName?: true
+    profileId?: true
+    accessTokenEnc?: true
+    refreshTokenEnc?: true
+    accessTokenExpiresAt?: true
+    scope?: true
+    status?: true
+    canReceivePayments?: true
+    canReceiveSettlements?: true
+    onboardingDashboardUrl?: true
+    clientLinkId?: true
+    clientLinkUrl?: true
+    enabled?: true
+    connectedAt?: true
+    lastError?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type MollieConnectionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MollieConnection to aggregate.
+     */
+    where?: MollieConnectionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MollieConnections to fetch.
+     */
+    orderBy?: MollieConnectionOrderByWithRelationInput | MollieConnectionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MollieConnectionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MollieConnections from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MollieConnections.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MollieConnections
+    **/
+    _count?: true | MollieConnectionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MollieConnectionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MollieConnectionMaxAggregateInputType
+  }
+
+  export type GetMollieConnectionAggregateType<T extends MollieConnectionAggregateArgs> = {
+        [P in keyof T & keyof AggregateMollieConnection]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMollieConnection[P]>
+      : GetScalarType<T[P], AggregateMollieConnection[P]>
+  }
+
+
+
+
+  export type MollieConnectionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MollieConnectionWhereInput
+    orderBy?: MollieConnectionOrderByWithAggregationInput | MollieConnectionOrderByWithAggregationInput[]
+    by: MollieConnectionScalarFieldEnum[] | MollieConnectionScalarFieldEnum
+    having?: MollieConnectionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MollieConnectionCountAggregateInputType | true
+    _min?: MollieConnectionMinAggregateInputType
+    _max?: MollieConnectionMaxAggregateInputType
+  }
+
+  export type MollieConnectionGroupByOutputType = {
+    id: string
+    tenantId: string
+    brandId: string
+    organizationId: string | null
+    organizationName: string | null
+    profileId: string | null
+    accessTokenEnc: JsonValue | null
+    refreshTokenEnc: JsonValue | null
+    accessTokenExpiresAt: Date | null
+    scope: string | null
+    status: string
+    canReceivePayments: boolean
+    canReceiveSettlements: boolean
+    onboardingDashboardUrl: string | null
+    clientLinkId: string | null
+    clientLinkUrl: string | null
+    enabled: boolean
+    connectedAt: Date | null
+    lastError: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: MollieConnectionCountAggregateOutputType | null
+    _min: MollieConnectionMinAggregateOutputType | null
+    _max: MollieConnectionMaxAggregateOutputType | null
+  }
+
+  type GetMollieConnectionGroupByPayload<T extends MollieConnectionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MollieConnectionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MollieConnectionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MollieConnectionGroupByOutputType[P]>
+            : GetScalarType<T[P], MollieConnectionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MollieConnectionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    brandId?: boolean
+    organizationId?: boolean
+    organizationName?: boolean
+    profileId?: boolean
+    accessTokenEnc?: boolean
+    refreshTokenEnc?: boolean
+    accessTokenExpiresAt?: boolean
+    scope?: boolean
+    status?: boolean
+    canReceivePayments?: boolean
+    canReceiveSettlements?: boolean
+    onboardingDashboardUrl?: boolean
+    clientLinkId?: boolean
+    clientLinkUrl?: boolean
+    enabled?: boolean
+    connectedAt?: boolean
+    lastError?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["mollieConnection"]>
+
+  export type MollieConnectionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    brandId?: boolean
+    organizationId?: boolean
+    organizationName?: boolean
+    profileId?: boolean
+    accessTokenEnc?: boolean
+    refreshTokenEnc?: boolean
+    accessTokenExpiresAt?: boolean
+    scope?: boolean
+    status?: boolean
+    canReceivePayments?: boolean
+    canReceiveSettlements?: boolean
+    onboardingDashboardUrl?: boolean
+    clientLinkId?: boolean
+    clientLinkUrl?: boolean
+    enabled?: boolean
+    connectedAt?: boolean
+    lastError?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["mollieConnection"]>
+
+  export type MollieConnectionSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    brandId?: boolean
+    organizationId?: boolean
+    organizationName?: boolean
+    profileId?: boolean
+    accessTokenEnc?: boolean
+    refreshTokenEnc?: boolean
+    accessTokenExpiresAt?: boolean
+    scope?: boolean
+    status?: boolean
+    canReceivePayments?: boolean
+    canReceiveSettlements?: boolean
+    onboardingDashboardUrl?: boolean
+    clientLinkId?: boolean
+    clientLinkUrl?: boolean
+    enabled?: boolean
+    connectedAt?: boolean
+    lastError?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+
+  export type $MollieConnectionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MollieConnection"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      brandId: string
+      /**
+       * org_… of the restaurant's Mollie organisation, once connected.
+       */
+      organizationId: string | null
+      organizationName: string | null
+      /**
+       * pfl_… — the website profile payments are taken on. Required by Mollie
+       * for every OAuth-created payment.
+       */
+      profileId: string | null
+      /**
+       * OAuth tokens, encrypted with CredentialEncryptionService.
+       */
+      accessTokenEnc: Prisma.JsonValue | null
+      refreshTokenEnc: Prisma.JsonValue | null
+      accessTokenExpiresAt: Date | null
+      scope: string | null
+      /**
+       * not_started | link_sent | connected | needs-data | in-review | completed | revoked
+       */
+      status: string
+      canReceivePayments: boolean
+      canReceiveSettlements: boolean
+      /**
+       * Mollie's deep link into the restaurant's own onboarding wizard.
+       */
+      onboardingDashboardUrl: string | null
+      /**
+       * The last client link (co-branded sign-up) we generated, so it can be re-sent.
+       */
+      clientLinkId: string | null
+      clientLinkUrl: string | null
+      /**
+       * Take this brand's online payments through Mollie instead of Stripe.
+       */
+      enabled: boolean
+      connectedAt: Date | null
+      lastError: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["mollieConnection"]>
+    composites: {}
+  }
+
+  type MollieConnectionGetPayload<S extends boolean | null | undefined | MollieConnectionDefaultArgs> = $Result.GetResult<Prisma.$MollieConnectionPayload, S>
+
+  type MollieConnectionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<MollieConnectionFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: MollieConnectionCountAggregateInputType | true
+    }
+
+  export interface MollieConnectionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MollieConnection'], meta: { name: 'MollieConnection' } }
+    /**
+     * Find zero or one MollieConnection that matches the filter.
+     * @param {MollieConnectionFindUniqueArgs} args - Arguments to find a MollieConnection
+     * @example
+     * // Get one MollieConnection
+     * const mollieConnection = await prisma.mollieConnection.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MollieConnectionFindUniqueArgs>(args: SelectSubset<T, MollieConnectionFindUniqueArgs<ExtArgs>>): Prisma__MollieConnectionClient<$Result.GetResult<Prisma.$MollieConnectionPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one MollieConnection that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {MollieConnectionFindUniqueOrThrowArgs} args - Arguments to find a MollieConnection
+     * @example
+     * // Get one MollieConnection
+     * const mollieConnection = await prisma.mollieConnection.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MollieConnectionFindUniqueOrThrowArgs>(args: SelectSubset<T, MollieConnectionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MollieConnectionClient<$Result.GetResult<Prisma.$MollieConnectionPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first MollieConnection that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MollieConnectionFindFirstArgs} args - Arguments to find a MollieConnection
+     * @example
+     * // Get one MollieConnection
+     * const mollieConnection = await prisma.mollieConnection.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MollieConnectionFindFirstArgs>(args?: SelectSubset<T, MollieConnectionFindFirstArgs<ExtArgs>>): Prisma__MollieConnectionClient<$Result.GetResult<Prisma.$MollieConnectionPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first MollieConnection that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MollieConnectionFindFirstOrThrowArgs} args - Arguments to find a MollieConnection
+     * @example
+     * // Get one MollieConnection
+     * const mollieConnection = await prisma.mollieConnection.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MollieConnectionFindFirstOrThrowArgs>(args?: SelectSubset<T, MollieConnectionFindFirstOrThrowArgs<ExtArgs>>): Prisma__MollieConnectionClient<$Result.GetResult<Prisma.$MollieConnectionPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more MollieConnections that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MollieConnectionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MollieConnections
+     * const mollieConnections = await prisma.mollieConnection.findMany()
+     * 
+     * // Get first 10 MollieConnections
+     * const mollieConnections = await prisma.mollieConnection.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const mollieConnectionWithIdOnly = await prisma.mollieConnection.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MollieConnectionFindManyArgs>(args?: SelectSubset<T, MollieConnectionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MollieConnectionPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a MollieConnection.
+     * @param {MollieConnectionCreateArgs} args - Arguments to create a MollieConnection.
+     * @example
+     * // Create one MollieConnection
+     * const MollieConnection = await prisma.mollieConnection.create({
+     *   data: {
+     *     // ... data to create a MollieConnection
+     *   }
+     * })
+     * 
+     */
+    create<T extends MollieConnectionCreateArgs>(args: SelectSubset<T, MollieConnectionCreateArgs<ExtArgs>>): Prisma__MollieConnectionClient<$Result.GetResult<Prisma.$MollieConnectionPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many MollieConnections.
+     * @param {MollieConnectionCreateManyArgs} args - Arguments to create many MollieConnections.
+     * @example
+     * // Create many MollieConnections
+     * const mollieConnection = await prisma.mollieConnection.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MollieConnectionCreateManyArgs>(args?: SelectSubset<T, MollieConnectionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MollieConnections and returns the data saved in the database.
+     * @param {MollieConnectionCreateManyAndReturnArgs} args - Arguments to create many MollieConnections.
+     * @example
+     * // Create many MollieConnections
+     * const mollieConnection = await prisma.mollieConnection.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MollieConnections and only return the `id`
+     * const mollieConnectionWithIdOnly = await prisma.mollieConnection.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MollieConnectionCreateManyAndReturnArgs>(args?: SelectSubset<T, MollieConnectionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MollieConnectionPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a MollieConnection.
+     * @param {MollieConnectionDeleteArgs} args - Arguments to delete one MollieConnection.
+     * @example
+     * // Delete one MollieConnection
+     * const MollieConnection = await prisma.mollieConnection.delete({
+     *   where: {
+     *     // ... filter to delete one MollieConnection
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MollieConnectionDeleteArgs>(args: SelectSubset<T, MollieConnectionDeleteArgs<ExtArgs>>): Prisma__MollieConnectionClient<$Result.GetResult<Prisma.$MollieConnectionPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one MollieConnection.
+     * @param {MollieConnectionUpdateArgs} args - Arguments to update one MollieConnection.
+     * @example
+     * // Update one MollieConnection
+     * const mollieConnection = await prisma.mollieConnection.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MollieConnectionUpdateArgs>(args: SelectSubset<T, MollieConnectionUpdateArgs<ExtArgs>>): Prisma__MollieConnectionClient<$Result.GetResult<Prisma.$MollieConnectionPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more MollieConnections.
+     * @param {MollieConnectionDeleteManyArgs} args - Arguments to filter MollieConnections to delete.
+     * @example
+     * // Delete a few MollieConnections
+     * const { count } = await prisma.mollieConnection.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MollieConnectionDeleteManyArgs>(args?: SelectSubset<T, MollieConnectionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MollieConnections.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MollieConnectionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MollieConnections
+     * const mollieConnection = await prisma.mollieConnection.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MollieConnectionUpdateManyArgs>(args: SelectSubset<T, MollieConnectionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one MollieConnection.
+     * @param {MollieConnectionUpsertArgs} args - Arguments to update or create a MollieConnection.
+     * @example
+     * // Update or create a MollieConnection
+     * const mollieConnection = await prisma.mollieConnection.upsert({
+     *   create: {
+     *     // ... data to create a MollieConnection
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MollieConnection we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MollieConnectionUpsertArgs>(args: SelectSubset<T, MollieConnectionUpsertArgs<ExtArgs>>): Prisma__MollieConnectionClient<$Result.GetResult<Prisma.$MollieConnectionPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of MollieConnections.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MollieConnectionCountArgs} args - Arguments to filter MollieConnections to count.
+     * @example
+     * // Count the number of MollieConnections
+     * const count = await prisma.mollieConnection.count({
+     *   where: {
+     *     // ... the filter for the MollieConnections we want to count
+     *   }
+     * })
+    **/
+    count<T extends MollieConnectionCountArgs>(
+      args?: Subset<T, MollieConnectionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MollieConnectionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MollieConnection.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MollieConnectionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MollieConnectionAggregateArgs>(args: Subset<T, MollieConnectionAggregateArgs>): Prisma.PrismaPromise<GetMollieConnectionAggregateType<T>>
+
+    /**
+     * Group by MollieConnection.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MollieConnectionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MollieConnectionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MollieConnectionGroupByArgs['orderBy'] }
+        : { orderBy?: MollieConnectionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MollieConnectionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMollieConnectionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MollieConnection model
+   */
+  readonly fields: MollieConnectionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MollieConnection.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MollieConnectionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MollieConnection model
+   */ 
+  interface MollieConnectionFieldRefs {
+    readonly id: FieldRef<"MollieConnection", 'String'>
+    readonly tenantId: FieldRef<"MollieConnection", 'String'>
+    readonly brandId: FieldRef<"MollieConnection", 'String'>
+    readonly organizationId: FieldRef<"MollieConnection", 'String'>
+    readonly organizationName: FieldRef<"MollieConnection", 'String'>
+    readonly profileId: FieldRef<"MollieConnection", 'String'>
+    readonly accessTokenEnc: FieldRef<"MollieConnection", 'Json'>
+    readonly refreshTokenEnc: FieldRef<"MollieConnection", 'Json'>
+    readonly accessTokenExpiresAt: FieldRef<"MollieConnection", 'DateTime'>
+    readonly scope: FieldRef<"MollieConnection", 'String'>
+    readonly status: FieldRef<"MollieConnection", 'String'>
+    readonly canReceivePayments: FieldRef<"MollieConnection", 'Boolean'>
+    readonly canReceiveSettlements: FieldRef<"MollieConnection", 'Boolean'>
+    readonly onboardingDashboardUrl: FieldRef<"MollieConnection", 'String'>
+    readonly clientLinkId: FieldRef<"MollieConnection", 'String'>
+    readonly clientLinkUrl: FieldRef<"MollieConnection", 'String'>
+    readonly enabled: FieldRef<"MollieConnection", 'Boolean'>
+    readonly connectedAt: FieldRef<"MollieConnection", 'DateTime'>
+    readonly lastError: FieldRef<"MollieConnection", 'String'>
+    readonly createdAt: FieldRef<"MollieConnection", 'DateTime'>
+    readonly updatedAt: FieldRef<"MollieConnection", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MollieConnection findUnique
+   */
+  export type MollieConnectionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MollieConnection
+     */
+    select?: MollieConnectionSelect<ExtArgs> | null
+    /**
+     * Filter, which MollieConnection to fetch.
+     */
+    where: MollieConnectionWhereUniqueInput
+  }
+
+  /**
+   * MollieConnection findUniqueOrThrow
+   */
+  export type MollieConnectionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MollieConnection
+     */
+    select?: MollieConnectionSelect<ExtArgs> | null
+    /**
+     * Filter, which MollieConnection to fetch.
+     */
+    where: MollieConnectionWhereUniqueInput
+  }
+
+  /**
+   * MollieConnection findFirst
+   */
+  export type MollieConnectionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MollieConnection
+     */
+    select?: MollieConnectionSelect<ExtArgs> | null
+    /**
+     * Filter, which MollieConnection to fetch.
+     */
+    where?: MollieConnectionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MollieConnections to fetch.
+     */
+    orderBy?: MollieConnectionOrderByWithRelationInput | MollieConnectionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MollieConnections.
+     */
+    cursor?: MollieConnectionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MollieConnections from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MollieConnections.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MollieConnections.
+     */
+    distinct?: MollieConnectionScalarFieldEnum | MollieConnectionScalarFieldEnum[]
+  }
+
+  /**
+   * MollieConnection findFirstOrThrow
+   */
+  export type MollieConnectionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MollieConnection
+     */
+    select?: MollieConnectionSelect<ExtArgs> | null
+    /**
+     * Filter, which MollieConnection to fetch.
+     */
+    where?: MollieConnectionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MollieConnections to fetch.
+     */
+    orderBy?: MollieConnectionOrderByWithRelationInput | MollieConnectionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MollieConnections.
+     */
+    cursor?: MollieConnectionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MollieConnections from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MollieConnections.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MollieConnections.
+     */
+    distinct?: MollieConnectionScalarFieldEnum | MollieConnectionScalarFieldEnum[]
+  }
+
+  /**
+   * MollieConnection findMany
+   */
+  export type MollieConnectionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MollieConnection
+     */
+    select?: MollieConnectionSelect<ExtArgs> | null
+    /**
+     * Filter, which MollieConnections to fetch.
+     */
+    where?: MollieConnectionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MollieConnections to fetch.
+     */
+    orderBy?: MollieConnectionOrderByWithRelationInput | MollieConnectionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MollieConnections.
+     */
+    cursor?: MollieConnectionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MollieConnections from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MollieConnections.
+     */
+    skip?: number
+    distinct?: MollieConnectionScalarFieldEnum | MollieConnectionScalarFieldEnum[]
+  }
+
+  /**
+   * MollieConnection create
+   */
+  export type MollieConnectionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MollieConnection
+     */
+    select?: MollieConnectionSelect<ExtArgs> | null
+    /**
+     * The data needed to create a MollieConnection.
+     */
+    data: XOR<MollieConnectionCreateInput, MollieConnectionUncheckedCreateInput>
+  }
+
+  /**
+   * MollieConnection createMany
+   */
+  export type MollieConnectionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MollieConnections.
+     */
+    data: MollieConnectionCreateManyInput | MollieConnectionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MollieConnection createManyAndReturn
+   */
+  export type MollieConnectionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MollieConnection
+     */
+    select?: MollieConnectionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many MollieConnections.
+     */
+    data: MollieConnectionCreateManyInput | MollieConnectionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MollieConnection update
+   */
+  export type MollieConnectionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MollieConnection
+     */
+    select?: MollieConnectionSelect<ExtArgs> | null
+    /**
+     * The data needed to update a MollieConnection.
+     */
+    data: XOR<MollieConnectionUpdateInput, MollieConnectionUncheckedUpdateInput>
+    /**
+     * Choose, which MollieConnection to update.
+     */
+    where: MollieConnectionWhereUniqueInput
+  }
+
+  /**
+   * MollieConnection updateMany
+   */
+  export type MollieConnectionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MollieConnections.
+     */
+    data: XOR<MollieConnectionUpdateManyMutationInput, MollieConnectionUncheckedUpdateManyInput>
+    /**
+     * Filter which MollieConnections to update
+     */
+    where?: MollieConnectionWhereInput
+  }
+
+  /**
+   * MollieConnection upsert
+   */
+  export type MollieConnectionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MollieConnection
+     */
+    select?: MollieConnectionSelect<ExtArgs> | null
+    /**
+     * The filter to search for the MollieConnection to update in case it exists.
+     */
+    where: MollieConnectionWhereUniqueInput
+    /**
+     * In case the MollieConnection found by the `where` argument doesn't exist, create a new MollieConnection with this data.
+     */
+    create: XOR<MollieConnectionCreateInput, MollieConnectionUncheckedCreateInput>
+    /**
+     * In case the MollieConnection was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MollieConnectionUpdateInput, MollieConnectionUncheckedUpdateInput>
+  }
+
+  /**
+   * MollieConnection delete
+   */
+  export type MollieConnectionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MollieConnection
+     */
+    select?: MollieConnectionSelect<ExtArgs> | null
+    /**
+     * Filter which MollieConnection to delete.
+     */
+    where: MollieConnectionWhereUniqueInput
+  }
+
+  /**
+   * MollieConnection deleteMany
+   */
+  export type MollieConnectionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MollieConnections to delete
+     */
+    where?: MollieConnectionWhereInput
+  }
+
+  /**
+   * MollieConnection without action
+   */
+  export type MollieConnectionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MollieConnection
+     */
+    select?: MollieConnectionSelect<ExtArgs> | null
+  }
+
+
+  /**
    * Model Payment
    */
 
@@ -197944,6 +199119,33 @@ export namespace Prisma {
   export type StripeConnectAccountScalarFieldEnum = (typeof StripeConnectAccountScalarFieldEnum)[keyof typeof StripeConnectAccountScalarFieldEnum]
 
 
+  export const MollieConnectionScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    brandId: 'brandId',
+    organizationId: 'organizationId',
+    organizationName: 'organizationName',
+    profileId: 'profileId',
+    accessTokenEnc: 'accessTokenEnc',
+    refreshTokenEnc: 'refreshTokenEnc',
+    accessTokenExpiresAt: 'accessTokenExpiresAt',
+    scope: 'scope',
+    status: 'status',
+    canReceivePayments: 'canReceivePayments',
+    canReceiveSettlements: 'canReceiveSettlements',
+    onboardingDashboardUrl: 'onboardingDashboardUrl',
+    clientLinkId: 'clientLinkId',
+    clientLinkUrl: 'clientLinkUrl',
+    enabled: 'enabled',
+    connectedAt: 'connectedAt',
+    lastError: 'lastError',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type MollieConnectionScalarFieldEnum = (typeof MollieConnectionScalarFieldEnum)[keyof typeof MollieConnectionScalarFieldEnum]
+
+
   export const PaymentScalarFieldEnum: {
     id: 'id',
     tenantId: 'tenantId',
@@ -200728,6 +201930,24 @@ export namespace Prisma {
   };
 
   export type StripeConnectAccountOrderByRelevanceFieldEnum = (typeof StripeConnectAccountOrderByRelevanceFieldEnum)[keyof typeof StripeConnectAccountOrderByRelevanceFieldEnum]
+
+
+  export const MollieConnectionOrderByRelevanceFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    brandId: 'brandId',
+    organizationId: 'organizationId',
+    organizationName: 'organizationName',
+    profileId: 'profileId',
+    scope: 'scope',
+    status: 'status',
+    onboardingDashboardUrl: 'onboardingDashboardUrl',
+    clientLinkId: 'clientLinkId',
+    clientLinkUrl: 'clientLinkUrl',
+    lastError: 'lastError'
+  };
+
+  export type MollieConnectionOrderByRelevanceFieldEnum = (typeof MollieConnectionOrderByRelevanceFieldEnum)[keyof typeof MollieConnectionOrderByRelevanceFieldEnum]
 
 
   export const PaymentOrderByRelevanceFieldEnum: {
@@ -211935,6 +213155,139 @@ export namespace Prisma {
     metadata?: JsonWithAggregatesFilter<"StripeConnectAccount">
     createdAt?: DateTimeWithAggregatesFilter<"StripeConnectAccount"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"StripeConnectAccount"> | Date | string
+  }
+
+  export type MollieConnectionWhereInput = {
+    AND?: MollieConnectionWhereInput | MollieConnectionWhereInput[]
+    OR?: MollieConnectionWhereInput[]
+    NOT?: MollieConnectionWhereInput | MollieConnectionWhereInput[]
+    id?: StringFilter<"MollieConnection"> | string
+    tenantId?: StringFilter<"MollieConnection"> | string
+    brandId?: StringFilter<"MollieConnection"> | string
+    organizationId?: StringNullableFilter<"MollieConnection"> | string | null
+    organizationName?: StringNullableFilter<"MollieConnection"> | string | null
+    profileId?: StringNullableFilter<"MollieConnection"> | string | null
+    accessTokenEnc?: JsonNullableFilter<"MollieConnection">
+    refreshTokenEnc?: JsonNullableFilter<"MollieConnection">
+    accessTokenExpiresAt?: DateTimeNullableFilter<"MollieConnection"> | Date | string | null
+    scope?: StringNullableFilter<"MollieConnection"> | string | null
+    status?: StringFilter<"MollieConnection"> | string
+    canReceivePayments?: BoolFilter<"MollieConnection"> | boolean
+    canReceiveSettlements?: BoolFilter<"MollieConnection"> | boolean
+    onboardingDashboardUrl?: StringNullableFilter<"MollieConnection"> | string | null
+    clientLinkId?: StringNullableFilter<"MollieConnection"> | string | null
+    clientLinkUrl?: StringNullableFilter<"MollieConnection"> | string | null
+    enabled?: BoolFilter<"MollieConnection"> | boolean
+    connectedAt?: DateTimeNullableFilter<"MollieConnection"> | Date | string | null
+    lastError?: StringNullableFilter<"MollieConnection"> | string | null
+    createdAt?: DateTimeFilter<"MollieConnection"> | Date | string
+    updatedAt?: DateTimeFilter<"MollieConnection"> | Date | string
+  }
+
+  export type MollieConnectionOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    organizationId?: SortOrderInput | SortOrder
+    organizationName?: SortOrderInput | SortOrder
+    profileId?: SortOrderInput | SortOrder
+    accessTokenEnc?: SortOrderInput | SortOrder
+    refreshTokenEnc?: SortOrderInput | SortOrder
+    accessTokenExpiresAt?: SortOrderInput | SortOrder
+    scope?: SortOrderInput | SortOrder
+    status?: SortOrder
+    canReceivePayments?: SortOrder
+    canReceiveSettlements?: SortOrder
+    onboardingDashboardUrl?: SortOrderInput | SortOrder
+    clientLinkId?: SortOrderInput | SortOrder
+    clientLinkUrl?: SortOrderInput | SortOrder
+    enabled?: SortOrder
+    connectedAt?: SortOrderInput | SortOrder
+    lastError?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _relevance?: MollieConnectionOrderByRelevanceInput
+  }
+
+  export type MollieConnectionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    brandId?: string
+    AND?: MollieConnectionWhereInput | MollieConnectionWhereInput[]
+    OR?: MollieConnectionWhereInput[]
+    NOT?: MollieConnectionWhereInput | MollieConnectionWhereInput[]
+    tenantId?: StringFilter<"MollieConnection"> | string
+    organizationId?: StringNullableFilter<"MollieConnection"> | string | null
+    organizationName?: StringNullableFilter<"MollieConnection"> | string | null
+    profileId?: StringNullableFilter<"MollieConnection"> | string | null
+    accessTokenEnc?: JsonNullableFilter<"MollieConnection">
+    refreshTokenEnc?: JsonNullableFilter<"MollieConnection">
+    accessTokenExpiresAt?: DateTimeNullableFilter<"MollieConnection"> | Date | string | null
+    scope?: StringNullableFilter<"MollieConnection"> | string | null
+    status?: StringFilter<"MollieConnection"> | string
+    canReceivePayments?: BoolFilter<"MollieConnection"> | boolean
+    canReceiveSettlements?: BoolFilter<"MollieConnection"> | boolean
+    onboardingDashboardUrl?: StringNullableFilter<"MollieConnection"> | string | null
+    clientLinkId?: StringNullableFilter<"MollieConnection"> | string | null
+    clientLinkUrl?: StringNullableFilter<"MollieConnection"> | string | null
+    enabled?: BoolFilter<"MollieConnection"> | boolean
+    connectedAt?: DateTimeNullableFilter<"MollieConnection"> | Date | string | null
+    lastError?: StringNullableFilter<"MollieConnection"> | string | null
+    createdAt?: DateTimeFilter<"MollieConnection"> | Date | string
+    updatedAt?: DateTimeFilter<"MollieConnection"> | Date | string
+  }, "id" | "brandId">
+
+  export type MollieConnectionOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    organizationId?: SortOrderInput | SortOrder
+    organizationName?: SortOrderInput | SortOrder
+    profileId?: SortOrderInput | SortOrder
+    accessTokenEnc?: SortOrderInput | SortOrder
+    refreshTokenEnc?: SortOrderInput | SortOrder
+    accessTokenExpiresAt?: SortOrderInput | SortOrder
+    scope?: SortOrderInput | SortOrder
+    status?: SortOrder
+    canReceivePayments?: SortOrder
+    canReceiveSettlements?: SortOrder
+    onboardingDashboardUrl?: SortOrderInput | SortOrder
+    clientLinkId?: SortOrderInput | SortOrder
+    clientLinkUrl?: SortOrderInput | SortOrder
+    enabled?: SortOrder
+    connectedAt?: SortOrderInput | SortOrder
+    lastError?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: MollieConnectionCountOrderByAggregateInput
+    _max?: MollieConnectionMaxOrderByAggregateInput
+    _min?: MollieConnectionMinOrderByAggregateInput
+  }
+
+  export type MollieConnectionScalarWhereWithAggregatesInput = {
+    AND?: MollieConnectionScalarWhereWithAggregatesInput | MollieConnectionScalarWhereWithAggregatesInput[]
+    OR?: MollieConnectionScalarWhereWithAggregatesInput[]
+    NOT?: MollieConnectionScalarWhereWithAggregatesInput | MollieConnectionScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"MollieConnection"> | string
+    tenantId?: StringWithAggregatesFilter<"MollieConnection"> | string
+    brandId?: StringWithAggregatesFilter<"MollieConnection"> | string
+    organizationId?: StringNullableWithAggregatesFilter<"MollieConnection"> | string | null
+    organizationName?: StringNullableWithAggregatesFilter<"MollieConnection"> | string | null
+    profileId?: StringNullableWithAggregatesFilter<"MollieConnection"> | string | null
+    accessTokenEnc?: JsonNullableWithAggregatesFilter<"MollieConnection">
+    refreshTokenEnc?: JsonNullableWithAggregatesFilter<"MollieConnection">
+    accessTokenExpiresAt?: DateTimeNullableWithAggregatesFilter<"MollieConnection"> | Date | string | null
+    scope?: StringNullableWithAggregatesFilter<"MollieConnection"> | string | null
+    status?: StringWithAggregatesFilter<"MollieConnection"> | string
+    canReceivePayments?: BoolWithAggregatesFilter<"MollieConnection"> | boolean
+    canReceiveSettlements?: BoolWithAggregatesFilter<"MollieConnection"> | boolean
+    onboardingDashboardUrl?: StringNullableWithAggregatesFilter<"MollieConnection"> | string | null
+    clientLinkId?: StringNullableWithAggregatesFilter<"MollieConnection"> | string | null
+    clientLinkUrl?: StringNullableWithAggregatesFilter<"MollieConnection"> | string | null
+    enabled?: BoolWithAggregatesFilter<"MollieConnection"> | boolean
+    connectedAt?: DateTimeNullableWithAggregatesFilter<"MollieConnection"> | Date | string | null
+    lastError?: StringNullableWithAggregatesFilter<"MollieConnection"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"MollieConnection"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"MollieConnection"> | Date | string
   }
 
   export type PaymentWhereInput = {
@@ -231132,6 +232485,174 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type MollieConnectionCreateInput = {
+    id?: string
+    tenantId: string
+    brandId: string
+    organizationId?: string | null
+    organizationName?: string | null
+    profileId?: string | null
+    accessTokenEnc?: NullableJsonNullValueInput | InputJsonValue
+    refreshTokenEnc?: NullableJsonNullValueInput | InputJsonValue
+    accessTokenExpiresAt?: Date | string | null
+    scope?: string | null
+    status?: string
+    canReceivePayments?: boolean
+    canReceiveSettlements?: boolean
+    onboardingDashboardUrl?: string | null
+    clientLinkId?: string | null
+    clientLinkUrl?: string | null
+    enabled?: boolean
+    connectedAt?: Date | string | null
+    lastError?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MollieConnectionUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    brandId: string
+    organizationId?: string | null
+    organizationName?: string | null
+    profileId?: string | null
+    accessTokenEnc?: NullableJsonNullValueInput | InputJsonValue
+    refreshTokenEnc?: NullableJsonNullValueInput | InputJsonValue
+    accessTokenExpiresAt?: Date | string | null
+    scope?: string | null
+    status?: string
+    canReceivePayments?: boolean
+    canReceiveSettlements?: boolean
+    onboardingDashboardUrl?: string | null
+    clientLinkId?: string | null
+    clientLinkUrl?: string | null
+    enabled?: boolean
+    connectedAt?: Date | string | null
+    lastError?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MollieConnectionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    organizationName?: NullableStringFieldUpdateOperationsInput | string | null
+    profileId?: NullableStringFieldUpdateOperationsInput | string | null
+    accessTokenEnc?: NullableJsonNullValueInput | InputJsonValue
+    refreshTokenEnc?: NullableJsonNullValueInput | InputJsonValue
+    accessTokenExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scope?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    canReceivePayments?: BoolFieldUpdateOperationsInput | boolean
+    canReceiveSettlements?: BoolFieldUpdateOperationsInput | boolean
+    onboardingDashboardUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    clientLinkId?: NullableStringFieldUpdateOperationsInput | string | null
+    clientLinkUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    connectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MollieConnectionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    organizationName?: NullableStringFieldUpdateOperationsInput | string | null
+    profileId?: NullableStringFieldUpdateOperationsInput | string | null
+    accessTokenEnc?: NullableJsonNullValueInput | InputJsonValue
+    refreshTokenEnc?: NullableJsonNullValueInput | InputJsonValue
+    accessTokenExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scope?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    canReceivePayments?: BoolFieldUpdateOperationsInput | boolean
+    canReceiveSettlements?: BoolFieldUpdateOperationsInput | boolean
+    onboardingDashboardUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    clientLinkId?: NullableStringFieldUpdateOperationsInput | string | null
+    clientLinkUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    connectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MollieConnectionCreateManyInput = {
+    id?: string
+    tenantId: string
+    brandId: string
+    organizationId?: string | null
+    organizationName?: string | null
+    profileId?: string | null
+    accessTokenEnc?: NullableJsonNullValueInput | InputJsonValue
+    refreshTokenEnc?: NullableJsonNullValueInput | InputJsonValue
+    accessTokenExpiresAt?: Date | string | null
+    scope?: string | null
+    status?: string
+    canReceivePayments?: boolean
+    canReceiveSettlements?: boolean
+    onboardingDashboardUrl?: string | null
+    clientLinkId?: string | null
+    clientLinkUrl?: string | null
+    enabled?: boolean
+    connectedAt?: Date | string | null
+    lastError?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MollieConnectionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    organizationName?: NullableStringFieldUpdateOperationsInput | string | null
+    profileId?: NullableStringFieldUpdateOperationsInput | string | null
+    accessTokenEnc?: NullableJsonNullValueInput | InputJsonValue
+    refreshTokenEnc?: NullableJsonNullValueInput | InputJsonValue
+    accessTokenExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scope?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    canReceivePayments?: BoolFieldUpdateOperationsInput | boolean
+    canReceiveSettlements?: BoolFieldUpdateOperationsInput | boolean
+    onboardingDashboardUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    clientLinkId?: NullableStringFieldUpdateOperationsInput | string | null
+    clientLinkUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    connectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MollieConnectionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    organizationName?: NullableStringFieldUpdateOperationsInput | string | null
+    profileId?: NullableStringFieldUpdateOperationsInput | string | null
+    accessTokenEnc?: NullableJsonNullValueInput | InputJsonValue
+    refreshTokenEnc?: NullableJsonNullValueInput | InputJsonValue
+    accessTokenExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scope?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    canReceivePayments?: BoolFieldUpdateOperationsInput | boolean
+    canReceiveSettlements?: BoolFieldUpdateOperationsInput | boolean
+    onboardingDashboardUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    clientLinkId?: NullableStringFieldUpdateOperationsInput | string | null
+    clientLinkUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    connectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type PaymentCreateInput = {
     id?: string
     tenantId: string
@@ -248264,6 +249785,80 @@ export namespace Prisma {
     defaultCurrency?: SortOrder
     country?: SortOrder
     onboardingComplete?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MollieConnectionOrderByRelevanceInput = {
+    fields: MollieConnectionOrderByRelevanceFieldEnum | MollieConnectionOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type MollieConnectionCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    organizationId?: SortOrder
+    organizationName?: SortOrder
+    profileId?: SortOrder
+    accessTokenEnc?: SortOrder
+    refreshTokenEnc?: SortOrder
+    accessTokenExpiresAt?: SortOrder
+    scope?: SortOrder
+    status?: SortOrder
+    canReceivePayments?: SortOrder
+    canReceiveSettlements?: SortOrder
+    onboardingDashboardUrl?: SortOrder
+    clientLinkId?: SortOrder
+    clientLinkUrl?: SortOrder
+    enabled?: SortOrder
+    connectedAt?: SortOrder
+    lastError?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MollieConnectionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    organizationId?: SortOrder
+    organizationName?: SortOrder
+    profileId?: SortOrder
+    accessTokenExpiresAt?: SortOrder
+    scope?: SortOrder
+    status?: SortOrder
+    canReceivePayments?: SortOrder
+    canReceiveSettlements?: SortOrder
+    onboardingDashboardUrl?: SortOrder
+    clientLinkId?: SortOrder
+    clientLinkUrl?: SortOrder
+    enabled?: SortOrder
+    connectedAt?: SortOrder
+    lastError?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MollieConnectionMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    brandId?: SortOrder
+    organizationId?: SortOrder
+    organizationName?: SortOrder
+    profileId?: SortOrder
+    accessTokenExpiresAt?: SortOrder
+    scope?: SortOrder
+    status?: SortOrder
+    canReceivePayments?: SortOrder
+    canReceiveSettlements?: SortOrder
+    onboardingDashboardUrl?: SortOrder
+    clientLinkId?: SortOrder
+    clientLinkUrl?: SortOrder
+    enabled?: SortOrder
+    connectedAt?: SortOrder
+    lastError?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -330308,6 +331903,10 @@ export namespace Prisma {
      * @deprecated Use StripeConnectAccountDefaultArgs instead
      */
     export type StripeConnectAccountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = StripeConnectAccountDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use MollieConnectionDefaultArgs instead
+     */
+    export type MollieConnectionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = MollieConnectionDefaultArgs<ExtArgs>
     /**
      * @deprecated Use PaymentDefaultArgs instead
      */
