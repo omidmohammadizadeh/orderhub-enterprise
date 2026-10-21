@@ -3,6 +3,7 @@ import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { ActivityLogService } from "../../logs/activity-log.service";
 import { JetClientService } from "./jet-client.service";
 import { JetMenuPublishService } from "./jet-menu-publish.service";
+import { splitOvernight } from "./jet-menu.transformer";
 
 // Phase JE-5 — restaurant availability on Just Eat.
 //
@@ -60,7 +61,15 @@ export function toJetOpeningTimes(hours: unknown): JetOpeningTimes {
     const openingTime = String(from ?? "").trim();
     const closingTime = String(to ?? "").trim();
     if (!openingTime || !closingTime) return;
-    (out[day] ??= []).push({ openingTime, closingTime });
+    // Split past-midnight windows the SAME way the menu availability does.
+    // The real trading window is the intersection of the two, so if these
+    // disagree the narrower one silently wins and the hours look wrong again.
+    for (const part of splitOvernight(day, openingTime, closingTime)) {
+      (out[part.day] ??= []).push({
+        openingTime: part.from,
+        closingTime: part.to,
+      });
+    }
   };
 
   if (Array.isArray(hours)) {
