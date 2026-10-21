@@ -789,6 +789,11 @@ export default function PosPage() {
 
   // ── Submit ────────────────────────────────────────────────────────────────
   const submitMutation = useMutation({
+    // React Query's default ("online") PAUSES a mutation while the browser
+    // reports offline — so with the internet down "Place order" just spun and
+    // the offline queue below was never reached. This mutation handles being
+    // offline itself.
+    networkMode: "always",
     mutationFn: async (payload: PlaceOrderPayload): Promise<PlacedOrder> => {
       if (!selectedLocationId) throw new Error("Select a location first");
 

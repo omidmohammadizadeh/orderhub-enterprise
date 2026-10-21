@@ -1044,8 +1044,8 @@ export function PosCartPanel(props: CartPanelProps) {
           </div>
           {!online && paymentMethod === "CARD_TERMINAL" && (
             <p className="mt-1.5 rounded-md bg-amber-50 px-2 py-1.5 text-[11px] text-amber-900">
-              Offline: key the amount into your card machine. You&apos;ll confirm it
-              was approved before the order is saved.
+              Offline: key the amount into your card machine. After Place order
+              you&apos;ll confirm it showed APPROVED.
             </p>
           )}
           <p className="mt-1 text-[10px] text-zinc-500">
