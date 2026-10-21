@@ -173577,12 +173577,18 @@ export namespace Prisma {
   export type LoyaltyCardAvgAggregateOutputType = {
     stampsRequired: number | null
     minimumSpend: Decimal | null
+    rewardPercent: number | null
+    rewardMaxDiscount: Decimal | null
+    rewardMinOrder: Decimal | null
     rewardExpiryDays: number | null
   }
 
   export type LoyaltyCardSumAggregateOutputType = {
     stampsRequired: number | null
     minimumSpend: Decimal | null
+    rewardPercent: number | null
+    rewardMaxDiscount: Decimal | null
+    rewardMinOrder: Decimal | null
     rewardExpiryDays: number | null
   }
 
@@ -173595,6 +173601,10 @@ export namespace Prisma {
     minimumSpend: Decimal | null
     rewardItemId: string | null
     rewardLabel: string | null
+    rewardType: string | null
+    rewardPercent: number | null
+    rewardMaxDiscount: Decimal | null
+    rewardMinOrder: Decimal | null
     rewardExpiryDays: number | null
     walkInEnabled: boolean | null
     cardTitle: string | null
@@ -173614,6 +173624,10 @@ export namespace Prisma {
     minimumSpend: Decimal | null
     rewardItemId: string | null
     rewardLabel: string | null
+    rewardType: string | null
+    rewardPercent: number | null
+    rewardMaxDiscount: Decimal | null
+    rewardMinOrder: Decimal | null
     rewardExpiryDays: number | null
     walkInEnabled: boolean | null
     cardTitle: string | null
@@ -173633,6 +173647,10 @@ export namespace Prisma {
     minimumSpend: number
     rewardItemId: number
     rewardLabel: number
+    rewardType: number
+    rewardPercent: number
+    rewardMaxDiscount: number
+    rewardMinOrder: number
     rewardExpiryDays: number
     walkInEnabled: number
     cardTitle: number
@@ -173648,12 +173666,18 @@ export namespace Prisma {
   export type LoyaltyCardAvgAggregateInputType = {
     stampsRequired?: true
     minimumSpend?: true
+    rewardPercent?: true
+    rewardMaxDiscount?: true
+    rewardMinOrder?: true
     rewardExpiryDays?: true
   }
 
   export type LoyaltyCardSumAggregateInputType = {
     stampsRequired?: true
     minimumSpend?: true
+    rewardPercent?: true
+    rewardMaxDiscount?: true
+    rewardMinOrder?: true
     rewardExpiryDays?: true
   }
 
@@ -173666,6 +173690,10 @@ export namespace Prisma {
     minimumSpend?: true
     rewardItemId?: true
     rewardLabel?: true
+    rewardType?: true
+    rewardPercent?: true
+    rewardMaxDiscount?: true
+    rewardMinOrder?: true
     rewardExpiryDays?: true
     walkInEnabled?: true
     cardTitle?: true
@@ -173685,6 +173713,10 @@ export namespace Prisma {
     minimumSpend?: true
     rewardItemId?: true
     rewardLabel?: true
+    rewardType?: true
+    rewardPercent?: true
+    rewardMaxDiscount?: true
+    rewardMinOrder?: true
     rewardExpiryDays?: true
     walkInEnabled?: true
     cardTitle?: true
@@ -173704,6 +173736,10 @@ export namespace Prisma {
     minimumSpend?: true
     rewardItemId?: true
     rewardLabel?: true
+    rewardType?: true
+    rewardPercent?: true
+    rewardMaxDiscount?: true
+    rewardMinOrder?: true
     rewardExpiryDays?: true
     walkInEnabled?: true
     cardTitle?: true
@@ -173810,6 +173846,10 @@ export namespace Prisma {
     minimumSpend: Decimal | null
     rewardItemId: string | null
     rewardLabel: string
+    rewardType: string
+    rewardPercent: number | null
+    rewardMaxDiscount: Decimal | null
+    rewardMinOrder: Decimal | null
     rewardExpiryDays: number | null
     walkInEnabled: boolean
     cardTitle: string | null
@@ -173848,6 +173888,10 @@ export namespace Prisma {
     minimumSpend?: boolean
     rewardItemId?: boolean
     rewardLabel?: boolean
+    rewardType?: boolean
+    rewardPercent?: boolean
+    rewardMaxDiscount?: boolean
+    rewardMinOrder?: boolean
     rewardExpiryDays?: boolean
     walkInEnabled?: boolean
     cardTitle?: boolean
@@ -173873,6 +173917,10 @@ export namespace Prisma {
     minimumSpend?: boolean
     rewardItemId?: boolean
     rewardLabel?: boolean
+    rewardType?: boolean
+    rewardPercent?: boolean
+    rewardMaxDiscount?: boolean
+    rewardMinOrder?: boolean
     rewardExpiryDays?: boolean
     walkInEnabled?: boolean
     cardTitle?: boolean
@@ -173894,6 +173942,10 @@ export namespace Prisma {
     minimumSpend?: boolean
     rewardItemId?: boolean
     rewardLabel?: boolean
+    rewardType?: boolean
+    rewardPercent?: boolean
+    rewardMaxDiscount?: boolean
+    rewardMinOrder?: boolean
     rewardExpiryDays?: boolean
     walkInEnabled?: boolean
     cardTitle?: boolean
@@ -173946,6 +173998,15 @@ export namespace Prisma {
        */
       rewardItemId: string | null
       rewardLabel: string
+      /**
+       * FREE_ITEM (rewardItemId / rewardLabel) | PERCENT_OFF (rewardPercent off
+       * the whole order). Money-off rewards may need a minimum order and can be
+       * capped. All four are frozen onto each reward when it is earned.
+       */
+      rewardType: string
+      rewardPercent: number | null
+      rewardMaxDiscount: Prisma.Decimal | null
+      rewardMinOrder: Prisma.Decimal | null
       /**
        * Days a reward stays claimable once earned. Null = forever.
        */
@@ -174382,6 +174443,10 @@ export namespace Prisma {
     readonly minimumSpend: FieldRef<"LoyaltyCard", 'Decimal'>
     readonly rewardItemId: FieldRef<"LoyaltyCard", 'String'>
     readonly rewardLabel: FieldRef<"LoyaltyCard", 'String'>
+    readonly rewardType: FieldRef<"LoyaltyCard", 'String'>
+    readonly rewardPercent: FieldRef<"LoyaltyCard", 'Int'>
+    readonly rewardMaxDiscount: FieldRef<"LoyaltyCard", 'Decimal'>
+    readonly rewardMinOrder: FieldRef<"LoyaltyCard", 'Decimal'>
     readonly rewardExpiryDays: FieldRef<"LoyaltyCard", 'Int'>
     readonly walkInEnabled: FieldRef<"LoyaltyCard", 'Boolean'>
     readonly cardTitle: FieldRef<"LoyaltyCard", 'String'>
@@ -175934,10 +175999,16 @@ export namespace Prisma {
 
   export type LoyaltyRewardAvgAggregateOutputType = {
     amountOff: Decimal | null
+    percentOff: number | null
+    maxDiscount: Decimal | null
+    minOrder: Decimal | null
   }
 
   export type LoyaltyRewardSumAggregateOutputType = {
     amountOff: Decimal | null
+    percentOff: number | null
+    maxDiscount: Decimal | null
+    minOrder: Decimal | null
   }
 
   export type LoyaltyRewardMinAggregateOutputType = {
@@ -175947,6 +176018,9 @@ export namespace Prisma {
     locationId: string | null
     source: string | null
     amountOff: Decimal | null
+    percentOff: number | null
+    maxDiscount: Decimal | null
+    minOrder: Decimal | null
     customerAccountId: string | null
     memberId: string | null
     label: string | null
@@ -175965,6 +176039,9 @@ export namespace Prisma {
     locationId: string | null
     source: string | null
     amountOff: Decimal | null
+    percentOff: number | null
+    maxDiscount: Decimal | null
+    minOrder: Decimal | null
     customerAccountId: string | null
     memberId: string | null
     label: string | null
@@ -175983,6 +176060,9 @@ export namespace Prisma {
     locationId: number
     source: number
     amountOff: number
+    percentOff: number
+    maxDiscount: number
+    minOrder: number
     customerAccountId: number
     memberId: number
     label: number
@@ -175998,10 +176078,16 @@ export namespace Prisma {
 
   export type LoyaltyRewardAvgAggregateInputType = {
     amountOff?: true
+    percentOff?: true
+    maxDiscount?: true
+    minOrder?: true
   }
 
   export type LoyaltyRewardSumAggregateInputType = {
     amountOff?: true
+    percentOff?: true
+    maxDiscount?: true
+    minOrder?: true
   }
 
   export type LoyaltyRewardMinAggregateInputType = {
@@ -176011,6 +176097,9 @@ export namespace Prisma {
     locationId?: true
     source?: true
     amountOff?: true
+    percentOff?: true
+    maxDiscount?: true
+    minOrder?: true
     customerAccountId?: true
     memberId?: true
     label?: true
@@ -176029,6 +176118,9 @@ export namespace Prisma {
     locationId?: true
     source?: true
     amountOff?: true
+    percentOff?: true
+    maxDiscount?: true
+    minOrder?: true
     customerAccountId?: true
     memberId?: true
     label?: true
@@ -176047,6 +176139,9 @@ export namespace Prisma {
     locationId?: true
     source?: true
     amountOff?: true
+    percentOff?: true
+    maxDiscount?: true
+    minOrder?: true
     customerAccountId?: true
     memberId?: true
     label?: true
@@ -176152,6 +176247,9 @@ export namespace Prisma {
     locationId: string
     source: string
     amountOff: Decimal | null
+    percentOff: number | null
+    maxDiscount: Decimal | null
+    minOrder: Decimal | null
     customerAccountId: string | null
     memberId: string | null
     label: string
@@ -176189,6 +176287,9 @@ export namespace Prisma {
     locationId?: boolean
     source?: boolean
     amountOff?: boolean
+    percentOff?: boolean
+    maxDiscount?: boolean
+    minOrder?: boolean
     customerAccountId?: boolean
     memberId?: boolean
     label?: boolean
@@ -176211,6 +176312,9 @@ export namespace Prisma {
     locationId?: boolean
     source?: boolean
     amountOff?: boolean
+    percentOff?: boolean
+    maxDiscount?: boolean
+    minOrder?: boolean
     customerAccountId?: boolean
     memberId?: boolean
     label?: boolean
@@ -176233,6 +176337,9 @@ export namespace Prisma {
     locationId?: boolean
     source?: boolean
     amountOff?: boolean
+    percentOff?: boolean
+    maxDiscount?: boolean
+    minOrder?: boolean
     customerAccountId?: boolean
     memberId?: boolean
     label?: boolean
@@ -176287,6 +176394,13 @@ export namespace Prisma {
        * carry rewardItemId instead.
        */
       amountOff: Prisma.Decimal | null
+      /**
+       * Percentage off the order (PERCENT_OFF loyalty card). Frozen when earned,
+       * with its cap and minimum order, like the label.
+       */
+      percentOff: number | null
+      maxDiscount: Prisma.Decimal | null
+      minOrder: Prisma.Decimal | null
       /**
        * Same pair as LoyaltyStamp: an online account or a walk-in member.
        */
@@ -176712,6 +176826,9 @@ export namespace Prisma {
     readonly locationId: FieldRef<"LoyaltyReward", 'String'>
     readonly source: FieldRef<"LoyaltyReward", 'String'>
     readonly amountOff: FieldRef<"LoyaltyReward", 'Decimal'>
+    readonly percentOff: FieldRef<"LoyaltyReward", 'Int'>
+    readonly maxDiscount: FieldRef<"LoyaltyReward", 'Decimal'>
+    readonly minOrder: FieldRef<"LoyaltyReward", 'Decimal'>
     readonly customerAccountId: FieldRef<"LoyaltyReward", 'String'>
     readonly memberId: FieldRef<"LoyaltyReward", 'String'>
     readonly label: FieldRef<"LoyaltyReward", 'String'>
@@ -199030,6 +199147,10 @@ export namespace Prisma {
     minimumSpend: 'minimumSpend',
     rewardItemId: 'rewardItemId',
     rewardLabel: 'rewardLabel',
+    rewardType: 'rewardType',
+    rewardPercent: 'rewardPercent',
+    rewardMaxDiscount: 'rewardMaxDiscount',
+    rewardMinOrder: 'rewardMinOrder',
     rewardExpiryDays: 'rewardExpiryDays',
     walkInEnabled: 'walkInEnabled',
     cardTitle: 'cardTitle',
@@ -199067,6 +199188,9 @@ export namespace Prisma {
     locationId: 'locationId',
     source: 'source',
     amountOff: 'amountOff',
+    percentOff: 'percentOff',
+    maxDiscount: 'maxDiscount',
+    minOrder: 'minOrder',
     customerAccountId: 'customerAccountId',
     memberId: 'memberId',
     label: 'label',
@@ -201470,6 +201594,7 @@ export namespace Prisma {
     locationId: 'locationId',
     rewardItemId: 'rewardItemId',
     rewardLabel: 'rewardLabel',
+    rewardType: 'rewardType',
     cardTitle: 'cardTitle',
     cardColor: 'cardColor',
     cardLogoUrl: 'cardLogoUrl',
@@ -217982,6 +218107,10 @@ export namespace Prisma {
     minimumSpend?: DecimalNullableFilter<"LoyaltyCard"> | Decimal | DecimalJsLike | number | string | null
     rewardItemId?: StringNullableFilter<"LoyaltyCard"> | string | null
     rewardLabel?: StringFilter<"LoyaltyCard"> | string
+    rewardType?: StringFilter<"LoyaltyCard"> | string
+    rewardPercent?: IntNullableFilter<"LoyaltyCard"> | number | null
+    rewardMaxDiscount?: DecimalNullableFilter<"LoyaltyCard"> | Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: DecimalNullableFilter<"LoyaltyCard"> | Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: IntNullableFilter<"LoyaltyCard"> | number | null
     walkInEnabled?: BoolFilter<"LoyaltyCard"> | boolean
     cardTitle?: StringNullableFilter<"LoyaltyCard"> | string | null
@@ -218006,6 +218135,10 @@ export namespace Prisma {
     minimumSpend?: SortOrderInput | SortOrder
     rewardItemId?: SortOrderInput | SortOrder
     rewardLabel?: SortOrder
+    rewardType?: SortOrder
+    rewardPercent?: SortOrderInput | SortOrder
+    rewardMaxDiscount?: SortOrderInput | SortOrder
+    rewardMinOrder?: SortOrderInput | SortOrder
     rewardExpiryDays?: SortOrderInput | SortOrder
     walkInEnabled?: SortOrder
     cardTitle?: SortOrderInput | SortOrder
@@ -218034,6 +218167,10 @@ export namespace Prisma {
     minimumSpend?: DecimalNullableFilter<"LoyaltyCard"> | Decimal | DecimalJsLike | number | string | null
     rewardItemId?: StringNullableFilter<"LoyaltyCard"> | string | null
     rewardLabel?: StringFilter<"LoyaltyCard"> | string
+    rewardType?: StringFilter<"LoyaltyCard"> | string
+    rewardPercent?: IntNullableFilter<"LoyaltyCard"> | number | null
+    rewardMaxDiscount?: DecimalNullableFilter<"LoyaltyCard"> | Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: DecimalNullableFilter<"LoyaltyCard"> | Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: IntNullableFilter<"LoyaltyCard"> | number | null
     walkInEnabled?: BoolFilter<"LoyaltyCard"> | boolean
     cardTitle?: StringNullableFilter<"LoyaltyCard"> | string | null
@@ -218058,6 +218195,10 @@ export namespace Prisma {
     minimumSpend?: SortOrderInput | SortOrder
     rewardItemId?: SortOrderInput | SortOrder
     rewardLabel?: SortOrder
+    rewardType?: SortOrder
+    rewardPercent?: SortOrderInput | SortOrder
+    rewardMaxDiscount?: SortOrderInput | SortOrder
+    rewardMinOrder?: SortOrderInput | SortOrder
     rewardExpiryDays?: SortOrderInput | SortOrder
     walkInEnabled?: SortOrder
     cardTitle?: SortOrderInput | SortOrder
@@ -218085,6 +218226,10 @@ export namespace Prisma {
     minimumSpend?: DecimalNullableWithAggregatesFilter<"LoyaltyCard"> | Decimal | DecimalJsLike | number | string | null
     rewardItemId?: StringNullableWithAggregatesFilter<"LoyaltyCard"> | string | null
     rewardLabel?: StringWithAggregatesFilter<"LoyaltyCard"> | string
+    rewardType?: StringWithAggregatesFilter<"LoyaltyCard"> | string
+    rewardPercent?: IntNullableWithAggregatesFilter<"LoyaltyCard"> | number | null
+    rewardMaxDiscount?: DecimalNullableWithAggregatesFilter<"LoyaltyCard"> | Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: DecimalNullableWithAggregatesFilter<"LoyaltyCard"> | Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: IntNullableWithAggregatesFilter<"LoyaltyCard"> | number | null
     walkInEnabled?: BoolWithAggregatesFilter<"LoyaltyCard"> | boolean
     cardTitle?: StringNullableWithAggregatesFilter<"LoyaltyCard"> | string | null
@@ -218202,6 +218347,9 @@ export namespace Prisma {
     locationId?: StringFilter<"LoyaltyReward"> | string
     source?: StringFilter<"LoyaltyReward"> | string
     amountOff?: DecimalNullableFilter<"LoyaltyReward"> | Decimal | DecimalJsLike | number | string | null
+    percentOff?: IntNullableFilter<"LoyaltyReward"> | number | null
+    maxDiscount?: DecimalNullableFilter<"LoyaltyReward"> | Decimal | DecimalJsLike | number | string | null
+    minOrder?: DecimalNullableFilter<"LoyaltyReward"> | Decimal | DecimalJsLike | number | string | null
     customerAccountId?: StringNullableFilter<"LoyaltyReward"> | string | null
     memberId?: StringNullableFilter<"LoyaltyReward"> | string | null
     label?: StringFilter<"LoyaltyReward"> | string
@@ -218224,6 +218372,9 @@ export namespace Prisma {
     locationId?: SortOrder
     source?: SortOrder
     amountOff?: SortOrderInput | SortOrder
+    percentOff?: SortOrderInput | SortOrder
+    maxDiscount?: SortOrderInput | SortOrder
+    minOrder?: SortOrderInput | SortOrder
     customerAccountId?: SortOrderInput | SortOrder
     memberId?: SortOrderInput | SortOrder
     label?: SortOrder
@@ -218251,6 +218402,9 @@ export namespace Prisma {
     locationId?: StringFilter<"LoyaltyReward"> | string
     source?: StringFilter<"LoyaltyReward"> | string
     amountOff?: DecimalNullableFilter<"LoyaltyReward"> | Decimal | DecimalJsLike | number | string | null
+    percentOff?: IntNullableFilter<"LoyaltyReward"> | number | null
+    maxDiscount?: DecimalNullableFilter<"LoyaltyReward"> | Decimal | DecimalJsLike | number | string | null
+    minOrder?: DecimalNullableFilter<"LoyaltyReward"> | Decimal | DecimalJsLike | number | string | null
     customerAccountId?: StringNullableFilter<"LoyaltyReward"> | string | null
     memberId?: StringNullableFilter<"LoyaltyReward"> | string | null
     label?: StringFilter<"LoyaltyReward"> | string
@@ -218272,6 +218426,9 @@ export namespace Prisma {
     locationId?: SortOrder
     source?: SortOrder
     amountOff?: SortOrderInput | SortOrder
+    percentOff?: SortOrderInput | SortOrder
+    maxDiscount?: SortOrderInput | SortOrder
+    minOrder?: SortOrderInput | SortOrder
     customerAccountId?: SortOrderInput | SortOrder
     memberId?: SortOrderInput | SortOrder
     label?: SortOrder
@@ -218298,6 +218455,9 @@ export namespace Prisma {
     locationId?: StringWithAggregatesFilter<"LoyaltyReward"> | string
     source?: StringWithAggregatesFilter<"LoyaltyReward"> | string
     amountOff?: DecimalNullableWithAggregatesFilter<"LoyaltyReward"> | Decimal | DecimalJsLike | number | string | null
+    percentOff?: IntNullableWithAggregatesFilter<"LoyaltyReward"> | number | null
+    maxDiscount?: DecimalNullableWithAggregatesFilter<"LoyaltyReward"> | Decimal | DecimalJsLike | number | string | null
+    minOrder?: DecimalNullableWithAggregatesFilter<"LoyaltyReward"> | Decimal | DecimalJsLike | number | string | null
     customerAccountId?: StringNullableWithAggregatesFilter<"LoyaltyReward"> | string | null
     memberId?: StringNullableWithAggregatesFilter<"LoyaltyReward"> | string | null
     label?: StringWithAggregatesFilter<"LoyaltyReward"> | string
@@ -238019,6 +238179,10 @@ export namespace Prisma {
     stampsRequired?: number
     minimumSpend?: Decimal | DecimalJsLike | number | string | null
     rewardLabel?: string
+    rewardType?: string
+    rewardPercent?: number | null
+    rewardMaxDiscount?: Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: number | null
     walkInEnabled?: boolean
     cardTitle?: string | null
@@ -238043,6 +238207,10 @@ export namespace Prisma {
     minimumSpend?: Decimal | DecimalJsLike | number | string | null
     rewardItemId?: string | null
     rewardLabel?: string
+    rewardType?: string
+    rewardPercent?: number | null
+    rewardMaxDiscount?: Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: number | null
     walkInEnabled?: boolean
     cardTitle?: string | null
@@ -238063,6 +238231,10 @@ export namespace Prisma {
     stampsRequired?: IntFieldUpdateOperationsInput | number
     minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rewardLabel?: StringFieldUpdateOperationsInput | string
+    rewardType?: StringFieldUpdateOperationsInput | string
+    rewardPercent?: NullableIntFieldUpdateOperationsInput | number | null
+    rewardMaxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
     walkInEnabled?: BoolFieldUpdateOperationsInput | boolean
     cardTitle?: NullableStringFieldUpdateOperationsInput | string | null
@@ -238087,6 +238259,10 @@ export namespace Prisma {
     minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
     rewardLabel?: StringFieldUpdateOperationsInput | string
+    rewardType?: StringFieldUpdateOperationsInput | string
+    rewardPercent?: NullableIntFieldUpdateOperationsInput | number | null
+    rewardMaxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
     walkInEnabled?: BoolFieldUpdateOperationsInput | boolean
     cardTitle?: NullableStringFieldUpdateOperationsInput | string | null
@@ -238109,6 +238285,10 @@ export namespace Prisma {
     minimumSpend?: Decimal | DecimalJsLike | number | string | null
     rewardItemId?: string | null
     rewardLabel?: string
+    rewardType?: string
+    rewardPercent?: number | null
+    rewardMaxDiscount?: Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: number | null
     walkInEnabled?: boolean
     cardTitle?: string | null
@@ -238126,6 +238306,10 @@ export namespace Prisma {
     stampsRequired?: IntFieldUpdateOperationsInput | number
     minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rewardLabel?: StringFieldUpdateOperationsInput | string
+    rewardType?: StringFieldUpdateOperationsInput | string
+    rewardPercent?: NullableIntFieldUpdateOperationsInput | number | null
+    rewardMaxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
     walkInEnabled?: BoolFieldUpdateOperationsInput | boolean
     cardTitle?: NullableStringFieldUpdateOperationsInput | string | null
@@ -238145,6 +238329,10 @@ export namespace Prisma {
     minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
     rewardLabel?: StringFieldUpdateOperationsInput | string
+    rewardType?: StringFieldUpdateOperationsInput | string
+    rewardPercent?: NullableIntFieldUpdateOperationsInput | number | null
+    rewardMaxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
     walkInEnabled?: BoolFieldUpdateOperationsInput | boolean
     cardTitle?: NullableStringFieldUpdateOperationsInput | string | null
@@ -238254,6 +238442,9 @@ export namespace Prisma {
     tenantId: string
     source?: string
     amountOff?: Decimal | DecimalJsLike | number | string | null
+    percentOff?: number | null
+    maxDiscount?: Decimal | DecimalJsLike | number | string | null
+    minOrder?: Decimal | DecimalJsLike | number | string | null
     label: string
     rewardItemId?: string | null
     earnedAt?: Date | string
@@ -238274,6 +238465,9 @@ export namespace Prisma {
     locationId: string
     source?: string
     amountOff?: Decimal | DecimalJsLike | number | string | null
+    percentOff?: number | null
+    maxDiscount?: Decimal | DecimalJsLike | number | string | null
+    minOrder?: Decimal | DecimalJsLike | number | string | null
     customerAccountId?: string | null
     memberId?: string | null
     label: string
@@ -238290,6 +238484,9 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
     amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    percentOff?: NullableIntFieldUpdateOperationsInput | number | null
+    maxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     label?: StringFieldUpdateOperationsInput | string
     rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
     earnedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -238310,6 +238507,9 @@ export namespace Prisma {
     locationId?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
     amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    percentOff?: NullableIntFieldUpdateOperationsInput | number | null
+    maxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     memberId?: NullableStringFieldUpdateOperationsInput | string | null
     label?: StringFieldUpdateOperationsInput | string
@@ -238328,6 +238528,9 @@ export namespace Prisma {
     locationId: string
     source?: string
     amountOff?: Decimal | DecimalJsLike | number | string | null
+    percentOff?: number | null
+    maxDiscount?: Decimal | DecimalJsLike | number | string | null
+    minOrder?: Decimal | DecimalJsLike | number | string | null
     customerAccountId?: string | null
     memberId?: string | null
     label: string
@@ -238344,6 +238547,9 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
     amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    percentOff?: NullableIntFieldUpdateOperationsInput | number | null
+    maxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     label?: StringFieldUpdateOperationsInput | string
     rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
     earnedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -238360,6 +238566,9 @@ export namespace Prisma {
     locationId?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
     amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    percentOff?: NullableIntFieldUpdateOperationsInput | number | null
+    maxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     memberId?: NullableStringFieldUpdateOperationsInput | string | null
     label?: StringFieldUpdateOperationsInput | string
@@ -252511,6 +252720,10 @@ export namespace Prisma {
     minimumSpend?: SortOrder
     rewardItemId?: SortOrder
     rewardLabel?: SortOrder
+    rewardType?: SortOrder
+    rewardPercent?: SortOrder
+    rewardMaxDiscount?: SortOrder
+    rewardMinOrder?: SortOrder
     rewardExpiryDays?: SortOrder
     walkInEnabled?: SortOrder
     cardTitle?: SortOrder
@@ -252524,6 +252737,9 @@ export namespace Prisma {
   export type LoyaltyCardAvgOrderByAggregateInput = {
     stampsRequired?: SortOrder
     minimumSpend?: SortOrder
+    rewardPercent?: SortOrder
+    rewardMaxDiscount?: SortOrder
+    rewardMinOrder?: SortOrder
     rewardExpiryDays?: SortOrder
   }
 
@@ -252536,6 +252752,10 @@ export namespace Prisma {
     minimumSpend?: SortOrder
     rewardItemId?: SortOrder
     rewardLabel?: SortOrder
+    rewardType?: SortOrder
+    rewardPercent?: SortOrder
+    rewardMaxDiscount?: SortOrder
+    rewardMinOrder?: SortOrder
     rewardExpiryDays?: SortOrder
     walkInEnabled?: SortOrder
     cardTitle?: SortOrder
@@ -252555,6 +252775,10 @@ export namespace Prisma {
     minimumSpend?: SortOrder
     rewardItemId?: SortOrder
     rewardLabel?: SortOrder
+    rewardType?: SortOrder
+    rewardPercent?: SortOrder
+    rewardMaxDiscount?: SortOrder
+    rewardMinOrder?: SortOrder
     rewardExpiryDays?: SortOrder
     walkInEnabled?: SortOrder
     cardTitle?: SortOrder
@@ -252568,6 +252792,9 @@ export namespace Prisma {
   export type LoyaltyCardSumOrderByAggregateInput = {
     stampsRequired?: SortOrder
     minimumSpend?: SortOrder
+    rewardPercent?: SortOrder
+    rewardMaxDiscount?: SortOrder
+    rewardMinOrder?: SortOrder
     rewardExpiryDays?: SortOrder
   }
 
@@ -252650,6 +252877,9 @@ export namespace Prisma {
     locationId?: SortOrder
     source?: SortOrder
     amountOff?: SortOrder
+    percentOff?: SortOrder
+    maxDiscount?: SortOrder
+    minOrder?: SortOrder
     customerAccountId?: SortOrder
     memberId?: SortOrder
     label?: SortOrder
@@ -252663,6 +252893,9 @@ export namespace Prisma {
 
   export type LoyaltyRewardAvgOrderByAggregateInput = {
     amountOff?: SortOrder
+    percentOff?: SortOrder
+    maxDiscount?: SortOrder
+    minOrder?: SortOrder
   }
 
   export type LoyaltyRewardMaxOrderByAggregateInput = {
@@ -252672,6 +252905,9 @@ export namespace Prisma {
     locationId?: SortOrder
     source?: SortOrder
     amountOff?: SortOrder
+    percentOff?: SortOrder
+    maxDiscount?: SortOrder
+    minOrder?: SortOrder
     customerAccountId?: SortOrder
     memberId?: SortOrder
     label?: SortOrder
@@ -252690,6 +252926,9 @@ export namespace Prisma {
     locationId?: SortOrder
     source?: SortOrder
     amountOff?: SortOrder
+    percentOff?: SortOrder
+    maxDiscount?: SortOrder
+    minOrder?: SortOrder
     customerAccountId?: SortOrder
     memberId?: SortOrder
     label?: SortOrder
@@ -252703,6 +252942,9 @@ export namespace Prisma {
 
   export type LoyaltyRewardSumOrderByAggregateInput = {
     amountOff?: SortOrder
+    percentOff?: SortOrder
+    maxDiscount?: SortOrder
+    minOrder?: SortOrder
   }
 
   export type LoyaltyPassDeviceListRelationFilter = {
@@ -270332,6 +270574,9 @@ export namespace Prisma {
     tenantId: string
     source?: string
     amountOff?: Decimal | DecimalJsLike | number | string | null
+    percentOff?: number | null
+    maxDiscount?: Decimal | DecimalJsLike | number | string | null
+    minOrder?: Decimal | DecimalJsLike | number | string | null
     label: string
     rewardItemId?: string | null
     earnedAt?: Date | string
@@ -270351,6 +270596,9 @@ export namespace Prisma {
     locationId: string
     source?: string
     amountOff?: Decimal | DecimalJsLike | number | string | null
+    percentOff?: number | null
+    maxDiscount?: Decimal | DecimalJsLike | number | string | null
+    minOrder?: Decimal | DecimalJsLike | number | string | null
     memberId?: string | null
     label: string
     rewardItemId?: string | null
@@ -270557,6 +270805,9 @@ export namespace Prisma {
     locationId?: StringFilter<"LoyaltyReward"> | string
     source?: StringFilter<"LoyaltyReward"> | string
     amountOff?: DecimalNullableFilter<"LoyaltyReward"> | Decimal | DecimalJsLike | number | string | null
+    percentOff?: IntNullableFilter<"LoyaltyReward"> | number | null
+    maxDiscount?: DecimalNullableFilter<"LoyaltyReward"> | Decimal | DecimalJsLike | number | string | null
+    minOrder?: DecimalNullableFilter<"LoyaltyReward"> | Decimal | DecimalJsLike | number | string | null
     customerAccountId?: StringNullableFilter<"LoyaltyReward"> | string | null
     memberId?: StringNullableFilter<"LoyaltyReward"> | string | null
     label?: StringFilter<"LoyaltyReward"> | string
@@ -275038,6 +275289,10 @@ export namespace Prisma {
     stampsRequired?: number
     minimumSpend?: Decimal | DecimalJsLike | number | string | null
     rewardLabel?: string
+    rewardType?: string
+    rewardPercent?: number | null
+    rewardMaxDiscount?: Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: number | null
     walkInEnabled?: boolean
     cardTitle?: string | null
@@ -275060,6 +275315,10 @@ export namespace Prisma {
     minimumSpend?: Decimal | DecimalJsLike | number | string | null
     rewardItemId?: string | null
     rewardLabel?: string
+    rewardType?: string
+    rewardPercent?: number | null
+    rewardMaxDiscount?: Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: number | null
     walkInEnabled?: boolean
     cardTitle?: string | null
@@ -275118,6 +275377,9 @@ export namespace Prisma {
     tenantId: string
     source?: string
     amountOff?: Decimal | DecimalJsLike | number | string | null
+    percentOff?: number | null
+    maxDiscount?: Decimal | DecimalJsLike | number | string | null
+    minOrder?: Decimal | DecimalJsLike | number | string | null
     label: string
     rewardItemId?: string | null
     earnedAt?: Date | string
@@ -275136,6 +275398,9 @@ export namespace Prisma {
     cardId?: string | null
     source?: string
     amountOff?: Decimal | DecimalJsLike | number | string | null
+    percentOff?: number | null
+    maxDiscount?: Decimal | DecimalJsLike | number | string | null
+    minOrder?: Decimal | DecimalJsLike | number | string | null
     customerAccountId?: string | null
     memberId?: string | null
     label: string
@@ -276540,6 +276805,10 @@ export namespace Prisma {
     stampsRequired?: IntFieldUpdateOperationsInput | number
     minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rewardLabel?: StringFieldUpdateOperationsInput | string
+    rewardType?: StringFieldUpdateOperationsInput | string
+    rewardPercent?: NullableIntFieldUpdateOperationsInput | number | null
+    rewardMaxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
     walkInEnabled?: BoolFieldUpdateOperationsInput | boolean
     cardTitle?: NullableStringFieldUpdateOperationsInput | string | null
@@ -276562,6 +276831,10 @@ export namespace Prisma {
     minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
     rewardLabel?: StringFieldUpdateOperationsInput | string
+    rewardType?: StringFieldUpdateOperationsInput | string
+    rewardPercent?: NullableIntFieldUpdateOperationsInput | number | null
+    rewardMaxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
     walkInEnabled?: BoolFieldUpdateOperationsInput | boolean
     cardTitle?: NullableStringFieldUpdateOperationsInput | string | null
@@ -279842,6 +280115,10 @@ export namespace Prisma {
     stampsRequired?: number
     minimumSpend?: Decimal | DecimalJsLike | number | string | null
     rewardLabel?: string
+    rewardType?: string
+    rewardPercent?: number | null
+    rewardMaxDiscount?: Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: number | null
     walkInEnabled?: boolean
     cardTitle?: string | null
@@ -279864,6 +280141,10 @@ export namespace Prisma {
     stampsRequired?: number
     minimumSpend?: Decimal | DecimalJsLike | number | string | null
     rewardLabel?: string
+    rewardType?: string
+    rewardPercent?: number | null
+    rewardMaxDiscount?: Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: number | null
     walkInEnabled?: boolean
     cardTitle?: string | null
@@ -280096,6 +280377,10 @@ export namespace Prisma {
     minimumSpend?: DecimalNullableFilter<"LoyaltyCard"> | Decimal | DecimalJsLike | number | string | null
     rewardItemId?: StringNullableFilter<"LoyaltyCard"> | string | null
     rewardLabel?: StringFilter<"LoyaltyCard"> | string
+    rewardType?: StringFilter<"LoyaltyCard"> | string
+    rewardPercent?: IntNullableFilter<"LoyaltyCard"> | number | null
+    rewardMaxDiscount?: DecimalNullableFilter<"LoyaltyCard"> | Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: DecimalNullableFilter<"LoyaltyCard"> | Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: IntNullableFilter<"LoyaltyCard"> | number | null
     walkInEnabled?: BoolFilter<"LoyaltyCard"> | boolean
     cardTitle?: StringNullableFilter<"LoyaltyCard"> | string | null
@@ -311826,6 +312111,9 @@ export namespace Prisma {
     tenantId: string
     source?: string
     amountOff?: Decimal | DecimalJsLike | number | string | null
+    percentOff?: number | null
+    maxDiscount?: Decimal | DecimalJsLike | number | string | null
+    minOrder?: Decimal | DecimalJsLike | number | string | null
     label: string
     rewardItemId?: string | null
     earnedAt?: Date | string
@@ -311844,6 +312132,9 @@ export namespace Prisma {
     locationId: string
     source?: string
     amountOff?: Decimal | DecimalJsLike | number | string | null
+    percentOff?: number | null
+    maxDiscount?: Decimal | DecimalJsLike | number | string | null
+    minOrder?: Decimal | DecimalJsLike | number | string | null
     customerAccountId?: string | null
     memberId?: string | null
     label: string
@@ -312338,6 +312629,10 @@ export namespace Prisma {
     stampsRequired?: number
     minimumSpend?: Decimal | DecimalJsLike | number | string | null
     rewardLabel?: string
+    rewardType?: string
+    rewardPercent?: number | null
+    rewardMaxDiscount?: Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: number | null
     walkInEnabled?: boolean
     cardTitle?: string | null
@@ -312361,6 +312656,10 @@ export namespace Prisma {
     minimumSpend?: Decimal | DecimalJsLike | number | string | null
     rewardItemId?: string | null
     rewardLabel?: string
+    rewardType?: string
+    rewardPercent?: number | null
+    rewardMaxDiscount?: Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: number | null
     walkInEnabled?: boolean
     cardTitle?: string | null
@@ -312703,6 +313002,10 @@ export namespace Prisma {
     stampsRequired?: IntFieldUpdateOperationsInput | number
     minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rewardLabel?: StringFieldUpdateOperationsInput | string
+    rewardType?: StringFieldUpdateOperationsInput | string
+    rewardPercent?: NullableIntFieldUpdateOperationsInput | number | null
+    rewardMaxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
     walkInEnabled?: BoolFieldUpdateOperationsInput | boolean
     cardTitle?: NullableStringFieldUpdateOperationsInput | string | null
@@ -312726,6 +313029,10 @@ export namespace Prisma {
     minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
     rewardLabel?: StringFieldUpdateOperationsInput | string
+    rewardType?: StringFieldUpdateOperationsInput | string
+    rewardPercent?: NullableIntFieldUpdateOperationsInput | number | null
+    rewardMaxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
     walkInEnabled?: BoolFieldUpdateOperationsInput | boolean
     cardTitle?: NullableStringFieldUpdateOperationsInput | string | null
@@ -313070,6 +313377,10 @@ export namespace Prisma {
     stampsRequired?: number
     minimumSpend?: Decimal | DecimalJsLike | number | string | null
     rewardLabel?: string
+    rewardType?: string
+    rewardPercent?: number | null
+    rewardMaxDiscount?: Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: number | null
     walkInEnabled?: boolean
     cardTitle?: string | null
@@ -313093,6 +313404,10 @@ export namespace Prisma {
     minimumSpend?: Decimal | DecimalJsLike | number | string | null
     rewardItemId?: string | null
     rewardLabel?: string
+    rewardType?: string
+    rewardPercent?: number | null
+    rewardMaxDiscount?: Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: number | null
     walkInEnabled?: boolean
     cardTitle?: string | null
@@ -313449,6 +313764,10 @@ export namespace Prisma {
     stampsRequired?: IntFieldUpdateOperationsInput | number
     minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rewardLabel?: StringFieldUpdateOperationsInput | string
+    rewardType?: StringFieldUpdateOperationsInput | string
+    rewardPercent?: NullableIntFieldUpdateOperationsInput | number | null
+    rewardMaxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
     walkInEnabled?: BoolFieldUpdateOperationsInput | boolean
     cardTitle?: NullableStringFieldUpdateOperationsInput | string | null
@@ -313472,6 +313791,10 @@ export namespace Prisma {
     minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
     rewardLabel?: StringFieldUpdateOperationsInput | string
+    rewardType?: StringFieldUpdateOperationsInput | string
+    rewardPercent?: NullableIntFieldUpdateOperationsInput | number | null
+    rewardMaxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
     walkInEnabled?: BoolFieldUpdateOperationsInput | boolean
     cardTitle?: NullableStringFieldUpdateOperationsInput | string | null
@@ -313830,6 +314153,10 @@ export namespace Prisma {
     stampsRequired?: number
     minimumSpend?: Decimal | DecimalJsLike | number | string | null
     rewardLabel?: string
+    rewardType?: string
+    rewardPercent?: number | null
+    rewardMaxDiscount?: Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: number | null
     walkInEnabled?: boolean
     cardTitle?: string | null
@@ -313853,6 +314180,10 @@ export namespace Prisma {
     minimumSpend?: Decimal | DecimalJsLike | number | string | null
     rewardItemId?: string | null
     rewardLabel?: string
+    rewardType?: string
+    rewardPercent?: number | null
+    rewardMaxDiscount?: Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: number | null
     walkInEnabled?: boolean
     cardTitle?: string | null
@@ -313911,6 +314242,9 @@ export namespace Prisma {
     tenantId: string
     source?: string
     amountOff?: Decimal | DecimalJsLike | number | string | null
+    percentOff?: number | null
+    maxDiscount?: Decimal | DecimalJsLike | number | string | null
+    minOrder?: Decimal | DecimalJsLike | number | string | null
     label: string
     rewardItemId?: string | null
     earnedAt?: Date | string
@@ -313930,6 +314264,9 @@ export namespace Prisma {
     locationId: string
     source?: string
     amountOff?: Decimal | DecimalJsLike | number | string | null
+    percentOff?: number | null
+    maxDiscount?: Decimal | DecimalJsLike | number | string | null
+    minOrder?: Decimal | DecimalJsLike | number | string | null
     customerAccountId?: string | null
     label: string
     rewardItemId?: string | null
@@ -313992,6 +314329,10 @@ export namespace Prisma {
     stampsRequired?: IntFieldUpdateOperationsInput | number
     minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rewardLabel?: StringFieldUpdateOperationsInput | string
+    rewardType?: StringFieldUpdateOperationsInput | string
+    rewardPercent?: NullableIntFieldUpdateOperationsInput | number | null
+    rewardMaxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
     walkInEnabled?: BoolFieldUpdateOperationsInput | boolean
     cardTitle?: NullableStringFieldUpdateOperationsInput | string | null
@@ -314015,6 +314356,10 @@ export namespace Prisma {
     minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
     rewardLabel?: StringFieldUpdateOperationsInput | string
+    rewardType?: StringFieldUpdateOperationsInput | string
+    rewardPercent?: NullableIntFieldUpdateOperationsInput | number | null
+    rewardMaxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
     walkInEnabled?: BoolFieldUpdateOperationsInput | boolean
     cardTitle?: NullableStringFieldUpdateOperationsInput | string | null
@@ -318962,6 +319307,9 @@ export namespace Prisma {
     locationId: string
     source?: string
     amountOff?: Decimal | DecimalJsLike | number | string | null
+    percentOff?: number | null
+    maxDiscount?: Decimal | DecimalJsLike | number | string | null
+    minOrder?: Decimal | DecimalJsLike | number | string | null
     memberId?: string | null
     label: string
     rewardItemId?: string | null
@@ -319309,6 +319657,9 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
     amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    percentOff?: NullableIntFieldUpdateOperationsInput | number | null
+    maxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     label?: StringFieldUpdateOperationsInput | string
     rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
     earnedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -319328,6 +319679,9 @@ export namespace Prisma {
     locationId?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
     amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    percentOff?: NullableIntFieldUpdateOperationsInput | number | null
+    maxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     memberId?: NullableStringFieldUpdateOperationsInput | string | null
     label?: StringFieldUpdateOperationsInput | string
     rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -319345,6 +319699,9 @@ export namespace Prisma {
     locationId?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
     amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    percentOff?: NullableIntFieldUpdateOperationsInput | number | null
+    maxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     memberId?: NullableStringFieldUpdateOperationsInput | string | null
     label?: StringFieldUpdateOperationsInput | string
     rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -321520,6 +321877,9 @@ export namespace Prisma {
     cardId?: string | null
     source?: string
     amountOff?: Decimal | DecimalJsLike | number | string | null
+    percentOff?: number | null
+    maxDiscount?: Decimal | DecimalJsLike | number | string | null
+    minOrder?: Decimal | DecimalJsLike | number | string | null
     customerAccountId?: string | null
     memberId?: string | null
     label: string
@@ -323092,6 +323452,9 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
     amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    percentOff?: NullableIntFieldUpdateOperationsInput | number | null
+    maxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     label?: StringFieldUpdateOperationsInput | string
     rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
     earnedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -323110,6 +323473,9 @@ export namespace Prisma {
     cardId?: NullableStringFieldUpdateOperationsInput | string | null
     source?: StringFieldUpdateOperationsInput | string
     amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    percentOff?: NullableIntFieldUpdateOperationsInput | number | null
+    maxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     memberId?: NullableStringFieldUpdateOperationsInput | string | null
     label?: StringFieldUpdateOperationsInput | string
@@ -323127,6 +323493,9 @@ export namespace Prisma {
     cardId?: NullableStringFieldUpdateOperationsInput | string | null
     source?: StringFieldUpdateOperationsInput | string
     amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    percentOff?: NullableIntFieldUpdateOperationsInput | number | null
+    maxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     memberId?: NullableStringFieldUpdateOperationsInput | string | null
     label?: StringFieldUpdateOperationsInput | string
@@ -323478,6 +323847,10 @@ export namespace Prisma {
     stampsRequired?: number
     minimumSpend?: Decimal | DecimalJsLike | number | string | null
     rewardLabel?: string
+    rewardType?: string
+    rewardPercent?: number | null
+    rewardMaxDiscount?: Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: number | null
     walkInEnabled?: boolean
     cardTitle?: string | null
@@ -323679,6 +324052,10 @@ export namespace Prisma {
     stampsRequired?: IntFieldUpdateOperationsInput | number
     minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rewardLabel?: StringFieldUpdateOperationsInput | string
+    rewardType?: StringFieldUpdateOperationsInput | string
+    rewardPercent?: NullableIntFieldUpdateOperationsInput | number | null
+    rewardMaxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
     walkInEnabled?: BoolFieldUpdateOperationsInput | boolean
     cardTitle?: NullableStringFieldUpdateOperationsInput | string | null
@@ -323701,6 +324078,10 @@ export namespace Prisma {
     stampsRequired?: IntFieldUpdateOperationsInput | number
     minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rewardLabel?: StringFieldUpdateOperationsInput | string
+    rewardType?: StringFieldUpdateOperationsInput | string
+    rewardPercent?: NullableIntFieldUpdateOperationsInput | number | null
+    rewardMaxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
     walkInEnabled?: BoolFieldUpdateOperationsInput | boolean
     cardTitle?: NullableStringFieldUpdateOperationsInput | string | null
@@ -323722,6 +324103,10 @@ export namespace Prisma {
     stampsRequired?: IntFieldUpdateOperationsInput | number
     minimumSpend?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rewardLabel?: StringFieldUpdateOperationsInput | string
+    rewardType?: StringFieldUpdateOperationsInput | string
+    rewardPercent?: NullableIntFieldUpdateOperationsInput | number | null
+    rewardMaxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    rewardMinOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     rewardExpiryDays?: NullableIntFieldUpdateOperationsInput | number | null
     walkInEnabled?: BoolFieldUpdateOperationsInput | boolean
     cardTitle?: NullableStringFieldUpdateOperationsInput | string | null
@@ -328773,6 +329158,9 @@ export namespace Prisma {
     locationId: string
     source?: string
     amountOff?: Decimal | DecimalJsLike | number | string | null
+    percentOff?: number | null
+    maxDiscount?: Decimal | DecimalJsLike | number | string | null
+    minOrder?: Decimal | DecimalJsLike | number | string | null
     customerAccountId?: string | null
     memberId?: string | null
     label: string
@@ -328850,6 +329238,9 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
     amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    percentOff?: NullableIntFieldUpdateOperationsInput | number | null
+    maxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     label?: StringFieldUpdateOperationsInput | string
     rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
     earnedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -328868,6 +329259,9 @@ export namespace Prisma {
     locationId?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
     amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    percentOff?: NullableIntFieldUpdateOperationsInput | number | null
+    maxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     memberId?: NullableStringFieldUpdateOperationsInput | string | null
     label?: StringFieldUpdateOperationsInput | string
@@ -328885,6 +329279,9 @@ export namespace Prisma {
     locationId?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
     amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    percentOff?: NullableIntFieldUpdateOperationsInput | number | null
+    maxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     memberId?: NullableStringFieldUpdateOperationsInput | string | null
     label?: StringFieldUpdateOperationsInput | string
@@ -328988,6 +329385,9 @@ export namespace Prisma {
     locationId: string
     source?: string
     amountOff?: Decimal | DecimalJsLike | number | string | null
+    percentOff?: number | null
+    maxDiscount?: Decimal | DecimalJsLike | number | string | null
+    minOrder?: Decimal | DecimalJsLike | number | string | null
     customerAccountId?: string | null
     label: string
     rewardItemId?: string | null
@@ -329049,6 +329449,9 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
     amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    percentOff?: NullableIntFieldUpdateOperationsInput | number | null
+    maxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     label?: StringFieldUpdateOperationsInput | string
     rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
     earnedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -329068,6 +329471,9 @@ export namespace Prisma {
     locationId?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
     amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    percentOff?: NullableIntFieldUpdateOperationsInput | number | null
+    maxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     label?: StringFieldUpdateOperationsInput | string
     rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -329085,6 +329491,9 @@ export namespace Prisma {
     locationId?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
     amountOff?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    percentOff?: NullableIntFieldUpdateOperationsInput | number | null
+    maxDiscount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minOrder?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     customerAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     label?: StringFieldUpdateOperationsInput | string
     rewardItemId?: NullableStringFieldUpdateOperationsInput | string | null

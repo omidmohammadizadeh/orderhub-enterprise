@@ -52,6 +52,7 @@ import {
   sellByLabel,
   weighedLineName,
   type SellBy,
+  loyaltyRewardKind,
 } from "@orderhub/shared";
 import { WeighModal } from "@/components/retail/weigh-modal";
 import { AgeCheckModal, type AgePrompt } from "@/components/retail/age-check-modal";
@@ -860,7 +861,15 @@ export default function PosPage() {
         // Walk-in loyalty card scanned for this order; the stamp lands when
         // it is paid, and a reward on it is spent with it.
         ...(loyaltyMember && !editOrderId ? { loyaltyMemberId: loyaltyMember.id } : {}),
-        ...(loyaltyMember && loyaltyRewardId && !editOrderId ? { loyaltyRewardId } : {}),
+        // A free-item reward is spent with its line; a money-off one only
+        // when it actually took money off (under its minimum order it stays
+        // on the card).
+        ...(loyaltyMember &&
+        loyaltyRewardId &&
+        !editOrderId &&
+        (!loyaltyMoneyReward || payload.loyaltyDiscount > 0)
+          ? { loyaltyRewardId }
+          : {}),
         // Challenge 25 — the record that ID was checked for this sale.
         ...(cartMinAge ? { ageCheck: { minAge: cartMinAge, method: "TILL_ID_CHECK" as const } } : {}),
       };
@@ -1433,6 +1442,9 @@ export default function PosPage() {
   const [loyaltyScan, setLoyaltyScan] = useState<string | undefined>(undefined);
   const [loyaltyMember, setLoyaltyMember] = useState<TillMember | null>(null);
   const [loyaltyRewardId, setLoyaltyRewardId] = useState<string | null>(null);
+  // Set when the chosen reward is money off (% or £) rather than a free item:
+  // it has no cart line, and the cart panel takes it off the total.
+  const [loyaltyMoneyReward, setLoyaltyMoneyReward] = useState<TillMember["rewards"][number] | null>(null);
   const loyaltyStatusQuery = useQuery({
     queryKey: ["loyalty-till-status", selectedLocationId],
     queryFn: () => walkInTill.status(selectedLocationId!),
@@ -1443,6 +1455,7 @@ export default function PosPage() {
   const clearLoyalty = useCallback(() => {
     setLoyaltyMember(null);
     setLoyaltyRewardId(null);
+    setLoyaltyMoneyReward(null);
     setLoyaltyScan(undefined);
   }, []);
   const [scanNotice, setScanNotice] = useState<{ tone: "ok" | "warn"; text: string } | null>(null);
@@ -1693,16 +1706,28 @@ export default function PosPage() {
   // un-spends the reward; a line with no reward behind it (a basket restored
   // from a saved draft after a reload) is free food nobody earned, so it goes.
   useEffect(() => {
-    if (loyaltyRewardId && !cart.some((l) => l.id === `loyalty-${loyaltyRewardId}`)) setLoyaltyRewardId(null);
-    if (!loyaltyRewardId && cart.some((l) => l.id.startsWith("loyalty-"))) {
+    // A money-off reward has no line to follow.
+    if (loyaltyRewardId && !loyaltyMoneyReward && !cart.some((l) => l.id === `loyalty-${loyaltyRewardId}`)) {
+      setLoyaltyRewardId(null);
+    }
+    if ((!loyaltyRewardId || loyaltyMoneyReward) && cart.some((l) => l.id.startsWith("loyalty-"))) {
       setCart((prev) => prev.filter((l) => !l.id.startsWith("loyalty-")));
     }
-  }, [cart, loyaltyRewardId]);
+  }, [cart, loyaltyRewardId, loyaltyMoneyReward]);
 
   const redeemLoyaltyReward = useCallback(
     (member: TillMember, reward: TillMember["rewards"][number]) => {
       setLoyaltyMember(member);
       setLoyaltyRewardId(reward.id);
+      if (loyaltyRewardKind(reward) !== "FREE_ITEM") {
+        // % or £ off the whole order: no line, the cart panel takes it off.
+        setLoyaltyMoneyReward(reward);
+        setCart((prev) => prev.filter((l) => !l.id.startsWith("loyalty-")));
+        if (step === "start") setStep("menu");
+        notify("ok", `${reward.label} — comes off the total`);
+        return;
+      }
+      setLoyaltyMoneyReward(null);
       setCart((prev) => [
         ...prev.filter((l) => !l.id.startsWith("loyalty-")),
         {
@@ -2347,7 +2372,9 @@ export default function PosPage() {
                   </span>
                   <span className="block text-[11px] text-zinc-600">
                     {loyaltyRewardId
-                      ? "Reward added free · stamp lands when paid"
+                      ? loyaltyMoneyReward
+                        ? `${loyaltyMoneyReward.label} · stamp lands when paid`
+                        : "Reward added free · stamp lands when paid"
                       : loyaltyMember.rewards.length > 0
                         ? `${loyaltyMember.rewards.length} reward ready — tap to add`
                         : "Earns a stamp when paid"}
@@ -2376,6 +2403,7 @@ export default function PosPage() {
                 await submitMutation.mutateAsync(p);
               }}
               multiBuys={multiBuys}
+              loyaltyReward={loyaltyMoneyReward && !editOrderId ? loyaltyMoneyReward : null}
               submitting={submitMutation.isPending}
               submitButtonLabel={editOrderId ? "Save changes" : undefined}
               existingDeliveryFee={editOrderDeliveryFee ?? undefined}
@@ -2490,6 +2518,7 @@ export default function PosPage() {
           onDetach={() => {
             setLoyaltyMember(null);
             setLoyaltyRewardId(null);
+            setLoyaltyMoneyReward(null);
             setCart((prev) => prev.filter((l) => !l.id.startsWith("loyalty-")));
           }}
           onClose={() => {

@@ -52,6 +52,9 @@ import {
   type MultiBuyDeal,
   isPlausibleCustomerPhone,
   hasHouseNumberOrName,
+  loyaltyRewardDiscount,
+  loyaltyRewardKind,
+  type LoyaltyRewardTerms,
 } from "@orderhub/shared";
 import axios from "axios";
 import { LoginModal } from "@/components/storefront/login-modal";
@@ -1521,7 +1524,7 @@ function OrderPage() {
         subtotal,
         deliveryFee,
         tipAmount,
-        total: round2(total + tipAmount),
+        total: round2(orderTotal + tipAmount),
         specialInstructions: notes || undefined,
         scheduledFor: scheduledFor ?? undefined,
         paymentMethod,
@@ -1531,7 +1534,7 @@ function OrderPage() {
         embedded: paymentMethod === "CARD",
         // Phase AP fix #1 — applied promo discount lands on the order
         // so it shows in operator + accounting reports.
-        discount: effectiveDiscount,
+        discount: orderDiscount,
         promoCode: promoApplied?.code,
         discountType: promoApplied
           ? promoApplied.freeDelivery
@@ -1545,7 +1548,8 @@ function OrderPage() {
         // The reward the customer chose to spend. The id only — the server
         // takes the item and its price from the reward itself, because a
         // basket that says "this is free" is a basket anyone can write.
-        loyaltyRewardId: useLoyaltyReward ? (loyaltyReward?.id ?? undefined) : undefined,
+        loyaltyRewardId:
+          useLoyaltyReward && loyaltyReward && loyaltyMoney.short === 0 ? loyaltyReward.id : undefined,
         // "Keep me updated by SMS" checkbox → SMS-marketing consent.
         marketingConsent: smsMarketingConsent,
         // "Email me offers" → email-marketing consent, separate from SMS.
@@ -1655,12 +1659,26 @@ function OrderPage() {
           params: { locationId: storefront!.location.id },
           headers: { Authorization: `Bearer ${customerToken}` },
         })
-        .then((r) => r.data as Array<{ id: string; label: string }>),
+        .then(
+          (r) =>
+            r.data as Array<
+              { id: string; label: string } & Pick<LoyaltyRewardTerms, "percentOff" | "amountOff" | "maxDiscount" | "minOrder">
+            >,
+        ),
   });
   const loyaltyReward = claimable?.[0] ?? null;
   // Opt IN, not out. Someone may be saving it for a bigger order, and
   // spending it for them is spending something they earned.
   const [useLoyaltyReward, setUseLoyaltyReward] = useState(false);
+  // A money-off reward (% or £ off) comes off after deals and offers, worked
+  // out exactly as the server does it. Under its minimum order it gives
+  // nothing and is not spent. A free-item reward is a £0 line instead.
+  const loyaltyMoney =
+    useLoyaltyReward && loyaltyReward && loyaltyRewardKind(loyaltyReward) !== "FREE_ITEM"
+      ? loyaltyRewardDiscount(loyaltyReward, subtotal - effectiveDiscount)
+      : { amount: 0, short: 0 };
+  const orderDiscount = round2(effectiveDiscount + loyaltyMoney.amount);
+  const orderTotal = round2(Math.max(0, total - loyaltyMoney.amount));
   useEffect(() => {
     if (!authCustomer) return;
     if (!customerName) {
@@ -1947,7 +1965,8 @@ function OrderPage() {
     groupMode ? basket && setGroupPanelOpen(true) : setCartOpen(true);
   // A full loyalty card is an order on its own — keep a way into checkout
   // even with nothing else in the basket.
-  const rewardOnly = !groupMode && cartCount === 0 && !!loyaltyReward;
+  const rewardOnly =
+    !groupMode && cartCount === 0 && !!loyaltyReward && loyaltyRewardKind(loyaltyReward) === "FREE_ITEM";
   const chipClass =
     "inline-flex h-11 items-center gap-1.5 rounded-full border border-sf-border bg-sf-surface px-3.5 text-[13px] font-semibold text-sf-text transition-[border-color,transform] duration-150 hover:border-sf-border-strong active:scale-[0.97] motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sf-accent focus-visible:ring-offset-2 focus-visible:ring-offset-sf-bg";
 
@@ -2747,7 +2766,8 @@ function OrderPage() {
           subtotal={subtotal}
           deliveryFee={deliveryFee}
           serviceCharge={serviceCharge}
-          total={total}
+          total={orderTotal}
+          loyaltyMoney={loyaltyMoney}
           fulfillmentType={fulfillmentType}
           setFulfillmentType={setFulfillmentType}
           acceptDelivery={acceptDelivery}
@@ -3028,7 +3048,7 @@ function OrderPage() {
               name: l.displayName,
             })),
             tip: tipAmount,
-            total: round2(total + tipAmount),
+            total: round2(orderTotal + tipAmount),
           }}
           onCommit={() => {
             setHolding(false);
@@ -3336,7 +3356,9 @@ interface CartPanelProps {
   /** Signed in: remember phone + address on the account at Place order. */
   saveDetails: boolean;
   setSaveDetails: (v: boolean) => void;
-  loyaltyReward: { id: string; label: string } | null;
+  loyaltyReward: ({ id: string; label: string } & LoyaltyRewardTerms) | null;
+  /** What a money-off reward takes off, or how much more it needs. */
+  loyaltyMoney: { amount: number; short: number };
   useLoyaltyReward: boolean;
   setUseLoyaltyReward: (v: boolean) => void;
   setSmsMarketingConsent: (v: boolean) => void;
@@ -3479,6 +3501,7 @@ function CartPanel(props: CartPanelProps) {
     saveDetails,
     setSaveDetails,
     loyaltyReward,
+    loyaltyMoney,
     useLoyaltyReward,
     setUseLoyaltyReward,
     setSmsMarketingConsent,
@@ -3534,6 +3557,9 @@ function CartPanel(props: CartPanelProps) {
   // without buying something else first — being made to add a drink to claim
   // a free chicken is the sort of small meanness people remember.
   const rewardApplied = !!loyaltyReward && useLoyaltyReward;
+  // Only a free item is an order on its own; % or £ off needs a basket.
+  const rewardIsItem = !!loyaltyReward && loyaltyRewardKind(loyaltyReward) === "FREE_ITEM";
+  const freeItemApplied = rewardApplied && rewardIsItem;
   // Retail R3 — a shop's delivery minimum (the server enforces it too).
   const belowShopMinimum =
     !!isShop && fulfillmentType === "DELIVERY" && !!minOrderForDelivery && subtotal + 1e-9 < minOrderForDelivery;
@@ -3549,7 +3575,7 @@ function CartPanel(props: CartPanelProps) {
 
   const canPlace =
     !belowShopMinimum &&
-    (cart.length > 0 || rewardApplied) &&
+    (cart.length > 0 || freeItemApplied) &&
     customerName.trim().length > 0 &&
     phoneValid &&
     (fulfillmentType === "PICKUP" || addressComplete) &&
@@ -3624,7 +3650,7 @@ function CartPanel(props: CartPanelProps) {
               DISPLAY ONLY — it is not in `cart` and is never sent as an item.
               The server adds the real line from the reward itself, because a
               basket that says "this is free" is a basket anyone can write. */}
-          {rewardApplied && (
+          {freeItemApplied && (
             <div className="mb-2 flex items-start gap-3 rounded-md border border-amber-300 bg-amber-50 px-3 py-2">
               <span className="mt-0.5 text-amber-500">★</span>
               <div className="min-w-0 flex-1">
@@ -3640,7 +3666,7 @@ function CartPanel(props: CartPanelProps) {
               </span>
             </div>
           )}
-          {cart.length === 0 && !rewardApplied ? (
+          {cart.length === 0 && !freeItemApplied ? (
             <p className="py-10 text-center text-sm text-zinc-400">
               Cart is empty
             </p>
@@ -3826,9 +3852,13 @@ function CartPanel(props: CartPanelProps) {
                     {loyaltyReward.label}
                   </span>
                   <span className="block text-xs text-zinc-500">
-                    {useLoyaltyReward
-                      ? "Added to this order — free"
-                      : "Your card is full. Tap to use it."}
+                    {!rewardIsItem && useLoyaltyReward && loyaltyMoney.short > 0
+                      ? `Add ${money(loyaltyMoney.short)} more to use it — or save it for next time`
+                      : !rewardIsItem && useLoyaltyReward
+                        ? `${money(loyaltyMoney.amount)} off this order`
+                        : useLoyaltyReward
+                          ? "Added to this order — free"
+                          : "Your card is full. Tap to use it."}
                   </span>
                 </span>
                 <span
@@ -4158,6 +4188,9 @@ function CartPanel(props: CartPanelProps) {
               label={`Discount (${campaignName ?? "Promo"})`}
               value={`-${money(campaignDiscount)}`}
             />
+          )}
+          {loyaltyMoney.amount > 0 && (
+            <Row label={`Reward (${loyaltyReward?.label ?? "loyalty"})`} value={`-${money(loyaltyMoney.amount)}`} />
           )}
           {promoDiscount > campaignDiscount && promoDiscount > 0 && (
             <Row

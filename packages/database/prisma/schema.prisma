@@ -5809,6 +5809,13 @@ model LoyaltyCard {
   rewardItemId   String?
   rewardItem     MenuItem? @relation("LoyaltyRewardItem", fields: [rewardItemId], references: [id], onDelete: SetNull)
   rewardLabel    String    @default("Free item")
+  /// FREE_ITEM (rewardItemId / rewardLabel) | PERCENT_OFF (rewardPercent off
+  /// the whole order). Money-off rewards may need a minimum order and can be
+  /// capped. All four are frozen onto each reward when it is earned.
+  rewardType        String   @default("FREE_ITEM")
+  rewardPercent     Int?
+  rewardMaxDiscount Decimal? @db.Decimal(10, 2)
+  rewardMinOrder    Decimal? @db.Decimal(10, 2)
   /// Days a reward stays claimable once earned. Null = forever.
   rewardExpiryDays Int?
 
@@ -5894,6 +5901,11 @@ model LoyaltyReward {
   /// Money off, for referral rewards. Free-item rewards leave this null and
   /// carry rewardItemId instead.
   amountOff  Decimal? @db.Decimal(10, 2)
+  /// Percentage off the order (PERCENT_OFF loyalty card). Frozen when earned,
+  /// with its cap and minimum order, like the label.
+  percentOff  Int?
+  maxDiscount Decimal? @db.Decimal(10, 2)
+  minOrder    Decimal? @db.Decimal(10, 2)
 
   /// Same pair as LoyaltyStamp: an online account or a walk-in member.
   customerAccountId String?

@@ -5798,19 +5798,26 @@ model LoyaltyCard {
   locationId String   @unique
   location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
 
-  isActive         Boolean   @default(false)
+  isActive          Boolean   @default(false)
   /// Stamps needed for one reward. Six by default — the number people expect.
-  stampsRequired   Int       @default(6)
+  stampsRequired    Int       @default(6)
   /// Order subtotal needed to earn a stamp. Null = any order counts.
   /// Without one, six £2 chip orders earn a free main.
-  minimumSpend     Decimal?  @db.Decimal(10, 2)
+  minimumSpend      Decimal?  @db.Decimal(10, 2)
   /// What they get. The item is what staff hand over; the label is what the
   /// customer reads, and it stands alone if the item is later deleted.
-  rewardItemId     String?
-  rewardItem       MenuItem? @relation("LoyaltyRewardItem", fields: [rewardItemId], references: [id], onDelete: SetNull)
-  rewardLabel      String    @default("Free item")
+  rewardItemId      String?
+  rewardItem        MenuItem? @relation("LoyaltyRewardItem", fields: [rewardItemId], references: [id], onDelete: SetNull)
+  rewardLabel       String    @default("Free item")
+  /// FREE_ITEM (rewardItemId / rewardLabel) | PERCENT_OFF (rewardPercent off
+  /// the whole order). Money-off rewards may need a minimum order and can be
+  /// capped. All four are frozen onto each reward when it is earned.
+  rewardType        String    @default("FREE_ITEM")
+  rewardPercent     Int?
+  rewardMaxDiscount Decimal?  @db.Decimal(10, 2)
+  rewardMinOrder    Decimal?  @db.Decimal(10, 2)
   /// Days a reward stays claimable once earned. Null = forever.
-  rewardExpiryDays Int?
+  rewardExpiryDays  Int?
 
   /// Walk-in card: a card a customer joins at the counter (QR poster or the
   /// till), keeps in Apple/Google Wallet and has scanned at the till. Same
@@ -5879,21 +5886,26 @@ model LoyaltyStamp {
 
 /// An earned reward, before and after it is spent.
 model LoyaltyReward {
-  id         String       @id @default(cuid())
-  tenantId   String
+  id          String       @id @default(cuid())
+  tenantId    String
   /// Null for a referral reward — it comes from no card.
-  cardId     String?
-  card       LoyaltyCard? @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  cardId      String?
+  card        LoyaltyCard? @relation(fields: [cardId], references: [id], onDelete: Cascade)
   /// Where this reward can be spent. Always set, including for card rewards,
   /// because a reward has to know its own shop once cardId can be null.
-  locationId String
-  location   Location     @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  locationId  String
+  location    Location     @relation(fields: [locationId], references: [id], onDelete: Cascade)
   /// LOYALTY | REFERRAL. What earned it — it changes the wording, not the
   /// mechanics: both are one-time, both expire, both spend the same way.
-  source     String       @default("LOYALTY")
+  source      String       @default("LOYALTY")
   /// Money off, for referral rewards. Free-item rewards leave this null and
   /// carry rewardItemId instead.
-  amountOff  Decimal?     @db.Decimal(10, 2)
+  amountOff   Decimal?     @db.Decimal(10, 2)
+  /// Percentage off the order (PERCENT_OFF loyalty card). Frozen when earned,
+  /// with its cap and minimum order, like the label.
+  percentOff  Int?
+  maxDiscount Decimal?     @db.Decimal(10, 2)
+  minOrder    Decimal?     @db.Decimal(10, 2)
 
   /// Same pair as LoyaltyStamp: an online account or a walk-in member.
   customerAccountId String?
@@ -6147,7 +6159,7 @@ model KeetaAuthorization {
   @@map("keeta_authorizations")
 }
 
-// ══════════════════════════════════════════════���═══════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════════
 // EMAIL MARKETING — restaurants email their own customers (Resend, per email)
 // ══════════════════════════════════════════════════════════════════════════════
 //

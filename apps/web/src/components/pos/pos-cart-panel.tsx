@@ -21,6 +21,8 @@ import {
   areaZoneNames,
   postcodeRequiredFor,
   resolveZone,
+  loyaltyRewardDiscount,
+  type LoyaltyRewardTerms,
 } from "@orderhub/shared";
 import {
   deliveryZonesClient,
@@ -75,7 +77,7 @@ export type PaymentMethod =
   // customer arrives. Walk-in and delivery are unaffected: a walk-in customer
   // is standing there, and delivery is settled by the driver.
   | "PAY_ON_COLLECTION";
-export type DiscountType = null | "PROMO_CODE" | "PERCENTAGE" | "FIXED_AMOUNT" | "FREE_DELIVERY";
+export type DiscountType = null | "PROMO_CODE" | "PERCENTAGE" | "FIXED_AMOUNT" | "FREE_DELIVERY" | "LOYALTY";
 
 // What the panel hands the parent when "Place order" is clicked.
 export interface PlaceOrderPayload {
@@ -98,6 +100,8 @@ export interface PlaceOrderPayload {
   isScheduled: boolean;
   discountType: DiscountType;
   discountAmount: number;
+  /** The part of discountAmount a money-off loyalty reward gave (0 = none). */
+  loyaltyDiscount: number;
   promoCode?: string;
   paymentMethod: PaymentMethod;
   paymentStatus: "PENDING" | "PAID";
@@ -155,6 +159,12 @@ export interface CartPanelProps {
   } | null;
   /** Retail — multi-buys live on this till; the saving comes off automatically. */
   multiBuys?: MultiBuyDeal[];
+  /**
+   * A money-off loyalty reward (% or £ off) chosen for this order. It comes
+   * off after deals and promos; under its minimum order it gives nothing and
+   * the parent must not spend it.
+   */
+  loyaltyReward?: ({ label: string } & LoyaltyRewardTerms) | null;
 }
 
 export interface PartialDraft {
@@ -202,6 +212,7 @@ export function PosCartPanel(props: CartPanelProps) {
     existingDeliveryFee,
     dineIn,
     multiBuys,
+    loyaltyReward,
   } = props;
   // Prices follow this location's currency, not a hardcoded pound — and the
   // same row tells us the country, which decides whether an address needs a
@@ -580,7 +591,7 @@ export function PosCartPanel(props: CartPanelProps) {
   );
   const afterDeals = round2(Math.max(0, subtotal - multiBuy.savings));
 
-  const discountAmount = useMemo(() => {
+  const offerDiscount = useMemo(() => {
     let amount = 0;
     // Configured quick-promo (Phase AM dynamic list)
     if (activeQuickPromo) {
@@ -597,7 +608,16 @@ export function PosCartPanel(props: CartPanelProps) {
     }
     return round2(multiBuy.savings + amount);
   }, [activeQuickPromo, discountType, afterDeals, promoApplied, multiBuy.savings]);
-  const promoPart = round2(discountAmount - multiBuy.savings);
+  const promoPart = round2(offerDiscount - multiBuy.savings);
+  // The loyalty reward comes off what is left — the same order as online.
+  const loyalty = useMemo(
+    () =>
+      loyaltyReward
+        ? loyaltyRewardDiscount(loyaltyReward, subtotal - offerDiscount)
+        : { amount: 0, short: 0 },
+    [loyaltyReward, subtotal, offerDiscount],
+  );
+  const discountAmount = round2(offerDiscount + loyalty.amount);
 
   const total = useMemo(
     () => round2(Math.max(0, subtotal - discountAmount + effectiveDeliveryFee)),
@@ -713,8 +733,9 @@ export function PosCartPanel(props: CartPanelProps) {
         ? "PROMO_CODE"
         : discountType === "PROMO_CODE"
           ? "PROMO_CODE"
-          : discountType,
+          : discountType ?? (loyalty.amount > 0 ? "LOYALTY" : null),
       discountAmount,
+      loyaltyDiscount: loyalty.amount,
       promoCode: activeQuickPromo
         ? activeQuickPromo.code
         : discountType === "PROMO_CODE" && promoApplied?.valid
@@ -1169,6 +1190,14 @@ export function PosCartPanel(props: CartPanelProps) {
         ))}
         {promoPart > 0 && (
           <Row label="Discount" value={`−${money(promoPart)}`} accent="text-emerald-700" />
+        )}
+        {loyaltyReward && loyalty.amount > 0 && (
+          <Row label={`★ ${loyaltyReward.label}`} value={`−${money(loyalty.amount)}`} accent="text-emerald-700" />
+        )}
+        {loyaltyReward && loyalty.short > 0 && (
+          <p className="rounded-md bg-amber-50 px-2 py-1.5 text-xs text-amber-800">
+            ★ {loyaltyReward.label}: add {money(loyalty.short)} more to use it. Otherwise it stays on their card.
+          </p>
         )}
         {fulfillmentType === "DELIVERY" && !dineIn && (
           <>

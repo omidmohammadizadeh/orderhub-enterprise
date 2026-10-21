@@ -20,7 +20,7 @@ import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { useCurrency } from "@/hooks/use-currency";
 import { brandsClient } from "@/lib/api/locations.client";
 import { StampIcon, WalletCard, readableOn } from "@/components/loyalty/wallet-card";
-import { DEFAULT_STAMP_ICON, stampIconGroups } from "@orderhub/shared";
+import { DEFAULT_STAMP_ICON, describeLoyaltyReward, stampIconGroups } from "@orderhub/shared";
 import { walkInTill } from "@/lib/api/loyalty-walk-in.client";
 import { salonClient } from "@/lib/api/salon.client";
 
@@ -30,6 +30,12 @@ interface Card {
   minimumSpend: number | string | null;
   rewardItemId: string | null;
   rewardLabel: string;
+  /** FREE_ITEM (rewardItemId) or PERCENT_OFF (rewardPercent off the order). */
+  rewardType: "FREE_ITEM" | "PERCENT_OFF";
+  rewardPercent: number | null;
+  /** Percent rewards: the most it can take off, and the order it needs. */
+  rewardMaxDiscount: number | string | null;
+  rewardMinOrder: number | string | null;
   rewardExpiryDays: number | null;
   /** In-store card: Apple/Google Wallet pass scanned at the till. */
   walkInEnabled: boolean;
@@ -145,6 +151,10 @@ export function LoyaltyCardPanel({
       setForm({
         ...data,
         minimumSpend: data.minimumSpend ?? null,
+        rewardType: data.rewardType === "PERCENT_OFF" ? "PERCENT_OFF" : "FREE_ITEM",
+        rewardPercent: data.rewardPercent ?? null,
+        rewardMaxDiscount: data.rewardMaxDiscount != null ? Number(data.rewardMaxDiscount) : null,
+        rewardMinOrder: data.rewardMinOrder != null ? Number(data.rewardMinOrder) : null,
         walkInEnabled: data.walkInEnabled ?? false,
         cardTitle: data.cardTitle ?? null,
         cardColor: data.cardColor ?? null,
@@ -160,7 +170,10 @@ export function LoyaltyCardPanel({
         void qc.invalidateQueries({ queryKey: ["salon", "settings", locationId] });
       }
       return apiClient
-        .put(`/v1/loyalty/cards/${locationId}`, isSalon ? { ...body, rewardItemId: null } : body)
+        .put(
+          `/v1/loyalty/cards/${locationId}`,
+          isSalon || body.rewardType === "PERCENT_OFF" ? { ...body, rewardItemId: null } : body,
+        )
         .then((r) => r.data);
     },
     onSuccess: () => {
@@ -192,7 +205,29 @@ export function LoyaltyCardPanel({
   const set = <K extends keyof Card>(k: K, v: Card[K]) =>
     setForm((f) => (f ? { ...f, [k]: v } : f));
 
-  const noReward = !form.rewardItemId && !form.rewardLabel.trim();
+  const percentMode = form.rewardType === "PERCENT_OFF";
+  const noReward = percentMode
+    ? !(Number(form.rewardPercent) >= 1 && Number(form.rewardPercent) <= 100)
+    : !form.rewardItemId && !form.rewardLabel.trim();
+  const money = (n: number) => `${symbol}${Number.isInteger(n) ? n : n.toFixed(2)}`;
+  // Percent rewards: the card wording follows the numbers, so what the
+  // customer reads always matches what the till takes off.
+  const setPercentTerms = (patch: Partial<Pick<Card, "rewardPercent" | "rewardMaxDiscount" | "rewardMinOrder">>) =>
+    setForm((f) => {
+      if (!f) return f;
+      const next = { ...f, ...patch };
+      const pct = Number(next.rewardPercent);
+      return {
+        ...next,
+        rewardLabel:
+          pct >= 1 && pct <= 100
+            ? describeLoyaltyReward(
+                { percentOff: pct, maxDiscount: next.rewardMaxDiscount, minOrder: next.rewardMinOrder },
+                money,
+              )
+            : next.rewardLabel,
+      };
+    });
   const chosenId = isSalon ? rewardServiceId : form.rewardItemId;
 
   return (
@@ -270,9 +305,102 @@ export function LoyaltyCardPanel({
           hint={
             isSalon
               ? "The service they get free when the card is full. Taken off at checkout when you scan their card."
-              : "What staff hand over when the card is full. Picked from the live menu, so it is something they actually make."
+              : percentMode
+                ? "What they get when the card is full: a percentage off their next order."
+                : "What staff hand over when the card is full. Picked from the live menu, so it is something they actually make."
           }
         >
+          <div role="radiogroup" aria-label="Reward type" className="mb-2 grid grid-cols-2 gap-1 rounded-lg bg-zinc-100 p-1">
+            {(
+              [
+                ["FREE_ITEM", isSalon ? "Free service" : "Free item"],
+                ["PERCENT_OFF", "% off the order"],
+              ] as const
+            ).map(([value, text]) => (
+              <button
+                key={value}
+                type="button"
+                role="radio"
+                aria-checked={form.rewardType === value}
+                onClick={() => {
+                  if (value === form.rewardType) return;
+                  if (value === "PERCENT_OFF") {
+                    set("rewardType", "PERCENT_OFF");
+                    setPercentTerms({ rewardPercent: form.rewardPercent ?? 10 });
+                  } else {
+                    setForm((f) => (f ? { ...f, rewardType: "FREE_ITEM", rewardLabel: "" } : f));
+                  }
+                }}
+                className={`rounded-md px-3 py-1.5 text-sm font-medium ${
+                  form.rewardType === value ? "bg-white text-zinc-900 shadow-sm" : "text-zinc-600 hover:text-zinc-900"
+                }`}
+              >
+                {text}
+              </button>
+            ))}
+          </div>
+          {percentMode ? (
+            <div className="space-y-2">
+              <label className="block">
+                <span className="mb-1 block text-xs font-medium text-zinc-600">Percentage off the whole order</span>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min={1}
+                    max={100}
+                    step={1}
+                    value={form.rewardPercent ?? ""}
+                    onChange={(e) =>
+                      setPercentTerms({ rewardPercent: e.target.value === "" ? null : Math.round(Number(e.target.value)) })
+                    }
+                    className={`${input} pr-8`}
+                  />
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400">%</span>
+                </div>
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <label className="block">
+                  <span className="mb-1 block text-xs font-medium text-zinc-600">Only on orders of at least</span>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400">{symbol}</span>
+                    <input
+                      type="number"
+                      min={0}
+                      step="0.5"
+                      placeholder="Any order"
+                      value={form.rewardMinOrder ?? ""}
+                      onChange={(e) =>
+                        setPercentTerms({ rewardMinOrder: e.target.value === "" ? null : Number(e.target.value) })
+                      }
+                      className={`${input} pl-7`}
+                    />
+                  </div>
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-xs font-medium text-zinc-600">Most it can take off</span>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400">{symbol}</span>
+                    <input
+                      type="number"
+                      min={0}
+                      step="0.5"
+                      placeholder="No limit"
+                      value={form.rewardMaxDiscount ?? ""}
+                      onChange={(e) =>
+                        setPercentTerms({ rewardMaxDiscount: e.target.value === "" ? null : Number(e.target.value) })
+                      }
+                      className={`${input} pl-7`}
+                    />
+                  </div>
+                </label>
+              </div>
+              <p className="text-[11px] text-zinc-500">
+                Comes off the order when they use it — online, at the till or at checkout. If the order is under the
+                minimum, the reward stays on their card for next time.
+              </p>
+            </div>
+          ) : (
+          <>
           {!isSalon && brands.length > 1 && (
             <select
               value={activeBrand?.id ?? ""}
@@ -352,6 +480,8 @@ export function LoyaltyCardPanel({
               })
             )}
           </div>
+          </>
+          )}
         </Field>
 
         <Field
@@ -387,7 +517,7 @@ export function LoyaltyCardPanel({
         form={form}
         set={set}
         locationId={locationId}
-        rewardFallback={items.find((i) => i.id === chosenId)?.name}
+        rewardFallback={percentMode ? undefined : items.find((i) => i.id === chosenId)?.name}
       />
 
       {form.isActive && noReward && (

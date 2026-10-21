@@ -190,7 +190,7 @@ export class CreateOrderDto {
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) preparationMinutes?: number;
   @ApiPropertyOptional()
   @IsOptional()
-  @IsEnum(["PERCENT_10", "PERCENT_20", "FREE_DELIVERY", "PROMO_CODE", "MANUAL"])
+  @IsEnum(["PERCENT_10", "PERCENT_20", "FREE_DELIVERY", "PROMO_CODE", "MANUAL", "LOYALTY"])
   discountType?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() promoCode?: string;
   @ApiPropertyOptional()

@@ -27,6 +27,7 @@ import {
   type PayMethod,
 } from "@/lib/api/salon.client";
 import { inputBase, inputCls } from "./salon-shared";
+import { loyaltyRewardDiscount, loyaltyRewardKind } from "@orderhub/shared";
 
 const TIPS = [0, 10, 15, 20];
 
@@ -133,7 +134,17 @@ export function CheckoutPanel({
     if (byName >= 0) return priceAt(byName);
     return services[0] ? priceAt(0) : 0;
   })();
-  const rewardValue = reward ? Math.min(serviceTotal + extrasTotal, reward.amountOff ?? rewardLine) : 0;
+  // Money off (£ or %) is worked out exactly as the server does it.
+  const rewardMoney =
+    reward && loyaltyRewardKind(reward) !== "FREE_ITEM"
+      ? loyaltyRewardDiscount(reward, serviceTotal + extrasTotal)
+      : null;
+  const rewardShort = rewardMoney?.short ?? 0;
+  const rewardValue = reward
+    ? rewardMoney
+      ? rewardMoney.amount
+      : Math.min(serviceTotal + extrasTotal, rewardLine)
+    : 0;
   // The reward is applied by the server on its own line; here it only
   // shows in the total. The discount field is the manual one alone.
   const manualDiscount = Math.max(0, Number(discount) || 0);
@@ -156,7 +167,7 @@ export function CheckoutPanel({
           .filter((x) => x.name.trim() && Number(x.price) >= 0)
           .map((x) => ({ name: x.name.trim(), price: Number(x.price) || 0, quantity: x.quantity })),
         ...(member ? { loyaltyMemberId: member.id } : {}),
-        ...(member && reward ? { loyaltyRewardId: reward.id } : {}),
+        ...(member && reward && rewardShort === 0 ? { loyaltyRewardId: reward.id } : {}),
       }),
     onSuccess: (r) => {
       if (r.paid) {
@@ -358,6 +369,11 @@ export function CheckoutPanel({
             {extrasTotal > 0 && <Row k="Products" v={money(extrasTotal)} />}
             {deposit > 0 && <Row k="Deposit paid online" v={`−${money(deposit)}`} />}
             {rewardValue > 0 && <Row k={`Reward: ${reward?.label ?? "loyalty"}`} v={`−${money(rewardValue)}`} />}
+            {rewardShort > 0 && (
+              <p className="rounded-md bg-amber-50 px-2 py-1.5 text-xs text-amber-800">
+                {reward?.label}: needs {money(rewardShort)} more on the bill. It stays on their card.
+              </p>
+            )}
             {disc - rewardValue > 0 && <Row k="Discount" v={`−${money(disc - rewardValue)}`} />}
             {tip > 0 && <Row k="Tip" v={money(tip)} />}
             <div className="flex items-baseline justify-between border-t border-zinc-200 pt-2 text-base font-semibold text-zinc-900">

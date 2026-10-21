@@ -837,6 +837,9 @@ export class WalkInLoyaltyService {
         rewardItemId: r.rewardItemId,
         rewardItemName: r.rewardItemId ? (itemName.get(r.rewardItemId) ?? null) : null,
         amountOff: r.amountOff != null ? Number(r.amountOff) : null,
+        percentOff: r.percentOff ?? null,
+        maxDiscount: r.maxDiscount != null ? Number(r.maxDiscount) : null,
+        minOrder: r.minOrder != null ? Number(r.minOrder) : null,
         expiresAt: r.expiresAt,
       })),
     };
