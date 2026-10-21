@@ -14,7 +14,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   disabledTabsFromSettings,
-  dashboardTabForPath,
+  dashboardTabsCoveringPath,
 } from "@orderhub/shared";
 import { locationsClient } from "@/lib/api/locations.client";
 import { queryKeys } from "@/lib/api/query-keys";
@@ -30,7 +30,7 @@ export interface DashboardTabAccess {
   /** True when nothing is being hidden from this user at all. */
   unrestricted: boolean;
   isHidden: (key: string | undefined | null) => boolean;
-  /** The tab that owns a path, if that path is hidden. */
+  /** The disabled tab that hides a path (its own, or a section above it). */
   hiddenTabForPath: (pathname: string) => string | undefined;
 }
 
@@ -92,8 +92,10 @@ export function useDashboardTabAccess(): DashboardTabAccess {
       isHidden: (key) => !!key && disabled.has(key),
       hiddenTabForPath: (pathname: string) => {
         if (!disabled.size) return undefined;
-        const tab = dashboardTabForPath(pathname);
-        return tab && disabled.has(tab.key) ? tab.key : undefined;
+        // The page's own tab or any section above it: Marketing off hides
+        // /dashboard/marketing/email even though Email has its own toggle.
+        return dashboardTabsCoveringPath(pathname).find((t) => disabled.has(t.key))
+          ?.key;
       },
     }),
     [disabled, exempt, locationsQuery.isPending],
