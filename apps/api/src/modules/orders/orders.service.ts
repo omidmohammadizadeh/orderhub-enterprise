@@ -28,6 +28,7 @@ import { HubRiseDeliverySyncService } from "../integrations/hubrise/hubrise-deli
 import { PaymentsService } from "../payments/payments.service";
 import { TapService } from "../payments/tap.service";
 import { DojoService } from "../payments/dojo/dojo.service";
+import { MollieService } from "../payments/mollie/mollie.service";
 import { PromoCodesService } from "../promo-codes/promo-codes.service";
 import {
   assertTransition,
@@ -287,6 +288,8 @@ export class OrdersService {
     @Optional() private readonly dojo?: DojoService,
     // Walk-in loyalty card scanned at the till. Optional for the same reason.
     @Optional() private readonly walkInLoyalty?: WalkInLoyaltyService,
+    // Mollie refunds on cancel. Optional and last, same reason as dojo.
+    @Optional() private readonly mollie?: MollieService,
   ) {}
 
   /**
@@ -2791,6 +2794,9 @@ export class OrdersService {
           // on cancel with nothing saying so. No-op when there's no Dojo
           // payment on the order.
           await this.dojo?.refundOrder(orderId, dto.cancelReason ?? "Order cancelled");
+          // Same for a brand on Mollie: refundForOrder skips its rows (no
+          // stripePaymentIntentId). No-op with no paid Mollie payment.
+          await this.mollie?.refundOrder(orderId, dto.cancelReason ?? "Order cancelled");
         }
       })().catch((err: any) =>
         this.logger.error(`Refund/cancel failed for ${orderId}: ${err.message}`),

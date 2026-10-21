@@ -30,6 +30,17 @@ export interface DojoPaymentLinkPort {
   paymentLinkForOrder(tenantId: string, orderId: string): Promise<{ url: string } | null>;
 }
 
+/**
+ * Pay-by-link through Mollie instead of Stripe, for a brand switched to
+ * Mollie. Same string-token trick as Dojo: MollieService imports this file.
+ */
+export const MOLLIE_PAYMENT_LINKS = "MOLLIE_PAYMENT_LINKS";
+
+export interface MolliePaymentLinkPort {
+  /** A Mollie checkout link for this order, or null when its brand is on Stripe. */
+  paymentLinkForOrder(tenantId: string, orderId: string): Promise<{ url: string } | null>;
+}
+
 // Lazy-imported only if STRIPE_SECRET_KEY is present
 let Stripe: any;
 try {
@@ -155,6 +166,7 @@ export class PaymentsService {
     // Optional so the hand-built unit specs keep working — and because a shop
     // with no Dojo account never needs it.
     @Optional() @Inject(DOJO_PAYMENT_LINKS) private readonly dojoLinks?: DojoPaymentLinkPort,
+    @Optional() @Inject(MOLLIE_PAYMENT_LINKS) private readonly mollieLinks?: MolliePaymentLinkPort,
   ) {
     const key = this.config.get<string>("STRIPE_SECRET_KEY");
     if (key && Stripe) {
@@ -1863,6 +1875,14 @@ export class PaymentsService {
     if (dojo) {
       this.logger.log(`Payment link for order ${orderId} hosted by Dojo`);
       return dojo;
+    }
+
+    // Mollie next, when the order's brand has been switched to Mollie. Null
+    // for every brand that hasn't, so Stripe below is unchanged for them.
+    const mollie = await this.mollieLinks?.paymentLinkForOrder(tenantId, orderId);
+    if (mollie) {
+      this.logger.log(`Payment link for order ${orderId} hosted by Mollie`);
+      return mollie;
     }
 
     const origin = (process.env.WEB_URL ?? "https://www.orderhubsolutions.com").replace(

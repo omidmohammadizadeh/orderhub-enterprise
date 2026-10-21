@@ -30,6 +30,7 @@ import { OrdersService } from "../orders/orders.service";
 import { PromoCodesService } from "../promo-codes/promo-codes.service";
 import { PaymentsService } from "../payments/payments.service";
 import { TapService } from "../payments/tap.service";
+import { MollieService } from "../payments/mollie/mollie.service";
 import { MenuAvailabilityService } from "../inventory/menu-availability.service";
 import { MenuAssignmentsService } from "../menus/menu-assignments.service";
 import {
@@ -357,6 +358,8 @@ export class OrderingService {
     @Optional() private readonly emailMarketing?: EmailMarketingService,
     // Places a delivery address on the app's live map (placeDeliveryAddress).
     @Optional() private readonly geocoder?: GeocodingService,
+    // Brands switched to Mollie take card payments there instead of Stripe.
+    @Optional() private readonly mollie?: MollieService,
   ) {}
 
   /**
@@ -1804,6 +1807,12 @@ export class OrderingService {
             "This restaurant hasn't set up card payments yet. Please choose Cash, or contact the restaurant.",
           );
         }
+      } else if (
+        await this.mollie?.activeConnectionForBrand(pinnedBrandId ?? (location as any).brandId)
+      ) {
+        // The brand is on Mollie, and activeConnectionForBrand only answers
+        // for a connected account with a website profile — nothing more to
+        // check before the order exists.
       } else {
         // Resolved WITH the pinned brand, matching what the payment call
         // below does. Without it a brand using the brand-level acct_
@@ -2338,6 +2347,23 @@ export class OrderingService {
         return { ...order, checkoutUrl: redirectUrl } as any;
       }
 
+      // A brand switched to Mollie: hosted checkout, like Tap — including
+      // for an `embedded` request, since the embedded sheet is Stripe.js.
+      // Mollie's page carries card, Apple Pay and 3-D Secure itself.
+      if (
+        this.mollie &&
+        (await this.mollie.activeConnectionForBrand((order as any).brandId ?? pinnedBrandId ?? (location as any).brandId))
+      ) {
+        const { checkoutUrl } = await this.mollie.createPayment({
+          tenantId: location.brand.tenantId,
+          orderId: order.id,
+          redirectUrl: `${origin0}/order/${slug}/confirmation?orderId=${order.id}${brandQs0}`,
+          cancelUrl: `${origin0}/order/${slug}?canceledOrderId=${order.id}${brandQs0}`,
+          source: "storefront",
+        });
+        return { ...order, checkoutUrl } as any;
+      }
+
       // Embedded — the customer pays on our page (Payment Element /
       // Apple Pay / Google Pay), so there's nowhere to redirect to and
       // the client needs a PaymentIntent secret instead of a URL.
@@ -2450,6 +2476,11 @@ export class OrderingService {
         // that never lands, must not leave a paid order sitting unpaid.
         if (usesTap((initial as any).location?.country)) {
           await this.tap.reconcileOrder(orderId);
+        } else if (await this.mollie?.ownsOrderPayment(orderId)) {
+          // Decided by the payment row, not the brand's current toggle: an
+          // order paid on Mollie is read back from Mollie even if the brand
+          // has since been switched to Stripe.
+          await this.mollie!.reconcileOrder(orderId);
         } else {
           await this.payments.reconcileOrderPayment(orderId);
         }
