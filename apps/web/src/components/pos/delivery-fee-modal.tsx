@@ -20,6 +20,7 @@
 // customer's postcode starts with. This mirrors the storefront so POS and
 // online price delivery identically.
 
+import { listZonesCached } from "@/lib/pos/offline-cache";
 import { useState, useEffect } from "react";
 import { useCurrency } from "@/hooks/use-currency";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -47,7 +48,7 @@ export function DeliveryFeeModal({ locationId, onClose }: Props) {
 
   const zonesQuery = useQuery<DeliveryZone[]>({
     queryKey: ["delivery-zones", locationId],
-    queryFn: () => deliveryZonesClient.list(locationId),
+    queryFn: () => listZonesCached(locationId),
   });
 
   const [newPrefix, setNewPrefix] = useState("");

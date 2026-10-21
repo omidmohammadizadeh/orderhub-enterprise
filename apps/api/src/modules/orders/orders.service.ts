@@ -962,16 +962,22 @@ export class OrdersService {
         this.logger.warn(
           `Concurrent ingest detected for ${canonical.platform}/${canonical.externalId} — returning existing order`,
         );
-        const existing = await this.prisma.order.findFirst({
-          where: canonical.externalId
-            ? {
-                externalId: canonical.externalId,
-                platform: canonical.platform,
-              }
-            : {
-                idempotencyKey: canonical.idempotencyKey,
-              },
-        });
+        const existing =
+          (canonical.externalId
+            ? await this.prisma.order.findFirst({
+                where: {
+                  externalId: canonical.externalId,
+                  platform: canonical.platform,
+                },
+              })
+            : null) ??
+          // Two replays of one till order racing each other: each minted its
+          // own externalId, so only the idempotencyKey ties them together.
+          (canonical.idempotencyKey
+            ? await this.prisma.order.findFirst({
+                where: { idempotencyKey: canonical.idempotencyKey, locationId },
+              })
+            : null);
         if (existing) {
           // Safety net: if the order is still PENDING (e.g. the original
           // create event failed to auto-accept), try again on this repeat
@@ -1110,11 +1116,42 @@ export class OrdersService {
 
   // ── Direct order creation (POS / staff) ──────────────
 
+  /**
+   * The order an idempotencyKey already created, if any. Keys are unique
+   * across the whole table, so the location check is what stops a key from
+   * one shop ever handing back another shop's order.
+   */
+  private async findIdempotentReplay(
+    idempotencyKey: string,
+    locationId: string,
+  ): Promise<Order | null> {
+    const existing = await this.prisma.order.findFirst({
+      where: { idempotencyKey },
+    });
+    if (!existing) return null;
+    if (existing.locationId !== locationId) {
+      throw new ConflictException("idempotencyKey already used");
+    }
+    return existing;
+  }
+
   async create(dto: CreateOrderDto, tenantId: string, actorUserId?: string): Promise<Order> {
     const location = await this.prisma.location.findFirst({
       where: { id: dto.locationId, brand: { tenantId } },
     });
     if (!location) throw new NotFoundException("Location not found");
+
+    // A replay of an order we already have — the till lost the response, or
+    // the offline queue is re-sending after a reconnect. Return the original.
+    // This can't be left to the P2002 safety net in ingestCanonical: that
+    // looks the existing row up by externalId, and create() mints a fresh
+    // random externalId on every call, so the lookup found nothing and the
+    // replay died as a 500 — an offline order then retried for ever and
+    // never reached the board.
+    if (dto.idempotencyKey) {
+      const replay = await this.findIdempotentReplay(dto.idempotencyKey, dto.locationId);
+      if (replay) return replay;
+    }
 
     const scheduledFor = dto.scheduledFor ? new Date(dto.scheduledFor) : undefined;
     const isScheduled = dto.isScheduled === true || this.isFutureScheduled(scheduledFor);
@@ -1269,6 +1306,18 @@ export class OrdersService {
         ...((dto as any).guestPrepay === true ? { guestPrepay: true } : {}),
         // The marketing email that brought this order in (online checkout).
         ...(dto.emailAttribution ? { emailAttribution: dto.emailAttribution } : {}),
+        // Taken on a till with no connection and synced later: when it was
+        // really taken, the reference on its offline ticket, and whether that
+        // ticket already printed (so the tablet doesn't print it twice).
+        ...(dto.offline
+          ? {
+              offline: {
+                takenAt: dto.offline.takenAt,
+                ...(dto.offline.ref ? { ref: dto.offline.ref } : {}),
+                ...(dto.offline.printedLocally ? { printedLocally: true } : {}),
+              },
+            }
+          : {}),
         // The restaurant app (and phone platform) this online order came from.
         ...(dto.appClient ? { appClient: dto.appClient } : {}),
         // Retail — the due-diligence record for an age-restricted sale:

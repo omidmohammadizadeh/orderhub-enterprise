@@ -7,6 +7,7 @@
 // so the caller can surface it.
 
 import { printersClient } from "../api/printers.client";
+import { cachedFetch } from "../pos/offline-cache";
 import { pinnedPrinter, chooseReceiptPrinters } from "../../stores/device.store";
 import { formatMoney } from "@orderhub/shared";
 import { marketingClient } from "../api/marketing.client";
@@ -42,6 +43,15 @@ const QR_EXCLUDED = new Set([
   "WHATSAPP",
   "WHATS_APP",
 ]);
+
+// The printers are on the shop's own Bluetooth / LAN, so a ticket can print
+// with no internet at all — provided the till still knows which printers it
+// has. The last list per location is served when the fetch fails.
+export function listPrintersCached(locationId: string): Promise<any[]> {
+  return cachedFetch(`orderhub-pos:printers:${locationId}`, () =>
+    printersClient.list(locationId),
+  );
+}
 
 export function isMarketplaceOrder(order: any): boolean {
   const src = String(order?.orderSource ?? order?.platform ?? "").toUpperCase();
@@ -240,7 +250,7 @@ export async function openCashDrawerViaBridge(
       "The cash drawer opens through the printer, which only works inside the OrderHub Solutions tablet app.",
     );
   }
-  const printers = await printersClient.list(locationId);
+  const printers = await listPrintersCached(locationId);
   const reachable = printers.filter(
     (p: any) =>
       p.locationId === locationId &&
@@ -268,14 +278,18 @@ export async function openCashDrawerViaBridge(
 
 export async function printOrderViaBridge(
   order: any,
-  opts?: { billMode?: boolean },
+  opts?: {
+    billMode?: boolean;
+    /** A first print of a new order (offline till) — use the new-order copy count. */
+    newOrder?: boolean;
+  },
 ): Promise<string> {
   if (!hasNativeBridge()) {
     throw new Error(
       "Native printing only works inside the OrderHub Solutions tablet app.",
     );
   }
-  const printers = await printersClient.list(order.locationId);
+  const printers = await listPrintersCached(order.locationId);
   // Bluetooth or LAN printers at this location that the current app
   // build can actually reach.
   const reachable = printers.filter(
@@ -362,7 +376,9 @@ export async function printOrderViaBridge(
     try {
       const copies = Math.max(
         1,
-        Number((p as any).defaults?.copiesReprint ?? 1) || 1,
+        Number(
+          (p as any).defaults?.[opts?.newOrder ? "copiesNewOrder" : "copiesReprint"] ?? 1,
+        ) || 1,
       );
       // Plain + QR-attached variants come back separately so extra copies
       // repeat the plain receipt — only the last (bag) copy carries the QR.
@@ -411,7 +427,10 @@ export async function printOrderViaBridge(
 
   // At least one printer produced the receipt — clear the order's queued
   // job(s) + bump "last print" (this also logs the success server-side).
-  void printersClient.markOrderPrinted(order.id, qrDecision ?? undefined);
+  // An offline order has no server row yet — the sync clears its job instead.
+  if (!String(order.id ?? "").startsWith("local:")) {
+    void printersClient.markOrderPrinted(order.id, qrDecision ?? undefined);
+  }
 
   if (failures.length) {
     // Some (not all) printers failed — log the dead one(s) too.

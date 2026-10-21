@@ -275,7 +275,11 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
       if (isAwaitingOurPayment(o as any)) continue;
 
       if (!printedNewRef.current.has(o.id)) {
-        if (btPrinters.length === 0) {
+        // Taken offline on a till that printed its ticket there and then.
+        // The kitchen already has the paper; printing again on sync would
+        // send a second copy of every order from the outage.
+        const printedOffline = (o as any).metadata?.offline?.printedLocally === true;
+        if (btPrinters.length === 0 || printedOffline) {
           printedNewRef.current.add(o.id);
           printedLinesRef.current.set(o.id, lineSig(o));
         } else if (hasItems(o)) {

@@ -1,5 +1,6 @@
 "use client";
 
+import { listZonesCached } from "@/lib/pos/offline-cache";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, MapPin } from "lucide-react";
@@ -90,7 +91,7 @@ export function DeliveryAddressField({
   const { country } = useCurrency(locationId);
   const zonesQuery = useQuery<DeliveryZone[]>({
     queryKey: ["delivery-zones", locationId],
-    queryFn: () => deliveryZonesClient.list(locationId!),
+    queryFn: () => listZonesCached(locationId!),
     enabled: !!locationId,
     staleTime: 60_000,
   });

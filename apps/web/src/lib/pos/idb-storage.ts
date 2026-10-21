@@ -35,6 +35,21 @@ export interface QueuedOrder {
   /** Last error message when status === "failed". */
   error?: string;
   attempts: number;
+  /**
+   * Payment recorded while the order was already on its way to the server
+   * (status "syncing"), so it couldn't go into `body`. The sync worker applies
+   * it with PATCH /payment-status as soon as the order exists.
+   */
+  afterSync?: QueuedPayment;
+  /** The kitchen ticket already printed on this device while offline. */
+  printedLocally?: boolean;
+}
+
+/** A payment taken at the till for an order that is still only on this device. */
+export interface QueuedPayment {
+  paymentStatus: "PAID";
+  paymentMethod: string;
+  paymentProvider?: string;
 }
 
 interface MenuCacheRow {
@@ -174,15 +189,97 @@ export async function listQueue(): Promise<QueuedOrder[]> {
   }
 }
 
+export async function getQueued(localId: string): Promise<QueuedOrder | undefined> {
+  return (await tx<QueuedOrder>(QUEUE_STORE, "readonly", (s) =>
+    s.get(localId),
+  )) as QueuedOrder | undefined;
+}
+
+/**
+ * Read-modify-write one queued row inside a SINGLE transaction. Separate read
+ * and write transactions let the sync worker and the till interleave (the
+ * till recording a cash payment while the worker flips the row to "syncing"),
+ * and whichever wrote last silently undid the other.
+ */
+export async function mutateQueued(
+  localId: string,
+  fn: (row: QueuedOrder) => QueuedOrder,
+): Promise<QueuedOrder | undefined> {
+  let next: QueuedOrder | undefined;
+  await tx(QUEUE_STORE, "readwrite", (s) => {
+    const get = s.get(localId);
+    get.onsuccess = () => {
+      const row = get.result as QueuedOrder | undefined;
+      if (!row) return;
+      next = fn(row);
+      s.put(next);
+    };
+  });
+  return next;
+}
+
 export async function updateQueued(
   localId: string,
   patch: Partial<QueuedOrder>,
 ): Promise<void> {
-  const existing = (await tx<QueuedOrder>(QUEUE_STORE, "readonly", (s) =>
-    s.get(localId),
-  )) as QueuedOrder | undefined;
-  if (!existing) return;
-  await tx(QUEUE_STORE, "readwrite", (s) => s.put({ ...existing, ...patch }));
+  await mutateQueued(localId, (row) => ({ ...row, ...patch }));
+}
+
+/**
+ * Record a payment taken at the till against an order that may still be on
+ * this device.
+ *
+ *  • still queued      → written into the body, so it syncs already paid;
+ *  • mid-sync          → parked on `afterSync` for the worker to apply;
+ *  • already synced    → returns the server id; the caller PATCHes it online.
+ *  • unknown           → returns { missing: true }.
+ */
+export async function settleQueued(
+  localId: string,
+  payment: QueuedPayment,
+): Promise<{ queued: true } | { serverId: string } | { missing: true }> {
+  const row = await mutateQueued(localId, (r) =>
+    r.status === "syncing"
+      ? { ...r, afterSync: payment }
+      : {
+          ...r,
+          body: { ...(r.body as Record<string, unknown>), ...payment },
+        },
+  );
+  if (row) return { queued: true };
+  const serverId = syncedServerId(localId);
+  return serverId ? { serverId } : { missing: true };
+}
+
+// ── Local id → server id ────────────────────────────────────────────────────
+// A synced row is deleted from the queue, but the till may still be holding
+// its local id (the cash keypad left open across the reconnect). Kept small
+// and in localStorage: it only has to outlive a reconnect, not a week.
+
+const SYNCED_KEY = "orderhub-pos:synced-ids";
+const SYNCED_MAX = 50;
+
+function readSynced(): Array<[string, string]> {
+  try {
+    const raw = localStorage.getItem(SYNCED_KEY);
+    return raw ? (JSON.parse(raw) as Array<[string, string]>) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function rememberSynced(localId: string, serverId: string): void {
+  try {
+    const next = readSynced().filter(([l]) => l !== localId);
+    next.push([localId, serverId]);
+    localStorage.setItem(SYNCED_KEY, JSON.stringify(next.slice(-SYNCED_MAX)));
+  } catch {
+    /* best-effort */
+  }
+}
+
+export function syncedServerId(localId: string): string | undefined {
+  return readSynced().find(([l]) => l === localId)?.[1];
 }
 
 export async function removeQueued(localId: string): Promise<void> {
