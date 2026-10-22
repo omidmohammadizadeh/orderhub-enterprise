@@ -31,7 +31,7 @@ import {
 import { OrdersService } from "../orders/orders.service";
 import { PromoCodesService } from "../promo-codes/promo-codes.service";
 import { PaymentsService } from "../payments/payments.service";
-import { TapService } from "../payments/tap.service";
+import { TapService, tapChargeWebhookUrl } from "../payments/tap.service";
 import { MollieService } from "../payments/mollie/mollie.service";
 import { MenuAvailabilityService } from "../inventory/menu-availability.service";
 import { MenuAssignmentsService } from "../menus/menu-assignments.service";
@@ -2355,7 +2355,7 @@ export class OrderingService {
           redirectUrl: `${origin0}/order/${slug}/confirmation?orderId=${order.id}${brandQs0}`,
           // Tap posts the settled charge here. Must be publicly reachable —
           // the money is not marked received anywhere else.
-          webhookUrl: `${(process.env.API_URL ?? "").replace(/\/+$/, "")}/v1/payments/tap/webhook`,
+          webhookUrl: tapChargeWebhookUrl(),
           customer: {
             firstName: dto.customerInfo.name?.split(/\s+/)[0] ?? "Customer",
             lastName: dto.customerInfo.name?.split(/\s+/).slice(1).join(" ") || undefined,

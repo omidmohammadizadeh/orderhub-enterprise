@@ -1,0 +1,28 @@
+{
+  "$schema": "./brand.schema.json",
+  "slug": "grillhousepelton",
+  "name": "Grill House Pelton",
+  "brandId": "cmvjdeev2002113tgsyoaposa",
+  "locationId": "cmvjde493001v13tgxpvgajio",
+  "storefrontUrl": "https://www.orderhubsolutions.com/order/cmvjde493001v13tgxpvgajio?brand=cmvjdeev2002113tgsyoaposa",
+  "apiUrl": "https://orderhub-api-0re6.onrender.com/api",
+  "primaryColor": "#E4572E",
+  "backgroundColor": "#000000",
+  "icon": "brands/grillhousepelton/icon.png",
+  "adaptiveIcon": "brands/grillhousepelton/adaptive-icon.png",
+  "splash": "brands/grillhousepelton/splash.png",
+  "notificationIcon": "brands/grillhousepelton/notification-icon.png",
+  "version": "1.2.0",
+  "ios": {
+    "bundleId": "com.orderhubsolutions.grillhousepelton",
+    "appleTeamId": null,
+    "ascAppId": null
+  },
+  "android": {
+    "package": "com.orderhubsolutions.grillhousepelton"
+  },
+  "google": {
+    "iosClientId": "331572609147-nklk3dj5s6p6pp3vmcj8i96alllhch45.apps.googleusercontent.com"
+  },
+  "easProjectId": "522ff1f0-a6ad-4c52-ba56-a197adcb4afd"
+}

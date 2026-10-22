@@ -7,7 +7,7 @@ import {
 } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
 import { usesTap } from "@orderhub/shared";
-import { TapService } from "../payments/tap.service";
+import { TapService, tapChargeWebhookUrl } from "../payments/tap.service";
 import { ReceiptEmailService } from "../payments/receipt-email.service";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { OrdersService } from "../orders/orders.service";
@@ -538,7 +538,7 @@ export class TableQrService {
         // The same landing a 3-D Secure redirect uses: the phone shows the
         // confirmation and polls until the webhook has paid the order.
         redirectUrl: `${web}/t/${encodeURIComponent(token)}?paid=${encodeURIComponent(order.id)}`,
-        webhookUrl: `${(process.env.API_URL ?? "").replace(/\/+$/, "")}/v1/payments/tap/webhook`,
+        webhookUrl: tapChargeWebhookUrl(),
         customer: {
           firstName: firstName || "Guest",
           lastName: rest.join(" ") || undefined,
