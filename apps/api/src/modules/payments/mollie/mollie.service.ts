@@ -61,6 +61,10 @@ import {
  * `testmode`. MOLLIE_TESTMODE (default true) decides, so nothing goes live
  * until it is set to "false" on purpose.
  */
+/** What online ordering offers on Mollie's checkout. Google Pay is part of
+ *  "creditcard" (Mollie: "Set the method to creditcard" for Google Pay). */
+export const STOREFRONT_METHODS = ["creditcard", "applepay"] as const;
+
 @Injectable()
 export class MollieService {
   private readonly logger = new Logger(MollieService.name);
@@ -628,6 +632,12 @@ export class MollieService {
         ...(params.cancelUrl ? { cancelUrl: params.cancelUrl } : {}),
         webhookUrl: this.webhookUrl(),
         locale: "en_GB",
+        // Online ordering offers card and Apple Pay only (Google Pay rides
+        // inside "creditcard" on Mollie's page — it has no method id of its
+        // own). An array keeps Mollie's chooser but hides every other method
+        // the restaurant may have switched on (PayPal, Klarna, bank
+        // transfer…), none of which our order flow is built around.
+        ...(params.source === "storefront" ? { method: STOREFRONT_METHODS } : {}),
         metadata: {
           orderId: order.id,
           tenantId: params.tenantId,

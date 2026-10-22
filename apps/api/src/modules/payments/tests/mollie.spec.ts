@@ -194,6 +194,8 @@ describe("MollieService.createPayment", () => {
     expect(body.testmode).toBe(true);
     expect(body.webhookUrl).toBe("https://api.example/api/v1/payments/mollie/webhook");
     expect(body.metadata).toMatchObject({ orderId: "o1", brandId: "b1" });
+    // Card (with Google Pay inside it) and Apple Pay only on online ordering.
+    expect(body.method).toEqual(["creditcard", "applepay"]);
 
     const row = prisma.payment.create.mock.calls[0][0].data;
     expect(row).toMatchObject({
@@ -205,6 +207,13 @@ describe("MollieService.createPayment", () => {
       status: "PENDING",
     });
     expect(row.metadata.mollieBrandId).toBe("b1");
+  });
+
+  it("leaves POS payment links on whatever methods the restaurant has enabled", async () => {
+    const { svc } = build();
+    const spy = mollieReturns({ id: "tr_1", status: "open", _links: { checkout: { href: "x" } } });
+    await svc.createPayment({ ...args, source: "payment_link" });
+    expect(callBody(spy).method).toBeUndefined();
   });
 
   it("sends no testmode flag once MOLLIE_TESTMODE is false", async () => {
