@@ -3403,6 +3403,9 @@ model MollieConnection {
   /// The last client link (co-branded sign-up) we generated, so it can be re-sent.
   clientLinkId          String?
   clientLinkUrl         String?
+  /// What Mollie said when we asked it to switch on card / Apple Pay on the
+  /// restaurant's profile, e.g. { creditcard: "pending-review" }.
+  methodStatuses        Json?
   /// Take this brand's online payments through Mollie instead of Stripe.
   enabled               Boolean   @default(false)
   connectedAt           DateTime?

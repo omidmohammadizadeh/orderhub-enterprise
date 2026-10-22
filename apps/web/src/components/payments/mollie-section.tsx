@@ -36,6 +36,7 @@ interface MollieBrandRow {
   onboardingDashboardUrl: string | null;
   clientLinkUrl: string | null;
   lastError: string | null;
+  methodStatuses: Record<string, string> | null;
 }
 
 interface MollieStatus {
@@ -197,6 +198,8 @@ function MollieBrand({
                   <>
                     <Pill ok={row.canReceivePayments} label="Payments" />
                     <Pill ok={row.canReceiveSettlements} label="Payouts" />
+                    <Pill ok={row.methodStatuses?.creditcard === "activated"} label="Card" />
+                    <Pill ok={row.methodStatuses?.applepay === "activated"} label="Apple Pay" />
                   </>
                 )}
               </>
@@ -294,6 +297,13 @@ function MollieBrand({
             onChange();
           }}
         />
+      )}
+      {row.eligible && row.connected && (
+        <p className="mt-1.5 text-xs text-zinc-500">
+          Card and Apple Pay are switched on from here when you press Refresh. Google Pay
+          the restaurant turns on itself in Mollie (Settings → Online payments → Google
+          Pay), once card is approved.
+        </p>
       )}
       {(err || row.lastError) && (
         <div className="mt-2 flex items-start gap-1.5 text-xs text-red-700">

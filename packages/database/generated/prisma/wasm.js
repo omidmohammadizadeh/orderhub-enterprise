@@ -1607,6 +1607,7 @@ exports.Prisma.MollieConnectionScalarFieldEnum = {
   onboardingDashboardUrl: 'onboardingDashboardUrl',
   clientLinkId: 'clientLinkId',
   clientLinkUrl: 'clientLinkUrl',
+  methodStatuses: 'methodStatuses',
   enabled: 'enabled',
   connectedAt: 'connectedAt',
   lastError: 'lastError',

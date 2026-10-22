@@ -106214,6 +106214,7 @@ export namespace Prisma {
     onboardingDashboardUrl: number
     clientLinkId: number
     clientLinkUrl: number
+    methodStatuses: number
     enabled: number
     connectedAt: number
     lastError: number
@@ -106284,6 +106285,7 @@ export namespace Prisma {
     onboardingDashboardUrl?: true
     clientLinkId?: true
     clientLinkUrl?: true
+    methodStatuses?: true
     enabled?: true
     connectedAt?: true
     lastError?: true
@@ -106381,6 +106383,7 @@ export namespace Prisma {
     onboardingDashboardUrl: string | null
     clientLinkId: string | null
     clientLinkUrl: string | null
+    methodStatuses: JsonValue | null
     enabled: boolean
     connectedAt: Date | null
     lastError: string | null
@@ -106422,6 +106425,7 @@ export namespace Prisma {
     onboardingDashboardUrl?: boolean
     clientLinkId?: boolean
     clientLinkUrl?: boolean
+    methodStatuses?: boolean
     enabled?: boolean
     connectedAt?: boolean
     lastError?: boolean
@@ -106446,6 +106450,7 @@ export namespace Prisma {
     onboardingDashboardUrl?: boolean
     clientLinkId?: boolean
     clientLinkUrl?: boolean
+    methodStatuses?: boolean
     enabled?: boolean
     connectedAt?: boolean
     lastError?: boolean
@@ -106470,6 +106475,7 @@ export namespace Prisma {
     onboardingDashboardUrl?: boolean
     clientLinkId?: boolean
     clientLinkUrl?: boolean
+    methodStatuses?: boolean
     enabled?: boolean
     connectedAt?: boolean
     lastError?: boolean
@@ -106517,6 +106523,11 @@ export namespace Prisma {
        */
       clientLinkId: string | null
       clientLinkUrl: string | null
+      /**
+       * What Mollie said when we asked it to switch on card / Apple Pay on the
+       * restaurant's profile, e.g. { creditcard: "pending-review" }.
+       */
+      methodStatuses: Prisma.JsonValue | null
       /**
        * Take this brand's online payments through Mollie instead of Stripe.
        */
@@ -106934,6 +106945,7 @@ export namespace Prisma {
     readonly onboardingDashboardUrl: FieldRef<"MollieConnection", 'String'>
     readonly clientLinkId: FieldRef<"MollieConnection", 'String'>
     readonly clientLinkUrl: FieldRef<"MollieConnection", 'String'>
+    readonly methodStatuses: FieldRef<"MollieConnection", 'Json'>
     readonly enabled: FieldRef<"MollieConnection", 'Boolean'>
     readonly connectedAt: FieldRef<"MollieConnection", 'DateTime'>
     readonly lastError: FieldRef<"MollieConnection", 'String'>
@@ -199136,6 +199148,7 @@ export namespace Prisma {
     onboardingDashboardUrl: 'onboardingDashboardUrl',
     clientLinkId: 'clientLinkId',
     clientLinkUrl: 'clientLinkUrl',
+    methodStatuses: 'methodStatuses',
     enabled: 'enabled',
     connectedAt: 'connectedAt',
     lastError: 'lastError',
@@ -213177,6 +213190,7 @@ export namespace Prisma {
     onboardingDashboardUrl?: StringNullableFilter<"MollieConnection"> | string | null
     clientLinkId?: StringNullableFilter<"MollieConnection"> | string | null
     clientLinkUrl?: StringNullableFilter<"MollieConnection"> | string | null
+    methodStatuses?: JsonNullableFilter<"MollieConnection">
     enabled?: BoolFilter<"MollieConnection"> | boolean
     connectedAt?: DateTimeNullableFilter<"MollieConnection"> | Date | string | null
     lastError?: StringNullableFilter<"MollieConnection"> | string | null
@@ -213201,6 +213215,7 @@ export namespace Prisma {
     onboardingDashboardUrl?: SortOrderInput | SortOrder
     clientLinkId?: SortOrderInput | SortOrder
     clientLinkUrl?: SortOrderInput | SortOrder
+    methodStatuses?: SortOrderInput | SortOrder
     enabled?: SortOrder
     connectedAt?: SortOrderInput | SortOrder
     lastError?: SortOrderInput | SortOrder
@@ -213229,6 +213244,7 @@ export namespace Prisma {
     onboardingDashboardUrl?: StringNullableFilter<"MollieConnection"> | string | null
     clientLinkId?: StringNullableFilter<"MollieConnection"> | string | null
     clientLinkUrl?: StringNullableFilter<"MollieConnection"> | string | null
+    methodStatuses?: JsonNullableFilter<"MollieConnection">
     enabled?: BoolFilter<"MollieConnection"> | boolean
     connectedAt?: DateTimeNullableFilter<"MollieConnection"> | Date | string | null
     lastError?: StringNullableFilter<"MollieConnection"> | string | null
@@ -213253,6 +213269,7 @@ export namespace Prisma {
     onboardingDashboardUrl?: SortOrderInput | SortOrder
     clientLinkId?: SortOrderInput | SortOrder
     clientLinkUrl?: SortOrderInput | SortOrder
+    methodStatuses?: SortOrderInput | SortOrder
     enabled?: SortOrder
     connectedAt?: SortOrderInput | SortOrder
     lastError?: SortOrderInput | SortOrder
@@ -213283,6 +213300,7 @@ export namespace Prisma {
     onboardingDashboardUrl?: StringNullableWithAggregatesFilter<"MollieConnection"> | string | null
     clientLinkId?: StringNullableWithAggregatesFilter<"MollieConnection"> | string | null
     clientLinkUrl?: StringNullableWithAggregatesFilter<"MollieConnection"> | string | null
+    methodStatuses?: JsonNullableWithAggregatesFilter<"MollieConnection">
     enabled?: BoolWithAggregatesFilter<"MollieConnection"> | boolean
     connectedAt?: DateTimeNullableWithAggregatesFilter<"MollieConnection"> | Date | string | null
     lastError?: StringNullableWithAggregatesFilter<"MollieConnection"> | string | null
@@ -232502,6 +232520,7 @@ export namespace Prisma {
     onboardingDashboardUrl?: string | null
     clientLinkId?: string | null
     clientLinkUrl?: string | null
+    methodStatuses?: NullableJsonNullValueInput | InputJsonValue
     enabled?: boolean
     connectedAt?: Date | string | null
     lastError?: string | null
@@ -232526,6 +232545,7 @@ export namespace Prisma {
     onboardingDashboardUrl?: string | null
     clientLinkId?: string | null
     clientLinkUrl?: string | null
+    methodStatuses?: NullableJsonNullValueInput | InputJsonValue
     enabled?: boolean
     connectedAt?: Date | string | null
     lastError?: string | null
@@ -232550,6 +232570,7 @@ export namespace Prisma {
     onboardingDashboardUrl?: NullableStringFieldUpdateOperationsInput | string | null
     clientLinkId?: NullableStringFieldUpdateOperationsInput | string | null
     clientLinkUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    methodStatuses?: NullableJsonNullValueInput | InputJsonValue
     enabled?: BoolFieldUpdateOperationsInput | boolean
     connectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastError?: NullableStringFieldUpdateOperationsInput | string | null
@@ -232574,6 +232595,7 @@ export namespace Prisma {
     onboardingDashboardUrl?: NullableStringFieldUpdateOperationsInput | string | null
     clientLinkId?: NullableStringFieldUpdateOperationsInput | string | null
     clientLinkUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    methodStatuses?: NullableJsonNullValueInput | InputJsonValue
     enabled?: BoolFieldUpdateOperationsInput | boolean
     connectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastError?: NullableStringFieldUpdateOperationsInput | string | null
@@ -232598,6 +232620,7 @@ export namespace Prisma {
     onboardingDashboardUrl?: string | null
     clientLinkId?: string | null
     clientLinkUrl?: string | null
+    methodStatuses?: NullableJsonNullValueInput | InputJsonValue
     enabled?: boolean
     connectedAt?: Date | string | null
     lastError?: string | null
@@ -232622,6 +232645,7 @@ export namespace Prisma {
     onboardingDashboardUrl?: NullableStringFieldUpdateOperationsInput | string | null
     clientLinkId?: NullableStringFieldUpdateOperationsInput | string | null
     clientLinkUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    methodStatuses?: NullableJsonNullValueInput | InputJsonValue
     enabled?: BoolFieldUpdateOperationsInput | boolean
     connectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastError?: NullableStringFieldUpdateOperationsInput | string | null
@@ -232646,6 +232670,7 @@ export namespace Prisma {
     onboardingDashboardUrl?: NullableStringFieldUpdateOperationsInput | string | null
     clientLinkId?: NullableStringFieldUpdateOperationsInput | string | null
     clientLinkUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    methodStatuses?: NullableJsonNullValueInput | InputJsonValue
     enabled?: BoolFieldUpdateOperationsInput | boolean
     connectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastError?: NullableStringFieldUpdateOperationsInput | string | null
@@ -249812,6 +249837,7 @@ export namespace Prisma {
     onboardingDashboardUrl?: SortOrder
     clientLinkId?: SortOrder
     clientLinkUrl?: SortOrder
+    methodStatuses?: SortOrder
     enabled?: SortOrder
     connectedAt?: SortOrder
     lastError?: SortOrder

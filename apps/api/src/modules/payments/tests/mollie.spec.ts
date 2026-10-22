@@ -335,6 +335,30 @@ describe("MollieService access token refresh", () => {
   });
 });
 
+describe("MollieService.refreshStatus", () => {
+  it("switches on card then Apple Pay on the restaurant's profile and records what Mollie said", async () => {
+    const prisma = {
+      mollieConnection: {
+        findFirst: jest.fn().mockResolvedValue(connected),
+        update: jest.fn().mockImplementation(async ({ data }: any) => ({ ...connected, ...data })),
+      },
+    } as any;
+    const svc = new MollieService(prisma, crypto, {} as any);
+    const spy = mollieReturns(
+      { id: "org_1", name: "Pizza Uno Ltd" },
+      { status: "in-review", canReceivePayments: false, canReceiveSettlements: false },
+      { _embedded: { profiles: [{ id: "pfl_1", status: "verified" }] } },
+      { status: "pending-review" },
+      { __status: 422, detail: "Credit card must be enabled first" },
+    );
+    const out = await svc.refreshStatus("t1", "b1");
+    expect(callUrl(spy, 3)).toBe("https://api.mollie.com/v2/profiles/pfl_1/methods/creditcard");
+    expect(callUrl(spy, 4)).toBe("https://api.mollie.com/v2/profiles/pfl_1/methods/applepay");
+    expect(out.methodStatuses).toEqual({ creditcard: "pending-review", applepay: "not-yet" });
+    expect(out.status).toBe("in-review");
+  });
+});
+
 describe("MollieService onboarding", () => {
   it("builds a client link with our app id, a signed state and the scopes", async () => {
     const prisma = {

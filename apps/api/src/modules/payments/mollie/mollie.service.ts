@@ -402,9 +402,42 @@ export class MollieService {
         lastError: profileId
           ? null
           : "No website profile on this Mollie account yet — the restaurant needs to finish onboarding in Mollie.",
+        ...(profileId ? { methodStatuses: await this.ensureMethods(token, profileId) } : {}),
       },
     });
     return this.view(updated);
+  }
+
+  /**
+   * Ask Mollie to switch on the methods our checkout offers, on the
+   * restaurant's own profile, so the owner doesn't have to find them in their
+   * dashboard. Card first: Apple Pay is refused (422) until card is on, and
+   * the next Refresh asks again. Enabling an already-enabled method is a
+   * no-op, so this is safe on every refresh.
+   *
+   * Google Pay can't be switched on this way — Mollie's Enable method API has
+   * no id for it. The owner presses + on it in their Mollie dashboard once
+   * card is approved; it then shows inside "creditcard" on our checkout.
+   *
+   * Never throws: a method Mollie won't enable yet must not stop the status
+   * refresh that called it.
+   */
+  private async ensureMethods(token: string, profileId: string): Promise<Record<string, string>> {
+    const out: Record<string, string> = {};
+    for (const method of STOREFRONT_METHODS) {
+      try {
+        const m = await this.api.request<{ status?: string | null }>(
+          token,
+          "POST",
+          `/v2/profiles/${encodeURIComponent(profileId)}/methods/${method}`,
+        );
+        out[method] = m?.status ?? "activated";
+      } catch (err: any) {
+        out[method] = "not-yet";
+        this.logger.warn(`Mollie: couldn't enable ${method} on ${profileId}: ${err?.message}`);
+      }
+    }
+    return out;
   }
 
   /** Turn Mollie on or off for a brand's online payments. */
@@ -530,6 +563,8 @@ export class MollieService {
       onboardingDashboardUrl: conn?.onboardingDashboardUrl ?? null,
       clientLinkUrl: conn?.clientLinkUrl ? this.withCurrentRedirect(conn.clientLinkUrl) : null,
       lastError: conn?.lastError ?? null,
+      // { creditcard: "activated" | "pending-review" | …, applepay: … }
+      methodStatuses: conn?.methodStatuses ?? null,
     };
   }
 
