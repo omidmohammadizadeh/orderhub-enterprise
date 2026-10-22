@@ -99,13 +99,11 @@ export class MollieService {
   redirectUri(): string {
     const explicit = process.env.MOLLIE_REDIRECT_URI?.trim();
     if (explicit) return explicit;
-    const api = (process.env.API_URL ?? "").replace(/\/+$/, "");
-    return `${api}/v1/payments/mollie/oauth/callback`;
+    return `${apiBase()}/v1/payments/mollie/oauth/callback`;
   }
 
   webhookUrl(): string {
-    const api = (process.env.API_URL ?? "").replace(/\/+$/, "");
-    return `${api}/v1/payments/mollie/webhook`;
+    return `${apiBase()}/v1/payments/mollie/webhook`;
   }
 
   private webUrl(): string {
@@ -498,6 +496,22 @@ export class MollieService {
     };
   }
 
+  /**
+   * A client link stored before the redirect URI was right still carries the
+   * old one, and Mollie refuses any redirect that doesn't match the app's
+   * exactly. The link id and signed state are still good, so swap in the
+   * current redirect rather than making the operator start again.
+   */
+  private withCurrentRedirect(url: string): string {
+    try {
+      const u = new URL(url);
+      if (u.searchParams.has("redirect_uri")) u.searchParams.set("redirect_uri", this.redirectUri());
+      return u.toString();
+    } catch {
+      return url;
+    }
+  }
+
   /** What the dashboard may see — never a token. */
   private view(conn: any) {
     return {
@@ -509,7 +523,7 @@ export class MollieService {
       canReceivePayments: !!conn?.canReceivePayments,
       canReceiveSettlements: !!conn?.canReceiveSettlements,
       onboardingDashboardUrl: conn?.onboardingDashboardUrl ?? null,
-      clientLinkUrl: conn?.clientLinkUrl ?? null,
+      clientLinkUrl: conn?.clientLinkUrl ? this.withCurrentRedirect(conn.clientLinkUrl) : null,
       lastError: conn?.lastError ?? null,
     };
   }
@@ -869,4 +883,23 @@ export function feeBreakdown(
     platformFee: roundToCurrency(fixed + pct, currency),
     customerSurcharge: roundToCurrency(fixed, currency),
   };
+}
+
+/**
+ * Public base of our API, INCLUDING the global "/api" prefix (main.ts).
+ *
+ * API_URL on Render is the bare host, without "/api", and every route lives
+ * under "/api" — so "${API_URL}/v1/…" is a 404. That sent Mollie a redirect
+ * URI that matched neither a real route nor the one registered on the OAuth
+ * app, and Mollie refused the sign-up with "redirect URI missing or does not
+ * match". Accept either form of the env var.
+ */
+export function apiBase(): string {
+  // API_URL first: production's API_PUBLIC_URL is the bare Render service
+  // name (see DojoService.publicApiBase), so only a full http(s) URL counts.
+  const raw =
+    [process.env.API_URL, process.env.API_PUBLIC_URL]
+      .map((v) => (v ?? "").trim().replace(/\/+$/, ""))
+      .find((v) => /^https?:\/\//.test(v)) ?? "";
+  return raw.endsWith("/api") ? raw : `${raw}/api`;
 }

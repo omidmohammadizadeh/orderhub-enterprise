@@ -1,4 +1,4 @@
-import { MollieService, feeBreakdown } from "../mollie/mollie.service";
+import { MollieService, apiBase, feeBreakdown } from "../mollie/mollie.service";
 import {
   mollieAmount,
   signOAuthState,
@@ -56,6 +56,21 @@ beforeEach(setEnv);
 afterEach(() => {
   clearEnv();
   jest.restoreAllMocks();
+});
+
+describe("apiBase", () => {
+  it("adds the /api global prefix when API_URL is the bare host, and never doubles it", () => {
+    process.env.API_URL = "https://api.example";
+    expect(apiBase()).toBe("https://api.example/api");
+    process.env.API_URL = "https://api.example/api/";
+    expect(apiBase()).toBe("https://api.example/api");
+  });
+
+  it("puts the OAuth redirect and the webhook under /api", () => {
+    const svc = new MollieService({} as any, crypto, {} as any);
+    expect(svc.redirectUri()).toBe("https://api.example/api/v1/payments/mollie/oauth/callback");
+    expect(svc.webhookUrl()).toBe("https://api.example/api/v1/payments/mollie/webhook");
+  });
 });
 
 describe("mollieAmount", () => {
@@ -177,7 +192,7 @@ describe("MollieService.createPayment", () => {
     expect(body.applicationFee.amount).toEqual({ currency: "GBP", value: "1.00" });
     expect(body.profileId).toBe("pfl_1");
     expect(body.testmode).toBe(true);
-    expect(body.webhookUrl).toBe("https://api.example/v1/payments/mollie/webhook");
+    expect(body.webhookUrl).toBe("https://api.example/api/v1/payments/mollie/webhook");
     expect(body.metadata).toMatchObject({ orderId: "o1", brandId: "b1" });
 
     const row = prisma.payment.create.mock.calls[0][0].data;
