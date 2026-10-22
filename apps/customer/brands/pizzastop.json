@@ -1,0 +1,28 @@
+{
+  "$schema": "./brand.schema.json",
+  "slug": "pizzastop",
+  "name": "Pizza Stop",
+  "brandId": "cmvk5fpfg0063ktdo9jx2044e",
+  "locationId": "cmvk5fp1c0061ktdogc1dneti",
+  "storefrontUrl": "https://www.orderhubsolutions.com/order/cmvk5fp1c0061ktdogc1dneti?brand=cmvk5fpfg0063ktdo9jx2044e",
+  "apiUrl": "https://orderhub-api-0re6.onrender.com/api",
+  "primaryColor": "#D62828",
+  "backgroundColor": "#FFFFFF",
+  "icon": "brands/pizzastop/icon.png",
+  "adaptiveIcon": "brands/pizzastop/adaptive-icon.png",
+  "splash": "brands/pizzastop/splash.png",
+  "notificationIcon": "brands/pizzastop/notification-icon.png",
+  "version": "1.2.0",
+  "ios": {
+    "bundleId": "com.orderhubsolutions.pizzastop",
+    "appleTeamId": null,
+    "ascAppId": null
+  },
+  "android": {
+    "package": "com.orderhubsolutions.pizzastop"
+  },
+  "google": {
+    "iosClientId": "331572609147-9m51urv9qi8vcjh2cvie4a1cf6hbej4k.apps.googleusercontent.com"
+  },
+  "easProjectId": "b1b67baf-1de7-4efd-a80d-5ecc031c9a92"
+}
