@@ -345,12 +345,12 @@ const FIELDS: Array<{ key: string; label: string; required?: boolean; type?: str
   { key: "givenName", label: "Owner first name", required: true },
   { key: "familyName", label: "Owner last name", required: true },
   { key: "email", label: "Owner email", required: true, type: "email" },
-  { key: "organizationName", label: "Registered business name" },
+  { key: "organizationName", label: "Business name (sole trader: trading name)" },
   { key: "streetAndNumber", label: "Street and number" },
   { key: "postalCode", label: "Postcode" },
   { key: "city", label: "City" },
-  { key: "registrationNumber", label: "Companies House number" },
-  { key: "vatNumber", label: "VAT number" },
+  { key: "registrationNumber", label: "Companies House number (Ltd only)" },
+  { key: "vatNumber", label: "VAT number (if registered)" },
 ];
 
 function ClientLinkForm({
@@ -384,7 +384,8 @@ function ClientLinkForm({
       <p className="mb-2 text-xs text-zinc-600">
         Mollie creates the restaurant&apos;s account with these details pre-filled. The owner gets
         an email to set a password, finishes the checks on Mollie&apos;s pages, and is brought back
-        here connected.
+        here connected. Sole traders leave the company and VAT numbers blank: Mollie asks
+        what kind of business it is during sign-up.
       </p>
       <div className="grid gap-2 sm:grid-cols-3">
         {FIELDS.map((f) => (
