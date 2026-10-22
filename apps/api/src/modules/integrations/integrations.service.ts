@@ -6,6 +6,7 @@ import {
 } from "@nestjs/common";
 import type { IntegrationPlatform, IntegrationStatus } from "@orderhub/database";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { publicApiBase } from "../../common/public-api-url";
 import { CredentialEncryptionService } from "./credential-encryption.service";
 
 export interface CreateIntegrationDto {
@@ -199,8 +200,7 @@ export class IntegrationsService {
   }
 
   private generateWebhookUrl(locationId: string, platform: string): string {
-    const base = process.env.API_PUBLIC_URL ?? "https://api.orderhub.io";
-    return `${base}/api/v1/webhooks/${platform.toLowerCase()}?locationId=${locationId}`;
+    return integrationWebhookUrl(locationId, platform);
   }
 
   private async assertLocationAccess(locationId: string, tenantId: string) {
@@ -218,4 +218,19 @@ export class IntegrationsService {
     if (!integration) throw new NotFoundException("Integration not found");
     return integration;
   }
+}
+
+/**
+ * The receiver WebhooksController serves: POST /v1/webhooks/:platform/:locationId,
+ * with the platform as a kebab slug ("uber-eats"). The old form —
+ * "${API_PUBLIC_URL}/api/v1/webhooks/uber_eats?locationId=…" — matched no route,
+ * and API_PUBLIC_URL isn't even a URL in production.
+ */
+export function integrationWebhookUrl(
+  locationId: string,
+  platform: string,
+  env: NodeJS.ProcessEnv = process.env,
+): string {
+  const slug = platform.toLowerCase().replace(/_/g, "-");
+  return `${publicApiBase(env)}/v1/webhooks/${slug}/${encodeURIComponent(locationId)}`;
 }

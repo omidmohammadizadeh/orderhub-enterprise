@@ -8,6 +8,7 @@ import { currencyForCountry, roundToCurrency, usesTap } from "@orderhub/shared";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { CredentialEncryptionService } from "../../integrations/credential-encryption.service";
 import { PaymentsService } from "../payments.service";
+import { publicApiBase } from "../../../common/public-api-url";
 import {
   MOLLIE_AUTHORIZE_URL,
   MOLLIE_SCOPES,
@@ -895,21 +896,5 @@ export function feeBreakdown(
   };
 }
 
-/**
- * Public base of our API, INCLUDING the global "/api" prefix (main.ts).
- *
- * API_URL on Render is the bare host, without "/api", and every route lives
- * under "/api" — so "${API_URL}/v1/…" is a 404. That sent Mollie a redirect
- * URI that matched neither a real route nor the one registered on the OAuth
- * app, and Mollie refused the sign-up with "redirect URI missing or does not
- * match". Accept either form of the env var.
- */
-export function apiBase(): string {
-  // API_URL first: production's API_PUBLIC_URL is the bare Render service
-  // name (see DojoService.publicApiBase), so only a full http(s) URL counts.
-  const raw =
-    [process.env.API_URL, process.env.API_PUBLIC_URL]
-      .map((v) => (v ?? "").trim().replace(/\/+$/, ""))
-      .find((v) => /^https?:\/\//.test(v)) ?? "";
-  return raw.endsWith("/api") ? raw : `${raw}/api`;
-}
+/** Public API base incl. the "/api" prefix — see common/public-api-url. */
+export const apiBase = (): string => publicApiBase();
