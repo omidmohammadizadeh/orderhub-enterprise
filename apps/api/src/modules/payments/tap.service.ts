@@ -12,6 +12,7 @@ import {
 } from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { PaymentsService } from "./payments.service";
+import { publicApiBase } from "../../common/public-api-url";
 
 // Tap Payments — the Gulf money path.
 //
@@ -155,16 +156,9 @@ export function commissionDestinations(input: {
   return [{ id: input.walletId, amount: fee, currency: input.currency }];
 }
 
-/**
- * Our public API root as Tap must call it — API_URL plus the global "api"
- * prefix main.ts sets. API_URL itself is the bare host: building
- * `${API_URL}/v1/...` (as the first build did) sent every Tap webhook to a
- * path Nest doesn't serve, and Tap's merchant-signup posts all 404'd
- * (2026-10-22). Tolerates an API_URL that already ends in /api.
- */
+/** Our public API root incl. the "/api" prefix — see common/public-api-url. */
 export function publicApiRoot(env: NodeJS.ProcessEnv = process.env): string {
-  const host = (env.API_URL ?? "").trim().replace(/\/+$/, "");
-  return host.endsWith("/api") ? host : `${host}/api`;
+  return publicApiBase(env);
 }
 
 /** Where Tap posts charge/refund results. */
