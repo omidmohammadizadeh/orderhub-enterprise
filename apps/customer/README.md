@@ -205,7 +205,7 @@ Create credentials → OAuth client ID:
 bestkebabs (ids in their brand files). Android clients for kingstonpizza and pizzaunopelton with the EAS upload key
 and both Play app-signing keys (the org Play account, developer 7811250872041921096, shows a current and a previous
 signing key since the 17 Oct key upgrade), and for all three with the local `android/app/debug.keystore` SHA-1
-(`5E:8F:16:06:…`) for emulator builds. pizzauno (OrderHub's own Apple team, 19 Oct): iOS client and an Android client with its EAS upload key (`65:D3:35:66:…`); and its Play app-signing key (`58:2B:1A:8C:…:17:AA`, Play app 4972127198937021259). grillhousepelton (22 Oct 2026, Play app 4973971105910634938): iOS client, and Android clients for its EAS upload key (`59:3A:24:95:…`) and Play app-signing key (`53:E6:7E:AF:…:D9:B5`). Still to add for bestkebabs: its EAS upload key and Play signing key once it
+(`5E:8F:16:06:…`) for emulator builds. pizzauno (OrderHub's own Apple team, 19 Oct): iOS client and an Android client with its EAS upload key (`65:D3:35:66:…`); and its Play app-signing key (`58:2B:1A:8C:…:17:AA`, Play app 4972127198937021259). grillhousepelton (22 Oct 2026, Play app 4973971105910634938): iOS client, and Android clients for its EAS upload key (`59:3A:24:95:…`) and Play app-signing key (`53:E6:7E:AF:…:D9:B5`). pizzastop (23 Oct 2026, Play app 4974552652261159059): iOS client, and Android clients for its EAS upload key (`FC:C1:B3:7F:…:78:4A`) and Play app-signing key (`CD:77:FF:7D:…:72:F8`). Still to add for bestkebabs: its EAS upload key and Play signing key once it
 has an Android build and a Play app.
 
 ### Per brand: Apple
