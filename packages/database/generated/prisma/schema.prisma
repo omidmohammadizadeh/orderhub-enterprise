@@ -3406,6 +3406,8 @@ model MollieConnection {
   /// What Mollie said when we asked it to switch on card / Apple Pay on the
   /// restaurant's profile, e.g. { creditcard: "pending-review" }.
   methodStatuses         Json?
+  /// tr_… of the last dashboard "Test payment" (test mode, no order).
+  lastTestPaymentId      String?
   /// Take this brand's online payments through Mollie instead of Stripe.
   enabled                Boolean   @default(false)
   connectedAt            DateTime?

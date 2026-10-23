@@ -440,6 +440,87 @@ export class MollieService {
     return out;
   }
 
+  // ── Test payment (no order, no switch) ─────────────────────────────────────
+
+  private async connectedOrThrow(tenantId: string, brandId: string) {
+    const conn = await (this.prisma as any).mollieConnection.findFirst({
+      where: { brandId, tenantId },
+    });
+    if (!conn?.refreshTokenEnc) throw new BadRequestException("Connect this brand's Mollie account first.");
+    if (!conn.profileId) {
+      throw new BadRequestException("This Mollie account has no website profile yet — press Refresh once it has.");
+    }
+    return conn;
+  }
+
+  /**
+   * A £1.00 TEST-mode payment on the brand's own Mollie account, with no order
+   * and without switching the brand to Mollie — so a shop that is trading can
+   * be checked without its customers or its kitchen seeing anything.
+   *
+   * It exercises what a real one does: the restaurant's token and profile, the
+   * card/Apple Pay-only checkout, and a 10p application fee (which is how we
+   * find out whether Mollie takes our fee in GBP). Always testmode, whatever
+   * MOLLIE_TESTMODE says, so it can never move real money.
+   */
+  async createTestPayment(tenantId: string, brandId: string): Promise<{ paymentId: string; checkoutUrl: string }> {
+    const conn = await this.connectedOrThrow(tenantId, brandId);
+    const token = await this.accessToken(conn);
+    const back = `${this.webUrl()}/dashboard/payments?${new URLSearchParams({ mollieTest: "1", brand: brandId })}`;
+    const p = await this.api.request<MolliePayment>(token, "POST", "/v2/payments", {
+      body: {
+        amount: mollieAmount(1, "GBP"),
+        description: "OrderHub test payment",
+        redirectUrl: back,
+        webhookUrl: this.webhookUrl(),
+        locale: "en_GB",
+        method: STOREFRONT_METHODS,
+        profileId: conn.profileId,
+        testmode: true,
+        applicationFee: { amount: mollieAmount(0.1, "GBP"), description: "OrderHub test fee" },
+        metadata: { orderhubTest: true, brandId },
+      },
+    });
+    const checkoutUrl = p._links?.checkout?.href;
+    if (!checkoutUrl) throw new BadRequestException("Mollie didn't return a checkout page for the test payment.");
+    await (this.prisma as any).mollieConnection.update({
+      where: { id: conn.id },
+      data: { lastTestPaymentId: p.id },
+    });
+    this.logger.log(`Mollie test payment ${p.id} created for brand ${brandId}`);
+    return { paymentId: p.id, checkoutUrl };
+  }
+
+  /**
+   * Where the brand's last test payment got to — and, with refund=true, give
+   * it back once paid. Read with the restaurant's token, like the webhook.
+   */
+  async testPaymentStatus(tenantId: string, brandId: string, refund = false) {
+    const conn = await this.connectedOrThrow(tenantId, brandId);
+    if (!conn.lastTestPaymentId) throw new BadRequestException("No test payment yet — press Test payment first.");
+    const token = await this.accessToken(conn);
+    const path = `/v2/payments/${encodeURIComponent(conn.lastTestPaymentId)}`;
+    let p = await this.api.request<any>(token, "GET", path, { query: { testmode: "true" } });
+    let refundStatus: string | null = null;
+    if (refund && p.status === "paid" && !(Number(p.amountRefunded?.value ?? 0) > 0)) {
+      const r = await this.api.request<{ id: string; status: string }>(token, "POST", `${path}/refunds`, {
+        idempotencyKey: `rf_${p.id}_test`,
+        body: { amount: p.amount, description: "OrderHub test refund", testmode: true },
+      });
+      refundStatus = r.status;
+      p = await this.api.request<any>(token, "GET", path, { query: { testmode: "true" } });
+    }
+    return {
+      paymentId: p.id,
+      status: p.status as string,
+      method: (p.method as string | null) ?? null,
+      amount: p.amount,
+      applicationFee: p.applicationFee?.amount ?? null,
+      amountRefunded: p.amountRefunded ?? null,
+      refundStatus,
+    };
+  }
+
   /** Turn Mollie on or off for a brand's online payments. */
   async setEnabled(tenantId: string, brandId: string, enabled: boolean) {
     const conn = await (this.prisma as any).mollieConnection.findFirst({

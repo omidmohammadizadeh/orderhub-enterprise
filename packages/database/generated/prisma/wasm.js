@@ -1608,6 +1608,7 @@ exports.Prisma.MollieConnectionScalarFieldEnum = {
   clientLinkId: 'clientLinkId',
   clientLinkUrl: 'clientLinkUrl',
   methodStatuses: 'methodStatuses',
+  lastTestPaymentId: 'lastTestPaymentId',
   enabled: 'enabled',
   connectedAt: 'connectedAt',
   lastError: 'lastError',
@@ -3903,6 +3904,7 @@ exports.Prisma.MollieConnectionOrderByRelevanceFieldEnum = {
   onboardingDashboardUrl: 'onboardingDashboardUrl',
   clientLinkId: 'clientLinkId',
   clientLinkUrl: 'clientLinkUrl',
+  lastTestPaymentId: 'lastTestPaymentId',
   lastError: 'lastError'
 };
 
