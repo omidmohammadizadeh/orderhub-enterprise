@@ -39,6 +39,16 @@ interface MollieBrandRow {
   methodStatuses: Record<string, string> | null;
 }
 
+interface TestResult {
+  paymentId: string;
+  status: string;
+  method: string | null;
+  amount: { value: string; currency: string };
+  applicationFee: { value: string; currency: string } | null;
+  amountRefunded: { value: string; currency: string } | null;
+  refundStatus: string | null;
+}
+
 interface MollieStatus {
   configured: boolean;
   clientLinksAvailable: boolean;
@@ -182,6 +192,38 @@ function MollieBrand({
 
   const ready = row.connected && !!row.profileId;
 
+  // £1 test-mode payment on this brand's Mollie account — no order, no switch,
+  // so it is safe on a shop that is trading. Mollie sends the browser back
+  // here with ?mollieTest=1&brand=<id>, which opens the result panel.
+  const startTest = useMutation({
+    mutationFn: () =>
+      apiClient.post<{ checkoutUrl: string }>(`${base}/test-payment`).then((r) => r.data),
+    onSuccess: (d) => {
+      window.location.href = d.checkoutUrl;
+    },
+    onError: (e) => setErr(errorText(e)),
+  });
+  const [returnedFromTest] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const p = new URLSearchParams(window.location.search);
+    return p.get("mollieTest") === "1" && p.get("brand") === row.brandId;
+  });
+  const [test, setTest] = useState<TestResult | null>(null);
+  const testStatus = useMutation({
+    mutationFn: (refund: boolean) =>
+      apiClient.post<TestResult>(`${base}/test-payment/status`, { refund }).then((r) => r.data),
+    onSuccess: (d) => {
+      setErr(null);
+      setTest(d);
+    },
+    onError: (e) => setErr(errorText(e)),
+  });
+  useEffect(() => {
+    if (returnedFromTest) testStatus.mutate(false);
+    // Once, on landing back from Mollie's test checkout.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [returnedFromTest]);
+
   return (
     <li className="py-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -226,6 +268,15 @@ function MollieBrand({
                   />
                   Use Mollie
                 </label>
+                <button
+                  type="button"
+                  onClick={() => startTest.mutate()}
+                  disabled={!ready || startTest.isPending}
+                  className="inline-flex items-center gap-1 rounded-lg border border-zinc-200 px-2.5 py-1.5 text-sm hover:bg-zinc-50 disabled:opacity-50"
+                >
+                  {startTest.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  Test payment
+                </button>
                 <button
                   type="button"
                   onClick={() => refresh.mutate()}
@@ -304,6 +355,38 @@ function MollieBrand({
           the restaurant turns on itself in Mollie (Settings → Online payments → Google
           Pay), once card is approved.
         </p>
+      )}
+      {test && (
+        <div className="mt-2 rounded-lg bg-zinc-50 px-2.5 py-2 text-xs text-zinc-700">
+          <div>
+            Test payment {test.paymentId}: <strong>{test.status}</strong>
+            {test.method && <> · {test.method}</>} · {test.amount.value} {test.amount.currency}
+            {test.applicationFee && (
+              <> · our fee {test.applicationFee.value} {test.applicationFee.currency}</>
+            )}
+            {test.amountRefunded && Number(test.amountRefunded.value) > 0 && (
+              <> · refunded {test.amountRefunded.value}</>
+            )}
+          </div>
+          <div className="mt-1.5 flex gap-2">
+            <button
+              type="button"
+              onClick={() => testStatus.mutate(false)}
+              className="rounded border border-zinc-200 bg-white px-2 py-1 hover:bg-zinc-100"
+            >
+              Check again
+            </button>
+            {test.status === "paid" && !(test.amountRefunded && Number(test.amountRefunded.value) > 0) && (
+              <button
+                type="button"
+                onClick={() => testStatus.mutate(true)}
+                className="rounded border border-zinc-200 bg-white px-2 py-1 hover:bg-zinc-100"
+              >
+                Refund test payment
+              </button>
+            )}
+          </div>
+        </div>
       )}
       {(err || row.lastError) && (
         <div className="mt-2 flex items-start gap-1.5 text-xs text-red-700">

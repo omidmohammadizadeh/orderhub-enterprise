@@ -76,6 +76,24 @@ export class MollieController {
     return this.mollie.setEnabled(user.tenantId, brandId, body?.enabled === true);
   }
 
+  @Post("brands/:brandId/test-payment")
+  @Roles("TENANT_OWNER", "FINANCIAL_AGENT")
+  @ApiOperation({ summary: "£1 test-mode payment on the brand's Mollie account (no order)" })
+  testPayment(@Param("brandId") brandId: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.mollie.createTestPayment(user.tenantId, brandId);
+  }
+
+  @Post("brands/:brandId/test-payment/status")
+  @Roles("TENANT_OWNER", "FINANCIAL_AGENT")
+  @ApiOperation({ summary: "Status of the last test payment; refund:true gives it back once paid" })
+  testPaymentStatus(
+    @Param("brandId") brandId: string,
+    @Body() body: { refund?: boolean },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.mollie.testPaymentStatus(user.tenantId, brandId, body?.refund === true);
+  }
+
   @Post("brands/:brandId/disconnect")
   @Roles("TENANT_OWNER", "FINANCIAL_AGENT")
   @ApiOperation({ summary: "Forget this brand's Mollie connection" })

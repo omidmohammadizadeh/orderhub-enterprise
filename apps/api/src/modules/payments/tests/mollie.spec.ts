@@ -359,6 +359,47 @@ describe("MollieService.refreshStatus", () => {
   });
 });
 
+describe("MollieService test payment", () => {
+  it("is always test mode, card/Apple Pay only, with a 10p fee, and needs no order or switch", async () => {
+    process.env.MOLLIE_TESTMODE = "false"; // even when live, a test payment stays a test
+    const prisma = {
+      mollieConnection: {
+        findFirst: jest.fn().mockResolvedValue({ ...connected, enabled: false }),
+        update: jest.fn().mockResolvedValue({}),
+      },
+    } as any;
+    const svc = new MollieService(prisma, crypto, {} as any);
+    const spy = mollieReturns({ id: "tr_t1", status: "open", _links: { checkout: { href: "https://mollie/co" } } });
+    const out = await svc.createTestPayment("t1", "b1");
+    expect(out).toEqual({ paymentId: "tr_t1", checkoutUrl: "https://mollie/co" });
+    const body = callBody(spy);
+    expect(body).toMatchObject({
+      amount: { currency: "GBP", value: "1.00" },
+      testmode: true,
+      profileId: "pfl_1",
+      method: ["creditcard", "applepay"],
+      applicationFee: { amount: { currency: "GBP", value: "0.10" } },
+    });
+    expect(prisma.mollieConnection.update).toHaveBeenCalledWith({
+      where: { id: "mc1" },
+      data: { lastTestPaymentId: "tr_t1" },
+    });
+  });
+
+  it("refunds a paid test payment once, in test mode", async () => {
+    const prisma = {
+      mollieConnection: { findFirst: jest.fn().mockResolvedValue({ ...connected, lastTestPaymentId: "tr_t1" }) },
+    } as any;
+    const svc = new MollieService(prisma, crypto, {} as any);
+    const paid = { id: "tr_t1", status: "paid", amount: { currency: "GBP", value: "1.00" } };
+    const spy = mollieReturns(paid, { id: "re_1", status: "pending" }, { ...paid, amountRefunded: { currency: "GBP", value: "1.00" } });
+    const out = await svc.testPaymentStatus("t1", "b1", true);
+    expect(callUrl(spy, 1)).toBe("https://api.mollie.com/v2/payments/tr_t1/refunds");
+    expect(callBody(spy, 1)).toMatchObject({ testmode: true, amount: { value: "1.00" } });
+    expect(out).toMatchObject({ status: "paid", refundStatus: "pending", amountRefunded: { value: "1.00" } });
+  });
+});
+
 describe("MollieService onboarding", () => {
   it("builds a client link with our app id, a signed state and the scopes", async () => {
     const prisma = {
