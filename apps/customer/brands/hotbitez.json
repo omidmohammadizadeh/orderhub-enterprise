@@ -1,0 +1,28 @@
+{
+  "$schema": "./brand.schema.json",
+  "slug": "hotbitez",
+  "name": "Hot Bitez",
+  "brandId": "cmvlezv8k01e6nb8c5sxqq0ax",
+  "locationId": "cmvlezuu301e2nb8ctilqf7lu",
+  "storefrontUrl": "https://www.orderhubsolutions.com/order/cmvlezuu301e2nb8ctilqf7lu?brand=cmvlezv8k01e6nb8c5sxqq0ax",
+  "apiUrl": "https://orderhub-api-0re6.onrender.com/api",
+  "primaryColor": "#ED1C24",
+  "backgroundColor": "#FFFFFF",
+  "icon": "brands/hotbitez/icon.png",
+  "adaptiveIcon": "brands/hotbitez/adaptive-icon.png",
+  "splash": "brands/hotbitez/splash.png",
+  "notificationIcon": "brands/hotbitez/notification-icon.png",
+  "version": "1.2.0",
+  "ios": {
+    "bundleId": "com.orderhubsolutions.hotbitez",
+    "appleTeamId": null,
+    "ascAppId": null
+  },
+  "android": {
+    "package": "com.orderhubsolutions.hotbitez"
+  },
+  "google": {
+    "iosClientId": "331572609147-7d7f2923m1lmjo1bt4dac7i6krqb21nv.apps.googleusercontent.com"
+  },
+  "easProjectId": "6ce9ade8-4e20-4a5e-a4db-dfb2ce119e71"
+}
