@@ -3373,6 +3373,51 @@ model StripeConnectAccount {
   @@map("stripe_connect_accounts")
 }
 
+/// One brand's Mollie account, connected to our platform through Mollie
+/// Connect (OAuth). Mollie is opt-in per brand and sits alongside Stripe: a
+/// brand whose row has `enabled` true takes its online card payments through
+/// Mollie, everyone else stays on Stripe (or Tap in the Gulf). No relations on
+/// purpose — the brand/tenant ids are enough, and keeping Brand untouched
+/// keeps this a pure add.
+model MollieConnection {
+  id                    String    @id @default(cuid())
+  tenantId              String
+  brandId               String    @unique
+  /// org_… of the restaurant's Mollie organisation, once connected.
+  organizationId        String?
+  organizationName      String?
+  /// pfl_… — the website profile payments are taken on. Required by Mollie
+  /// for every OAuth-created payment.
+  profileId             String?
+  /// OAuth tokens, encrypted with CredentialEncryptionService.
+  accessTokenEnc        Json?
+  refreshTokenEnc       Json?
+  accessTokenExpiresAt  DateTime?
+  scope                 String?
+  /// not_started | link_sent | connected | needs-data | in-review | completed | revoked
+  status                String    @default("not_started")
+  canReceivePayments    Boolean   @default(false)
+  canReceiveSettlements Boolean   @default(false)
+  /// Mollie's deep link into the restaurant's own onboarding wizard.
+  onboardingDashboardUrl String?
+  /// The last client link (co-branded sign-up) we generated, so it can be re-sent.
+  clientLinkId          String?
+  clientLinkUrl         String?
+  /// What Mollie said when we asked it to switch on card / Apple Pay on the
+  /// restaurant's profile, e.g. { creditcard: "pending-review" }.
+  methodStatuses        Json?
+  /// Take this brand's online payments through Mollie instead of Stripe.
+  enabled               Boolean   @default(false)
+  connectedAt           DateTime?
+  lastError             String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("mollie_connections")
+}
+
 // Immutable payment record — one per payment attempt
 model Payment {
   id                     String                @id @default(cuid())

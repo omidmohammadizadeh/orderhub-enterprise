@@ -1,6 +1,16 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { publicApiBase } from "../../common/public-api-url";
+
+/**
+ * The callback URL to paste into Meta. It was built on API_PUBLIC_URL, which
+ * production sets to the bare Render service name — "orderhub-api-0re6/api/…"
+ * is no URL at all.
+ */
+export function whatsappWebhookUrl(env: NodeJS.ProcessEnv = process.env): string {
+  return `${publicApiBase(env)}/v1/whatsapp/webhook`;
+}
 
 // Phase AY (P6) — per-location WhatsApp activation. Platform-managed model:
 // every restaurant's number lives under our single Meta app/WABA, so sending
@@ -35,11 +45,7 @@ export class WhatsAppConnectionService {
   ) {}
 
   private webhookUrl(): string {
-    const base =
-      this.config.get<string>("API_PUBLIC_URL") ??
-      this.config.get<string>("PUBLIC_API_URL") ??
-      "https://api.orderhubsolutions.com";
-    return `${base.replace(/\/$/, "")}/api/v1/whatsapp/webhook`;
+    return whatsappWebhookUrl();
   }
 
   /**

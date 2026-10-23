@@ -4,7 +4,7 @@ import Constants from "expo-constants";
 import { type ReactNode, useCallback, useState } from "react";
 import { Alert, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
 import { deleteAccount, refreshCustomer, signOut, useAuth } from "../auth";
-import { brand, withBrandQuery } from "../brand";
+import { brand, storefrontOrigin, withBrandQuery } from "../brand";
 import { SignInButtons } from "../components/SignInButtons";
 import { openStorefront } from "../navigation";
 import { type Access, useAccess } from "../permissions";
@@ -187,6 +187,22 @@ export function SettingsScreen() {
             <Row icon="trash-outline" title="Delete account" onPress={confirmDelete} />
           </>
         ) : null}
+      </View>
+
+      <Text style={styles.section}>Legal</Text>
+      <View style={styles.group}>
+        <Row
+          icon="shield-checkmark-outline"
+          title="Privacy policy"
+          detail="How we collect and use your data"
+          onPress={() => Linking.openURL(`${storefrontOrigin}/privacy`)}
+        />
+        <View style={styles.divider} />
+        <Row
+          icon="document-text-outline"
+          title="Terms of service"
+          onPress={() => Linking.openURL(`${storefrontOrigin}/terms`)}
+        />
       </View>
 
       <Text style={styles.footer}>

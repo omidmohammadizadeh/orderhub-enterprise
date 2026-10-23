@@ -1590,6 +1590,31 @@ exports.Prisma.StripeConnectAccountScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.MollieConnectionScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  brandId: 'brandId',
+  organizationId: 'organizationId',
+  organizationName: 'organizationName',
+  profileId: 'profileId',
+  accessTokenEnc: 'accessTokenEnc',
+  refreshTokenEnc: 'refreshTokenEnc',
+  accessTokenExpiresAt: 'accessTokenExpiresAt',
+  scope: 'scope',
+  status: 'status',
+  canReceivePayments: 'canReceivePayments',
+  canReceiveSettlements: 'canReceiveSettlements',
+  onboardingDashboardUrl: 'onboardingDashboardUrl',
+  clientLinkId: 'clientLinkId',
+  clientLinkUrl: 'clientLinkUrl',
+  methodStatuses: 'methodStatuses',
+  enabled: 'enabled',
+  connectedAt: 'connectedAt',
+  lastError: 'lastError',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.PaymentScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -3866,6 +3891,21 @@ exports.Prisma.StripeConnectAccountOrderByRelevanceFieldEnum = {
   country: 'country'
 };
 
+exports.Prisma.MollieConnectionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  brandId: 'brandId',
+  organizationId: 'organizationId',
+  organizationName: 'organizationName',
+  profileId: 'profileId',
+  scope: 'scope',
+  status: 'status',
+  onboardingDashboardUrl: 'onboardingDashboardUrl',
+  clientLinkId: 'clientLinkId',
+  clientLinkUrl: 'clientLinkUrl',
+  lastError: 'lastError'
+};
+
 exports.Prisma.PaymentOrderByRelevanceFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -5327,6 +5367,7 @@ exports.Prisma.ModelName = {
   ChatMessage: 'ChatMessage',
   WhatsAppConversation: 'WhatsAppConversation',
   StripeConnectAccount: 'StripeConnectAccount',
+  MollieConnection: 'MollieConnection',
   Payment: 'Payment',
   PaymentMethod: 'PaymentMethod',
   Refund: 'Refund',

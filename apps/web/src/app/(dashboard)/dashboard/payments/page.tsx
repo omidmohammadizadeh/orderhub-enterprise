@@ -14,6 +14,7 @@ import {
   BrandConnectSection,
   type BrandConnectRow,
 } from "@/components/payments/brand-connect-section";
+import { MollieSection } from "@/components/payments/mollie-section";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 
 interface ConnectAccount {
@@ -74,6 +75,9 @@ export default function PaymentsPage() {
 
       {/* Phase AW-30 — per-brand Connect with embedded onboarding */}
       <BrandConnectSection />
+
+      {/* Mollie — opt-in per brand, instead of Stripe for online payments */}
+      {!gulfOnly && <MollieSection />}
 
       {/* Stripe Connect status */}
       {!gulfOnly && (
