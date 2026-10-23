@@ -619,6 +619,36 @@ export class MenusService {
           ...((source as any).menuType && {
             menuType: (source as any).menuType,
           }),
+          // Everything that makes the copy LOOK like the original. These were
+          // dropped, so a cloned menu lost its storefront banner and had to
+          // have it set again by hand.
+          ...((source as any).description != null && {
+            description: (source as any).description,
+          }),
+          ...((source as any).bannerImage != null && {
+            bannerImage: (source as any).bannerImage,
+          }),
+          ...((source as any).heroImage != null && {
+            heroImage: (source as any).heroImage,
+          }),
+          ...((source as any).logoImage != null && {
+            logoImage: (source as any).logoImage,
+          }),
+          // The deep-copied products bring their platformPricingOverrides with
+          // them, and those are keyed by variant ref. Without the menu's own
+          // variant list the clone held channel prices nothing could name: the
+          // pricing modal showed none of them, and buildPriceMap resolved
+          // `variants.find(v => v.ref === ref)?.brandId` to null — silently
+          // dropping a variant's brand RESTRICTION, so a publish could include
+          // items it was meant to leave out.
+          ...(Array.isArray((source as any).pricingVariants) &&
+            (source as any).pricingVariants.length > 0 && {
+              pricingVariants: (source as any).pricingVariants,
+            }),
+          // NOT copied, deliberately: status stays DRAFT, and publishedTo /
+          // lastPublishedAt / autoSchedule* are all about having been
+          // published. A copy that inherited the schedule would publish itself
+          // on the original's timetable.
         },
       });
 
