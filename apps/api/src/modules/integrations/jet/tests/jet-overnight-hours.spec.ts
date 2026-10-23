@@ -116,10 +116,13 @@ describe("Opening hours that cross midnight", () => {
       ]);
     });
 
-    it("omits a closed day rather than sending an empty array", () => {
+    it("states a closed day as an empty array", () => {
+      // Written as "omits" when this file was added two days ago; Corby then
+      // proved an omitted day is one JET never closes. jet-closed-day.spec.ts
+      // carries the full reasoning.
       const out = toJetOpeningTimes(friLate);
 
-      expect(out.tuesday).toBeUndefined();
+      expect(out.tuesday).toEqual([]);
     });
   });
 });
