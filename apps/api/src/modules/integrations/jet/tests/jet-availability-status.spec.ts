@@ -424,12 +424,14 @@ describe("JetStoreStatusService.reconcile", () => {
 });
 
 describe("toJetOpeningTimes", () => {
-  it("omits closed days rather than sending empty arrays", () => {
-    // Unlike the menu availability schema, service times have no
-    // all-days-required rule, and [] is ambiguous between closed and unset.
+  it("states closed days as empty arrays instead of omitting them", () => {
+    // This asserted the opposite until 23 Oct 2026, on the theory that [] was
+    // ambiguous between closed and unset. Korean Fried Chicken Corby settled
+    // it: we sent six days with Monday left out and Just Eat carried on taking
+    // Monday orders. Omission is what JET ignores. See jet-closed-day.spec.ts.
     const t = toJetOpeningTimes({ monday: [{ from: "09:00", to: "17:00" }] });
     expect(t.monday).toEqual([{ openingTime: "09:00", closingTime: "17:00" }]);
-    expect("sunday" in t).toBe(false);
+    expect(t.sunday).toEqual([]);
   });
 
   it("reads all three stored hour shapes", () => {
@@ -441,7 +443,7 @@ describe("toJetOpeningTimes", () => {
       toJetOpeningTimes([{ day: "friday", open: "11:00", close: "23:00" }]).friday,
     ).toEqual([{ openingTime: "11:00", closingTime: "23:00" }]);
     expect(toJetOpeningTimes({ wednesday: { enabled: false, slots: [] } }).wednesday)
-      .toBeUndefined();
+      .toEqual([]);
   });
 
   it("keeps split shifts", () => {
