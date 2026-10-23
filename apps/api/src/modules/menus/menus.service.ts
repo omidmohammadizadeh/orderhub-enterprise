@@ -3592,6 +3592,17 @@ export class MenusService {
             if (ref in overrides) { delete overrides[ref]; touched = true; }
             continue;
           }
+          // An unpriced row uplifts to 0, and that 0 then OUTRANKS the real
+          // base price for ever after — an override always wins, so filling
+          // the price in later changes nothing on that channel. Imported
+          // menus are unpriced until someone types the prices, so this is the
+          // normal order of events, not a corner case: it put four pizzas on
+          // Just Eat at £0.00 (order 977004437). Clear the key instead, which
+          // means "same as base" and keeps following the base price.
+          if (base <= 0) {
+            if (ref in overrides) { delete overrides[ref]; touched = true; }
+            continue;
+          }
           overrides[ref] = uplift(base, ch.percent);
           touched = true;
         }
@@ -3610,6 +3621,11 @@ export class MenusService {
           for (const b of itemBrands) {
             const ref = brandChannelRef(b, ch.channelKey);
             if (ch.percent === 0) {
+              if (ref in po) { delete po[ref]; skusTouched = true; }
+              continue;
+            }
+            // Same trap per size — see the item branch above.
+            if ((Number(sku.price) || 0) <= 0) {
               if (ref in po) { delete po[ref]; skusTouched = true; }
               continue;
             }

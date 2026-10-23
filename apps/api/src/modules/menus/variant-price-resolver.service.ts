@@ -117,6 +117,7 @@ export class VariantPriceResolverService {
                     id: true,
                     name: true,
                     externalId: true,
+                    basePrice: true,
                     hasMultipleSkus: true,
                     productSkus: true,
                     platformPricingOverrides: true,
@@ -128,6 +129,9 @@ export class VariantPriceResolverService {
                               select: {
                                 name: true,
                                 externalId: true,
+                                // The option's own price column is
+                                // priceAdjustment, NOT price.
+                                priceAdjustment: true,
                                 platformPricingOverrides: true,
                               },
                             },
@@ -158,6 +162,23 @@ export class VariantPriceResolverService {
     const seenItemIds = new Set<string>();
     const seenOptionKeys = new Set<string>();
 
+    /**
+     * A zero override on something that normally COSTS money is not a price —
+     * it is the uplift having been applied while the row was still unpriced.
+     *
+     * `applyChannelPricing` computes `uplift(Number(basePrice) || 0, pct)`, so
+     * running "Apply to menu" over an imported menu before the prices are
+     * filled in freezes a hard 0 into that channel. Setting the real price
+     * afterwards does not dislodge it, because an override always wins —
+     * `variantMap.itemPrice(it) ?? Number(it.basePrice)` returns 0, not 8.45.
+     * Just Eat order 977004437 shipped four pizzas at £0.00 that way.
+     *
+     * A genuinely free row has its own price of 0 and keeps its override, so
+     * nothing that is meant to be free stops being free.
+     */
+    const isUnpriced = (override: number, ownPrice: unknown) =>
+      override === 0 && (Number(ownPrice) || 0) > 0;
+
     for (const cat of menu?.categories ?? []) {
       for (const link of cat.items ?? []) {
         const it = (link as any).item;
@@ -166,7 +187,11 @@ export class VariantPriceResolverService {
 
         const itemOverrides = (it.platformPricingOverrides ?? {}) as Record<string, number>;
         const itemPrice = itemOverrides?.[variantRef];
-        if (typeof itemPrice === "number" && Number.isFinite(itemPrice)) {
+        if (
+          typeof itemPrice === "number" &&
+          Number.isFinite(itemPrice) &&
+          !isUnpriced(itemPrice, it.basePrice)
+        ) {
           if (it.externalId) itemByExternal.set(String(it.externalId), itemPrice);
           const key = norm(it.name);
           if (key && !itemByName.has(key)) itemByName.set(key, itemPrice);
@@ -177,7 +202,11 @@ export class VariantPriceResolverService {
           for (const sku of it.productSkus as any[]) {
             const skuOverrides = (sku?.priceOverrides ?? {}) as Record<string, number>;
             const skuPrice = skuOverrides?.[variantRef];
-            if (typeof skuPrice === "number" && Number.isFinite(skuPrice)) {
+            if (
+              typeof skuPrice === "number" &&
+              Number.isFinite(skuPrice) &&
+              !isUnpriced(skuPrice, sku?.price)
+            ) {
               if (sku.plu) skuByExternal.set(`${itemKey}::${sku.plu}`, skuPrice);
               const nameKey = `${itemKey}::${norm(sku.name)}`;
               if (!skuByName.has(nameKey)) skuByName.set(nameKey, skuPrice);
@@ -192,7 +221,11 @@ export class VariantPriceResolverService {
             seenOptionKeys.add(optKey);
             const optOverrides = (opt.platformPricingOverrides ?? {}) as Record<string, number>;
             const optPrice = optOverrides?.[variantRef];
-            if (typeof optPrice === "number" && Number.isFinite(optPrice)) {
+            if (
+              typeof optPrice === "number" &&
+              Number.isFinite(optPrice) &&
+              !isUnpriced(optPrice, (opt as any).priceAdjustment)
+            ) {
               if (opt.externalId) optionByExternal.set(String(opt.externalId), optPrice);
               const key = norm(opt.name);
               if (key && !optionByName.has(key)) optionByName.set(key, optPrice);
