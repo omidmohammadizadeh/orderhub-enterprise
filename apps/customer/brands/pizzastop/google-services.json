@@ -1,0 +1,124 @@
+{
+  "project_info": {
+    "project_number": "831748355139",
+    "project_id": "orderhub-customer-apps",
+    "storage_bucket": "orderhub-customer-apps.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:831748355139:android:c2ea26e5b69e44521210f6",
+        "android_client_info": {
+          "package_name": "com.orderhubsolutions.bestkebabs"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyALgD2n-Zh3wpA6ySqhIWjSh2hTd4FjsWk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:831748355139:android:54d0f3c7317a85d61210f6",
+        "android_client_info": {
+          "package_name": "com.orderhubsolutions.grillhousepelton"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyALgD2n-Zh3wpA6ySqhIWjSh2hTd4FjsWk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:831748355139:android:dcabed2423315c231210f6",
+        "android_client_info": {
+          "package_name": "com.orderhubsolutions.kingstonpizza"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyALgD2n-Zh3wpA6ySqhIWjSh2hTd4FjsWk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:831748355139:android:149731e8852f57791210f6",
+        "android_client_info": {
+          "package_name": "com.orderhubsolutions.pizzastop"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyALgD2n-Zh3wpA6ySqhIWjSh2hTd4FjsWk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:831748355139:android:a067db1b77491a341210f6",
+        "android_client_info": {
+          "package_name": "com.orderhubsolutions.pizzauno"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyALgD2n-Zh3wpA6ySqhIWjSh2hTd4FjsWk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:831748355139:android:a7fa049cd10dcb491210f6",
+        "android_client_info": {
+          "package_name": "com.orderhubsolutions.pizzaunopelton"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyALgD2n-Zh3wpA6ySqhIWjSh2hTd4FjsWk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
