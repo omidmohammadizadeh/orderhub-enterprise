@@ -30,6 +30,8 @@ function MenuPresentation() {
   const params = useSearchParams();
   const brand = presentationBySlug(params.get("brand"));
   const download = params.get("download") === "1";
+  // ?menu= draws the deck from a location's own copy of the brand's menu.
+  const menuId = params.get("menu") || brand?.menuId;
   // ?pt= is a signed print link (opened from the tablet app) — no session needed.
   const pt = params.get("pt");
 
@@ -37,10 +39,10 @@ function MenuPresentation() {
   // the API, or the first request goes out without a token and bounces to /login.
   const hydrated = useAuthHydrated();
   const q = useQuery({
-    queryKey: ["menu-presentation", brand?.menuId, pt],
-    enabled: (!!pt || hydrated) && !!brand,
+    queryKey: ["menu-presentation", menuId, pt],
+    enabled: (!!pt || hydrated) && !!brand && !!menuId,
     retry: false,
-    queryFn: () => (pt ? printLinksClient.read<PresentationMenu>(pt) : assemblyChartsClient.presentation(brand!.menuId)),
+    queryFn: () => (pt ? printLinksClient.read<PresentationMenu>(pt) : assemblyChartsClient.presentation(menuId!)),
   });
 
   // Fit 1920px pages to the window on screen; print is always 1:1.
