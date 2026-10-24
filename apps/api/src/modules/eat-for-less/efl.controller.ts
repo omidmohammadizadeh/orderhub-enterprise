@@ -171,6 +171,11 @@ export class EflListingController {
 export class EflAdminController {
   constructor(private readonly efl: EflService) {}
 
+  @Get("summary")
+  summary() {
+    return this.efl.adminSummary();
+  }
+
   @Get("listings")
   listings() {
     return this.efl.adminListings();

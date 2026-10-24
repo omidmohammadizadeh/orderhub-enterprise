@@ -1,3 +1,4 @@
+import { startOfLondonDay } from "../efl.service";
 import {
   EFL_DEFAULTS,
   commissionPercentFor,
@@ -114,5 +115,20 @@ describe("toRulesConfig", () => {
     expect(
       toRulesConfig({ defaultCommissionPercent: "7.5", pinForNewCustomers: false, maxOrdersPerHour: 5 }),
     ).toEqual({ ...EFL_DEFAULTS, defaultCommissionPercent: 7.5, pinForNewCustomers: false, maxOrdersPerHour: 5 });
+  });
+});
+
+
+describe("startOfLondonDay", () => {
+  it("is 23:00 UTC the day before during British Summer Time", () => {
+    expect(startOfLondonDay(new Date("2026-07-15T09:30:00Z")).toISOString()).toBe("2026-07-14T23:00:00.000Z");
+  });
+
+  it("is midnight UTC in winter", () => {
+    expect(startOfLondonDay(new Date("2026-12-01T00:30:00Z")).toISOString()).toBe("2026-12-01T00:00:00.000Z");
+  });
+
+  it("puts 00:30 BST on the new London day", () => {
+    expect(startOfLondonDay(new Date("2026-07-14T23:30:00Z")).toISOString()).toBe("2026-07-14T23:00:00.000Z");
   });
 });

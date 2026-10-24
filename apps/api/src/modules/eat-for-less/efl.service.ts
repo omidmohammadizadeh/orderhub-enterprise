@@ -26,6 +26,7 @@ import { toE164 } from "../sms/phone";
 import {
   EFL_SEARCH_RADIUS_MILES,
   commissionPercentFor,
+  eflCommissionPence,
   generateDeliveryPin,
   isListingLive,
   needsDeliveryPin,
@@ -521,6 +522,40 @@ export class EflService {
     return (await this.adminListings()).find((l) => l.id === id);
   }
 
+  /** The Console's front page: where the listings stand, and today's trade.
+   *  "Today" is the UK day — the pilot is in Newcastle. Only paid orders
+   *  count: an unpaid card order is a basket, not a sale. */
+  async adminSummary() {
+    const startOfDay = startOfLondonDay(new Date());
+    const [listings, orders] = await Promise.all([
+      this.prisma.eflListing.findMany({ select: { listed: true, status: true, hiddenReason: true } }),
+      this.prisma.order.findMany({
+        where: {
+          orderSource: "EAT_FOR_LESS",
+          createdAt: { gte: startOfDay },
+          paymentStatus: { in: ["PAID", "AUTHORIZED"] as any },
+        },
+        select: { total: true, subtotal: true, discount: true, eflCommissionPercent: true },
+      }),
+    ]);
+    const sales = orders.reduce((sum, o) => sum + Number(o.total ?? 0), 0);
+    const commissionPence = orders.reduce((sum, o) => sum + eflCommissionPence(o), 0);
+    return {
+      listings: {
+        total: listings.length,
+        live: listings.filter(isListingLive).length,
+        waitingApproval: listings.filter((l) => l.listed && l.status === "PENDING").length,
+        suspended: listings.filter((l) => l.status === "SUSPENDED").length,
+        hidden: listings.filter((l) => !!l.hiddenReason).length,
+      },
+      today: {
+        orders: orders.length,
+        sales: Math.round(sales * 100) / 100,
+        commission: commissionPence / 100,
+      },
+    };
+  }
+
   /** Place every listed shop that has no coordinates yet. Each one is a
    *  geocode call, so this runs on demand rather than on every search. */
   async adminPlaceShopsOnMap() {
@@ -584,6 +619,24 @@ export class EflService {
       cuisines: listing?.cuisines ?? [],
     };
   }
+}
+
+/** Midnight in London on the day `now` falls in, as a UTC instant. */
+export function startOfLondonDay(now: Date): Date {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/London",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(now);
+  const get = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? 0);
+  const londonAsUtc = Date.UTC(get("year"), get("month") - 1, get("day"), get("hour"), get("minute"), get("second"));
+  const offsetMs = londonAsUtc - Math.floor(now.getTime() / 1000) * 1000;
+  return new Date(Date.UTC(get("year"), get("month") - 1, get("day")) - offsetMs);
 }
 
 /** Codes are kept as a keyed hash: a leaked table row can't be replayed. */

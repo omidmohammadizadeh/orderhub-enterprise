@@ -14,7 +14,7 @@
 // /v1/brand-connections backend.
 
 import { useEffect, useState } from "react";
-import { visibleChannelIds } from "@orderhub/shared";
+import { resolveCountryCode, visibleChannelIds } from "@orderhub/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Pencil, RefreshCw, Settings, Trash2 } from "lucide-react";
 import {
@@ -38,6 +38,8 @@ import { glovoClient } from "@/lib/api/glovo.client";
 import { keetaClient } from "@/lib/api/keeta.client";
 import { apiClient } from "@/lib/api/client";
 import { StorePickerModal } from "@/components/locations/store-picker-modal";
+import { EflListingPanel, eflListingQueryKey, eflTileStatus } from "@/components/locations/efl-listing-panel";
+import { eflClient } from "@/lib/api/efl.client";
 import toast from "react-hot-toast";
 
 // Phase AU — HubRise lives on Location (not Brand) because the access
@@ -118,9 +120,18 @@ export function BrandPlatformGrid({ brand, locationId, country }: Props) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   // Which channel's settings are open. Null = none, so the page opens as a
   // clean grid instead of six expanded forms.
-  const [selectedPlatform, setSelectedPlatform] = useState<PlatformId | null>(
+  const [selectedPlatform, setSelectedPlatform] = useState<PlatformId | "EAT_FOR_LESS" | null>(
     null,
   );
+
+  // Eat For Less is our own app, not a marketplace connection: one listing
+  // per LOCATION, and UK-only while the pilot is in Newcastle.
+  const offersEatForLess = resolveCountryCode(country) === "GB";
+  const eflQuery = useQuery({
+    queryKey: eflListingQueryKey(locationId),
+    queryFn: () => eflClient.getListing(locationId),
+    enabled: offersEatForLess,
+  });
 
   // Tile status. DIRECT_ONLINE's connected-ness lives on the Brand row
   // itself (directOrderingEnabled + onlineOrderingSlug), not on a
@@ -289,12 +300,33 @@ export function BrandPlatformGrid({ brand, locationId, country }: Props) {
             }
           />
         ))}
+        {offersEatForLess && (
+          <ChannelTile
+            platform={"EAT_FOR_LESS" as PlatformId}
+            status={eflTileStatus(eflQuery.data)}
+            chipText={
+              { connected: "Live", pending: "Pending", suspended: "Hidden", not_connected: "Not listed" }[
+                eflTileStatus(eflQuery.data)
+              ]
+            }
+            selected={selectedPlatform === "EAT_FOR_LESS"}
+            onClick={() =>
+              setSelectedPlatform((cur) => (cur === "EAT_FOR_LESS" ? null : "EAT_FOR_LESS"))
+            }
+          />
+        )}
       </div>
 
       {/* The selected channel's settings, rendered by the SAME row component
           the list used. Collapsed by default so the grid stays scannable. */}
       {selectedPlatform && (
-        <ul className="mt-3">{renderPanel(selectedPlatform)}</ul>
+        <ul className="mt-3">
+          {selectedPlatform === "EAT_FOR_LESS" ? (
+            <EflListingPanel locationId={locationId} brandId={brandId} brandName={currentBrand.name} />
+          ) : (
+            renderPanel(selectedPlatform)
+          )}
+        </ul>
       )}
 
 
@@ -320,11 +352,14 @@ function ChannelTile({
   status,
   selected,
   onClick,
+  chipText,
 }: {
   platform: PlatformId;
   status: ConnectionStatus;
   selected: boolean;
   onClick: () => void;
+  /** Overrides the chip's wording, for a channel that isn't a connection. */
+  chipText?: string;
 }) {
   const live = status === "connected";
   const bad = status === "error" || status === "suspended";
@@ -356,7 +391,8 @@ function ChannelTile({
                 : "bg-zinc-100 text-zinc-500")
         }
       >
-        {live
+        {chipText ??
+          (live
           ? "Connected"
           : bad
             ? status === "error"
@@ -364,7 +400,7 @@ function ChannelTile({
               : "Suspended"
             : status === "pending"
               ? "Pending"
-              : "Not connected"}
+              : "Not connected")}
       </span>
     </button>
   );
