@@ -54,10 +54,23 @@ export class JetController {
       country?: string;
       menuKey?: string;
       orderKey?: string;
+      brandKeyGroup?: string | null;
     },
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.connections.connect(user.tenantId, body);
+  }
+
+  // The brand groups an operator can pick from, so a brand that trades from
+  // many shops uses one key held in Render instead of the same key pasted
+  // onto each shop. Names only — the keys themselves never leave the server.
+  @Get("brand-key-groups")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({
+    summary: "Brand key groups configured in the environment (names only)",
+  })
+  brandKeyGroups() {
+    return this.credentials.brandKeyGroups();
   }
 
   @Get("connections")

@@ -708,6 +708,16 @@ function JustEatRow({
   const [restaurantId, setRestaurantId] = useState("");
   const [menuKey, setMenuKey] = useState("");
   const [orderKey, setOrderKey] = useState("");
+  // A brand that trades from many shops holds ONE key from Just Eat, but each
+  // shop is its own brand row — so without this the same key gets pasted onto
+  // every one of them, and again on every rotation.
+  const [keyGroup, setKeyGroup] = useState("");
+
+  const keyGroups = useQuery({
+    queryKey: ["jet-brand-key-groups"],
+    queryFn: () => justEatClient.brandKeyGroups(),
+    staleTime: 5 * 60_000,
+  });
 
   // The connection row carries the POS location id; the Restaurant ID lives in
   // metadata, so it is read back from the JET endpoint rather than guessed.
@@ -729,6 +739,7 @@ function JustEatRow({
         restaurantReference: restaurantId.trim(),
         menuKey: menuKey.trim() || undefined,
         orderKey: orderKey.trim() || undefined,
+        brandKeyGroup: keyGroup || undefined,
       }),
     onSuccess: () => {
       toast.success("Just Eat restaurant connected");
@@ -760,6 +771,28 @@ function JustEatRow({
                 placeholder="Restaurant ID (from Just Eat)"
                 className="w-full rounded-md border border-zinc-200 px-2 py-1 text-xs focus:border-zinc-900 focus:outline-none"
               />
+              {/* The shared-key picker comes BEFORE the paste-a-key toggle:
+                  for Monster Burgerz, Greek Gyros and Korean Fried Chicken
+                  this is the whole job, and the fields below are then the
+                  exception rather than the thing you reach for first. Only
+                  rendered when groups are actually configured in Render. */}
+              {(keyGroups.data?.length ?? 0) > 0 && (
+                <label className="flex items-center gap-1.5 text-[10px] text-zinc-600">
+                  <span className="whitespace-nowrap">Shared brand key</span>
+                  <select
+                    value={keyGroup}
+                    onChange={(e) => setKeyGroup(e.target.value)}
+                    className="min-w-0 flex-1 rounded-md border border-zinc-200 px-2 py-1 text-xs focus:border-zinc-900 focus:outline-none"
+                  >
+                    <option value="">None — use the shared country key</option>
+                    {(keyGroups.data ?? []).map((g) => (
+                      <option key={g.name} value={g.name}>
+                        {g.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
               {/* Keys are the exception, not the rule: only brands over six
                   locations get their own. Hiding them behind a toggle keeps
                   the common case a single field, the way Just Eat's own
@@ -800,14 +833,18 @@ function JustEatRow({
               </div>
               <p className="text-[10px] text-zinc-400">
                 Just Eat sends the Restaurant ID once your integration is
-                approved. API keys are optional — leave them empty to use the
-                shared country keys.
+                approved. API keys are optional — pick a shared brand key
+                above, or leave everything empty to use the shared country
+                keys.
               </p>
             </div>
           ) : (
             <p className="text-[10px] text-zinc-500">
               Restaurant {details.data?.restaurantReference ?? "—"}
               {details.data?.hasBrandKeys ? " · own API keys" : ""}
+              {!details.data?.hasBrandKeys && details.data?.brandKeyGroup
+                ? ` · ${details.data.brandKeyGroup} key`
+                : ""}
             </p>
           )}
         </div>

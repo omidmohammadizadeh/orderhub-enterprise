@@ -17,6 +17,8 @@ export interface JustEatConnection {
   brandSlug: string | null;
   country: string | null;
   hasBrandKeys: boolean;
+  /** The shared brand key this connection opted into, if any. */
+  brandKeyGroup: string | null;
   lastWebhookAt: string | null;
   lastError: string | null;
 }
@@ -44,6 +46,8 @@ export const justEatClient = {
     brandSlug?: string;
     country?: string;
     menuKey?: string;
+    /** Use the shared key held in Render for this brand group. "" clears it. */
+    brandKeyGroup?: string | null;
     orderKey?: string;
   }) =>
     apiClient
@@ -55,6 +59,14 @@ export const justEatClient = {
       .get<JustEatConnection[]>("/v1/integrations/jet/connections", {
         params: brandId ? { brandId } : undefined,
       })
+      .then((r) => r.data),
+
+  /** Brand groups configured in the environment. Names only, never keys. */
+  brandKeyGroups: () =>
+    apiClient
+      .get<Array<{ name: string; hasMenuKey: boolean; hasOrderKey: boolean }>>(
+        "/v1/integrations/jet/brand-key-groups",
+      )
       .then((r) => r.data),
 
   health: (connectionId: string) =>

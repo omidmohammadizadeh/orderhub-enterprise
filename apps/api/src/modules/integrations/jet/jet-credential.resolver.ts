@@ -31,13 +31,27 @@ import { CredentialEncryptionService } from "../credential-encryption.service";
 export type JetKeyType = "menu" | "order";
 
 /** Where a resolved key came from. Safe to log — carries no secret. */
-export type JetKeySource = "brand" | "country" | "platform" | "none";
+export type JetKeySource =
+  | "brand"
+  | "brandGroup"
+  | "country"
+  | "platform"
+  | "none";
 
 export interface JetKeyResolution {
   key: string | null;
   source: JetKeySource;
   /** Country the key was resolved for, when the country tier answered. */
   country?: string;
+  /** The brand group that answered, when the group tier did. */
+  group?: string;
+}
+
+/** One configured brand-key group. Carries NO key — safe to send to the UI. */
+export interface JetBrandKeyGroup {
+  name: string;
+  hasMenuKey: boolean;
+  hasOrderKey: boolean;
 }
 
 @Injectable()
@@ -110,6 +124,30 @@ export class JetCredentialResolver {
       if (key) return { key, source: "brand" };
     }
 
+    // ── Tier 1b: brand GROUP key ────────────────────────────────────────
+    // A key JET issued to a brand that trades from many shops. Every shop is
+    // its own Brand row, so the per-connection tier above cannot express
+    // "all twenty Monster Burgerz shops share this key" without the operator
+    // pasting it twenty times.
+    //
+    // STRICTLY ADDITIVE: this only answers when the connection explicitly
+    // names a group, so a live connection that has never heard of groups
+    // falls straight through to the country tier exactly as before. A group
+    // with no key of this type, or a name nobody configured, also falls
+    // through rather than failing — a typo must not take a shop off Just Eat.
+    if (args.brandId) {
+      const group = await this.brandKeyGroupOf(
+        args.brandId,
+        args.locationId ?? null,
+      );
+      if (group) {
+        const key = this.brandGroupKeys(type)[group];
+        // Reported lower-case, matching brandKeyGroups() and the dashboard,
+        // so the log line and the picker show the same name.
+        if (key) return { key, source: "brandGroup", group: group.toLowerCase() };
+      }
+    }
+
     // ── Tier 2: country key ─────────────────────────────────────────────
     const country = (args.country || this.cfg("defaultCountry") || "GB")
       .trim()
@@ -126,6 +164,57 @@ export class JetCredentialResolver {
     if (platform) return { key: platform, source: "platform" };
 
     return { key: null, source: "none" };
+  }
+
+  /** The configured "group:key" map for one key type. */
+  private brandGroupKeys(type: JetKeyType): Record<string, string> {
+    return this.parseCountryKeys(
+      this.cfg(type === "menu" ? "brandMenuKeys" : "brandOrderKeys"),
+    );
+  }
+
+  /**
+   * Which brand group a connection has opted into, normalised.
+   *
+   * Stored on the connection's metadata rather than in a new column so this
+   * needs no migration and an existing row simply has no opinion. Names are
+   * upper-cased by the shared parser, so both sides are compared that way and
+   * the operator can save "Monster-Burgerz" or " monster-burgerz ".
+   */
+  private async brandKeyGroupOf(
+    brandId: string,
+    locationId: string | null,
+  ): Promise<string | null> {
+    try {
+      const conn = await this.prisma.brandPlatformConnection.findFirst({
+        where: {
+          brandId,
+          platform: "JUST_EAT",
+          ...(locationId ? { locationId } : {}),
+        },
+        select: { metadata: true },
+      });
+      const raw = ((conn?.metadata as any) ?? {}).brandKeyGroup;
+      const name = String(raw ?? "").trim().toUpperCase();
+      return name || null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * The groups an operator can pick from. Names only — never a key — because
+   * this is rendered in the dashboard.
+   */
+  brandKeyGroups(): JetBrandKeyGroup[] {
+    const menu = this.brandGroupKeys("menu");
+    const order = this.brandGroupKeys("order");
+    const names = [...new Set([...Object.keys(menu), ...Object.keys(order)])].sort();
+    return names.map((name) => ({
+      name: name.toLowerCase(),
+      hasMenuKey: !!menu[name],
+      hasOrderKey: !!order[name],
+    }));
   }
 
   /**
