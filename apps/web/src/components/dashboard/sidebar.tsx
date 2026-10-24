@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -299,21 +300,66 @@ const adminNav: NavItem[] = [
 import { useLayoutStore } from "@/stores/layout.store";
 
 export function Sidebar() {
-  // Phase AW-28 — In fullscreen mode the layout hides the rail
-  // entirely (more horizontal real estate for the Orders table).
-  // Topbar owns the toggle; we just opt out of rendering.
+  // Phase AW-28 — The dashboard opens fullscreen: the rail is hidden
+  // and the Topbar's logo button slides it in as an overlay drawer.
+  // The Maximize/Minimize button can still dock it beside the content.
   //
   // Render the inner component as JSX (not a function call) so it
   // gets its own component instance with its own hook list. Calling
   // _Sidebar() inlines its hooks into Sidebar's hook order, and the
   // collapsed→expanded toggle would then change the hook count
   // between renders → React error #300.
+  const pathname = usePathname();
   const collapsed = useLayoutStore((s) => s.sidebarCollapsed);
-  if (collapsed) return null;
-  return <_Sidebar />;
+  const drawerOpen = useLayoutStore((s) => s.drawerOpen);
+  const setDrawerOpen = useLayoutStore((s) => s.setDrawerOpen);
+  const setSidebarCollapsed = useLayoutStore((s) => s.setSidebarCollapsed);
+
+  // Picking a new page closes the drawer, so it opens fullscreen.
+  useEffect(() => {
+    setDrawerOpen(false);
+  }, [pathname, setDrawerOpen]);
+
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setDrawerOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [drawerOpen, setDrawerOpen]);
+
+  if (!collapsed) {
+    // Docked: the logo hides the rail again (back to fullscreen).
+    return <_Sidebar onLogoClick={() => setSidebarCollapsed(true)} />;
+  }
+  if (!drawerOpen) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex">
+      <_Sidebar
+        overlay
+        onLogoClick={() => setDrawerOpen(false)}
+        onNavigate={() => setDrawerOpen(false)}
+      />
+      <button
+        type="button"
+        aria-label="Close menu"
+        onClick={() => setDrawerOpen(false)}
+        className="flex-1 bg-black/40"
+      />
+    </div>
+  );
 }
 
-function _Sidebar() {
+function _Sidebar({
+  overlay = false,
+  onLogoClick,
+  onNavigate,
+}: {
+  overlay?: boolean;
+  onLogoClick: () => void;
+  onNavigate?: () => void;
+}) {
   const pathname = usePathname();
   const user = useAuthStore((s) => s.user);
   // Non-null only for device accounts (kiosk tablet, kitchen screen), in
@@ -366,9 +412,20 @@ function _Sidebar() {
   const tabVisible = (href: string) => !tabAccess.hiddenTabForPath(href);
 
   return (
-    <aside className="flex h-screen w-[220px] flex-shrink-0 flex-col bg-[#0a0a0b] border-r border-white/[0.06]">
-      {/* ── Logo ─────────────────────────────────────── */}
-      <div className="flex h-14 items-center gap-2.5 border-b border-white/[0.06] px-4">
+    <aside
+      className={cn(
+        "flex w-[220px] flex-shrink-0 flex-col bg-[#0a0a0b] border-r border-white/[0.06]",
+        overlay ? "h-full shadow-2xl" : "h-screen",
+      )}
+    >
+      {/* ── Logo — tap to hide the panel (back to fullscreen) ── */}
+      <button
+        type="button"
+        onClick={onLogoClick}
+        aria-label="Hide menu"
+        title="Hide menu"
+        className="flex h-14 w-full items-center gap-2.5 border-b border-white/[0.06] px-4 text-left hover:bg-white/[0.03]"
+      >
         <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 flex-shrink-0">
           <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 text-white" aria-hidden="true">
             <path d="M3 7h18M3 12h18M3 17h10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
@@ -379,13 +436,20 @@ function _Sidebar() {
           <p className="text-sm font-semibold text-white leading-tight truncate">Order Hub</p>
           <p className="text-[10px] font-medium text-zinc-500 leading-tight">Solutions</p>
         </div>
-      </div>
+      </button>
 
       {/* ── Location switcher (global scope) ─────────── */}
       {user && <SidebarLocationSwitcher />}
 
       {/* ── Primary navigation ──────────────────────── */}
-      <nav className="flex-1 overflow-y-auto sidebar-scroll px-2 pt-4 pb-2 space-y-0.5">
+      <nav
+        className="flex-1 overflow-y-auto sidebar-scroll px-2 pt-4 pb-2 space-y-0.5"
+        // Tapping any link closes the drawer — even the current page's,
+        // which changes no pathname.
+        onClick={(e) => {
+          if (onNavigate && (e.target as HTMLElement).closest("a")) onNavigate();
+        }}
+      >
         {primaryNav
           .filter(
             (item) =>
