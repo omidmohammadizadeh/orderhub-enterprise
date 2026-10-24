@@ -42,6 +42,7 @@ const CHANNEL_LABELS: Record<Channel, string> = {
   HUBRISE: "HubRise",
   KEETA: "Keeta",
   TALABAT: "Talabat",
+  EAT_FOR_LESS: "Eat For Less",
 };
 
 const PLATFORM_LOGO_KEY: Record<Channel, string> = {
@@ -54,6 +55,7 @@ const PLATFORM_LOGO_KEY: Record<Channel, string> = {
   HUBRISE: "HUBRISE",
   KEETA: "KEETA",
   TALABAT: "TALABAT",
+  EAT_FOR_LESS: "EAT_FOR_LESS",
 };
 
 const DURATION_LABELS: Record<DurationPreset, string> = {

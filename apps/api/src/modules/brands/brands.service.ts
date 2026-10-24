@@ -246,6 +246,9 @@ export class BrandsService {
     // Keeta publishes through VariantPriceResolverService.forBrandChannel
     // ("KEETA"), so its variant menu must be pickable here.
     "KEETA",
+    // The Eat For Less app serves the storefront menu at this channel's
+    // prices when the brand picks a variant here.
+    "EAT_FOR_LESS",
   ] as const;
 
   async getChannelSources(brandId: string, tenantId: string) {

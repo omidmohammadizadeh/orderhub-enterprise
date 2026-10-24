@@ -273,6 +273,12 @@ model CustomerAccount {
   isVerified             Boolean   @default(false)
   emailVerificationToken String? // set during signup, cleared on verify
   marketingOptIn         Boolean   @default(false)
+  /// When the customer last proved, by text code, that `phone` is theirs.
+  /// Eat For Less requires it before the first order.
+  phoneVerifiedAt        DateTime?
+  /// Eat For Less offers by push and email. Separate from marketingOptIn:
+  /// Eat For Less is its own sender, and consent is per sender.
+  eflMarketingOptIn      Boolean   @default(false)
   lastLoginAt            DateTime?
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
@@ -753,6 +759,7 @@ model Location {
   @@index([brandId])
   @@index([brandId, deletedAt])
   @@map("locations")
+  eflListing         EflListing?
   loyaltyCard        LoyaltyCard?
   referralProgram    ReferralProgram?
   loyaltyRewards     LoyaltyReward[]
@@ -2200,6 +2207,14 @@ model Order {
 
   metadata       Json @default("{}")
   sourceMetadata Json @default("{}")
+
+  /// Eat For Less: the 4-digit code the customer gives the driver at the
+  /// door. Null when the order doesn't need one. Never sent to a driver.
+  deliveryPin           String?
+  deliveryPinVerifiedAt DateTime?
+  /// Eat For Less: the commission rate this order was placed at, kept so a
+  /// later rate change can't rewrite an old statement.
+  eflCommissionPercent  Decimal?  @db.Decimal(5, 2)
 
   items            OrderItem[]
   statusHistory    OrderStatusHistory[]
@@ -4458,6 +4473,9 @@ enum OrderPlatform {
   // not a member of this enum — so Prisma rejected every completed call and
   // the caller was told their order could not be saved AFTER confirming it.
   VOICE
+  // Our own marketplace app. Orders arrive like a platform's, but the
+  // checkout, payment and customer are ours.
+  EAT_FOR_LESS
 }
 
 enum OrderSource {
@@ -4477,6 +4495,100 @@ enum OrderSource {
   WHATSAPP
   // Taken over the phone by the AI voice line. Shown as "AI Voice".
   VOICE
+  // The Eat For Less marketplace app. Shown as "Eat For Less".
+  EAT_FOR_LESS
+}
+
+/// Whether the Eat For Less platform has let a shop trade. The shop's own
+/// on/off switch is EflListing.listed; this is ours.
+enum EflListingStatus {
+  PENDING
+  APPROVED
+  SUSPENDED
+}
+
+/// Who carries a shop's Eat For Less deliveries.
+enum EflDeliveryMode {
+  OWN_DRIVERS
+  COURIER
+  OWN_THEN_COURIER
+}
+
+/// A shop's listing in the Eat For Less app, one per location.
+///
+/// The app is ours but the shop is the seller: card payments are direct
+/// charges on the shop's own Stripe account and our commission rides
+/// application_fee_amount, the same way the storefront's platform fee does.
+model EflListing {
+  id         String   @id @default(cuid())
+  locationId String   @unique
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  /// The brand the app shows and orders are filed under. Null = the
+  /// location's own brand.
+  brandId    String?
+
+  /// The shop's own switch, in OrderHub → Platforms.
+  listed       Boolean          @default(false)
+  /// Ours, from the Console. A shop shows in the app only when it is
+  /// listed AND approved AND nothing has hidden it.
+  status       EflListingStatus @default(PENDING)
+  /// Set when an automatic rule hid it (e.g. "HYGIENE"). Null = not hidden.
+  hiddenReason String?
+
+  /// Commission on the food (subtotal after discounts), in percent. Null =
+  /// EflConfig.defaultCommissionPercent.
+  commissionPercent Decimal? @db.Decimal(5, 2)
+
+  deliveryMode      EflDeliveryMode @default(OWN_DRIVERS)
+  acceptsDelivery   Boolean         @default(true)
+  acceptsCollection Boolean         @default(true)
+
+  description  String?
+  heroImageUrl String?
+  logoUrl      String?
+  cuisines     String[] @default([])
+
+  approvedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([status, listed])
+  @@map("efl_listings")
+}
+
+/// Eat For Less platform settings. One row, id "default".
+model EflConfig {
+  id                       String   @id @default("default")
+  defaultCommissionPercent Decimal  @default(8) @db.Decimal(5, 2)
+  /// Delivery PIN on every order whose total is at least this…
+  pinMinOrderTotal         Decimal  @default(25) @db.Decimal(10, 2)
+  /// …and on every order from a customer with no earlier Eat For Less order.
+  pinForNewCustomers       Boolean  @default(true)
+  /// A new account's first order can't be larger than this.
+  firstOrderMaxTotal       Decimal  @default(60) @db.Decimal(10, 2)
+  /// Orders one account may place in a rolling hour.
+  maxOrdersPerHour         Int      @default(3)
+  /// Lowest FSA food hygiene rating a shop may have and stay listed.
+  minHygieneRating         Int      @default(2)
+  updatedAt                DateTime @updatedAt
+
+  @@map("efl_config")
+}
+
+/// A text-message code sent to prove a customer owns their phone number.
+/// Only a hash of the code is kept.
+model EflPhoneVerification {
+  id                String    @id @default(cuid())
+  customerAccountId String
+  phone             String
+  codeHash          String
+  attempts          Int       @default(0)
+  expiresAt         DateTime
+  consumedAt        DateTime?
+  createdAt         DateTime  @default(now())
+
+  @@index([customerAccountId, createdAt])
+  @@map("efl_phone_verifications")
 }
 
 enum IntegrationSource {

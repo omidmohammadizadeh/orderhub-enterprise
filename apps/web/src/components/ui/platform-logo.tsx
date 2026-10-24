@@ -181,6 +181,16 @@ function VoiceLogo({ size, rounded = true }: LogoProps) {
   );
 }
 
+function EatForLessLogo({ size, rounded = true }: LogoProps) {
+  // Eat For Less — our own marketplace app: black tile, lime "£".
+  return (
+    <svg viewBox="0 0 100 100" style={tileStyle(size, rounded)} aria-label="Eat For Less">
+      <rect width="100" height="100" fill="#0B0B0B" />
+      <text x="50" y="72" textAnchor="middle" fontFamily="ui-sans-serif, system-ui, sans-serif" fontWeight="900" fontSize="64" fill="#D4FF3F">£</text>
+    </svg>
+  );
+}
+
 function HubRiseLogo({ size, rounded = true }: LogoProps) {
   return (
     <svg viewBox="0 0 100 100" style={tileStyle(size, rounded)} aria-label="HubRise">
@@ -309,6 +319,8 @@ const PLATFORM_META: Record<
   // "did this come from the robot?" is the first question a shop asks about
   // any order it didn't hear taken.
   VOICE:       { slug: "voice",      bg: "#4f46e5", svg: (p) => <VoiceLogo {...p} /> },
+  // Our own marketplace app (black + lime).
+  EAT_FOR_LESS: { slug: "eatforless", bg: "#0B0B0B", svg: (p) => <EatForLessLogo {...p} /> },
   // Phase AW — brand-level direct online ordering. Same wordmark as
   // DIRECT/POS so the Order Hub identity stays consistent across the
   // three sister channels.
@@ -324,6 +336,7 @@ const LABELS: Record<string, string> = {
   ONLINE: "Online ordering",
   WHATSAPP: "WhatsApp",
   VOICE: "AI Voice",
+  EAT_FOR_LESS: "Eat For Less",
   HUBRISE: "HubRise",
   STUART: "Stuart",
   UBER_DIRECT: "Uber Direct",

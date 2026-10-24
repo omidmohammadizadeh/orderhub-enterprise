@@ -390,6 +390,7 @@ const SOURCE_LABEL: Record<string, string> = {
   DIRECT: "Direct",
   WHATSAPP: "WhatsApp",
   VOICE: "AI phone line",
+  EAT_FOR_LESS: "Eat For Less",
 };
 
 function AudienceTab() {

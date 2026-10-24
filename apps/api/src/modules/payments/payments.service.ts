@@ -7,6 +7,7 @@ import {
   Optional,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { eflCommissionPence } from "../eat-for-less/efl-rules";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { randomBytes } from "crypto";
 import { usesTap } from "@orderhub/shared";
@@ -529,7 +530,7 @@ export class PaymentsService {
       // Scoped to the sources where WE take the payment. A marketplace
       // order arrives already settled and must not be re-announced.
       (paidMethod === "CARD" &&
-        ["DIRECT", "ONLINE", "WHATSAPP"].includes(
+        ["DIRECT", "ONLINE", "WHATSAPP", "EAT_FOR_LESS"].includes(
           String(paidOrder?.orderSource),
         ));
     if (
@@ -1427,8 +1428,12 @@ export class PaymentsService {
       brand?.applicationFeeMode && brand.applicationFeeMode !== "none"
         ? brand
         : order.location;
+    // An Eat For Less order pays our commission instead of the shop's own
+    // storefront fee — never both, and never a surcharge on the customer.
     const { applicationFeePence, customerSurchargePence } =
-      this.computeFeeBreakdownPence(feeSource, totalGbp);
+      (order as any).orderSource === "EAT_FOR_LESS"
+        ? { applicationFeePence: eflCommissionPence(order), customerSurchargePence: 0 }
+        : this.computeFeeBreakdownPence(feeSource, totalGbp);
 
     // The fixed portion is a visible surcharge the customer pays on top, so
     // it has to be in the amount charged as well as in the platform's cut.

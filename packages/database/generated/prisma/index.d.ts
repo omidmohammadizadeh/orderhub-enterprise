@@ -614,6 +614,26 @@ export type SystemSecret = $Result.DefaultSelection<Prisma.$SystemSecretPayload>
  */
 export type OutboxEvent = $Result.DefaultSelection<Prisma.$OutboxEventPayload>
 /**
+ * Model EflListing
+ * A shop's listing in the Eat For Less app, one per location.
+ * 
+ * The app is ours but the shop is the seller: card payments are direct
+ * charges on the shop's own Stripe account and our commission rides
+ * application_fee_amount, the same way the storefront's platform fee does.
+ */
+export type EflListing = $Result.DefaultSelection<Prisma.$EflListingPayload>
+/**
+ * Model EflConfig
+ * Eat For Less platform settings. One row, id "default".
+ */
+export type EflConfig = $Result.DefaultSelection<Prisma.$EflConfigPayload>
+/**
+ * Model EflPhoneVerification
+ * A text-message code sent to prove a customer owns their phone number.
+ * Only a hash of the code is kept.
+ */
+export type EflPhoneVerification = $Result.DefaultSelection<Prisma.$EflPhoneVerificationPayload>
+/**
  * Model VideoStudioAccount
  * 
  */
@@ -1079,7 +1099,8 @@ export const OrderPlatform: {
   GLOVO: 'GLOVO',
   KEETA: 'KEETA',
   WHATSAPP: 'WHATSAPP',
-  VOICE: 'VOICE'
+  VOICE: 'VOICE',
+  EAT_FOR_LESS: 'EAT_FOR_LESS'
 };
 
 export type OrderPlatform = (typeof OrderPlatform)[keyof typeof OrderPlatform]
@@ -1100,7 +1121,8 @@ export const OrderSource: {
   GLOVO: 'GLOVO',
   KEETA: 'KEETA',
   WHATSAPP: 'WHATSAPP',
-  VOICE: 'VOICE'
+  VOICE: 'VOICE',
+  EAT_FOR_LESS: 'EAT_FOR_LESS'
 };
 
 export type OrderSource = (typeof OrderSource)[keyof typeof OrderSource]
@@ -1470,6 +1492,24 @@ export const OutboxEventStatus: {
 export type OutboxEventStatus = (typeof OutboxEventStatus)[keyof typeof OutboxEventStatus]
 
 
+export const EflListingStatus: {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  SUSPENDED: 'SUSPENDED'
+};
+
+export type EflListingStatus = (typeof EflListingStatus)[keyof typeof EflListingStatus]
+
+
+export const EflDeliveryMode: {
+  OWN_DRIVERS: 'OWN_DRIVERS',
+  COURIER: 'COURIER',
+  OWN_THEN_COURIER: 'OWN_THEN_COURIER'
+};
+
+export type EflDeliveryMode = (typeof EflDeliveryMode)[keyof typeof EflDeliveryMode]
+
+
 export const VideoCreditReason: {
   GRANT: 'GRANT',
   TOPUP: 'TOPUP',
@@ -1691,6 +1731,14 @@ export const ProviderCategory: typeof $Enums.ProviderCategory
 export type OutboxEventStatus = $Enums.OutboxEventStatus
 
 export const OutboxEventStatus: typeof $Enums.OutboxEventStatus
+
+export type EflListingStatus = $Enums.EflListingStatus
+
+export const EflListingStatus: typeof $Enums.EflListingStatus
+
+export type EflDeliveryMode = $Enums.EflDeliveryMode
+
+export const EflDeliveryMode: typeof $Enums.EflDeliveryMode
 
 export type VideoCreditReason = $Enums.VideoCreditReason
 
@@ -3015,6 +3063,36 @@ export class PrismaClient<
   get outboxEvent(): Prisma.OutboxEventDelegate<ExtArgs>;
 
   /**
+   * `prisma.eflListing`: Exposes CRUD operations for the **EflListing** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more EflListings
+    * const eflListings = await prisma.eflListing.findMany()
+    * ```
+    */
+  get eflListing(): Prisma.EflListingDelegate<ExtArgs>;
+
+  /**
+   * `prisma.eflConfig`: Exposes CRUD operations for the **EflConfig** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more EflConfigs
+    * const eflConfigs = await prisma.eflConfig.findMany()
+    * ```
+    */
+  get eflConfig(): Prisma.EflConfigDelegate<ExtArgs>;
+
+  /**
+   * `prisma.eflPhoneVerification`: Exposes CRUD operations for the **EflPhoneVerification** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more EflPhoneVerifications
+    * const eflPhoneVerifications = await prisma.eflPhoneVerification.findMany()
+    * ```
+    */
+  get eflPhoneVerification(): Prisma.EflPhoneVerificationDelegate<ExtArgs>;
+
+  /**
    * `prisma.videoStudioAccount`: Exposes CRUD operations for the **VideoStudioAccount** model.
     * Example usage:
     * ```ts
@@ -4042,6 +4120,9 @@ export namespace Prisma {
     WebPushSubscription: 'WebPushSubscription',
     SystemSecret: 'SystemSecret',
     OutboxEvent: 'OutboxEvent',
+    EflListing: 'EflListing',
+    EflConfig: 'EflConfig',
+    EflPhoneVerification: 'EflPhoneVerification',
     VideoStudioAccount: 'VideoStudioAccount',
     VideoCreditTxn: 'VideoCreditTxn',
     VideoGeneration: 'VideoGeneration',
@@ -4104,7 +4185,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "promoCodeRedemption" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "salonService" | "salonStaff" | "salonTimeOff" | "salonAppointment" | "salonQueueEntry" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "mollieConnection" | "payment" | "paymentMethod" | "refund" | "productVariant" | "productStockLevel" | "productStockMovement" | "refundLine" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "yangoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "pushAutomation" | "pushLocationReview" | "pushReviewRequest" | "pushCampaign" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "loyaltyMember" | "loyaltyPassDevice" | "referralProgram" | "referralCode" | "referral" | "keetaAuthorization" | "emailContact" | "emailCampaign" | "emailAutomation" | "emailBirthdaySend" | "emailCampaignRecipient" | "buildGuide" | "buildStepTemplate" | "buildGuideTraining" | "assemblyChart" | "menuAutoPublish" | "autoDispatchRule" | "autoDispatchRun"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "promoCodeRedemption" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "salonService" | "salonStaff" | "salonTimeOff" | "salonAppointment" | "salonQueueEntry" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "mollieConnection" | "payment" | "paymentMethod" | "refund" | "productVariant" | "productStockLevel" | "productStockMovement" | "refundLine" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "eflListing" | "eflConfig" | "eflPhoneVerification" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "yangoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "pushAutomation" | "pushLocationReview" | "pushReviewRequest" | "pushCampaign" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "loyaltyMember" | "loyaltyPassDevice" | "referralProgram" | "referralCode" | "referral" | "keetaAuthorization" | "emailContact" | "emailCampaign" | "emailAutomation" | "emailBirthdaySend" | "emailCampaignRecipient" | "buildGuide" | "buildStepTemplate" | "buildGuideTraining" | "assemblyChart" | "menuAutoPublish" | "autoDispatchRule" | "autoDispatchRun"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -12365,6 +12446,216 @@ export namespace Prisma {
           count: {
             args: Prisma.OutboxEventCountArgs<ExtArgs>
             result: $Utils.Optional<OutboxEventCountAggregateOutputType> | number
+          }
+        }
+      }
+      EflListing: {
+        payload: Prisma.$EflListingPayload<ExtArgs>
+        fields: Prisma.EflListingFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.EflListingFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflListingPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.EflListingFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflListingPayload>
+          }
+          findFirst: {
+            args: Prisma.EflListingFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflListingPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.EflListingFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflListingPayload>
+          }
+          findMany: {
+            args: Prisma.EflListingFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflListingPayload>[]
+          }
+          create: {
+            args: Prisma.EflListingCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflListingPayload>
+          }
+          createMany: {
+            args: Prisma.EflListingCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.EflListingCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflListingPayload>[]
+          }
+          delete: {
+            args: Prisma.EflListingDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflListingPayload>
+          }
+          update: {
+            args: Prisma.EflListingUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflListingPayload>
+          }
+          deleteMany: {
+            args: Prisma.EflListingDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.EflListingUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.EflListingUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflListingPayload>
+          }
+          aggregate: {
+            args: Prisma.EflListingAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateEflListing>
+          }
+          groupBy: {
+            args: Prisma.EflListingGroupByArgs<ExtArgs>
+            result: $Utils.Optional<EflListingGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.EflListingCountArgs<ExtArgs>
+            result: $Utils.Optional<EflListingCountAggregateOutputType> | number
+          }
+        }
+      }
+      EflConfig: {
+        payload: Prisma.$EflConfigPayload<ExtArgs>
+        fields: Prisma.EflConfigFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.EflConfigFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflConfigPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.EflConfigFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflConfigPayload>
+          }
+          findFirst: {
+            args: Prisma.EflConfigFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflConfigPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.EflConfigFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflConfigPayload>
+          }
+          findMany: {
+            args: Prisma.EflConfigFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflConfigPayload>[]
+          }
+          create: {
+            args: Prisma.EflConfigCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflConfigPayload>
+          }
+          createMany: {
+            args: Prisma.EflConfigCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.EflConfigCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflConfigPayload>[]
+          }
+          delete: {
+            args: Prisma.EflConfigDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflConfigPayload>
+          }
+          update: {
+            args: Prisma.EflConfigUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflConfigPayload>
+          }
+          deleteMany: {
+            args: Prisma.EflConfigDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.EflConfigUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.EflConfigUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflConfigPayload>
+          }
+          aggregate: {
+            args: Prisma.EflConfigAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateEflConfig>
+          }
+          groupBy: {
+            args: Prisma.EflConfigGroupByArgs<ExtArgs>
+            result: $Utils.Optional<EflConfigGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.EflConfigCountArgs<ExtArgs>
+            result: $Utils.Optional<EflConfigCountAggregateOutputType> | number
+          }
+        }
+      }
+      EflPhoneVerification: {
+        payload: Prisma.$EflPhoneVerificationPayload<ExtArgs>
+        fields: Prisma.EflPhoneVerificationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.EflPhoneVerificationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflPhoneVerificationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.EflPhoneVerificationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflPhoneVerificationPayload>
+          }
+          findFirst: {
+            args: Prisma.EflPhoneVerificationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflPhoneVerificationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.EflPhoneVerificationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflPhoneVerificationPayload>
+          }
+          findMany: {
+            args: Prisma.EflPhoneVerificationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflPhoneVerificationPayload>[]
+          }
+          create: {
+            args: Prisma.EflPhoneVerificationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflPhoneVerificationPayload>
+          }
+          createMany: {
+            args: Prisma.EflPhoneVerificationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.EflPhoneVerificationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflPhoneVerificationPayload>[]
+          }
+          delete: {
+            args: Prisma.EflPhoneVerificationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflPhoneVerificationPayload>
+          }
+          update: {
+            args: Prisma.EflPhoneVerificationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflPhoneVerificationPayload>
+          }
+          deleteMany: {
+            args: Prisma.EflPhoneVerificationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.EflPhoneVerificationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.EflPhoneVerificationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflPhoneVerificationPayload>
+          }
+          aggregate: {
+            args: Prisma.EflPhoneVerificationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateEflPhoneVerification>
+          }
+          groupBy: {
+            args: Prisma.EflPhoneVerificationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<EflPhoneVerificationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.EflPhoneVerificationCountArgs<ExtArgs>
+            result: $Utils.Optional<EflPhoneVerificationCountAggregateOutputType> | number
           }
         }
       }
@@ -25022,6 +25313,8 @@ export namespace Prisma {
     isVerified: boolean | null
     emailVerificationToken: string | null
     marketingOptIn: boolean | null
+    phoneVerifiedAt: Date | null
+    eflMarketingOptIn: boolean | null
     lastLoginAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -25046,6 +25339,8 @@ export namespace Prisma {
     isVerified: boolean | null
     emailVerificationToken: string | null
     marketingOptIn: boolean | null
+    phoneVerifiedAt: Date | null
+    eflMarketingOptIn: boolean | null
     lastLoginAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -25070,6 +25365,8 @@ export namespace Prisma {
     isVerified: number
     emailVerificationToken: number
     marketingOptIn: number
+    phoneVerifiedAt: number
+    eflMarketingOptIn: number
     lastLoginAt: number
     createdAt: number
     updatedAt: number
@@ -25096,6 +25393,8 @@ export namespace Prisma {
     isVerified?: true
     emailVerificationToken?: true
     marketingOptIn?: true
+    phoneVerifiedAt?: true
+    eflMarketingOptIn?: true
     lastLoginAt?: true
     createdAt?: true
     updatedAt?: true
@@ -25120,6 +25419,8 @@ export namespace Prisma {
     isVerified?: true
     emailVerificationToken?: true
     marketingOptIn?: true
+    phoneVerifiedAt?: true
+    eflMarketingOptIn?: true
     lastLoginAt?: true
     createdAt?: true
     updatedAt?: true
@@ -25144,6 +25445,8 @@ export namespace Prisma {
     isVerified?: true
     emailVerificationToken?: true
     marketingOptIn?: true
+    phoneVerifiedAt?: true
+    eflMarketingOptIn?: true
     lastLoginAt?: true
     createdAt?: true
     updatedAt?: true
@@ -25241,6 +25544,8 @@ export namespace Prisma {
     isVerified: boolean
     emailVerificationToken: string | null
     marketingOptIn: boolean
+    phoneVerifiedAt: Date | null
+    eflMarketingOptIn: boolean
     lastLoginAt: Date | null
     createdAt: Date
     updatedAt: Date
@@ -25282,6 +25587,8 @@ export namespace Prisma {
     isVerified?: boolean
     emailVerificationToken?: boolean
     marketingOptIn?: boolean
+    phoneVerifiedAt?: boolean
+    eflMarketingOptIn?: boolean
     lastLoginAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -25313,6 +25620,8 @@ export namespace Prisma {
     isVerified?: boolean
     emailVerificationToken?: boolean
     marketingOptIn?: boolean
+    phoneVerifiedAt?: boolean
+    eflMarketingOptIn?: boolean
     lastLoginAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -25337,6 +25646,8 @@ export namespace Prisma {
     isVerified?: boolean
     emailVerificationToken?: boolean
     marketingOptIn?: boolean
+    phoneVerifiedAt?: boolean
+    eflMarketingOptIn?: boolean
     lastLoginAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -25394,6 +25705,16 @@ export namespace Prisma {
       isVerified: boolean
       emailVerificationToken: string | null
       marketingOptIn: boolean
+      /**
+       * When the customer last proved, by text code, that `phone` is theirs.
+       * Eat For Less requires it before the first order.
+       */
+      phoneVerifiedAt: Date | null
+      /**
+       * Eat For Less offers by push and email. Separate from marketingOptIn:
+       * Eat For Less is its own sender, and consent is per sender.
+       */
+      eflMarketingOptIn: boolean
       lastLoginAt: Date | null
       createdAt: Date
       updatedAt: Date
@@ -25814,6 +26135,8 @@ export namespace Prisma {
     readonly isVerified: FieldRef<"CustomerAccount", 'Boolean'>
     readonly emailVerificationToken: FieldRef<"CustomerAccount", 'String'>
     readonly marketingOptIn: FieldRef<"CustomerAccount", 'Boolean'>
+    readonly phoneVerifiedAt: FieldRef<"CustomerAccount", 'DateTime'>
+    readonly eflMarketingOptIn: FieldRef<"CustomerAccount", 'Boolean'>
     readonly lastLoginAt: FieldRef<"CustomerAccount", 'DateTime'>
     readonly createdAt: FieldRef<"CustomerAccount", 'DateTime'>
     readonly updatedAt: FieldRef<"CustomerAccount", 'DateTime'>
@@ -33826,6 +34149,7 @@ export namespace Prisma {
     uberDirectConfig?: boolean | Location$uberDirectConfigArgs<ExtArgs>
     jetGoConfig?: boolean | Location$jetGoConfigArgs<ExtArgs>
     yangoConfig?: boolean | Location$yangoConfigArgs<ExtArgs>
+    eflListing?: boolean | Location$eflListingArgs<ExtArgs>
     loyaltyCard?: boolean | Location$loyaltyCardArgs<ExtArgs>
     referralProgram?: boolean | Location$referralProgramArgs<ExtArgs>
     loyaltyRewards?: boolean | Location$loyaltyRewardsArgs<ExtArgs>
@@ -34005,6 +34329,7 @@ export namespace Prisma {
     uberDirectConfig?: boolean | Location$uberDirectConfigArgs<ExtArgs>
     jetGoConfig?: boolean | Location$jetGoConfigArgs<ExtArgs>
     yangoConfig?: boolean | Location$yangoConfigArgs<ExtArgs>
+    eflListing?: boolean | Location$eflListingArgs<ExtArgs>
     loyaltyCard?: boolean | Location$loyaltyCardArgs<ExtArgs>
     referralProgram?: boolean | Location$referralProgramArgs<ExtArgs>
     loyaltyRewards?: boolean | Location$loyaltyRewardsArgs<ExtArgs>
@@ -34054,6 +34379,7 @@ export namespace Prisma {
       uberDirectConfig: Prisma.$UberDirectConfigPayload<ExtArgs> | null
       jetGoConfig: Prisma.$JetGoConfigPayload<ExtArgs> | null
       yangoConfig: Prisma.$YangoConfigPayload<ExtArgs> | null
+      eflListing: Prisma.$EflListingPayload<ExtArgs> | null
       loyaltyCard: Prisma.$LoyaltyCardPayload<ExtArgs> | null
       referralProgram: Prisma.$ReferralProgramPayload<ExtArgs> | null
       loyaltyRewards: Prisma.$LoyaltyRewardPayload<ExtArgs>[]
@@ -34525,6 +34851,7 @@ export namespace Prisma {
     uberDirectConfig<T extends Location$uberDirectConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$uberDirectConfigArgs<ExtArgs>>): Prisma__UberDirectConfigClient<$Result.GetResult<Prisma.$UberDirectConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     jetGoConfig<T extends Location$jetGoConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$jetGoConfigArgs<ExtArgs>>): Prisma__JetGoConfigClient<$Result.GetResult<Prisma.$JetGoConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     yangoConfig<T extends Location$yangoConfigArgs<ExtArgs> = {}>(args?: Subset<T, Location$yangoConfigArgs<ExtArgs>>): Prisma__YangoConfigClient<$Result.GetResult<Prisma.$YangoConfigPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    eflListing<T extends Location$eflListingArgs<ExtArgs> = {}>(args?: Subset<T, Location$eflListingArgs<ExtArgs>>): Prisma__EflListingClient<$Result.GetResult<Prisma.$EflListingPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     loyaltyCard<T extends Location$loyaltyCardArgs<ExtArgs> = {}>(args?: Subset<T, Location$loyaltyCardArgs<ExtArgs>>): Prisma__LoyaltyCardClient<$Result.GetResult<Prisma.$LoyaltyCardPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     referralProgram<T extends Location$referralProgramArgs<ExtArgs> = {}>(args?: Subset<T, Location$referralProgramArgs<ExtArgs>>): Prisma__ReferralProgramClient<$Result.GetResult<Prisma.$ReferralProgramPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     loyaltyRewards<T extends Location$loyaltyRewardsArgs<ExtArgs> = {}>(args?: Subset<T, Location$loyaltyRewardsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LoyaltyRewardPayload<ExtArgs>, T, "findMany"> | Null>
@@ -35546,6 +35873,21 @@ export namespace Prisma {
      */
     include?: YangoConfigInclude<ExtArgs> | null
     where?: YangoConfigWhereInput
+  }
+
+  /**
+   * Location.eflListing
+   */
+  export type Location$eflListingArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflListing
+     */
+    select?: EflListingSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflListingInclude<ExtArgs> | null
+    where?: EflListingWhereInput
   }
 
   /**
@@ -66649,6 +66991,7 @@ export namespace Prisma {
     total: Decimal | null
     promoDiscount: Decimal | null
     preparationMinutes: number | null
+    eflCommissionPercent: Decimal | null
   }
 
   export type OrderSumAggregateOutputType = {
@@ -66667,6 +67010,7 @@ export namespace Prisma {
     total: Decimal | null
     promoDiscount: Decimal | null
     preparationMinutes: number | null
+    eflCommissionPercent: Decimal | null
   }
 
   export type OrderMinAggregateOutputType = {
@@ -66745,6 +67089,9 @@ export namespace Prisma {
     deliveredAt: Date | null
     cancelledAt: Date | null
     cancelReason: string | null
+    deliveryPin: string | null
+    deliveryPinVerifiedAt: Date | null
+    eflCommissionPercent: Decimal | null
     createdAt: Date | null
     updatedAt: Date | null
     loyaltyMemberId: string | null
@@ -66826,6 +67173,9 @@ export namespace Prisma {
     deliveredAt: Date | null
     cancelledAt: Date | null
     cancelReason: string | null
+    deliveryPin: string | null
+    deliveryPinVerifiedAt: Date | null
+    eflCommissionPercent: Decimal | null
     createdAt: Date | null
     updatedAt: Date | null
     loyaltyMemberId: string | null
@@ -66911,6 +67261,9 @@ export namespace Prisma {
     cancelReason: number
     metadata: number
     sourceMetadata: number
+    deliveryPin: number
+    deliveryPinVerifiedAt: number
+    eflCommissionPercent: number
     createdAt: number
     updatedAt: number
     loyaltyMemberId: number
@@ -66934,6 +67287,7 @@ export namespace Prisma {
     total?: true
     promoDiscount?: true
     preparationMinutes?: true
+    eflCommissionPercent?: true
   }
 
   export type OrderSumAggregateInputType = {
@@ -66952,6 +67306,7 @@ export namespace Prisma {
     total?: true
     promoDiscount?: true
     preparationMinutes?: true
+    eflCommissionPercent?: true
   }
 
   export type OrderMinAggregateInputType = {
@@ -67030,6 +67385,9 @@ export namespace Prisma {
     deliveredAt?: true
     cancelledAt?: true
     cancelReason?: true
+    deliveryPin?: true
+    deliveryPinVerifiedAt?: true
+    eflCommissionPercent?: true
     createdAt?: true
     updatedAt?: true
     loyaltyMemberId?: true
@@ -67111,6 +67469,9 @@ export namespace Prisma {
     deliveredAt?: true
     cancelledAt?: true
     cancelReason?: true
+    deliveryPin?: true
+    deliveryPinVerifiedAt?: true
+    eflCommissionPercent?: true
     createdAt?: true
     updatedAt?: true
     loyaltyMemberId?: true
@@ -67196,6 +67557,9 @@ export namespace Prisma {
     cancelReason?: true
     metadata?: true
     sourceMetadata?: true
+    deliveryPin?: true
+    deliveryPinVerifiedAt?: true
+    eflCommissionPercent?: true
     createdAt?: true
     updatedAt?: true
     loyaltyMemberId?: true
@@ -67368,6 +67732,9 @@ export namespace Prisma {
     cancelReason: string | null
     metadata: JsonValue
     sourceMetadata: JsonValue
+    deliveryPin: string | null
+    deliveryPinVerifiedAt: Date | null
+    eflCommissionPercent: Decimal | null
     createdAt: Date
     updatedAt: Date
     loyaltyMemberId: string | null
@@ -67472,6 +67839,9 @@ export namespace Prisma {
     cancelReason?: boolean
     metadata?: boolean
     sourceMetadata?: boolean
+    deliveryPin?: boolean
+    deliveryPinVerifiedAt?: boolean
+    eflCommissionPercent?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     loyaltyMemberId?: boolean
@@ -67571,6 +67941,9 @@ export namespace Prisma {
     cancelReason?: boolean
     metadata?: boolean
     sourceMetadata?: boolean
+    deliveryPin?: boolean
+    deliveryPinVerifiedAt?: boolean
+    eflCommissionPercent?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     loyaltyMemberId?: boolean
@@ -67661,6 +68034,9 @@ export namespace Prisma {
     cancelReason?: boolean
     metadata?: boolean
     sourceMetadata?: boolean
+    deliveryPin?: boolean
+    deliveryPinVerifiedAt?: boolean
+    eflCommissionPercent?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     loyaltyMemberId?: boolean
@@ -67787,6 +68163,17 @@ export namespace Prisma {
       cancelReason: string | null
       metadata: Prisma.JsonValue
       sourceMetadata: Prisma.JsonValue
+      /**
+       * Eat For Less: the 4-digit code the customer gives the driver at the
+       * door. Null when the order doesn't need one. Never sent to a driver.
+       */
+      deliveryPin: string | null
+      deliveryPinVerifiedAt: Date | null
+      /**
+       * Eat For Less: the commission rate this order was placed at, kept so a
+       * later rate change can't rewrite an old statement.
+       */
+      eflCommissionPercent: Prisma.Decimal | null
       createdAt: Date
       updatedAt: Date
       /**
@@ -68280,6 +68667,9 @@ export namespace Prisma {
     readonly cancelReason: FieldRef<"Order", 'String'>
     readonly metadata: FieldRef<"Order", 'Json'>
     readonly sourceMetadata: FieldRef<"Order", 'Json'>
+    readonly deliveryPin: FieldRef<"Order", 'String'>
+    readonly deliveryPinVerifiedAt: FieldRef<"Order", 'DateTime'>
+    readonly eflCommissionPercent: FieldRef<"Order", 'Decimal'>
     readonly createdAt: FieldRef<"Order", 'DateTime'>
     readonly updatedAt: FieldRef<"Order", 'DateTime'>
     readonly loyaltyMemberId: FieldRef<"Order", 'String'>
@@ -147381,6 +147771,3058 @@ export namespace Prisma {
 
 
   /**
+   * Model EflListing
+   */
+
+  export type AggregateEflListing = {
+    _count: EflListingCountAggregateOutputType | null
+    _avg: EflListingAvgAggregateOutputType | null
+    _sum: EflListingSumAggregateOutputType | null
+    _min: EflListingMinAggregateOutputType | null
+    _max: EflListingMaxAggregateOutputType | null
+  }
+
+  export type EflListingAvgAggregateOutputType = {
+    commissionPercent: Decimal | null
+  }
+
+  export type EflListingSumAggregateOutputType = {
+    commissionPercent: Decimal | null
+  }
+
+  export type EflListingMinAggregateOutputType = {
+    id: string | null
+    locationId: string | null
+    brandId: string | null
+    listed: boolean | null
+    status: $Enums.EflListingStatus | null
+    hiddenReason: string | null
+    commissionPercent: Decimal | null
+    deliveryMode: $Enums.EflDeliveryMode | null
+    acceptsDelivery: boolean | null
+    acceptsCollection: boolean | null
+    description: string | null
+    heroImageUrl: string | null
+    logoUrl: string | null
+    approvedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type EflListingMaxAggregateOutputType = {
+    id: string | null
+    locationId: string | null
+    brandId: string | null
+    listed: boolean | null
+    status: $Enums.EflListingStatus | null
+    hiddenReason: string | null
+    commissionPercent: Decimal | null
+    deliveryMode: $Enums.EflDeliveryMode | null
+    acceptsDelivery: boolean | null
+    acceptsCollection: boolean | null
+    description: string | null
+    heroImageUrl: string | null
+    logoUrl: string | null
+    approvedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type EflListingCountAggregateOutputType = {
+    id: number
+    locationId: number
+    brandId: number
+    listed: number
+    status: number
+    hiddenReason: number
+    commissionPercent: number
+    deliveryMode: number
+    acceptsDelivery: number
+    acceptsCollection: number
+    description: number
+    heroImageUrl: number
+    logoUrl: number
+    cuisines: number
+    approvedAt: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type EflListingAvgAggregateInputType = {
+    commissionPercent?: true
+  }
+
+  export type EflListingSumAggregateInputType = {
+    commissionPercent?: true
+  }
+
+  export type EflListingMinAggregateInputType = {
+    id?: true
+    locationId?: true
+    brandId?: true
+    listed?: true
+    status?: true
+    hiddenReason?: true
+    commissionPercent?: true
+    deliveryMode?: true
+    acceptsDelivery?: true
+    acceptsCollection?: true
+    description?: true
+    heroImageUrl?: true
+    logoUrl?: true
+    approvedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type EflListingMaxAggregateInputType = {
+    id?: true
+    locationId?: true
+    brandId?: true
+    listed?: true
+    status?: true
+    hiddenReason?: true
+    commissionPercent?: true
+    deliveryMode?: true
+    acceptsDelivery?: true
+    acceptsCollection?: true
+    description?: true
+    heroImageUrl?: true
+    logoUrl?: true
+    approvedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type EflListingCountAggregateInputType = {
+    id?: true
+    locationId?: true
+    brandId?: true
+    listed?: true
+    status?: true
+    hiddenReason?: true
+    commissionPercent?: true
+    deliveryMode?: true
+    acceptsDelivery?: true
+    acceptsCollection?: true
+    description?: true
+    heroImageUrl?: true
+    logoUrl?: true
+    cuisines?: true
+    approvedAt?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type EflListingAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EflListing to aggregate.
+     */
+    where?: EflListingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflListings to fetch.
+     */
+    orderBy?: EflListingOrderByWithRelationInput | EflListingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: EflListingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflListings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflListings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned EflListings
+    **/
+    _count?: true | EflListingCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: EflListingAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: EflListingSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: EflListingMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: EflListingMaxAggregateInputType
+  }
+
+  export type GetEflListingAggregateType<T extends EflListingAggregateArgs> = {
+        [P in keyof T & keyof AggregateEflListing]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateEflListing[P]>
+      : GetScalarType<T[P], AggregateEflListing[P]>
+  }
+
+
+
+
+  export type EflListingGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EflListingWhereInput
+    orderBy?: EflListingOrderByWithAggregationInput | EflListingOrderByWithAggregationInput[]
+    by: EflListingScalarFieldEnum[] | EflListingScalarFieldEnum
+    having?: EflListingScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: EflListingCountAggregateInputType | true
+    _avg?: EflListingAvgAggregateInputType
+    _sum?: EflListingSumAggregateInputType
+    _min?: EflListingMinAggregateInputType
+    _max?: EflListingMaxAggregateInputType
+  }
+
+  export type EflListingGroupByOutputType = {
+    id: string
+    locationId: string
+    brandId: string | null
+    listed: boolean
+    status: $Enums.EflListingStatus
+    hiddenReason: string | null
+    commissionPercent: Decimal | null
+    deliveryMode: $Enums.EflDeliveryMode
+    acceptsDelivery: boolean
+    acceptsCollection: boolean
+    description: string | null
+    heroImageUrl: string | null
+    logoUrl: string | null
+    cuisines: string[]
+    approvedAt: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: EflListingCountAggregateOutputType | null
+    _avg: EflListingAvgAggregateOutputType | null
+    _sum: EflListingSumAggregateOutputType | null
+    _min: EflListingMinAggregateOutputType | null
+    _max: EflListingMaxAggregateOutputType | null
+  }
+
+  type GetEflListingGroupByPayload<T extends EflListingGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<EflListingGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof EflListingGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], EflListingGroupByOutputType[P]>
+            : GetScalarType<T[P], EflListingGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type EflListingSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    listed?: boolean
+    status?: boolean
+    hiddenReason?: boolean
+    commissionPercent?: boolean
+    deliveryMode?: boolean
+    acceptsDelivery?: boolean
+    acceptsCollection?: boolean
+    description?: boolean
+    heroImageUrl?: boolean
+    logoUrl?: boolean
+    cuisines?: boolean
+    approvedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["eflListing"]>
+
+  export type EflListingSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    listed?: boolean
+    status?: boolean
+    hiddenReason?: boolean
+    commissionPercent?: boolean
+    deliveryMode?: boolean
+    acceptsDelivery?: boolean
+    acceptsCollection?: boolean
+    description?: boolean
+    heroImageUrl?: boolean
+    logoUrl?: boolean
+    cuisines?: boolean
+    approvedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["eflListing"]>
+
+  export type EflListingSelectScalar = {
+    id?: boolean
+    locationId?: boolean
+    brandId?: boolean
+    listed?: boolean
+    status?: boolean
+    hiddenReason?: boolean
+    commissionPercent?: boolean
+    deliveryMode?: boolean
+    acceptsDelivery?: boolean
+    acceptsCollection?: boolean
+    description?: boolean
+    heroImageUrl?: boolean
+    logoUrl?: boolean
+    cuisines?: boolean
+    approvedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type EflListingInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+  export type EflListingIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    location?: boolean | LocationDefaultArgs<ExtArgs>
+  }
+
+  export type $EflListingPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "EflListing"
+    objects: {
+      location: Prisma.$LocationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      locationId: string
+      /**
+       * The brand the app shows and orders are filed under. Null = the
+       * location's own brand.
+       */
+      brandId: string | null
+      /**
+       * The shop's own switch, in OrderHub → Platforms.
+       */
+      listed: boolean
+      /**
+       * Ours, from the Console. A shop shows in the app only when it is
+       * listed AND approved AND nothing has hidden it.
+       */
+      status: $Enums.EflListingStatus
+      /**
+       * Set when an automatic rule hid it (e.g. "HYGIENE"). Null = not hidden.
+       */
+      hiddenReason: string | null
+      /**
+       * Commission on the food (subtotal after discounts), in percent. Null =
+       * EflConfig.defaultCommissionPercent.
+       */
+      commissionPercent: Prisma.Decimal | null
+      deliveryMode: $Enums.EflDeliveryMode
+      acceptsDelivery: boolean
+      acceptsCollection: boolean
+      description: string | null
+      heroImageUrl: string | null
+      logoUrl: string | null
+      cuisines: string[]
+      approvedAt: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["eflListing"]>
+    composites: {}
+  }
+
+  type EflListingGetPayload<S extends boolean | null | undefined | EflListingDefaultArgs> = $Result.GetResult<Prisma.$EflListingPayload, S>
+
+  type EflListingCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<EflListingFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: EflListingCountAggregateInputType | true
+    }
+
+  export interface EflListingDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['EflListing'], meta: { name: 'EflListing' } }
+    /**
+     * Find zero or one EflListing that matches the filter.
+     * @param {EflListingFindUniqueArgs} args - Arguments to find a EflListing
+     * @example
+     * // Get one EflListing
+     * const eflListing = await prisma.eflListing.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends EflListingFindUniqueArgs>(args: SelectSubset<T, EflListingFindUniqueArgs<ExtArgs>>): Prisma__EflListingClient<$Result.GetResult<Prisma.$EflListingPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one EflListing that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {EflListingFindUniqueOrThrowArgs} args - Arguments to find a EflListing
+     * @example
+     * // Get one EflListing
+     * const eflListing = await prisma.eflListing.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends EflListingFindUniqueOrThrowArgs>(args: SelectSubset<T, EflListingFindUniqueOrThrowArgs<ExtArgs>>): Prisma__EflListingClient<$Result.GetResult<Prisma.$EflListingPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first EflListing that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflListingFindFirstArgs} args - Arguments to find a EflListing
+     * @example
+     * // Get one EflListing
+     * const eflListing = await prisma.eflListing.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends EflListingFindFirstArgs>(args?: SelectSubset<T, EflListingFindFirstArgs<ExtArgs>>): Prisma__EflListingClient<$Result.GetResult<Prisma.$EflListingPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first EflListing that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflListingFindFirstOrThrowArgs} args - Arguments to find a EflListing
+     * @example
+     * // Get one EflListing
+     * const eflListing = await prisma.eflListing.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends EflListingFindFirstOrThrowArgs>(args?: SelectSubset<T, EflListingFindFirstOrThrowArgs<ExtArgs>>): Prisma__EflListingClient<$Result.GetResult<Prisma.$EflListingPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more EflListings that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflListingFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all EflListings
+     * const eflListings = await prisma.eflListing.findMany()
+     * 
+     * // Get first 10 EflListings
+     * const eflListings = await prisma.eflListing.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const eflListingWithIdOnly = await prisma.eflListing.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends EflListingFindManyArgs>(args?: SelectSubset<T, EflListingFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EflListingPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a EflListing.
+     * @param {EflListingCreateArgs} args - Arguments to create a EflListing.
+     * @example
+     * // Create one EflListing
+     * const EflListing = await prisma.eflListing.create({
+     *   data: {
+     *     // ... data to create a EflListing
+     *   }
+     * })
+     * 
+     */
+    create<T extends EflListingCreateArgs>(args: SelectSubset<T, EflListingCreateArgs<ExtArgs>>): Prisma__EflListingClient<$Result.GetResult<Prisma.$EflListingPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many EflListings.
+     * @param {EflListingCreateManyArgs} args - Arguments to create many EflListings.
+     * @example
+     * // Create many EflListings
+     * const eflListing = await prisma.eflListing.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends EflListingCreateManyArgs>(args?: SelectSubset<T, EflListingCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many EflListings and returns the data saved in the database.
+     * @param {EflListingCreateManyAndReturnArgs} args - Arguments to create many EflListings.
+     * @example
+     * // Create many EflListings
+     * const eflListing = await prisma.eflListing.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many EflListings and only return the `id`
+     * const eflListingWithIdOnly = await prisma.eflListing.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends EflListingCreateManyAndReturnArgs>(args?: SelectSubset<T, EflListingCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EflListingPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a EflListing.
+     * @param {EflListingDeleteArgs} args - Arguments to delete one EflListing.
+     * @example
+     * // Delete one EflListing
+     * const EflListing = await prisma.eflListing.delete({
+     *   where: {
+     *     // ... filter to delete one EflListing
+     *   }
+     * })
+     * 
+     */
+    delete<T extends EflListingDeleteArgs>(args: SelectSubset<T, EflListingDeleteArgs<ExtArgs>>): Prisma__EflListingClient<$Result.GetResult<Prisma.$EflListingPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one EflListing.
+     * @param {EflListingUpdateArgs} args - Arguments to update one EflListing.
+     * @example
+     * // Update one EflListing
+     * const eflListing = await prisma.eflListing.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends EflListingUpdateArgs>(args: SelectSubset<T, EflListingUpdateArgs<ExtArgs>>): Prisma__EflListingClient<$Result.GetResult<Prisma.$EflListingPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more EflListings.
+     * @param {EflListingDeleteManyArgs} args - Arguments to filter EflListings to delete.
+     * @example
+     * // Delete a few EflListings
+     * const { count } = await prisma.eflListing.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends EflListingDeleteManyArgs>(args?: SelectSubset<T, EflListingDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EflListings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflListingUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many EflListings
+     * const eflListing = await prisma.eflListing.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends EflListingUpdateManyArgs>(args: SelectSubset<T, EflListingUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one EflListing.
+     * @param {EflListingUpsertArgs} args - Arguments to update or create a EflListing.
+     * @example
+     * // Update or create a EflListing
+     * const eflListing = await prisma.eflListing.upsert({
+     *   create: {
+     *     // ... data to create a EflListing
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the EflListing we want to update
+     *   }
+     * })
+     */
+    upsert<T extends EflListingUpsertArgs>(args: SelectSubset<T, EflListingUpsertArgs<ExtArgs>>): Prisma__EflListingClient<$Result.GetResult<Prisma.$EflListingPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of EflListings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflListingCountArgs} args - Arguments to filter EflListings to count.
+     * @example
+     * // Count the number of EflListings
+     * const count = await prisma.eflListing.count({
+     *   where: {
+     *     // ... the filter for the EflListings we want to count
+     *   }
+     * })
+    **/
+    count<T extends EflListingCountArgs>(
+      args?: Subset<T, EflListingCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], EflListingCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a EflListing.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflListingAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends EflListingAggregateArgs>(args: Subset<T, EflListingAggregateArgs>): Prisma.PrismaPromise<GetEflListingAggregateType<T>>
+
+    /**
+     * Group by EflListing.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflListingGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends EflListingGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: EflListingGroupByArgs['orderBy'] }
+        : { orderBy?: EflListingGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, EflListingGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEflListingGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the EflListing model
+   */
+  readonly fields: EflListingFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for EflListing.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__EflListingClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the EflListing model
+   */ 
+  interface EflListingFieldRefs {
+    readonly id: FieldRef<"EflListing", 'String'>
+    readonly locationId: FieldRef<"EflListing", 'String'>
+    readonly brandId: FieldRef<"EflListing", 'String'>
+    readonly listed: FieldRef<"EflListing", 'Boolean'>
+    readonly status: FieldRef<"EflListing", 'EflListingStatus'>
+    readonly hiddenReason: FieldRef<"EflListing", 'String'>
+    readonly commissionPercent: FieldRef<"EflListing", 'Decimal'>
+    readonly deliveryMode: FieldRef<"EflListing", 'EflDeliveryMode'>
+    readonly acceptsDelivery: FieldRef<"EflListing", 'Boolean'>
+    readonly acceptsCollection: FieldRef<"EflListing", 'Boolean'>
+    readonly description: FieldRef<"EflListing", 'String'>
+    readonly heroImageUrl: FieldRef<"EflListing", 'String'>
+    readonly logoUrl: FieldRef<"EflListing", 'String'>
+    readonly cuisines: FieldRef<"EflListing", 'String[]'>
+    readonly approvedAt: FieldRef<"EflListing", 'DateTime'>
+    readonly createdAt: FieldRef<"EflListing", 'DateTime'>
+    readonly updatedAt: FieldRef<"EflListing", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * EflListing findUnique
+   */
+  export type EflListingFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflListing
+     */
+    select?: EflListingSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflListingInclude<ExtArgs> | null
+    /**
+     * Filter, which EflListing to fetch.
+     */
+    where: EflListingWhereUniqueInput
+  }
+
+  /**
+   * EflListing findUniqueOrThrow
+   */
+  export type EflListingFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflListing
+     */
+    select?: EflListingSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflListingInclude<ExtArgs> | null
+    /**
+     * Filter, which EflListing to fetch.
+     */
+    where: EflListingWhereUniqueInput
+  }
+
+  /**
+   * EflListing findFirst
+   */
+  export type EflListingFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflListing
+     */
+    select?: EflListingSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflListingInclude<ExtArgs> | null
+    /**
+     * Filter, which EflListing to fetch.
+     */
+    where?: EflListingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflListings to fetch.
+     */
+    orderBy?: EflListingOrderByWithRelationInput | EflListingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EflListings.
+     */
+    cursor?: EflListingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflListings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflListings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EflListings.
+     */
+    distinct?: EflListingScalarFieldEnum | EflListingScalarFieldEnum[]
+  }
+
+  /**
+   * EflListing findFirstOrThrow
+   */
+  export type EflListingFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflListing
+     */
+    select?: EflListingSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflListingInclude<ExtArgs> | null
+    /**
+     * Filter, which EflListing to fetch.
+     */
+    where?: EflListingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflListings to fetch.
+     */
+    orderBy?: EflListingOrderByWithRelationInput | EflListingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EflListings.
+     */
+    cursor?: EflListingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflListings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflListings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EflListings.
+     */
+    distinct?: EflListingScalarFieldEnum | EflListingScalarFieldEnum[]
+  }
+
+  /**
+   * EflListing findMany
+   */
+  export type EflListingFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflListing
+     */
+    select?: EflListingSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflListingInclude<ExtArgs> | null
+    /**
+     * Filter, which EflListings to fetch.
+     */
+    where?: EflListingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflListings to fetch.
+     */
+    orderBy?: EflListingOrderByWithRelationInput | EflListingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing EflListings.
+     */
+    cursor?: EflListingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflListings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflListings.
+     */
+    skip?: number
+    distinct?: EflListingScalarFieldEnum | EflListingScalarFieldEnum[]
+  }
+
+  /**
+   * EflListing create
+   */
+  export type EflListingCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflListing
+     */
+    select?: EflListingSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflListingInclude<ExtArgs> | null
+    /**
+     * The data needed to create a EflListing.
+     */
+    data: XOR<EflListingCreateInput, EflListingUncheckedCreateInput>
+  }
+
+  /**
+   * EflListing createMany
+   */
+  export type EflListingCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many EflListings.
+     */
+    data: EflListingCreateManyInput | EflListingCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EflListing createManyAndReturn
+   */
+  export type EflListingCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflListing
+     */
+    select?: EflListingSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many EflListings.
+     */
+    data: EflListingCreateManyInput | EflListingCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflListingIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * EflListing update
+   */
+  export type EflListingUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflListing
+     */
+    select?: EflListingSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflListingInclude<ExtArgs> | null
+    /**
+     * The data needed to update a EflListing.
+     */
+    data: XOR<EflListingUpdateInput, EflListingUncheckedUpdateInput>
+    /**
+     * Choose, which EflListing to update.
+     */
+    where: EflListingWhereUniqueInput
+  }
+
+  /**
+   * EflListing updateMany
+   */
+  export type EflListingUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update EflListings.
+     */
+    data: XOR<EflListingUpdateManyMutationInput, EflListingUncheckedUpdateManyInput>
+    /**
+     * Filter which EflListings to update
+     */
+    where?: EflListingWhereInput
+  }
+
+  /**
+   * EflListing upsert
+   */
+  export type EflListingUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflListing
+     */
+    select?: EflListingSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflListingInclude<ExtArgs> | null
+    /**
+     * The filter to search for the EflListing to update in case it exists.
+     */
+    where: EflListingWhereUniqueInput
+    /**
+     * In case the EflListing found by the `where` argument doesn't exist, create a new EflListing with this data.
+     */
+    create: XOR<EflListingCreateInput, EflListingUncheckedCreateInput>
+    /**
+     * In case the EflListing was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<EflListingUpdateInput, EflListingUncheckedUpdateInput>
+  }
+
+  /**
+   * EflListing delete
+   */
+  export type EflListingDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflListing
+     */
+    select?: EflListingSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflListingInclude<ExtArgs> | null
+    /**
+     * Filter which EflListing to delete.
+     */
+    where: EflListingWhereUniqueInput
+  }
+
+  /**
+   * EflListing deleteMany
+   */
+  export type EflListingDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EflListings to delete
+     */
+    where?: EflListingWhereInput
+  }
+
+  /**
+   * EflListing without action
+   */
+  export type EflListingDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflListing
+     */
+    select?: EflListingSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflListingInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model EflConfig
+   */
+
+  export type AggregateEflConfig = {
+    _count: EflConfigCountAggregateOutputType | null
+    _avg: EflConfigAvgAggregateOutputType | null
+    _sum: EflConfigSumAggregateOutputType | null
+    _min: EflConfigMinAggregateOutputType | null
+    _max: EflConfigMaxAggregateOutputType | null
+  }
+
+  export type EflConfigAvgAggregateOutputType = {
+    defaultCommissionPercent: Decimal | null
+    pinMinOrderTotal: Decimal | null
+    firstOrderMaxTotal: Decimal | null
+    maxOrdersPerHour: number | null
+    minHygieneRating: number | null
+  }
+
+  export type EflConfigSumAggregateOutputType = {
+    defaultCommissionPercent: Decimal | null
+    pinMinOrderTotal: Decimal | null
+    firstOrderMaxTotal: Decimal | null
+    maxOrdersPerHour: number | null
+    minHygieneRating: number | null
+  }
+
+  export type EflConfigMinAggregateOutputType = {
+    id: string | null
+    defaultCommissionPercent: Decimal | null
+    pinMinOrderTotal: Decimal | null
+    pinForNewCustomers: boolean | null
+    firstOrderMaxTotal: Decimal | null
+    maxOrdersPerHour: number | null
+    minHygieneRating: number | null
+    updatedAt: Date | null
+  }
+
+  export type EflConfigMaxAggregateOutputType = {
+    id: string | null
+    defaultCommissionPercent: Decimal | null
+    pinMinOrderTotal: Decimal | null
+    pinForNewCustomers: boolean | null
+    firstOrderMaxTotal: Decimal | null
+    maxOrdersPerHour: number | null
+    minHygieneRating: number | null
+    updatedAt: Date | null
+  }
+
+  export type EflConfigCountAggregateOutputType = {
+    id: number
+    defaultCommissionPercent: number
+    pinMinOrderTotal: number
+    pinForNewCustomers: number
+    firstOrderMaxTotal: number
+    maxOrdersPerHour: number
+    minHygieneRating: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type EflConfigAvgAggregateInputType = {
+    defaultCommissionPercent?: true
+    pinMinOrderTotal?: true
+    firstOrderMaxTotal?: true
+    maxOrdersPerHour?: true
+    minHygieneRating?: true
+  }
+
+  export type EflConfigSumAggregateInputType = {
+    defaultCommissionPercent?: true
+    pinMinOrderTotal?: true
+    firstOrderMaxTotal?: true
+    maxOrdersPerHour?: true
+    minHygieneRating?: true
+  }
+
+  export type EflConfigMinAggregateInputType = {
+    id?: true
+    defaultCommissionPercent?: true
+    pinMinOrderTotal?: true
+    pinForNewCustomers?: true
+    firstOrderMaxTotal?: true
+    maxOrdersPerHour?: true
+    minHygieneRating?: true
+    updatedAt?: true
+  }
+
+  export type EflConfigMaxAggregateInputType = {
+    id?: true
+    defaultCommissionPercent?: true
+    pinMinOrderTotal?: true
+    pinForNewCustomers?: true
+    firstOrderMaxTotal?: true
+    maxOrdersPerHour?: true
+    minHygieneRating?: true
+    updatedAt?: true
+  }
+
+  export type EflConfigCountAggregateInputType = {
+    id?: true
+    defaultCommissionPercent?: true
+    pinMinOrderTotal?: true
+    pinForNewCustomers?: true
+    firstOrderMaxTotal?: true
+    maxOrdersPerHour?: true
+    minHygieneRating?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type EflConfigAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EflConfig to aggregate.
+     */
+    where?: EflConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflConfigs to fetch.
+     */
+    orderBy?: EflConfigOrderByWithRelationInput | EflConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: EflConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned EflConfigs
+    **/
+    _count?: true | EflConfigCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: EflConfigAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: EflConfigSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: EflConfigMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: EflConfigMaxAggregateInputType
+  }
+
+  export type GetEflConfigAggregateType<T extends EflConfigAggregateArgs> = {
+        [P in keyof T & keyof AggregateEflConfig]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateEflConfig[P]>
+      : GetScalarType<T[P], AggregateEflConfig[P]>
+  }
+
+
+
+
+  export type EflConfigGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EflConfigWhereInput
+    orderBy?: EflConfigOrderByWithAggregationInput | EflConfigOrderByWithAggregationInput[]
+    by: EflConfigScalarFieldEnum[] | EflConfigScalarFieldEnum
+    having?: EflConfigScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: EflConfigCountAggregateInputType | true
+    _avg?: EflConfigAvgAggregateInputType
+    _sum?: EflConfigSumAggregateInputType
+    _min?: EflConfigMinAggregateInputType
+    _max?: EflConfigMaxAggregateInputType
+  }
+
+  export type EflConfigGroupByOutputType = {
+    id: string
+    defaultCommissionPercent: Decimal
+    pinMinOrderTotal: Decimal
+    pinForNewCustomers: boolean
+    firstOrderMaxTotal: Decimal
+    maxOrdersPerHour: number
+    minHygieneRating: number
+    updatedAt: Date
+    _count: EflConfigCountAggregateOutputType | null
+    _avg: EflConfigAvgAggregateOutputType | null
+    _sum: EflConfigSumAggregateOutputType | null
+    _min: EflConfigMinAggregateOutputType | null
+    _max: EflConfigMaxAggregateOutputType | null
+  }
+
+  type GetEflConfigGroupByPayload<T extends EflConfigGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<EflConfigGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof EflConfigGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], EflConfigGroupByOutputType[P]>
+            : GetScalarType<T[P], EflConfigGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type EflConfigSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    defaultCommissionPercent?: boolean
+    pinMinOrderTotal?: boolean
+    pinForNewCustomers?: boolean
+    firstOrderMaxTotal?: boolean
+    maxOrdersPerHour?: boolean
+    minHygieneRating?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["eflConfig"]>
+
+  export type EflConfigSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    defaultCommissionPercent?: boolean
+    pinMinOrderTotal?: boolean
+    pinForNewCustomers?: boolean
+    firstOrderMaxTotal?: boolean
+    maxOrdersPerHour?: boolean
+    minHygieneRating?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["eflConfig"]>
+
+  export type EflConfigSelectScalar = {
+    id?: boolean
+    defaultCommissionPercent?: boolean
+    pinMinOrderTotal?: boolean
+    pinForNewCustomers?: boolean
+    firstOrderMaxTotal?: boolean
+    maxOrdersPerHour?: boolean
+    minHygieneRating?: boolean
+    updatedAt?: boolean
+  }
+
+
+  export type $EflConfigPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "EflConfig"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      defaultCommissionPercent: Prisma.Decimal
+      /**
+       * Delivery PIN on every order whose total is at least this…
+       */
+      pinMinOrderTotal: Prisma.Decimal
+      /**
+       * …and on every order from a customer with no earlier Eat For Less order.
+       */
+      pinForNewCustomers: boolean
+      /**
+       * A new account's first order can't be larger than this.
+       */
+      firstOrderMaxTotal: Prisma.Decimal
+      /**
+       * Orders one account may place in a rolling hour.
+       */
+      maxOrdersPerHour: number
+      /**
+       * Lowest FSA food hygiene rating a shop may have and stay listed.
+       */
+      minHygieneRating: number
+      updatedAt: Date
+    }, ExtArgs["result"]["eflConfig"]>
+    composites: {}
+  }
+
+  type EflConfigGetPayload<S extends boolean | null | undefined | EflConfigDefaultArgs> = $Result.GetResult<Prisma.$EflConfigPayload, S>
+
+  type EflConfigCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<EflConfigFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: EflConfigCountAggregateInputType | true
+    }
+
+  export interface EflConfigDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['EflConfig'], meta: { name: 'EflConfig' } }
+    /**
+     * Find zero or one EflConfig that matches the filter.
+     * @param {EflConfigFindUniqueArgs} args - Arguments to find a EflConfig
+     * @example
+     * // Get one EflConfig
+     * const eflConfig = await prisma.eflConfig.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends EflConfigFindUniqueArgs>(args: SelectSubset<T, EflConfigFindUniqueArgs<ExtArgs>>): Prisma__EflConfigClient<$Result.GetResult<Prisma.$EflConfigPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one EflConfig that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {EflConfigFindUniqueOrThrowArgs} args - Arguments to find a EflConfig
+     * @example
+     * // Get one EflConfig
+     * const eflConfig = await prisma.eflConfig.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends EflConfigFindUniqueOrThrowArgs>(args: SelectSubset<T, EflConfigFindUniqueOrThrowArgs<ExtArgs>>): Prisma__EflConfigClient<$Result.GetResult<Prisma.$EflConfigPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first EflConfig that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflConfigFindFirstArgs} args - Arguments to find a EflConfig
+     * @example
+     * // Get one EflConfig
+     * const eflConfig = await prisma.eflConfig.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends EflConfigFindFirstArgs>(args?: SelectSubset<T, EflConfigFindFirstArgs<ExtArgs>>): Prisma__EflConfigClient<$Result.GetResult<Prisma.$EflConfigPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first EflConfig that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflConfigFindFirstOrThrowArgs} args - Arguments to find a EflConfig
+     * @example
+     * // Get one EflConfig
+     * const eflConfig = await prisma.eflConfig.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends EflConfigFindFirstOrThrowArgs>(args?: SelectSubset<T, EflConfigFindFirstOrThrowArgs<ExtArgs>>): Prisma__EflConfigClient<$Result.GetResult<Prisma.$EflConfigPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more EflConfigs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflConfigFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all EflConfigs
+     * const eflConfigs = await prisma.eflConfig.findMany()
+     * 
+     * // Get first 10 EflConfigs
+     * const eflConfigs = await prisma.eflConfig.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const eflConfigWithIdOnly = await prisma.eflConfig.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends EflConfigFindManyArgs>(args?: SelectSubset<T, EflConfigFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EflConfigPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a EflConfig.
+     * @param {EflConfigCreateArgs} args - Arguments to create a EflConfig.
+     * @example
+     * // Create one EflConfig
+     * const EflConfig = await prisma.eflConfig.create({
+     *   data: {
+     *     // ... data to create a EflConfig
+     *   }
+     * })
+     * 
+     */
+    create<T extends EflConfigCreateArgs>(args: SelectSubset<T, EflConfigCreateArgs<ExtArgs>>): Prisma__EflConfigClient<$Result.GetResult<Prisma.$EflConfigPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many EflConfigs.
+     * @param {EflConfigCreateManyArgs} args - Arguments to create many EflConfigs.
+     * @example
+     * // Create many EflConfigs
+     * const eflConfig = await prisma.eflConfig.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends EflConfigCreateManyArgs>(args?: SelectSubset<T, EflConfigCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many EflConfigs and returns the data saved in the database.
+     * @param {EflConfigCreateManyAndReturnArgs} args - Arguments to create many EflConfigs.
+     * @example
+     * // Create many EflConfigs
+     * const eflConfig = await prisma.eflConfig.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many EflConfigs and only return the `id`
+     * const eflConfigWithIdOnly = await prisma.eflConfig.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends EflConfigCreateManyAndReturnArgs>(args?: SelectSubset<T, EflConfigCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EflConfigPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a EflConfig.
+     * @param {EflConfigDeleteArgs} args - Arguments to delete one EflConfig.
+     * @example
+     * // Delete one EflConfig
+     * const EflConfig = await prisma.eflConfig.delete({
+     *   where: {
+     *     // ... filter to delete one EflConfig
+     *   }
+     * })
+     * 
+     */
+    delete<T extends EflConfigDeleteArgs>(args: SelectSubset<T, EflConfigDeleteArgs<ExtArgs>>): Prisma__EflConfigClient<$Result.GetResult<Prisma.$EflConfigPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one EflConfig.
+     * @param {EflConfigUpdateArgs} args - Arguments to update one EflConfig.
+     * @example
+     * // Update one EflConfig
+     * const eflConfig = await prisma.eflConfig.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends EflConfigUpdateArgs>(args: SelectSubset<T, EflConfigUpdateArgs<ExtArgs>>): Prisma__EflConfigClient<$Result.GetResult<Prisma.$EflConfigPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more EflConfigs.
+     * @param {EflConfigDeleteManyArgs} args - Arguments to filter EflConfigs to delete.
+     * @example
+     * // Delete a few EflConfigs
+     * const { count } = await prisma.eflConfig.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends EflConfigDeleteManyArgs>(args?: SelectSubset<T, EflConfigDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EflConfigs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflConfigUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many EflConfigs
+     * const eflConfig = await prisma.eflConfig.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends EflConfigUpdateManyArgs>(args: SelectSubset<T, EflConfigUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one EflConfig.
+     * @param {EflConfigUpsertArgs} args - Arguments to update or create a EflConfig.
+     * @example
+     * // Update or create a EflConfig
+     * const eflConfig = await prisma.eflConfig.upsert({
+     *   create: {
+     *     // ... data to create a EflConfig
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the EflConfig we want to update
+     *   }
+     * })
+     */
+    upsert<T extends EflConfigUpsertArgs>(args: SelectSubset<T, EflConfigUpsertArgs<ExtArgs>>): Prisma__EflConfigClient<$Result.GetResult<Prisma.$EflConfigPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of EflConfigs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflConfigCountArgs} args - Arguments to filter EflConfigs to count.
+     * @example
+     * // Count the number of EflConfigs
+     * const count = await prisma.eflConfig.count({
+     *   where: {
+     *     // ... the filter for the EflConfigs we want to count
+     *   }
+     * })
+    **/
+    count<T extends EflConfigCountArgs>(
+      args?: Subset<T, EflConfigCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], EflConfigCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a EflConfig.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflConfigAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends EflConfigAggregateArgs>(args: Subset<T, EflConfigAggregateArgs>): Prisma.PrismaPromise<GetEflConfigAggregateType<T>>
+
+    /**
+     * Group by EflConfig.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflConfigGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends EflConfigGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: EflConfigGroupByArgs['orderBy'] }
+        : { orderBy?: EflConfigGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, EflConfigGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEflConfigGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the EflConfig model
+   */
+  readonly fields: EflConfigFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for EflConfig.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__EflConfigClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the EflConfig model
+   */ 
+  interface EflConfigFieldRefs {
+    readonly id: FieldRef<"EflConfig", 'String'>
+    readonly defaultCommissionPercent: FieldRef<"EflConfig", 'Decimal'>
+    readonly pinMinOrderTotal: FieldRef<"EflConfig", 'Decimal'>
+    readonly pinForNewCustomers: FieldRef<"EflConfig", 'Boolean'>
+    readonly firstOrderMaxTotal: FieldRef<"EflConfig", 'Decimal'>
+    readonly maxOrdersPerHour: FieldRef<"EflConfig", 'Int'>
+    readonly minHygieneRating: FieldRef<"EflConfig", 'Int'>
+    readonly updatedAt: FieldRef<"EflConfig", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * EflConfig findUnique
+   */
+  export type EflConfigFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflConfig
+     */
+    select?: EflConfigSelect<ExtArgs> | null
+    /**
+     * Filter, which EflConfig to fetch.
+     */
+    where: EflConfigWhereUniqueInput
+  }
+
+  /**
+   * EflConfig findUniqueOrThrow
+   */
+  export type EflConfigFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflConfig
+     */
+    select?: EflConfigSelect<ExtArgs> | null
+    /**
+     * Filter, which EflConfig to fetch.
+     */
+    where: EflConfigWhereUniqueInput
+  }
+
+  /**
+   * EflConfig findFirst
+   */
+  export type EflConfigFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflConfig
+     */
+    select?: EflConfigSelect<ExtArgs> | null
+    /**
+     * Filter, which EflConfig to fetch.
+     */
+    where?: EflConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflConfigs to fetch.
+     */
+    orderBy?: EflConfigOrderByWithRelationInput | EflConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EflConfigs.
+     */
+    cursor?: EflConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EflConfigs.
+     */
+    distinct?: EflConfigScalarFieldEnum | EflConfigScalarFieldEnum[]
+  }
+
+  /**
+   * EflConfig findFirstOrThrow
+   */
+  export type EflConfigFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflConfig
+     */
+    select?: EflConfigSelect<ExtArgs> | null
+    /**
+     * Filter, which EflConfig to fetch.
+     */
+    where?: EflConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflConfigs to fetch.
+     */
+    orderBy?: EflConfigOrderByWithRelationInput | EflConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EflConfigs.
+     */
+    cursor?: EflConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EflConfigs.
+     */
+    distinct?: EflConfigScalarFieldEnum | EflConfigScalarFieldEnum[]
+  }
+
+  /**
+   * EflConfig findMany
+   */
+  export type EflConfigFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflConfig
+     */
+    select?: EflConfigSelect<ExtArgs> | null
+    /**
+     * Filter, which EflConfigs to fetch.
+     */
+    where?: EflConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflConfigs to fetch.
+     */
+    orderBy?: EflConfigOrderByWithRelationInput | EflConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing EflConfigs.
+     */
+    cursor?: EflConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflConfigs.
+     */
+    skip?: number
+    distinct?: EflConfigScalarFieldEnum | EflConfigScalarFieldEnum[]
+  }
+
+  /**
+   * EflConfig create
+   */
+  export type EflConfigCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflConfig
+     */
+    select?: EflConfigSelect<ExtArgs> | null
+    /**
+     * The data needed to create a EflConfig.
+     */
+    data: XOR<EflConfigCreateInput, EflConfigUncheckedCreateInput>
+  }
+
+  /**
+   * EflConfig createMany
+   */
+  export type EflConfigCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many EflConfigs.
+     */
+    data: EflConfigCreateManyInput | EflConfigCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EflConfig createManyAndReturn
+   */
+  export type EflConfigCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflConfig
+     */
+    select?: EflConfigSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many EflConfigs.
+     */
+    data: EflConfigCreateManyInput | EflConfigCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EflConfig update
+   */
+  export type EflConfigUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflConfig
+     */
+    select?: EflConfigSelect<ExtArgs> | null
+    /**
+     * The data needed to update a EflConfig.
+     */
+    data: XOR<EflConfigUpdateInput, EflConfigUncheckedUpdateInput>
+    /**
+     * Choose, which EflConfig to update.
+     */
+    where: EflConfigWhereUniqueInput
+  }
+
+  /**
+   * EflConfig updateMany
+   */
+  export type EflConfigUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update EflConfigs.
+     */
+    data: XOR<EflConfigUpdateManyMutationInput, EflConfigUncheckedUpdateManyInput>
+    /**
+     * Filter which EflConfigs to update
+     */
+    where?: EflConfigWhereInput
+  }
+
+  /**
+   * EflConfig upsert
+   */
+  export type EflConfigUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflConfig
+     */
+    select?: EflConfigSelect<ExtArgs> | null
+    /**
+     * The filter to search for the EflConfig to update in case it exists.
+     */
+    where: EflConfigWhereUniqueInput
+    /**
+     * In case the EflConfig found by the `where` argument doesn't exist, create a new EflConfig with this data.
+     */
+    create: XOR<EflConfigCreateInput, EflConfigUncheckedCreateInput>
+    /**
+     * In case the EflConfig was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<EflConfigUpdateInput, EflConfigUncheckedUpdateInput>
+  }
+
+  /**
+   * EflConfig delete
+   */
+  export type EflConfigDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflConfig
+     */
+    select?: EflConfigSelect<ExtArgs> | null
+    /**
+     * Filter which EflConfig to delete.
+     */
+    where: EflConfigWhereUniqueInput
+  }
+
+  /**
+   * EflConfig deleteMany
+   */
+  export type EflConfigDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EflConfigs to delete
+     */
+    where?: EflConfigWhereInput
+  }
+
+  /**
+   * EflConfig without action
+   */
+  export type EflConfigDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflConfig
+     */
+    select?: EflConfigSelect<ExtArgs> | null
+  }
+
+
+  /**
+   * Model EflPhoneVerification
+   */
+
+  export type AggregateEflPhoneVerification = {
+    _count: EflPhoneVerificationCountAggregateOutputType | null
+    _avg: EflPhoneVerificationAvgAggregateOutputType | null
+    _sum: EflPhoneVerificationSumAggregateOutputType | null
+    _min: EflPhoneVerificationMinAggregateOutputType | null
+    _max: EflPhoneVerificationMaxAggregateOutputType | null
+  }
+
+  export type EflPhoneVerificationAvgAggregateOutputType = {
+    attempts: number | null
+  }
+
+  export type EflPhoneVerificationSumAggregateOutputType = {
+    attempts: number | null
+  }
+
+  export type EflPhoneVerificationMinAggregateOutputType = {
+    id: string | null
+    customerAccountId: string | null
+    phone: string | null
+    codeHash: string | null
+    attempts: number | null
+    expiresAt: Date | null
+    consumedAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type EflPhoneVerificationMaxAggregateOutputType = {
+    id: string | null
+    customerAccountId: string | null
+    phone: string | null
+    codeHash: string | null
+    attempts: number | null
+    expiresAt: Date | null
+    consumedAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type EflPhoneVerificationCountAggregateOutputType = {
+    id: number
+    customerAccountId: number
+    phone: number
+    codeHash: number
+    attempts: number
+    expiresAt: number
+    consumedAt: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type EflPhoneVerificationAvgAggregateInputType = {
+    attempts?: true
+  }
+
+  export type EflPhoneVerificationSumAggregateInputType = {
+    attempts?: true
+  }
+
+  export type EflPhoneVerificationMinAggregateInputType = {
+    id?: true
+    customerAccountId?: true
+    phone?: true
+    codeHash?: true
+    attempts?: true
+    expiresAt?: true
+    consumedAt?: true
+    createdAt?: true
+  }
+
+  export type EflPhoneVerificationMaxAggregateInputType = {
+    id?: true
+    customerAccountId?: true
+    phone?: true
+    codeHash?: true
+    attempts?: true
+    expiresAt?: true
+    consumedAt?: true
+    createdAt?: true
+  }
+
+  export type EflPhoneVerificationCountAggregateInputType = {
+    id?: true
+    customerAccountId?: true
+    phone?: true
+    codeHash?: true
+    attempts?: true
+    expiresAt?: true
+    consumedAt?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type EflPhoneVerificationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EflPhoneVerification to aggregate.
+     */
+    where?: EflPhoneVerificationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflPhoneVerifications to fetch.
+     */
+    orderBy?: EflPhoneVerificationOrderByWithRelationInput | EflPhoneVerificationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: EflPhoneVerificationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflPhoneVerifications from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflPhoneVerifications.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned EflPhoneVerifications
+    **/
+    _count?: true | EflPhoneVerificationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: EflPhoneVerificationAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: EflPhoneVerificationSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: EflPhoneVerificationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: EflPhoneVerificationMaxAggregateInputType
+  }
+
+  export type GetEflPhoneVerificationAggregateType<T extends EflPhoneVerificationAggregateArgs> = {
+        [P in keyof T & keyof AggregateEflPhoneVerification]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateEflPhoneVerification[P]>
+      : GetScalarType<T[P], AggregateEflPhoneVerification[P]>
+  }
+
+
+
+
+  export type EflPhoneVerificationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EflPhoneVerificationWhereInput
+    orderBy?: EflPhoneVerificationOrderByWithAggregationInput | EflPhoneVerificationOrderByWithAggregationInput[]
+    by: EflPhoneVerificationScalarFieldEnum[] | EflPhoneVerificationScalarFieldEnum
+    having?: EflPhoneVerificationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: EflPhoneVerificationCountAggregateInputType | true
+    _avg?: EflPhoneVerificationAvgAggregateInputType
+    _sum?: EflPhoneVerificationSumAggregateInputType
+    _min?: EflPhoneVerificationMinAggregateInputType
+    _max?: EflPhoneVerificationMaxAggregateInputType
+  }
+
+  export type EflPhoneVerificationGroupByOutputType = {
+    id: string
+    customerAccountId: string
+    phone: string
+    codeHash: string
+    attempts: number
+    expiresAt: Date
+    consumedAt: Date | null
+    createdAt: Date
+    _count: EflPhoneVerificationCountAggregateOutputType | null
+    _avg: EflPhoneVerificationAvgAggregateOutputType | null
+    _sum: EflPhoneVerificationSumAggregateOutputType | null
+    _min: EflPhoneVerificationMinAggregateOutputType | null
+    _max: EflPhoneVerificationMaxAggregateOutputType | null
+  }
+
+  type GetEflPhoneVerificationGroupByPayload<T extends EflPhoneVerificationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<EflPhoneVerificationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof EflPhoneVerificationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], EflPhoneVerificationGroupByOutputType[P]>
+            : GetScalarType<T[P], EflPhoneVerificationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type EflPhoneVerificationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerAccountId?: boolean
+    phone?: boolean
+    codeHash?: boolean
+    attempts?: boolean
+    expiresAt?: boolean
+    consumedAt?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["eflPhoneVerification"]>
+
+  export type EflPhoneVerificationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerAccountId?: boolean
+    phone?: boolean
+    codeHash?: boolean
+    attempts?: boolean
+    expiresAt?: boolean
+    consumedAt?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["eflPhoneVerification"]>
+
+  export type EflPhoneVerificationSelectScalar = {
+    id?: boolean
+    customerAccountId?: boolean
+    phone?: boolean
+    codeHash?: boolean
+    attempts?: boolean
+    expiresAt?: boolean
+    consumedAt?: boolean
+    createdAt?: boolean
+  }
+
+
+  export type $EflPhoneVerificationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "EflPhoneVerification"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      customerAccountId: string
+      phone: string
+      codeHash: string
+      attempts: number
+      expiresAt: Date
+      consumedAt: Date | null
+      createdAt: Date
+    }, ExtArgs["result"]["eflPhoneVerification"]>
+    composites: {}
+  }
+
+  type EflPhoneVerificationGetPayload<S extends boolean | null | undefined | EflPhoneVerificationDefaultArgs> = $Result.GetResult<Prisma.$EflPhoneVerificationPayload, S>
+
+  type EflPhoneVerificationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<EflPhoneVerificationFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: EflPhoneVerificationCountAggregateInputType | true
+    }
+
+  export interface EflPhoneVerificationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['EflPhoneVerification'], meta: { name: 'EflPhoneVerification' } }
+    /**
+     * Find zero or one EflPhoneVerification that matches the filter.
+     * @param {EflPhoneVerificationFindUniqueArgs} args - Arguments to find a EflPhoneVerification
+     * @example
+     * // Get one EflPhoneVerification
+     * const eflPhoneVerification = await prisma.eflPhoneVerification.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends EflPhoneVerificationFindUniqueArgs>(args: SelectSubset<T, EflPhoneVerificationFindUniqueArgs<ExtArgs>>): Prisma__EflPhoneVerificationClient<$Result.GetResult<Prisma.$EflPhoneVerificationPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one EflPhoneVerification that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {EflPhoneVerificationFindUniqueOrThrowArgs} args - Arguments to find a EflPhoneVerification
+     * @example
+     * // Get one EflPhoneVerification
+     * const eflPhoneVerification = await prisma.eflPhoneVerification.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends EflPhoneVerificationFindUniqueOrThrowArgs>(args: SelectSubset<T, EflPhoneVerificationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__EflPhoneVerificationClient<$Result.GetResult<Prisma.$EflPhoneVerificationPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first EflPhoneVerification that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflPhoneVerificationFindFirstArgs} args - Arguments to find a EflPhoneVerification
+     * @example
+     * // Get one EflPhoneVerification
+     * const eflPhoneVerification = await prisma.eflPhoneVerification.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends EflPhoneVerificationFindFirstArgs>(args?: SelectSubset<T, EflPhoneVerificationFindFirstArgs<ExtArgs>>): Prisma__EflPhoneVerificationClient<$Result.GetResult<Prisma.$EflPhoneVerificationPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first EflPhoneVerification that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflPhoneVerificationFindFirstOrThrowArgs} args - Arguments to find a EflPhoneVerification
+     * @example
+     * // Get one EflPhoneVerification
+     * const eflPhoneVerification = await prisma.eflPhoneVerification.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends EflPhoneVerificationFindFirstOrThrowArgs>(args?: SelectSubset<T, EflPhoneVerificationFindFirstOrThrowArgs<ExtArgs>>): Prisma__EflPhoneVerificationClient<$Result.GetResult<Prisma.$EflPhoneVerificationPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more EflPhoneVerifications that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflPhoneVerificationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all EflPhoneVerifications
+     * const eflPhoneVerifications = await prisma.eflPhoneVerification.findMany()
+     * 
+     * // Get first 10 EflPhoneVerifications
+     * const eflPhoneVerifications = await prisma.eflPhoneVerification.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const eflPhoneVerificationWithIdOnly = await prisma.eflPhoneVerification.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends EflPhoneVerificationFindManyArgs>(args?: SelectSubset<T, EflPhoneVerificationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EflPhoneVerificationPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a EflPhoneVerification.
+     * @param {EflPhoneVerificationCreateArgs} args - Arguments to create a EflPhoneVerification.
+     * @example
+     * // Create one EflPhoneVerification
+     * const EflPhoneVerification = await prisma.eflPhoneVerification.create({
+     *   data: {
+     *     // ... data to create a EflPhoneVerification
+     *   }
+     * })
+     * 
+     */
+    create<T extends EflPhoneVerificationCreateArgs>(args: SelectSubset<T, EflPhoneVerificationCreateArgs<ExtArgs>>): Prisma__EflPhoneVerificationClient<$Result.GetResult<Prisma.$EflPhoneVerificationPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many EflPhoneVerifications.
+     * @param {EflPhoneVerificationCreateManyArgs} args - Arguments to create many EflPhoneVerifications.
+     * @example
+     * // Create many EflPhoneVerifications
+     * const eflPhoneVerification = await prisma.eflPhoneVerification.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends EflPhoneVerificationCreateManyArgs>(args?: SelectSubset<T, EflPhoneVerificationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many EflPhoneVerifications and returns the data saved in the database.
+     * @param {EflPhoneVerificationCreateManyAndReturnArgs} args - Arguments to create many EflPhoneVerifications.
+     * @example
+     * // Create many EflPhoneVerifications
+     * const eflPhoneVerification = await prisma.eflPhoneVerification.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many EflPhoneVerifications and only return the `id`
+     * const eflPhoneVerificationWithIdOnly = await prisma.eflPhoneVerification.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends EflPhoneVerificationCreateManyAndReturnArgs>(args?: SelectSubset<T, EflPhoneVerificationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EflPhoneVerificationPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a EflPhoneVerification.
+     * @param {EflPhoneVerificationDeleteArgs} args - Arguments to delete one EflPhoneVerification.
+     * @example
+     * // Delete one EflPhoneVerification
+     * const EflPhoneVerification = await prisma.eflPhoneVerification.delete({
+     *   where: {
+     *     // ... filter to delete one EflPhoneVerification
+     *   }
+     * })
+     * 
+     */
+    delete<T extends EflPhoneVerificationDeleteArgs>(args: SelectSubset<T, EflPhoneVerificationDeleteArgs<ExtArgs>>): Prisma__EflPhoneVerificationClient<$Result.GetResult<Prisma.$EflPhoneVerificationPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one EflPhoneVerification.
+     * @param {EflPhoneVerificationUpdateArgs} args - Arguments to update one EflPhoneVerification.
+     * @example
+     * // Update one EflPhoneVerification
+     * const eflPhoneVerification = await prisma.eflPhoneVerification.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends EflPhoneVerificationUpdateArgs>(args: SelectSubset<T, EflPhoneVerificationUpdateArgs<ExtArgs>>): Prisma__EflPhoneVerificationClient<$Result.GetResult<Prisma.$EflPhoneVerificationPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more EflPhoneVerifications.
+     * @param {EflPhoneVerificationDeleteManyArgs} args - Arguments to filter EflPhoneVerifications to delete.
+     * @example
+     * // Delete a few EflPhoneVerifications
+     * const { count } = await prisma.eflPhoneVerification.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends EflPhoneVerificationDeleteManyArgs>(args?: SelectSubset<T, EflPhoneVerificationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EflPhoneVerifications.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflPhoneVerificationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many EflPhoneVerifications
+     * const eflPhoneVerification = await prisma.eflPhoneVerification.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends EflPhoneVerificationUpdateManyArgs>(args: SelectSubset<T, EflPhoneVerificationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one EflPhoneVerification.
+     * @param {EflPhoneVerificationUpsertArgs} args - Arguments to update or create a EflPhoneVerification.
+     * @example
+     * // Update or create a EflPhoneVerification
+     * const eflPhoneVerification = await prisma.eflPhoneVerification.upsert({
+     *   create: {
+     *     // ... data to create a EflPhoneVerification
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the EflPhoneVerification we want to update
+     *   }
+     * })
+     */
+    upsert<T extends EflPhoneVerificationUpsertArgs>(args: SelectSubset<T, EflPhoneVerificationUpsertArgs<ExtArgs>>): Prisma__EflPhoneVerificationClient<$Result.GetResult<Prisma.$EflPhoneVerificationPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of EflPhoneVerifications.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflPhoneVerificationCountArgs} args - Arguments to filter EflPhoneVerifications to count.
+     * @example
+     * // Count the number of EflPhoneVerifications
+     * const count = await prisma.eflPhoneVerification.count({
+     *   where: {
+     *     // ... the filter for the EflPhoneVerifications we want to count
+     *   }
+     * })
+    **/
+    count<T extends EflPhoneVerificationCountArgs>(
+      args?: Subset<T, EflPhoneVerificationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], EflPhoneVerificationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a EflPhoneVerification.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflPhoneVerificationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends EflPhoneVerificationAggregateArgs>(args: Subset<T, EflPhoneVerificationAggregateArgs>): Prisma.PrismaPromise<GetEflPhoneVerificationAggregateType<T>>
+
+    /**
+     * Group by EflPhoneVerification.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflPhoneVerificationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends EflPhoneVerificationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: EflPhoneVerificationGroupByArgs['orderBy'] }
+        : { orderBy?: EflPhoneVerificationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, EflPhoneVerificationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEflPhoneVerificationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the EflPhoneVerification model
+   */
+  readonly fields: EflPhoneVerificationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for EflPhoneVerification.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__EflPhoneVerificationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the EflPhoneVerification model
+   */ 
+  interface EflPhoneVerificationFieldRefs {
+    readonly id: FieldRef<"EflPhoneVerification", 'String'>
+    readonly customerAccountId: FieldRef<"EflPhoneVerification", 'String'>
+    readonly phone: FieldRef<"EflPhoneVerification", 'String'>
+    readonly codeHash: FieldRef<"EflPhoneVerification", 'String'>
+    readonly attempts: FieldRef<"EflPhoneVerification", 'Int'>
+    readonly expiresAt: FieldRef<"EflPhoneVerification", 'DateTime'>
+    readonly consumedAt: FieldRef<"EflPhoneVerification", 'DateTime'>
+    readonly createdAt: FieldRef<"EflPhoneVerification", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * EflPhoneVerification findUnique
+   */
+  export type EflPhoneVerificationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPhoneVerification
+     */
+    select?: EflPhoneVerificationSelect<ExtArgs> | null
+    /**
+     * Filter, which EflPhoneVerification to fetch.
+     */
+    where: EflPhoneVerificationWhereUniqueInput
+  }
+
+  /**
+   * EflPhoneVerification findUniqueOrThrow
+   */
+  export type EflPhoneVerificationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPhoneVerification
+     */
+    select?: EflPhoneVerificationSelect<ExtArgs> | null
+    /**
+     * Filter, which EflPhoneVerification to fetch.
+     */
+    where: EflPhoneVerificationWhereUniqueInput
+  }
+
+  /**
+   * EflPhoneVerification findFirst
+   */
+  export type EflPhoneVerificationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPhoneVerification
+     */
+    select?: EflPhoneVerificationSelect<ExtArgs> | null
+    /**
+     * Filter, which EflPhoneVerification to fetch.
+     */
+    where?: EflPhoneVerificationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflPhoneVerifications to fetch.
+     */
+    orderBy?: EflPhoneVerificationOrderByWithRelationInput | EflPhoneVerificationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EflPhoneVerifications.
+     */
+    cursor?: EflPhoneVerificationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflPhoneVerifications from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflPhoneVerifications.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EflPhoneVerifications.
+     */
+    distinct?: EflPhoneVerificationScalarFieldEnum | EflPhoneVerificationScalarFieldEnum[]
+  }
+
+  /**
+   * EflPhoneVerification findFirstOrThrow
+   */
+  export type EflPhoneVerificationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPhoneVerification
+     */
+    select?: EflPhoneVerificationSelect<ExtArgs> | null
+    /**
+     * Filter, which EflPhoneVerification to fetch.
+     */
+    where?: EflPhoneVerificationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflPhoneVerifications to fetch.
+     */
+    orderBy?: EflPhoneVerificationOrderByWithRelationInput | EflPhoneVerificationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EflPhoneVerifications.
+     */
+    cursor?: EflPhoneVerificationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflPhoneVerifications from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflPhoneVerifications.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EflPhoneVerifications.
+     */
+    distinct?: EflPhoneVerificationScalarFieldEnum | EflPhoneVerificationScalarFieldEnum[]
+  }
+
+  /**
+   * EflPhoneVerification findMany
+   */
+  export type EflPhoneVerificationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPhoneVerification
+     */
+    select?: EflPhoneVerificationSelect<ExtArgs> | null
+    /**
+     * Filter, which EflPhoneVerifications to fetch.
+     */
+    where?: EflPhoneVerificationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflPhoneVerifications to fetch.
+     */
+    orderBy?: EflPhoneVerificationOrderByWithRelationInput | EflPhoneVerificationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing EflPhoneVerifications.
+     */
+    cursor?: EflPhoneVerificationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflPhoneVerifications from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflPhoneVerifications.
+     */
+    skip?: number
+    distinct?: EflPhoneVerificationScalarFieldEnum | EflPhoneVerificationScalarFieldEnum[]
+  }
+
+  /**
+   * EflPhoneVerification create
+   */
+  export type EflPhoneVerificationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPhoneVerification
+     */
+    select?: EflPhoneVerificationSelect<ExtArgs> | null
+    /**
+     * The data needed to create a EflPhoneVerification.
+     */
+    data: XOR<EflPhoneVerificationCreateInput, EflPhoneVerificationUncheckedCreateInput>
+  }
+
+  /**
+   * EflPhoneVerification createMany
+   */
+  export type EflPhoneVerificationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many EflPhoneVerifications.
+     */
+    data: EflPhoneVerificationCreateManyInput | EflPhoneVerificationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EflPhoneVerification createManyAndReturn
+   */
+  export type EflPhoneVerificationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPhoneVerification
+     */
+    select?: EflPhoneVerificationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many EflPhoneVerifications.
+     */
+    data: EflPhoneVerificationCreateManyInput | EflPhoneVerificationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EflPhoneVerification update
+   */
+  export type EflPhoneVerificationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPhoneVerification
+     */
+    select?: EflPhoneVerificationSelect<ExtArgs> | null
+    /**
+     * The data needed to update a EflPhoneVerification.
+     */
+    data: XOR<EflPhoneVerificationUpdateInput, EflPhoneVerificationUncheckedUpdateInput>
+    /**
+     * Choose, which EflPhoneVerification to update.
+     */
+    where: EflPhoneVerificationWhereUniqueInput
+  }
+
+  /**
+   * EflPhoneVerification updateMany
+   */
+  export type EflPhoneVerificationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update EflPhoneVerifications.
+     */
+    data: XOR<EflPhoneVerificationUpdateManyMutationInput, EflPhoneVerificationUncheckedUpdateManyInput>
+    /**
+     * Filter which EflPhoneVerifications to update
+     */
+    where?: EflPhoneVerificationWhereInput
+  }
+
+  /**
+   * EflPhoneVerification upsert
+   */
+  export type EflPhoneVerificationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPhoneVerification
+     */
+    select?: EflPhoneVerificationSelect<ExtArgs> | null
+    /**
+     * The filter to search for the EflPhoneVerification to update in case it exists.
+     */
+    where: EflPhoneVerificationWhereUniqueInput
+    /**
+     * In case the EflPhoneVerification found by the `where` argument doesn't exist, create a new EflPhoneVerification with this data.
+     */
+    create: XOR<EflPhoneVerificationCreateInput, EflPhoneVerificationUncheckedCreateInput>
+    /**
+     * In case the EflPhoneVerification was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<EflPhoneVerificationUpdateInput, EflPhoneVerificationUncheckedUpdateInput>
+  }
+
+  /**
+   * EflPhoneVerification delete
+   */
+  export type EflPhoneVerificationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPhoneVerification
+     */
+    select?: EflPhoneVerificationSelect<ExtArgs> | null
+    /**
+     * Filter which EflPhoneVerification to delete.
+     */
+    where: EflPhoneVerificationWhereUniqueInput
+  }
+
+  /**
+   * EflPhoneVerification deleteMany
+   */
+  export type EflPhoneVerificationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EflPhoneVerifications to delete
+     */
+    where?: EflPhoneVerificationWhereInput
+  }
+
+  /**
+   * EflPhoneVerification without action
+   */
+  export type EflPhoneVerificationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPhoneVerification
+     */
+    select?: EflPhoneVerificationSelect<ExtArgs> | null
+  }
+
+
+  /**
    * Model VideoStudioAccount
    */
 
@@ -197559,6 +201001,8 @@ export namespace Prisma {
     isVerified: 'isVerified',
     emailVerificationToken: 'emailVerificationToken',
     marketingOptIn: 'marketingOptIn',
+    phoneVerifiedAt: 'phoneVerifiedAt',
+    eflMarketingOptIn: 'eflMarketingOptIn',
     lastLoginAt: 'lastLoginAt',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
@@ -198447,6 +201891,9 @@ export namespace Prisma {
     cancelReason: 'cancelReason',
     metadata: 'metadata',
     sourceMetadata: 'sourceMetadata',
+    deliveryPin: 'deliveryPin',
+    deliveryPinVerifiedAt: 'deliveryPinVerifiedAt',
+    eflCommissionPercent: 'eflCommissionPercent',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     loyaltyMemberId: 'loyaltyMemberId'
@@ -199834,6 +203281,57 @@ export namespace Prisma {
   };
 
   export type OutboxEventScalarFieldEnum = (typeof OutboxEventScalarFieldEnum)[keyof typeof OutboxEventScalarFieldEnum]
+
+
+  export const EflListingScalarFieldEnum: {
+    id: 'id',
+    locationId: 'locationId',
+    brandId: 'brandId',
+    listed: 'listed',
+    status: 'status',
+    hiddenReason: 'hiddenReason',
+    commissionPercent: 'commissionPercent',
+    deliveryMode: 'deliveryMode',
+    acceptsDelivery: 'acceptsDelivery',
+    acceptsCollection: 'acceptsCollection',
+    description: 'description',
+    heroImageUrl: 'heroImageUrl',
+    logoUrl: 'logoUrl',
+    cuisines: 'cuisines',
+    approvedAt: 'approvedAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type EflListingScalarFieldEnum = (typeof EflListingScalarFieldEnum)[keyof typeof EflListingScalarFieldEnum]
+
+
+  export const EflConfigScalarFieldEnum: {
+    id: 'id',
+    defaultCommissionPercent: 'defaultCommissionPercent',
+    pinMinOrderTotal: 'pinMinOrderTotal',
+    pinForNewCustomers: 'pinForNewCustomers',
+    firstOrderMaxTotal: 'firstOrderMaxTotal',
+    maxOrdersPerHour: 'maxOrdersPerHour',
+    minHygieneRating: 'minHygieneRating',
+    updatedAt: 'updatedAt'
+  };
+
+  export type EflConfigScalarFieldEnum = (typeof EflConfigScalarFieldEnum)[keyof typeof EflConfigScalarFieldEnum]
+
+
+  export const EflPhoneVerificationScalarFieldEnum: {
+    id: 'id',
+    customerAccountId: 'customerAccountId',
+    phone: 'phone',
+    codeHash: 'codeHash',
+    attempts: 'attempts',
+    expiresAt: 'expiresAt',
+    consumedAt: 'consumedAt',
+    createdAt: 'createdAt'
+  };
+
+  export type EflPhoneVerificationScalarFieldEnum = (typeof EflPhoneVerificationScalarFieldEnum)[keyof typeof EflPhoneVerificationScalarFieldEnum]
 
 
   export const VideoStudioAccountScalarFieldEnum: {
@@ -201500,6 +204998,7 @@ export namespace Prisma {
     discountType: 'discountType',
     paymentProvider: 'paymentProvider',
     cancelReason: 'cancelReason',
+    deliveryPin: 'deliveryPin',
     loyaltyMemberId: 'loyaltyMemberId'
   };
 
@@ -202450,6 +205949,37 @@ export namespace Prisma {
   };
 
   export type OutboxEventOrderByRelevanceFieldEnum = (typeof OutboxEventOrderByRelevanceFieldEnum)[keyof typeof OutboxEventOrderByRelevanceFieldEnum]
+
+
+  export const EflListingOrderByRelevanceFieldEnum: {
+    id: 'id',
+    locationId: 'locationId',
+    brandId: 'brandId',
+    hiddenReason: 'hiddenReason',
+    description: 'description',
+    heroImageUrl: 'heroImageUrl',
+    logoUrl: 'logoUrl',
+    cuisines: 'cuisines'
+  };
+
+  export type EflListingOrderByRelevanceFieldEnum = (typeof EflListingOrderByRelevanceFieldEnum)[keyof typeof EflListingOrderByRelevanceFieldEnum]
+
+
+  export const EflConfigOrderByRelevanceFieldEnum: {
+    id: 'id'
+  };
+
+  export type EflConfigOrderByRelevanceFieldEnum = (typeof EflConfigOrderByRelevanceFieldEnum)[keyof typeof EflConfigOrderByRelevanceFieldEnum]
+
+
+  export const EflPhoneVerificationOrderByRelevanceFieldEnum: {
+    id: 'id',
+    customerAccountId: 'customerAccountId',
+    phone: 'phone',
+    codeHash: 'codeHash'
+  };
+
+  export type EflPhoneVerificationOrderByRelevanceFieldEnum = (typeof EflPhoneVerificationOrderByRelevanceFieldEnum)[keyof typeof EflPhoneVerificationOrderByRelevanceFieldEnum]
 
 
   export const VideoStudioAccountOrderByRelevanceFieldEnum: {
@@ -203941,6 +207471,34 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'EflListingStatus'
+   */
+  export type EnumEflListingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EflListingStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'EflListingStatus[]'
+   */
+  export type ListEnumEflListingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EflListingStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'EflDeliveryMode'
+   */
+  export type EnumEflDeliveryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EflDeliveryMode'>
+    
+
+
+  /**
+   * Reference to a field of type 'EflDeliveryMode[]'
+   */
+  export type ListEnumEflDeliveryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EflDeliveryMode[]'>
+    
+
+
+  /**
    * Reference to a field of type 'VideoCreditReason'
    */
   export type EnumVideoCreditReasonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VideoCreditReason'>
@@ -204583,6 +208141,8 @@ export namespace Prisma {
     isVerified?: BoolFilter<"CustomerAccount"> | boolean
     emailVerificationToken?: StringNullableFilter<"CustomerAccount"> | string | null
     marketingOptIn?: BoolFilter<"CustomerAccount"> | boolean
+    phoneVerifiedAt?: DateTimeNullableFilter<"CustomerAccount"> | Date | string | null
+    eflMarketingOptIn?: BoolFilter<"CustomerAccount"> | boolean
     lastLoginAt?: DateTimeNullableFilter<"CustomerAccount"> | Date | string | null
     createdAt?: DateTimeFilter<"CustomerAccount"> | Date | string
     updatedAt?: DateTimeFilter<"CustomerAccount"> | Date | string
@@ -204613,6 +208173,8 @@ export namespace Prisma {
     isVerified?: SortOrder
     emailVerificationToken?: SortOrderInput | SortOrder
     marketingOptIn?: SortOrder
+    phoneVerifiedAt?: SortOrderInput | SortOrder
+    eflMarketingOptIn?: SortOrder
     lastLoginAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -204647,6 +208209,8 @@ export namespace Prisma {
     isVerified?: BoolFilter<"CustomerAccount"> | boolean
     emailVerificationToken?: StringNullableFilter<"CustomerAccount"> | string | null
     marketingOptIn?: BoolFilter<"CustomerAccount"> | boolean
+    phoneVerifiedAt?: DateTimeNullableFilter<"CustomerAccount"> | Date | string | null
+    eflMarketingOptIn?: BoolFilter<"CustomerAccount"> | boolean
     lastLoginAt?: DateTimeNullableFilter<"CustomerAccount"> | Date | string | null
     createdAt?: DateTimeFilter<"CustomerAccount"> | Date | string
     updatedAt?: DateTimeFilter<"CustomerAccount"> | Date | string
@@ -204677,6 +208241,8 @@ export namespace Prisma {
     isVerified?: SortOrder
     emailVerificationToken?: SortOrderInput | SortOrder
     marketingOptIn?: SortOrder
+    phoneVerifiedAt?: SortOrderInput | SortOrder
+    eflMarketingOptIn?: SortOrder
     lastLoginAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -204707,6 +208273,8 @@ export namespace Prisma {
     isVerified?: BoolWithAggregatesFilter<"CustomerAccount"> | boolean
     emailVerificationToken?: StringNullableWithAggregatesFilter<"CustomerAccount"> | string | null
     marketingOptIn?: BoolWithAggregatesFilter<"CustomerAccount"> | boolean
+    phoneVerifiedAt?: DateTimeNullableWithAggregatesFilter<"CustomerAccount"> | Date | string | null
+    eflMarketingOptIn?: BoolWithAggregatesFilter<"CustomerAccount"> | boolean
     lastLoginAt?: DateTimeNullableWithAggregatesFilter<"CustomerAccount"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"CustomerAccount"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"CustomerAccount"> | Date | string
@@ -205537,6 +209105,7 @@ export namespace Prisma {
     uberDirectConfig?: XOR<UberDirectConfigNullableRelationFilter, UberDirectConfigWhereInput> | null
     jetGoConfig?: XOR<JetGoConfigNullableRelationFilter, JetGoConfigWhereInput> | null
     yangoConfig?: XOR<YangoConfigNullableRelationFilter, YangoConfigWhereInput> | null
+    eflListing?: XOR<EflListingNullableRelationFilter, EflListingWhereInput> | null
     loyaltyCard?: XOR<LoyaltyCardNullableRelationFilter, LoyaltyCardWhereInput> | null
     referralProgram?: XOR<ReferralProgramNullableRelationFilter, ReferralProgramWhereInput> | null
     loyaltyRewards?: LoyaltyRewardListRelationFilter
@@ -205641,6 +209210,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigOrderByWithRelationInput
     jetGoConfig?: JetGoConfigOrderByWithRelationInput
     yangoConfig?: YangoConfigOrderByWithRelationInput
+    eflListing?: EflListingOrderByWithRelationInput
     loyaltyCard?: LoyaltyCardOrderByWithRelationInput
     referralProgram?: ReferralProgramOrderByWithRelationInput
     loyaltyRewards?: LoyaltyRewardOrderByRelationAggregateInput
@@ -205749,6 +209319,7 @@ export namespace Prisma {
     uberDirectConfig?: XOR<UberDirectConfigNullableRelationFilter, UberDirectConfigWhereInput> | null
     jetGoConfig?: XOR<JetGoConfigNullableRelationFilter, JetGoConfigWhereInput> | null
     yangoConfig?: XOR<YangoConfigNullableRelationFilter, YangoConfigWhereInput> | null
+    eflListing?: XOR<EflListingNullableRelationFilter, EflListingWhereInput> | null
     loyaltyCard?: XOR<LoyaltyCardNullableRelationFilter, LoyaltyCardWhereInput> | null
     referralProgram?: XOR<ReferralProgramNullableRelationFilter, ReferralProgramWhereInput> | null
     loyaltyRewards?: LoyaltyRewardListRelationFilter
@@ -209161,6 +212732,9 @@ export namespace Prisma {
     cancelReason?: StringNullableFilter<"Order"> | string | null
     metadata?: JsonFilter<"Order">
     sourceMetadata?: JsonFilter<"Order">
+    deliveryPin?: StringNullableFilter<"Order"> | string | null
+    deliveryPinVerifiedAt?: DateTimeNullableFilter<"Order"> | Date | string | null
+    eflCommissionPercent?: DecimalNullableFilter<"Order"> | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFilter<"Order"> | Date | string
     updatedAt?: DateTimeFilter<"Order"> | Date | string
     loyaltyMemberId?: StringNullableFilter<"Order"> | string | null
@@ -209259,6 +212833,9 @@ export namespace Prisma {
     cancelReason?: SortOrderInput | SortOrder
     metadata?: SortOrder
     sourceMetadata?: SortOrder
+    deliveryPin?: SortOrderInput | SortOrder
+    deliveryPinVerifiedAt?: SortOrderInput | SortOrder
+    eflCommissionPercent?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     loyaltyMemberId?: SortOrderInput | SortOrder
@@ -209362,6 +212939,9 @@ export namespace Prisma {
     cancelReason?: StringNullableFilter<"Order"> | string | null
     metadata?: JsonFilter<"Order">
     sourceMetadata?: JsonFilter<"Order">
+    deliveryPin?: StringNullableFilter<"Order"> | string | null
+    deliveryPinVerifiedAt?: DateTimeNullableFilter<"Order"> | Date | string | null
+    eflCommissionPercent?: DecimalNullableFilter<"Order"> | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFilter<"Order"> | Date | string
     updatedAt?: DateTimeFilter<"Order"> | Date | string
     loyaltyMemberId?: StringNullableFilter<"Order"> | string | null
@@ -209460,6 +213040,9 @@ export namespace Prisma {
     cancelReason?: SortOrderInput | SortOrder
     metadata?: SortOrder
     sourceMetadata?: SortOrder
+    deliveryPin?: SortOrderInput | SortOrder
+    deliveryPinVerifiedAt?: SortOrderInput | SortOrder
+    eflCommissionPercent?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     loyaltyMemberId?: SortOrderInput | SortOrder
@@ -209553,6 +213136,9 @@ export namespace Prisma {
     cancelReason?: StringNullableWithAggregatesFilter<"Order"> | string | null
     metadata?: JsonWithAggregatesFilter<"Order">
     sourceMetadata?: JsonWithAggregatesFilter<"Order">
+    deliveryPin?: StringNullableWithAggregatesFilter<"Order"> | string | null
+    deliveryPinVerifiedAt?: DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
+    eflCommissionPercent?: DecimalNullableWithAggregatesFilter<"Order"> | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Order"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Order"> | Date | string
     loyaltyMemberId?: StringNullableWithAggregatesFilter<"Order"> | string | null
@@ -216780,6 +220366,264 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"OutboxEvent"> | Date | string
   }
 
+  export type EflListingWhereInput = {
+    AND?: EflListingWhereInput | EflListingWhereInput[]
+    OR?: EflListingWhereInput[]
+    NOT?: EflListingWhereInput | EflListingWhereInput[]
+    id?: StringFilter<"EflListing"> | string
+    locationId?: StringFilter<"EflListing"> | string
+    brandId?: StringNullableFilter<"EflListing"> | string | null
+    listed?: BoolFilter<"EflListing"> | boolean
+    status?: EnumEflListingStatusFilter<"EflListing"> | $Enums.EflListingStatus
+    hiddenReason?: StringNullableFilter<"EflListing"> | string | null
+    commissionPercent?: DecimalNullableFilter<"EflListing"> | Decimal | DecimalJsLike | number | string | null
+    deliveryMode?: EnumEflDeliveryModeFilter<"EflListing"> | $Enums.EflDeliveryMode
+    acceptsDelivery?: BoolFilter<"EflListing"> | boolean
+    acceptsCollection?: BoolFilter<"EflListing"> | boolean
+    description?: StringNullableFilter<"EflListing"> | string | null
+    heroImageUrl?: StringNullableFilter<"EflListing"> | string | null
+    logoUrl?: StringNullableFilter<"EflListing"> | string | null
+    cuisines?: StringNullableListFilter<"EflListing">
+    approvedAt?: DateTimeNullableFilter<"EflListing"> | Date | string | null
+    createdAt?: DateTimeFilter<"EflListing"> | Date | string
+    updatedAt?: DateTimeFilter<"EflListing"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }
+
+  export type EflListingOrderByWithRelationInput = {
+    id?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrderInput | SortOrder
+    listed?: SortOrder
+    status?: SortOrder
+    hiddenReason?: SortOrderInput | SortOrder
+    commissionPercent?: SortOrderInput | SortOrder
+    deliveryMode?: SortOrder
+    acceptsDelivery?: SortOrder
+    acceptsCollection?: SortOrder
+    description?: SortOrderInput | SortOrder
+    heroImageUrl?: SortOrderInput | SortOrder
+    logoUrl?: SortOrderInput | SortOrder
+    cuisines?: SortOrder
+    approvedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    location?: LocationOrderByWithRelationInput
+    _relevance?: EflListingOrderByRelevanceInput
+  }
+
+  export type EflListingWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    locationId?: string
+    AND?: EflListingWhereInput | EflListingWhereInput[]
+    OR?: EflListingWhereInput[]
+    NOT?: EflListingWhereInput | EflListingWhereInput[]
+    brandId?: StringNullableFilter<"EflListing"> | string | null
+    listed?: BoolFilter<"EflListing"> | boolean
+    status?: EnumEflListingStatusFilter<"EflListing"> | $Enums.EflListingStatus
+    hiddenReason?: StringNullableFilter<"EflListing"> | string | null
+    commissionPercent?: DecimalNullableFilter<"EflListing"> | Decimal | DecimalJsLike | number | string | null
+    deliveryMode?: EnumEflDeliveryModeFilter<"EflListing"> | $Enums.EflDeliveryMode
+    acceptsDelivery?: BoolFilter<"EflListing"> | boolean
+    acceptsCollection?: BoolFilter<"EflListing"> | boolean
+    description?: StringNullableFilter<"EflListing"> | string | null
+    heroImageUrl?: StringNullableFilter<"EflListing"> | string | null
+    logoUrl?: StringNullableFilter<"EflListing"> | string | null
+    cuisines?: StringNullableListFilter<"EflListing">
+    approvedAt?: DateTimeNullableFilter<"EflListing"> | Date | string | null
+    createdAt?: DateTimeFilter<"EflListing"> | Date | string
+    updatedAt?: DateTimeFilter<"EflListing"> | Date | string
+    location?: XOR<LocationRelationFilter, LocationWhereInput>
+  }, "id" | "locationId">
+
+  export type EflListingOrderByWithAggregationInput = {
+    id?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrderInput | SortOrder
+    listed?: SortOrder
+    status?: SortOrder
+    hiddenReason?: SortOrderInput | SortOrder
+    commissionPercent?: SortOrderInput | SortOrder
+    deliveryMode?: SortOrder
+    acceptsDelivery?: SortOrder
+    acceptsCollection?: SortOrder
+    description?: SortOrderInput | SortOrder
+    heroImageUrl?: SortOrderInput | SortOrder
+    logoUrl?: SortOrderInput | SortOrder
+    cuisines?: SortOrder
+    approvedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: EflListingCountOrderByAggregateInput
+    _avg?: EflListingAvgOrderByAggregateInput
+    _max?: EflListingMaxOrderByAggregateInput
+    _min?: EflListingMinOrderByAggregateInput
+    _sum?: EflListingSumOrderByAggregateInput
+  }
+
+  export type EflListingScalarWhereWithAggregatesInput = {
+    AND?: EflListingScalarWhereWithAggregatesInput | EflListingScalarWhereWithAggregatesInput[]
+    OR?: EflListingScalarWhereWithAggregatesInput[]
+    NOT?: EflListingScalarWhereWithAggregatesInput | EflListingScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"EflListing"> | string
+    locationId?: StringWithAggregatesFilter<"EflListing"> | string
+    brandId?: StringNullableWithAggregatesFilter<"EflListing"> | string | null
+    listed?: BoolWithAggregatesFilter<"EflListing"> | boolean
+    status?: EnumEflListingStatusWithAggregatesFilter<"EflListing"> | $Enums.EflListingStatus
+    hiddenReason?: StringNullableWithAggregatesFilter<"EflListing"> | string | null
+    commissionPercent?: DecimalNullableWithAggregatesFilter<"EflListing"> | Decimal | DecimalJsLike | number | string | null
+    deliveryMode?: EnumEflDeliveryModeWithAggregatesFilter<"EflListing"> | $Enums.EflDeliveryMode
+    acceptsDelivery?: BoolWithAggregatesFilter<"EflListing"> | boolean
+    acceptsCollection?: BoolWithAggregatesFilter<"EflListing"> | boolean
+    description?: StringNullableWithAggregatesFilter<"EflListing"> | string | null
+    heroImageUrl?: StringNullableWithAggregatesFilter<"EflListing"> | string | null
+    logoUrl?: StringNullableWithAggregatesFilter<"EflListing"> | string | null
+    cuisines?: StringNullableListFilter<"EflListing">
+    approvedAt?: DateTimeNullableWithAggregatesFilter<"EflListing"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"EflListing"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"EflListing"> | Date | string
+  }
+
+  export type EflConfigWhereInput = {
+    AND?: EflConfigWhereInput | EflConfigWhereInput[]
+    OR?: EflConfigWhereInput[]
+    NOT?: EflConfigWhereInput | EflConfigWhereInput[]
+    id?: StringFilter<"EflConfig"> | string
+    defaultCommissionPercent?: DecimalFilter<"EflConfig"> | Decimal | DecimalJsLike | number | string
+    pinMinOrderTotal?: DecimalFilter<"EflConfig"> | Decimal | DecimalJsLike | number | string
+    pinForNewCustomers?: BoolFilter<"EflConfig"> | boolean
+    firstOrderMaxTotal?: DecimalFilter<"EflConfig"> | Decimal | DecimalJsLike | number | string
+    maxOrdersPerHour?: IntFilter<"EflConfig"> | number
+    minHygieneRating?: IntFilter<"EflConfig"> | number
+    updatedAt?: DateTimeFilter<"EflConfig"> | Date | string
+  }
+
+  export type EflConfigOrderByWithRelationInput = {
+    id?: SortOrder
+    defaultCommissionPercent?: SortOrder
+    pinMinOrderTotal?: SortOrder
+    pinForNewCustomers?: SortOrder
+    firstOrderMaxTotal?: SortOrder
+    maxOrdersPerHour?: SortOrder
+    minHygieneRating?: SortOrder
+    updatedAt?: SortOrder
+    _relevance?: EflConfigOrderByRelevanceInput
+  }
+
+  export type EflConfigWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: EflConfigWhereInput | EflConfigWhereInput[]
+    OR?: EflConfigWhereInput[]
+    NOT?: EflConfigWhereInput | EflConfigWhereInput[]
+    defaultCommissionPercent?: DecimalFilter<"EflConfig"> | Decimal | DecimalJsLike | number | string
+    pinMinOrderTotal?: DecimalFilter<"EflConfig"> | Decimal | DecimalJsLike | number | string
+    pinForNewCustomers?: BoolFilter<"EflConfig"> | boolean
+    firstOrderMaxTotal?: DecimalFilter<"EflConfig"> | Decimal | DecimalJsLike | number | string
+    maxOrdersPerHour?: IntFilter<"EflConfig"> | number
+    minHygieneRating?: IntFilter<"EflConfig"> | number
+    updatedAt?: DateTimeFilter<"EflConfig"> | Date | string
+  }, "id">
+
+  export type EflConfigOrderByWithAggregationInput = {
+    id?: SortOrder
+    defaultCommissionPercent?: SortOrder
+    pinMinOrderTotal?: SortOrder
+    pinForNewCustomers?: SortOrder
+    firstOrderMaxTotal?: SortOrder
+    maxOrdersPerHour?: SortOrder
+    minHygieneRating?: SortOrder
+    updatedAt?: SortOrder
+    _count?: EflConfigCountOrderByAggregateInput
+    _avg?: EflConfigAvgOrderByAggregateInput
+    _max?: EflConfigMaxOrderByAggregateInput
+    _min?: EflConfigMinOrderByAggregateInput
+    _sum?: EflConfigSumOrderByAggregateInput
+  }
+
+  export type EflConfigScalarWhereWithAggregatesInput = {
+    AND?: EflConfigScalarWhereWithAggregatesInput | EflConfigScalarWhereWithAggregatesInput[]
+    OR?: EflConfigScalarWhereWithAggregatesInput[]
+    NOT?: EflConfigScalarWhereWithAggregatesInput | EflConfigScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"EflConfig"> | string
+    defaultCommissionPercent?: DecimalWithAggregatesFilter<"EflConfig"> | Decimal | DecimalJsLike | number | string
+    pinMinOrderTotal?: DecimalWithAggregatesFilter<"EflConfig"> | Decimal | DecimalJsLike | number | string
+    pinForNewCustomers?: BoolWithAggregatesFilter<"EflConfig"> | boolean
+    firstOrderMaxTotal?: DecimalWithAggregatesFilter<"EflConfig"> | Decimal | DecimalJsLike | number | string
+    maxOrdersPerHour?: IntWithAggregatesFilter<"EflConfig"> | number
+    minHygieneRating?: IntWithAggregatesFilter<"EflConfig"> | number
+    updatedAt?: DateTimeWithAggregatesFilter<"EflConfig"> | Date | string
+  }
+
+  export type EflPhoneVerificationWhereInput = {
+    AND?: EflPhoneVerificationWhereInput | EflPhoneVerificationWhereInput[]
+    OR?: EflPhoneVerificationWhereInput[]
+    NOT?: EflPhoneVerificationWhereInput | EflPhoneVerificationWhereInput[]
+    id?: StringFilter<"EflPhoneVerification"> | string
+    customerAccountId?: StringFilter<"EflPhoneVerification"> | string
+    phone?: StringFilter<"EflPhoneVerification"> | string
+    codeHash?: StringFilter<"EflPhoneVerification"> | string
+    attempts?: IntFilter<"EflPhoneVerification"> | number
+    expiresAt?: DateTimeFilter<"EflPhoneVerification"> | Date | string
+    consumedAt?: DateTimeNullableFilter<"EflPhoneVerification"> | Date | string | null
+    createdAt?: DateTimeFilter<"EflPhoneVerification"> | Date | string
+  }
+
+  export type EflPhoneVerificationOrderByWithRelationInput = {
+    id?: SortOrder
+    customerAccountId?: SortOrder
+    phone?: SortOrder
+    codeHash?: SortOrder
+    attempts?: SortOrder
+    expiresAt?: SortOrder
+    consumedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _relevance?: EflPhoneVerificationOrderByRelevanceInput
+  }
+
+  export type EflPhoneVerificationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: EflPhoneVerificationWhereInput | EflPhoneVerificationWhereInput[]
+    OR?: EflPhoneVerificationWhereInput[]
+    NOT?: EflPhoneVerificationWhereInput | EflPhoneVerificationWhereInput[]
+    customerAccountId?: StringFilter<"EflPhoneVerification"> | string
+    phone?: StringFilter<"EflPhoneVerification"> | string
+    codeHash?: StringFilter<"EflPhoneVerification"> | string
+    attempts?: IntFilter<"EflPhoneVerification"> | number
+    expiresAt?: DateTimeFilter<"EflPhoneVerification"> | Date | string
+    consumedAt?: DateTimeNullableFilter<"EflPhoneVerification"> | Date | string | null
+    createdAt?: DateTimeFilter<"EflPhoneVerification"> | Date | string
+  }, "id">
+
+  export type EflPhoneVerificationOrderByWithAggregationInput = {
+    id?: SortOrder
+    customerAccountId?: SortOrder
+    phone?: SortOrder
+    codeHash?: SortOrder
+    attempts?: SortOrder
+    expiresAt?: SortOrder
+    consumedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: EflPhoneVerificationCountOrderByAggregateInput
+    _avg?: EflPhoneVerificationAvgOrderByAggregateInput
+    _max?: EflPhoneVerificationMaxOrderByAggregateInput
+    _min?: EflPhoneVerificationMinOrderByAggregateInput
+    _sum?: EflPhoneVerificationSumOrderByAggregateInput
+  }
+
+  export type EflPhoneVerificationScalarWhereWithAggregatesInput = {
+    AND?: EflPhoneVerificationScalarWhereWithAggregatesInput | EflPhoneVerificationScalarWhereWithAggregatesInput[]
+    OR?: EflPhoneVerificationScalarWhereWithAggregatesInput[]
+    NOT?: EflPhoneVerificationScalarWhereWithAggregatesInput | EflPhoneVerificationScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"EflPhoneVerification"> | string
+    customerAccountId?: StringWithAggregatesFilter<"EflPhoneVerification"> | string
+    phone?: StringWithAggregatesFilter<"EflPhoneVerification"> | string
+    codeHash?: StringWithAggregatesFilter<"EflPhoneVerification"> | string
+    attempts?: IntWithAggregatesFilter<"EflPhoneVerification"> | number
+    expiresAt?: DateTimeWithAggregatesFilter<"EflPhoneVerification"> | Date | string
+    consumedAt?: DateTimeNullableWithAggregatesFilter<"EflPhoneVerification"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"EflPhoneVerification"> | Date | string
+  }
+
   export type VideoStudioAccountWhereInput = {
     AND?: VideoStudioAccountWhereInput | VideoStudioAccountWhereInput[]
     OR?: VideoStudioAccountWhereInput[]
@@ -222464,6 +226308,8 @@ export namespace Prisma {
     isVerified?: boolean
     emailVerificationToken?: string | null
     marketingOptIn?: boolean
+    phoneVerifiedAt?: Date | string | null
+    eflMarketingOptIn?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -222494,6 +226340,8 @@ export namespace Prisma {
     isVerified?: boolean
     emailVerificationToken?: string | null
     marketingOptIn?: boolean
+    phoneVerifiedAt?: Date | string | null
+    eflMarketingOptIn?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -222524,6 +226372,8 @@ export namespace Prisma {
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
     marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
+    phoneVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflMarketingOptIn?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -222554,6 +226404,8 @@ export namespace Prisma {
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
     marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
+    phoneVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflMarketingOptIn?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -222584,6 +226436,8 @@ export namespace Prisma {
     isVerified?: boolean
     emailVerificationToken?: string | null
     marketingOptIn?: boolean
+    phoneVerifiedAt?: Date | string | null
+    eflMarketingOptIn?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -222608,6 +226462,8 @@ export namespace Prisma {
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
     marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
+    phoneVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflMarketingOptIn?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -222632,6 +226488,8 @@ export namespace Prisma {
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
     marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
+    phoneVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflMarketingOptIn?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -223590,6 +227448,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -223690,6 +227549,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -223790,6 +227650,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -223890,6 +227751,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -227827,6 +231689,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -227925,6 +231790,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -228013,6 +231881,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -228111,6 +231982,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -228204,6 +232078,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -228284,6 +232161,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -228369,6 +232249,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -236555,6 +240438,299 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type EflListingCreateInput = {
+    id?: string
+    brandId?: string | null
+    listed?: boolean
+    status?: $Enums.EflListingStatus
+    hiddenReason?: string | null
+    commissionPercent?: Decimal | DecimalJsLike | number | string | null
+    deliveryMode?: $Enums.EflDeliveryMode
+    acceptsDelivery?: boolean
+    acceptsCollection?: boolean
+    description?: string | null
+    heroImageUrl?: string | null
+    logoUrl?: string | null
+    cuisines?: EflListingCreatecuisinesInput | string[]
+    approvedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutEflListingInput
+  }
+
+  export type EflListingUncheckedCreateInput = {
+    id?: string
+    locationId: string
+    brandId?: string | null
+    listed?: boolean
+    status?: $Enums.EflListingStatus
+    hiddenReason?: string | null
+    commissionPercent?: Decimal | DecimalJsLike | number | string | null
+    deliveryMode?: $Enums.EflDeliveryMode
+    acceptsDelivery?: boolean
+    acceptsCollection?: boolean
+    description?: string | null
+    heroImageUrl?: string | null
+    logoUrl?: string | null
+    cuisines?: EflListingCreatecuisinesInput | string[]
+    approvedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EflListingUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    listed?: BoolFieldUpdateOperationsInput | boolean
+    status?: EnumEflListingStatusFieldUpdateOperationsInput | $Enums.EflListingStatus
+    hiddenReason?: NullableStringFieldUpdateOperationsInput | string | null
+    commissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    deliveryMode?: EnumEflDeliveryModeFieldUpdateOperationsInput | $Enums.EflDeliveryMode
+    acceptsDelivery?: BoolFieldUpdateOperationsInput | boolean
+    acceptsCollection?: BoolFieldUpdateOperationsInput | boolean
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisines?: EflListingUpdatecuisinesInput | string[]
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutEflListingNestedInput
+  }
+
+  export type EflListingUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    listed?: BoolFieldUpdateOperationsInput | boolean
+    status?: EnumEflListingStatusFieldUpdateOperationsInput | $Enums.EflListingStatus
+    hiddenReason?: NullableStringFieldUpdateOperationsInput | string | null
+    commissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    deliveryMode?: EnumEflDeliveryModeFieldUpdateOperationsInput | $Enums.EflDeliveryMode
+    acceptsDelivery?: BoolFieldUpdateOperationsInput | boolean
+    acceptsCollection?: BoolFieldUpdateOperationsInput | boolean
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisines?: EflListingUpdatecuisinesInput | string[]
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflListingCreateManyInput = {
+    id?: string
+    locationId: string
+    brandId?: string | null
+    listed?: boolean
+    status?: $Enums.EflListingStatus
+    hiddenReason?: string | null
+    commissionPercent?: Decimal | DecimalJsLike | number | string | null
+    deliveryMode?: $Enums.EflDeliveryMode
+    acceptsDelivery?: boolean
+    acceptsCollection?: boolean
+    description?: string | null
+    heroImageUrl?: string | null
+    logoUrl?: string | null
+    cuisines?: EflListingCreatecuisinesInput | string[]
+    approvedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EflListingUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    listed?: BoolFieldUpdateOperationsInput | boolean
+    status?: EnumEflListingStatusFieldUpdateOperationsInput | $Enums.EflListingStatus
+    hiddenReason?: NullableStringFieldUpdateOperationsInput | string | null
+    commissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    deliveryMode?: EnumEflDeliveryModeFieldUpdateOperationsInput | $Enums.EflDeliveryMode
+    acceptsDelivery?: BoolFieldUpdateOperationsInput | boolean
+    acceptsCollection?: BoolFieldUpdateOperationsInput | boolean
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisines?: EflListingUpdatecuisinesInput | string[]
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflListingUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    listed?: BoolFieldUpdateOperationsInput | boolean
+    status?: EnumEflListingStatusFieldUpdateOperationsInput | $Enums.EflListingStatus
+    hiddenReason?: NullableStringFieldUpdateOperationsInput | string | null
+    commissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    deliveryMode?: EnumEflDeliveryModeFieldUpdateOperationsInput | $Enums.EflDeliveryMode
+    acceptsDelivery?: BoolFieldUpdateOperationsInput | boolean
+    acceptsCollection?: BoolFieldUpdateOperationsInput | boolean
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisines?: EflListingUpdatecuisinesInput | string[]
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflConfigCreateInput = {
+    id?: string
+    defaultCommissionPercent?: Decimal | DecimalJsLike | number | string
+    pinMinOrderTotal?: Decimal | DecimalJsLike | number | string
+    pinForNewCustomers?: boolean
+    firstOrderMaxTotal?: Decimal | DecimalJsLike | number | string
+    maxOrdersPerHour?: number
+    minHygieneRating?: number
+    updatedAt?: Date | string
+  }
+
+  export type EflConfigUncheckedCreateInput = {
+    id?: string
+    defaultCommissionPercent?: Decimal | DecimalJsLike | number | string
+    pinMinOrderTotal?: Decimal | DecimalJsLike | number | string
+    pinForNewCustomers?: boolean
+    firstOrderMaxTotal?: Decimal | DecimalJsLike | number | string
+    maxOrdersPerHour?: number
+    minHygieneRating?: number
+    updatedAt?: Date | string
+  }
+
+  export type EflConfigUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    defaultCommissionPercent?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    pinMinOrderTotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    pinForNewCustomers?: BoolFieldUpdateOperationsInput | boolean
+    firstOrderMaxTotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    maxOrdersPerHour?: IntFieldUpdateOperationsInput | number
+    minHygieneRating?: IntFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflConfigUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    defaultCommissionPercent?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    pinMinOrderTotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    pinForNewCustomers?: BoolFieldUpdateOperationsInput | boolean
+    firstOrderMaxTotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    maxOrdersPerHour?: IntFieldUpdateOperationsInput | number
+    minHygieneRating?: IntFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflConfigCreateManyInput = {
+    id?: string
+    defaultCommissionPercent?: Decimal | DecimalJsLike | number | string
+    pinMinOrderTotal?: Decimal | DecimalJsLike | number | string
+    pinForNewCustomers?: boolean
+    firstOrderMaxTotal?: Decimal | DecimalJsLike | number | string
+    maxOrdersPerHour?: number
+    minHygieneRating?: number
+    updatedAt?: Date | string
+  }
+
+  export type EflConfigUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    defaultCommissionPercent?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    pinMinOrderTotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    pinForNewCustomers?: BoolFieldUpdateOperationsInput | boolean
+    firstOrderMaxTotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    maxOrdersPerHour?: IntFieldUpdateOperationsInput | number
+    minHygieneRating?: IntFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflConfigUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    defaultCommissionPercent?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    pinMinOrderTotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    pinForNewCustomers?: BoolFieldUpdateOperationsInput | boolean
+    firstOrderMaxTotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    maxOrdersPerHour?: IntFieldUpdateOperationsInput | number
+    minHygieneRating?: IntFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflPhoneVerificationCreateInput = {
+    id?: string
+    customerAccountId: string
+    phone: string
+    codeHash: string
+    attempts?: number
+    expiresAt: Date | string
+    consumedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type EflPhoneVerificationUncheckedCreateInput = {
+    id?: string
+    customerAccountId: string
+    phone: string
+    codeHash: string
+    attempts?: number
+    expiresAt: Date | string
+    consumedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type EflPhoneVerificationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerAccountId?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    codeHash?: StringFieldUpdateOperationsInput | string
+    attempts?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflPhoneVerificationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerAccountId?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    codeHash?: StringFieldUpdateOperationsInput | string
+    attempts?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflPhoneVerificationCreateManyInput = {
+    id?: string
+    customerAccountId: string
+    phone: string
+    codeHash: string
+    attempts?: number
+    expiresAt: Date | string
+    consumedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type EflPhoneVerificationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerAccountId?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    codeHash?: StringFieldUpdateOperationsInput | string
+    attempts?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflPhoneVerificationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerAccountId?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    codeHash?: StringFieldUpdateOperationsInput | string
+    attempts?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type VideoStudioAccountCreateInput = {
     id?: string
     tenantId: string
@@ -243337,6 +247513,8 @@ export namespace Prisma {
     isVerified?: SortOrder
     emailVerificationToken?: SortOrder
     marketingOptIn?: SortOrder
+    phoneVerifiedAt?: SortOrder
+    eflMarketingOptIn?: SortOrder
     lastLoginAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -243361,6 +247539,8 @@ export namespace Prisma {
     isVerified?: SortOrder
     emailVerificationToken?: SortOrder
     marketingOptIn?: SortOrder
+    phoneVerifiedAt?: SortOrder
+    eflMarketingOptIn?: SortOrder
     lastLoginAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -243385,6 +247565,8 @@ export namespace Prisma {
     isVerified?: SortOrder
     emailVerificationToken?: SortOrder
     marketingOptIn?: SortOrder
+    phoneVerifiedAt?: SortOrder
+    eflMarketingOptIn?: SortOrder
     lastLoginAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -244170,6 +248352,11 @@ export namespace Prisma {
   export type YangoConfigNullableRelationFilter = {
     is?: YangoConfigWhereInput | null
     isNot?: YangoConfigWhereInput | null
+  }
+
+  export type EflListingNullableRelationFilter = {
+    is?: EflListingWhereInput | null
+    isNot?: EflListingWhereInput | null
   }
 
   export type LoyaltyCardNullableRelationFilter = {
@@ -247061,6 +251248,9 @@ export namespace Prisma {
     cancelReason?: SortOrder
     metadata?: SortOrder
     sourceMetadata?: SortOrder
+    deliveryPin?: SortOrder
+    deliveryPinVerifiedAt?: SortOrder
+    eflCommissionPercent?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     loyaltyMemberId?: SortOrder
@@ -247082,6 +251272,7 @@ export namespace Prisma {
     total?: SortOrder
     promoDiscount?: SortOrder
     preparationMinutes?: SortOrder
+    eflCommissionPercent?: SortOrder
   }
 
   export type OrderMaxOrderByAggregateInput = {
@@ -247160,6 +251351,9 @@ export namespace Prisma {
     deliveredAt?: SortOrder
     cancelledAt?: SortOrder
     cancelReason?: SortOrder
+    deliveryPin?: SortOrder
+    deliveryPinVerifiedAt?: SortOrder
+    eflCommissionPercent?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     loyaltyMemberId?: SortOrder
@@ -247241,6 +251435,9 @@ export namespace Prisma {
     deliveredAt?: SortOrder
     cancelledAt?: SortOrder
     cancelReason?: SortOrder
+    deliveryPin?: SortOrder
+    deliveryPinVerifiedAt?: SortOrder
+    eflCommissionPercent?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     loyaltyMemberId?: SortOrder
@@ -247262,6 +251459,7 @@ export namespace Prisma {
     total?: SortOrder
     promoDiscount?: SortOrder
     preparationMinutes?: SortOrder
+    eflCommissionPercent?: SortOrder
   }
 
   export type EnumOrderPlatformWithAggregatesFilter<$PrismaModel = never> = {
@@ -252521,6 +256719,214 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumOutboxEventStatusFilter<$PrismaModel>
     _max?: NestedEnumOutboxEventStatusFilter<$PrismaModel>
+  }
+
+  export type EnumEflListingStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.EflListingStatus | EnumEflListingStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.EflListingStatus[] | ListEnumEflListingStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.EflListingStatus[] | ListEnumEflListingStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumEflListingStatusFilter<$PrismaModel> | $Enums.EflListingStatus
+  }
+
+  export type EnumEflDeliveryModeFilter<$PrismaModel = never> = {
+    equals?: $Enums.EflDeliveryMode | EnumEflDeliveryModeFieldRefInput<$PrismaModel>
+    in?: $Enums.EflDeliveryMode[] | ListEnumEflDeliveryModeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.EflDeliveryMode[] | ListEnumEflDeliveryModeFieldRefInput<$PrismaModel>
+    not?: NestedEnumEflDeliveryModeFilter<$PrismaModel> | $Enums.EflDeliveryMode
+  }
+
+  export type EflListingOrderByRelevanceInput = {
+    fields: EflListingOrderByRelevanceFieldEnum | EflListingOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type EflListingCountOrderByAggregateInput = {
+    id?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    listed?: SortOrder
+    status?: SortOrder
+    hiddenReason?: SortOrder
+    commissionPercent?: SortOrder
+    deliveryMode?: SortOrder
+    acceptsDelivery?: SortOrder
+    acceptsCollection?: SortOrder
+    description?: SortOrder
+    heroImageUrl?: SortOrder
+    logoUrl?: SortOrder
+    cuisines?: SortOrder
+    approvedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EflListingAvgOrderByAggregateInput = {
+    commissionPercent?: SortOrder
+  }
+
+  export type EflListingMaxOrderByAggregateInput = {
+    id?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    listed?: SortOrder
+    status?: SortOrder
+    hiddenReason?: SortOrder
+    commissionPercent?: SortOrder
+    deliveryMode?: SortOrder
+    acceptsDelivery?: SortOrder
+    acceptsCollection?: SortOrder
+    description?: SortOrder
+    heroImageUrl?: SortOrder
+    logoUrl?: SortOrder
+    approvedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EflListingMinOrderByAggregateInput = {
+    id?: SortOrder
+    locationId?: SortOrder
+    brandId?: SortOrder
+    listed?: SortOrder
+    status?: SortOrder
+    hiddenReason?: SortOrder
+    commissionPercent?: SortOrder
+    deliveryMode?: SortOrder
+    acceptsDelivery?: SortOrder
+    acceptsCollection?: SortOrder
+    description?: SortOrder
+    heroImageUrl?: SortOrder
+    logoUrl?: SortOrder
+    approvedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EflListingSumOrderByAggregateInput = {
+    commissionPercent?: SortOrder
+  }
+
+  export type EnumEflListingStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.EflListingStatus | EnumEflListingStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.EflListingStatus[] | ListEnumEflListingStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.EflListingStatus[] | ListEnumEflListingStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumEflListingStatusWithAggregatesFilter<$PrismaModel> | $Enums.EflListingStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumEflListingStatusFilter<$PrismaModel>
+    _max?: NestedEnumEflListingStatusFilter<$PrismaModel>
+  }
+
+  export type EnumEflDeliveryModeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.EflDeliveryMode | EnumEflDeliveryModeFieldRefInput<$PrismaModel>
+    in?: $Enums.EflDeliveryMode[] | ListEnumEflDeliveryModeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.EflDeliveryMode[] | ListEnumEflDeliveryModeFieldRefInput<$PrismaModel>
+    not?: NestedEnumEflDeliveryModeWithAggregatesFilter<$PrismaModel> | $Enums.EflDeliveryMode
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumEflDeliveryModeFilter<$PrismaModel>
+    _max?: NestedEnumEflDeliveryModeFilter<$PrismaModel>
+  }
+
+  export type EflConfigOrderByRelevanceInput = {
+    fields: EflConfigOrderByRelevanceFieldEnum | EflConfigOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type EflConfigCountOrderByAggregateInput = {
+    id?: SortOrder
+    defaultCommissionPercent?: SortOrder
+    pinMinOrderTotal?: SortOrder
+    pinForNewCustomers?: SortOrder
+    firstOrderMaxTotal?: SortOrder
+    maxOrdersPerHour?: SortOrder
+    minHygieneRating?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EflConfigAvgOrderByAggregateInput = {
+    defaultCommissionPercent?: SortOrder
+    pinMinOrderTotal?: SortOrder
+    firstOrderMaxTotal?: SortOrder
+    maxOrdersPerHour?: SortOrder
+    minHygieneRating?: SortOrder
+  }
+
+  export type EflConfigMaxOrderByAggregateInput = {
+    id?: SortOrder
+    defaultCommissionPercent?: SortOrder
+    pinMinOrderTotal?: SortOrder
+    pinForNewCustomers?: SortOrder
+    firstOrderMaxTotal?: SortOrder
+    maxOrdersPerHour?: SortOrder
+    minHygieneRating?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EflConfigMinOrderByAggregateInput = {
+    id?: SortOrder
+    defaultCommissionPercent?: SortOrder
+    pinMinOrderTotal?: SortOrder
+    pinForNewCustomers?: SortOrder
+    firstOrderMaxTotal?: SortOrder
+    maxOrdersPerHour?: SortOrder
+    minHygieneRating?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EflConfigSumOrderByAggregateInput = {
+    defaultCommissionPercent?: SortOrder
+    pinMinOrderTotal?: SortOrder
+    firstOrderMaxTotal?: SortOrder
+    maxOrdersPerHour?: SortOrder
+    minHygieneRating?: SortOrder
+  }
+
+  export type EflPhoneVerificationOrderByRelevanceInput = {
+    fields: EflPhoneVerificationOrderByRelevanceFieldEnum | EflPhoneVerificationOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type EflPhoneVerificationCountOrderByAggregateInput = {
+    id?: SortOrder
+    customerAccountId?: SortOrder
+    phone?: SortOrder
+    codeHash?: SortOrder
+    attempts?: SortOrder
+    expiresAt?: SortOrder
+    consumedAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type EflPhoneVerificationAvgOrderByAggregateInput = {
+    attempts?: SortOrder
+  }
+
+  export type EflPhoneVerificationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    customerAccountId?: SortOrder
+    phone?: SortOrder
+    codeHash?: SortOrder
+    attempts?: SortOrder
+    expiresAt?: SortOrder
+    consumedAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type EflPhoneVerificationMinOrderByAggregateInput = {
+    id?: SortOrder
+    customerAccountId?: SortOrder
+    phone?: SortOrder
+    codeHash?: SortOrder
+    attempts?: SortOrder
+    expiresAt?: SortOrder
+    consumedAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type EflPhoneVerificationSumOrderByAggregateInput = {
+    attempts?: SortOrder
   }
 
   export type VideoStudioAccountOrderByRelevanceInput = {
@@ -258579,6 +262985,12 @@ export namespace Prisma {
     connect?: YangoConfigWhereUniqueInput
   }
 
+  export type EflListingCreateNestedOneWithoutLocationInput = {
+    create?: XOR<EflListingCreateWithoutLocationInput, EflListingUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: EflListingCreateOrConnectWithoutLocationInput
+    connect?: EflListingWhereUniqueInput
+  }
+
   export type LoyaltyCardCreateNestedOneWithoutLocationInput = {
     create?: XOR<LoyaltyCardCreateWithoutLocationInput, LoyaltyCardUncheckedCreateWithoutLocationInput>
     connectOrCreate?: LoyaltyCardCreateOrConnectWithoutLocationInput
@@ -258799,6 +263211,12 @@ export namespace Prisma {
     create?: XOR<YangoConfigCreateWithoutLocationInput, YangoConfigUncheckedCreateWithoutLocationInput>
     connectOrCreate?: YangoConfigCreateOrConnectWithoutLocationInput
     connect?: YangoConfigWhereUniqueInput
+  }
+
+  export type EflListingUncheckedCreateNestedOneWithoutLocationInput = {
+    create?: XOR<EflListingCreateWithoutLocationInput, EflListingUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: EflListingCreateOrConnectWithoutLocationInput
+    connect?: EflListingWhereUniqueInput
   }
 
   export type LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput = {
@@ -259274,6 +263692,16 @@ export namespace Prisma {
     update?: XOR<XOR<YangoConfigUpdateToOneWithWhereWithoutLocationInput, YangoConfigUpdateWithoutLocationInput>, YangoConfigUncheckedUpdateWithoutLocationInput>
   }
 
+  export type EflListingUpdateOneWithoutLocationNestedInput = {
+    create?: XOR<EflListingCreateWithoutLocationInput, EflListingUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: EflListingCreateOrConnectWithoutLocationInput
+    upsert?: EflListingUpsertWithoutLocationInput
+    disconnect?: EflListingWhereInput | boolean
+    delete?: EflListingWhereInput | boolean
+    connect?: EflListingWhereUniqueInput
+    update?: XOR<XOR<EflListingUpdateToOneWithWhereWithoutLocationInput, EflListingUpdateWithoutLocationInput>, EflListingUncheckedUpdateWithoutLocationInput>
+  }
+
   export type LoyaltyCardUpdateOneWithoutLocationNestedInput = {
     create?: XOR<LoyaltyCardCreateWithoutLocationInput, LoyaltyCardUncheckedCreateWithoutLocationInput>
     connectOrCreate?: LoyaltyCardCreateOrConnectWithoutLocationInput
@@ -259698,6 +264126,16 @@ export namespace Prisma {
     delete?: YangoConfigWhereInput | boolean
     connect?: YangoConfigWhereUniqueInput
     update?: XOR<XOR<YangoConfigUpdateToOneWithWhereWithoutLocationInput, YangoConfigUpdateWithoutLocationInput>, YangoConfigUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type EflListingUncheckedUpdateOneWithoutLocationNestedInput = {
+    create?: XOR<EflListingCreateWithoutLocationInput, EflListingUncheckedCreateWithoutLocationInput>
+    connectOrCreate?: EflListingCreateOrConnectWithoutLocationInput
+    upsert?: EflListingUpsertWithoutLocationInput
+    disconnect?: EflListingWhereInput | boolean
+    delete?: EflListingWhereInput | boolean
+    connect?: EflListingWhereUniqueInput
+    update?: XOR<XOR<EflListingUpdateToOneWithWhereWithoutLocationInput, EflListingUpdateWithoutLocationInput>, EflListingUncheckedUpdateWithoutLocationInput>
   }
 
   export type LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput = {
@@ -265066,6 +269504,37 @@ export namespace Prisma {
     set?: $Enums.OutboxEventStatus
   }
 
+  export type EflListingCreatecuisinesInput = {
+    set: string[]
+  }
+
+  export type LocationCreateNestedOneWithoutEflListingInput = {
+    create?: XOR<LocationCreateWithoutEflListingInput, LocationUncheckedCreateWithoutEflListingInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutEflListingInput
+    connect?: LocationWhereUniqueInput
+  }
+
+  export type EnumEflListingStatusFieldUpdateOperationsInput = {
+    set?: $Enums.EflListingStatus
+  }
+
+  export type EnumEflDeliveryModeFieldUpdateOperationsInput = {
+    set?: $Enums.EflDeliveryMode
+  }
+
+  export type EflListingUpdatecuisinesInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type LocationUpdateOneRequiredWithoutEflListingNestedInput = {
+    create?: XOR<LocationCreateWithoutEflListingInput, LocationUncheckedCreateWithoutEflListingInput>
+    connectOrCreate?: LocationCreateOrConnectWithoutEflListingInput
+    upsert?: LocationUpsertWithoutEflListingInput
+    connect?: LocationWhereUniqueInput
+    update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutEflListingInput, LocationUpdateWithoutEflListingInput>, LocationUncheckedUpdateWithoutEflListingInput>
+  }
+
   export type EnumVideoCreditReasonFieldUpdateOperationsInput = {
     set?: $Enums.VideoCreditReason
   }
@@ -267565,6 +272034,40 @@ export namespace Prisma {
     _max?: NestedEnumOutboxEventStatusFilter<$PrismaModel>
   }
 
+  export type NestedEnumEflListingStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.EflListingStatus | EnumEflListingStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.EflListingStatus[] | ListEnumEflListingStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.EflListingStatus[] | ListEnumEflListingStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumEflListingStatusFilter<$PrismaModel> | $Enums.EflListingStatus
+  }
+
+  export type NestedEnumEflDeliveryModeFilter<$PrismaModel = never> = {
+    equals?: $Enums.EflDeliveryMode | EnumEflDeliveryModeFieldRefInput<$PrismaModel>
+    in?: $Enums.EflDeliveryMode[] | ListEnumEflDeliveryModeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.EflDeliveryMode[] | ListEnumEflDeliveryModeFieldRefInput<$PrismaModel>
+    not?: NestedEnumEflDeliveryModeFilter<$PrismaModel> | $Enums.EflDeliveryMode
+  }
+
+  export type NestedEnumEflListingStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.EflListingStatus | EnumEflListingStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.EflListingStatus[] | ListEnumEflListingStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.EflListingStatus[] | ListEnumEflListingStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumEflListingStatusWithAggregatesFilter<$PrismaModel> | $Enums.EflListingStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumEflListingStatusFilter<$PrismaModel>
+    _max?: NestedEnumEflListingStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumEflDeliveryModeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.EflDeliveryMode | EnumEflDeliveryModeFieldRefInput<$PrismaModel>
+    in?: $Enums.EflDeliveryMode[] | ListEnumEflDeliveryModeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.EflDeliveryMode[] | ListEnumEflDeliveryModeFieldRefInput<$PrismaModel>
+    not?: NestedEnumEflDeliveryModeWithAggregatesFilter<$PrismaModel> | $Enums.EflDeliveryMode
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumEflDeliveryModeFilter<$PrismaModel>
+    _max?: NestedEnumEflDeliveryModeFilter<$PrismaModel>
+  }
+
   export type NestedEnumVideoCreditReasonFilter<$PrismaModel = never> = {
     equals?: $Enums.VideoCreditReason | EnumVideoCreditReasonFieldRefInput<$PrismaModel>
     in?: $Enums.VideoCreditReason[] | ListEnumVideoCreditReasonFieldRefInput<$PrismaModel>
@@ -267906,6 +272409,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -268002,6 +272508,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -269133,6 +273642,9 @@ export namespace Prisma {
     cancelReason?: StringNullableFilter<"Order"> | string | null
     metadata?: JsonFilter<"Order">
     sourceMetadata?: JsonFilter<"Order">
+    deliveryPin?: StringNullableFilter<"Order"> | string | null
+    deliveryPinVerifiedAt?: DateTimeNullableFilter<"Order"> | Date | string | null
+    eflCommissionPercent?: DecimalNullableFilter<"Order"> | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFilter<"Order"> | Date | string
     updatedAt?: DateTimeFilter<"Order"> | Date | string
     loyaltyMemberId?: StringNullableFilter<"Order"> | string | null
@@ -270833,6 +275345,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -270932,6 +275445,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -271112,6 +275626,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -271211,6 +275726,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -272067,6 +276583,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -272163,6 +276682,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -273428,6 +277950,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -273527,6 +278050,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -273861,6 +278385,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -273957,6 +278484,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -275296,6 +279826,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -275392,6 +279925,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -276935,6 +281471,49 @@ export namespace Prisma {
     create: XOR<YangoConfigCreateWithoutLocationInput, YangoConfigUncheckedCreateWithoutLocationInput>
   }
 
+  export type EflListingCreateWithoutLocationInput = {
+    id?: string
+    brandId?: string | null
+    listed?: boolean
+    status?: $Enums.EflListingStatus
+    hiddenReason?: string | null
+    commissionPercent?: Decimal | DecimalJsLike | number | string | null
+    deliveryMode?: $Enums.EflDeliveryMode
+    acceptsDelivery?: boolean
+    acceptsCollection?: boolean
+    description?: string | null
+    heroImageUrl?: string | null
+    logoUrl?: string | null
+    cuisines?: EflListingCreatecuisinesInput | string[]
+    approvedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EflListingUncheckedCreateWithoutLocationInput = {
+    id?: string
+    brandId?: string | null
+    listed?: boolean
+    status?: $Enums.EflListingStatus
+    hiddenReason?: string | null
+    commissionPercent?: Decimal | DecimalJsLike | number | string | null
+    deliveryMode?: $Enums.EflDeliveryMode
+    acceptsDelivery?: boolean
+    acceptsCollection?: boolean
+    description?: string | null
+    heroImageUrl?: string | null
+    logoUrl?: string | null
+    cuisines?: EflListingCreatecuisinesInput | string[]
+    approvedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EflListingCreateOrConnectWithoutLocationInput = {
+    where: EflListingWhereUniqueInput
+    create: XOR<EflListingCreateWithoutLocationInput, EflListingUncheckedCreateWithoutLocationInput>
+  }
+
   export type LoyaltyCardCreateWithoutLocationInput = {
     id?: string
     tenantId: string
@@ -278440,6 +283019,55 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type EflListingUpsertWithoutLocationInput = {
+    update: XOR<EflListingUpdateWithoutLocationInput, EflListingUncheckedUpdateWithoutLocationInput>
+    create: XOR<EflListingCreateWithoutLocationInput, EflListingUncheckedCreateWithoutLocationInput>
+    where?: EflListingWhereInput
+  }
+
+  export type EflListingUpdateToOneWithWhereWithoutLocationInput = {
+    where?: EflListingWhereInput
+    data: XOR<EflListingUpdateWithoutLocationInput, EflListingUncheckedUpdateWithoutLocationInput>
+  }
+
+  export type EflListingUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    listed?: BoolFieldUpdateOperationsInput | boolean
+    status?: EnumEflListingStatusFieldUpdateOperationsInput | $Enums.EflListingStatus
+    hiddenReason?: NullableStringFieldUpdateOperationsInput | string | null
+    commissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    deliveryMode?: EnumEflDeliveryModeFieldUpdateOperationsInput | $Enums.EflDeliveryMode
+    acceptsDelivery?: BoolFieldUpdateOperationsInput | boolean
+    acceptsCollection?: BoolFieldUpdateOperationsInput | boolean
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisines?: EflListingUpdatecuisinesInput | string[]
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflListingUncheckedUpdateWithoutLocationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    listed?: BoolFieldUpdateOperationsInput | boolean
+    status?: EnumEflListingStatusFieldUpdateOperationsInput | $Enums.EflListingStatus
+    hiddenReason?: NullableStringFieldUpdateOperationsInput | string | null
+    commissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    deliveryMode?: EnumEflDeliveryModeFieldUpdateOperationsInput | $Enums.EflDeliveryMode
+    acceptsDelivery?: BoolFieldUpdateOperationsInput | boolean
+    acceptsCollection?: BoolFieldUpdateOperationsInput | boolean
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisines?: EflListingUpdatecuisinesInput | string[]
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type LoyaltyCardUpsertWithoutLocationInput = {
     update: XOR<LoyaltyCardUpdateWithoutLocationInput, LoyaltyCardUncheckedUpdateWithoutLocationInput>
     create: XOR<LoyaltyCardCreateWithoutLocationInput, LoyaltyCardUncheckedCreateWithoutLocationInput>
@@ -278779,6 +283407,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -278878,6 +283507,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -279126,6 +283756,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -279225,6 +283856,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -279324,6 +283956,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -279423,6 +284056,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -279538,6 +284172,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -279637,6 +284272,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -280424,6 +285060,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -280523,6 +285160,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -280731,6 +285369,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -280830,6 +285469,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -282138,6 +286778,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -282237,6 +286878,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -282352,6 +286994,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -282451,6 +287094,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -282667,6 +287311,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -282766,6 +287411,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -283004,6 +287650,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -283103,6 +287750,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -286220,6 +290868,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -286316,6 +290967,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -286687,6 +291341,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -286786,6 +291441,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -287028,6 +291684,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -287127,6 +291784,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -288366,6 +293024,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -288463,6 +293124,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -288633,6 +293297,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -288730,6 +293397,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -288836,6 +293506,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -288935,6 +293606,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -289177,6 +293849,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -289276,6 +293949,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -289508,6 +294182,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -289607,6 +294282,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -289722,6 +294398,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -289821,6 +294498,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -289989,6 +294667,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -290088,6 +294767,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -290162,6 +294842,8 @@ export namespace Prisma {
     isVerified?: boolean
     emailVerificationToken?: string | null
     marketingOptIn?: boolean
+    phoneVerifiedAt?: Date | string | null
+    eflMarketingOptIn?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -290191,6 +294873,8 @@ export namespace Prisma {
     isVerified?: boolean
     emailVerificationToken?: string | null
     marketingOptIn?: boolean
+    phoneVerifiedAt?: Date | string | null
+    eflMarketingOptIn?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -290831,6 +295515,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -290930,6 +295615,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -291016,6 +295702,8 @@ export namespace Prisma {
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
     marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
+    phoneVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflMarketingOptIn?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -291045,6 +295733,8 @@ export namespace Prisma {
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
     marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
+    phoneVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflMarketingOptIn?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -291503,6 +296193,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -291600,6 +296293,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -291731,6 +296427,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -291828,6 +296527,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -291944,6 +296646,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -292041,6 +296746,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -292144,6 +296852,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -292241,6 +296952,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -292347,6 +297061,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -292446,6 +297161,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -292589,6 +297305,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -292688,6 +297405,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -292803,6 +297521,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -292902,6 +297621,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -293144,6 +297864,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -293243,6 +297964,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -293475,6 +298197,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -293574,6 +298297,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -293741,6 +298465,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -293840,6 +298565,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -293955,6 +298681,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -294054,6 +298781,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -294169,6 +298897,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -294268,6 +298997,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -294367,6 +299097,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -294466,6 +299197,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -294644,6 +299376,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -294743,6 +299476,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -294911,6 +299645,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -295010,6 +299745,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -295125,6 +299861,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -295224,6 +299961,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -295323,6 +300061,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -295422,6 +300161,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -295651,6 +300391,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -295750,6 +300491,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -296002,6 +300744,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -296101,6 +300844,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -296267,6 +301011,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -296366,6 +301111,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -296522,6 +301268,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -296621,6 +301368,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -296736,6 +301484,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -296835,6 +301584,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -296944,6 +301694,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -297041,6 +301794,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -297179,6 +301935,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -297276,6 +302035,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -297382,6 +302144,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -297481,6 +302244,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -297746,6 +302510,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -297845,6 +302610,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -297954,6 +302720,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -298053,6 +302820,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -298173,6 +302941,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -298272,6 +303041,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -298627,6 +303397,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -298724,6 +303497,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -299085,6 +303861,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -299182,6 +303961,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -299459,6 +304241,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -299558,6 +304341,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -299947,6 +304731,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -300046,6 +304831,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -300307,6 +305093,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -300406,6 +305193,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -300763,6 +305551,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -300862,6 +305651,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -301210,6 +306000,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -301309,6 +306100,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -302277,6 +307069,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -302376,6 +307169,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -302687,6 +307481,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -302786,6 +307581,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -303174,6 +307970,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -303271,6 +308070,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -303451,6 +308253,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -303548,6 +308353,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -304068,6 +308876,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -304165,6 +308976,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -304389,6 +309203,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -304486,6 +309303,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -305400,6 +310220,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -305499,6 +310320,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -305665,6 +310487,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -305764,6 +310587,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -308836,6 +313660,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -308935,6 +313760,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -309125,6 +313951,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -309224,6 +314051,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -309963,6 +314791,422 @@ export namespace Prisma {
     leadsSubmitted?: LeadUncheckedUpdateManyWithoutSubmittedByNestedInput
   }
 
+  export type LocationCreateWithoutEflListingInput = {
+    id?: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    currency?: string
+    businessType?: $Enums.BusinessType
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    brand: BrandCreateNestedOneWithoutLocationsInput
+    integrations?: IntegrationCreateNestedManyWithoutLocationInput
+    orders?: OrderCreateNestedManyWithoutLocationInput
+    printers?: PrinterCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayCreateNestedManyWithoutLocationInput
+    tables?: TableCreateNestedManyWithoutLocationInput
+    tableReservations?: TableReservationCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionCreateNestedOneWithoutLocationInput
+    contracts?: ContractCreateNestedManyWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryCreateNestedManyWithoutLocationInput
+    defaultKitchenStation?: PrinterStationCreateNestedOneWithoutLocationDefaultsInput
+    receiptPrinter?: PrinterCreateNestedOneWithoutLocationsReceiptForInput
+    dispatchPrinter?: PrinterCreateNestedOneWithoutLocationsDispatchForInput
+    stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationUncheckedCreateWithoutEflListingInput = {
+    id?: string
+    brandId: string
+    name: string
+    externalRef?: string | null
+    address: JsonNullValueInput | InputJsonValue
+    phone?: string | null
+    timezone?: string
+    isActive?: boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: Date | string | null
+    defaultKitchenStationId?: string | null
+    receiptPrinterId?: string | null
+    dispatchPrinterId?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city?: string | null
+    postcode?: string | null
+    country?: string
+    currency?: string
+    businessType?: $Enums.BusinessType
+    about?: string | null
+    logoUrl?: string | null
+    customDomain?: string | null
+    customDomainStatus?: string
+    onlineOrderingSlug?: string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: string | null
+    hubriseLocationId?: string | null
+    hubriseConnectedAt?: Date | string | null
+    stripeConnectedAccountId?: string | null
+    applicationFeeFixedAmount?: Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: string
+    posStripeAccountId?: string | null
+    posApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: number | null
+    posTerminalApplicationFeePercent?: Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: number | null
+    status?: string
+    googleReviewUrl?: string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: string | null
+    printToken?: string | null
+    slug?: string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: number | null
+    busyExtraPrepTime?: number | null
+    onboardingStep?: number
+    goLiveStatus?: $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: Date | string | null
+    lastTestPrintAt?: Date | string | null
+    isOpen?: boolean
+    isPaused?: boolean
+    pauseUntil?: Date | string | null
+    busyMode?: boolean
+    currentPrepTime?: number
+    throttleLimit?: number | null
+    storeStatusNote?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    integrations?: IntegrationUncheckedCreateNestedManyWithoutLocationInput
+    orders?: OrderUncheckedCreateNestedManyWithoutLocationInput
+    printers?: PrinterUncheckedCreateNestedManyWithoutLocationInput
+    printerStations?: PrinterStationUncheckedCreateNestedManyWithoutLocationInput
+    printAgents?: PrintAgentUncheckedCreateNestedManyWithoutLocationInput
+    kdsScreens?: KdsScreenUncheckedCreateNestedManyWithoutLocationInput
+    signageDisplays?: SignageDisplayUncheckedCreateNestedManyWithoutLocationInput
+    tables?: TableUncheckedCreateNestedManyWithoutLocationInput
+    tableReservations?: TableReservationUncheckedCreateNestedManyWithoutLocationInput
+    kioskDevices?: KioskDeviceUncheckedCreateNestedManyWithoutLocationInput
+    deliveryZones?: DeliveryZoneUncheckedCreateNestedManyWithoutLocationInput
+    paymentConfig?: LocationPaymentConfigUncheckedCreateNestedOneWithoutLocationInput
+    userLocations?: UserLocationUncheckedCreateNestedManyWithoutLocationInput
+    platformConnections?: BrandPlatformConnectionUncheckedCreateNestedManyWithoutLocationInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedCreateNestedOneWithoutLocationInput
+    channelPauses?: ChannelPauseUncheckedCreateNestedManyWithoutLocationInput
+    merchantSubscription?: MerchantSubscriptionUncheckedCreateNestedOneWithoutLocationInput
+    contracts?: ContractUncheckedCreateNestedManyWithoutLocationInput
+    menuAssignments?: MenuChannelAssignmentUncheckedCreateNestedManyWithoutLocationInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedCreateNestedManyWithoutLocationInput
+    homeDrivers?: DriverUncheckedCreateNestedManyWithoutLocationInput
+    productStockLevels?: ProductStockLevelUncheckedCreateNestedManyWithoutLocationInput
+    salonServices?: SalonServiceUncheckedCreateNestedManyWithoutLocationInput
+    salonStaff?: SalonStaffUncheckedCreateNestedManyWithoutLocationInput
+    salonAppointments?: SalonAppointmentUncheckedCreateNestedManyWithoutLocationInput
+    salonQueueEntries?: SalonQueueEntryUncheckedCreateNestedManyWithoutLocationInput
+    stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
+    uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
+    jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
+    referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
+    loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
+  }
+
+  export type LocationCreateOrConnectWithoutEflListingInput = {
+    where: LocationWhereUniqueInput
+    create: XOR<LocationCreateWithoutEflListingInput, LocationUncheckedCreateWithoutEflListingInput>
+  }
+
+  export type LocationUpsertWithoutEflListingInput = {
+    update: XOR<LocationUpdateWithoutEflListingInput, LocationUncheckedUpdateWithoutEflListingInput>
+    create: XOR<LocationCreateWithoutEflListingInput, LocationUncheckedCreateWithoutEflListingInput>
+    where?: LocationWhereInput
+  }
+
+  export type LocationUpdateToOneWithWhereWithoutEflListingInput = {
+    where?: LocationWhereInput
+    data: XOR<LocationUpdateWithoutEflListingInput, LocationUncheckedUpdateWithoutEflListingInput>
+  }
+
+  export type LocationUpdateWithoutEflListingInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    brand?: BrandUpdateOneRequiredWithoutLocationsNestedInput
+    integrations?: IntegrationUpdateManyWithoutLocationNestedInput
+    orders?: OrderUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUpdateManyWithoutLocationNestedInput
+    tables?: TableUpdateManyWithoutLocationNestedInput
+    tableReservations?: TableReservationUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUpdateManyWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUpdateManyWithoutLocationNestedInput
+    defaultKitchenStation?: PrinterStationUpdateOneWithoutLocationDefaultsNestedInput
+    receiptPrinter?: PrinterUpdateOneWithoutLocationsReceiptForNestedInput
+    dispatchPrinter?: PrinterUpdateOneWithoutLocationsDispatchForNestedInput
+    stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
+  }
+
+  export type LocationUncheckedUpdateWithoutEflListingInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    externalRef?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: JsonNullValueInput | InputJsonValue
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    settings?: JsonNullValueInput | InputJsonValue
+    metadata?: JsonNullValueInput | InputJsonValue
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    defaultKitchenStationId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    dispatchPrinterId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    businessType?: EnumBusinessTypeFieldUpdateOperationsInput | $Enums.BusinessType
+    about?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomain?: NullableStringFieldUpdateOperationsInput | string | null
+    customDomainStatus?: StringFieldUpdateOperationsInput | string
+    onlineOrderingSlug?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseCredentials?: NullableJsonNullValueInput | InputJsonValue
+    hubriseCatalogId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseLocationId?: NullableStringFieldUpdateOperationsInput | string | null
+    hubriseConnectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stripeConnectedAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    applicationFeeFixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeePercentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    applicationFeeMode?: StringFieldUpdateOperationsInput | string
+    posStripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    posApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    posTerminalApplicationFeePercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    posTerminalApplicationFeeFixedMinor?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    busyModeJson?: JsonNullValueInput | InputJsonValue
+    shopCode?: NullableStringFieldUpdateOperationsInput | string | null
+    printToken?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: NullableStringFieldUpdateOperationsInput | string | null
+    openingHours?: JsonNullValueInput | InputJsonValue
+    deliveryConfig?: JsonNullValueInput | InputJsonValue
+    prepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    busyExtraPrepTime?: NullableIntFieldUpdateOperationsInput | number | null
+    onboardingStep?: IntFieldUpdateOperationsInput | number
+    goLiveStatus?: EnumLocationGoLiveStatusFieldUpdateOperationsInput | $Enums.LocationGoLiveStatus
+    lastTestOrderAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastTestPrintAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isOpen?: BoolFieldUpdateOperationsInput | boolean
+    isPaused?: BoolFieldUpdateOperationsInput | boolean
+    pauseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    busyMode?: BoolFieldUpdateOperationsInput | boolean
+    currentPrepTime?: IntFieldUpdateOperationsInput | number
+    throttleLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    storeStatusNote?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    integrations?: IntegrationUncheckedUpdateManyWithoutLocationNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutLocationNestedInput
+    printers?: PrinterUncheckedUpdateManyWithoutLocationNestedInput
+    printerStations?: PrinterStationUncheckedUpdateManyWithoutLocationNestedInput
+    printAgents?: PrintAgentUncheckedUpdateManyWithoutLocationNestedInput
+    kdsScreens?: KdsScreenUncheckedUpdateManyWithoutLocationNestedInput
+    signageDisplays?: SignageDisplayUncheckedUpdateManyWithoutLocationNestedInput
+    tables?: TableUncheckedUpdateManyWithoutLocationNestedInput
+    tableReservations?: TableReservationUncheckedUpdateManyWithoutLocationNestedInput
+    kioskDevices?: KioskDeviceUncheckedUpdateManyWithoutLocationNestedInput
+    deliveryZones?: DeliveryZoneUncheckedUpdateManyWithoutLocationNestedInput
+    paymentConfig?: LocationPaymentConfigUncheckedUpdateOneWithoutLocationNestedInput
+    userLocations?: UserLocationUncheckedUpdateManyWithoutLocationNestedInput
+    platformConnections?: BrandPlatformConnectionUncheckedUpdateManyWithoutLocationNestedInput
+    directOrderingConfig?: DirectOrderingConfigUncheckedUpdateOneWithoutLocationNestedInput
+    channelPauses?: ChannelPauseUncheckedUpdateManyWithoutLocationNestedInput
+    merchantSubscription?: MerchantSubscriptionUncheckedUpdateOneWithoutLocationNestedInput
+    contracts?: ContractUncheckedUpdateManyWithoutLocationNestedInput
+    menuAssignments?: MenuChannelAssignmentUncheckedUpdateManyWithoutLocationNestedInput
+    itemChannelSnoozes?: MenuItemChannelAvailabilityUncheckedUpdateManyWithoutLocationNestedInput
+    homeDrivers?: DriverUncheckedUpdateManyWithoutLocationNestedInput
+    productStockLevels?: ProductStockLevelUncheckedUpdateManyWithoutLocationNestedInput
+    salonServices?: SalonServiceUncheckedUpdateManyWithoutLocationNestedInput
+    salonStaff?: SalonStaffUncheckedUpdateManyWithoutLocationNestedInput
+    salonAppointments?: SalonAppointmentUncheckedUpdateManyWithoutLocationNestedInput
+    salonQueueEntries?: SalonQueueEntryUncheckedUpdateManyWithoutLocationNestedInput
+    stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
+    uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
+    jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
+    referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
+    loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
+  }
+
   export type MarketingSmsRecipientCreateWithoutCampaignInput = {
     id?: string
     tenantId: string
@@ -310569,6 +315813,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -310668,6 +315913,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -310783,6 +316029,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -310882,6 +316129,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -310981,6 +316229,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -311080,6 +316329,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -311195,6 +316445,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -311294,6 +316545,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -311393,6 +316645,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -311492,6 +316745,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -311607,6 +316861,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -311706,6 +316961,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -311805,6 +317061,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -311904,6 +317161,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedCreateNestedOneWithoutLocationInput
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -312019,6 +317277,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -312118,6 +317377,7 @@ export namespace Prisma {
     stuartConfig?: StuartConfigUncheckedUpdateOneWithoutLocationNestedInput
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -312730,6 +317990,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
@@ -312829,6 +318090,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
@@ -313090,6 +318352,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -313189,6 +318452,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -313498,6 +318762,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
@@ -313597,6 +318862,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
@@ -313975,6 +319241,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
@@ -314074,6 +319341,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
@@ -314349,6 +319617,8 @@ export namespace Prisma {
     isVerified?: boolean
     emailVerificationToken?: string | null
     marketingOptIn?: boolean
+    phoneVerifiedAt?: Date | string | null
+    eflMarketingOptIn?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -314378,6 +319648,8 @@ export namespace Prisma {
     isVerified?: boolean
     emailVerificationToken?: string | null
     marketingOptIn?: boolean
+    phoneVerifiedAt?: Date | string | null
+    eflMarketingOptIn?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -314523,6 +319795,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -314620,6 +319895,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -314728,6 +320006,8 @@ export namespace Prisma {
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
     marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
+    phoneVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflMarketingOptIn?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -314757,6 +320037,8 @@ export namespace Prisma {
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
     marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
+    phoneVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflMarketingOptIn?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -314914,6 +320196,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -315011,6 +320296,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -315173,6 +320461,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramCreateNestedOneWithoutLocationInput
   }
@@ -315272,6 +320561,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     referralProgram?: ReferralProgramUncheckedCreateNestedOneWithoutLocationInput
   }
@@ -315300,6 +320590,8 @@ export namespace Prisma {
     isVerified?: boolean
     emailVerificationToken?: string | null
     marketingOptIn?: boolean
+    phoneVerifiedAt?: Date | string | null
+    eflMarketingOptIn?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -315329,6 +320621,8 @@ export namespace Prisma {
     isVerified?: boolean
     emailVerificationToken?: string | null
     marketingOptIn?: boolean
+    phoneVerifiedAt?: Date | string | null
+    eflMarketingOptIn?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -315566,6 +320860,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
   }
@@ -315665,6 +320960,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
   }
@@ -315699,6 +320995,8 @@ export namespace Prisma {
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
     marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
+    phoneVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflMarketingOptIn?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -315728,6 +321026,8 @@ export namespace Prisma {
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
     marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
+    phoneVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflMarketingOptIn?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -316295,6 +321595,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardCreateNestedManyWithoutLocationInput
   }
@@ -316394,6 +321695,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedCreateNestedOneWithoutLocationInput
     jetGoConfig?: JetGoConfigUncheckedCreateNestedOneWithoutLocationInput
     yangoConfig?: YangoConfigUncheckedCreateNestedOneWithoutLocationInput
+    eflListing?: EflListingUncheckedCreateNestedOneWithoutLocationInput
     loyaltyCard?: LoyaltyCardUncheckedCreateNestedOneWithoutLocationInput
     loyaltyRewards?: LoyaltyRewardUncheckedCreateNestedManyWithoutLocationInput
   }
@@ -316581,6 +321883,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
   }
@@ -316680,6 +321983,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
   }
@@ -316770,6 +322074,8 @@ export namespace Prisma {
     isVerified?: boolean
     emailVerificationToken?: string | null
     marketingOptIn?: boolean
+    phoneVerifiedAt?: Date | string | null
+    eflMarketingOptIn?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -316799,6 +322105,8 @@ export namespace Prisma {
     isVerified?: boolean
     emailVerificationToken?: string | null
     marketingOptIn?: boolean
+    phoneVerifiedAt?: Date | string | null
+    eflMarketingOptIn?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -316929,6 +322237,8 @@ export namespace Prisma {
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
     marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
+    phoneVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflMarketingOptIn?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -316958,6 +322268,8 @@ export namespace Prisma {
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
     marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
+    phoneVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflMarketingOptIn?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -317061,6 +322373,8 @@ export namespace Prisma {
     isVerified?: boolean
     emailVerificationToken?: string | null
     marketingOptIn?: boolean
+    phoneVerifiedAt?: Date | string | null
+    eflMarketingOptIn?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -317090,6 +322404,8 @@ export namespace Prisma {
     isVerified?: boolean
     emailVerificationToken?: string | null
     marketingOptIn?: boolean
+    phoneVerifiedAt?: Date | string | null
+    eflMarketingOptIn?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -317124,6 +322440,8 @@ export namespace Prisma {
     isVerified?: boolean
     emailVerificationToken?: string | null
     marketingOptIn?: boolean
+    phoneVerifiedAt?: Date | string | null
+    eflMarketingOptIn?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -317153,6 +322471,8 @@ export namespace Prisma {
     isVerified?: boolean
     emailVerificationToken?: string | null
     marketingOptIn?: boolean
+    phoneVerifiedAt?: Date | string | null
+    eflMarketingOptIn?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -317268,6 +322588,8 @@ export namespace Prisma {
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
     marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
+    phoneVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflMarketingOptIn?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -317297,6 +322619,8 @@ export namespace Prisma {
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
     marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
+    phoneVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflMarketingOptIn?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -317337,6 +322661,8 @@ export namespace Prisma {
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
     marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
+    phoneVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflMarketingOptIn?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -317366,6 +322692,8 @@ export namespace Prisma {
     isVerified?: BoolFieldUpdateOperationsInput | boolean
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
     marketingOptIn?: BoolFieldUpdateOperationsInput | boolean
+    phoneVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflMarketingOptIn?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -318614,6 +323942,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -319260,6 +324591,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -319356,6 +324690,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -319448,6 +324785,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -320935,6 +326275,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -321073,6 +326416,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -321169,6 +326515,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -321261,6 +326610,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -321678,6 +327030,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -321905,6 +327260,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -322004,6 +327360,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -322445,6 +327802,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -322541,6 +327901,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -322633,6 +327996,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -323120,6 +328486,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -323670,6 +329039,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -323766,6 +329138,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -323858,6 +329233,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -326230,6 +331608,9 @@ export namespace Prisma {
     cancelReason?: string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: string | null
+    deliveryPinVerifiedAt?: Date | string | null
+    eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -326361,6 +331742,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -326457,6 +331841,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -326549,6 +331936,9 @@ export namespace Prisma {
     cancelReason?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: JsonNullValueInput | InputJsonValue
     sourceMetadata?: JsonNullValueInput | InputJsonValue
+    deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -327810,6 +333200,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -327909,6 +333300,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -328074,6 +333466,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -328173,6 +333566,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -328718,6 +334112,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUpdateManyWithoutLocationNestedInput
@@ -328817,6 +334212,7 @@ export namespace Prisma {
     uberDirectConfig?: UberDirectConfigUncheckedUpdateOneWithoutLocationNestedInput
     jetGoConfig?: JetGoConfigUncheckedUpdateOneWithoutLocationNestedInput
     yangoConfig?: YangoConfigUncheckedUpdateOneWithoutLocationNestedInput
+    eflListing?: EflListingUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
@@ -332121,6 +337517,18 @@ export namespace Prisma {
      * @deprecated Use OutboxEventDefaultArgs instead
      */
     export type OutboxEventArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = OutboxEventDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use EflListingDefaultArgs instead
+     */
+    export type EflListingArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = EflListingDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use EflConfigDefaultArgs instead
+     */
+    export type EflConfigArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = EflConfigDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use EflPhoneVerificationDefaultArgs instead
+     */
+    export type EflPhoneVerificationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = EflPhoneVerificationDefaultArgs<ExtArgs>
     /**
      * @deprecated Use VideoStudioAccountDefaultArgs instead
      */

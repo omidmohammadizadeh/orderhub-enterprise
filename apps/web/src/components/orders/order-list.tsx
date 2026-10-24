@@ -132,6 +132,13 @@ const CHANNELS: Channel[] = [
     enabled: true,
   },
   {
+    // Our own marketplace app.
+    key: "EAT_FOR_LESS",
+    label: "Eat For Less",
+    match: (p) => p === "EAT_FOR_LESS",
+    enabled: true,
+  },
+  {
     // Direct integration (restaurant Partners API) — orders really arrive.
     key: "GLOVO",
     label: "Glovo",

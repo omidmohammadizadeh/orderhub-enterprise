@@ -182,6 +182,7 @@ export const SIMULATABLE_PLATFORMS = [
   "ONLINE",
   "WHATSAPP",
   "VOICE",
+  "EAT_FOR_LESS",
 ] as const;
 export type SimulatablePlatform = (typeof SIMULATABLE_PLATFORMS)[number];
 
@@ -482,7 +483,9 @@ export class OrdersService {
         fresh.orderSource === "DIRECT" ||
         fresh.orderSource === "ONLINE" ||
         fresh.orderSource === "WHATSAPP" ||
-        fresh.orderSource === "VOICE";
+        fresh.orderSource === "VOICE" ||
+        // Eat For Less is our own app and our own card checkout.
+        fresh.orderSource === "EAT_FOR_LESS";
       const unpaidPaymentLink =
         (payMethod === "PAYMENT_LINK" || payMethod === "QR_CODE") &&
         payStatus !== "PAID";
@@ -1187,7 +1190,8 @@ export class OrdersService {
     const resolvedSource = (dto.orderSource ?? "DIRECT") as
       | "POS"
       | "DIRECT"
-      | "VOICE";
+      | "VOICE"
+      | "EAT_FOR_LESS";
     const idPrefix = resolvedSource.toLowerCase();
 
     // POS display brand: a location can pin a "POS display name" brand in its
@@ -1413,7 +1417,8 @@ export class OrdersService {
       (canonical.orderSource as string) === "POS" ||
       (canonical.orderSource as string) === "DIRECT" ||
       (canonical.orderSource as string) === "ONLINE" ||
-      (canonical.orderSource as string) === "VOICE";
+      (canonical.orderSource as string) === "VOICE" ||
+      (canonical.orderSource as string) === "EAT_FOR_LESS";
     if (isInternal) {
       const orderNumber = await this.allocateOrderNumber(tenantId);
       posUpdate.orderNumber = orderNumber;
@@ -3496,7 +3501,8 @@ export class OrdersService {
             // authorised. They reliably flip to AUTHORIZED via the Stripe
             // webhook or the WhatsAppReconcileCron (~20s), at which point
             // they appear (and auto-accept if enabled).
-            { orderSource: { in: ["DIRECT", "ONLINE", "WHATSAPP"] } },
+            // Eat For Less is the same: our app, our card checkout.
+            { orderSource: { in: ["DIRECT", "ONLINE", "WHATSAPP", "EAT_FOR_LESS"] } },
           ],
         },
         OR: [

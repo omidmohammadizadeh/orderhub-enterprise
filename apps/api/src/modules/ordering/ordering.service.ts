@@ -322,6 +322,28 @@ export function brandOverrideServesLocation(input: {
   return (brand.locationIds ?? []).includes(location.id);
 }
 
+/**
+ * A channel that sells the storefront's menu through the storefront's
+ * checkout under its own name. Absent = the storefront itself.
+ *
+ * Eat For Less is the one user: same menu, same server pricing, same
+ * Stripe account, but its own order source, pause switch and price list,
+ * plus rules the storefront doesn't have (a first-order cap, a delivery PIN).
+ */
+export interface CheckoutChannel {
+  orderSource: "EAT_FOR_LESS";
+  /** ChannelPause.channel to honour instead of ONLINE. */
+  pauseChannel: string;
+  /** BrandChannelSource.channel whose prices apply, when the brand set one. */
+  priceChannel: string;
+  /** Runs once the server has priced the basket and before the order exists.
+   *  Throw to refuse the order. */
+  beforeCreate?: (totals: { subtotal: number; discount: number; total: number }) => Promise<void>;
+  /** Runs once the order exists and before payment starts — the place to
+   *  stamp channel fields the payment depends on (the commission rate). */
+  afterCreate?: (order: { id: string; total: unknown }) => Promise<void>;
+}
+
 /** Money rounding, shared by the line totals and the order totals below. */
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -404,6 +426,9 @@ export class OrderingService {
     slug: string,
     brandIdOverride?: string,
     channel: "ONLINE" | "POS" = "ONLINE",
+    // A price list to use instead of `channel`'s, when the brand has one.
+    // Eat For Less serves the storefront menu at its own prices.
+    priceChannel?: string,
   ) {
     // Where the time goes, logged only when it's slow. A table QR scan once
     // waited 10 s here and the access log could say no more than that.
@@ -675,10 +700,14 @@ export class OrderingService {
     // behaviour). Mutates the resolved menu's item/SKU/option prices in
     // place before it's returned to the customer.
     if (menu) {
-      const variantMap = await this.variantResolver.forBrandChannel({
-        brandId: menuBrandId,
-        channel,
-      });
+      const variantMap =
+        (priceChannel
+          ? await this.variantResolver.forBrandChannel({ brandId: menuBrandId, channel: priceChannel })
+          : null) ??
+        (await this.variantResolver.forBrandChannel({
+          brandId: menuBrandId,
+          channel,
+        }));
       if (variantMap) this.applyVariantPriceOverrides(menu, variantMap);
     }
 
@@ -836,6 +865,16 @@ export class OrderingService {
         // Phase BA — this location's own 86s apply on top of global ones.
         location.id,
       );
+      // A channel selling this menu under its own name (Eat For Less) also
+      // honours what was 86'd for that channel alone.
+      if (priceChannel) {
+        const own = await this.menuAvailability.getSnoozedItemIdsForChannel(
+          priceChannel as any,
+          itemIds,
+          location.id,
+        );
+        for (const id of own) snoozed.add(id);
+      }
       if (snoozed.size > 0) {
         for (const cat of (menu as any).categories ?? []) {
           cat.items = (cat.items ?? []).filter(
@@ -1706,7 +1745,13 @@ export class OrderingService {
     return { brand: { id: brand.id, name: brand.name, logoUrl: brand.logoUrl ?? null }, shops };
   }
 
-  async checkout(slug: string, dto: CheckoutDto, brandIdOverride?: string, appClient?: AppClient | null) {
+  async checkout(
+    slug: string,
+    dto: CheckoutDto,
+    brandIdOverride?: string,
+    appClient?: AppClient | null,
+    channel?: CheckoutChannel,
+  ) {
     const location = await this.prisma.location.findFirst({
       where: { OR: [{ onlineOrderingSlug: slug }, { slug }, { id: slug }] },
       include: { brand: { select: { tenantId: true } } },
@@ -1784,7 +1829,7 @@ export class OrderingService {
     const livePause = await this.pauses.isPaused({
       locationId: location.id,
       brandId: pinnedBrandId,
-      channel: "ONLINE",
+      channel: (channel?.pauseChannel ?? "ONLINE") as any,
     });
     if (livePause.paused) {
       throw new BadRequestException(
@@ -1851,7 +1896,7 @@ export class OrderingService {
     // Price every line again from the storefront the customer ordered from.
     // The browser's unitPrice / subtotal / discount are no longer trusted —
     // see checkout-pricing.ts for how an honest basket prices identically.
-    const served = await this.getStorefrontBySlug(slug, brandIdOverride, "ONLINE");
+    const served = await this.getStorefrontBySlug(slug, brandIdOverride, "ONLINE", channel?.priceChannel);
     const pricing = buildPricingContext(served);
     let basket: ReturnType<typeof priceBasket>;
     try {
@@ -2210,6 +2255,12 @@ export class OrderingService {
       ? await this.emailMarketing?.attributionFor(location.brand.tenantId, dto.emailRecipientId)
       : null;
 
+    await channel?.beforeCreate?.({
+      subtotal: serverSubtotal,
+      discount: serverDiscount,
+      total: serverTotal,
+    });
+
     const order = await this.ordersService.create(
       {
         locationId: location.id,
@@ -2217,7 +2268,7 @@ export class OrderingService {
         // one. Falls through to whatever OrdersService.create derives
         // from the location's primary brand otherwise.
         brandId: pinnedBrandId ?? undefined,
-        orderSource: "ONLINE",
+        orderSource: channel?.orderSource ?? "ONLINE",
         fulfillmentType: dto.fulfillmentType,
         customerInfo: dto.customerInfo,
         deliveryAddress: dto.deliveryAddress,
@@ -2254,6 +2305,8 @@ export class OrderingService {
       } as any,
       location.brand.tenantId,
     );
+
+    await channel?.afterCreate?.(order as any);
 
     // Spend the reward, now that there is an order id to attach it to.
     //

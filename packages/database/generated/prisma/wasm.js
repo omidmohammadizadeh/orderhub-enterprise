@@ -219,6 +219,8 @@ exports.Prisma.CustomerAccountScalarFieldEnum = {
   isVerified: 'isVerified',
   emailVerificationToken: 'emailVerificationToken',
   marketingOptIn: 'marketingOptIn',
+  phoneVerifiedAt: 'phoneVerifiedAt',
+  eflMarketingOptIn: 'eflMarketingOptIn',
   lastLoginAt: 'lastLoginAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -999,6 +1001,9 @@ exports.Prisma.OrderScalarFieldEnum = {
   cancelReason: 'cancelReason',
   metadata: 'metadata',
   sourceMetadata: 'sourceMetadata',
+  deliveryPin: 'deliveryPin',
+  deliveryPinVerifiedAt: 'deliveryPinVerifiedAt',
+  eflCommissionPercent: 'eflCommissionPercent',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   loyaltyMemberId: 'loyaltyMemberId'
@@ -2158,6 +2163,48 @@ exports.Prisma.OutboxEventScalarFieldEnum = {
   idempotencyKey: 'idempotencyKey',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.EflListingScalarFieldEnum = {
+  id: 'id',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  listed: 'listed',
+  status: 'status',
+  hiddenReason: 'hiddenReason',
+  commissionPercent: 'commissionPercent',
+  deliveryMode: 'deliveryMode',
+  acceptsDelivery: 'acceptsDelivery',
+  acceptsCollection: 'acceptsCollection',
+  description: 'description',
+  heroImageUrl: 'heroImageUrl',
+  logoUrl: 'logoUrl',
+  cuisines: 'cuisines',
+  approvedAt: 'approvedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.EflConfigScalarFieldEnum = {
+  id: 'id',
+  defaultCommissionPercent: 'defaultCommissionPercent',
+  pinMinOrderTotal: 'pinMinOrderTotal',
+  pinForNewCustomers: 'pinForNewCustomers',
+  firstOrderMaxTotal: 'firstOrderMaxTotal',
+  maxOrdersPerHour: 'maxOrdersPerHour',
+  minHygieneRating: 'minHygieneRating',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.EflPhoneVerificationScalarFieldEnum = {
+  id: 'id',
+  customerAccountId: 'customerAccountId',
+  phone: 'phone',
+  codeHash: 'codeHash',
+  attempts: 'attempts',
+  expiresAt: 'expiresAt',
+  consumedAt: 'consumedAt',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.VideoStudioAccountScalarFieldEnum = {
@@ -3539,6 +3586,7 @@ exports.Prisma.OrderOrderByRelevanceFieldEnum = {
   discountType: 'discountType',
   paymentProvider: 'paymentProvider',
   cancelReason: 'cancelReason',
+  deliveryPin: 'deliveryPin',
   loyaltyMemberId: 'loyaltyMemberId'
 };
 
@@ -4263,6 +4311,28 @@ exports.Prisma.OutboxEventOrderByRelevanceFieldEnum = {
   idempotencyKey: 'idempotencyKey'
 };
 
+exports.Prisma.EflListingOrderByRelevanceFieldEnum = {
+  id: 'id',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  hiddenReason: 'hiddenReason',
+  description: 'description',
+  heroImageUrl: 'heroImageUrl',
+  logoUrl: 'logoUrl',
+  cuisines: 'cuisines'
+};
+
+exports.Prisma.EflConfigOrderByRelevanceFieldEnum = {
+  id: 'id'
+};
+
+exports.Prisma.EflPhoneVerificationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  customerAccountId: 'customerAccountId',
+  phone: 'phone',
+  codeHash: 'codeHash'
+};
+
 exports.Prisma.VideoStudioAccountOrderByRelevanceFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -4980,7 +5050,8 @@ exports.OrderPlatform = exports.$Enums.OrderPlatform = {
   GLOVO: 'GLOVO',
   KEETA: 'KEETA',
   WHATSAPP: 'WHATSAPP',
-  VOICE: 'VOICE'
+  VOICE: 'VOICE',
+  EAT_FOR_LESS: 'EAT_FOR_LESS'
 };
 
 exports.OrderSource = exports.$Enums.OrderSource = {
@@ -4998,7 +5069,8 @@ exports.OrderSource = exports.$Enums.OrderSource = {
   GLOVO: 'GLOVO',
   KEETA: 'KEETA',
   WHATSAPP: 'WHATSAPP',
-  VOICE: 'VOICE'
+  VOICE: 'VOICE',
+  EAT_FOR_LESS: 'EAT_FOR_LESS'
 };
 
 exports.IntegrationSource = exports.$Enums.IntegrationSource = {
@@ -5275,6 +5347,18 @@ exports.OutboxEventStatus = exports.$Enums.OutboxEventStatus = {
   DEAD: 'DEAD'
 };
 
+exports.EflListingStatus = exports.$Enums.EflListingStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  SUSPENDED: 'SUSPENDED'
+};
+
+exports.EflDeliveryMode = exports.$Enums.EflDeliveryMode = {
+  OWN_DRIVERS: 'OWN_DRIVERS',
+  COURIER: 'COURIER',
+  OWN_THEN_COURIER: 'OWN_THEN_COURIER'
+};
+
 exports.VideoCreditReason = exports.$Enums.VideoCreditReason = {
   GRANT: 'GRANT',
   TOPUP: 'TOPUP',
@@ -5409,6 +5493,9 @@ exports.Prisma.ModelName = {
   WebPushSubscription: 'WebPushSubscription',
   SystemSecret: 'SystemSecret',
   OutboxEvent: 'OutboxEvent',
+  EflListing: 'EflListing',
+  EflConfig: 'EflConfig',
+  EflPhoneVerification: 'EflPhoneVerification',
   VideoStudioAccount: 'VideoStudioAccount',
   VideoCreditTxn: 'VideoCreditTxn',
   VideoGeneration: 'VideoGeneration',

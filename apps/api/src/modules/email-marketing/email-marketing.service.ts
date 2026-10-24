@@ -50,8 +50,12 @@ import { pickForLocation } from "../promo-codes/promo-scope";
 // Sending itself is EmailCampaignSenderService's job (a cron sweep, so a
 // redeploy mid-campaign resumes instead of losing or repeating anyone).
 
-/** Our own channels — the only ones whose customers a shop may email. */
-export const EMAIL_IMPORT_SOURCES = ["ONLINE", "POS", "DIRECT", "WHATSAPP", "VOICE"];
+/** Our own channels — the only ones whose customers a shop may email.
+ *  Not EAT_FOR_LESS: those customers belong to the Eat For Less app, which
+ *  asks for its own consent, the same way a marketplace's do. */
+export const EMAIL_IMPORT_SOURCES = [
+  "ONLINE", "POS", "DIRECT", "WHATSAPP", "VOICE",
+];
 
 const TENANT_WIDE_ROLES = ["PLATFORM_ADMIN", "TENANT_OWNER"];
 

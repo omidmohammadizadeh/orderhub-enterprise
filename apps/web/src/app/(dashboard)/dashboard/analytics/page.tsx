@@ -82,6 +82,7 @@ const CHANNELS: Array<{ key: string; label: string }> = [
   { key: "ONLINE", label: "Online" },
   { key: "WHATSAPP", label: "WhatsApp" },
   { key: "VOICE", label: "AI Voice" },
+  { key: "EAT_FOR_LESS", label: "Eat For Less" },
   { key: "JUST_EAT", label: "Just Eat" },
   { key: "UBER_EATS", label: "Uber Eats" },
   { key: "DELIVEROO", label: "Deliveroo" },
