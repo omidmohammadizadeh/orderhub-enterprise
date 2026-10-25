@@ -36,7 +36,7 @@ import { foodKind, isOrderable, menuSections, needsOptions, priceLabel, type Men
 import { money, toNumber } from "@/lib/money";
 import type { RootScreen } from "@/navigation/types";
 import { basketCount, basketSubtotal, useBasket } from "@/state/basket";
-import { useFavourites } from "@/state/favourites";
+import { useFavourites, useIsFavourite } from "@/state/favourites";
 import { C, F, MOTION, shadow } from "@/theme";
 
 const HERO_H = 250;
@@ -135,7 +135,7 @@ export function ShopScreen({ navigation, route }: RootScreen<"Shop">) {
   const { width } = useWindowDimensions();
   const menuQ = useShopMenu(shop.id);
   const basket = useBasket();
-  const fav = useFavourites((s) => s.ids.includes(shop.id));
+  const fav = useIsFavourite(shop.id);
   const toggleFav = useFavourites((s) => s.toggle);
 
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
@@ -236,9 +236,9 @@ export function ShopScreen({ navigation, route }: RootScreen<"Shop">) {
     }
   };
 
-  const minimum = store?.directConfig?.minOrderForDelivery;
+  const minimum = shop.delivery.minOrder ?? store?.directConfig?.minOrderForDelivery;
   const pills = [
-    etaText(shop),
+    etaText(shop) || null,
     feeText(shop),
     minimum ? `${money(minimum)} minimum` : null,
     store ? (store.isOpen && !store.closed ? "Open now" : "Closed now") : null,

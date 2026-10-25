@@ -13,7 +13,7 @@ import { CUISINES, CuisineIcon } from "@/components/CuisineIcon";
 import { Icon } from "@/components/Icon";
 import { Photo } from "@/components/Photo";
 import { PressScale } from "@/components/PressScale";
-import { etaText, feeText, kindOf } from "@/components/ShopCards";
+import { etaText, feeText, joinDot, kindOf } from "@/components/ShopCards";
 import { T } from "@/components/T";
 import { fadeUp, stagger } from "@/lib/motion";
 import type { RootScreen } from "@/navigation/types";
@@ -100,7 +100,7 @@ export function SearchScreen({ navigation }: RootScreen<"Search">) {
               <View style={{ flex: 1, gap: 2 }}>
                 <T v="item">{item.name}</T>
                 <T v="sub">{[item.area, item.cuisines.slice(0, 2).join(", ")].filter(Boolean).join(" · ")}</T>
-                <T v="sub">{feeText(item)} · {etaText(item)}{item.isOpen ? "" : " · Closed"}</T>
+                <T v="sub">{joinDot(feeText(item), etaText(item), !item.isOpen && "Closed")}</T>
               </View>
               <Icon name="chevronRight" size={18} color={C.grey500} />
             </PressScale>

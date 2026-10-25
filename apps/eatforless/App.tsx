@@ -18,8 +18,11 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useSession } from "@/auth/session";
 import { APPLE_PAY_MERCHANT_ID, STRIPE_PUBLISHABLE_KEY } from "@/config";
+import { listenForOrderTaps } from "@/lib/push";
+import { navigationRef } from "@/navigation/ref";
 import { RootNavigator } from "@/navigation/RootNavigator";
 import { SplashOverlay } from "@/screens/SplashOverlay";
+import { startAccountSync } from "@/state/accountSync";
 import { C } from "@/theme";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -48,6 +51,17 @@ export default function App() {
     void hydrate();
   }, [hydrate]);
 
+  // Once the session is known: account-backed addresses, favourites and push.
+  useEffect(() => {
+    if (!hydrated) return;
+    const stopSync = startAccountSync();
+    const stopTaps = listenForOrderTaps();
+    return () => {
+      stopSync();
+      stopTaps();
+    };
+  }, [hydrated]);
+
   // The native splash (plain ink) stays up only until the fonts are in; the
   // animated splash, drawn in those fonts, takes over from there.
   useEffect(() => {
@@ -65,7 +79,7 @@ export default function App() {
           <QueryClientProvider client={queryClient}>
             <StatusBar style={splashDone ? "dark" : "light"} />
             {hydrated ? (
-              <NavigationContainer theme={navTheme}>
+              <NavigationContainer ref={navigationRef} theme={navTheme}>
                 <RootNavigator />
               </NavigationContainer>
             ) : (

@@ -29,8 +29,8 @@ export const mockShops: Shop[] = [
     cuisines: ["Pizza", "Kebab", "Burgers"],
     distanceMiles: 3.1,
     isOpen: true,
-    delivery: { available: true, fee: 1.49 },
-    collection: { available: true },
+    delivery: { available: true, fee: 1.49, minOrder: 10, etaMinutes: { min: 20, max: 30 } },
+    collection: { available: true, readyInMinutes: 15 },
   },
   {
     id: "mock-hot-bitez",
@@ -43,8 +43,8 @@ export const mockShops: Shop[] = [
     cuisines: ["Burgers", "Chicken"],
     distanceMiles: 4.2,
     isOpen: true,
-    delivery: { available: true, fee: 1.99 },
-    collection: { available: true },
+    delivery: { available: true, fee: 1.99, minOrder: 10, etaMinutes: { min: 25, max: 35 } },
+    collection: { available: true, readyInMinutes: 15 },
   },
   {
     id: "mock-tyne-grill",
@@ -57,8 +57,8 @@ export const mockShops: Shop[] = [
     cuisines: ["Kebab", "Grill"],
     distanceMiles: 1.4,
     isOpen: true,
-    delivery: { available: true, fee: 0.99 },
-    collection: { available: true },
+    delivery: { available: true, fee: 0.99, minOrder: 10, etaMinutes: { min: 15, max: 25 } },
+    collection: { available: true, readyInMinutes: 15 },
   },
   {
     id: "mock-quayside-curry",
@@ -71,8 +71,8 @@ export const mockShops: Shop[] = [
     cuisines: ["Indian", "Curry"],
     distanceMiles: 0.8,
     isOpen: true,
-    delivery: { available: true, fee: 2.49 },
-    collection: { available: true },
+    delivery: { available: true, fee: 2.49, minOrder: 10, etaMinutes: { min: 15, max: 25 } },
+    collection: { available: true, readyInMinutes: 15 },
   },
   {
     id: "mock-wing-shack",
@@ -85,8 +85,8 @@ export const mockShops: Shop[] = [
     cuisines: ["Chicken", "Fast food"],
     distanceMiles: 2.2,
     isOpen: true,
-    delivery: { available: true, fee: 1.49 },
-    collection: { available: true },
+    delivery: { available: true, fee: 1.49, minOrder: 10, etaMinutes: { min: 20, max: 30 } },
+    collection: { available: true, readyInMinutes: 15 },
   },
   {
     id: "mock-sweet-spot",
@@ -99,8 +99,8 @@ export const mockShops: Shop[] = [
     cuisines: ["Desserts"],
     distanceMiles: 1.9,
     isOpen: true,
-    delivery: { available: true, fee: 1.99 },
-    collection: { available: false },
+    delivery: { available: true, fee: 1.99, minOrder: 10, etaMinutes: { min: 20, max: 30 } },
+    collection: { available: false, readyInMinutes: null },
   },
   {
     id: "mock-golden-dragon",
@@ -113,8 +113,8 @@ export const mockShops: Shop[] = [
     cuisines: ["Chinese"],
     distanceMiles: 0.6,
     isOpen: false,
-    delivery: { available: true, fee: 1.99 },
-    collection: { available: true },
+    delivery: { available: true, fee: 1.99, minOrder: 10, etaMinutes: { min: 10, max: 20 } },
+    collection: { available: true, readyInMinutes: 15 },
   },
 ];
 

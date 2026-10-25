@@ -1,9 +1,7 @@
 // Account — profile, phone check, addresses, marketing consent, sign out and
 // account deletion (App Store guideline 5.1.1(v)).
 
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
-import { useEffect, useState } from "react";
 import { Alert, ScrollView, StyleSheet, Switch, View } from "react-native";
 import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -15,12 +13,10 @@ import { PressScale } from "@/components/PressScale";
 import { T } from "@/components/T";
 import { MOCK } from "@/config";
 import { fadeUp } from "@/lib/motion";
-import { useAddresses } from "@/state/address";
+import { useAddressList } from "@/state/address";
+import { signOut } from "@/state/accountSync";
+import { unregisterOrderUpdates } from "@/lib/push";
 import { C, F } from "@/theme";
-
-// The API takes the opt-in but doesn't return it on /me yet (gap), so the
-// switch remembers the last value this device sent.
-const OPT_IN_KEY = "efl.marketingOptIn";
 
 function Row({ icon, title, sub, onPress, right, danger }: { icon: IconName; title: string; sub?: string; onPress?: () => void; right?: React.ReactNode; danger?: boolean }) {
   return (
@@ -40,21 +36,15 @@ function Row({ icon, title, sub, onPress, right, danger }: { icon: IconName; tit
 export function AccountScreen() {
   const nav = useNavigation();
   const insets = useSafeAreaInsets();
-  const { customer, token, phoneVerified, signOut } = useSession();
-  const addresses = useAddresses((s) => s.addresses);
-  const [optIn, setOptIn] = useState(false);
-
-  useEffect(() => {
-    void AsyncStorage.getItem(OPT_IN_KEY).then((v) => setOptIn(v === "1"));
-  }, []);
+  const { customer, token, phoneVerified, marketingOptIn: optIn, setMarketingOptIn } = useSession();
+  const addresses = useAddressList();
 
   const toggleOffers = async (next: boolean) => {
-    setOptIn(next);
+    setMarketingOptIn(next);
     try {
       await setMarketing(next);
-      await AsyncStorage.setItem(OPT_IN_KEY, next ? "1" : "0");
     } catch (err) {
-      setOptIn(!next);
+      setMarketingOptIn(!next);
       Alert.alert("Couldn't save that", (err as Error).message);
     }
   };
@@ -70,8 +60,9 @@ export function AccountScreen() {
           style: "destructive",
           onPress: async () => {
             try {
+              await unregisterOrderUpdates();
               await deleteAccount();
-              await signOut();
+              await useSession.getState().signOut();
               Alert.alert("Account deleted", "Sorry to see you go.");
             } catch (err) {
               Alert.alert("Couldn't delete your account", (err as Error).message);

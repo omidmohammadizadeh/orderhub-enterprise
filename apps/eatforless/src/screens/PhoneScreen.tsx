@@ -102,7 +102,7 @@ const groupUk = (d: string) => (d.length > 5 ? `${d.slice(0, 5)} ${d.slice(5, 11
 
 export function PhoneScreen({ navigation, route }: RootScreen<"Phone">) {
   const insets = useSafeAreaInsets();
-  const markPhoneVerified = useSession((s) => s.markPhoneVerified);
+  const refreshFlags = useSession((s) => s.refreshFlags);
   const [step, setStep] = useState<"number" | "code">("number");
   const [digits, setDigits] = useState("07");
   const [masked, setMasked] = useState("");
@@ -142,7 +142,9 @@ export function PhoneScreen({ navigation, route }: RootScreen<"Phone">) {
       await verifyPhone(full);
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setVerified(true);
-      await markPhoneVerified(`+44${digits.replace(/^0/, "")}`);
+      // The API has just confirmed it; GET efl/me then brings the stored number.
+      useSession.setState({ phoneVerified: true });
+      void refreshFlags();
       setTimeout(() => navigation.goBack(), 1100);
     } catch (err) {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);

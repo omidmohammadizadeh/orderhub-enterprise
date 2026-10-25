@@ -5,17 +5,26 @@ import { MOCK } from "@/config";
 import { request } from "./client";
 import * as mock from "./mock/mockApi";
 import type {
+  AddressBody,
+  AppConfig,
   AuthResult,
   CheckoutBody,
   CheckoutResult,
   Customer,
+  EflMe,
   OrderDetail,
   OrderSummary,
   Shop,
+  SavedAddress,
   ShopMenu,
 } from "./types";
 
 // ── Browsing (public) ──────────────────────────────────────────────────────
+
+export function getConfig(): Promise<AppConfig> {
+  if (MOCK) return Promise.resolve({ stripePublishableKey: null });
+  return request("GET", "/v1/efl/config", undefined, { auth: false });
+}
 
 export function getShops(point: { lat: number; lng: number; postcode?: string }): Promise<Shop[]> {
   if (MOCK) return mock.getShops();
@@ -58,8 +67,57 @@ export function verifyPhone(code: string): Promise<{ verified: true }> {
 }
 
 export function setMarketing(optIn: boolean): Promise<{ eflMarketingOptIn: boolean }> {
-  if (MOCK) return Promise.resolve({ eflMarketingOptIn: optIn });
+  if (MOCK) return mock.setMarketing(optIn);
   return request("PATCH", "/v1/efl/me/marketing", { optIn });
+}
+
+export function getEflMe(): Promise<EflMe> {
+  if (MOCK) return mock.getEflMe();
+  return request("GET", "/v1/efl/me");
+}
+
+// ── Saved addresses and favourites (on the account) ────────────────────────
+
+export function getAddresses(): Promise<SavedAddress[]> {
+  if (MOCK) return mock.getAddresses();
+  return request("GET", "/v1/efl/me/addresses");
+}
+
+export function addAddress(body: AddressBody): Promise<SavedAddress> {
+  if (MOCK) return mock.addAddress(body);
+  return request("POST", "/v1/efl/me/addresses", body);
+}
+
+export function updateAddress(id: string, body: Partial<AddressBody>): Promise<SavedAddress> {
+  if (MOCK) return mock.updateAddress(id, body);
+  return request("PATCH", `/v1/efl/me/addresses/${encodeURIComponent(id)}`, body);
+}
+
+export function deleteAddress(id: string): Promise<{ ok: true }> {
+  if (MOCK) return mock.deleteAddress(id);
+  return request("DELETE", `/v1/efl/me/addresses/${encodeURIComponent(id)}`);
+}
+
+export function getFavourites(): Promise<string[]> {
+  if (MOCK) return mock.getFavourites();
+  return request("GET", "/v1/efl/me/favourites");
+}
+
+export function setFavourite(listingId: string, on: boolean): Promise<{ ok: true }> {
+  if (MOCK) return mock.setFavourite(listingId, on);
+  return request(on ? "PUT" : "DELETE", `/v1/efl/me/favourites/${encodeURIComponent(listingId)}`);
+}
+
+// ── Push ───────────────────────────────────────────────────────────────────
+
+export function registerPush(body: { token: string; platform: "ios" | "android"; marketingOptIn?: boolean }): Promise<{ ok: true }> {
+  if (MOCK) return Promise.resolve({ ok: true });
+  return request("POST", "/v1/efl/me/push", body);
+}
+
+export function unregisterPush(token: string): Promise<{ ok: true }> {
+  if (MOCK) return Promise.resolve({ ok: true });
+  return request("POST", "/v1/efl/me/push/unregister", { token });
 }
 
 // ── Account (customer-auth: unversioned routes) ────────────────────────────

@@ -15,7 +15,10 @@
       "usesAppleSignIn": true,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSLocationWhenInUseUsageDescription": "Eat For Less uses your location to find shops near you and to deliver your order."
+        "NSLocationWhenInUseUsageDescription": "Eat For Less uses your location to find shops near you and to deliver your order.",
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
       }
     },
     "android": {
@@ -30,13 +33,20 @@
         "ACCESS_NETWORK_STATE",
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
-        "VIBRATE"
+        "VIBRATE",
+        "POST_NOTIFICATIONS"
       ]
     },
     "plugins": [
       "expo-secure-store",
       "expo-apple-authentication",
       "expo-font",
+      [
+        "expo-notifications",
+        {
+          "color": "#0B0B0B"
+        }
+      ],
       [
         "expo-location",
         {

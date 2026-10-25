@@ -3,6 +3,7 @@
 // the tracking screen can be shown end to end.
 
 import type {
+  AddressBody,
   AuthResult,
   CheckoutBody,
   CheckoutResult,
@@ -10,6 +11,7 @@ import type {
   OrderDetail,
   OrderStatusName,
   OrderSummary,
+  SavedAddress,
   ShopMenu,
 } from "../types";
 import { MOCK_DESTINATION, MOCK_SHOP_POINT, mockCustomer, mockShops, mockStore } from "./data";
@@ -111,6 +113,7 @@ export const getMyOrder = (orderId: string): Promise<OrderDetail> => {
       destination: delivery ? MOCK_DESTINATION : null,
       shop: MOCK_SHOP_POINT,
       driver: status === "OUT_FOR_DELIVERY" ? { name: "Daniel", lat: null, lng: null, lastPingAt: iso(Date.now()) } : null,
+      driverEtaMinutes: status === "OUT_FOR_DELIVERY" ? Math.max(1, Math.ceil((120 - s) / 15)) : null,
       deliveryPin: delivery ? "4821" : null,
       handedOver: status === "DELIVERED",
     },
@@ -134,11 +137,18 @@ export const getMyOrders = (): Promise<OrderSummary[]> =>
       })),
   );
 
-export const startPhone = (phone: string) =>
-  delay({ sent: true as const, phone: `07••• •••${phone.replace(/\D/g, "").slice(-3)}` });
+export const startPhone = (phone: string) => {
+  pendingPhone = `+44${phone.replace(/\D/g, "").replace(/^0/, "")}`;
+  return delay({ sent: true as const, phone: `07••• •••${phone.replace(/\D/g, "").slice(-3)}` });
+};
 
-export const verifyPhone = (code: string) =>
-  code.length === 6 ? delay({ verified: true as const }, 600) : Promise.reject(new Error("That code isn't right."));
+let pendingPhone = "+447700900482";
+
+export const verifyPhone = (code: string) => {
+  if (code.length !== 6) return Promise.reject(new Error("That code isn't right."));
+  markVerified(pendingPhone);
+  return delay({ verified: true as const }, 600);
+};
 
 export const signIn = (): Promise<AuthResult> => delay({ accessToken: "mock-token", customer: me }, 700);
 
@@ -147,4 +157,78 @@ export const getMe = () => delay({ ...me, accessToken: "mock-token" }, 200);
 export const updateMe = (patch: Partial<Customer>) => {
   me = { ...me, ...patch };
   return delay(me);
+};
+
+// ── Account flags, addresses, favourites (in memory) ───────────────────────
+
+let flags = { phone: null as string | null, phoneVerified: false, marketingOptIn: false };
+
+export const getEflMe = () => delay({ ...flags }, 200);
+
+export const setMarketing = (optIn: boolean) => {
+  flags = { ...flags, marketingOptIn: optIn };
+  return delay({ eflMarketingOptIn: optIn }, 200);
+};
+
+/** Called by verifyPhone so getEflMe reflects the check, as the API does. */
+function markVerified(phone: string) {
+  flags = { ...flags, phone, phoneVerified: true };
+}
+
+let savedAddresses: SavedAddress[] = [
+  {
+    id: "mock-addr-home",
+    label: "Home",
+    line1: "14 Grey Street",
+    line2: "Flat 3",
+    city: "Newcastle upon Tyne",
+    postcode: "NE1 6AE",
+    latitude: 54.97222,
+    longitude: -1.61213,
+    instructions: "Ring the bell",
+    isDefault: true,
+  },
+];
+
+export const getAddresses = () => delay([...savedAddresses], 250);
+
+export const addAddress = (body: AddressBody) => {
+  const isDefault = body.isDefault ?? savedAddresses.length === 0;
+  const row: SavedAddress = {
+    id: `mock-addr-${Date.now()}`,
+    label: body.label ?? null,
+    line1: body.line1,
+    line2: body.line2 ?? null,
+    city: body.city,
+    postcode: body.postcode,
+    latitude: body.latitude ?? null,
+    longitude: body.longitude ?? null,
+    instructions: body.instructions ?? null,
+    isDefault,
+  };
+  savedAddresses = [row, ...savedAddresses.map((a) => (isDefault ? { ...a, isDefault: false } : a))];
+  return delay(row, 300);
+};
+
+export const updateAddress = (id: string, body: Partial<AddressBody>) => {
+  savedAddresses = savedAddresses.map((a) =>
+    a.id === id ? { ...a, ...body } as SavedAddress : body.isDefault ? { ...a, isDefault: false } : a,
+  );
+  return delay(savedAddresses.find((a) => a.id === id)!, 250);
+};
+
+export const deleteAddress = (id: string) => {
+  const wasDefault = savedAddresses.find((a) => a.id === id)?.isDefault;
+  savedAddresses = savedAddresses.filter((a) => a.id !== id);
+  if (wasDefault && savedAddresses[0]) savedAddresses[0] = { ...savedAddresses[0], isDefault: true };
+  return delay({ ok: true as const }, 250);
+};
+
+let favourites: string[] = ["mock-pizza-pizza"];
+
+export const getFavourites = () => delay([...favourites], 200);
+
+export const setFavourite = (listingId: string, on: boolean) => {
+  favourites = on ? [listingId, ...favourites.filter((f) => f !== listingId)] : favourites.filter((f) => f !== listingId);
+  return delay({ ok: true as const }, 200);
 };

@@ -16,12 +16,20 @@ export type Shop = {
   cuisines: string[];
   distanceMiles: number;
   isOpen: boolean;
-  delivery: { available: boolean; fee: number | null };
-  collection: { available: boolean };
-  /** NOT SENT BY THE API YET (gap): a headline offer and a rating. Only the
-   *  dev sample data fills these; cards hide them when absent. */
+  /** Published review average; null until the shop has reviews. */
+  rating: { value: number; count: number } | null;
+  delivery: {
+    available: boolean;
+    fee: number | null;
+    /** From the delivery zone that matched this address. */
+    minOrder: number | null;
+    /** Shop prep time + driving time for this distance. */
+    etaMinutes: { min: number; max: number } | null;
+  };
+  collection: { available: boolean; readyInMinutes: number | null };
+  /** NOT SENT BY THE API YET (gap): a headline offer. Only the dev sample
+   *  data fills it; cards hide it when absent. */
   deal?: string | null;
-  rating?: { value: number; count: number } | null;
 };
 
 export type ModifierOption = {
@@ -211,7 +219,10 @@ export type OrderDetail = {
   items: Array<{ id: string; name: string; quantity: number; unitPrice: Money; modifiers?: any }>;
   destination: LatLng | null;
   shop: LatLng | null;
+  /** Never carries a phone number: calls go through Eat For Less (Phase 4). */
   driver: { name?: string | null; lat?: number | null; lng?: number | null; lastPingAt?: string | null } | null;
+  /** Driving minutes from the driver's last position to the door. */
+  driverEtaMinutes: number | null;
   deliveryPin: string | null;
   handedOver: boolean;
 };
@@ -244,3 +255,35 @@ export type Customer = {
 };
 
 export type AuthResult = { accessToken: string; customer: Customer };
+
+/** GET efl/config (public). */
+export type AppConfig = { stripePublishableKey: string | null };
+
+/** GET efl/me — the customer's Eat For Less flags. */
+export type EflMe = { phone: string | null; phoneVerified: boolean; marketingOptIn: boolean };
+
+/** efl/me/addresses — a saved address on the account. */
+export type SavedAddress = {
+  id: string;
+  label: string | null;
+  line1: string;
+  line2: string | null;
+  city: string;
+  postcode: string;
+  latitude: number | null;
+  longitude: number | null;
+  instructions: string | null;
+  isDefault: boolean;
+};
+
+export type AddressBody = {
+  label?: string | null;
+  line1: string;
+  line2?: string | null;
+  city: string;
+  postcode: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  instructions?: string | null;
+  isDefault?: boolean;
+};

@@ -128,9 +128,17 @@ export function CheckoutScreen({ navigation }: RootScreen<"Checkout">) {
   const deliveryFee = delivery ? shop?.delivery.fee ?? 0 : 0;
   const tipAmount = delivery ? TIPS[tip]! : 0;
   const total = round2(subtotal + deliveryFee + tipAmount);
-  const minimum = Number(menuQ.data?.store.directConfig?.minOrderForDelivery ?? 0);
+  // The matched delivery zone's minimum (from GET efl/shops), else the shop's own.
+  const minimum = Number(shop?.delivery.minOrder ?? menuQ.data?.store.directConfig?.minOrderForDelivery ?? 0);
   const underMinimum = delivery && minimum > 0 && subtotal < minimum;
   const prep = menuQ.data?.store.directConfig?.[delivery ? "deliveryPrepMinutes" : "collectionPrepMinutes"] ?? (delivery ? 30 : 15);
+  // Prefer the API's window for this address: prep + driving for delivery,
+  // the shop's ready time for collection.
+  const etaWindow = delivery
+    ? shop?.delivery.etaMinutes ?? { min: prep, max: prep + 10 }
+    : shop?.collection.readyInMinutes
+      ? { min: shop.collection.readyInMinutes, max: shop.collection.readyInMinutes + 5 }
+      : { min: prep, max: prep + 5 };
   const slotList = useMemo(slots, []);
 
   if (!basketShop || lines.length === 0) {
@@ -261,7 +269,7 @@ export function CheckoutScreen({ navigation }: RootScreen<"Checkout">) {
                   ? address
                     ? [address.line2, address.city, address.instructions].filter(Boolean).join(" · ")
                     : "So the driver knows where to go"
-                  : `${basketShop.area ?? ""}${basketShop.area ? " · " : ""}ready in ${prep}–${prep + 5} min`}
+                  : `${basketShop.area ?? ""}${basketShop.area ? " · " : ""}ready in ${etaWindow.min}–${etaWindow.max} min`}
               </T>
             </View>
             {delivery ? <Icon name="chevronRight" size={18} /> : null}
@@ -272,7 +280,7 @@ export function CheckoutScreen({ navigation }: RootScreen<"Checkout">) {
           <View style={styles.whenGrid}>
             <PressScale onPress={() => setWhen("now")} style={[styles.whenCard, { borderColor: when === "now" ? C.ink : C.grey300 }]} scaleTo={0.97}>
               <T v="label">Standard</T>
-              <T v="sub">{delivery ? `${prep}–${prep + 10} min` : `${prep}–${prep + 5} min`}</T>
+              <T v="sub">{`${etaWindow.min}–${etaWindow.max} min`}</T>
             </PressScale>
             <PressScale onPress={() => setWhen(when === "now" ? slotList[0]! : when)} style={[styles.whenCard, { borderColor: when !== "now" ? C.ink : C.grey300 }]} scaleTo={0.97}>
               <T v="label">Schedule</T>

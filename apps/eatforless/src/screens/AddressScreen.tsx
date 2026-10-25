@@ -7,22 +7,20 @@ import { useState } from "react";
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import Animated, { FadeIn, FadeOut, LinearTransition } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { updateMe } from "@/api/efl";
-import { useSession } from "@/auth/session";
 import { RoundButton } from "@/components/Bits";
 import { Icon } from "@/components/Icon";
 import { PressScale } from "@/components/PressScale";
 import { T } from "@/components/T";
 import type { RootScreen } from "@/navigation/types";
-import { useAddresses, type Address } from "@/state/address";
+import { useAddressList, useAddresses } from "@/state/address";
 import { C, F } from "@/theme";
 
 const blank = { line1: "", line2: "", city: "Newcastle upon Tyne", postcode: "", instructions: "" };
 
 export function AddressScreen({ navigation }: RootScreen<"Address">) {
   const insets = useSafeAreaInsets();
-  const { addresses, selectedId, save, select, remove } = useAddresses();
-  const signedIn = useSession((s) => !!s.token);
+  const { selectedId, save, select, remove } = useAddresses();
+  const addresses = useAddressList();
   const [form, setForm] = useState<typeof blank | null>(addresses.length ? null : blank);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [busy, setBusy] = useState<null | "locate" | "save">(null);
@@ -64,8 +62,7 @@ export function AddressScreen({ navigation }: RootScreen<"Address">) {
         if (!hit) throw new Error("We couldn't find that address. Check the postcode.");
         point = { lat: hit.latitude, lng: hit.longitude };
       }
-      const address: Address = {
-        id: `addr-${Date.now()}`,
+      const address = {
         line1: form.line1.trim(),
         line2: form.line2.trim() || undefined,
         city: form.city.trim(),
@@ -73,19 +70,11 @@ export function AddressScreen({ navigation }: RootScreen<"Address">) {
         instructions: form.instructions.trim() || undefined,
         ...point,
       };
-      save(address);
-      // The account keeps one address; keep it in step with the latest used.
-      if (signedIn) {
-        void updateMe({
-          addressLine1: address.line1,
-          addressLine2: address.line2 ?? null,
-          addressCity: address.city,
-          addressPostcode: address.postcode,
-        }).catch(() => {});
-      }
+      // Signed in, this saves to the account (up to 10, the first is the default).
+      await save(address);
       navigation.goBack();
     } catch (err) {
-      Alert.alert("Address not found", (err as Error).message);
+      Alert.alert("Couldn't save that address", (err as Error).message);
     } finally {
       setBusy(null);
     }
@@ -134,10 +123,14 @@ export function AddressScreen({ navigation }: RootScreen<"Address">) {
                   >
                     <Icon name="pin" size={22} />
                     <View style={{ flex: 1, gap: 2 }}>
-                      <T v="item" style={{ fontSize: 15 }}>{a.line1}</T>
+                      <T v="item" style={{ fontSize: 15 }}>{a.label ? `${a.label} · ` : ""}{a.line1}</T>
                       <T v="sub">{[a.line2, a.city, a.postcode].filter(Boolean).join(", ")}</T>
                     </View>
-                    <PressScale onPress={() => remove(a.id)} accessibilityLabel={`Remove ${a.line1}`} hitSlop={10}>
+                    <PressScale
+                      onPress={() => remove(a.id).catch((err) => Alert.alert("Couldn't remove that address", (err as Error).message))}
+                      accessibilityLabel={`Remove ${a.line1}`}
+                      hitSlop={10}
+                    >
                       <Icon name="trash" size={18} color={C.grey600} />
                     </PressScale>
                   </PressScale>
