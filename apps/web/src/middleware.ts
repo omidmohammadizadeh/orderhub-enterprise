@@ -58,8 +58,10 @@ const EFL_HOSTS = (
   .filter(Boolean);
 
 // Paths that keep their own meaning on the Eat For Less domain: the partner
-// sign-up, the Console, and the app-wide icon/manifest routes.
-const EFL_PASSTHROUGH = ["/partner", "/efl-console", "/icon", "/apple-icon"];
+// sign-up, the Console, the app-wide icon/manifest routes, and /healthz —
+// Render's health check calls it with the first custom domain as the Host,
+// so rewriting it 404s every deploy.
+const EFL_PASSTHROUGH = ["/partner", "/efl-console", "/icon", "/apple-icon", "/healthz"];
 
 function startsWithSegment(path: string, prefix: string): boolean {
   return path === prefix || path.startsWith(`${prefix}/`);
