@@ -9,13 +9,14 @@ import { EflService } from "./efl.service";
 import { EflApplicationsService } from "./efl-applications.service";
 import { EflChecksService } from "./efl-checks";
 import { EflHygieneService } from "./efl-hygiene.service";
+import { EflAccountService } from "./efl-account.service";
 
 @Module({
   // Ordering: the menu and the checkout are the storefront's. Delivery zones:
   // the same delivery answer the storefront gives, and shop coordinates.
   imports: [OrderingModule, DeliveryZonesModule, PauseModule, UploadsModule, PaymentsModule],
   controllers: [EflAppController, EflListingController, EflAdminController],
-  providers: [EflService, EflApplicationsService, EflChecksService, EflHygieneService],
+  providers: [EflService, EflApplicationsService, EflChecksService, EflHygieneService, EflAccountService],
   exports: [EflService],
 })
 export class EflModule {}

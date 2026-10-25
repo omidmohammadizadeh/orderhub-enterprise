@@ -4609,6 +4609,59 @@ model EflApplication {
   @@map("efl_applications")
 }
 
+/// An Eat For Less app install that gets push notifications. Keyed to the
+/// customer's account, not a brand: an Eat For Less customer orders from many
+/// shops, and every order update comes from Eat For Less.
+model EflPushDevice {
+  id                String    @id @default(cuid())
+  customerAccountId String
+  /// The ExponentPushToken[…] for this install.
+  token             String    @unique
+  platform          String?
+  /// Offers by push. Order updates need no separate yes.
+  marketingOptIn    Boolean   @default(false)
+  isActive          Boolean   @default(true)
+  revokedAt         DateTime?
+  lastSentAt        DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([customerAccountId])
+  @@map("efl_push_devices")
+}
+
+/// A delivery address an Eat For Less customer saved.
+model EflSavedAddress {
+  id                String   @id @default(cuid())
+  customerAccountId String
+  label             String?
+  line1             String
+  line2             String?
+  city              String
+  postcode          String
+  latitude          Float?
+  longitude         Float?
+  /// "Ring the bell, flat 3" — shown to the driver.
+  instructions      String?
+  isDefault         Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([customerAccountId])
+  @@map("efl_saved_addresses")
+}
+
+/// A shop an Eat For Less customer hearted.
+model EflFavourite {
+  id                String   @id @default(cuid())
+  customerAccountId String
+  listingId         String
+  createdAt         DateTime @default(now())
+
+  @@unique([customerAccountId, listingId])
+  @@map("efl_favourites")
+}
+
 /// Eat For Less platform settings. One row, id "default".
 model EflConfig {
   id                       String   @id @default("default")

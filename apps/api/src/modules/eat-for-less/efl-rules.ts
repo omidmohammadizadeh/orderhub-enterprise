@@ -115,3 +115,20 @@ export function toRulesConfig(row: Record<string, unknown> | null | undefined): 
     maxOrdersPerHour: num(row?.maxOrdersPerHour, EFL_DEFAULTS.maxOrdersPerHour),
   };
 }
+
+/** City driving, door to door, including parking and finding the door. A
+ *  rough figure on purpose: it's shown as a range, never a promise. */
+const CITY_MPH = 12;
+const DOORSTEP_MINUTES = 3;
+
+/** Minutes to drive a straight-line distance in town. */
+export function travelMinutes(miles: number): number {
+  return Math.max(1, Math.round((miles / CITY_MPH) * 60) + DOORSTEP_MINUTES);
+}
+
+/** "25–35 min": the shop's prep time plus the drive, as a 10-minute window. */
+export function deliveryWindow(prepMinutes: number, miles: number): { min: number; max: number } {
+  const mid = prepMinutes + travelMinutes(miles);
+  const min = Math.max(10, Math.round((mid - 5) / 5) * 5);
+  return { min, max: min + 10 };
+}

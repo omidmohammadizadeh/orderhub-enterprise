@@ -2213,6 +2213,42 @@ exports.Prisma.EflApplicationScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.EflPushDeviceScalarFieldEnum = {
+  id: 'id',
+  customerAccountId: 'customerAccountId',
+  token: 'token',
+  platform: 'platform',
+  marketingOptIn: 'marketingOptIn',
+  isActive: 'isActive',
+  revokedAt: 'revokedAt',
+  lastSentAt: 'lastSentAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.EflSavedAddressScalarFieldEnum = {
+  id: 'id',
+  customerAccountId: 'customerAccountId',
+  label: 'label',
+  line1: 'line1',
+  line2: 'line2',
+  city: 'city',
+  postcode: 'postcode',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  instructions: 'instructions',
+  isDefault: 'isDefault',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.EflFavouriteScalarFieldEnum = {
+  id: 'id',
+  customerAccountId: 'customerAccountId',
+  listingId: 'listingId',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.EflConfigScalarFieldEnum = {
   id: 'id',
   defaultCommissionPercent: 'defaultCommissionPercent',
@@ -4372,6 +4408,30 @@ exports.Prisma.EflApplicationOrderByRelevanceFieldEnum = {
   decidedBy: 'decidedBy'
 };
 
+exports.Prisma.EflPushDeviceOrderByRelevanceFieldEnum = {
+  id: 'id',
+  customerAccountId: 'customerAccountId',
+  token: 'token',
+  platform: 'platform'
+};
+
+exports.Prisma.EflSavedAddressOrderByRelevanceFieldEnum = {
+  id: 'id',
+  customerAccountId: 'customerAccountId',
+  label: 'label',
+  line1: 'line1',
+  line2: 'line2',
+  city: 'city',
+  postcode: 'postcode',
+  instructions: 'instructions'
+};
+
+exports.Prisma.EflFavouriteOrderByRelevanceFieldEnum = {
+  id: 'id',
+  customerAccountId: 'customerAccountId',
+  listingId: 'listingId'
+};
+
 exports.Prisma.EflConfigOrderByRelevanceFieldEnum = {
   id: 'id'
 };
@@ -5552,6 +5612,9 @@ exports.Prisma.ModelName = {
   OutboxEvent: 'OutboxEvent',
   EflListing: 'EflListing',
   EflApplication: 'EflApplication',
+  EflPushDevice: 'EflPushDevice',
+  EflSavedAddress: 'EflSavedAddress',
+  EflFavourite: 'EflFavourite',
   EflConfig: 'EflConfig',
   EflPhoneVerification: 'EflPhoneVerification',
   VideoStudioAccount: 'VideoStudioAccount',

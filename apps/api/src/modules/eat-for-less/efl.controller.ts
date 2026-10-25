@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Put, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
 import {
@@ -24,6 +24,7 @@ import type { CheckoutDto } from "../ordering/ordering.service";
 import { EflService } from "./efl.service";
 import { EflApplicationsService } from "./efl-applications.service";
 import { EflHygieneService } from "./efl-hygiene.service";
+import { EflAccountService } from "./efl-account.service";
 
 
 class StartPhoneDto {
@@ -84,6 +85,40 @@ class ApplicationDto {
   @IsOptional() @IsString() @MaxLength(5_000_000) bankStatement?: string;
 }
 
+class AddressDto {
+  @IsOptional() @IsString() @MaxLength(40) label?: string | null;
+  @IsString() @MaxLength(160) line1!: string;
+  @IsOptional() @IsString() @MaxLength(160) line2?: string | null;
+  @IsString() @MaxLength(80) city!: string;
+  @IsString() @MaxLength(12) postcode!: string;
+  @IsOptional() @IsNumber() latitude?: number | null;
+  @IsOptional() @IsNumber() longitude?: number | null;
+  @IsOptional() @IsString() @MaxLength(300) instructions?: string | null;
+  @IsOptional() @IsBoolean() isDefault?: boolean;
+}
+
+class UpdateAddressDto {
+  @IsOptional() @IsString() @MaxLength(40) label?: string | null;
+  @IsOptional() @IsString() @MaxLength(160) line1?: string;
+  @IsOptional() @IsString() @MaxLength(160) line2?: string | null;
+  @IsOptional() @IsString() @MaxLength(80) city?: string;
+  @IsOptional() @IsString() @MaxLength(12) postcode?: string;
+  @IsOptional() @IsNumber() latitude?: number | null;
+  @IsOptional() @IsNumber() longitude?: number | null;
+  @IsOptional() @IsString() @MaxLength(300) instructions?: string | null;
+  @IsOptional() @IsBoolean() isDefault?: boolean;
+}
+
+class PushDto {
+  @IsString() @MaxLength(200) token!: string;
+  @IsOptional() @IsIn(["ios", "android"]) platform?: "ios" | "android";
+  @IsOptional() @IsBoolean() marketingOptIn?: boolean;
+}
+
+class PushUnregisterDto {
+  @IsString() @MaxLength(200) token!: string;
+}
+
 class DecideApplicationDto {
   @IsIn(["APPROVED", "DECLINED", "WAITING_INFO"]) status!: "APPROVED" | "DECLINED" | "WAITING_INFO";
   @IsOptional() @IsString() @MaxLength(1000) note?: string;
@@ -104,7 +139,87 @@ export class EflAppController {
   constructor(
     private readonly efl: EflService,
     private readonly applications: EflApplicationsService,
+    private readonly account: EflAccountService,
   ) {}
+
+  @Public()
+  @Get("config")
+  @ApiOperation({ summary: "Public app settings (Stripe publishable key)" })
+  config() {
+    return this.account.appConfig();
+  }
+
+  @Public()
+  @UseGuards(CustomerJwtGuard)
+  @Get("me")
+  @ApiOperation({ summary: "The signed-in customer's Eat For Less flags" })
+  me(@CurrentCustomer() customer: { id: string }) {
+    return this.account.me(customer);
+  }
+
+  @Public()
+  @UseGuards(CustomerJwtGuard)
+  @Get("me/addresses")
+  addresses(@CurrentCustomer() customer: { id: string }) {
+    return this.account.addresses(customer);
+  }
+
+  @Public()
+  @UseGuards(CustomerJwtGuard)
+  @Post("me/addresses")
+  addAddress(@CurrentCustomer() customer: { id: string }, @Body() dto: AddressDto) {
+    return this.account.addAddress(customer, dto);
+  }
+
+  @Public()
+  @UseGuards(CustomerJwtGuard)
+  @Patch("me/addresses/:id")
+  updateAddress(@CurrentCustomer() customer: { id: string }, @Param("id") id: string, @Body() dto: UpdateAddressDto) {
+    return this.account.updateAddress(customer, id, dto);
+  }
+
+  @Public()
+  @UseGuards(CustomerJwtGuard)
+  @Delete("me/addresses/:id")
+  removeAddress(@CurrentCustomer() customer: { id: string }, @Param("id") id: string) {
+    return this.account.removeAddress(customer, id);
+  }
+
+  @Public()
+  @UseGuards(CustomerJwtGuard)
+  @Get("me/favourites")
+  favourites(@CurrentCustomer() customer: { id: string }) {
+    return this.account.favourites(customer);
+  }
+
+  @Public()
+  @UseGuards(CustomerJwtGuard)
+  @Put("me/favourites/:listingId")
+  addFavourite(@CurrentCustomer() customer: { id: string }, @Param("listingId") listingId: string) {
+    return this.account.addFavourite(customer, listingId);
+  }
+
+  @Public()
+  @UseGuards(CustomerJwtGuard)
+  @Delete("me/favourites/:listingId")
+  removeFavourite(@CurrentCustomer() customer: { id: string }, @Param("listingId") listingId: string) {
+    return this.account.removeFavourite(customer, listingId);
+  }
+
+  @Public()
+  @UseGuards(CustomerJwtGuard)
+  @Post("me/push")
+  @ApiOperation({ summary: "Register this phone for the customer's order updates" })
+  registerPush(@CurrentCustomer() customer: { id: string }, @Body() dto: PushDto) {
+    return this.account.registerPush(customer, dto);
+  }
+
+  @Public()
+  @UseGuards(CustomerJwtGuard)
+  @Post("me/push/unregister")
+  unregisterPush(@CurrentCustomer() customer: { id: string }, @Body() dto: PushUnregisterDto) {
+    return this.account.unregisterPush(customer, dto.token);
+  }
 
   @Public()
   @Get("shops")

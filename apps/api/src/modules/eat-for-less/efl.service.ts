@@ -30,7 +30,9 @@ import { MollieService } from "../payments/mollie/mollie.service";
 import {
   EFL_SEARCH_RADIUS_MILES,
   commissionPercentFor,
+  deliveryWindow,
   eflCommissionPence,
+  travelMinutes,
   generateDeliveryPin,
   isListingLive,
   needsDeliveryPin,
@@ -147,6 +149,8 @@ export class EflService {
       where: { listed: true, status: "APPROVED", hiddenReason: null },
       include: { location: { select: LISTING_LOCATION_SELECT } },
     });
+    const prep = await this.prepMinutesFor(listings.map((l) => ({ locationId: l.locationId, brandId: l.brandId ?? l.location?.brandId ?? null })));
+    const ratings = await this.ratingsFor(listings.map((l) => l.locationId));
 
     const results = await Promise.all(
       listings.map(async (listing) => {
@@ -176,6 +180,7 @@ export class EflService {
             : Promise.resolve(null),
         ]);
         const open = !paused && isCurrentlyOpen(loc.openingHours as any, loc.timezone);
+        const shopPrep = prep.get(loc.id) ?? { delivery: 45, collection: 20 };
 
         return {
           id: listing.id,
@@ -187,11 +192,17 @@ export class EflService {
           cuisines: listing.cuisines,
           distanceMiles: Math.round(distanceMiles * 10) / 10,
           isOpen: open,
+          rating: ratings.get(loc.id) ?? null,
           delivery: {
             available: !!delivery?.matched,
             fee: delivery?.matched ? delivery.fee : null,
+            minOrder: delivery?.matched ? delivery.minOrderValue ?? null : null,
+            etaMinutes: delivery?.matched ? deliveryWindow(shopPrep.delivery, distanceMiles) : null,
           },
-          collection: { available: listing.acceptsCollection },
+          collection: {
+            available: listing.acceptsCollection,
+            readyInMinutes: listing.acceptsCollection ? shopPrep.collection : null,
+          },
         };
       }),
     );
@@ -344,9 +355,13 @@ export class EflService {
       select: { id: true, deliveryPin: true, deliveryPinVerifiedAt: true },
     });
     if (!order) throw new NotFoundException("Order not found");
-    const status = await this.ordering.getOrderStatus(order.id);
+    const status: any = await this.ordering.getOrderStatus(order.id);
     return {
       ...status,
+      // Never the driver's own number: the customer calls through a private
+      // line (Phase 4), and the driver never sees theirs either.
+      driver: status.driver ? withoutPhone(status.driver) : null,
+      driverEtaMinutes: driverEta(status.driver, status.destination),
       deliveryPin: order.deliveryPinVerifiedAt ? null : order.deliveryPin,
       handedOver: !!order.deliveryPinVerifiedAt,
     };
@@ -626,6 +641,47 @@ export class EflService {
     };
   }
 
+  /** Each shop's prep times, from its ordering settings: the location's own,
+   *  else its brand's, else the storefront's defaults. */
+  private async prepMinutesFor(shops: Array<{ locationId: string; brandId: string | null }>) {
+    const rows = await this.prisma.directOrderingConfig.findMany({
+      where: {
+        OR: [
+          { locationId: { in: shops.map((s) => s.locationId) } },
+          { brandId: { in: shops.map((s) => s.brandId).filter((b): b is string => !!b) } },
+        ],
+      },
+      select: { locationId: true, brandId: true, deliveryPrepMinutes: true, collectionPrepMinutes: true } as any,
+    });
+    const out = new Map<string, { delivery: number; collection: number }>();
+    for (const shop of shops) {
+      const row: any =
+        rows.find((r: any) => r.locationId === shop.locationId) ?? rows.find((r: any) => shop.brandId && r.brandId === shop.brandId);
+      out.set(shop.locationId, {
+        delivery: Number(row?.deliveryPrepMinutes ?? 45),
+        collection: Number(row?.collectionPrepMinutes ?? 20),
+      });
+    }
+    return out;
+  }
+
+  /** Published review average and count per shop, in one query. */
+  private async ratingsFor(locationIds: string[]) {
+    const out = new Map<string, { value: number; count: number }>();
+    if (locationIds.length === 0) return out;
+    const grouped = await this.prisma.review.groupBy({
+      by: ["locationId"],
+      where: { locationId: { in: locationIds }, status: "PUBLISHED" },
+      _avg: { rating: true },
+      _count: { rating: true },
+    });
+    for (const g of grouped) {
+      if (!g._count.rating) continue;
+      out.set(g.locationId, { value: Math.round(Number(g._avg.rating ?? 0) * 10) / 10, count: g._count.rating });
+    }
+    return out;
+  }
+
   private async assertLocation(tenantId: string, locationId: string) {
     // A location has no tenantId of its own; it hangs off its brand.
     const loc = await this.prisma.location.findFirst({
@@ -655,6 +711,21 @@ export class EflService {
       cuisines: listing?.cuisines ?? [],
     };
   }
+}
+
+function withoutPhone<T extends Record<string, unknown>>(driver: T) {
+  const { phone: _phone, ...rest } = driver as any;
+  return rest as Omit<T, "phone">;
+}
+
+/** Minutes until the driver reaches the customer, from the driver's last GPS
+ *  ping. Null until there's a driver on the road with a position. */
+function driverEta(
+  driver: { lat?: number | null; lng?: number | null } | null | undefined,
+  destination: { lat: number; lng: number } | null | undefined,
+): number | null {
+  if (driver?.lat == null || driver?.lng == null || !destination) return null;
+  return travelMinutes(milesBetween({ lat: driver.lat, lng: driver.lng }, destination));
 }
 
 /** Midnight in London on the day `now` falls in, as a UTC instant. */
