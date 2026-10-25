@@ -45,6 +45,35 @@ function siteBrandForHost(host: string): "menumanager" | "orderhub" {
   return host.includes("menumanager") ? "menumanager" : "orderhub";
 }
 
+// Eat For Less — our own marketplace's public site lives in this same build
+// under /eatforless. On its own domain the paths are clean ("/near",
+// "/shop/<id>"), so those hosts rewrite into the tree. They are neither
+// OrderHub primary hosts nor brand custom domains: resolveHost never runs
+// for them.
+const EFL_HOSTS = (
+  process.env.NEXT_PUBLIC_EFL_HOSTS ?? "eatforless.co.uk,www.eatforless.co.uk"
+)
+  .split(",")
+  .map((s) => s.trim().toLowerCase())
+  .filter(Boolean);
+
+// Paths that keep their own meaning on the Eat For Less domain: the partner
+// sign-up, the Console, and the app-wide icon/manifest routes.
+const EFL_PASSTHROUGH = ["/partner", "/efl-console", "/icon", "/apple-icon"];
+
+function startsWithSegment(path: string, prefix: string): boolean {
+  return path === prefix || path.startsWith(`${prefix}/`);
+}
+
+/** Where a path on the Eat For Less domain is served from, or null to leave
+ *  it alone. Idempotent: an already-prefixed /eatforless/... path stays put,
+ *  so links built with or without the prefix both work. */
+function eflRewritePath(path: string): string | null {
+  if (startsWithSegment(path, "/eatforless")) return null;
+  if (EFL_PASSTHROUGH.some((p) => startsWithSegment(path, p))) return null;
+  return path === "/" ? "/eatforless" : `/eatforless${path}`;
+}
+
 // Tiny in-process cache so we don't hit the API on every request.
 const cache = new Map<string, { value: { slug: string; brandId: string } | null; exp: number }>();
 
@@ -85,6 +114,18 @@ export async function middleware(req: NextRequest) {
   const host = ((rawHost.split(",")[0] ?? "").split(":")[0] ?? "")
     .trim()
     .toLowerCase();
+  if (EFL_HOSTS.includes(host)) {
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set("x-site-brand", "eatforless");
+    const target = eflRewritePath(req.nextUrl.pathname);
+    if (target) {
+      const url = req.nextUrl.clone();
+      url.pathname = target;
+      return NextResponse.rewrite(url, { request: { headers: requestHeaders } });
+    }
+    return NextResponse.next({ request: { headers: requestHeaders } });
+  }
+
   if (isPrimaryHost(host)) {
     // Forward the brand as a REQUEST header so getSiteBrand() can read it.
     const requestHeaders = new Headers(req.headers);

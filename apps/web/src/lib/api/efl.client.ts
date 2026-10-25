@@ -221,3 +221,106 @@ export const eflAdminClient = {
   hygieneLink: (listingId: string, url?: string) =>
     apiClient.post<EflHygieneShop>(`/v1/admin/efl/hygiene/${listingId}/link`, url ? { url } : {}).then((r) => r.data),
 };
+
+// ── Public website (eatforless.co.uk) ──────────────────────────────────
+
+/** GET /v1/efl/shops — one listing near the customer. */
+export interface EflPublicShop {
+  id: string;
+  name: string;
+  area: string | null;
+  logoUrl: string | null;
+  heroImageUrl: string | null;
+  description: string | null;
+  cuisines: string[];
+  distanceMiles: number;
+  isOpen: boolean;
+  /** Published review average; null until the shop has reviews. */
+  rating: { value: number; count: number } | null;
+  delivery: {
+    available: boolean;
+    fee: number | null;
+    minOrder: number | null;
+    etaMinutes: { min: number; max: number } | null;
+  };
+  collection: { available: boolean; readyInMinutes: number | null };
+}
+
+export interface EflShopsQuery {
+  lat: number;
+  lng: number;
+  postcode?: string;
+}
+
+type EflMoney = number | string;
+
+export interface EflPublicMenuItem {
+  id: string;
+  name: string;
+  description?: string | null;
+  basePrice: EflMoney;
+  imageUrl?: string | null;
+  isAvailable?: boolean;
+  visibleToCustomers?: boolean;
+  outOfStock?: boolean;
+  allergens?: string[];
+  productSkus?: Array<{ name: string; price: number }>;
+}
+
+export interface EflPublicMenuCategory {
+  id: string;
+  name: string;
+  items: Array<{ itemId: string; priceOverride?: EflMoney | null; item: EflPublicMenuItem }>;
+}
+
+/** The storefront payload the menu wraps — only the fields the site reads. */
+export interface EflPublicStore {
+  location: {
+    id: string;
+    name: string;
+    addressLine1?: string | null;
+    city?: string | null;
+    postcode?: string | null;
+    about?: string | null;
+  };
+  brand: { id: string; name: string; logoUrl?: string | null } | null;
+  menu: {
+    id: string;
+    heroImage?: string | null;
+    bannerImage?: string | null;
+    categories: EflPublicMenuCategory[];
+  } | null;
+  isOpen: boolean;
+  directConfig?: {
+    deliveryPrepMinutes: number;
+    collectionPrepMinutes: number;
+    acceptsDelivery: boolean;
+    acceptsCollection: boolean;
+  };
+}
+
+/** GET /v1/efl/shops/:listingId/menu */
+export interface EflPublicShopMenu {
+  listing: {
+    id: string;
+    heroImageUrl: string | null;
+    logoUrl: string | null;
+    description: string | null;
+    cuisines: string[];
+    acceptsDelivery: boolean;
+    acceptsCollection: boolean;
+  };
+  store: EflPublicStore;
+}
+
+export const eflPublicClient = {
+  shops: ({ lat, lng, postcode }: EflShopsQuery) =>
+    apiClient
+      .get<EflPublicShop[]>("/v1/efl/shops", { params: { lat, lng, ...(postcode ? { postcode } : {}) } })
+      .then((r) => r.data),
+
+  menu: (listingId: string) =>
+    apiClient
+      .get<EflPublicShopMenu>(`/v1/efl/shops/${encodeURIComponent(listingId)}/menu`)
+      .then((r) => r.data),
+};
