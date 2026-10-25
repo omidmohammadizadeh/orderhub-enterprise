@@ -522,6 +522,9 @@ export class EflService {
       commissionIsDefault: r.commissionPercent == null,
       deliveryMode: r.deliveryMode,
       placedOnMap: r.location?.latitude != null,
+      online: !!r.lastDeviceSeenAt && Date.now() - r.lastDeviceSeenAt.getTime() < 2 * 60 * 1000,
+      lastDeviceSeenAt: r.lastDeviceSeenAt,
+      offlineSince: r.offlineSince,
       approvedAt: r.approvedAt,
       createdAt: r.createdAt,
     }));
@@ -552,7 +555,9 @@ export class EflService {
   async adminSummary() {
     const startOfDay = startOfLondonDay(new Date());
     const [listings, orders] = await Promise.all([
-      this.prisma.eflListing.findMany({ select: { listed: true, status: true, hiddenReason: true } }),
+      this.prisma.eflListing.findMany({
+        select: { listed: true, status: true, hiddenReason: true, lastDeviceSeenAt: true },
+      }),
       this.prisma.order.findMany({
         where: {
           orderSource: "EAT_FOR_LESS",
@@ -571,6 +576,7 @@ export class EflService {
         waitingApproval: listings.filter((l) => l.listed && l.status === "PENDING").length,
         suspended: listings.filter((l) => l.status === "SUSPENDED").length,
         hidden: listings.filter((l) => !!l.hiddenReason).length,
+        offline: listings.filter((l) => l.hiddenReason === "OFFLINE").length,
       },
       today: {
         orders: orders.length,

@@ -280,6 +280,9 @@ function StatusLine({ listing }: { listing: EflShopListing }) {
     } else if (listing.hiddenReason === "HYGIENE") {
       tone = "bg-red-50 text-red-800";
       text = "Hidden: your food hygiene rating is below the minimum. It comes back automatically when it improves.";
+    } else if (listing.hiddenReason === "OFFLINE") {
+      tone = "bg-red-50 text-red-800";
+      text = "Hidden: no OrderHub tablet has been online for 2 minutes. Open OrderHub on the shop tablet and you're back automatically.";
     } else if (listing.hiddenReason) {
       tone = "bg-amber-50 text-amber-900";
       text = "Hidden from the app for now. It comes back automatically.";

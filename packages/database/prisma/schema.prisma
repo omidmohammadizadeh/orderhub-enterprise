@@ -4555,6 +4555,12 @@ model EflListing {
   hygieneRating      String?
   hygieneCheckedAt   DateTime?
 
+  /// When one of the shop's own OrderHub devices was last connected. A shop
+  /// with none for 2 minutes is hidden ("OFFLINE") until one comes back.
+  lastDeviceSeenAt DateTime?
+  /// When the current offline spell started. Null while online.
+  offlineSince     DateTime?
+
   approvedAt DateTime?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt

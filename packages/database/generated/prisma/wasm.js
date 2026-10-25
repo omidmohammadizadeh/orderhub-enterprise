@@ -2183,6 +2183,8 @@ exports.Prisma.EflListingScalarFieldEnum = {
   fsaEstablishmentId: 'fsaEstablishmentId',
   hygieneRating: 'hygieneRating',
   hygieneCheckedAt: 'hygieneCheckedAt',
+  lastDeviceSeenAt: 'lastDeviceSeenAt',
+  offlineSince: 'offlineSince',
   approvedAt: 'approvedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

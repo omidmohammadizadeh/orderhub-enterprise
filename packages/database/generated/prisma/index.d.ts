@@ -148170,6 +148170,8 @@ export namespace Prisma {
     fsaEstablishmentId: string | null
     hygieneRating: string | null
     hygieneCheckedAt: Date | null
+    lastDeviceSeenAt: Date | null
+    offlineSince: Date | null
     approvedAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -148192,6 +148194,8 @@ export namespace Prisma {
     fsaEstablishmentId: string | null
     hygieneRating: string | null
     hygieneCheckedAt: Date | null
+    lastDeviceSeenAt: Date | null
+    offlineSince: Date | null
     approvedAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -148215,6 +148219,8 @@ export namespace Prisma {
     fsaEstablishmentId: number
     hygieneRating: number
     hygieneCheckedAt: number
+    lastDeviceSeenAt: number
+    offlineSince: number
     approvedAt: number
     createdAt: number
     updatedAt: number
@@ -148247,6 +148253,8 @@ export namespace Prisma {
     fsaEstablishmentId?: true
     hygieneRating?: true
     hygieneCheckedAt?: true
+    lastDeviceSeenAt?: true
+    offlineSince?: true
     approvedAt?: true
     createdAt?: true
     updatedAt?: true
@@ -148269,6 +148277,8 @@ export namespace Prisma {
     fsaEstablishmentId?: true
     hygieneRating?: true
     hygieneCheckedAt?: true
+    lastDeviceSeenAt?: true
+    offlineSince?: true
     approvedAt?: true
     createdAt?: true
     updatedAt?: true
@@ -148292,6 +148302,8 @@ export namespace Prisma {
     fsaEstablishmentId?: true
     hygieneRating?: true
     hygieneCheckedAt?: true
+    lastDeviceSeenAt?: true
+    offlineSince?: true
     approvedAt?: true
     createdAt?: true
     updatedAt?: true
@@ -148402,6 +148414,8 @@ export namespace Prisma {
     fsaEstablishmentId: string | null
     hygieneRating: string | null
     hygieneCheckedAt: Date | null
+    lastDeviceSeenAt: Date | null
+    offlineSince: Date | null
     approvedAt: Date | null
     createdAt: Date
     updatedAt: Date
@@ -148444,6 +148458,8 @@ export namespace Prisma {
     fsaEstablishmentId?: boolean
     hygieneRating?: boolean
     hygieneCheckedAt?: boolean
+    lastDeviceSeenAt?: boolean
+    offlineSince?: boolean
     approvedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -148468,6 +148484,8 @@ export namespace Prisma {
     fsaEstablishmentId?: boolean
     hygieneRating?: boolean
     hygieneCheckedAt?: boolean
+    lastDeviceSeenAt?: boolean
+    offlineSince?: boolean
     approvedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -148492,6 +148510,8 @@ export namespace Prisma {
     fsaEstablishmentId?: boolean
     hygieneRating?: boolean
     hygieneCheckedAt?: boolean
+    lastDeviceSeenAt?: boolean
+    offlineSince?: boolean
     approvedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -148552,6 +148572,15 @@ export namespace Prisma {
        */
       hygieneRating: string | null
       hygieneCheckedAt: Date | null
+      /**
+       * When one of the shop's own OrderHub devices was last connected. A shop
+       * with none for 2 minutes is hidden ("OFFLINE") until one comes back.
+       */
+      lastDeviceSeenAt: Date | null
+      /**
+       * When the current offline spell started. Null while online.
+       */
+      offlineSince: Date | null
       approvedAt: Date | null
       createdAt: Date
       updatedAt: Date
@@ -148966,6 +148995,8 @@ export namespace Prisma {
     readonly fsaEstablishmentId: FieldRef<"EflListing", 'String'>
     readonly hygieneRating: FieldRef<"EflListing", 'String'>
     readonly hygieneCheckedAt: FieldRef<"EflListing", 'DateTime'>
+    readonly lastDeviceSeenAt: FieldRef<"EflListing", 'DateTime'>
+    readonly offlineSince: FieldRef<"EflListing", 'DateTime'>
     readonly approvedAt: FieldRef<"EflListing", 'DateTime'>
     readonly createdAt: FieldRef<"EflListing", 'DateTime'>
     readonly updatedAt: FieldRef<"EflListing", 'DateTime'>
@@ -207613,6 +207644,8 @@ export namespace Prisma {
     fsaEstablishmentId: 'fsaEstablishmentId',
     hygieneRating: 'hygieneRating',
     hygieneCheckedAt: 'hygieneCheckedAt',
+    lastDeviceSeenAt: 'lastDeviceSeenAt',
+    offlineSince: 'offlineSince',
     approvedAt: 'approvedAt',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
@@ -224847,6 +224880,8 @@ export namespace Prisma {
     fsaEstablishmentId?: StringNullableFilter<"EflListing"> | string | null
     hygieneRating?: StringNullableFilter<"EflListing"> | string | null
     hygieneCheckedAt?: DateTimeNullableFilter<"EflListing"> | Date | string | null
+    lastDeviceSeenAt?: DateTimeNullableFilter<"EflListing"> | Date | string | null
+    offlineSince?: DateTimeNullableFilter<"EflListing"> | Date | string | null
     approvedAt?: DateTimeNullableFilter<"EflListing"> | Date | string | null
     createdAt?: DateTimeFilter<"EflListing"> | Date | string
     updatedAt?: DateTimeFilter<"EflListing"> | Date | string
@@ -224871,6 +224906,8 @@ export namespace Prisma {
     fsaEstablishmentId?: SortOrderInput | SortOrder
     hygieneRating?: SortOrderInput | SortOrder
     hygieneCheckedAt?: SortOrderInput | SortOrder
+    lastDeviceSeenAt?: SortOrderInput | SortOrder
+    offlineSince?: SortOrderInput | SortOrder
     approvedAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -224899,6 +224936,8 @@ export namespace Prisma {
     fsaEstablishmentId?: StringNullableFilter<"EflListing"> | string | null
     hygieneRating?: StringNullableFilter<"EflListing"> | string | null
     hygieneCheckedAt?: DateTimeNullableFilter<"EflListing"> | Date | string | null
+    lastDeviceSeenAt?: DateTimeNullableFilter<"EflListing"> | Date | string | null
+    offlineSince?: DateTimeNullableFilter<"EflListing"> | Date | string | null
     approvedAt?: DateTimeNullableFilter<"EflListing"> | Date | string | null
     createdAt?: DateTimeFilter<"EflListing"> | Date | string
     updatedAt?: DateTimeFilter<"EflListing"> | Date | string
@@ -224923,6 +224962,8 @@ export namespace Prisma {
     fsaEstablishmentId?: SortOrderInput | SortOrder
     hygieneRating?: SortOrderInput | SortOrder
     hygieneCheckedAt?: SortOrderInput | SortOrder
+    lastDeviceSeenAt?: SortOrderInput | SortOrder
+    offlineSince?: SortOrderInput | SortOrder
     approvedAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -224954,6 +224995,8 @@ export namespace Prisma {
     fsaEstablishmentId?: StringNullableWithAggregatesFilter<"EflListing"> | string | null
     hygieneRating?: StringNullableWithAggregatesFilter<"EflListing"> | string | null
     hygieneCheckedAt?: DateTimeNullableWithAggregatesFilter<"EflListing"> | Date | string | null
+    lastDeviceSeenAt?: DateTimeNullableWithAggregatesFilter<"EflListing"> | Date | string | null
+    offlineSince?: DateTimeNullableWithAggregatesFilter<"EflListing"> | Date | string | null
     approvedAt?: DateTimeNullableWithAggregatesFilter<"EflListing"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"EflListing"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"EflListing"> | Date | string
@@ -245290,6 +245333,8 @@ export namespace Prisma {
     fsaEstablishmentId?: string | null
     hygieneRating?: string | null
     hygieneCheckedAt?: Date | string | null
+    lastDeviceSeenAt?: Date | string | null
+    offlineSince?: Date | string | null
     approvedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -245314,6 +245359,8 @@ export namespace Prisma {
     fsaEstablishmentId?: string | null
     hygieneRating?: string | null
     hygieneCheckedAt?: Date | string | null
+    lastDeviceSeenAt?: Date | string | null
+    offlineSince?: Date | string | null
     approvedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -245336,6 +245383,8 @@ export namespace Prisma {
     fsaEstablishmentId?: NullableStringFieldUpdateOperationsInput | string | null
     hygieneRating?: NullableStringFieldUpdateOperationsInput | string | null
     hygieneCheckedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastDeviceSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    offlineSince?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -245360,6 +245409,8 @@ export namespace Prisma {
     fsaEstablishmentId?: NullableStringFieldUpdateOperationsInput | string | null
     hygieneRating?: NullableStringFieldUpdateOperationsInput | string | null
     hygieneCheckedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastDeviceSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    offlineSince?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -245383,6 +245434,8 @@ export namespace Prisma {
     fsaEstablishmentId?: string | null
     hygieneRating?: string | null
     hygieneCheckedAt?: Date | string | null
+    lastDeviceSeenAt?: Date | string | null
+    offlineSince?: Date | string | null
     approvedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -245405,6 +245458,8 @@ export namespace Prisma {
     fsaEstablishmentId?: NullableStringFieldUpdateOperationsInput | string | null
     hygieneRating?: NullableStringFieldUpdateOperationsInput | string | null
     hygieneCheckedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastDeviceSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    offlineSince?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -245428,6 +245483,8 @@ export namespace Prisma {
     fsaEstablishmentId?: NullableStringFieldUpdateOperationsInput | string | null
     hygieneRating?: NullableStringFieldUpdateOperationsInput | string | null
     hygieneCheckedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastDeviceSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    offlineSince?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -262042,6 +262099,8 @@ export namespace Prisma {
     fsaEstablishmentId?: SortOrder
     hygieneRating?: SortOrder
     hygieneCheckedAt?: SortOrder
+    lastDeviceSeenAt?: SortOrder
+    offlineSince?: SortOrder
     approvedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -262068,6 +262127,8 @@ export namespace Prisma {
     fsaEstablishmentId?: SortOrder
     hygieneRating?: SortOrder
     hygieneCheckedAt?: SortOrder
+    lastDeviceSeenAt?: SortOrder
+    offlineSince?: SortOrder
     approvedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -262090,6 +262151,8 @@ export namespace Prisma {
     fsaEstablishmentId?: SortOrder
     hygieneRating?: SortOrder
     hygieneCheckedAt?: SortOrder
+    lastDeviceSeenAt?: SortOrder
+    offlineSince?: SortOrder
     approvedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -287038,6 +287101,8 @@ export namespace Prisma {
     fsaEstablishmentId?: string | null
     hygieneRating?: string | null
     hygieneCheckedAt?: Date | string | null
+    lastDeviceSeenAt?: Date | string | null
+    offlineSince?: Date | string | null
     approvedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -287060,6 +287125,8 @@ export namespace Prisma {
     fsaEstablishmentId?: string | null
     hygieneRating?: string | null
     hygieneCheckedAt?: Date | string | null
+    lastDeviceSeenAt?: Date | string | null
+    offlineSince?: Date | string | null
     approvedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -288603,6 +288670,8 @@ export namespace Prisma {
     fsaEstablishmentId?: NullableStringFieldUpdateOperationsInput | string | null
     hygieneRating?: NullableStringFieldUpdateOperationsInput | string | null
     hygieneCheckedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastDeviceSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    offlineSince?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -288625,6 +288694,8 @@ export namespace Prisma {
     fsaEstablishmentId?: NullableStringFieldUpdateOperationsInput | string | null
     hygieneRating?: NullableStringFieldUpdateOperationsInput | string | null
     hygieneCheckedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastDeviceSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    offlineSince?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string

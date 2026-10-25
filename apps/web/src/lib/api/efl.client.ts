@@ -56,6 +56,10 @@ export interface EflAdminListing {
   commissionIsDefault: boolean;
   deliveryMode: EflDeliveryMode;
   placedOnMap: boolean;
+  /** One of the shop's own OrderHub devices connected in the last 2 minutes. */
+  online: boolean;
+  lastDeviceSeenAt: string | null;
+  offlineSince: string | null;
   approvedAt: string | null;
   createdAt: string;
 }
@@ -70,7 +74,7 @@ export interface EflConfig {
 }
 
 export interface EflSummary {
-  listings: { total: number; live: number; waitingApproval: number; suspended: number; hidden: number };
+  listings: { total: number; live: number; waitingApproval: number; suspended: number; hidden: number; offline: number };
   today: { orders: number; sales: number; commission: number };
 }
 

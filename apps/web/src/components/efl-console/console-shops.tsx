@@ -162,7 +162,10 @@ function StatusBadge({ listing }: { listing: EflAdminListing }) {
     : listing.status === "SUSPENDED"
       ? ["Suspended", "bg-red-50 text-red-700"]
       : listing.hiddenReason
-        ? [listing.hiddenReason === "HYGIENE" ? "Hidden: hygiene" : "Hidden", "bg-red-50 text-red-700"]
+        ? [
+            listing.hiddenReason === "HYGIENE" ? "Hidden: hygiene" : listing.hiddenReason === "OFFLINE" ? "Offline" : "Hidden",
+            "bg-red-50 text-red-700",
+          ]
         : !listing.listed
           ? ["Switched off by shop", "bg-zinc-100 text-zinc-600"]
           : ["Waiting for you", "bg-[#0B0B0B] text-white"];
