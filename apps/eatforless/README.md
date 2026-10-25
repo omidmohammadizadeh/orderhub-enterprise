@@ -43,39 +43,42 @@ Pricing and the nested-modifier tree are **imported from `packages/shared`**
 so the app prices a line exactly as the web storefront and the server's
 re-pricing do. Metro watches only that folder.
 
-## API gaps (needed from apps/api — not changed here)
+## API the app uses (all `/api/v1`)
 
-1. **Stripe publishable key** — checkout returns `clientSecret` +
-   `stripeAccountId` but not the platform publishable key. Add
-   `publishableKey` to the `POST efl/shops/:id/checkout` response (or a public
-   `GET efl/config`) so it isn't baked into the binary per environment.
-2. **Phone-verified flag** — `GET customer-auth/me` doesn't return
-   `phoneVerifiedAt` or `eflMarketingOptIn`. The app remembers verification
-   per device and falls back to the checkout error. Add both to `me` (or a
-   `GET efl/me` returning `{ phoneVerified, phone, marketingOptIn }`).
-3. **Driver phone in order status** — `GET efl/me/orders/:id` spreads
-   `getOrderStatus`, which includes `driver.phone`. For private calling the EFL
-   response should strip it and add `driver.vehicle` / `driver.reg` and a
-   masked-call endpoint (Phase 4): `POST efl/me/orders/:id/call → { dialNumber }`.
-4. **Route + ETA** — status has `shop`, `destination`, driver `lat/lng` but no
-   route polyline or driver ETA. The app draws straight legs. Add
-   `route: [{lat,lng}]` (or encoded polyline) and `driverEtaMinutes`.
-5. **Shops list extras** — `GET efl/shops` has no delivery-time estimate, rating,
-   headline offer, or minimum order. The app approximates time from distance and
-   hides rating/offer. Add `etaMinutes`, `rating {value,count}`, `deal`, `minOrder`.
-6. **Sponsored placements / ads** — Featured, Deals and Top brands currently reuse
+Public: `GET efl/config` (Stripe publishable key), `GET efl/shops` (rating,
+delivery fee / min order / ETA window, collection ready time),
+`GET efl/shops/:id/menu`.
+
+Customer: `POST efl/shops/:id/checkout`, `GET efl/me` (phone verified,
+marketing opt-in), `PATCH efl/me/marketing`, `POST efl/me/phone/start|verify`,
+`GET efl/me/orders`, `GET efl/me/orders/:id` (status, PIN, `driverEtaMinutes`;
+no driver phone), `GET|POST efl/me/addresses`, `PATCH|DELETE efl/me/addresses/:id`,
+`GET efl/me/favourites`, `PUT|DELETE efl/me/favourites/:id`,
+`POST efl/me/push`, `POST efl/me/push/unregister`, plus `customer-auth/*`
+(sign-in, `me`, delete account).
+
+Signed out, addresses and favourites live on the device; at sign-in they are
+copied to the account (addresses only when the account has none), and the
+account's lists take over. Push registers on sign-in (asking permission then)
+and on each launch when permission was already given; it is skipped until an
+EAS project id exists (`extra.eas.projectId` or `EXPO_PUBLIC_EAS_PROJECT_ID`).
+Tapping an order update (`data.app === "eatforless"`) opens that order.
+
+## API gaps still open
+
+1. **Sponsored placements / ads** — Featured, Deals and Top brands reuse
    `GET efl/shops` (marked PLACEHOLDER in `HomeScreen.tsx`). Needs
-   `GET efl/placements?lat&lng → { featured[], deals[], brands[] }`.
-7. **Search across menus** — Search matches shop names/cuisines only. Dish
-   search needs `GET efl/search?q&lat&lng`.
-8. **Saved addresses & favourites** — the account holds one address and no
-   favourites, so both live on the device. Add `efl/me/addresses` and
-   `efl/me/favourites` CRUD.
-9. **Sign-up email link** — `customer-auth/signup` sends a storefront verify
-   link; EFL needs a universal link (`eatforless://verify?token=`) or a code.
-10. **Push** — `customer-push/register-device` requires `brandId`; EFL customers
-    belong to no brand. Needs an EFL variant keyed on the customer account.
-11. **"You save £x vs other apps"** (design) needs a comparison price per item.
+   `GET efl/placements?lat&lng → { featured[], deals[], brands[] }`; headline
+   offers (`deal`) appear only in sample data.
+2. **Dish search** — Search matches shop names, areas and cuisines only.
+   Needs `GET efl/search?q&lat&lng`.
+3. **Sign-up email link** — `customer-auth/signup` sends a storefront verify
+   link; the app needs a universal link (`eatforless://verify?token=`) or a code.
+4. **"You save £x vs other apps"** (design) needs a comparison price per item.
+5. **Route polyline** — tracking draws straight legs shop → door; a real route
+   (`route: [{lat,lng}]`) would let the car follow streets.
+6. **Private calls / messages** (Phase 4) — the Call screen is a stub; needs a
+   masked-call endpoint, e.g. `POST efl/me/orders/:id/call → { dialNumber }`.
 
 ## Not done yet / next steps
 
@@ -83,7 +86,8 @@ re-pricing do. Metro watches only that folder.
   app, under Eat For Less Ltd. Bundle id/package `com.eatforless.app` is a
   placeholder — change in `app.json` if needed.
 - **EAS:** `eas init` (new project, no owner set yet), `eas.json` profiles like
-  `apps/driver`, channels for OTA, env vars from `.env.example`.
+  `apps/driver`, channels for OTA, env vars from `.env.example`. Push tokens need
+  the EAS project id, and an APNs key / FCM credentials on that project.
 - **Apple Pay:** create merchant id `merchant.com.eatforless.app`, register the
   domain/cert in Stripe for each connected account flow.
 - **Google sign-in:** OAuth clients for the new bundle/package + SHA-1, then set

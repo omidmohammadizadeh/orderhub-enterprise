@@ -71,7 +71,10 @@ function headline(o: OrderDetail): { title: string; sub: string } {
     case "READY":
       return { title: "Ready to collect", sub: `Head to ${shop}` };
     case "OUT_FOR_DELIVERY":
-      return { title: eta ? `Arriving ${eta}` : "On the way", sub: `${driver} is on the way` };
+      return {
+        title: o.driverEtaMinutes != null ? `${o.driverEtaMinutes} min away` : eta ? `Arriving ${eta}` : "On the way",
+        sub: o.driverEtaMinutes != null ? `${driver} is on the way · about ${clock(new Date(Date.now() + o.driverEtaMinutes * 60_000).toISOString())}` : `${driver} is on the way`,
+      };
     case "RIDER_ARRIVED":
       return { title: "Your driver is here", sub: `${driver} is at your door` };
     case "DELIVERED":

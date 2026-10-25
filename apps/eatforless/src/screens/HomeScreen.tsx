@@ -15,7 +15,7 @@ import { CUISINES, type CuisineKind } from "@/components/CuisineIcon";
 import { CuisineMarquee } from "@/components/CuisineMarquee";
 import { Icon } from "@/components/Icon";
 import { PressScale } from "@/components/PressScale";
-import { AgainCard, DealCard, FeaturedCard, ListCard, etaText } from "@/components/ShopCards";
+import { AgainCard, DealCard, FeaturedCard, ListCard, etaMin } from "@/components/ShopCards";
 import { T } from "@/components/T";
 import { MOCK } from "@/config";
 import { fadeUp } from "@/lib/motion";
@@ -25,10 +25,6 @@ import { C, F, shadow } from "@/theme";
 const TOPS = ["All", "Takeaway", "Grocery", "Desserts", "Late night"] as const;
 const FILTERS = ["Pickup", "Offers", "Delivery under £2", "Under 30 min", "Rating 4.5+"] as const;
 type Filter = (typeof FILTERS)[number];
-
-function minsOf(shop: Shop) {
-  return Math.round(15 + shop.distanceMiles * 5);
-}
 
 function applyFilters(shops: Shop[], top: (typeof TOPS)[number], cuisine: CuisineKind | null, on: Set<Filter>) {
   return shops.filter((s) => {
@@ -42,7 +38,7 @@ function applyFilters(shops: Shop[], top: (typeof TOPS)[number], cuisine: Cuisin
     if (on.has("Pickup") && !s.collection.available) return false;
     if (on.has("Offers") && !s.deal) return false;
     if (on.has("Delivery under £2") && !(s.delivery.available && (s.delivery.fee ?? 0) < 2)) return false;
-    if (on.has("Under 30 min") && minsOf(s) >= 30) return false;
+    if (on.has("Under 30 min") && !((etaMin(s) ?? 99) < 30)) return false;
     if (on.has("Rating 4.5+") && !((s.rating?.value ?? 0) >= 4.5)) return false;
     return true;
   });
@@ -205,7 +201,7 @@ export function HomeScreen() {
                       <T style={[styles.brandMark, { color: BRAND_BG[i % BRAND_BG.length]![1] }]}>{initials(b.name)}</T>
                     </View>
                     <T style={styles.brandName} numberOfLines={2}>{b.name}</T>
-                    <T style={styles.brandTime}>{etaText(b).split("–")[0]} min</T>
+                    {etaMin(b) != null ? <T style={styles.brandTime}>{etaMin(b)} min</T> : null}
                   </PressScale>
                 ))}
               </ScrollView>

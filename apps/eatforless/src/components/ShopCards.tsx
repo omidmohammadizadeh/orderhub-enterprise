@@ -6,6 +6,7 @@ import { StyleSheet, View } from "react-native";
 import type { Shop } from "@/api/types";
 import { foodKind } from "@/lib/menu";
 import { money } from "@/lib/money";
+import { useFavourites, useIsFavourite } from "@/state/favourites";
 import { C, F } from "@/theme";
 import { DealBadge } from "./Bits";
 import { Icon } from "./Icon";
@@ -20,16 +21,27 @@ export function feeText(shop: Shop, short = false): string {
   return short ? money(fee) : `${money(fee)} delivery`;
 }
 
-/** No delivery-time estimate in the shops API yet (gap): approximate from distance. */
+/** The delivery window the API gives for this address (shop prep + driving),
+ *  else how soon collection is ready, else nothing. */
 export function etaText(shop: Shop): string {
-  const mins = Math.round(15 + shop.distanceMiles * 5);
-  return `${mins}–${mins + 10} min`;
+  const eta = shop.delivery.available ? shop.delivery.etaMinutes : null;
+  if (eta) return `${eta.min}–${eta.max} min`;
+  if (shop.collection.available && shop.collection.readyInMinutes) return `Ready in ${shop.collection.readyInMinutes} min`;
+  return "";
 }
+
+/** Lower bound of the delivery window, for sorting and the "Under 30 min" filter. */
+export function etaMin(shop: Shop): number | null {
+  return shop.delivery.available ? shop.delivery.etaMinutes?.min ?? null : null;
+}
+
+/** "a · b", skipping empty parts. */
+export const joinDot = (...parts: Array<string | null | undefined | false>) => parts.filter(Boolean).join(" · ");
 
 export const kindOf = (shop: Shop) => foodKind(...shop.cuisines, shop.name);
 
-// Offers and ratings aren't in the shops API yet (README → API gaps). Cards
-// show them only when present, so live data never shows invented ones.
+// Ratings come from the API (null until a shop has reviews); offers aren't in
+// it yet (README → API gaps). Cards show each only when present.
 const dealOf = (shop: Shop): string | null => shop.deal ?? null;
 const ratingOf = (shop: Shop): string | null =>
   shop.rating ? `${shop.rating.value.toFixed(1)} ★` : null;
@@ -63,7 +75,7 @@ export const AgainCard = memo(function AgainCard({ shop, onPress }: CardProps) {
       <Photo uri={shop.heroImageUrl} kind={kindOf(shop)} style={{ height: 108 }} />
       <View style={styles.featuredBody}>
         <T v="item" style={{ fontSize: 15 }} numberOfLines={1}>{shop.name}</T>
-        <T v="small" style={styles.meta}>{feeText(shop)} · {etaText(shop)}</T>
+        <T v="small" style={styles.meta}>{joinDot(feeText(shop), etaText(shop))}</T>
       </View>
     </PressScale>
   );
@@ -80,7 +92,7 @@ export const DealCard = memo(function DealCard({ shop, onPress }: CardProps) {
       <View style={{ gap: 2 }}>
         <T v="item" style={{ fontSize: 15 }}>{shop.name}</T>
         <T v="small" style={styles.meta}>
-          {feeText(shop, true)} · {etaText(shop)}
+          {joinDot(feeText(shop, true), etaText(shop))}
           {ratingOf(shop) ? <T style={styles.rating}> · {ratingOf(shop)}</T> : null}
         </T>
       </View>
@@ -105,17 +117,27 @@ export const ListCard = memo(function ListCard({ shop, onPress, sponsored }: Car
       <View style={styles.listRow}>
         <View style={{ flex: 1, gap: 3 }}>
           <T v="item">{shop.name}{shop.area ? ` · ${shop.area}` : ""}</T>
-          <T v="sub">{feeText(shop)} · {etaText(shop)}</T>
+          <T v="sub">{joinDot(feeText(shop), etaText(shop))}</T>
           <T v="sub">
             {ratingOf(shop) ? <T style={[styles.rating, { fontSize: 13 }]}>{ratingOf(shop)} ({shop.rating!.count}+) · </T> : null}
             {shop.distanceMiles.toFixed(1)} mi{shop.cuisines.length ? ` · ${shop.cuisines.slice(0, 3).join(", ")}` : ""}
           </T>
         </View>
-        <Icon name="heart" size={22} />
+        <FavHeart id={shop.id} name={shop.name} />
       </View>
     </PressScale>
   );
 });
+
+function FavHeart({ id, name }: { id: string; name: string }) {
+  const on = useIsFavourite(id);
+  const toggle = useFavourites((s) => s.toggle);
+  return (
+    <PressScale onPress={() => toggle(id)} haptic scaleTo={0.85} accessibilityLabel={on ? `Remove ${name} from saved shops` : `Save ${name}`}>
+      <Icon name="heart" size={22} fill={on ? C.ink : "none"} />
+    </PressScale>
+  );
+}
 
 function ClosedVeil({ radius = 0 }: { radius?: number }) {
   return (

@@ -6,7 +6,19 @@
 import { initPaymentSheet, initStripe, presentPaymentSheet } from "@stripe/stripe-react-native";
 import * as Linking from "expo-linking";
 import { APPLE_PAY_MERCHANT_ID, MOCK, STRIPE_PUBLISHABLE_KEY } from "@/config";
+import { getConfig } from "@/api/efl";
 import type { CheckoutResult } from "@/api/types";
+
+let cachedKey: string | null = null;
+
+/** The platform's publishable key, from GET efl/config so test and live builds
+ *  can't be crossed. The EXPO_PUBLIC_ key is a fallback for dev builds only. */
+async function publishableKey(): Promise<string | null> {
+  if (cachedKey) return cachedKey;
+  const fromApi = await getConfig().then((c) => c.stripePublishableKey).catch(() => null);
+  cachedKey = fromApi || (__DEV__ ? STRIPE_PUBLISHABLE_KEY || null : null);
+  return cachedKey;
+}
 
 export type PayOutcome = "paid" | "cancelled" | "redirected";
 
@@ -16,11 +28,10 @@ export async function payForOrder(result: CheckoutResult, customer: { name: stri
     return "paid";
   }
   if (result.clientSecret) {
-    if (!STRIPE_PUBLISHABLE_KEY) {
-      throw new Error("Card payments aren't set up in this build yet (EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY).");
-    }
+    const key = await publishableKey();
+    if (!key) throw new Error("Card payments aren't available right now. Please try again in a moment.");
     await initStripe({
-      publishableKey: STRIPE_PUBLISHABLE_KEY,
+      publishableKey: key,
       stripeAccountId: result.stripeAccountId ?? undefined,
       merchantIdentifier: APPLE_PAY_MERCHANT_ID,
       urlScheme: "eatforless",

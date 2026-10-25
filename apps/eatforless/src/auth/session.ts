@@ -1,19 +1,17 @@
 // The signed-in customer. The token lives in the Keychain / Keystore
-// (expo-secure-store); everything else is re-fetched from /customer-auth/me on
-// launch, which also slides the token's expiry forward.
+// (expo-secure-store); the account comes from /customer-auth/me on launch
+// (which also slides the token's expiry forward) and the Eat For Less flags —
+// phone verified, marketing opt-in — from /efl/me.
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
 import { create } from "zustand";
 import { configureClient } from "@/api/client";
-import { getMe } from "@/api/efl";
+import { getEflMe, getMe } from "@/api/efl";
 import type { AuthResult, Customer } from "@/api/types";
 
 const TOKEN_KEY = "efl.customerToken";
 const ONBOARDED_KEY = "efl.onboarded";
-// /customer-auth/me does not say whether the phone was verified (API gap — see
-// README), so the app remembers the customer ids it has seen verify.
-const VERIFIED_KEY = "efl.phoneVerifiedFor";
 
 type SessionState = {
   hydrated: boolean;
@@ -21,21 +19,16 @@ type SessionState = {
   token: string | null;
   customer: Customer | null;
   phoneVerified: boolean;
+  marketingOptIn: boolean;
   hydrate: () => Promise<void>;
   signIn: (result: AuthResult) => Promise<void>;
   signOut: () => Promise<void>;
   setCustomer: (customer: Customer) => void;
-  markPhoneVerified: (phone?: string) => Promise<void>;
+  /** Re-reads GET efl/me. Quietly keeps the last values when offline. */
+  refreshFlags: () => Promise<void>;
+  setMarketingOptIn: (optIn: boolean) => void;
   finishOnboarding: () => Promise<void>;
 };
-
-async function verifiedIds(): Promise<string[]> {
-  try {
-    return JSON.parse((await AsyncStorage.getItem(VERIFIED_KEY)) ?? "[]");
-  } catch {
-    return [];
-  }
-}
 
 export const useSession = create<SessionState>((set, get) => ({
   hydrated: false,
@@ -43,6 +36,7 @@ export const useSession = create<SessionState>((set, get) => ({
   token: null,
   customer: null,
   phoneVerified: false,
+  marketingOptIn: false,
 
   hydrate: async () => {
     const [token, onboarded] = await Promise.all([
@@ -54,9 +48,9 @@ export const useSession = create<SessionState>((set, get) => ({
       try {
         const { accessToken, ...customer } = await getMe();
         await SecureStore.setItemAsync(TOKEN_KEY, accessToken);
-        const ids = await verifiedIds();
-        set({ token: accessToken, customer, phoneVerified: ids.includes(customer.id) });
-      } catch (err) {
+        set({ token: accessToken, customer });
+        await get().refreshFlags();
+      } catch {
         // Offline at launch: keep the token and try again on the next call.
         // A 401 has already cleared it through onUnauthorized.
       }
@@ -67,24 +61,33 @@ export const useSession = create<SessionState>((set, get) => ({
   signIn: async ({ accessToken, customer }) => {
     await SecureStore.setItemAsync(TOKEN_KEY, accessToken);
     await AsyncStorage.setItem(ONBOARDED_KEY, "1");
-    const ids = await verifiedIds();
-    set({ token: accessToken, customer, onboarded: true, phoneVerified: ids.includes(customer.id) });
+    set({ token: accessToken, customer, onboarded: true });
+    await get().refreshFlags();
   },
 
   signOut: async () => {
     await SecureStore.deleteItemAsync(TOKEN_KEY).catch(() => {});
-    set({ token: null, customer: null, phoneVerified: false });
+    set({ token: null, customer: null, phoneVerified: false, marketingOptIn: false });
   },
 
   setCustomer: (customer) => set({ customer }),
 
-  markPhoneVerified: async (phone) => {
-    const c = get().customer;
-    if (!c) return;
-    const ids = await verifiedIds();
-    if (!ids.includes(c.id)) await AsyncStorage.setItem(VERIFIED_KEY, JSON.stringify([...ids, c.id]));
-    set({ phoneVerified: true, customer: phone ? { ...c, phone } : c });
+  refreshFlags: async () => {
+    if (!get().token) return;
+    try {
+      const me = await getEflMe();
+      const c = get().customer;
+      set({
+        phoneVerified: me.phoneVerified,
+        marketingOptIn: me.marketingOptIn,
+        customer: c && me.phone ? { ...c, phone: me.phone } : c,
+      });
+    } catch {
+      /* offline: keep what we had */
+    }
   },
+
+  setMarketingOptIn: (optIn) => set({ marketingOptIn: optIn }),
 
   finishOnboarding: async () => {
     await AsyncStorage.setItem(ONBOARDED_KEY, "1");
