@@ -88,6 +88,84 @@ export const EFL_CUISINES = [
   "Healthy",
 ] as const;
 
+export type EflApplicationStatus = "NEW" | "WAITING_INFO" | "APPROVED" | "DECLINED";
+
+export interface EflApplicationInput {
+  businessName: string;
+  companyNumber?: string;
+  cuisine?: string;
+  addressLine1: string;
+  city: string;
+  postcode: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email: string;
+  menuUrl?: string;
+  hygieneUrl?: string;
+  /** data: URLs, 3.5 MB each at most. */
+  idDocument?: string;
+  bankStatement?: string;
+}
+
+/** What the automatic checks found. `state` drives the tick/cross. */
+export interface EflApplicationChecks {
+  checkedAt?: string;
+  companiesHouse?: { state: "OK" | "INACTIVE" | "NOT_FOUND" | "NOT_CHECKED" | "NOT_GIVEN"; name?: string | null };
+  hygiene?: {
+    state: "OK" | "BELOW_MINIMUM" | "NOT_FOUND";
+    minimum: number;
+    rating?: string;
+    businessName?: string;
+    establishmentId?: string;
+  };
+}
+
+export interface EflApplicationRow {
+  id: string;
+  status: EflApplicationStatus;
+  businessName: string;
+  city: string;
+  createdAt: string;
+  checks: EflApplicationChecks;
+}
+
+export interface EflApplication extends EflApplicationRow {
+  companyNumber: string | null;
+  cuisine: string | null;
+  addressLine1: string;
+  postcode: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email: string;
+  menuUrl: string | null;
+  hygieneUrl: string | null;
+  hasIdDocument: boolean;
+  hasBankStatement: boolean;
+  /** Signed links that stop working after 10 minutes. */
+  idDocUrl: string | null;
+  bankDocUrl: string | null;
+  decisionNote: string | null;
+  decidedAt: string | null;
+}
+
+export interface EflHygieneShop {
+  listingId: string;
+  shopName: string | null;
+  town: string | null;
+  fsaEstablishmentId: string | null;
+  rating: string | null;
+  checkedAt: string | null;
+  belowMinimum: boolean;
+  hiddenForHygiene: boolean;
+}
+
+export const eflPartnerClient = {
+  apply: (input: EflApplicationInput) =>
+    apiClient.post<{ id: string; reference: string }>("/v1/efl/applications", input).then((r) => r.data),
+};
+
 export const eflClient = {
   getListing: (locationId: string) =>
     apiClient.get<EflShopListing>(`/v1/efl/listing/${locationId}`).then((r) => r.data),
@@ -115,4 +193,27 @@ export const eflAdminClient = {
 
   updateConfig: (patch: Partial<EflConfig>) =>
     apiClient.put<EflConfig>("/v1/admin/efl/config", patch).then((r) => r.data),
+
+  applications: () =>
+    apiClient.get<EflApplicationRow[]>("/v1/admin/efl/applications").then((r) => r.data),
+
+  application: (id: string) =>
+    apiClient.get<EflApplication>(`/v1/admin/efl/applications/${id}`).then((r) => r.data),
+
+  recheckApplication: (id: string) =>
+    apiClient.post<EflApplicationChecks>(`/v1/admin/efl/applications/${id}/recheck`).then((r) => r.data),
+
+  decideApplication: (id: string, status: "APPROVED" | "DECLINED" | "WAITING_INFO", note?: string) =>
+    apiClient.patch<EflApplication>(`/v1/admin/efl/applications/${id}`, { status, note }).then((r) => r.data),
+
+  hygiene: () =>
+    apiClient.get<{ minimum: number; shops: EflHygieneShop[] }>("/v1/admin/efl/hygiene").then((r) => r.data),
+
+  hygieneCheckNow: () =>
+    apiClient
+      .post<{ checked: number; hidden: number; restored: number }>("/v1/admin/efl/hygiene/check-now")
+      .then((r) => r.data),
+
+  hygieneLink: (listingId: string, url?: string) =>
+    apiClient.post<EflHygieneShop>(`/v1/admin/efl/hygiene/${listingId}/link`, url ? { url } : {}).then((r) => r.data),
 };

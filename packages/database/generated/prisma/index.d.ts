@@ -623,6 +623,14 @@ export type OutboxEvent = $Result.DefaultSelection<Prisma.$OutboxEventPayload>
  */
 export type EflListing = $Result.DefaultSelection<Prisma.$EflListingPayload>
 /**
+ * Model EflApplication
+ * A shop asking to join Eat For Less, from the public partner form.
+ * 
+ * The ID and bank documents are paths in the PRIVATE storage bucket, never
+ * public URLs; the Console reads them through short-lived signed links.
+ */
+export type EflApplication = $Result.DefaultSelection<Prisma.$EflApplicationPayload>
+/**
  * Model EflConfig
  * Eat For Less platform settings. One row, id "default".
  */
@@ -1510,6 +1518,16 @@ export const EflDeliveryMode: {
 export type EflDeliveryMode = (typeof EflDeliveryMode)[keyof typeof EflDeliveryMode]
 
 
+export const EflApplicationStatus: {
+  NEW: 'NEW',
+  WAITING_INFO: 'WAITING_INFO',
+  APPROVED: 'APPROVED',
+  DECLINED: 'DECLINED'
+};
+
+export type EflApplicationStatus = (typeof EflApplicationStatus)[keyof typeof EflApplicationStatus]
+
+
 export const VideoCreditReason: {
   GRANT: 'GRANT',
   TOPUP: 'TOPUP',
@@ -1739,6 +1757,10 @@ export const EflListingStatus: typeof $Enums.EflListingStatus
 export type EflDeliveryMode = $Enums.EflDeliveryMode
 
 export const EflDeliveryMode: typeof $Enums.EflDeliveryMode
+
+export type EflApplicationStatus = $Enums.EflApplicationStatus
+
+export const EflApplicationStatus: typeof $Enums.EflApplicationStatus
 
 export type VideoCreditReason = $Enums.VideoCreditReason
 
@@ -3073,6 +3095,16 @@ export class PrismaClient<
   get eflListing(): Prisma.EflListingDelegate<ExtArgs>;
 
   /**
+   * `prisma.eflApplication`: Exposes CRUD operations for the **EflApplication** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more EflApplications
+    * const eflApplications = await prisma.eflApplication.findMany()
+    * ```
+    */
+  get eflApplication(): Prisma.EflApplicationDelegate<ExtArgs>;
+
+  /**
    * `prisma.eflConfig`: Exposes CRUD operations for the **EflConfig** model.
     * Example usage:
     * ```ts
@@ -4121,6 +4153,7 @@ export namespace Prisma {
     SystemSecret: 'SystemSecret',
     OutboxEvent: 'OutboxEvent',
     EflListing: 'EflListing',
+    EflApplication: 'EflApplication',
     EflConfig: 'EflConfig',
     EflPhoneVerification: 'EflPhoneVerification',
     VideoStudioAccount: 'VideoStudioAccount',
@@ -4185,7 +4218,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "promoCodeRedemption" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "salonService" | "salonStaff" | "salonTimeOff" | "salonAppointment" | "salonQueueEntry" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "mollieConnection" | "payment" | "paymentMethod" | "refund" | "productVariant" | "productStockLevel" | "productStockMovement" | "refundLine" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "eflListing" | "eflConfig" | "eflPhoneVerification" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "yangoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "pushAutomation" | "pushLocationReview" | "pushReviewRequest" | "pushCampaign" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "loyaltyMember" | "loyaltyPassDevice" | "referralProgram" | "referralCode" | "referral" | "keetaAuthorization" | "emailContact" | "emailCampaign" | "emailAutomation" | "emailBirthdaySend" | "emailCampaignRecipient" | "buildGuide" | "buildStepTemplate" | "buildGuideTraining" | "assemblyChart" | "menuAutoPublish" | "autoDispatchRule" | "autoDispatchRun"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "promoCodeRedemption" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "salonService" | "salonStaff" | "salonTimeOff" | "salonAppointment" | "salonQueueEntry" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "mollieConnection" | "payment" | "paymentMethod" | "refund" | "productVariant" | "productStockLevel" | "productStockMovement" | "refundLine" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "eflListing" | "eflApplication" | "eflConfig" | "eflPhoneVerification" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "yangoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "pushAutomation" | "pushLocationReview" | "pushReviewRequest" | "pushCampaign" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "loyaltyMember" | "loyaltyPassDevice" | "referralProgram" | "referralCode" | "referral" | "keetaAuthorization" | "emailContact" | "emailCampaign" | "emailAutomation" | "emailBirthdaySend" | "emailCampaignRecipient" | "buildGuide" | "buildStepTemplate" | "buildGuideTraining" | "assemblyChart" | "menuAutoPublish" | "autoDispatchRule" | "autoDispatchRun"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -12516,6 +12549,76 @@ export namespace Prisma {
           count: {
             args: Prisma.EflListingCountArgs<ExtArgs>
             result: $Utils.Optional<EflListingCountAggregateOutputType> | number
+          }
+        }
+      }
+      EflApplication: {
+        payload: Prisma.$EflApplicationPayload<ExtArgs>
+        fields: Prisma.EflApplicationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.EflApplicationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflApplicationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.EflApplicationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflApplicationPayload>
+          }
+          findFirst: {
+            args: Prisma.EflApplicationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflApplicationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.EflApplicationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflApplicationPayload>
+          }
+          findMany: {
+            args: Prisma.EflApplicationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflApplicationPayload>[]
+          }
+          create: {
+            args: Prisma.EflApplicationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflApplicationPayload>
+          }
+          createMany: {
+            args: Prisma.EflApplicationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.EflApplicationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflApplicationPayload>[]
+          }
+          delete: {
+            args: Prisma.EflApplicationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflApplicationPayload>
+          }
+          update: {
+            args: Prisma.EflApplicationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflApplicationPayload>
+          }
+          deleteMany: {
+            args: Prisma.EflApplicationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.EflApplicationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.EflApplicationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflApplicationPayload>
+          }
+          aggregate: {
+            args: Prisma.EflApplicationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateEflApplication>
+          }
+          groupBy: {
+            args: Prisma.EflApplicationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<EflApplicationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.EflApplicationCountArgs<ExtArgs>
+            result: $Utils.Optional<EflApplicationCountAggregateOutputType> | number
           }
         }
       }
@@ -147804,6 +147907,9 @@ export namespace Prisma {
     description: string | null
     heroImageUrl: string | null
     logoUrl: string | null
+    fsaEstablishmentId: string | null
+    hygieneRating: string | null
+    hygieneCheckedAt: Date | null
     approvedAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -147823,6 +147929,9 @@ export namespace Prisma {
     description: string | null
     heroImageUrl: string | null
     logoUrl: string | null
+    fsaEstablishmentId: string | null
+    hygieneRating: string | null
+    hygieneCheckedAt: Date | null
     approvedAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -147843,6 +147952,9 @@ export namespace Prisma {
     heroImageUrl: number
     logoUrl: number
     cuisines: number
+    fsaEstablishmentId: number
+    hygieneRating: number
+    hygieneCheckedAt: number
     approvedAt: number
     createdAt: number
     updatedAt: number
@@ -147872,6 +147984,9 @@ export namespace Prisma {
     description?: true
     heroImageUrl?: true
     logoUrl?: true
+    fsaEstablishmentId?: true
+    hygieneRating?: true
+    hygieneCheckedAt?: true
     approvedAt?: true
     createdAt?: true
     updatedAt?: true
@@ -147891,6 +148006,9 @@ export namespace Prisma {
     description?: true
     heroImageUrl?: true
     logoUrl?: true
+    fsaEstablishmentId?: true
+    hygieneRating?: true
+    hygieneCheckedAt?: true
     approvedAt?: true
     createdAt?: true
     updatedAt?: true
@@ -147911,6 +148029,9 @@ export namespace Prisma {
     heroImageUrl?: true
     logoUrl?: true
     cuisines?: true
+    fsaEstablishmentId?: true
+    hygieneRating?: true
+    hygieneCheckedAt?: true
     approvedAt?: true
     createdAt?: true
     updatedAt?: true
@@ -148018,6 +148139,9 @@ export namespace Prisma {
     heroImageUrl: string | null
     logoUrl: string | null
     cuisines: string[]
+    fsaEstablishmentId: string | null
+    hygieneRating: string | null
+    hygieneCheckedAt: Date | null
     approvedAt: Date | null
     createdAt: Date
     updatedAt: Date
@@ -148057,6 +148181,9 @@ export namespace Prisma {
     heroImageUrl?: boolean
     logoUrl?: boolean
     cuisines?: boolean
+    fsaEstablishmentId?: boolean
+    hygieneRating?: boolean
+    hygieneCheckedAt?: boolean
     approvedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -148078,6 +148205,9 @@ export namespace Prisma {
     heroImageUrl?: boolean
     logoUrl?: boolean
     cuisines?: boolean
+    fsaEstablishmentId?: boolean
+    hygieneRating?: boolean
+    hygieneCheckedAt?: boolean
     approvedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -148099,6 +148229,9 @@ export namespace Prisma {
     heroImageUrl?: boolean
     logoUrl?: boolean
     cuisines?: boolean
+    fsaEstablishmentId?: boolean
+    hygieneRating?: boolean
+    hygieneCheckedAt?: boolean
     approvedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -148149,6 +148282,16 @@ export namespace Prisma {
       heroImageUrl: string | null
       logoUrl: string | null
       cuisines: string[]
+      /**
+       * The shop's record on the Food Standards Agency ratings site, checked
+       * every night. Null = not matched yet, so not checked.
+       */
+      fsaEstablishmentId: string | null
+      /**
+       * What the FSA last said: "0"–"5", "Pass", "Improvement Required", …
+       */
+      hygieneRating: string | null
+      hygieneCheckedAt: Date | null
       approvedAt: Date | null
       createdAt: Date
       updatedAt: Date
@@ -148560,6 +148703,9 @@ export namespace Prisma {
     readonly heroImageUrl: FieldRef<"EflListing", 'String'>
     readonly logoUrl: FieldRef<"EflListing", 'String'>
     readonly cuisines: FieldRef<"EflListing", 'String[]'>
+    readonly fsaEstablishmentId: FieldRef<"EflListing", 'String'>
+    readonly hygieneRating: FieldRef<"EflListing", 'String'>
+    readonly hygieneCheckedAt: FieldRef<"EflListing", 'DateTime'>
     readonly approvedAt: FieldRef<"EflListing", 'DateTime'>
     readonly createdAt: FieldRef<"EflListing", 'DateTime'>
     readonly updatedAt: FieldRef<"EflListing", 'DateTime'>
@@ -148892,6 +149038,1087 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: EflListingInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model EflApplication
+   */
+
+  export type AggregateEflApplication = {
+    _count: EflApplicationCountAggregateOutputType | null
+    _min: EflApplicationMinAggregateOutputType | null
+    _max: EflApplicationMaxAggregateOutputType | null
+  }
+
+  export type EflApplicationMinAggregateOutputType = {
+    id: string | null
+    status: $Enums.EflApplicationStatus | null
+    businessName: string | null
+    companyNumber: string | null
+    cuisine: string | null
+    addressLine1: string | null
+    city: string | null
+    postcode: string | null
+    firstName: string | null
+    lastName: string | null
+    phone: string | null
+    email: string | null
+    menuUrl: string | null
+    hygieneUrl: string | null
+    idDocPath: string | null
+    bankDocPath: string | null
+    decisionNote: string | null
+    decidedAt: Date | null
+    decidedBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type EflApplicationMaxAggregateOutputType = {
+    id: string | null
+    status: $Enums.EflApplicationStatus | null
+    businessName: string | null
+    companyNumber: string | null
+    cuisine: string | null
+    addressLine1: string | null
+    city: string | null
+    postcode: string | null
+    firstName: string | null
+    lastName: string | null
+    phone: string | null
+    email: string | null
+    menuUrl: string | null
+    hygieneUrl: string | null
+    idDocPath: string | null
+    bankDocPath: string | null
+    decisionNote: string | null
+    decidedAt: Date | null
+    decidedBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type EflApplicationCountAggregateOutputType = {
+    id: number
+    status: number
+    businessName: number
+    companyNumber: number
+    cuisine: number
+    addressLine1: number
+    city: number
+    postcode: number
+    firstName: number
+    lastName: number
+    phone: number
+    email: number
+    menuUrl: number
+    hygieneUrl: number
+    idDocPath: number
+    bankDocPath: number
+    checks: number
+    decisionNote: number
+    decidedAt: number
+    decidedBy: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type EflApplicationMinAggregateInputType = {
+    id?: true
+    status?: true
+    businessName?: true
+    companyNumber?: true
+    cuisine?: true
+    addressLine1?: true
+    city?: true
+    postcode?: true
+    firstName?: true
+    lastName?: true
+    phone?: true
+    email?: true
+    menuUrl?: true
+    hygieneUrl?: true
+    idDocPath?: true
+    bankDocPath?: true
+    decisionNote?: true
+    decidedAt?: true
+    decidedBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type EflApplicationMaxAggregateInputType = {
+    id?: true
+    status?: true
+    businessName?: true
+    companyNumber?: true
+    cuisine?: true
+    addressLine1?: true
+    city?: true
+    postcode?: true
+    firstName?: true
+    lastName?: true
+    phone?: true
+    email?: true
+    menuUrl?: true
+    hygieneUrl?: true
+    idDocPath?: true
+    bankDocPath?: true
+    decisionNote?: true
+    decidedAt?: true
+    decidedBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type EflApplicationCountAggregateInputType = {
+    id?: true
+    status?: true
+    businessName?: true
+    companyNumber?: true
+    cuisine?: true
+    addressLine1?: true
+    city?: true
+    postcode?: true
+    firstName?: true
+    lastName?: true
+    phone?: true
+    email?: true
+    menuUrl?: true
+    hygieneUrl?: true
+    idDocPath?: true
+    bankDocPath?: true
+    checks?: true
+    decisionNote?: true
+    decidedAt?: true
+    decidedBy?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type EflApplicationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EflApplication to aggregate.
+     */
+    where?: EflApplicationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflApplications to fetch.
+     */
+    orderBy?: EflApplicationOrderByWithRelationInput | EflApplicationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: EflApplicationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflApplications from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflApplications.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned EflApplications
+    **/
+    _count?: true | EflApplicationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: EflApplicationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: EflApplicationMaxAggregateInputType
+  }
+
+  export type GetEflApplicationAggregateType<T extends EflApplicationAggregateArgs> = {
+        [P in keyof T & keyof AggregateEflApplication]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateEflApplication[P]>
+      : GetScalarType<T[P], AggregateEflApplication[P]>
+  }
+
+
+
+
+  export type EflApplicationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EflApplicationWhereInput
+    orderBy?: EflApplicationOrderByWithAggregationInput | EflApplicationOrderByWithAggregationInput[]
+    by: EflApplicationScalarFieldEnum[] | EflApplicationScalarFieldEnum
+    having?: EflApplicationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: EflApplicationCountAggregateInputType | true
+    _min?: EflApplicationMinAggregateInputType
+    _max?: EflApplicationMaxAggregateInputType
+  }
+
+  export type EflApplicationGroupByOutputType = {
+    id: string
+    status: $Enums.EflApplicationStatus
+    businessName: string
+    companyNumber: string | null
+    cuisine: string | null
+    addressLine1: string
+    city: string
+    postcode: string
+    firstName: string
+    lastName: string
+    phone: string
+    email: string
+    menuUrl: string | null
+    hygieneUrl: string | null
+    idDocPath: string | null
+    bankDocPath: string | null
+    checks: JsonValue
+    decisionNote: string | null
+    decidedAt: Date | null
+    decidedBy: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: EflApplicationCountAggregateOutputType | null
+    _min: EflApplicationMinAggregateOutputType | null
+    _max: EflApplicationMaxAggregateOutputType | null
+  }
+
+  type GetEflApplicationGroupByPayload<T extends EflApplicationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<EflApplicationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof EflApplicationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], EflApplicationGroupByOutputType[P]>
+            : GetScalarType<T[P], EflApplicationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type EflApplicationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    status?: boolean
+    businessName?: boolean
+    companyNumber?: boolean
+    cuisine?: boolean
+    addressLine1?: boolean
+    city?: boolean
+    postcode?: boolean
+    firstName?: boolean
+    lastName?: boolean
+    phone?: boolean
+    email?: boolean
+    menuUrl?: boolean
+    hygieneUrl?: boolean
+    idDocPath?: boolean
+    bankDocPath?: boolean
+    checks?: boolean
+    decisionNote?: boolean
+    decidedAt?: boolean
+    decidedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["eflApplication"]>
+
+  export type EflApplicationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    status?: boolean
+    businessName?: boolean
+    companyNumber?: boolean
+    cuisine?: boolean
+    addressLine1?: boolean
+    city?: boolean
+    postcode?: boolean
+    firstName?: boolean
+    lastName?: boolean
+    phone?: boolean
+    email?: boolean
+    menuUrl?: boolean
+    hygieneUrl?: boolean
+    idDocPath?: boolean
+    bankDocPath?: boolean
+    checks?: boolean
+    decisionNote?: boolean
+    decidedAt?: boolean
+    decidedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["eflApplication"]>
+
+  export type EflApplicationSelectScalar = {
+    id?: boolean
+    status?: boolean
+    businessName?: boolean
+    companyNumber?: boolean
+    cuisine?: boolean
+    addressLine1?: boolean
+    city?: boolean
+    postcode?: boolean
+    firstName?: boolean
+    lastName?: boolean
+    phone?: boolean
+    email?: boolean
+    menuUrl?: boolean
+    hygieneUrl?: boolean
+    idDocPath?: boolean
+    bankDocPath?: boolean
+    checks?: boolean
+    decisionNote?: boolean
+    decidedAt?: boolean
+    decidedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+
+  export type $EflApplicationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "EflApplication"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      status: $Enums.EflApplicationStatus
+      businessName: string
+      companyNumber: string | null
+      cuisine: string | null
+      addressLine1: string
+      city: string
+      postcode: string
+      firstName: string
+      lastName: string
+      phone: string
+      email: string
+      menuUrl: string | null
+      hygieneUrl: string | null
+      idDocPath: string | null
+      bankDocPath: string | null
+      /**
+       * What the automatic checks found: { companiesHouse, hygiene }.
+       */
+      checks: Prisma.JsonValue
+      decisionNote: string | null
+      decidedAt: Date | null
+      decidedBy: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["eflApplication"]>
+    composites: {}
+  }
+
+  type EflApplicationGetPayload<S extends boolean | null | undefined | EflApplicationDefaultArgs> = $Result.GetResult<Prisma.$EflApplicationPayload, S>
+
+  type EflApplicationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<EflApplicationFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: EflApplicationCountAggregateInputType | true
+    }
+
+  export interface EflApplicationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['EflApplication'], meta: { name: 'EflApplication' } }
+    /**
+     * Find zero or one EflApplication that matches the filter.
+     * @param {EflApplicationFindUniqueArgs} args - Arguments to find a EflApplication
+     * @example
+     * // Get one EflApplication
+     * const eflApplication = await prisma.eflApplication.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends EflApplicationFindUniqueArgs>(args: SelectSubset<T, EflApplicationFindUniqueArgs<ExtArgs>>): Prisma__EflApplicationClient<$Result.GetResult<Prisma.$EflApplicationPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one EflApplication that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {EflApplicationFindUniqueOrThrowArgs} args - Arguments to find a EflApplication
+     * @example
+     * // Get one EflApplication
+     * const eflApplication = await prisma.eflApplication.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends EflApplicationFindUniqueOrThrowArgs>(args: SelectSubset<T, EflApplicationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__EflApplicationClient<$Result.GetResult<Prisma.$EflApplicationPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first EflApplication that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflApplicationFindFirstArgs} args - Arguments to find a EflApplication
+     * @example
+     * // Get one EflApplication
+     * const eflApplication = await prisma.eflApplication.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends EflApplicationFindFirstArgs>(args?: SelectSubset<T, EflApplicationFindFirstArgs<ExtArgs>>): Prisma__EflApplicationClient<$Result.GetResult<Prisma.$EflApplicationPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first EflApplication that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflApplicationFindFirstOrThrowArgs} args - Arguments to find a EflApplication
+     * @example
+     * // Get one EflApplication
+     * const eflApplication = await prisma.eflApplication.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends EflApplicationFindFirstOrThrowArgs>(args?: SelectSubset<T, EflApplicationFindFirstOrThrowArgs<ExtArgs>>): Prisma__EflApplicationClient<$Result.GetResult<Prisma.$EflApplicationPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more EflApplications that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflApplicationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all EflApplications
+     * const eflApplications = await prisma.eflApplication.findMany()
+     * 
+     * // Get first 10 EflApplications
+     * const eflApplications = await prisma.eflApplication.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const eflApplicationWithIdOnly = await prisma.eflApplication.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends EflApplicationFindManyArgs>(args?: SelectSubset<T, EflApplicationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EflApplicationPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a EflApplication.
+     * @param {EflApplicationCreateArgs} args - Arguments to create a EflApplication.
+     * @example
+     * // Create one EflApplication
+     * const EflApplication = await prisma.eflApplication.create({
+     *   data: {
+     *     // ... data to create a EflApplication
+     *   }
+     * })
+     * 
+     */
+    create<T extends EflApplicationCreateArgs>(args: SelectSubset<T, EflApplicationCreateArgs<ExtArgs>>): Prisma__EflApplicationClient<$Result.GetResult<Prisma.$EflApplicationPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many EflApplications.
+     * @param {EflApplicationCreateManyArgs} args - Arguments to create many EflApplications.
+     * @example
+     * // Create many EflApplications
+     * const eflApplication = await prisma.eflApplication.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends EflApplicationCreateManyArgs>(args?: SelectSubset<T, EflApplicationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many EflApplications and returns the data saved in the database.
+     * @param {EflApplicationCreateManyAndReturnArgs} args - Arguments to create many EflApplications.
+     * @example
+     * // Create many EflApplications
+     * const eflApplication = await prisma.eflApplication.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many EflApplications and only return the `id`
+     * const eflApplicationWithIdOnly = await prisma.eflApplication.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends EflApplicationCreateManyAndReturnArgs>(args?: SelectSubset<T, EflApplicationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EflApplicationPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a EflApplication.
+     * @param {EflApplicationDeleteArgs} args - Arguments to delete one EflApplication.
+     * @example
+     * // Delete one EflApplication
+     * const EflApplication = await prisma.eflApplication.delete({
+     *   where: {
+     *     // ... filter to delete one EflApplication
+     *   }
+     * })
+     * 
+     */
+    delete<T extends EflApplicationDeleteArgs>(args: SelectSubset<T, EflApplicationDeleteArgs<ExtArgs>>): Prisma__EflApplicationClient<$Result.GetResult<Prisma.$EflApplicationPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one EflApplication.
+     * @param {EflApplicationUpdateArgs} args - Arguments to update one EflApplication.
+     * @example
+     * // Update one EflApplication
+     * const eflApplication = await prisma.eflApplication.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends EflApplicationUpdateArgs>(args: SelectSubset<T, EflApplicationUpdateArgs<ExtArgs>>): Prisma__EflApplicationClient<$Result.GetResult<Prisma.$EflApplicationPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more EflApplications.
+     * @param {EflApplicationDeleteManyArgs} args - Arguments to filter EflApplications to delete.
+     * @example
+     * // Delete a few EflApplications
+     * const { count } = await prisma.eflApplication.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends EflApplicationDeleteManyArgs>(args?: SelectSubset<T, EflApplicationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EflApplications.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflApplicationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many EflApplications
+     * const eflApplication = await prisma.eflApplication.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends EflApplicationUpdateManyArgs>(args: SelectSubset<T, EflApplicationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one EflApplication.
+     * @param {EflApplicationUpsertArgs} args - Arguments to update or create a EflApplication.
+     * @example
+     * // Update or create a EflApplication
+     * const eflApplication = await prisma.eflApplication.upsert({
+     *   create: {
+     *     // ... data to create a EflApplication
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the EflApplication we want to update
+     *   }
+     * })
+     */
+    upsert<T extends EflApplicationUpsertArgs>(args: SelectSubset<T, EflApplicationUpsertArgs<ExtArgs>>): Prisma__EflApplicationClient<$Result.GetResult<Prisma.$EflApplicationPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of EflApplications.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflApplicationCountArgs} args - Arguments to filter EflApplications to count.
+     * @example
+     * // Count the number of EflApplications
+     * const count = await prisma.eflApplication.count({
+     *   where: {
+     *     // ... the filter for the EflApplications we want to count
+     *   }
+     * })
+    **/
+    count<T extends EflApplicationCountArgs>(
+      args?: Subset<T, EflApplicationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], EflApplicationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a EflApplication.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflApplicationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends EflApplicationAggregateArgs>(args: Subset<T, EflApplicationAggregateArgs>): Prisma.PrismaPromise<GetEflApplicationAggregateType<T>>
+
+    /**
+     * Group by EflApplication.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflApplicationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends EflApplicationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: EflApplicationGroupByArgs['orderBy'] }
+        : { orderBy?: EflApplicationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, EflApplicationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEflApplicationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the EflApplication model
+   */
+  readonly fields: EflApplicationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for EflApplication.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__EflApplicationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the EflApplication model
+   */ 
+  interface EflApplicationFieldRefs {
+    readonly id: FieldRef<"EflApplication", 'String'>
+    readonly status: FieldRef<"EflApplication", 'EflApplicationStatus'>
+    readonly businessName: FieldRef<"EflApplication", 'String'>
+    readonly companyNumber: FieldRef<"EflApplication", 'String'>
+    readonly cuisine: FieldRef<"EflApplication", 'String'>
+    readonly addressLine1: FieldRef<"EflApplication", 'String'>
+    readonly city: FieldRef<"EflApplication", 'String'>
+    readonly postcode: FieldRef<"EflApplication", 'String'>
+    readonly firstName: FieldRef<"EflApplication", 'String'>
+    readonly lastName: FieldRef<"EflApplication", 'String'>
+    readonly phone: FieldRef<"EflApplication", 'String'>
+    readonly email: FieldRef<"EflApplication", 'String'>
+    readonly menuUrl: FieldRef<"EflApplication", 'String'>
+    readonly hygieneUrl: FieldRef<"EflApplication", 'String'>
+    readonly idDocPath: FieldRef<"EflApplication", 'String'>
+    readonly bankDocPath: FieldRef<"EflApplication", 'String'>
+    readonly checks: FieldRef<"EflApplication", 'Json'>
+    readonly decisionNote: FieldRef<"EflApplication", 'String'>
+    readonly decidedAt: FieldRef<"EflApplication", 'DateTime'>
+    readonly decidedBy: FieldRef<"EflApplication", 'String'>
+    readonly createdAt: FieldRef<"EflApplication", 'DateTime'>
+    readonly updatedAt: FieldRef<"EflApplication", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * EflApplication findUnique
+   */
+  export type EflApplicationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflApplication
+     */
+    select?: EflApplicationSelect<ExtArgs> | null
+    /**
+     * Filter, which EflApplication to fetch.
+     */
+    where: EflApplicationWhereUniqueInput
+  }
+
+  /**
+   * EflApplication findUniqueOrThrow
+   */
+  export type EflApplicationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflApplication
+     */
+    select?: EflApplicationSelect<ExtArgs> | null
+    /**
+     * Filter, which EflApplication to fetch.
+     */
+    where: EflApplicationWhereUniqueInput
+  }
+
+  /**
+   * EflApplication findFirst
+   */
+  export type EflApplicationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflApplication
+     */
+    select?: EflApplicationSelect<ExtArgs> | null
+    /**
+     * Filter, which EflApplication to fetch.
+     */
+    where?: EflApplicationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflApplications to fetch.
+     */
+    orderBy?: EflApplicationOrderByWithRelationInput | EflApplicationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EflApplications.
+     */
+    cursor?: EflApplicationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflApplications from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflApplications.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EflApplications.
+     */
+    distinct?: EflApplicationScalarFieldEnum | EflApplicationScalarFieldEnum[]
+  }
+
+  /**
+   * EflApplication findFirstOrThrow
+   */
+  export type EflApplicationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflApplication
+     */
+    select?: EflApplicationSelect<ExtArgs> | null
+    /**
+     * Filter, which EflApplication to fetch.
+     */
+    where?: EflApplicationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflApplications to fetch.
+     */
+    orderBy?: EflApplicationOrderByWithRelationInput | EflApplicationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EflApplications.
+     */
+    cursor?: EflApplicationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflApplications from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflApplications.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EflApplications.
+     */
+    distinct?: EflApplicationScalarFieldEnum | EflApplicationScalarFieldEnum[]
+  }
+
+  /**
+   * EflApplication findMany
+   */
+  export type EflApplicationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflApplication
+     */
+    select?: EflApplicationSelect<ExtArgs> | null
+    /**
+     * Filter, which EflApplications to fetch.
+     */
+    where?: EflApplicationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflApplications to fetch.
+     */
+    orderBy?: EflApplicationOrderByWithRelationInput | EflApplicationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing EflApplications.
+     */
+    cursor?: EflApplicationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflApplications from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflApplications.
+     */
+    skip?: number
+    distinct?: EflApplicationScalarFieldEnum | EflApplicationScalarFieldEnum[]
+  }
+
+  /**
+   * EflApplication create
+   */
+  export type EflApplicationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflApplication
+     */
+    select?: EflApplicationSelect<ExtArgs> | null
+    /**
+     * The data needed to create a EflApplication.
+     */
+    data: XOR<EflApplicationCreateInput, EflApplicationUncheckedCreateInput>
+  }
+
+  /**
+   * EflApplication createMany
+   */
+  export type EflApplicationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many EflApplications.
+     */
+    data: EflApplicationCreateManyInput | EflApplicationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EflApplication createManyAndReturn
+   */
+  export type EflApplicationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflApplication
+     */
+    select?: EflApplicationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many EflApplications.
+     */
+    data: EflApplicationCreateManyInput | EflApplicationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EflApplication update
+   */
+  export type EflApplicationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflApplication
+     */
+    select?: EflApplicationSelect<ExtArgs> | null
+    /**
+     * The data needed to update a EflApplication.
+     */
+    data: XOR<EflApplicationUpdateInput, EflApplicationUncheckedUpdateInput>
+    /**
+     * Choose, which EflApplication to update.
+     */
+    where: EflApplicationWhereUniqueInput
+  }
+
+  /**
+   * EflApplication updateMany
+   */
+  export type EflApplicationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update EflApplications.
+     */
+    data: XOR<EflApplicationUpdateManyMutationInput, EflApplicationUncheckedUpdateManyInput>
+    /**
+     * Filter which EflApplications to update
+     */
+    where?: EflApplicationWhereInput
+  }
+
+  /**
+   * EflApplication upsert
+   */
+  export type EflApplicationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflApplication
+     */
+    select?: EflApplicationSelect<ExtArgs> | null
+    /**
+     * The filter to search for the EflApplication to update in case it exists.
+     */
+    where: EflApplicationWhereUniqueInput
+    /**
+     * In case the EflApplication found by the `where` argument doesn't exist, create a new EflApplication with this data.
+     */
+    create: XOR<EflApplicationCreateInput, EflApplicationUncheckedCreateInput>
+    /**
+     * In case the EflApplication was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<EflApplicationUpdateInput, EflApplicationUncheckedUpdateInput>
+  }
+
+  /**
+   * EflApplication delete
+   */
+  export type EflApplicationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflApplication
+     */
+    select?: EflApplicationSelect<ExtArgs> | null
+    /**
+     * Filter which EflApplication to delete.
+     */
+    where: EflApplicationWhereUniqueInput
+  }
+
+  /**
+   * EflApplication deleteMany
+   */
+  export type EflApplicationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EflApplications to delete
+     */
+    where?: EflApplicationWhereInput
+  }
+
+  /**
+   * EflApplication without action
+   */
+  export type EflApplicationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflApplication
+     */
+    select?: EflApplicationSelect<ExtArgs> | null
   }
 
 
@@ -203298,12 +204525,43 @@ export namespace Prisma {
     heroImageUrl: 'heroImageUrl',
     logoUrl: 'logoUrl',
     cuisines: 'cuisines',
+    fsaEstablishmentId: 'fsaEstablishmentId',
+    hygieneRating: 'hygieneRating',
+    hygieneCheckedAt: 'hygieneCheckedAt',
     approvedAt: 'approvedAt',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
 
   export type EflListingScalarFieldEnum = (typeof EflListingScalarFieldEnum)[keyof typeof EflListingScalarFieldEnum]
+
+
+  export const EflApplicationScalarFieldEnum: {
+    id: 'id',
+    status: 'status',
+    businessName: 'businessName',
+    companyNumber: 'companyNumber',
+    cuisine: 'cuisine',
+    addressLine1: 'addressLine1',
+    city: 'city',
+    postcode: 'postcode',
+    firstName: 'firstName',
+    lastName: 'lastName',
+    phone: 'phone',
+    email: 'email',
+    menuUrl: 'menuUrl',
+    hygieneUrl: 'hygieneUrl',
+    idDocPath: 'idDocPath',
+    bankDocPath: 'bankDocPath',
+    checks: 'checks',
+    decisionNote: 'decisionNote',
+    decidedAt: 'decidedAt',
+    decidedBy: 'decidedBy',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type EflApplicationScalarFieldEnum = (typeof EflApplicationScalarFieldEnum)[keyof typeof EflApplicationScalarFieldEnum]
 
 
   export const EflConfigScalarFieldEnum: {
@@ -205959,10 +207217,35 @@ export namespace Prisma {
     description: 'description',
     heroImageUrl: 'heroImageUrl',
     logoUrl: 'logoUrl',
-    cuisines: 'cuisines'
+    cuisines: 'cuisines',
+    fsaEstablishmentId: 'fsaEstablishmentId',
+    hygieneRating: 'hygieneRating'
   };
 
   export type EflListingOrderByRelevanceFieldEnum = (typeof EflListingOrderByRelevanceFieldEnum)[keyof typeof EflListingOrderByRelevanceFieldEnum]
+
+
+  export const EflApplicationOrderByRelevanceFieldEnum: {
+    id: 'id',
+    businessName: 'businessName',
+    companyNumber: 'companyNumber',
+    cuisine: 'cuisine',
+    addressLine1: 'addressLine1',
+    city: 'city',
+    postcode: 'postcode',
+    firstName: 'firstName',
+    lastName: 'lastName',
+    phone: 'phone',
+    email: 'email',
+    menuUrl: 'menuUrl',
+    hygieneUrl: 'hygieneUrl',
+    idDocPath: 'idDocPath',
+    bankDocPath: 'bankDocPath',
+    decisionNote: 'decisionNote',
+    decidedBy: 'decidedBy'
+  };
+
+  export type EflApplicationOrderByRelevanceFieldEnum = (typeof EflApplicationOrderByRelevanceFieldEnum)[keyof typeof EflApplicationOrderByRelevanceFieldEnum]
 
 
   export const EflConfigOrderByRelevanceFieldEnum: {
@@ -207495,6 +208778,20 @@ export namespace Prisma {
    * Reference to a field of type 'EflDeliveryMode[]'
    */
   export type ListEnumEflDeliveryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EflDeliveryMode[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'EflApplicationStatus'
+   */
+  export type EnumEflApplicationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EflApplicationStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'EflApplicationStatus[]'
+   */
+  export type ListEnumEflApplicationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EflApplicationStatus[]'>
     
 
 
@@ -220384,6 +221681,9 @@ export namespace Prisma {
     heroImageUrl?: StringNullableFilter<"EflListing"> | string | null
     logoUrl?: StringNullableFilter<"EflListing"> | string | null
     cuisines?: StringNullableListFilter<"EflListing">
+    fsaEstablishmentId?: StringNullableFilter<"EflListing"> | string | null
+    hygieneRating?: StringNullableFilter<"EflListing"> | string | null
+    hygieneCheckedAt?: DateTimeNullableFilter<"EflListing"> | Date | string | null
     approvedAt?: DateTimeNullableFilter<"EflListing"> | Date | string | null
     createdAt?: DateTimeFilter<"EflListing"> | Date | string
     updatedAt?: DateTimeFilter<"EflListing"> | Date | string
@@ -220405,6 +221705,9 @@ export namespace Prisma {
     heroImageUrl?: SortOrderInput | SortOrder
     logoUrl?: SortOrderInput | SortOrder
     cuisines?: SortOrder
+    fsaEstablishmentId?: SortOrderInput | SortOrder
+    hygieneRating?: SortOrderInput | SortOrder
+    hygieneCheckedAt?: SortOrderInput | SortOrder
     approvedAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -220430,6 +221733,9 @@ export namespace Prisma {
     heroImageUrl?: StringNullableFilter<"EflListing"> | string | null
     logoUrl?: StringNullableFilter<"EflListing"> | string | null
     cuisines?: StringNullableListFilter<"EflListing">
+    fsaEstablishmentId?: StringNullableFilter<"EflListing"> | string | null
+    hygieneRating?: StringNullableFilter<"EflListing"> | string | null
+    hygieneCheckedAt?: DateTimeNullableFilter<"EflListing"> | Date | string | null
     approvedAt?: DateTimeNullableFilter<"EflListing"> | Date | string | null
     createdAt?: DateTimeFilter<"EflListing"> | Date | string
     updatedAt?: DateTimeFilter<"EflListing"> | Date | string
@@ -220451,6 +221757,9 @@ export namespace Prisma {
     heroImageUrl?: SortOrderInput | SortOrder
     logoUrl?: SortOrderInput | SortOrder
     cuisines?: SortOrder
+    fsaEstablishmentId?: SortOrderInput | SortOrder
+    hygieneRating?: SortOrderInput | SortOrder
+    hygieneCheckedAt?: SortOrderInput | SortOrder
     approvedAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -220479,9 +221788,150 @@ export namespace Prisma {
     heroImageUrl?: StringNullableWithAggregatesFilter<"EflListing"> | string | null
     logoUrl?: StringNullableWithAggregatesFilter<"EflListing"> | string | null
     cuisines?: StringNullableListFilter<"EflListing">
+    fsaEstablishmentId?: StringNullableWithAggregatesFilter<"EflListing"> | string | null
+    hygieneRating?: StringNullableWithAggregatesFilter<"EflListing"> | string | null
+    hygieneCheckedAt?: DateTimeNullableWithAggregatesFilter<"EflListing"> | Date | string | null
     approvedAt?: DateTimeNullableWithAggregatesFilter<"EflListing"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"EflListing"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"EflListing"> | Date | string
+  }
+
+  export type EflApplicationWhereInput = {
+    AND?: EflApplicationWhereInput | EflApplicationWhereInput[]
+    OR?: EflApplicationWhereInput[]
+    NOT?: EflApplicationWhereInput | EflApplicationWhereInput[]
+    id?: StringFilter<"EflApplication"> | string
+    status?: EnumEflApplicationStatusFilter<"EflApplication"> | $Enums.EflApplicationStatus
+    businessName?: StringFilter<"EflApplication"> | string
+    companyNumber?: StringNullableFilter<"EflApplication"> | string | null
+    cuisine?: StringNullableFilter<"EflApplication"> | string | null
+    addressLine1?: StringFilter<"EflApplication"> | string
+    city?: StringFilter<"EflApplication"> | string
+    postcode?: StringFilter<"EflApplication"> | string
+    firstName?: StringFilter<"EflApplication"> | string
+    lastName?: StringFilter<"EflApplication"> | string
+    phone?: StringFilter<"EflApplication"> | string
+    email?: StringFilter<"EflApplication"> | string
+    menuUrl?: StringNullableFilter<"EflApplication"> | string | null
+    hygieneUrl?: StringNullableFilter<"EflApplication"> | string | null
+    idDocPath?: StringNullableFilter<"EflApplication"> | string | null
+    bankDocPath?: StringNullableFilter<"EflApplication"> | string | null
+    checks?: JsonFilter<"EflApplication">
+    decisionNote?: StringNullableFilter<"EflApplication"> | string | null
+    decidedAt?: DateTimeNullableFilter<"EflApplication"> | Date | string | null
+    decidedBy?: StringNullableFilter<"EflApplication"> | string | null
+    createdAt?: DateTimeFilter<"EflApplication"> | Date | string
+    updatedAt?: DateTimeFilter<"EflApplication"> | Date | string
+  }
+
+  export type EflApplicationOrderByWithRelationInput = {
+    id?: SortOrder
+    status?: SortOrder
+    businessName?: SortOrder
+    companyNumber?: SortOrderInput | SortOrder
+    cuisine?: SortOrderInput | SortOrder
+    addressLine1?: SortOrder
+    city?: SortOrder
+    postcode?: SortOrder
+    firstName?: SortOrder
+    lastName?: SortOrder
+    phone?: SortOrder
+    email?: SortOrder
+    menuUrl?: SortOrderInput | SortOrder
+    hygieneUrl?: SortOrderInput | SortOrder
+    idDocPath?: SortOrderInput | SortOrder
+    bankDocPath?: SortOrderInput | SortOrder
+    checks?: SortOrder
+    decisionNote?: SortOrderInput | SortOrder
+    decidedAt?: SortOrderInput | SortOrder
+    decidedBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _relevance?: EflApplicationOrderByRelevanceInput
+  }
+
+  export type EflApplicationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: EflApplicationWhereInput | EflApplicationWhereInput[]
+    OR?: EflApplicationWhereInput[]
+    NOT?: EflApplicationWhereInput | EflApplicationWhereInput[]
+    status?: EnumEflApplicationStatusFilter<"EflApplication"> | $Enums.EflApplicationStatus
+    businessName?: StringFilter<"EflApplication"> | string
+    companyNumber?: StringNullableFilter<"EflApplication"> | string | null
+    cuisine?: StringNullableFilter<"EflApplication"> | string | null
+    addressLine1?: StringFilter<"EflApplication"> | string
+    city?: StringFilter<"EflApplication"> | string
+    postcode?: StringFilter<"EflApplication"> | string
+    firstName?: StringFilter<"EflApplication"> | string
+    lastName?: StringFilter<"EflApplication"> | string
+    phone?: StringFilter<"EflApplication"> | string
+    email?: StringFilter<"EflApplication"> | string
+    menuUrl?: StringNullableFilter<"EflApplication"> | string | null
+    hygieneUrl?: StringNullableFilter<"EflApplication"> | string | null
+    idDocPath?: StringNullableFilter<"EflApplication"> | string | null
+    bankDocPath?: StringNullableFilter<"EflApplication"> | string | null
+    checks?: JsonFilter<"EflApplication">
+    decisionNote?: StringNullableFilter<"EflApplication"> | string | null
+    decidedAt?: DateTimeNullableFilter<"EflApplication"> | Date | string | null
+    decidedBy?: StringNullableFilter<"EflApplication"> | string | null
+    createdAt?: DateTimeFilter<"EflApplication"> | Date | string
+    updatedAt?: DateTimeFilter<"EflApplication"> | Date | string
+  }, "id">
+
+  export type EflApplicationOrderByWithAggregationInput = {
+    id?: SortOrder
+    status?: SortOrder
+    businessName?: SortOrder
+    companyNumber?: SortOrderInput | SortOrder
+    cuisine?: SortOrderInput | SortOrder
+    addressLine1?: SortOrder
+    city?: SortOrder
+    postcode?: SortOrder
+    firstName?: SortOrder
+    lastName?: SortOrder
+    phone?: SortOrder
+    email?: SortOrder
+    menuUrl?: SortOrderInput | SortOrder
+    hygieneUrl?: SortOrderInput | SortOrder
+    idDocPath?: SortOrderInput | SortOrder
+    bankDocPath?: SortOrderInput | SortOrder
+    checks?: SortOrder
+    decisionNote?: SortOrderInput | SortOrder
+    decidedAt?: SortOrderInput | SortOrder
+    decidedBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: EflApplicationCountOrderByAggregateInput
+    _max?: EflApplicationMaxOrderByAggregateInput
+    _min?: EflApplicationMinOrderByAggregateInput
+  }
+
+  export type EflApplicationScalarWhereWithAggregatesInput = {
+    AND?: EflApplicationScalarWhereWithAggregatesInput | EflApplicationScalarWhereWithAggregatesInput[]
+    OR?: EflApplicationScalarWhereWithAggregatesInput[]
+    NOT?: EflApplicationScalarWhereWithAggregatesInput | EflApplicationScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"EflApplication"> | string
+    status?: EnumEflApplicationStatusWithAggregatesFilter<"EflApplication"> | $Enums.EflApplicationStatus
+    businessName?: StringWithAggregatesFilter<"EflApplication"> | string
+    companyNumber?: StringNullableWithAggregatesFilter<"EflApplication"> | string | null
+    cuisine?: StringNullableWithAggregatesFilter<"EflApplication"> | string | null
+    addressLine1?: StringWithAggregatesFilter<"EflApplication"> | string
+    city?: StringWithAggregatesFilter<"EflApplication"> | string
+    postcode?: StringWithAggregatesFilter<"EflApplication"> | string
+    firstName?: StringWithAggregatesFilter<"EflApplication"> | string
+    lastName?: StringWithAggregatesFilter<"EflApplication"> | string
+    phone?: StringWithAggregatesFilter<"EflApplication"> | string
+    email?: StringWithAggregatesFilter<"EflApplication"> | string
+    menuUrl?: StringNullableWithAggregatesFilter<"EflApplication"> | string | null
+    hygieneUrl?: StringNullableWithAggregatesFilter<"EflApplication"> | string | null
+    idDocPath?: StringNullableWithAggregatesFilter<"EflApplication"> | string | null
+    bankDocPath?: StringNullableWithAggregatesFilter<"EflApplication"> | string | null
+    checks?: JsonWithAggregatesFilter<"EflApplication">
+    decisionNote?: StringNullableWithAggregatesFilter<"EflApplication"> | string | null
+    decidedAt?: DateTimeNullableWithAggregatesFilter<"EflApplication"> | Date | string | null
+    decidedBy?: StringNullableWithAggregatesFilter<"EflApplication"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"EflApplication"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"EflApplication"> | Date | string
   }
 
   export type EflConfigWhereInput = {
@@ -240452,6 +241902,9 @@ export namespace Prisma {
     heroImageUrl?: string | null
     logoUrl?: string | null
     cuisines?: EflListingCreatecuisinesInput | string[]
+    fsaEstablishmentId?: string | null
+    hygieneRating?: string | null
+    hygieneCheckedAt?: Date | string | null
     approvedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -240473,6 +241926,9 @@ export namespace Prisma {
     heroImageUrl?: string | null
     logoUrl?: string | null
     cuisines?: EflListingCreatecuisinesInput | string[]
+    fsaEstablishmentId?: string | null
+    hygieneRating?: string | null
+    hygieneCheckedAt?: Date | string | null
     approvedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -240492,6 +241948,9 @@ export namespace Prisma {
     heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     cuisines?: EflListingUpdatecuisinesInput | string[]
+    fsaEstablishmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    hygieneRating?: NullableStringFieldUpdateOperationsInput | string | null
+    hygieneCheckedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -240513,6 +241972,9 @@ export namespace Prisma {
     heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     cuisines?: EflListingUpdatecuisinesInput | string[]
+    fsaEstablishmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    hygieneRating?: NullableStringFieldUpdateOperationsInput | string | null
+    hygieneCheckedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -240533,6 +241995,9 @@ export namespace Prisma {
     heroImageUrl?: string | null
     logoUrl?: string | null
     cuisines?: EflListingCreatecuisinesInput | string[]
+    fsaEstablishmentId?: string | null
+    hygieneRating?: string | null
+    hygieneCheckedAt?: Date | string | null
     approvedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -240552,6 +242017,9 @@ export namespace Prisma {
     heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     cuisines?: EflListingUpdatecuisinesInput | string[]
+    fsaEstablishmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    hygieneRating?: NullableStringFieldUpdateOperationsInput | string | null
+    hygieneCheckedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -240572,7 +242040,185 @@ export namespace Prisma {
     heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     cuisines?: EflListingUpdatecuisinesInput | string[]
+    fsaEstablishmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    hygieneRating?: NullableStringFieldUpdateOperationsInput | string | null
+    hygieneCheckedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflApplicationCreateInput = {
+    id?: string
+    status?: $Enums.EflApplicationStatus
+    businessName: string
+    companyNumber?: string | null
+    cuisine?: string | null
+    addressLine1: string
+    city: string
+    postcode: string
+    firstName: string
+    lastName: string
+    phone: string
+    email: string
+    menuUrl?: string | null
+    hygieneUrl?: string | null
+    idDocPath?: string | null
+    bankDocPath?: string | null
+    checks?: JsonNullValueInput | InputJsonValue
+    decisionNote?: string | null
+    decidedAt?: Date | string | null
+    decidedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EflApplicationUncheckedCreateInput = {
+    id?: string
+    status?: $Enums.EflApplicationStatus
+    businessName: string
+    companyNumber?: string | null
+    cuisine?: string | null
+    addressLine1: string
+    city: string
+    postcode: string
+    firstName: string
+    lastName: string
+    phone: string
+    email: string
+    menuUrl?: string | null
+    hygieneUrl?: string | null
+    idDocPath?: string | null
+    bankDocPath?: string | null
+    checks?: JsonNullValueInput | InputJsonValue
+    decisionNote?: string | null
+    decidedAt?: Date | string | null
+    decidedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EflApplicationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumEflApplicationStatusFieldUpdateOperationsInput | $Enums.EflApplicationStatus
+    businessName?: StringFieldUpdateOperationsInput | string
+    companyNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    postcode?: StringFieldUpdateOperationsInput | string
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    menuUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    hygieneUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    idDocPath?: NullableStringFieldUpdateOperationsInput | string | null
+    bankDocPath?: NullableStringFieldUpdateOperationsInput | string | null
+    checks?: JsonNullValueInput | InputJsonValue
+    decisionNote?: NullableStringFieldUpdateOperationsInput | string | null
+    decidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    decidedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflApplicationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumEflApplicationStatusFieldUpdateOperationsInput | $Enums.EflApplicationStatus
+    businessName?: StringFieldUpdateOperationsInput | string
+    companyNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    postcode?: StringFieldUpdateOperationsInput | string
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    menuUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    hygieneUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    idDocPath?: NullableStringFieldUpdateOperationsInput | string | null
+    bankDocPath?: NullableStringFieldUpdateOperationsInput | string | null
+    checks?: JsonNullValueInput | InputJsonValue
+    decisionNote?: NullableStringFieldUpdateOperationsInput | string | null
+    decidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    decidedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflApplicationCreateManyInput = {
+    id?: string
+    status?: $Enums.EflApplicationStatus
+    businessName: string
+    companyNumber?: string | null
+    cuisine?: string | null
+    addressLine1: string
+    city: string
+    postcode: string
+    firstName: string
+    lastName: string
+    phone: string
+    email: string
+    menuUrl?: string | null
+    hygieneUrl?: string | null
+    idDocPath?: string | null
+    bankDocPath?: string | null
+    checks?: JsonNullValueInput | InputJsonValue
+    decisionNote?: string | null
+    decidedAt?: Date | string | null
+    decidedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EflApplicationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumEflApplicationStatusFieldUpdateOperationsInput | $Enums.EflApplicationStatus
+    businessName?: StringFieldUpdateOperationsInput | string
+    companyNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    postcode?: StringFieldUpdateOperationsInput | string
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    menuUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    hygieneUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    idDocPath?: NullableStringFieldUpdateOperationsInput | string | null
+    bankDocPath?: NullableStringFieldUpdateOperationsInput | string | null
+    checks?: JsonNullValueInput | InputJsonValue
+    decisionNote?: NullableStringFieldUpdateOperationsInput | string | null
+    decidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    decidedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflApplicationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumEflApplicationStatusFieldUpdateOperationsInput | $Enums.EflApplicationStatus
+    businessName?: StringFieldUpdateOperationsInput | string
+    companyNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisine?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    postcode?: StringFieldUpdateOperationsInput | string
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    menuUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    hygieneUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    idDocPath?: NullableStringFieldUpdateOperationsInput | string | null
+    bankDocPath?: NullableStringFieldUpdateOperationsInput | string | null
+    checks?: JsonNullValueInput | InputJsonValue
+    decisionNote?: NullableStringFieldUpdateOperationsInput | string | null
+    decidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    decidedBy?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -256756,6 +258402,9 @@ export namespace Prisma {
     heroImageUrl?: SortOrder
     logoUrl?: SortOrder
     cuisines?: SortOrder
+    fsaEstablishmentId?: SortOrder
+    hygieneRating?: SortOrder
+    hygieneCheckedAt?: SortOrder
     approvedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -256779,6 +258428,9 @@ export namespace Prisma {
     description?: SortOrder
     heroImageUrl?: SortOrder
     logoUrl?: SortOrder
+    fsaEstablishmentId?: SortOrder
+    hygieneRating?: SortOrder
+    hygieneCheckedAt?: SortOrder
     approvedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -256798,6 +258450,9 @@ export namespace Prisma {
     description?: SortOrder
     heroImageUrl?: SortOrder
     logoUrl?: SortOrder
+    fsaEstablishmentId?: SortOrder
+    hygieneRating?: SortOrder
+    hygieneCheckedAt?: SortOrder
     approvedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -256825,6 +258480,102 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumEflDeliveryModeFilter<$PrismaModel>
     _max?: NestedEnumEflDeliveryModeFilter<$PrismaModel>
+  }
+
+  export type EnumEflApplicationStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.EflApplicationStatus | EnumEflApplicationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.EflApplicationStatus[] | ListEnumEflApplicationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.EflApplicationStatus[] | ListEnumEflApplicationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumEflApplicationStatusFilter<$PrismaModel> | $Enums.EflApplicationStatus
+  }
+
+  export type EflApplicationOrderByRelevanceInput = {
+    fields: EflApplicationOrderByRelevanceFieldEnum | EflApplicationOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type EflApplicationCountOrderByAggregateInput = {
+    id?: SortOrder
+    status?: SortOrder
+    businessName?: SortOrder
+    companyNumber?: SortOrder
+    cuisine?: SortOrder
+    addressLine1?: SortOrder
+    city?: SortOrder
+    postcode?: SortOrder
+    firstName?: SortOrder
+    lastName?: SortOrder
+    phone?: SortOrder
+    email?: SortOrder
+    menuUrl?: SortOrder
+    hygieneUrl?: SortOrder
+    idDocPath?: SortOrder
+    bankDocPath?: SortOrder
+    checks?: SortOrder
+    decisionNote?: SortOrder
+    decidedAt?: SortOrder
+    decidedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EflApplicationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    status?: SortOrder
+    businessName?: SortOrder
+    companyNumber?: SortOrder
+    cuisine?: SortOrder
+    addressLine1?: SortOrder
+    city?: SortOrder
+    postcode?: SortOrder
+    firstName?: SortOrder
+    lastName?: SortOrder
+    phone?: SortOrder
+    email?: SortOrder
+    menuUrl?: SortOrder
+    hygieneUrl?: SortOrder
+    idDocPath?: SortOrder
+    bankDocPath?: SortOrder
+    decisionNote?: SortOrder
+    decidedAt?: SortOrder
+    decidedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EflApplicationMinOrderByAggregateInput = {
+    id?: SortOrder
+    status?: SortOrder
+    businessName?: SortOrder
+    companyNumber?: SortOrder
+    cuisine?: SortOrder
+    addressLine1?: SortOrder
+    city?: SortOrder
+    postcode?: SortOrder
+    firstName?: SortOrder
+    lastName?: SortOrder
+    phone?: SortOrder
+    email?: SortOrder
+    menuUrl?: SortOrder
+    hygieneUrl?: SortOrder
+    idDocPath?: SortOrder
+    bankDocPath?: SortOrder
+    decisionNote?: SortOrder
+    decidedAt?: SortOrder
+    decidedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EnumEflApplicationStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.EflApplicationStatus | EnumEflApplicationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.EflApplicationStatus[] | ListEnumEflApplicationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.EflApplicationStatus[] | ListEnumEflApplicationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumEflApplicationStatusWithAggregatesFilter<$PrismaModel> | $Enums.EflApplicationStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumEflApplicationStatusFilter<$PrismaModel>
+    _max?: NestedEnumEflApplicationStatusFilter<$PrismaModel>
   }
 
   export type EflConfigOrderByRelevanceInput = {
@@ -269535,6 +271286,10 @@ export namespace Prisma {
     update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutEflListingInput, LocationUpdateWithoutEflListingInput>, LocationUncheckedUpdateWithoutEflListingInput>
   }
 
+  export type EnumEflApplicationStatusFieldUpdateOperationsInput = {
+    set?: $Enums.EflApplicationStatus
+  }
+
   export type EnumVideoCreditReasonFieldUpdateOperationsInput = {
     set?: $Enums.VideoCreditReason
   }
@@ -272066,6 +273821,23 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumEflDeliveryModeFilter<$PrismaModel>
     _max?: NestedEnumEflDeliveryModeFilter<$PrismaModel>
+  }
+
+  export type NestedEnumEflApplicationStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.EflApplicationStatus | EnumEflApplicationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.EflApplicationStatus[] | ListEnumEflApplicationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.EflApplicationStatus[] | ListEnumEflApplicationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumEflApplicationStatusFilter<$PrismaModel> | $Enums.EflApplicationStatus
+  }
+
+  export type NestedEnumEflApplicationStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.EflApplicationStatus | EnumEflApplicationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.EflApplicationStatus[] | ListEnumEflApplicationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.EflApplicationStatus[] | ListEnumEflApplicationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumEflApplicationStatusWithAggregatesFilter<$PrismaModel> | $Enums.EflApplicationStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumEflApplicationStatusFilter<$PrismaModel>
+    _max?: NestedEnumEflApplicationStatusFilter<$PrismaModel>
   }
 
   export type NestedEnumVideoCreditReasonFilter<$PrismaModel = never> = {
@@ -281485,6 +283257,9 @@ export namespace Prisma {
     heroImageUrl?: string | null
     logoUrl?: string | null
     cuisines?: EflListingCreatecuisinesInput | string[]
+    fsaEstablishmentId?: string | null
+    hygieneRating?: string | null
+    hygieneCheckedAt?: Date | string | null
     approvedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -281504,6 +283279,9 @@ export namespace Prisma {
     heroImageUrl?: string | null
     logoUrl?: string | null
     cuisines?: EflListingCreatecuisinesInput | string[]
+    fsaEstablishmentId?: string | null
+    hygieneRating?: string | null
+    hygieneCheckedAt?: Date | string | null
     approvedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -283044,6 +284822,9 @@ export namespace Prisma {
     heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     cuisines?: EflListingUpdatecuisinesInput | string[]
+    fsaEstablishmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    hygieneRating?: NullableStringFieldUpdateOperationsInput | string | null
+    hygieneCheckedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -283063,6 +284844,9 @@ export namespace Prisma {
     heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     cuisines?: EflListingUpdatecuisinesInput | string[]
+    fsaEstablishmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    hygieneRating?: NullableStringFieldUpdateOperationsInput | string | null
+    hygieneCheckedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -337521,6 +339305,10 @@ export namespace Prisma {
      * @deprecated Use EflListingDefaultArgs instead
      */
     export type EflListingArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = EflListingDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use EflApplicationDefaultArgs instead
+     */
+    export type EflApplicationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = EflApplicationDefaultArgs<ExtArgs>
     /**
      * @deprecated Use EflConfigDefaultArgs instead
      */

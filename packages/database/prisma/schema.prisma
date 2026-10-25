@@ -4548,12 +4548,65 @@ model EflListing {
   logoUrl      String?
   cuisines     String[] @default([])
 
+  /// The shop's record on the Food Standards Agency ratings site, checked
+  /// every night. Null = not matched yet, so not checked.
+  fsaEstablishmentId String?
+  /// What the FSA last said: "0"–"5", "Pass", "Improvement Required", …
+  hygieneRating      String?
+  hygieneCheckedAt   DateTime?
+
   approvedAt DateTime?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
   @@index([status, listed])
   @@map("efl_listings")
+}
+
+/// Where a "Partner with Eat For Less" application stands.
+enum EflApplicationStatus {
+  NEW
+  WAITING_INFO
+  APPROVED
+  DECLINED
+}
+
+/// A shop asking to join Eat For Less, from the public partner form.
+///
+/// The ID and bank documents are paths in the PRIVATE storage bucket, never
+/// public URLs; the Console reads them through short-lived signed links.
+model EflApplication {
+  id     String               @id @default(cuid())
+  status EflApplicationStatus @default(NEW)
+
+  businessName  String
+  companyNumber String?
+  cuisine       String?
+  addressLine1  String
+  city          String
+  postcode      String
+  firstName     String
+  lastName      String
+  phone         String
+  email         String
+  menuUrl       String?
+  hygieneUrl    String?
+
+  idDocPath   String?
+  bankDocPath String?
+
+  /// What the automatic checks found: { companiesHouse, hygiene }.
+  checks Json @default("{}")
+
+  decisionNote String?
+  decidedAt    DateTime?
+  decidedBy    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@map("efl_applications")
 }
 
 /// Eat For Less platform settings. One row, id "default".

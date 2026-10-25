@@ -184,7 +184,7 @@ export function EflListingPanel({
             maxLength={400}
             value={(value("description") as string) ?? ""}
             onChange={(e) => set({ description: e.target.value || null })}
-            placeholder="Stone-baked pizza and kebabs, made to order in Westerhope."
+            placeholder="Stone-baked pizza and kebabs, made to order."
             className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900/10"
           />
         </Field>

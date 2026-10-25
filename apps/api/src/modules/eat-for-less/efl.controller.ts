@@ -4,6 +4,7 @@ import { Throttle } from "@nestjs/throttler";
 import {
   ArrayMaxSize,
   IsArray,
+  IsEmail,
   IsBoolean,
   IsIn,
   IsInt,
@@ -21,6 +22,9 @@ import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface
 import { CurrentCustomer, CustomerJwtGuard } from "../customer-auth/customer.decorator";
 import type { CheckoutDto } from "../ordering/ordering.service";
 import { EflService } from "./efl.service";
+import { EflApplicationsService } from "./efl-applications.service";
+import { EflHygieneService } from "./efl-hygiene.service";
+
 
 class StartPhoneDto {
   @IsString() @MaxLength(32) phone!: string;
@@ -62,6 +66,33 @@ class UpdateConfigDto {
   @IsOptional() @IsInt() @Min(0) @Max(5) minHygieneRating?: number;
 }
 
+class ApplicationDto {
+  @IsString() @MaxLength(120) businessName!: string;
+  @IsOptional() @IsString() @MaxLength(12) companyNumber?: string;
+  @IsOptional() @IsString() @MaxLength(40) cuisine?: string;
+  @IsString() @MaxLength(160) addressLine1!: string;
+  @IsString() @MaxLength(80) city!: string;
+  @IsString() @MaxLength(12) postcode!: string;
+  @IsString() @MaxLength(60) firstName!: string;
+  @IsString() @MaxLength(60) lastName!: string;
+  @IsString() @MaxLength(32) phone!: string;
+  @IsEmail() @MaxLength(160) email!: string;
+  @IsOptional() @IsString() @MaxLength(500) menuUrl?: string;
+  @IsOptional() @IsString() @MaxLength(500) hygieneUrl?: string;
+  // data: URLs; size is checked after decoding.
+  @IsOptional() @IsString() @MaxLength(5_000_000) idDocument?: string;
+  @IsOptional() @IsString() @MaxLength(5_000_000) bankStatement?: string;
+}
+
+class DecideApplicationDto {
+  @IsIn(["APPROVED", "DECLINED", "WAITING_INFO"]) status!: "APPROVED" | "DECLINED" | "WAITING_INFO";
+  @IsOptional() @IsString() @MaxLength(1000) note?: string;
+}
+
+class LinkHygieneDto {
+  @IsOptional() @IsString() @MaxLength(500) url?: string;
+}
+
 // Roles that may change a shop's own listing — the same people who can edit
 // the location's settings.
 const LISTING_WRITE = ["PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "MANAGER", "DARK_KITCHEN_MANAGER"] as const;
@@ -70,7 +101,10 @@ const LISTING_WRITE = ["PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "MANAGER", "DA
 @ApiTags("eat-for-less")
 @Controller({ path: "efl", version: "1" })
 export class EflAppController {
-  constructor(private readonly efl: EflService) {}
+  constructor(
+    private readonly efl: EflService,
+    private readonly applications: EflApplicationsService,
+  ) {}
 
   @Public()
   @Get("shops")
@@ -98,6 +132,14 @@ export class EflAppController {
     @Body() dto: CheckoutDto,
   ) {
     return this.efl.checkout(customer, listingId, dto);
+  }
+
+  @Public()
+  @Post("applications")
+  @Throttle({ short: { limit: 2, ttl: 60000 }, medium: { limit: 5, ttl: 3600000 } })
+  @ApiOperation({ summary: "Partner with Eat For Less: a shop applies to join" })
+  apply(@Body() dto: ApplicationDto) {
+    return this.applications.submit(dto);
   }
 
   @Public()
@@ -169,7 +211,51 @@ export class EflListingController {
 @Roles("PLATFORM_ADMIN")
 @Controller({ path: "admin/efl", version: "1" })
 export class EflAdminController {
-  constructor(private readonly efl: EflService) {}
+  constructor(
+    private readonly efl: EflService,
+    private readonly applications: EflApplicationsService,
+    private readonly hygiene: EflHygieneService,
+  ) {}
+
+  @Get("applications")
+  listApplications() {
+    return this.applications.list();
+  }
+
+  @Get("applications/:id")
+  getApplication(@Param("id") id: string) {
+    return this.applications.get(id);
+  }
+
+  @Post("applications/:id/recheck")
+  recheckApplication(@Param("id") id: string) {
+    return this.applications.runChecks(id);
+  }
+
+  @Patch("applications/:id")
+  decideApplication(
+    @Param("id") id: string,
+    @Body() dto: DecideApplicationDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.applications.decide(id, dto, user.userId);
+  }
+
+  @Get("hygiene")
+  hygieneList() {
+    return this.hygiene.list();
+  }
+
+  @Post("hygiene/check-now")
+  hygieneCheckNow() {
+    return this.hygiene.checkAll();
+  }
+
+  @Post("hygiene/:listingId/link")
+  @ApiOperation({ summary: "Link a listing to its FSA record (by link, or found by name and postcode)" })
+  hygieneLink(@Param("listingId") listingId: string, @Body() dto: LinkHygieneDto) {
+    return this.hygiene.link(listingId, dto.url);
+  }
 
   @Get("summary")
   summary() {

@@ -14,7 +14,9 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  Optional,
 } from "@nestjs/common";
+import { usesTap } from "@orderhub/shared";
 import { createHash, randomInt, timingSafeEqual } from "crypto";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { OrderingService, type CheckoutDto } from "../ordering/ordering.service";
@@ -23,6 +25,8 @@ import { PauseService } from "../pauses/pause.service";
 import { isCurrentlyOpen } from "../../common/opening-hours.util";
 import { defaultSmsFrom, isSmsConfigured, sendSmsViaProvider } from "../sms/sms-provider";
 import { toE164 } from "../sms/phone";
+import { PaymentsService } from "../payments/payments.service";
+import { MollieService } from "../payments/mollie/mollie.service";
 import {
   EFL_SEARCH_RADIUS_MILES,
   commissionPercentFor,
@@ -98,6 +102,10 @@ export class EflService {
     private readonly ordering: OrderingService,
     private readonly deliveryZones: DeliveryZonesService,
     private readonly pauses: PauseService,
+    // Approval checks the shop can actually be paid through Stripe. Optional
+    // so the unit tests' positional constructors keep working.
+    @Optional() private readonly payments?: PaymentsService,
+    @Optional() private readonly mollie?: MollieService,
   ) {}
 
   // ── Settings ───────────────────────────────────────────────────────────
@@ -510,6 +518,7 @@ export class EflService {
     if (input.commissionPercent != null && (input.commissionPercent < 0 || input.commissionPercent > 40)) {
       throw new BadRequestException("Commission must be between 0% and 40%.");
     }
+    if (input.status === "APPROVED") await this.assertPayableThroughStripe(existing);
     await this.prisma.eflListing.update({
       where: { id },
       data: {
@@ -571,6 +580,33 @@ export class EflService {
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────
+
+  /**
+   * Our commission is taken as Stripe's application fee on the shop's own
+   * Stripe account. A shop paid through Tap or Mollie would be charged with
+   * no commission at all, and one with no Stripe account can't be paid — so
+   * neither is approved until that changes.
+   */
+  private async assertPayableThroughStripe(listing: { locationId: string; brandId: string | null }) {
+    const location = await this.prisma.location.findUnique({
+      where: { id: listing.locationId },
+      select: { id: true, country: true, brandId: true, brand: { select: { tenantId: true } } },
+    });
+    if (!location) throw new NotFoundException("Location not found");
+    const brandId = listing.brandId ?? location.brandId;
+    if (usesTap(location.country)) {
+      throw new BadRequestException("This shop takes cards through Tap. Eat For Less needs Stripe — it can't be approved yet.");
+    }
+    if (await this.mollie?.activeConnectionForBrand(brandId)) {
+      throw new BadRequestException("This brand takes cards through Mollie. Eat For Less needs Stripe — it can't be approved yet.");
+    }
+    if (this.payments && location.brand?.tenantId) {
+      const connect = await this.payments.resolveConnectAccount(location.brand.tenantId, location.id, brandId);
+      if (!connect) {
+        throw new BadRequestException("This shop hasn't connected Stripe yet, so it couldn't be paid. Ask it to connect Stripe first.");
+      }
+    }
+  }
 
   /** A listing a customer may order from, or a 404 that doesn't say why. */
   private async liveListing(listingId: string) {

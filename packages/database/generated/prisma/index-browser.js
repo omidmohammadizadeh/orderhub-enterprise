@@ -2180,7 +2180,35 @@ exports.Prisma.EflListingScalarFieldEnum = {
   heroImageUrl: 'heroImageUrl',
   logoUrl: 'logoUrl',
   cuisines: 'cuisines',
+  fsaEstablishmentId: 'fsaEstablishmentId',
+  hygieneRating: 'hygieneRating',
+  hygieneCheckedAt: 'hygieneCheckedAt',
   approvedAt: 'approvedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.EflApplicationScalarFieldEnum = {
+  id: 'id',
+  status: 'status',
+  businessName: 'businessName',
+  companyNumber: 'companyNumber',
+  cuisine: 'cuisine',
+  addressLine1: 'addressLine1',
+  city: 'city',
+  postcode: 'postcode',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  phone: 'phone',
+  email: 'email',
+  menuUrl: 'menuUrl',
+  hygieneUrl: 'hygieneUrl',
+  idDocPath: 'idDocPath',
+  bankDocPath: 'bankDocPath',
+  checks: 'checks',
+  decisionNote: 'decisionNote',
+  decidedAt: 'decidedAt',
+  decidedBy: 'decidedBy',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -4319,7 +4347,29 @@ exports.Prisma.EflListingOrderByRelevanceFieldEnum = {
   description: 'description',
   heroImageUrl: 'heroImageUrl',
   logoUrl: 'logoUrl',
-  cuisines: 'cuisines'
+  cuisines: 'cuisines',
+  fsaEstablishmentId: 'fsaEstablishmentId',
+  hygieneRating: 'hygieneRating'
+};
+
+exports.Prisma.EflApplicationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  businessName: 'businessName',
+  companyNumber: 'companyNumber',
+  cuisine: 'cuisine',
+  addressLine1: 'addressLine1',
+  city: 'city',
+  postcode: 'postcode',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  phone: 'phone',
+  email: 'email',
+  menuUrl: 'menuUrl',
+  hygieneUrl: 'hygieneUrl',
+  idDocPath: 'idDocPath',
+  bankDocPath: 'bankDocPath',
+  decisionNote: 'decisionNote',
+  decidedBy: 'decidedBy'
 };
 
 exports.Prisma.EflConfigOrderByRelevanceFieldEnum = {
@@ -5359,6 +5409,13 @@ exports.EflDeliveryMode = exports.$Enums.EflDeliveryMode = {
   OWN_THEN_COURIER: 'OWN_THEN_COURIER'
 };
 
+exports.EflApplicationStatus = exports.$Enums.EflApplicationStatus = {
+  NEW: 'NEW',
+  WAITING_INFO: 'WAITING_INFO',
+  APPROVED: 'APPROVED',
+  DECLINED: 'DECLINED'
+};
+
 exports.VideoCreditReason = exports.$Enums.VideoCreditReason = {
   GRANT: 'GRANT',
   TOPUP: 'TOPUP',
@@ -5494,6 +5551,7 @@ exports.Prisma.ModelName = {
   SystemSecret: 'SystemSecret',
   OutboxEvent: 'OutboxEvent',
   EflListing: 'EflListing',
+  EflApplication: 'EflApplication',
   EflConfig: 'EflConfig',
   EflPhoneVerification: 'EflPhoneVerification',
   VideoStudioAccount: 'VideoStudioAccount',

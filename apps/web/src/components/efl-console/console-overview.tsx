@@ -14,11 +14,13 @@ export function ConsoleOverview() {
     refetchInterval: 30_000,
   });
   const listings = useQuery({ queryKey: ["efl-admin", "listings"], queryFn: eflAdminClient.listings });
+  const applications = useQuery({ queryKey: ["efl-admin", "applications"], queryFn: eflAdminClient.applications });
 
   const s = summary.data;
   const waiting = (listings.data ?? []).filter((l) => l.listed && l.status === "PENDING");
   const hidden = (listings.data ?? []).filter((l) => l.hiddenReason || l.status === "SUSPENDED");
   const offMap = (listings.data ?? []).filter((l) => l.listed && !l.placedOnMap);
+  const newApplications = (applications.data ?? []).filter((a) => a.status === "NEW");
 
   return (
     <>
@@ -48,12 +50,20 @@ export function ConsoleOverview() {
         </h2>
         {listings.isLoading ? (
           <p className="mt-3 text-sm text-zinc-500">Loading…</p>
-        ) : waiting.length + hidden.length + offMap.length === 0 ? (
+        ) : newApplications.length + waiting.length + hidden.length + offMap.length === 0 ? (
           <p className="mt-3 rounded-xl border border-dashed border-zinc-300 p-5 text-center text-sm text-zinc-500">
             Nothing waiting. Every listed shop is approved and visible.
           </p>
         ) : (
           <ul className="mt-3 flex flex-col gap-2">
+            {newApplications.length > 0 && (
+              <Attention
+                title={`${newApplications.length} new shop ${newApplications.length === 1 ? "application" : "applications"}`}
+                detail={newApplications.slice(0, 3).map((a) => a.businessName).join(", ")}
+                href="/efl-console/applications"
+                action="Review"
+              />
+            )}
             {waiting.map((l) => (
               <Attention
                 key={`w-${l.id}`}

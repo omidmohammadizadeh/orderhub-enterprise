@@ -15,8 +15,8 @@ import { useAuthStore } from "@/stores/auth.store";
 const NAV: Array<{ href: string; label: string; soon?: boolean }> = [
   { href: "/efl-console", label: "Overview" },
   { href: "/efl-console/shops", label: "Shops" },
-  { href: "#applications", label: "Applications", soon: true },
-  { href: "#hygiene", label: "Food hygiene", soon: true },
+  { href: "/efl-console/applications", label: "Applications" },
+  { href: "/efl-console/hygiene", label: "Food hygiene" },
   { href: "#couriers", label: "Couriers", soon: true },
   { href: "#customers", label: "Customers", soon: true },
   { href: "#campaigns", label: "Push & email", soon: true },
