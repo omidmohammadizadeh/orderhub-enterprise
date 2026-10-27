@@ -12,6 +12,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { PlatformLogo } from "@/components/ui/platform-logo";
+import { EflAdsSection } from "@/components/locations/efl-ads-section";
+import { EflStatementsSection } from "@/components/locations/efl-statements-section";
 import {
   EFL_CUISINES,
   eflClient,
@@ -57,12 +59,20 @@ export function EflListingPanel({
   const listing = query.data;
 
   const [draft, setDraft] = useState<EflShopListingUpdate>({});
-  useEffect(() => setDraft({}), [listing]);
+  // Reset on a new shop; after a save, drop only the keys that were saved —
+  // the statements section also writes the listing, and its refetch mustn't
+  // throw away settings the owner is still editing here.
+  useEffect(() => setDraft({}), [locationId]);
 
   const save = useMutation({
     mutationFn: (patch: EflShopListingUpdate) => eflClient.updateListing(locationId, patch),
-    onSuccess: (next) => {
+    onSuccess: (next, patch) => {
       qc.setQueryData(eflListingQueryKey(locationId), next);
+      setDraft((d) => {
+        const rest = { ...d };
+        for (const k of Object.keys(patch)) delete rest[k as keyof EflShopListingUpdate];
+        return rest;
+      });
       toast.success("Eat For Less listing saved");
     },
     onError: (err: any) => toast.error(err?.response?.data?.message ?? "Couldn't save the listing"),
@@ -263,6 +273,13 @@ export function EflListingPanel({
           </button>
         </div>
       </div>
+
+      {listing.exists && (
+        <>
+          <EflAdsSection locationId={locationId} />
+          <EflStatementsSection locationId={locationId} listing={listing} />
+        </>
+      )}
     </li>
   );
 }
