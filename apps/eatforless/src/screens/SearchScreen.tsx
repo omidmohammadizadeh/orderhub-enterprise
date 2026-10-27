@@ -13,7 +13,7 @@ import { CUISINES, CuisineIcon } from "@/components/CuisineIcon";
 import { Icon } from "@/components/Icon";
 import { Photo } from "@/components/Photo";
 import { PressScale } from "@/components/PressScale";
-import { etaText, feeText, joinDot, kindOf } from "@/components/ShopCards";
+import { SponsoredTag, etaText, feeText, joinDot, kindOf, openShop } from "@/components/ShopCards";
 import { T } from "@/components/T";
 import { fadeUp, stagger } from "@/lib/motion";
 import type { RootScreen } from "@/navigation/types";
@@ -95,10 +95,13 @@ export function SearchScreen({ navigation }: RootScreen<"Search">) {
         }
         renderItem={({ item, index }) => (
           <Animated.View entering={fadeUp(stagger(index, 40, 0), 10, 400)}>
-            <PressScale onPress={() => open(item)} style={styles.row} scaleTo={0.98}>
+            <PressScale onPress={() => openShop(item, open)} style={styles.row} scaleTo={0.98}>
               <Photo uri={item.heroImageUrl} kind={kindOf(item)} radius={14} style={{ width: 64, height: 64 }} />
               <View style={{ flex: 1, gap: 2 }}>
-                <T v="item">{item.name}</T>
+                <View style={styles.nameRow}>
+                  <T v="item" style={{ flexShrink: 1 }} numberOfLines={1}>{item.name}</T>
+                  <SponsoredTag shop={item} />
+                </View>
                 <T v="sub">{[item.area, item.cuisines.slice(0, 2).join(", ")].filter(Boolean).join(" · ")}</T>
                 <T v="sub">{joinDot(feeText(item), etaText(item), !item.isOpen && "Closed")}</T>
               </View>
@@ -119,5 +122,6 @@ const styles = StyleSheet.create({
   cuisines: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   cuisine: { flexDirection: "row", alignItems: "center", gap: 6, paddingLeft: 6, paddingRight: 12, height: 44, borderRadius: 22, backgroundColor: C.grey100 },
   cuisineText: { fontFamily: F.semibold, fontSize: 14, color: C.ink },
+  nameRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   row: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 10 },
 });

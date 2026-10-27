@@ -20,6 +20,7 @@ const photo = (name: string) =>
 export const mockShops: Shop[] = [
   {
     id: "mock-pizza-pizza",
+    sponsored: { token: "mock-ad-token-pizza-pizza" },
     deal: "Buy 1, get 1",
     rating: { value: 4.7, count: 320 },
     name: "Pizza Pizza",

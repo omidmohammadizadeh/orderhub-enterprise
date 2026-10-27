@@ -30,6 +30,10 @@ export type Shop = {
   /** NOT SENT BY THE API YET (gap): a headline offer. Only the dev sample
    *  data fills it; cards hide it when absent. */
   deal?: string | null;
+  /** Set when this listing is a paid placement (the API sends at most 2,
+   *  first in the list). Must be labelled "Sponsored" wherever it shows; the
+   *  token goes back to POST efl/ads/tap when it's tapped. */
+  sponsored?: { token: string } | null;
 };
 
 export type ModifierOption = {

@@ -33,6 +33,16 @@ export function getShops(point: { lat: number; lng: number; postcode?: string })
   return request("GET", `/v1/efl/shops?${q}`, undefined, { auth: false });
 }
 
+/** A tap on a sponsored shop. Fire-and-forget: never rejects, and a failure
+ *  must never stand between the customer and the shop. */
+export function adTap(token: string): Promise<void> {
+  if (MOCK) return Promise.resolve();
+  return request<unknown>("POST", "/v1/efl/ads/tap", { token }, { auth: false, timeoutMs: 15_000 }).then(
+    () => undefined,
+    () => undefined,
+  );
+}
+
 export function getShopMenu(listingId: string): Promise<ShopMenu> {
   if (MOCK) return mock.getShopMenu(listingId);
   return request("GET", `/v1/efl/shops/${encodeURIComponent(listingId)}/menu`, undefined, { auth: false });

@@ -1,9 +1,11 @@
 // One fetch wrapper for every call. Adds the customer token, turns the API's
 // `{ message }` errors into an ApiError a screen can show as-is (the server
 // already words them for customers), and times out instead of hanging —
-// Render's free-tier cold start can take a while, but not forever.
+// Render's free-tier cold start can take a while, but not forever. Every call,
+// signed in or not, carries the anonymous install id (x-efl-viewer).
 
 import { API_URL } from "@/config";
+import { viewerId } from "@/lib/viewer";
 
 export class ApiError extends Error {
   constructor(
@@ -35,11 +37,13 @@ export async function request<T>(
   const timer = setTimeout(() => controller.abort(), opts.timeoutMs ?? 45_000);
   const token = tokenProvider();
   try {
+    const viewer = await viewerId();
     const res = await fetch(`${API_URL}${path}`, {
       method,
       signal: controller.signal,
       headers: {
         Accept: "application/json",
+        "x-efl-viewer": viewer,
         ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
         ...(token && opts.auth !== false ? { Authorization: `Bearer ${token}` } : {}),
       },

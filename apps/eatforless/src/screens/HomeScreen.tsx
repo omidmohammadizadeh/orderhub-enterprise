@@ -1,9 +1,10 @@
 // 2 · Home — Uber Eats order: address + bell, top pills, the cuisine marquee,
-// filter chips, Featured (sponsored), Top brands, Order again, the banner,
-// Deals to explore (sponsored) and All shops.
+// filter chips, Featured, Top brands, Order again, the banner, Deals to
+// explore and All shops. Paid placements arrive marked (shop.sponsored, first
+// in the list); the cards label them and report taps — see ShopCards.
 
 import { useNavigation } from "@react-navigation/native";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming, Easing } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -72,20 +73,20 @@ export function HomeScreen() {
   const [filters, setFilters] = useState<Set<Filter>>(new Set());
 
   const shops = shopsQ.data ?? [];
-  const open = (shop: Shop) => nav.navigate("Shop", { shop });
+  // Stable so the memoised cards don't re-render on every filter tap.
+  const open = useCallback((shop: Shop) => nav.navigate("Shop", { shop }), [nav]);
   const filtered = useMemo(() => applyFilters(shops, top, cuisine, filters), [shops, top, cuisine, filters]);
   const filtering = top !== "All" || cuisine !== null || filters.size > 0;
 
-  // PLACEHOLDER SOURCES — there is no ads API yet, so the sponsored rows and
-  // Top brands are drawn from the same nearby-shops list. Swap these for the
-  // sponsored-placements endpoint when it exists (README → API gaps).
+  // Featured, Top brands and Deals are drawn from the nearby-shops list. The
+  // API puts sponsored shops first, so they lead Featured when open; only
+  // those carry the Sponsored label — the sections themselves aren't ads.
   const featured = useMemo(() => shops.filter((s) => s.isOpen).slice(0, 6), [shops]);
   const brands = useMemo(() => [...shops].sort((a, b) => (b.rating?.count ?? 0) - (a.rating?.count ?? 0)).slice(0, 8), [shops]);
   const deals = useMemo(() => {
     const withDeal = shops.filter((s) => s.deal && s.isOpen);
     return (withDeal.length ? withDeal : [...shops].reverse()).slice(0, 5);
   }, [shops]);
-  const sponsoredId = featured[0]?.id;
 
   const again = useMemo(() => {
     const ids = [...new Set((ordersQ.data ?? []).map((o) => o.location?.eflListing?.id).filter(Boolean))] as string[];
@@ -180,7 +181,7 @@ export function HomeScreen() {
         ) : (
           <>
             <Animated.View entering={enter()} style={{ paddingTop: 26 }}>
-              <SectionHeader title="Featured on Eat For Less" sub="Sponsored" onMore={() => nav.navigate("Search")} />
+              <SectionHeader title="Featured on Eat For Less" onMore={() => nav.navigate("Search")} />
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12 }}>
                 <View style={styles.grid2}>
                   {pairs(featured).map((col, i) => (
@@ -228,7 +229,7 @@ export function HomeScreen() {
             </Animated.View>
 
             <Animated.View entering={enter()} style={{ paddingTop: 28 }}>
-              <SectionHeader title="Deals to explore" sub="Sponsored" />
+              <SectionHeader title="Deals to explore" />
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hRow}>
                 {deals.map((s) => <DealCard key={s.id} shop={s} onPress={open} />)}
               </ScrollView>
@@ -237,7 +238,7 @@ export function HomeScreen() {
             <Animated.View entering={enter()} style={styles.allShops}>
               <T v="h2">All shops</T>
               {shops.map((s) => (
-                <ListCard key={s.id} shop={s} onPress={open} sponsored={s.id === sponsoredId} />
+                <ListCard key={s.id} shop={s} onPress={open} />
               ))}
             </Animated.View>
           </>
